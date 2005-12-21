@@ -27,7 +27,7 @@
  *
  */
 
-package org.apache.http.impl;
+package org.apache.httpclient.impl;
 
 /**
  * When a response stream has been consumed, various parts of the HttpClient

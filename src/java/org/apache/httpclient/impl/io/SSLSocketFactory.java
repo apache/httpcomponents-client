@@ -27,7 +27,7 @@
  *
  */
 
-package org.apache.http.impl.io;
+package org.apache.httpclient.impl.io;
 
 import java.io.IOException;
 import java.net.InetAddress;

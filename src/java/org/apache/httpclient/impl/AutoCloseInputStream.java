@@ -27,7 +27,7 @@
  *
  */
 
-package org.apache.http.impl;
+package org.apache.httpclient.impl;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -37,7 +37,7 @@ import java.io.InputStream;
  * Closes an underlying stream as soon as the end of the stream is reached, and
  * notifies a client when it has done so.
  *
- * @author Ortwin Glück
+ * @author Ortwin Glï¿½ck
  * @author Eric Johnson
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *

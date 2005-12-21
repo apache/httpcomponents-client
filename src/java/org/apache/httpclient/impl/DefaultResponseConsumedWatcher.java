@@ -27,12 +27,14 @@
  *
  */
 
-package org.apache.http.impl;
+package org.apache.httpclient.impl;
 
 import java.io.IOException;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpResponse;
+import org.apache.http.impl.ConnectionReuseStrategy;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
 
 /**
  * <p>

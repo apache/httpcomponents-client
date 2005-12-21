@@ -26,7 +26,7 @@
  *
  */
 
-package org.apache.http.impl;
+package org.apache.httpclient.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
