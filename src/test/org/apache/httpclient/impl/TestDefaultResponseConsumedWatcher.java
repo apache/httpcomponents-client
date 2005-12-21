@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpConnection;
-import org.apache.http.HttpMutableEntity;
 import org.apache.http.HttpMutableResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
@@ -82,7 +81,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
     public void testConnectionAutoClose() throws Exception {
         byte[] data = new byte[] {'1', '2', '3'};
         HttpConnection conn = new HttpConnectionMockup();
-        HttpMutableEntity entity = new BasicHttpEntity();
+        BasicHttpEntity entity = new BasicHttpEntity();
         entity.setChunked(false);
         entity.setContentLength(data.length);
         entity.setContent(new ByteArrayInputStream(data));
@@ -105,7 +104,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
     public void testConnectionKeepAlive() throws Exception {
         byte[] data = new byte[] {'1', '2', '3'};
         HttpConnection conn = new HttpConnectionMockup();
-        HttpMutableEntity entity = new BasicHttpEntity();
+        BasicHttpEntity entity = new BasicHttpEntity();
         entity.setChunked(false);
         entity.setContentLength(data.length);
         entity.setContent(new ByteArrayInputStream(data));
