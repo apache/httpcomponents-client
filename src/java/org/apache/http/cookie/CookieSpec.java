@@ -29,8 +29,6 @@
 
 package org.apache.http.cookie;
 
-import java.util.Collection;
-
 import org.apache.http.Header;
 
 /**
@@ -43,40 +41,12 @@ import org.apache.http.Header;
  * </ul>
  * for a given host, port and path of origin
  * 
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
  *
  * @since 2.0
  */
 public interface CookieSpec {    
-
-    /** Path delimiter */
-    static final String PATH_DELIM = "/";
-
-    /** Path delimiting charachter */
-    static final char PATH_DELIM_CHAR = PATH_DELIM.charAt(0);
-
-    /**
-      * Parse the <tt>"Set-Cookie"</tt> header value into Cookie array.
-      * 
-      * <p>This method will not perform the validation of the resultant
-      * {@link Cookie}s</p> 
-      *
-      * @see #validate(String, int, String, boolean, Cookie)
-      *
-      * @param host the host which sent the <tt>Set-Cookie</tt> header
-      * @param port the port which sent the <tt>Set-Cookie</tt> header
-      * @param path the path which sent the <tt>Set-Cookie</tt> header
-      * @param secure <tt>true</tt> when the <tt>Set-Cookie</tt> header 
-      *  was received over secure conection
-      * @param header the <tt>Set-Cookie</tt> received from the server
-      * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
-      * @throws MalformedCookieException if an exception occurs during parsing
-      * @throws IllegalArgumentException if an input parameter is illegal
-      */
-    Cookie[] parse(String host, int port, String path, boolean secure,
-      final String header)
-      throws MalformedCookieException, IllegalArgumentException;
 
     /**
       * Parse the <tt>"Set-Cookie"</tt> Header into an array of Cookies.
@@ -86,118 +56,41 @@ public interface CookieSpec {
       *
       * @see #validate(String, int, String, boolean, Cookie)
       *
-      * @param host the host which sent the <tt>Set-Cookie</tt> header
-      * @param port the port which sent the <tt>Set-Cookie</tt> header
-      * @param path the path which sent the <tt>Set-Cookie</tt> header
-      * @param secure <tt>true</tt> when the <tt>Set-Cookie</tt> header 
-      *  was received over secure conection
       * @param header the <tt>Set-Cookie</tt> received from the server
+      * @param origin details of the cookie origin
       * @return an array of <tt>Cookie</tt>s parsed from the header
       * @throws MalformedCookieException if an exception occurs during parsing
-      * @throws IllegalArgumentException if an input parameter is illegal
       */
-    Cookie[] parse(String host, int port, String path, boolean secure, 
-      final Header header)
-      throws MalformedCookieException, IllegalArgumentException;
+    Cookie[] parse(Header header, CookieOrigin origin) throws MalformedCookieException;
 
     /**
       * Validate the cookie according to validation rules defined by the 
       *  cookie specification.
       *
-      * @param host the host from which the {@link Cookie} was received
-      * @param port the port from which the {@link Cookie} was received
-      * @param path the path from which the {@link Cookie} was received
-      * @param secure <tt>true</tt> when the {@link Cookie} was received 
-      *  using a secure connection
       * @param cookie the Cookie to validate
+      * @param origin details of the cookie origin
       * @throws MalformedCookieException if the cookie is invalid
-      * @throws IllegalArgumentException if an input parameter is illegal
       */
-    void validate(String host, int port, String path, boolean secure, 
-      final Cookie cookie) 
-      throws MalformedCookieException, IllegalArgumentException;
-    
+    void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException;
     
     /**
-     * Sets the {@link Collection} of date patterns used for parsing. The String patterns must be 
-     * compatible with {@link java.text.SimpleDateFormat}.
+     * Determines if a Cookie matches the target location.
      *
-     * @param datepatterns collection of date patterns
-     */
-    void setValidDateFormats(Collection datepatterns);
-    
-    /**
-     * Returns the {@link Collection} of date patterns used for parsing. The String patterns are compatible 
-     * with the {@link java.text.SimpleDateFormat}.
-     *
-     * @return collection of date patterns
-     */
-    Collection getValidDateFormats();
-    
-    /**
-     * Determines if a Cookie matches a location.
-     *
-     * @param host the host to which the request is being submitted
-     * @param port the port to which the request is being submitted
-     * @param path the path to which the request is being submitted
-     * @param secure <tt>true</tt> if the request is using a secure connection
      * @param cookie the Cookie to be matched
-     *
+     * @param origin the target to test against
+     * 
      * @return <tt>true</tt> if the cookie should be submitted with a request 
      *  with given attributes, <tt>false</tt> otherwise.
      */
-    boolean match(String host, int port, String path, boolean secure,
-        final Cookie cookie);
+    boolean match(Cookie cookie, CookieOrigin origin);
 
     /**
-     * Determines which of an array of Cookies matches a location.
-     *
-     * @param host the host to which the request is being submitted
-     * @param port the port to which the request is being submitted 
-     *  (currenlty ignored)
-     * @param path the path to which the request is being submitted
-     * @param secure <tt>true</tt> if the request is using a secure protocol
-     * @param cookies an array of <tt>Cookie</tt>s to be matched
-     *
-     * @return <tt>true</tt> if the cookie should be submitted with a request 
-     *  with given attributes, <tt>false</tt> otherwise.
-     */
-    Cookie[] match(String host, int port, String path, boolean secure, 
-        final Cookie cookies[]);
-
-    /**
-     * Create a <tt>"Cookie"</tt> header value for an array of cookies.
-     *
-     * @param cookie the cookie to be formatted as string
-     * @return a string suitable for sending in a <tt>"Cookie"</tt> header.
-     */
-    String formatCookie(Cookie cookie);
-
-    /**
-     * Create a <tt>"Cookie"</tt> header value for an array of cookies.
-     *
-     * @param cookies the Cookies to be formatted
-     * @return a string suitable for sending in a Cookie header.
-     * @throws IllegalArgumentException if an input parameter is illegal
-     */
-    String formatCookies(Cookie[] cookies) throws IllegalArgumentException;
-    
-    /**
-     * Create a <tt>"Cookie"</tt> Header for an array of Cookies.
+     * Create <tt>"Cookie"</tt> headers for an array of Cookies.
      *
      * @param cookies the Cookies format into a Cookie header
      * @return a Header for the given Cookies.
      * @throws IllegalArgumentException if an input parameter is illegal
      */
-    Header formatCookieHeader(Cookie[] cookies) throws IllegalArgumentException;
-
-    /**
-     * Create a <tt>"Cookie"</tt> Header for single Cookie.
-     *
-     * @param cookie the Cookie format as a <tt>Cookie</tt> header
-     * @return a Cookie header.
-     * @throws IllegalArgumentException if an input parameter is illegal
-     */
-    Header formatCookieHeader(Cookie cookie) throws IllegalArgumentException;
+    Header[] formatCookies(Cookie[] cookies);
 
 }
