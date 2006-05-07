@@ -27,7 +27,7 @@
  *
  */
 
-package org.apache.httpclient.impl.io;
+package org.apache.http.conn.ssl;
 
 import java.io.IOException;
 import java.net.InetAddress;
