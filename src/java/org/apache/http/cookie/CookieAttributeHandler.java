@@ -30,14 +30,16 @@ package org.apache.http.cookie;
 
 /**
  * Ths interface represents a cookie attribute handler responsible
- * for parsing, validating, matching and formatting a specific
- * cookie attribute, such as path, domain, port, etc.
+ * for parsing, validating, and matching a specific cookie attribute, 
+ * such as path, domain, port, etc.
  *
  * Different cookie specifications can provide a specific
  * implementation for this class based on their cookie handling
  * rules.
  *
  * @author jain.samit@gmail.com (Samit Jain)
+ * 
+ * @since 3.1
  */
 public interface CookieAttributeHandler {
 

@@ -28,6 +28,14 @@
  */
 package org.apache.http.cookie;
 
+/**
+ * CookieOrigin class incapsulates details of an origin server that 
+ * are relevant when parsing, validating or matching HTTP cookies.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @since 3.1
+ */
 public final class CookieOrigin {
 
 	private final String host;
