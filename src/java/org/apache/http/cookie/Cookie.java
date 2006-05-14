@@ -1,5 +1,5 @@
 /*
- * $Header: /home/jerenkrantz/tmp/commons/commons-convert/cvs/home/cvs/jakarta-commons//httpclient/src/java/org/apache/commons/httpclient/Cookie.java,v 1.44 2004/06/05 16:49:20 olegk Exp $
+ * $HeadURL$
  * $Revision$
  * $Date$
  *
@@ -56,84 +56,11 @@ import org.apache.http.util.LangUtils;
  */
 public class Cookie extends NameValuePair {
 
-    // ----------------------------------------------------------- Constructors
-
     /**
      * Default constructor. Creates a blank cookie 
      */
-
-    public Cookie() {
-        this(null, "noname", null, null, null, false);
-    }
-
-    /**
-     * Creates a cookie with the given name, value and domain attribute.
-     *
-     * @param name    the cookie name
-     * @param value   the cookie value
-     * @param domain  the domain this cookie can be sent to
-     */
-    public Cookie(String domain, String name, String value) {
-        this(domain, name, value, null, null, false);
-    }
-
-    /**
-     * Creates a cookie with the given name, value, domain attribute,
-     * path attribute, expiration attribute, and secure attribute 
-     *
-     * @param name    the cookie name
-     * @param value   the cookie value
-     * @param domain  the domain this cookie can be sent to
-     * @param path    the path prefix for which this cookie can be sent
-     * @param expires the {@link Date} at which this cookie expires,
-     *                or <tt>null</tt> if the cookie expires at the end
-     *                of the session
-     * @param secure if true this cookie can only be sent over secure
-     * connections
-     * @throws IllegalArgumentException If cookie name is null or blank,
-     *   cookie name contains a blank, or cookie name starts with character $
-     *   
-     */
-    public Cookie(String domain, String name, String value, 
-        String path, Date expires, boolean secure) {
-            
+    public Cookie(final String name, final String value) {
         super(name, value);
-        if (name == null) {
-            throw new IllegalArgumentException("Cookie name may not be null");
-        }
-        if (name.trim().equals("")) {
-            throw new IllegalArgumentException("Cookie name may not be blank");
-        }
-        this.setPath(path);
-        this.setDomain(domain);
-        this.setExpiryDate(expires);
-        this.setSecure(secure);
-    }
-
-    /**
-     * Creates a cookie with the given name, value, domain attribute,
-     * path attribute, maximum age attribute, and secure attribute 
-     *
-     * @param name   the cookie name
-     * @param value  the cookie value
-     * @param domain the domain this cookie can be sent to
-     * @param path   the path prefix for which this cookie can be sent
-     * @param maxAge the number of seconds for which this cookie is valid.
-     *               maxAge is expected to be a non-negative number. 
-     *               <tt>-1</tt> signifies that the cookie should never expire.
-     * @param secure if <tt>true</tt> this cookie can only be sent over secure
-     * connections
-     */
-    public Cookie(String domain, String name, String value, String path, 
-        int maxAge, boolean secure) {
-            
-        this(domain, name, value, path, null, secure);
-        if (maxAge < -1) {
-            throw new IllegalArgumentException("Invalid max age:  " + Integer.toString(maxAge));
-        }            
-        if (maxAge >= 0) {
-            setExpiryDate(new Date(System.currentTimeMillis() + maxAge * 1000L));
-        }
     }
 
     /**

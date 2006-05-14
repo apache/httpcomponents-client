@@ -60,9 +60,13 @@ public final class CookieOrigin {
             throw new IllegalArgumentException(
                     "Path of origin may not be null.");
         }
-		this.host = host;
+		this.host = host.toLowerCase();
 		this.port = port;
-		this.path = path;
+        if (!path.trim().equals("")) {
+            this.path = path;
+        } else {
+            this.path = "/";
+        }
 		this.secure = secure;
 	}
 
