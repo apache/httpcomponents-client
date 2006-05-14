@@ -29,6 +29,7 @@
 package org.apache.httpclient.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpConnection;
@@ -94,10 +95,9 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         // Wrap the entity input stream 
         ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(conn, response);
-        entity.setContent(new AutoCloseInputStream(entity.getContent(), watcher));
-        
+        InputStream content = new AutoCloseInputStream(entity.getContent(), watcher);
         assertTrue(conn.isOpen());
-        while (entity.getContent().read() != -1) {}
+        while (content.read() != -1) {}
         assertFalse(conn.isOpen());
     }
 
@@ -117,10 +117,10 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         // Wrap the entity input stream 
         ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(conn, response);
-        entity.setContent(new AutoCloseInputStream(entity.getContent(), watcher));
+        InputStream content = new AutoCloseInputStream(entity.getContent(), watcher);
         
         assertTrue(conn.isOpen());
-        while (entity.getContent().read() != -1) {}
+        while (content.read() != -1) {}
         assertTrue(conn.isOpen());
     }
 }
