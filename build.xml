@@ -1,0 +1,53 @@
+<project name="Jakarta HttpCompomponents HttpClient" default="compile" basedir=".">
+
+  <property file="${basedir}/build.properties"/>
+  <property file="${basedir}/../project/build.properties"/>
+  <property file="${user.home}/build.properties"/>
+
+<!-- ========== Required component properties ============================= -->
+
+  <property name="component.name"          value="httpclient"/>
+  <property name="component.title"         value="Jakarta HttpComponents HttpClient"/>
+  <property name="component.version"       value="4.0-alpha1-SNAPSHOT"/>
+  <property name="component.home"          value="${basedir}"/>
+  <property name="component.src"           value="${component.home}/src/java"/>
+  <property name="component.tests"         value="${component.home}/src/test"/>
+  <property name="component.xmpls"         value="${component.home}/src/examples"/>
+   
+<!-- ========== External dependencies ===================================== -->
+
+  <property name="http.core.home"         value="../httpcore"/>
+  <property name="http.core.classes"      value="${http.core.home}/target/classes"/>
+
+  <path id="component.depends">
+    <pathelement location="${component.classes}"/>
+    <pathelement location="${http.core.classes}"/>
+  </path>
+
+<!-- ========== Import common targets and macrdefs ======================== -->
+
+  <import file="../project/build-common.xml"/>
+
+<!-- ========== Targets: "External" Targets: Compilation ================== -->
+
+  <target name="compile" depends="prepare">
+    <do-compile/>
+  </target>
+
+  <target name="test" depends="compile">
+    <do-test testentry="org.apache.httpclient.TestAll"/>
+  </target>
+
+  <target name="javadoc" depends="compile">
+    <do-javadoc packagenames ="org.apache.http.*"/>
+  </target>
+
+  <target name="clover" depends="clover-db, test">
+    <do-clover/>
+  </target>
+
+  <target name="package" depends="compile">
+    <do-package/>
+  </target>
+
+</project>
