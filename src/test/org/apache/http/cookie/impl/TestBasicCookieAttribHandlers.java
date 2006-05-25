@@ -1,0 +1,263 @@
+/*
+ * $HeadURL$
+ * $Revisio$
+ * $Date$
+ * ====================================================================
+ *
+ *  Copyright 2002-2004 The Apache Software Foundation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+
+package org.apache.http.cookie.impl;
+
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieAttributeHandler;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.MalformedCookieException;
+
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
+public class TestBasicCookieAttribHandlers extends TestCase {
+
+    public TestBasicCookieAttribHandlers(String testName) {
+        super(testName);
+    }
+
+    public static Test suite() {
+        return new TestSuite(TestBasicCookieAttribHandlers.class);
+    }
+
+    // ------------------------------------------------------------------- Main
+    public static void main(String args[]) {
+        String[] testCaseName = { TestBasicCookieAttribHandlers.class.getName() };
+        junit.textui.TestRunner.main(testCaseName);
+    }
+
+    public void testBasicPathParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        h.parse(cookie, "stuff");
+        assertEquals("stuff", cookie.getPath());
+        assertTrue(cookie.isPathAttributeSpecified());
+        h.parse(cookie, "");
+        assertEquals("/", cookie.getPath());
+        assertTrue(cookie.isPathAttributeSpecified());
+        h.parse(cookie, null);
+        assertEquals("/", cookie.getPath());
+        assertTrue(cookie.isPathAttributeSpecified());
+    }
+
+    public void testBasicPathMatch1() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        assertTrue(h.match(cookie, origin));
+    }
+    
+    public void testBasicPathMatch2() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        assertTrue(h.match(cookie, origin));
+    }
+    
+    public void testBasicPathMatch3() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/more-stuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        assertTrue(h.match(cookie, origin));
+    }
+    
+    public void testBasicPathMatch4() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuffed", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        assertFalse(h.match(cookie, origin));
+    }
+
+    public void testBasicPathMatch5() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/otherstuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        assertFalse(h.match(cookie, origin));
+    }
+
+    public void testBasicPathMatch6() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff/");
+        assertTrue(h.match(cookie, origin));
+    }
+
+    public void testBasicPathMatch7() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        assertTrue(h.match(cookie, origin));
+    }
+
+    public void testBasicPathValidate() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieAttributeHandler h = new BasicPathHandler();
+        cookie.setPath("/stuff");
+        h.validate(cookie, origin);
+        cookie.setPath("/stuffed");
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException must have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicPathInvalidInput() throws Exception {
+        CookieAttributeHandler h = new BasicPathHandler();
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(new Cookie("name", "value"), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicMaxAgeParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicMaxAgeHandler();
+        h.parse(cookie, "2000");
+        assertNotNull(cookie.getExpiryDate());
+    }
+
+    public void testBasicMaxAgeParseInvalid() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicMaxAgeHandler();
+        try {
+            h.parse(cookie, "garbage");
+            fail("MalformedCookieException must have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+        try {
+            h.parse(cookie, null);
+            fail("MalformedCookieException must have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicMaxAgeInvalidInput() throws Exception {
+        CookieAttributeHandler h = new BasicMaxAgeHandler();
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicCommentParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicCommentHandler();
+        h.parse(cookie, "whatever");
+        assertEquals("whatever", cookie.getComment());
+        h.parse(cookie, null);
+        assertEquals(null, cookie.getComment());
+    }
+
+    public void testBasicCommentInvalidInput() throws Exception {
+        CookieAttributeHandler h = new BasicCommentHandler();
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+    
+    public void testBasicSecureParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicSecureHandler();
+        h.parse(cookie, "whatever");
+        assertTrue(cookie.isSecure());
+        h.parse(cookie, null);
+        assertTrue(cookie.isSecure());
+    }
+
+    public void testBasicSecureMatch() throws Exception {
+        Cookie cookie = new Cookie("name", "value");
+        CookieAttributeHandler h = new BasicSecureHandler();
+
+        CookieOrigin origin1 = new CookieOrigin("somehost", 80, "/stuff", false); 
+        cookie.setSecure(false);
+        assertTrue(h.match(cookie, origin1));
+        cookie.setSecure(true);
+        assertFalse(h.match(cookie, origin1));
+
+        CookieOrigin origin2 = new CookieOrigin("somehost", 80, "/stuff", true); 
+        cookie.setSecure(false);
+        assertTrue(h.match(cookie, origin2));
+        cookie.setSecure(true);
+        assertTrue(h.match(cookie, origin2));
+    }
+
+    public void testBasicSecureInvalidInput() throws Exception {
+        CookieAttributeHandler h = new BasicSecureHandler();
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(new Cookie("name", "value"), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+
+}

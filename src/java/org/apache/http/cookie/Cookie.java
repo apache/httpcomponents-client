@@ -186,7 +186,7 @@ public class Cookie extends NameValuePair {
      * @return <code>true</code> if this cookie should only be sent over secure connections.
      * @see #setSecure(boolean)
      */
-    public boolean getSecure() {
+    public boolean isSecure() {
         return isSecure;
     }
 
@@ -200,7 +200,7 @@ public class Cookie extends NameValuePair {
      *
      * @param secure The value of the secure attribute
      * 
-     * @see #getSecure()
+     * @see #isSecure()
      */
     public void setSecure (boolean secure) {
         isSecure = secure;
@@ -240,19 +240,6 @@ public class Cookie extends NameValuePair {
         return (cookieExpiryDate != null  
             && cookieExpiryDate.getTime() <= System.currentTimeMillis());
     }
-
-    /**
-     * Returns true if this cookie has expired according to the time passed in.
-     * 
-     * @param now The current time.
-     * 
-     * @return <tt>true</tt> if the cookie expired.
-     */
-    public boolean isExpired(Date now) {
-        return (cookieExpiryDate != null  
-            && cookieExpiryDate.getTime() <= now.getTime());
-    }
-
 
     /**
      * Indicates whether the cookie had a path specified in a 

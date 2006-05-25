@@ -2,9 +2,10 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  *
- *  Copyright 1999-2006 The Apache Software Foundation
+ *  Copyright 2002-2004 The Apache Software Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,28 +25,24 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
-
+ */ 
 package org.apache.http.cookie.impl;
 
-import junit.framework.*;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieAttributeHandler;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.MalformedCookieException;
 
-public class TestAllCookieImpl extends TestCase {
+public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
-    public TestAllCookieImpl(String testName) {
-        super(testName);
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
+            throws MalformedCookieException {
+        // Do nothing
     }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestAbstractCookieSpec.suite());
-        suite.addTest(TestBasicCookieAttribHandlers.suite());
-        return suite;
+    
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+        // Always match
+        return true;
     }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllCookieImpl.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
+    
 }

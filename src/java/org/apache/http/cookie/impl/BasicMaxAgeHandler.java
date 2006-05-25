@@ -2,9 +2,10 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  *
- *  Copyright 1999-2006 The Apache Software Foundation
+ *  Copyright 2002-2004 The Apache Software Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,28 +25,36 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
-
+ */ 
 package org.apache.http.cookie.impl;
 
-import junit.framework.*;
+import java.util.Date;
 
-public class TestAllCookieImpl extends TestCase {
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.MalformedCookieException;
 
-    public TestAllCookieImpl(String testName) {
-        super(testName);
+public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
+
+    public BasicMaxAgeHandler() {
+        super();
     }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestAbstractCookieSpec.suite());
-        suite.addTest(TestBasicCookieAttribHandlers.suite());
-        return suite;
+    
+    public void parse(final Cookie cookie, final String value) 
+            throws MalformedCookieException {
+        if (cookie == null) {
+            throw new IllegalArgumentException("Cookie may not be null");
+        }
+        if (value == null) {
+            throw new MalformedCookieException("Missing value for max-age attribute");
+        }
+        int age;
+        try {
+            age = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new MalformedCookieException ("Invalid max-age attribute: " 
+                    + value);
+        }
+        cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
     }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllCookieImpl.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
+    
 }

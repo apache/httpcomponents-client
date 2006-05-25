@@ -29,6 +29,7 @@
 package org.apache.http.cookie.impl;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.http.Header;
 import org.apache.http.cookie.Cookie;
@@ -96,9 +97,18 @@ public class TestAbstractCookieSpec extends TestCase {
         AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
-        
+        cookiespec.registerAttribHandler("thistoo", h1);
+        cookiespec.registerAttribHandler("thattoo", h2);
+
         assertTrue(h1 == cookiespec.getAttribHandler("this"));
         assertTrue(h2 == cookiespec.getAttribHandler("that"));
+        assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
+        assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
+        
+        Iterator it = cookiespec.getAttribHandlerIterator();
+        assertNotNull(it.next());
+        assertNotNull(it.next());
+        assertFalse(it.hasNext());
     }
 
     public void testInvalidHandler() throws IOException {
@@ -114,6 +124,22 @@ public class TestAbstractCookieSpec extends TestCase {
             cookiespec.getAttribHandler("whatever");
             fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicPathInvalidInput() throws Exception {
+        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        try {
+            cookiespec.registerAttribHandler(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.registerAttribHandler("whatever", null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
             // expected
         }
     }
