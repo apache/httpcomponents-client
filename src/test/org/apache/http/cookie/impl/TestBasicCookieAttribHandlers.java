@@ -28,10 +28,15 @@
 
 package org.apache.http.cookie.impl;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.util.DateUtils;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -260,4 +265,70 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         }
     }
 
+    public void testBasicExpiresParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        
+        DateFormat dateformat = new SimpleDateFormat(DateUtils.PATTERN_RFC1123);
+        dateformat.setTimeZone(DateUtils.GMT);
+        
+        Date now = new Date();
+        
+        h.parse(cookie, dateformat.format(now));
+        assertNotNull(cookie.getExpiryDate());
+    }
+    
+    public void testBasicExpiresParseInvalid() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        try {
+            h.parse(cookie, "garbage");
+            fail("MalformedCookieException must have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+        try {
+            h.parse(cookie, null);
+            fail("MalformedCookieException must have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicExpiresMatch() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        
+        Date past = new Date(System.currentTimeMillis() - 20000000);
+        Date future = new Date(System.currentTimeMillis() + 20000000);
+        
+        cookie.setExpiryDate(past);
+        assertFalse(h.match(cookie, origin));
+        cookie.setExpiryDate(future);
+        assertTrue(h.match(cookie, origin));
+    }
+    
+    public void testBasicExpiresInvalidInput() throws Exception {
+        try {
+            new BasicExpiresHandler(null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+    
 }
