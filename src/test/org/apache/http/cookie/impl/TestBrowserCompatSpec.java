@@ -51,18 +51,18 @@ import junit.framework.TestSuite;
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @version $Revision$
  */
-public class TestCookieCompatibilitySpec extends TestCase {
+public class TestBrowserCompatSpec extends TestCase {
 
     // ------------------------------------------------------------ Constructor
 
-    public TestCookieCompatibilitySpec(String name) {
+    public TestBrowserCompatSpec(String name) {
         super(name);
     }
 
     // ------------------------------------------------------- TestCase Methods
 
     public static Test suite() {
-        return new TestSuite(TestCookieCompatibilitySpec.class);
+        return new TestSuite(TestBrowserCompatSpec.class);
     }
 
     /**
