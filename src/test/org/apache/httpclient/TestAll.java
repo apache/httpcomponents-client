@@ -28,6 +28,7 @@
 
 package org.apache.httpclient;
 
+import org.apache.http.cookie.TestAllCookie;
 import org.apache.http.cookie.impl.TestAllCookieImpl;
 import org.apache.httpclient.impl.TestAllHttpClientImpl;
 
@@ -41,6 +42,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTest(TestAllCookie.suite());
         suite.addTest(TestAllCookieImpl.suite());
         suite.addTest(TestAllHttpClientImpl.suite());
         return suite;

@@ -38,6 +38,7 @@ public class TestAllCookie extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTest(TestCookieOrigin.suite());
         suite.addTest(TestCookiePathComparator.suite());
         return suite;
     }
