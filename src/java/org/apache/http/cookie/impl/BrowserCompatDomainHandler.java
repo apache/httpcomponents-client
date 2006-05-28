@@ -102,6 +102,9 @@ public class BrowserCompatDomainHandler implements CookieAttributeHandler {
         }
         String host = origin.getHost();
         String domain = cookie.getDomain();
+        if (domain == null) {
+            return false;
+        }
         if (host.equals(domain)) {
             return true;
         }
