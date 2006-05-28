@@ -554,6 +554,23 @@ public class TestBrowserCompatSpec extends TestCase {
     }
 
     /**
+     * Tests if cookie constructor rejects cookie name containing blanks.
+     */
+    public void testCookieNameBlank() throws Exception {
+        Header header = new Header("Set-Cookie", "=stuff");
+        CookieSpec cookiespec = new BrowserCompatSpec();
+        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        try {
+            Cookie[] parsed = cookiespec.parse(header, origin);
+            for (int i = 0; i < parsed.length; i++) {
+                cookiespec.validate(parsed[i], origin);
+            }
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException expected) {
+        }
+    }
+
+    /**
      * Tests if cookie constructor rejects cookie name starting with $.
      */
     public void testCookieNameStartingWithDollarSign() throws Exception {
@@ -885,5 +902,56 @@ public class TestBrowserCompatSpec extends TestCase {
         new MalformedCookieException("whatever", null); 
     }
 
+    public void testInvalidInput() throws Exception {
+        CookieSpec cookiespec = new BrowserCompatSpec();
+        try {
+            cookiespec.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.parse(new Header("Set-Cookie", "name=value"), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.validate(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.validate(new Cookie("name", null), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.match(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.match(new Cookie("name", null), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.formatCookies(null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            cookiespec.formatCookies(new Cookie[] {});
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+    
 }
-

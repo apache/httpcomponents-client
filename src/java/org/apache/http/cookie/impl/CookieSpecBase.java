@@ -103,9 +103,6 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        if (cookie.getName() == null || cookie.getName().trim().equals("")) {
-            throw new MalformedCookieException("Cookie name may not be blank");
-        }
         for (Iterator i = getAttribHandlerIterator(); i.hasNext();) {
             CookieAttributeHandler handler = (CookieAttributeHandler) i.next();
             handler.validate(cookie, origin);

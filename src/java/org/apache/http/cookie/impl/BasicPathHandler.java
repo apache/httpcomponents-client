@@ -68,9 +68,6 @@ public class BasicPathHandler implements CookieAttributeHandler {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         String targetpath = origin.getPath();
-        if (targetpath == null) {
-            targetpath = "/";
-        }
         String topmostPath = cookie.getPath();
         if (topmostPath == null) {
             topmostPath = "/";

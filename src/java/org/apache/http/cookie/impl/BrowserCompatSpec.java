@@ -83,7 +83,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
         }
-        if (header == null) {
+        if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         String headervalue = header.getValue();
