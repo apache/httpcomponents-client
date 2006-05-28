@@ -128,6 +128,19 @@ public class TestBrowserCompatCookieAttribHandlers extends TestCase {
         h.validate(cookie, origin);
     }
 
+    public void testBrowserCompatDomainValidate4() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BrowserCompatDomainHandler();
+        
+        cookie.setDomain(null);
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
     
     public void testBrowserCompatDomainMatch1() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
@@ -151,6 +164,9 @@ public class TestBrowserCompatCookieAttribHandlers extends TestCase {
         
         cookie.setDomain(".somedomain.com");
         assertTrue(h.match(cookie, origin));
+
+        cookie.setDomain(null);
+        assertFalse(h.match(cookie, origin));
     }
 
     public void testBrowserCompatDomainInvalidInput() throws Exception {

@@ -68,26 +68,29 @@ public class BrowserCompatDomainHandler implements CookieAttributeHandler {
         // request-host and domain must be identical for the cookie to sent 
         // back to the origin-server.
         String host = origin.getHost();
+        String domain = cookie.getDomain();
+        if (domain == null) {
+            throw new MalformedCookieException("Cookie domain may not be null");
+        }
         if (host.indexOf(".") >= 0) {
             // Not required to have at least two dots.  RFC 2965.
             // A Set-Cookie2 with Domain=ajax.com will be accepted.
 
             // domain must match host
-            if (!host.endsWith(cookie.getDomain())) {
-                String s = cookie.getDomain();
-                if (s.startsWith(".")) {
-                    s = s.substring(1, s.length());
+            if (!host.endsWith(domain)) {
+                if (domain.startsWith(".")) {
+                    domain = domain.substring(1, domain.length());
                 }
-                if (!host.equals(s)) { 
+                if (!host.equals(domain)) { 
                     throw new MalformedCookieException(
-                        "Illegal domain attribute \"" + cookie.getDomain() 
+                        "Illegal domain attribute \"" + domain 
                         + "\". Domain of origin: \"" + host + "\"");
                 }
             }
         } else {
-            if (!host.equals(cookie.getDomain())) {
+            if (!host.equals(domain)) {
                 throw new MalformedCookieException(
-                    "Illegal domain attribute \"" + cookie.getDomain() 
+                    "Illegal domain attribute \"" + domain 
                     + "\". Domain of origin: \"" + host + "\"");
             }
         }

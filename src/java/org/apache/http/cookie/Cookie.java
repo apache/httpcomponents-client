@@ -155,6 +155,8 @@ public class Cookie extends NameValuePair {
               domain = domain.substring(0, ndx);
             }
             cookieDomain = domain.toLowerCase();
+        } else {
+            cookieDomain = null;
         }
     }
 
