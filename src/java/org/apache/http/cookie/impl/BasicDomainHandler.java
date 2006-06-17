@@ -33,9 +33,9 @@ import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-public class BrowserCompatDomainHandler implements CookieAttributeHandler {
+public class BasicDomainHandler implements CookieAttributeHandler {
 
-    public BrowserCompatDomainHandler() {
+    public BasicDomainHandler() {
         super();
     }
     

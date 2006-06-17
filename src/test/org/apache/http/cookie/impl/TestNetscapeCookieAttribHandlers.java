@@ -37,51 +37,43 @@ import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-public class TestBrowserCompatCookieAttribHandlers extends TestCase {
+public class TestNetscapeCookieAttribHandlers extends TestCase {
 
-    public TestBrowserCompatCookieAttribHandlers(String testName) {
+    public TestNetscapeCookieAttribHandlers(String testName) {
         super(testName);
     }
 
     public static Test suite() {
-        return new TestSuite(TestBrowserCompatCookieAttribHandlers.class);
+        return new TestSuite(TestNetscapeCookieAttribHandlers.class);
     }
 
     // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestBrowserCompatCookieAttribHandlers.class.getName() };
+        String[] testCaseName = { TestNetscapeCookieAttribHandlers.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
-    public void testBrowserCompatDomainParse() throws Exception {
+    public void testNetscapeDomainValidate1() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
-        h.parse(cookie, "www.somedomain.com");
-        assertEquals("www.somedomain.com", cookie.getDomain());
-        assertTrue(cookie.isDomainAttributeSpecified());
-    }
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
+        CookieAttributeHandler h = new NetscapeDomainHandler();
+        
+        cookie.setDomain("somehost");
+        h.validate(cookie, origin);
 
-    public void testBrowserCompatDomainParseInvalid() throws Exception {
-        Cookie cookie = new Cookie("name", "value"); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
+        cookie.setDomain("otherhost");
         try {
-            h.parse(cookie, "");
-            fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
-            // expected
-        }
-        try {
-            h.parse(cookie, null);
+            h.validate(cookie, origin);
             fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
-    public void testBrowserCompatDomainValidate1() throws Exception {
+    public void testNetscapeDomainValidate2() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
+        CookieAttributeHandler h = new NetscapeDomainHandler();
         
         cookie.setDomain(".somedomain.com");
         h.validate(cookie, origin);
@@ -102,15 +94,15 @@ public class TestBrowserCompatCookieAttribHandlers extends TestCase {
         }
     }
 
-    public void testBrowserCompatDomainValidate2() throws Exception {
+    public void testNetscapeDomainValidate3() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
+        CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false); 
+        CookieAttributeHandler h = new NetscapeDomainHandler();
         
-        cookie.setDomain("somehost");
+        cookie.setDomain(".a.com");
         h.validate(cookie, origin);
 
-        cookie.setDomain("otherhost");
+        cookie.setDomain(".com");
         try {
             h.validate(cookie, origin);
             fail("MalformedCookieException should have been thrown");
@@ -119,21 +111,15 @@ public class TestBrowserCompatCookieAttribHandlers extends TestCase {
         }
     }
 
-    public void testBrowserCompatDomainValidate3() throws Exception {
+    public void testNetscapeDomainValidate4() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
+        CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false); 
+        CookieAttributeHandler h = new NetscapeDomainHandler();
         
-        cookie.setDomain(".somedomain.com");
+        cookie.setDomain(".a.b.c");
         h.validate(cookie, origin);
-    }
 
-    public void testBrowserCompatDomainValidate4() throws Exception {
-        Cookie cookie = new Cookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
-        
-        cookie.setDomain(null);
+        cookie.setDomain(".b.c");
         try {
             h.validate(cookie, origin);
             fail("MalformedCookieException should have been thrown");
@@ -142,53 +128,29 @@ public class TestBrowserCompatCookieAttribHandlers extends TestCase {
         }
     }
     
-    public void testBrowserCompatDomainMatch1() throws Exception {
-        Cookie cookie = new Cookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
-
-        cookie.setDomain("somedomain.com");
-        assertTrue(h.match(cookie, origin));
-        
-        cookie.setDomain(".somedomain.com");
-        assertTrue(h.match(cookie, origin));
-    }
-
-    public void testBrowserCompatDomainMatch2() throws Exception {
+    public void testNetscapeDomainMatch1() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
-
-        cookie.setDomain("somedomain.com");
-        assertTrue(h.match(cookie, origin));
-        
-        cookie.setDomain(".somedomain.com");
-        assertTrue(h.match(cookie, origin));
+        CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(null);
         assertFalse(h.match(cookie, origin));
+        
+        cookie.setDomain(".somedomain.com");
+        assertTrue(h.match(cookie, origin));
+    }
+
+    public void testNetscapeDomainMatch2() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new NetscapeDomainHandler();
+
+        cookie.setDomain(".somedomain.com");
+        assertTrue(h.match(cookie, origin));
     }
 
     public void testBrowserCompatDomainInvalidInput() throws Exception {
-        CookieAttributeHandler h = new BrowserCompatDomainHandler();
-        try {
-            h.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
-        try {
-            h.validate(null, null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
-        try {
-            h.validate(new Cookie("name", "value"), null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        CookieAttributeHandler h = new NetscapeDomainHandler();
         try {
             h.match(null, null);
             fail("IllegalArgumentException must have been thrown");

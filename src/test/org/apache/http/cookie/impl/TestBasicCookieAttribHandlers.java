@@ -58,6 +58,156 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         junit.textui.TestRunner.main(testCaseName);
     }
 
+    public void testBasicDomainParse() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        h.parse(cookie, "www.somedomain.com");
+        assertEquals("www.somedomain.com", cookie.getDomain());
+        assertTrue(cookie.isDomainAttributeSpecified());
+    }
+
+    public void testBasicDomainParseInvalid() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        try {
+            h.parse(cookie, "");
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+        try {
+            h.parse(cookie, null);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicDomainValidate1() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        
+        cookie.setDomain(".somedomain.com");
+        h.validate(cookie, origin);
+
+        cookie.setDomain(".otherdomain.com");
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+        cookie.setDomain("www.otherdomain.com");
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicDomainValidate2() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        
+        cookie.setDomain("somehost");
+        h.validate(cookie, origin);
+
+        cookie.setDomain("otherhost");
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+
+    public void testBasicDomainValidate3() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        
+        cookie.setDomain(".somedomain.com");
+        h.validate(cookie, origin);
+    }
+
+    public void testBasicDomainValidate4() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+        
+        cookie.setDomain(null);
+        try {
+            h.validate(cookie, origin);
+            fail("MalformedCookieException should have been thrown");
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
+    }
+    
+    public void testBasicDomainMatch1() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+
+        cookie.setDomain("somedomain.com");
+        assertTrue(h.match(cookie, origin));
+        
+        cookie.setDomain(".somedomain.com");
+        assertTrue(h.match(cookie, origin));
+    }
+
+    public void testBasicDomainMatch2() throws Exception {
+        Cookie cookie = new Cookie("name", "value"); 
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        CookieAttributeHandler h = new BasicDomainHandler();
+
+        cookie.setDomain("somedomain.com");
+        assertTrue(h.match(cookie, origin));
+        
+        cookie.setDomain(".somedomain.com");
+        assertTrue(h.match(cookie, origin));
+
+        cookie.setDomain(null);
+        assertFalse(h.match(cookie, origin));
+    }
+
+    public void testBasicDomainInvalidInput() throws Exception {
+        CookieAttributeHandler h = new BasicDomainHandler();
+        try {
+            h.parse(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.validate(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.validate(new Cookie("name", "value"), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(null, null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+        try {
+            h.match(new Cookie("name", "value"), null);
+            fail("IllegalArgumentException must have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
+        }
+    }
+
     public void testBasicPathParse() throws Exception {
         Cookie cookie = new Cookie("name", "value"); 
         CookieAttributeHandler h = new BasicPathHandler();
