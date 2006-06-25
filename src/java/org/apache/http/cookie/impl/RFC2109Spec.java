@@ -1,0 +1,206 @@
+/*
+ * $HeadRL$
+ * $Revision$
+ * $Date$
+ * 
+ * ====================================================================
+ *
+ *  Copyright 2002-2006 The Apache Software Foundation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+
+package org.apache.http.cookie.impl;
+
+import java.util.Arrays;
+
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookiePathComparator;
+import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.io.CharArrayBuffer;
+import org.apache.http.util.DateUtils;
+
+/**
+ * RFC 2109 compliant cookie policy
+ *
+ * @author  B.C. Holmes
+ * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
+ * @author <a href="mailto:dsale@us.britannica.com">Doug Sale</a>
+ * @author Rod Waldhoff
+ * @author dIon Gillard
+ * @author Sean C. Sullivan
+ * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
+ * @author Marc A. Saegesser
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
+ * 
+ * @since 2.0 
+ */
+
+public class RFC2109Spec extends CookieSpecBase {
+
+    private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator(); 
+    
+    private boolean oneHeader = false;
+    
+    /** Default constructor */
+    public RFC2109Spec(boolean oneHeader) {
+        super();
+        registerAttribHandler("version", new RFC2109VersionHandler());
+        registerAttribHandler("path", new BasicPathHandler());
+        registerAttribHandler("domain", new RFC2109DomainHandler());
+        registerAttribHandler("max-age", new BasicMaxAgeHandler());
+        registerAttribHandler("secure", new BasicSecureHandler());
+        registerAttribHandler("comment", new BasicCommentHandler());
+        registerAttribHandler("expires", new BasicExpiresHandler(
+                new String[] {
+                        DateUtils.PATTERN_RFC1123,
+                        DateUtils.PATTERN_RFC1036,
+                        DateUtils.PATTERN_ASCTIME}));
+        this.oneHeader = oneHeader;
+    }
+
+    /** Default constructor */
+    public RFC2109Spec() {
+        this(false);
+    }
+    
+    public Cookie[] parse(final Header header, final CookieOrigin origin) 
+            throws MalformedCookieException {
+        if (header == null) {
+            throw new IllegalArgumentException("Header may not be null");
+        }
+        if (origin == null) {
+            throw new IllegalArgumentException("Cookie origin may not be null");
+        }
+        HeaderElement[] elems = header.getElements();
+        return parse(elems, origin);
+    }
+
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
+            throws MalformedCookieException {
+        if (cookie == null) {
+            throw new IllegalArgumentException("Cookie may not be null");
+        }
+        String name = cookie.getName();
+        if (name.indexOf(' ') != -1) {
+            throw new MalformedCookieException("Cookie name may not contain blanks");
+        }
+        if (name.startsWith("$")) {
+            throw new MalformedCookieException("Cookie name may not start with $");
+        }
+        super.validate(cookie, origin);
+    }
+
+    public Header[] formatCookies(final Cookie[] cookies) {
+        if (cookies == null) {
+            throw new IllegalArgumentException("Cookie array may not be null");
+        }
+        if (cookies.length == 0) {
+            throw new IllegalArgumentException("Cookie array may not be empty");
+        }
+        Arrays.sort(cookies, PATH_COMPARATOR);
+        if (this.oneHeader) {
+            return doFormatOneHeader(cookies);
+        } else {
+            return doFormatManyHeaders(cookies);
+        }
+    }
+
+    private Header[] doFormatOneHeader(final Cookie[] cookies) {
+        int version = Integer.MAX_VALUE;
+        // Pick the lowerest common denominator
+        for (int i = 0; i < cookies.length; i++) {
+            Cookie cookie = cookies[i];
+            if (cookie.getVersion() < version) {
+                version = cookie.getVersion();
+            }
+        }
+        CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.length);
+        formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
+        for (int i = 0; i < cookies.length; i++) {
+            buffer.append("; ");
+            Cookie cookie = cookies[i];
+            formatCookieAsVer(buffer, cookie, version);
+        }
+        return new Header[] {new Header("Cookie", buffer.toString())};
+    }
+
+    private Header[] doFormatManyHeaders(final Cookie[] cookies) {
+        Header[] headers = new Header[cookies.length]; 
+        for (int i = 0; i < cookies.length; i++) {
+            Cookie cookie = cookies[i];
+            int version = cookie.getVersion();
+            CharArrayBuffer buffer = new CharArrayBuffer(40);
+            formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
+            buffer.append("; ");
+            formatCookieAsVer(buffer, cookies[i], version);
+            headers[i] = new Header("Cookie", buffer.toString());
+        }
+        return headers;
+    }
+    
+    /**
+     * Return a name/value string suitable for sending in a <tt>"Cookie"</tt>
+     * header as defined in RFC 2109 for backward compatibility with cookie
+     * version 0
+     * @param buffer The char array buffer to use for output
+     * @param param The parameter.
+     * @param version The cookie version 
+     */
+    private void formatParamAsVer(final CharArrayBuffer buffer, 
+            final String name, final String value, int version) {
+        buffer.append(name);
+        buffer.append("=");
+        if (value != null) {
+            if (version > 0) {
+                buffer.append('\"');
+                buffer.append(value);
+                buffer.append('\"');
+            } else {
+                buffer.append(value);
+            }
+        }
+    }
+
+    /**
+     * Return a string suitable for sending in a <tt>"Cookie"</tt> header 
+     * as defined in RFC 2109 for backward compatibility with cookie version 0
+     * @param buffer The char array buffer to use for output
+     * @param cookie The {@link Cookie} to be formatted as string
+     * @param version The version to use.
+     */
+    private void formatCookieAsVer(final CharArrayBuffer buffer, 
+            final Cookie cookie, int version) {
+        formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
+        if (cookie.getPath() != null && cookie.isPathAttributeSpecified()) {
+            buffer.append("; ");
+            formatParamAsVer(buffer, "$Path", cookie.getPath(), version);
+        }
+        if (cookie.getDomain() != null && cookie.isDomainAttributeSpecified()) {
+            buffer.append("; ");
+            formatParamAsVer(buffer, "$Domain", cookie.getDomain(), version);
+        }
+    }
+    
+}
