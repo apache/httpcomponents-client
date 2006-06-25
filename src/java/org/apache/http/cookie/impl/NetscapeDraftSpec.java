@@ -5,7 +5,7 @@
  *
  * ====================================================================
  *
- *  Copyright 2002-2004 The Apache Software Foundation
+ *  Copyright 2002-2006 The Apache Software Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.io.CharArrayBuffer;
 
 /**
- * Netscape cookie draft specific cookie management functions
+ * Netscape cookie draft compliant cookie policy
  *
  * @author  B.C. Holmes
  * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>

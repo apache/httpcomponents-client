@@ -41,6 +41,7 @@ public class TestAllCookieImpl extends TestCase {
         suite.addTest(TestAbstractCookieSpec.suite());
         suite.addTest(TestBasicCookieAttribHandlers.suite());
         suite.addTest(TestNetscapeCookieAttribHandlers.suite());
+        suite.addTest(TestRFC2109CookieAttribHandlers.suite());
         suite.addTest(TestBrowserCompatSpec.suite());
         suite.addTest(TestCookieNetscapeDraft.suite());
         return suite;
