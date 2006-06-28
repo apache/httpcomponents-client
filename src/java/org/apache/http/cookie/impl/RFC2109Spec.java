@@ -61,28 +61,36 @@ public class RFC2109Spec extends CookieSpecBase {
 
     private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator(); 
     
-    private boolean oneHeader = false;
+    private final static String[] DATE_PATTERNS = {
+        DateUtils.PATTERN_RFC1123,
+        DateUtils.PATTERN_RFC1036,
+        DateUtils.PATTERN_ASCTIME 
+    }; 
+    
+    private final String[] datepatterns; 
+    private final boolean oneHeader;
     
     /** Default constructor */
-    public RFC2109Spec(boolean oneHeader) {
+    public RFC2109Spec(final String[] datepatterns, boolean oneHeader) {
         super();
+        if (datepatterns != null) {
+            this.datepatterns = (String [])datepatterns.clone();
+        } else {
+            this.datepatterns = DATE_PATTERNS;
+        }
+        this.oneHeader = oneHeader;
         registerAttribHandler("version", new RFC2109VersionHandler());
         registerAttribHandler("path", new BasicPathHandler());
         registerAttribHandler("domain", new RFC2109DomainHandler());
         registerAttribHandler("max-age", new BasicMaxAgeHandler());
         registerAttribHandler("secure", new BasicSecureHandler());
         registerAttribHandler("comment", new BasicCommentHandler());
-        registerAttribHandler("expires", new BasicExpiresHandler(
-                new String[] {
-                        DateUtils.PATTERN_RFC1123,
-                        DateUtils.PATTERN_RFC1036,
-                        DateUtils.PATTERN_ASCTIME}));
-        this.oneHeader = oneHeader;
+        registerAttribHandler("expires", new BasicExpiresHandler(this.datepatterns));
     }
 
     /** Default constructor */
     public RFC2109Spec() {
-        this(false);
+        this(null, false);
     }
     
     public Cookie[] parse(final Header header, final CookieOrigin origin) 

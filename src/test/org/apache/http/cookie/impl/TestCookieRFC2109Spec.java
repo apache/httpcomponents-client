@@ -33,6 +33,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.util.DateUtils;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -60,6 +61,12 @@ public class TestCookieRFC2109Spec extends TestCase {
         return new TestSuite(TestCookieRFC2109Spec.class);
     }
 
+    public void testConstructor() throws Exception {
+        new RFC2109Spec();
+        new RFC2109Spec(null, false);
+        new RFC2109Spec(new String[] { DateUtils.PATTERN_RFC1036 }, false);
+    }
+    
     public void testParseVersion() throws Exception {
         Header header = new Header("Set-Cookie","cookie-name=cookie-value; version=1");
 
@@ -288,7 +295,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests RFC 2109 compiant cookie formatting.
      */
     public void testRFC2109CookieFormatting() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec(false);
+        CookieSpec cookiespec = new RFC2109Spec(null, false);
         Header header = new Header("Set-Cookie", 
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
@@ -312,7 +319,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
 
     public void testRFC2109CookiesFormatting() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec(true);
+        CookieSpec cookiespec = new RFC2109Spec(null, true);
         Header header = new Header("Set-Cookie", 
             "name1=value1; path=/; domain=.mydomain.com, " + 
             "name2=\"value2\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
@@ -390,6 +397,30 @@ public class TestCookieRFC2109Spec extends TestCase {
         assertNotNull(headers);
         assertEquals(1, headers.length);
         assertEquals("$Version=0; name=", headers[0].getValue());
+    }
+
+    public void testCookieOrderingByPath() {
+        Cookie c1 = new Cookie("name1", "value1");
+        c1.setPath("/a/b/c");
+        c1.setPathAttributeSpecified(true);
+        Cookie c2 = new Cookie("name2", "value2");
+        c2.setPath("/a/b");
+        c2.setPathAttributeSpecified(true);
+        Cookie c3 = new Cookie("name3", "value3");
+        c3.setPath("/a");
+        c3.setPathAttributeSpecified(true);
+        Cookie c4 = new Cookie("name4", "value4");
+        c4.setPath("/");
+        c4.setPathAttributeSpecified(true);
+
+        CookieSpec cookiespec = new RFC2109Spec(null, true);
+        Header[] headers = cookiespec.formatCookies(new Cookie[] { c2, c4, c1, c3 });
+        assertNotNull(headers);
+        assertEquals(1, headers.length);
+        assertEquals("$Version=0; name1=value1; $Path=/a/b/c; " +
+                "name2=value2; $Path=/a/b; " +
+                "name3=value3; $Path=/a; " +
+                "name4=value4; $Path=/", headers[0].getValue());
     }
 
     public void testInvalidInput() throws Exception {

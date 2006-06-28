@@ -49,8 +49,8 @@ import org.apache.http.util.DateUtils;
  */
 public class BrowserCompatSpec extends CookieSpecBase {
     
-    /** Valid date patterns */
-    private String[] datepatterns = new String[] {
+    /** Valid date patterns used per default */
+    private static final String[] DATE_PATTERNS = new String[] {
             DateUtils.PATTERN_RFC1123,
             DateUtils.PATTERN_RFC1036,
             DateUtils.PATTERN_ASCTIME,
@@ -67,9 +67,16 @@ public class BrowserCompatSpec extends CookieSpecBase {
             "EEE, dd-MM-yyyy HH:mm:ss z",                
         };
 
+    private final String[] datepatterns; 
+    
     /** Default constructor */
-    public BrowserCompatSpec() {
+    public BrowserCompatSpec(final String[] datepatterns) {
         super();
+        if (datepatterns != null) {
+            this.datepatterns = (String [])datepatterns.clone();
+        } else {
+            this.datepatterns = DATE_PATTERNS;
+        }
         registerAttribHandler("path", new BasicPathHandler());
         registerAttribHandler("domain", new BasicDomainHandler());
         registerAttribHandler("max-age", new BasicMaxAgeHandler());
@@ -78,6 +85,11 @@ public class BrowserCompatSpec extends CookieSpecBase {
         registerAttribHandler("expires", new BasicExpiresHandler(this.datepatterns));
     }
 
+    /** Default constructor */
+    public BrowserCompatSpec() {
+        this(null);
+    }
+    
     public Cookie[] parse(final Header header, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (header == null) {

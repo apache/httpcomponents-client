@@ -43,7 +43,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         if (datepatterns == null) {
             throw new IllegalArgumentException("Array of date patterns may not be null");
         }
-        this.datepatterns = (String[]) datepatterns.clone();
+        this.datepatterns = datepatterns;
     }
 
     public void parse(final Cookie cookie, final String value) 

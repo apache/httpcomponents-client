@@ -35,6 +35,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.util.DateUtils;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -65,6 +66,12 @@ public class TestBrowserCompatSpec extends TestCase {
         return new TestSuite(TestBrowserCompatSpec.class);
     }
 
+    public void testConstructor() throws Exception {
+        new BrowserCompatSpec();
+        new BrowserCompatSpec(null);
+        new BrowserCompatSpec(new String[] { DateUtils.PATTERN_RFC1036 });
+    }
+    
     /**
      * Tests whether domain attribute check is case-insensitive.
      */
