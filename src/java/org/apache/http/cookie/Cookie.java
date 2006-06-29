@@ -31,9 +31,6 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.util.LangUtils;
-
 /**
  * <p>
  * HTTP "magic-cookie" represents a piece of state information
@@ -54,13 +51,39 @@ import org.apache.http.util.LangUtils;
  * 
  * @version $Revision$
  */
-public class Cookie extends NameValuePair {
+public class Cookie {
 
     /**
-     * Default constructor. Creates a blank cookie 
+     * Default Constructor taking a name and a value. The value may be null.
+     * 
+     * @param name The name.
+     * @param value The value.
      */
     public Cookie(final String name, final String value) {
-        super(name, value);
+        super();
+        if (name == null) {
+            throw new IllegalArgumentException("Name may not be null");
+        }
+        this.name = name;
+        this.value = value;
+    }
+
+    /**
+     * Returns the name.
+     *
+     * @return String name The name
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Returns the value.
+     *
+     * @return String value The current value.
+     */
+    public String getValue() {
+        return this.value;
     }
 
     /**
@@ -150,10 +173,6 @@ public class Cookie extends NameValuePair {
      */
     public void setDomain(String domain) {
         if (domain != null) {
-            int ndx = domain.indexOf(":");
-            if (ndx != -1) {
-              domain = domain.substring(0, ndx);
-            }
             cookieDomain = domain.toLowerCase();
         } else {
             cookieDomain = null;
@@ -303,39 +322,10 @@ public class Cookie extends NameValuePair {
         return hasDomainAttribute;
     }
 
-    /**
-     * Returns a hash code in keeping with the
-     * {@link Object#hashCode} general hashCode contract.
-     * @return A hash code
-     */
-    public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.getName());
-        hash = LangUtils.hashCode(hash, this.cookieDomain);
-        hash = LangUtils.hashCode(hash, this.cookiePath);
-        return hash;
-    }
-
-
-    /**
-     * Two cookies are equal if the name, path and domain match.
-     * @param obj The object to compare against.
-     * @return true if the two objects are equal.
-     */
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (obj instanceof Cookie) {
-            Cookie that = (Cookie) obj;
-            return LangUtils.equals(this.getName(), that.getName())
-                  && LangUtils.equals(this.cookieDomain, that.cookieDomain)
-                  && LangUtils.equals(this.cookiePath, that.cookiePath);
-        } else {
-            return false;
-        }
-    }
-
    // ----------------------------------------------------- Instance Variables
+
+    private final String name;
+    private final String value;
 
    /** Comment attribute. */
    private String  cookieComment;
