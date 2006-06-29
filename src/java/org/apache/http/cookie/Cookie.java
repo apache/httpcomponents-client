@@ -49,10 +49,10 @@ import org.apache.http.util.LangUtils;
  * @author Sean C. Sullivan
  * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
  * @author Marc A. Saegesser
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
- * @version $Revision$ $Date$
+ * @version $Revision$
  */
 public class Cookie extends NameValuePair {
 

@@ -2,9 +2,10 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  *
- *  Copyright 1999-2006 The Apache Software Foundation
+ *  Copyright 2002-2004 The Apache Software Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,25 +29,16 @@
 
 package org.apache.http.cookie;
 
-import junit.framework.*;
+import org.apache.http.params.HttpParams;
 
-public class TestAllCookie extends TestCase {
+/**
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 4.0
+ */
+public interface CookieSpecFactory {    
 
-    public TestAllCookie(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestCookieOrigin.suite());
-        suite.addTest(TestCookiePathComparator.suite());
-        suite.addTest(TestCookiePolicy.suite());
-        return suite;
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllCookie.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
+    CookieSpec newInstance(HttpParams params);
 
 }
