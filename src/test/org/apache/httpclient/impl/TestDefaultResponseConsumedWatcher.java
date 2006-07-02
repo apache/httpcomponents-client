@@ -31,7 +31,6 @@ package org.apache.httpclient.impl;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.http.Header;
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -89,7 +88,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         StatusLine statusline = new StatusLine(HttpVersion.HTTP_1_0, 200, "OK");
         HttpResponse response = new BasicHttpResponse(statusline);
-        response.setHeader(new Header("Connection", "Close"));
+        response.addHeader("Connection", "Close");
         response.setParams(new DefaultHttpParams(null));
         response.setEntity(entity);
         
@@ -111,7 +110,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         StatusLine statusline = new StatusLine(HttpVersion.HTTP_1_1, 200, "OK");
         HttpResponse response = new BasicHttpResponse(statusline);
-        response.setHeader(new Header("Connection", "Keep-alive"));
+        response.addHeader("Connection", "Keep-alive");
         response.setParams(new DefaultHttpParams(null));
         response.setEntity(entity);
         

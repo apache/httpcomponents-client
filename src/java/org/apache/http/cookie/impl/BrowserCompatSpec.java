@@ -35,6 +35,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.io.CharArrayBuffer;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.DateParseException;
 import org.apache.http.util.DateUtils;
 
@@ -143,7 +144,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
                 buffer.append(s);
             }
         }
-        return new Header[] { new Header("Cookie", buffer.toString()) };
+        return new Header[] { new BasicHeader("Cookie", buffer.toString()) };
     }
     
 }

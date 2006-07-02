@@ -33,6 +33,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.message.BasicHeader;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -60,7 +61,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
 
     public void testParseAbsPath() throws Exception {
-        Header header = new Header("Set-Cookie", "name1=value1;Path=/path/");
+        Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=/path/");
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -76,7 +77,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
 
     public void testParseAbsPath2() throws Exception {
-        Header header = new Header("Set-Cookie", "name1=value1;Path=/");
+        Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=/");
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "/", true);
@@ -92,7 +93,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
 
     public void testParseRelativePath() throws Exception {
-        Header header = new Header("Set-Cookie", "name1=value1;Path=whatever");
+        Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=whatever");
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "whatever", true);
@@ -108,7 +109,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
 
     public void testParseWithIllegalNetscapeDomain1() throws Exception {
-        Header header = new Header("Set-Cookie","cookie-name=cookie-value; domain=.com");
+        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; domain=.com");
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         try {
@@ -124,7 +125,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
 
     public void testParseWithWrongNetscapeDomain2() throws Exception {
-        Header header = new Header("Set-Cookie","cookie-name=cookie-value; domain=.y.z");
+        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; domain=.y.z");
         
         CookieSpec cookiespec = new NetscapeDraftSpec();
         try {
@@ -143,7 +144,7 @@ public class TestCookieNetscapeDraft extends TestCase {
      * Tests Netscape specific cookie formatting.
      */
     public void testNetscapeCookieFormatting() throws Exception {
-        Header header = new Header(
+        Header header = new BasicHeader(
           "Set-Cookie", "name=value; path=/; domain=.mydomain.com");
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
@@ -159,12 +160,12 @@ public class TestCookieNetscapeDraft extends TestCase {
      */
     public void testNetscapeCookieExpireAttribute() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header header = new Header("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         Cookie[] cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies[0], origin);
-        header = new Header("Set-Cookie", 
+        header = new BasicHeader("Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com; expires=Thu 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         try {
             cookies = cookiespec.parse(header, origin);
@@ -180,7 +181,7 @@ public class TestCookieNetscapeDraft extends TestCase {
      */
     public void testNetscapeCookieExpireAttributeNoTimeZone() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header header = new Header("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie", 
             "name=value; expires=Thu, 01-Jan-2006 00:00:00 ");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         try {
@@ -195,7 +196,7 @@ public class TestCookieNetscapeDraft extends TestCase {
      * Tests if cookie values with embedded comma are handled correctly.
      */
     public void testCookieWithComma() throws Exception {
-        Header header = new Header("Set-Cookie", "a=b,c");
+        Header header = new BasicHeader("Set-Cookie", "a=b,c");
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
@@ -231,7 +232,7 @@ public class TestCookieNetscapeDraft extends TestCase {
             // expected
         }
         try {
-            cookiespec.parse(new Header("Set-Cookie", "name=value"), null);
+            cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

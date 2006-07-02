@@ -35,6 +35,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.io.CharArrayBuffer;
+import org.apache.http.message.BasicHeader;
 
 /**
  * Netscape cookie draft compliant cookie policy
@@ -125,7 +126,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                 buffer.append(s);
             }
         }
-        return new Header[] { new Header("Cookie", buffer.toString()) };
+        return new Header[] { new BasicHeader("Cookie", buffer.toString()) };
     }
 
 }

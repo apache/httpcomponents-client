@@ -33,6 +33,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.DateUtils;
 
 import junit.framework.Test;
@@ -68,7 +69,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
     
     public void testParseVersion() throws Exception {
-        Header header = new Header("Set-Cookie","cookie-name=cookie-value; version=1");
+        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; version=1");
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
@@ -86,7 +87,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Test domain equals host 
      */
     public void testParseDomainEqualsHost() throws Exception {
-        Header header = new Header("Set-Cookie",
+        Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=www.b.com; version=1");
 
         CookieSpec cookiespec = new RFC2109Spec();
@@ -104,7 +105,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Domain does not start with a dot
      */
     public void testParseWithIllegalDomain1() throws Exception {
-        Header header = new Header("Set-Cookie",
+        Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=a.b.com; version=1");
 
         CookieSpec cookiespec = new RFC2109Spec();
@@ -124,7 +125,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Domain must have alt least one embedded dot
      */
     public void testParseWithIllegalDomain2() throws Exception {
-        Header header = new Header("Set-Cookie",
+        Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.com; version=1");
 
         CookieSpec cookiespec = new RFC2109Spec();
@@ -144,7 +145,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Host minus domain may not contain any dots
      */
     public void testParseWithIllegalDomain4() throws Exception {
-        Header header = new Header("Set-Cookie",
+        Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.c.com; version=1");
 
         CookieSpec cookiespec = new RFC2109Spec();
@@ -195,7 +196,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
     
     public void testParseWithWrongPath() throws Exception {
-        Header header = new Header("Set-Cookie",
+        Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=127.0.0.1; path=/not/just/root");
 
         CookieSpec cookiespec = new RFC2109Spec();
@@ -215,7 +216,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if cookie constructor rejects cookie name containing blanks.
      */
     public void testCookieNameWithBlanks() throws Exception {
-        Header setcookie = new Header("Set-Cookie", "invalid name=");
+        Header setcookie = new BasicHeader("Set-Cookie", "invalid name=");
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
@@ -233,7 +234,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if cookie constructor rejects cookie name starting with $.
      */
     public void testCookieNameStartingWithDollarSign() throws Exception {
-        Header setcookie = new Header("Set-Cookie", "$invalid_name=");
+        Header setcookie = new BasicHeader("Set-Cookie", "$invalid_name=");
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
@@ -253,7 +254,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      */
     public void testInvalidDomainWithSimpleHostName() throws Exception {    
         CookieSpec cookiespec = new RFC2109Spec();
-        Header header = new Header("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie", 
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
         CookieOrigin origin1 = new CookieOrigin("host", 80, "/", false);
         Cookie[]cookies = cookiespec.parse(header, origin1);
@@ -264,7 +265,7 @@ public class TestCookieRFC2109Spec extends TestCase {
         catch(MalformedCookieException expected) {
         }
         CookieOrigin origin2 = new CookieOrigin("host2", 80, "/", false);
-        header = new Header("Set-Cookie", 
+        header = new BasicHeader("Set-Cookie", 
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\"host1\"");
         cookies = cookiespec.parse(header, origin2);
         try {
@@ -279,7 +280,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if cookie values with embedded comma are handled correctly.
      */
     public void testCookieWithComma() throws Exception {
-        Header header = new Header("Set-Cookie", "a=b,c");
+        Header header = new BasicHeader("Set-Cookie", "a=b,c");
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
@@ -296,7 +297,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      */
     public void testRFC2109CookieFormatting() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec(null, false);
-        Header header = new Header("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie", 
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         Cookie[] cookies  = cookiespec.parse(header, origin);
@@ -307,7 +308,7 @@ public class TestCookieRFC2109Spec extends TestCase {
         assertEquals("$Version=\"1\"; name=\"value\"; $Path=\"/\"; $Domain=\".mydomain.com\"", 
                 headers[0].getValue());
 
-        header = new Header( "Set-Cookie", 
+        header = new BasicHeader( "Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com");
         cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies[0], origin);
@@ -320,7 +321,7 @@ public class TestCookieRFC2109Spec extends TestCase {
 
     public void testRFC2109CookiesFormatting() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec(null, true);
-        Header header = new Header("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie", 
             "name1=value1; path=/; domain=.mydomain.com, " + 
             "name2=\"value2\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
@@ -338,7 +339,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             "name2=value2; $Path=/; $Domain=.mydomain.com",
             headers[0].getValue());
 
-        header = new Header("Set-Cookie", 
+        header = new BasicHeader("Set-Cookie", 
             "name1=value1; version=1; path=/; domain=.mydomain.com, " + 
             "name2=\"value2\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
         cookies = cookiespec.parse(header, origin);
@@ -432,7 +433,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             // expected
         }
         try {
-            cookiespec.parse(new Header("Set-Cookie", "name=value"), null);
+            cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
