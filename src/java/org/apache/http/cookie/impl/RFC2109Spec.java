@@ -38,7 +38,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.io.CharArrayBuffer;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.DateUtils;
 
 /**
@@ -146,13 +146,14 @@ public class RFC2109Spec extends CookieSpecBase {
             }
         }
         CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.length);
+        buffer.append("Cookie: ");
         formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
         for (int i = 0; i < cookies.length; i++) {
             buffer.append("; ");
             Cookie cookie = cookies[i];
             formatCookieAsVer(buffer, cookie, version);
         }
-        return new Header[] {new BasicHeader("Cookie", buffer.toString())};
+        return new Header[] { new BufferedHeader(buffer) };
     }
 
     private Header[] doFormatManyHeaders(final Cookie[] cookies) {
@@ -161,10 +162,11 @@ public class RFC2109Spec extends CookieSpecBase {
             Cookie cookie = cookies[i];
             int version = cookie.getVersion();
             CharArrayBuffer buffer = new CharArrayBuffer(40);
+            buffer.append("Cookie: ");
             formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
             buffer.append("; ");
             formatCookieAsVer(buffer, cookies[i], version);
-            headers[i] = new BasicHeader("Cookie", buffer.toString());
+            headers[i] = new BufferedHeader(buffer);
         }
         return headers;
     }

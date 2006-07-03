@@ -35,8 +35,8 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.io.CharArrayBuffer;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BufferedHeader;
 
 /**
  * Netscape cookie draft compliant cookie policy
@@ -115,6 +115,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie array may not be empty");
         }
         CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.length);
+        buffer.append("Cookie: ");
         for (int i = 0; i < cookies.length; i++) {
             Cookie cookie = cookies[i];
             if (i > 0) {
@@ -127,7 +128,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                 buffer.append(s);
             }
         }
-        return new Header[] { new BasicHeader("Cookie", buffer.toString()) };
+        return new Header[] { new BufferedHeader(buffer) };
     }
 
 }
