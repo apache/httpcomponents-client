@@ -66,7 +66,7 @@ public class DefaultResponseConsumedWatcher
     
     public void responseConsumed() {
         ConnectionReuseStrategy s = new DefaultConnectionReuseStrategy();
-        if (!s.keepAlive(this.response)) {
+        if (!s.keepAlive(this.conn, this.response)) {
             try {
                 this.conn.close();
             } catch (IOException ex) {
