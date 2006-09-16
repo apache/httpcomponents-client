@@ -35,6 +35,7 @@ import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * <p>
@@ -50,9 +51,12 @@ public class DefaultResponseConsumedWatcher
 
     private final HttpConnection conn;
     private final HttpResponse response;
+    private final HttpContext context;
     
     public DefaultResponseConsumedWatcher(
-            final HttpConnection conn, final HttpResponse response) {
+            final HttpConnection conn, 
+            final HttpResponse response, 
+            final HttpContext context) {
         super();
         if (conn == null) {
             throw new IllegalArgumentException("HTTP connection may not be null");
@@ -62,11 +66,12 @@ public class DefaultResponseConsumedWatcher
         }
         this.conn = conn;
         this.response = response;
+        this.context = context;
     }
     
     public void responseConsumed() {
         ConnectionReuseStrategy s = new DefaultConnectionReuseStrategy();
-        if (!s.keepAlive(this.conn, this.response)) {
+        if (!s.keepAlive(this.response, this.context)) {
             try {
                 this.conn.close();
             } catch (IOException ex) {

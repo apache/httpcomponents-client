@@ -38,6 +38,8 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpParams;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.mockup.HttpConnectionMockup;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExecutionContext;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -63,14 +65,14 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
 
     public void testIllegalResponseArg() throws Exception {
         try {
-            new DefaultResponseConsumedWatcher(null, null);
+            new DefaultResponseConsumedWatcher(null, null, null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             new DefaultResponseConsumedWatcher(
-                    new HttpConnectionMockup(), null);
+                    new HttpConnectionMockup(), null, null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
@@ -78,6 +80,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
     }
 
     public void testConnectionAutoClose() throws Exception {
+        HttpContext context = new HttpExecutionContext(null);
         byte[] data = new byte[] {'1', '2', '3'};
         HttpConnection conn = new HttpConnectionMockup();
         BasicHttpEntity entity = new BasicHttpEntity();
@@ -91,7 +94,8 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         response.setEntity(entity);
         
         // Wrap the entity input stream 
-        ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(conn, response);
+        ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(
+                conn, response, context);
         InputStream content = new AutoCloseInputStream(entity.getContent(), watcher);
         assertTrue(conn.isOpen());
         while (content.read() != -1) {}
@@ -99,6 +103,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
     }
 
     public void testConnectionKeepAlive() throws Exception {
+        HttpContext context = new HttpExecutionContext(null);
         byte[] data = new byte[] {'1', '2', '3'};
         HttpConnection conn = new HttpConnectionMockup();
         BasicHttpEntity entity = new BasicHttpEntity();
@@ -112,7 +117,8 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         response.setEntity(entity);
         
         // Wrap the entity input stream 
-        ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(conn, response);
+        ResponseConsumedWatcher watcher = new DefaultResponseConsumedWatcher(
+                conn, response, context);
         InputStream content = new AutoCloseInputStream(entity.getContent(), watcher);
         
         assertTrue(conn.isOpen());
