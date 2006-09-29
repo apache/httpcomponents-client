@@ -49,7 +49,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.ConnectTimeoutException;
-import org.apache.http.io.SecureSocketFactory;
+import org.apache.http.conn.SecureSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 

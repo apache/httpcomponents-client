@@ -27,7 +27,7 @@
  *
  */
 
-package org.apache.http.io;
+package org.apache.http.conn;
 
 import java.io.IOException;
 import java.net.Socket;
