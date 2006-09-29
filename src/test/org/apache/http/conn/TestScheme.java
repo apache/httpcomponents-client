@@ -27,10 +27,9 @@
  *
  */
 
-package org.apache.http;
+package org.apache.http.conn;
 
-import org.apache.http.impl.io.PlainSocketFactory;
-import org.apache.http.impl.io.SSLSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
