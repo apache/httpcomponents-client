@@ -37,8 +37,8 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.io.CharArrayBuffer;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.DateUtils;
 
 /**
