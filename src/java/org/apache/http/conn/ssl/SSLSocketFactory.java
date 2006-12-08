@@ -29,7 +29,21 @@
 
 package org.apache.http.conn.ssl;
 
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.SecureSocketFactory;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -40,18 +54,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.SecureSocketFactory;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 /**
  * <p>
@@ -128,6 +132,7 @@ import org.apache.http.params.HttpParams;
  *     </li>
  *   </ul>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * @author Julius Davies
  */
 
 public class SSLSocketFactory implements SecureSocketFactory {
@@ -150,7 +155,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
     }
     
     private final SSLContext sslcontext;
-    private final SocketFactory socketfactory;
+    private final javax.net.ssl.SSLSocketFactory socketfactory;
 
     public SSLSocketFactory(
         String algorithm, 
@@ -201,7 +206,8 @@ public class SSLSocketFactory implements SecureSocketFactory {
     public SSLSocketFactory() {
         super();
         this.sslcontext = null;
-        this.socketfactory = javax.net.ssl.SSLSocketFactory.getDefault(); 
+        this.socketfactory = (javax.net.ssl.SSLSocketFactory) 
+            javax.net.ssl.SSLSocketFactory.getDefault(); 
     }
 
     private static KeyManager[] createKeyManagers(final KeyStore keystore, final String password)
@@ -255,31 +261,155 @@ public class SSLSocketFactory implements SecureSocketFactory {
         if (params == null) {
             throw new IllegalArgumentException("Parameters may not be null");
         }
-        Socket socket = this.socketfactory.createSocket();
+        SSLSocket socket = (SSLSocket) this.socketfactory.createSocket();
         if (localAddress != null) {
             socket.bind(new InetSocketAddress(localAddress, localPort));
         }
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
         socket.connect(new InetSocketAddress(host, port), timeout);
+
+        verifyHostName( host, (SSLSocket) socket );
+
+        // verifyHostName() didn't blowup - good!
+
         return socket;
     }
 
     /**
-     * @see SecureProtocolSocketFactory#createSocket(java.net.Socket,java.lang.String,int,boolean)
+     * @see SecureSocketFactory#createSocket(java.net.Socket,java.lang.String,int,boolean)
      */
     public Socket createSocket(
         Socket socket,
         String host,
         int port,
         boolean autoClose)
-        throws IOException, UnknownHostException
-    {
-        return this.sslcontext.getSocketFactory().createSocket(
+        throws IOException, UnknownHostException {        
+        SSLSocket s = (SSLSocket) this.socketfactory.createSocket(
             socket,
             host,
             port,
             autoClose
         );
+
+        verifyHostName( host, (SSLSocket) socket );
+
+        // verifyHostName() didn't blowup - good!
+        return s;
+    }
+
+    private static void verifyHostName( String host, SSLSocket ssl )
+          throws IOException {
+        if ( host == null ) {
+            throw new NullPointerException( "host to verify was null" );
+        }
+
+        SSLSession session = ssl.getSession();
+        if ( session == null ) {
+            // In our experience this only happens under IBM 1.4.x when
+            // spurious (unrelated) certificates show up in the server's chain.
+            // Hopefully this will unearth the real problem:
+            InputStream in = ssl.getInputStream();
+            in.available();
+            /*
+               If you're looking at the 2 lines of code above because you're
+               running into a problem, you probably have two options:
+
+                  #1.  Clean up the certificate chain that your server
+                       is presenting (e.g. edit "/etc/apache2/server.crt" or
+                       wherever it is your server's certificate chain is
+                       defined).
+
+                                           OR
+
+                  #2.   Upgrade to an IBM 1.5.x or greater JVM, or switch to a
+                        non-IBM JVM.
+            */
+
+            // If ssl.getInputStream().available() didn't cause an exception,
+            // maybe at least now the session is available?
+            session = ssl.getSession();            
+            if ( session == null ) {
+                // If it's still null, probably a startHandshake() will
+                // unearth the real problem.
+                ssl.startHandshake();
+
+                // Okay, if we still haven't managed to cause an exception,
+                // might as well go for the NPE.  Or maybe we're okay now?
+                session = ssl.getSession();
+            }
+        }
+
+        Certificate[] certs = session.getPeerCertificates();
+        X509Certificate x509 = (X509Certificate) certs[ 0 ]; 
+        String cn = getCN( x509 );
+        if ( cn == null ) {
+            String subject = x509.getSubjectX500Principal().toString();
+            String msg = "certificate doesn't contain CN: " + subject;
+            throw new SSLException( msg );
+        }
+        // I'm okay with being case-insensitive when comparing the host we used
+        // to establish the socket to the hostname in the certificate.
+        // Don't trim the CN, though.
+        cn = cn.toLowerCase();
+        host = host.trim().toLowerCase();
+        boolean doWildcard = false;
+        if ( cn.startsWith( "*." ) ) {
+            // The CN better have at least two dots if it wants wildcard action,
+            // but can't be [*.co.uk] or [*.co.jp] or [*.org.uk], etc...
+            String withoutCountryCode = "";
+            if ( cn.length() >= 7 && cn.length() <= 9 ) {
+                withoutCountryCode = cn.substring( 2, cn.length() - 2 );
+            }
+            doWildcard = cn.lastIndexOf( '.' ) >= 0 &&
+                         !"ac.".equals( withoutCountryCode ) &&
+                         !"co.".equals( withoutCountryCode ) &&
+                         !"com.".equals( withoutCountryCode ) &&
+                         !"ed.".equals( withoutCountryCode ) &&
+                         !"edu.".equals( withoutCountryCode ) &&
+                         !"go.".equals( withoutCountryCode ) &&
+                         !"gouv.".equals( withoutCountryCode ) &&
+                         !"gov.".equals( withoutCountryCode ) &&
+                         !"info.".equals( withoutCountryCode ) &&                         
+                         !"lg.".equals( withoutCountryCode ) &&
+                         !"ne.".equals( withoutCountryCode ) &&
+                         !"net.".equals( withoutCountryCode ) &&
+                         !"or.".equals( withoutCountryCode ) &&
+                         !"org.".equals( withoutCountryCode );
+
+            // The [*.co.uk] problem is an interesting one.  Should we just
+            // hope that CA's would never foolishly allow such a
+            // certificate to happen?
+        }
+
+        boolean match;
+        if ( doWildcard ) {
+            match = host.endsWith( cn.substring( 1 ) );
+        } else {
+            match = host.equals( cn );
+        }
+        if ( !match ) {
+            throw new SSLException( "hostname in certificate didn't match: <" + host + "> != <" + cn + ">" );
+        }
+    }
+
+    private static String getCN( X509Certificate cert ) {
+        // Note:  toString() seems to do a better job than getName()
+        //
+        // For example, getName() gives me this:
+        // 1.2.840.113549.1.9.1=#16166a756c6975736461766965734063756362632e636f6d
+        //
+        // whereas toString() gives me this:
+        // EMAILADDRESS=juliusdavies@cucbc.com        
+        String subjectPrincipal = cert.getSubjectX500Principal().toString();
+        int x = subjectPrincipal.indexOf( "CN=" );
+        if ( x >= 0 ) {
+            int y = subjectPrincipal.indexOf( ',', x );
+            // If there are no more commas, then CN= is the last entry.
+            y = ( y >= 0 ) ? y : subjectPrincipal.length();
+            return subjectPrincipal.substring( x + 3, y );
+        } else {
+            return null;
+        }
     }
     
 }
