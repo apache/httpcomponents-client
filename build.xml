@@ -203,6 +203,7 @@ Output
                debug       ="${compile.debug}"
                deprecation ="${compile.deprecation}"
                optimize    ="${compile.optimize}"
+               encoding    ="UTF-8"
                source      ="${compile.source}"
                target      ="${compile.target}"
         >
@@ -225,6 +226,7 @@ Output
                debug       ="${compile.debug}"
                deprecation ="${compile.deprecation}"
                optimize    ="${compile.optimize}"
+               encoding    ="UTF-8"
                source      ="${compile.source}"
                target      ="${compile.target}"
         >
@@ -249,6 +251,7 @@ Output
                debug       ="${compile.debug}"
                deprecation ="${compile.deprecation}"
                optimize    ="${compile.optimize}"
+               encoding    ="UTF-8"
                source      ="${compile.source}"
                target      ="${compile.target}"
         >
@@ -272,6 +275,7 @@ Output
                debug       ="${compile.debug}"
                deprecation ="${compile.deprecation}"
                optimize    ="${compile.optimize}"
+               encoding    ="UTF-8"
                source      ="${compile.source}"
                target      ="${compile.target}"
         >
