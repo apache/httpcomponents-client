@@ -33,9 +33,13 @@ import java.io.IOException;
 import java.net.SocketException;
 
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpInetConnection;
+import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 
-public interface HttpHostConnection extends HttpClientConnection {
+public interface HttpHostConnection extends HttpClientConnection, HttpInetConnection {
+    
+    void setHttpConnectionManager(HttpConnectionManager manager);
     
     HostConfiguration getHostConfiguration();
 
@@ -44,5 +48,15 @@ public interface HttpHostConnection extends HttpClientConnection {
     void tunnelCreated(HttpParams params) throws IOException;
 
     void setSocketTimeout(int timeout) throws SocketException;
+    
+    HttpResponse getLastResponse();
+    
+    void setLastResponse(HttpResponse response);
+    
+    void setLocked(boolean locked);
+    
+    boolean isLocked();
+    
+    void releaseConnection();
     
 }

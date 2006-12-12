@@ -67,7 +67,7 @@ public class DefaultHttpHostConnection
     private static final Log LOG = LogFactory.getLog(DefaultHttpHostConnection.class);
     
     /** the connection manager that created this connection or null */
-    private final HttpConnectionManager manager;
+    private HttpConnectionManager manager;
     
     private HostConfiguration hostconf;
 
@@ -80,11 +80,14 @@ public class DefaultHttpHostConnection
     
     private HttpResponse lastResponse;
     
-    public DefaultHttpHostConnection(final HttpConnectionManager manager) {
+    public DefaultHttpHostConnection() {
         super();
-        this.manager = manager;
     }
     
+    public void setHttpConnectionManager(final HttpConnectionManager manager) {
+        this.manager = manager;
+    }
+
     public void setHostConfiguration(final HostConfiguration hostconf) {
         assertNotOpen();
         this.hostconf = hostconf;
@@ -246,7 +249,7 @@ public class DefaultHttpHostConnection
      * 
      * @since 3.0
      */
-    protected boolean isLocked() {
+    public boolean isLocked() {
         return locked;
     }
 
@@ -259,7 +262,7 @@ public class DefaultHttpHostConnection
      * 
      * @since 3.0
      */
-    protected void setLocked(boolean locked) {
+    public void setLocked(boolean locked) {
         this.locked = locked;
     }
 

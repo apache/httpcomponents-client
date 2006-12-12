@@ -69,7 +69,7 @@ public class SimpleHttpConnectionManager implements HttpConnectionManager {
      * consume it now.
      * @param conn The connection
      */
-    private void finishLastResponse(DefaultHttpHostConnection conn) {
+    protected static void finishLastResponse(HttpHostConnection conn) {
         HttpResponse lastResponse = conn.getLastResponse();
         if (lastResponse != null) {
             conn.setLastResponse(null);
@@ -158,7 +158,8 @@ public class SimpleHttpConnectionManager implements HttpConnectionManager {
         HostConfiguration hostConfiguration, long timeout) {
 
         if (httpConnection == null) {
-            httpConnection = new DefaultHttpHostConnection(this);
+            httpConnection = new DefaultHttpHostConnection();
+            httpConnection.setHttpConnectionManager(this);
         } else {
             // make sure the host and proxy are correct for this connection
             // close it and set the values if they are not
