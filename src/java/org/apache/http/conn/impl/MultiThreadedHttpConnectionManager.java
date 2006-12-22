@@ -340,9 +340,8 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
         
         synchronized (connectionPool) {
 
-            // we clone the hostConfiguration
-            // so that it cannot be changed once the connection has been retrieved
-            hostConfiguration = new HostConfiguration(hostConfiguration);
+            // we used to clone the hostconfig here, but it is now immutable:
+            //hostConfiguration = new HostConfiguration(hostConfiguration);
             HostConnectionPool hostPool = connectionPool.getHostPool(hostConfiguration);
             WaitingThread waitingThread = null;
 
