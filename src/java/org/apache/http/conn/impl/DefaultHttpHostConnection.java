@@ -156,8 +156,8 @@ public class DefaultHttpHostConnection
             scheme = Scheme.getScheme(target.getSchemeName());
         }
         socketFactory = scheme.getSocketFactory();
-        Socket socket = socketFactory.createSocket(
-                hostname, port, 
+        Socket socket = socketFactory.connectSocket(
+                null, hostname, port, 
                 this.hostconf.getLocalAddress(), 0, params);
 
         // Bind connection to the socket

@@ -56,6 +56,8 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
 /**
+ * Secure socket factory based on {@link javax.net.ssl JSSE}
+ *.
  * <p>
  * SSLProtocolSocketFactory can be used to validate the identity of the HTTPS 
  * server against a list of trusted certificates and to authenticate to the HTTPS 
@@ -230,44 +232,63 @@ public class SSLSocketFactory implements SecureSocketFactory {
         return tmfactory.getTrustManagers();
     }
 
-    /**
-     * Attempts to get a new socket connection to the given host within the given time limit.
-     *  
-     * @param host the host name/IP
-     * @param port the port on the host
-     * @param localAddress the local host name/IP to bind the socket to
-     * @param localPort the port on the local machine
-     * @param params {@link HttpConnectionParams Http connection parameters}
-     * 
-     * @return Socket a new socket
-     * 
-     * @throws IOException if an I/O error occurs while creating the socket
-     * @throws UnknownHostException if the IP address of the host cannot be
-     * determined
-     * @throws ConnectTimeoutException if socket cannot be connected within the
-     *  given time limit
-     * 
-     * @since 3.0
-     */
-    public Socket createSocket(
+
+    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    public Socket createSocket()
+        throws IOException {
+
+        // the cast makes sure that the factory is working as expected
+        return (SSLSocket) this.socketfactory.createSocket();
+    }
+
+
+    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    public Socket connectSocket(
+        final Socket sock,
         final String host,
         final int port,
         final InetAddress localAddress,
-        final int localPort,
+        int localPort,
         final HttpParams params
-    ) throws IOException, UnknownHostException, ConnectTimeoutException {
+    ) throws IOException {
+
+        if (host == null) {
+            throw new IllegalArgumentException("Target host may not be null.");
+        }
         if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null");
+            throw new IllegalArgumentException("Parameters may not be null.");
         }
-        SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket();
-        if (localAddress != null) {
-            sslSocket.bind(new InetSocketAddress(localAddress, localPort));
+
+        // resolve the target hostname first
+        final InetSocketAddress target = new InetSocketAddress(host, port);
+
+        SSLSocket sslock = (SSLSocket)
+            ((sock != null) ? sock : createSocket());
+
+        if ((localAddress != null) || (localPort > 0)) {
+
+            // we need to bind explicitly
+            if (localPort < 0)
+                localPort = 0; // indicates "any"
+
+            InetSocketAddress isa =
+                new InetSocketAddress(localAddress, localPort);
+            sslock.bind(isa);
         }
+
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
-        sslSocket.connect(new InetSocketAddress(host, port), timeout);
-        hostnameVerifier.verify(host, sslSocket);
-        // verifyHostName() didn't blowup - good!
-        return sslSocket;
+        sslock.connect(target, timeout);
+
+        try {
+            hostnameVerifier.verify(host, sslock);
+            // verifyHostName() didn't blowup - good!
+        } catch (IOException iox) {
+            // close the socket before re-throwing the exception
+            try { sslock.close(); } catch (Exception x) { /*ignore*/ }
+            throw iox;
+        }
+
+        return sslock;
     }
 
     /**

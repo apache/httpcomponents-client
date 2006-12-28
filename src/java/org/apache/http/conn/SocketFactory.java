@@ -39,43 +39,60 @@ import java.net.UnknownHostException;
 import org.apache.http.params.HttpParams;
 
 /**
- * A factory for creating Sockets.
+ * A factory for creating and connecting sockets.
+ * The factory encapsulates the logic for establishing a socket connection.
+ * <br/>
+ * Both {@link java.lang.Object#equals(java.lang.Object) Object.equals()}
+ * and {@link java.lang.Object#hashCode() Object.hashCode()}
+ * must be overridden for the correct operation of some connection managers.
  * 
- * <p>Both {@link java.lang.Object#equals(java.lang.Object) Object.equals()} and 
- * {@link java.lang.Object#hashCode() Object.hashCode()} should be overridden appropriately.  
- * Protocol socket factories are used to uniquely identify <code>Protocol</code>s and 
- * <code>HostConfiguration</code>s, and <code>equals()</code> and <code>hashCode()</code> are 
- * required for the correct operation of some connection managers.</p>
- * 
- * @see Scheme
- * 
+ * @author <a href="mailto:http-async@dubioso.net">Roland Weber</a>
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * 
- * @since 2.0
  */
 public interface SocketFactory {
 
     /**
-     * Gets a new socket connection to the given host.
-     * 
-     * @param host the host name/IP
-     * @param port the port on the host
-     * @param localAddress the local host name/IP to bind the socket to
-     * @param localPort the port on the local machine
-     * @param params {@link HttpParams Http parameters}
-     * 
-     * @return Socket a new socket
+     * Creates a new, unconnected socket.
+     * The socket should subsequently be passed to
+     * {@link #connectSocket connectSocket}.
+     *
+     * @return  a new socket
      * 
      * @throws IOException if an I/O error occurs while creating the socket
-     * @throws UnknownHostException if the IP address of the host cannot be
-     * determined
-     * @throws ConnectTimeoutException if socket cannot be connected within the
-     *  given time limit
-     * 
-     * @since 3.0
      */
-    Socket createSocket(
+    Socket createSocket()
+        throws IOException
+        ;
+
+
+    /**
+     * Connects a socket to the given host.
+     * 
+     * @param sock      the socket to connect, as obtained from
+     *                  {@link #createSocket createSocket}.
+     *                  <code>null</code> indicates that a new socket
+     *                  should be created and connected.
+     * @param host      the host to connect to
+     * @param port      the port to connect to on the host
+     * @param localAddress the local address to bind the socket to, or
+     *                  <code>null</code> for any
+     * @param localPort the port on the local machine,
+     *                  0 or a negative number for any
+     * @param params    additional {@link HttpParams parameters} for connecting
+     * 
+     * @return  the connected socket. The returned object may be different
+     *          from the <code>sock</code> argument if this factory supports
+     *          a layered protocol.
+     * 
+     * @throws IOException if an I/O error occurs
+     * @throws UnknownHostException if the IP address of the target host
+     *          can not be determined
+     * @throws ConnectTimeoutException if the socket cannot be connected
+     *          within the time limit defined in the <code>params</code>
+     */
+    Socket connectSocket(
+        Socket sock,
         String host, 
         int port, 
         InetAddress localAddress, 

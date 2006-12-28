@@ -151,7 +151,8 @@ public class TestSSLSocketFactory extends TestCase
             IOException[] e = new IOException[1];
             boolean[] success = new boolean[1];
             listen(serverSocket, e, success);
-            Socket s = ssf.createSocket("localhost", port, null, 0, params);
+            Socket s = ssf.connectSocket(null, "localhost", port,
+                                         null, 0, params);
             exerciseSocket(s, e, success);
 
             // Test 2 - createSocket( Socket ), where we upgrade a plain socket

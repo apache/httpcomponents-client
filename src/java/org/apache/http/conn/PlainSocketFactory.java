@@ -33,6 +33,7 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -40,85 +41,96 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 /**
- * The default class for creating protocol sockets.  This class just uses the
- * {@link java.net.Socket socket} constructors.
+ * The default class for creating sockets.
+ * This class just uses the {@link java.net.Socket socket} API
+ * in Java 1.4 or greater.
  * 
+ * @author <a href="mailto:http-async@dubioso.net">Roland Weber</a>
  * @author Michael Becke
- * 
- * @since 2.0
  */
-public class PlainSocketFactory implements SocketFactory {
+public final class PlainSocketFactory implements SocketFactory {
 
     /**
      * The factory singleton.
      */
-    private static final PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
-    
+    private static final
+        PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
+
     /**
-     * Gets an singleton instance of the DefaultProtocolSocketFactory.
-     * @return a DefaultProtocolSocketFactory
+     * Gets the singleton instance of this class.
+     * @return the one and only plain socket factory
      */
-    public static PlainSocketFactory getSocketFactory() {
+    public static final PlainSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
     }
-    
+
     /**
-     * Constructor for DefaultProtocolSocketFactory.
+     * Restricted default constructor.
      */
     private PlainSocketFactory() {
         super();
     }
 
-    /**
-     * Attempts to get a new socket connection to using old (pre Java 1.4) IO mode.
-     * This socket factory does not support connect timeout as it requires Java 1.4
-     * functionality.
-     *  
-     * @param host the host name/IP
-     * @param port the port on the host
-     * @param localAddress the local host name/IP to bind the socket to
-     * @param localPort the port on the local machine
-     * @param params {@link HttpConnectionParams Http connection parameters}
-     * 
-     * @return Socket a new socket
-     * 
-     * @throws IOException if an I/O error occurs while creating the socket
-     * @throws UnknownHostException if the IP address of the host cannot be
-     * @throws IllegalStateException if connection timeout is set
-     * determined
-     * 
-     * @since 3.0
-     */
-    public Socket createSocket(
-        final String host,
-        final int port,
-        final InetAddress localAddress,
-        final int localPort,
-        final HttpParams params
-    ) throws IOException, UnknownHostException {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null");
-        }
-        int timeout = HttpConnectionParams.getConnectionTimeout(params);
-        if (timeout != 0) {
-            throw new IllegalStateException("Connection timeout is not supported in old IO mode");
-        }
-        if (localAddress != null) {
-            return new Socket(host, port, localAddress, localPort);
-        } else {
-            return new Socket(host, port);
-        }
+
+    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    public Socket createSocket() {
+        return new Socket();
     }
 
+    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    public Socket connectSocket(Socket sock, String host, int port, 
+                                InetAddress localAddress, int localPort,
+                                HttpParams params)
+        throws IOException {
+
+        if (host == null) {
+            throw new IllegalArgumentException("Target host may not be null.");
+        }
+        if (params == null) {
+            throw new IllegalArgumentException("Parameters may not be null.");
+        }
+
+        // resolve the target hostname first
+        final InetSocketAddress target = new InetSocketAddress(host, port);
+
+        if (sock == null)
+            sock = createSocket();
+
+        if ((localAddress != null) || (localPort > 0)) {
+
+            // we need to bind explicitly
+            if (localPort < 0)
+                localPort = 0; // indicates "any"
+
+            InetSocketAddress isa =
+                new InetSocketAddress(localAddress, localPort);
+            sock.bind(isa);
+        }
+
+        int timeout = HttpConnectionParams.getConnectionTimeout(params);
+        sock.connect(target, timeout);
+
+        return sock;
+
+    } // connectSocket
+
+
     /**
-     * All instances of DefaultProtocolSocketFactory are the same.
+     * Compares this factory with an object.
+     * There is only one instance of this class.
+     *
+     * @param obj       the object to compare with
+     *
+     * @return  iff the argument is this object
      */
     public boolean equals(Object obj) {
-        return ((obj != null) && obj.getClass().equals(PlainSocketFactory.class));
+        return (obj == this);
     }
 
     /**
-     * All instances of DefaultProtocolSocketFactory have the same hash code.
+     * Obtains a hash code for this object.
+     * All instances of this class have the same hash code.
+     * There is only one instance of this class.
      */
     public int hashCode() {
         return PlainSocketFactory.class.hashCode();
