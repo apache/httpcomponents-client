@@ -83,7 +83,7 @@ HttpClient: Jakarta HttpComponents Client
 
 <path id="classpath.client.compile">
   <pathelement location="${httpcore.jar}"/>
-<!--     <pathelement location="${commons-logging.jar}"/> -->
+  <pathelement location="${commons-logging.jar}"/>
 </path>
 
 <path id="classpath.client.javadoc">
@@ -400,6 +400,7 @@ Output
 >
         <mkdir dir="${dist.client.api}" />
         <javadoc destdir="${dist.client.api}"
+                encoding="UTF-8"
                   access="${javadoc.access}"
                  version="true"
                   author="true"
@@ -436,6 +437,7 @@ Output
 >
         <mkdir dir="${dist.client.api}" />
         <javadoc destdir="${dist.client.api}"
+                encoding="UTF-8"
                   access="${javadoc.access}"
                  version="true"
                   author="true"
