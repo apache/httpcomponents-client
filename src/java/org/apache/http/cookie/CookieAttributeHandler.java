@@ -47,9 +47,9 @@ public interface CookieAttributeHandler {
 
   /**
    * Parse the given cookie attribute value and update the corresponding
-   * {@link org.apache.commons.httpclient.Cookie} property.
+   * {@link org.apache.http.cookie.Cookie} property.
    *
-   * @param cookie {@link org.apache.commons.httpclient.Cookie} to be updated
+   * @param cookie {@link org.apache.http.cookie.Cookie} to be updated
    * @param value cookie attribute value from the cookie response header
    */
   void parse(Cookie cookie, String value)
@@ -58,7 +58,7 @@ public interface CookieAttributeHandler {
   /**
    * Peforms cookie validation for the given attribute value.
    *
-   * @param cookie {@link org.apache.commons.httpclient.Cookie} to validate
+   * @param cookie {@link org.apache.http.cookie.Cookie} to validate
    * @param origin the cookie source to validate against
    * @throws MalformedCookieException if cookie validation fails for this attribute
    */
@@ -69,7 +69,7 @@ public interface CookieAttributeHandler {
    * Matches the given value (property of the destination host where request is being
    * submitted) with the corresponding cookie attribute.
    *
-   * @param cookie {@link org.apache.commons.httpclient.Cookie} to match
+   * @param cookie {@link org.apache.http.cookie.Cookie} to match
    * @param origin the cookie source to match against
    * @return <tt>true</tt> if the match is successful; <tt>false</tt> otherwise
    */

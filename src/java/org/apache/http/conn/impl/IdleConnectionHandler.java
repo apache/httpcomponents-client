@@ -43,7 +43,7 @@ import org.apache.http.conn.HttpHostConnection;
  * 
  * <p>This class is not synchronized.</p>
  * 
- * @see org.apache.commons.httpclient.HttpConnectionManager#closeIdleConnections(long)
+ * @see org.apache.http.conn.HttpConnectionManager#closeIdleConnections(long)
  * 
  * @since 3.0
  */
@@ -63,11 +63,11 @@ public class IdleConnectionHandler {
     
     /**
      * Registers the given connection with this handler.  The connection will be held until 
-     * {@link #remove(HttpConnection)} or {@link #closeIdleConnections(long)} is called.
+     * {@link #remove} or {@link #closeIdleConnections} is called.
      * 
      * @param connection the connection to add
      * 
-     * @see #remove(HttpConnection)
+     * @see #remove
      */
     public void add(HttpHostConnection connection) {
         

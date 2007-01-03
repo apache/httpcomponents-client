@@ -56,7 +56,7 @@ public interface CookieSpec {
       * <p>This method will not perform the validation of the resultant
       * {@link Cookie}s</p> 
       *
-      * @see #validate(String, int, String, boolean, Cookie)
+      * @see #validate
       *
       * @param header the <tt>Set-Cookie</tt> received from the server
       * @param origin details of the cookie origin

@@ -430,8 +430,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * Gets the total number of pooled connections for the given host configuration.  This 
      * is the total number of connections that have been created and are still in use 
      * by this connection manager for the host configuration.  This value will
-     * not exceed the {@link #getMaxConnectionsPerHost() maximum number of connections per
-     * host}.
+     * not exceed the maximum number of connections per host.
      * 
      * @param hostConfiguration The host configuration
      * @return The total number of pooled connections
@@ -446,8 +445,8 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
     /**
      * Gets the total number of pooled connections.  This is the total number of 
      * connections that have been created and are still in use by this connection 
-     * manager.  This value will not exceed the {@link #getMaxTotalConnections() 
-     * maximum number of connections}.
+     * manager.  This value will not exceed the maximum number of connections
+     * in total.
      * 
      * @return the total number of pooled connections
      */

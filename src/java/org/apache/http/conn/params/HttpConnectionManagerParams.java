@@ -38,7 +38,7 @@ import org.apache.http.params.HttpParams;
 
 /**
  * This class represents a collection of HTTP protocol parameters applicable to 
- * {@link HttpConnectionManager HTTP connection managers}. 
+ * {@link org.apache.http.conn.HttpConnectionManager HTTP connection managers}. 
  * Protocol parameters may be linked together to form a hierarchy. If a particular 
  * parameter value has not been explicitly defined in the collection itself, its 
  * value will be drawn from the parent collection of parameters.

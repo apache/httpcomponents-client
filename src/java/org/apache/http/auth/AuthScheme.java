@@ -75,7 +75,7 @@ public interface AuthScheme {
      * may involve multiple challenge-response exchanges. Such schemes must be able 
      * to maintain the state information when dealing with sequential challenges 
      * 
-     * @param challenge the challenge string
+     * @param header the challenge header
      * 
      * @since 3.0
      */
@@ -134,7 +134,7 @@ public interface AuthScheme {
      * Produces an authorization string for the given set of {@link Credentials}.
      * 
      * @param credentials The set of credentials to be used for athentication
-     * @param method The method being authenticated
+     * @param message The request being authenticated
      * @throws AuthenticationException if authorization string cannot 
      *   be generated due to an authentication failure
      * 

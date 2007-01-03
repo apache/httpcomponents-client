@@ -56,8 +56,8 @@ public final class CookieSpecParams {
     public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
     
     /**
-     * Defines whether {@link org.apache.commons.httpclient.Cookie cookies} should be put on 
-     * a single {@link org.apache.commons.httpclient.Header response header}.
+     * Defines whether {@link org.apache.http.cookie.Cookie cookies} should be put on 
+     * a single {@link org.apache.http.Header request header}.
      * <p>
      * This parameter expects a value of type {@link Boolean}.
      * </p>
@@ -65,7 +65,7 @@ public final class CookieSpecParams {
     public static final String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header"; 
 
     /**
-     * Defines {@link CookieSpec cookie specification} to be used for cookie management.
+     * Defines {@link org.apache.http.cookie.CookieSpec cookie specification} to be used for cookie management.
      * <p>
      * This parameter expects a value of type {@link String}.
      * </p>
@@ -105,11 +105,10 @@ public final class CookieSpecParams {
     }
     
     /**
-     * Assigns the {@link CookiePolicy cookie policy} to be used by the 
-     * {@link org.apache.commons.httpclient.HttpMethod HTTP methods} 
-     * this collection of parameters applies to. 
+     * Assigns the {@link org.apache.http.cookie.CookiePolicy cookie policy} to be used
+     * when executing a request based on these parameters.
      *
-     * @param policy the {@link CookiePolicy cookie policy}
+     * @param policy the cookie policy
      */
     public static void setCookiePolicy(final HttpParams params, String policy) {
         if (params == null) {

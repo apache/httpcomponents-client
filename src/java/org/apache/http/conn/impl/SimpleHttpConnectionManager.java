@@ -184,9 +184,7 @@ public class SimpleHttpConnectionManager implements HttpConnectionManager {
         return httpConnection;
     }
 
-    /**
-     * @see HttpConnectionManager#releaseConnection(org.apache.commons.httpclient.HttpConnection)
-     */
+    // non-javadoc, see interface HttpConnectionManager
     public void releaseConnection(HttpHostConnection conn) {
         if (conn != httpConnection) {
             throw new IllegalStateException("Unexpected release of an unknown connection.");
