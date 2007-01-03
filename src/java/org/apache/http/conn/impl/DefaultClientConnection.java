@@ -45,7 +45,7 @@ import org.apache.http.conn.UnmanagedClientConnection;
 /**
  * Default implementation of a managed client connection.
  *
- * @author Roland Weber (rolandw@apache.org)
+ * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
