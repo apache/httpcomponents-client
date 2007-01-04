@@ -104,18 +104,20 @@ public class DefaultSocketConnectionOperator
                  "' in target host.");
         }
         final SocketFactory sf = schm.getSocketFactory();
-        //@@@ create socket, register in connection, connect? (HTTPCLIENT-475)
-        //@@@ Requires registration method, since conn.open(...) fails if
-        //@@@ the socket is not open. Dependent objects need the streams!
-        final Socket sock = sf.connectSocket
-            (null, target.getHostName(), target.getPort(), local, 0, params);
+
+        Socket sock = sf.createSocket();
+        conn.prepare(sock);
+
+        sock = sf.connectSocket
+            (sock, target.getHostName(), target.getPort(), local, 0, params);
         prepareSocket(sock, context, params);
 
         //@@@ ask the factory whether the new socket is secure?
         boolean secure = (sf instanceof SecureSocketFactory);
 
         conn.open(sock, target, secure, params);
-        //@@@ error handling: close the created socket in case of exception?
+        //@@@ error handling: unprepare the connection?
+        //@@@ error handling: close the created socket?
 
     } // openConnection
 

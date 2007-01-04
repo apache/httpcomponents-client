@@ -89,6 +89,37 @@ public interface UnmanagedClientConnection
 
 
     /**
+     * Prepares opening this connection.
+     * Opening can be prepared only while the connection is closed.
+     * This is an optional step, you can call {@link #open open}
+     * without preparing.
+     * <br/>
+     * By calling this method, you provide the connection with
+     * the unconnected socket that will be connected in order
+     * to call {@link #open open}. This allows the connection to
+     * close that socket if
+     * {@link org.apache.http.HttpConnection#shutdown shutdown}
+     * is called before it is open. Closing the unconnected socket
+     * will interrupt a thread that is blocked on the connect.
+     * Otherwise, that thread will either time out on the connect,
+     * or it returns successfully and then opens this connection
+     * which was just shut down.
+     * <br/>
+     * <b>Note:</b>
+     * The result of {@link #getSocket getSocket} is defined
+     * only for open connections. You MUST NOT rely on that
+     * method to return the unconnected socket after preparing.
+     *
+     * @param sock      the unconnected socket which is about to
+     *                  be connected in order to call {@link #open open}.
+     *                  <code>null</code> can be passed to undo a
+     *                  previous call.
+     */
+    void prepare(Socket sock)
+        ;
+
+
+    /**
      * Opens this connection.
      * A connection can be openend only while it is closed.
      * To modify a connection while it is open, use {@link #update update}.

@@ -55,6 +55,9 @@ import org.apache.http.conn.UnmanagedClientConnection;
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements UnmanagedClientConnection {
 
+    /** The unconnected socket while being prepared. */
+    private volatile Socket preparedSocket;
+
     /** The target host of this connection. */
     private HttpHost targetHost;
 
@@ -85,6 +88,35 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
 
     // non-javadoc, see interface UnmanagedClientConnection
+    public void prepare(Socket sock) {
+
+        assertNotOpen();
+        preparedSocket = sock;
+
+    } // prepare
+
+
+    /**
+     * Force-closes this connection.
+     * If it is not yet {@link #open open} but {@link #prepare prepared},
+     * the associated socket is closed. That will interrupt a thread that
+     * is blocked on connecting the socket.
+     *
+     * @throws IOException      in case of a problem
+     */
+    public void shutdown()
+        throws IOException {
+
+        Socket sock = preparedSocket; // copy volatile attribute
+        if (sock != null)
+            sock.close();
+
+        super.shutdown();
+
+    } // shutdown
+
+
+    // non-javadoc, see interface UnmanagedClientConnection
     public void open(Socket sock, HttpHost target,
                      boolean secure, HttpParams params)
         throws IOException {
@@ -106,6 +138,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         bind(sock, params);
         targetHost = target;
         connSecure = secure;
+
+        preparedSocket = null;
 
     } // open
 
