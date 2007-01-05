@@ -144,7 +144,7 @@ public class TestSSLSocketFactory extends TestCase
             int port = serverSocket.getLocalPort();
             // System.out.println("\nlistening on port: " + port);
 
-            SSLSocketFactory ssf = new SSLSocketFactory();
+            SSLSocketFactory ssf = SSLSocketFactory.getSocketFactory();
             ssf.setHostnameVerifier(HostnameVerifier.ALLOW_ALL);
 
             // Test 1 - createSocket()
