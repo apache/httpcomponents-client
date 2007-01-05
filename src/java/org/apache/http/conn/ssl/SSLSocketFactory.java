@@ -142,7 +142,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
     public static final String SSLV2 = "SSLv2";
     
     /**
-     * The factory singleton.
+     * The factory using the default JVM settings for secure connections.
      */
     private static final SSLSocketFactory DEFAULT_FACTORY = new SSLSocketFactory();
     
@@ -204,7 +204,12 @@ public class SSLSocketFactory implements SecureSocketFactory {
         this(TLS, null, null, truststore, null);
     }
 
-    public SSLSocketFactory() {
+    /**
+     * Creates the default SSL socket factory.
+     * This constructor is used exclusively to instantiate the factory for
+     * {@link #getSocketFactory getSocketFactory}.
+     */
+    private SSLSocketFactory() {
         super();
         this.sslcontext = null;
         this.socketfactory = HttpsURLConnection.getDefaultSSLSocketFactory();
