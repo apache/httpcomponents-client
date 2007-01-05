@@ -412,14 +412,19 @@ Output
           </packageset>
 
           <group title="API">
+            <package name="org.apache.http.auth" />
             <package name="org.apache.http.conn" />
-            <package name="org.apache.http.conn*" />
+            <package name="org.apache.http.conn.params" />
+            <package name="org.apache.http.conn.ssl" />
             <package name="org.apache.http.cookie" />
             <package name="org.apache.http.cookie.params" />
             <package name="org.apache.httpclient" />
           </group>
           <group title="Implementation">
-            <package name="*.impl.*" />
+            <package name="org.apache.http.auth.impl*" />
+            <package name="org.apache.http.conn.impl*" />
+            <package name="org.apache.http.cookie.impl*" />
+            <package name="org.apache.httpclient.impl*" />
           </group>
     
           <classpath refid="classpath.client.javadoc"/>
@@ -445,25 +450,40 @@ Output
         >
           <packageset dir="${comp.client.src}">
             <include name="org/apache/http/**" />
+            <include name="org/apache/httpclient/**" />
           </packageset>
           <packageset dir="${comp.client.xmpls}">
             <include name="org/apache/http/**" />
+            <include name="org/apache/httpclient/**" />
           </packageset>
           <packageset dir="${comp.client.contr}">
             <include name="org/apache/http/**" />
           </packageset>
 
+
           <group title="API">
-            <package name="org.apache.http.client" />
+            <package name="org.apache.http.auth" />
+            <package name="org.apache.http.conn" />
+            <package name="org.apache.http.conn.params" />
+            <package name="org.apache.http.conn.ssl" />
+            <package name="org.apache.http.cookie" />
+            <package name="org.apache.http.cookie.params" />
+            <package name="org.apache.httpclient" />
           </group>
           <group title="Implementation">
-            <package name="org.apache.http.client.impl*" />
+            <package name="org.apache.http.auth.impl*" />
+            <package name="org.apache.http.conn.impl*" />
+            <package name="org.apache.http.cookie.impl*" />
+            <package name="org.apache.httpclient.impl*" />
           </group>
+
           <group title="Examples">
             <package name="org.apache.http.examples*" />
+            <package name="org.apache.httpclient.examples*" />
           </group>
           <group title="Contributions (unsupported)">
-            <package name="org.apache.http.client.contrib*" />
+            <package name="org.apache.http.contrib*" />
+            <package name="org.apache.httpclient.contrib*" />
           </group>
     
           <classpath refid="classpath.client.javadoc"/>
