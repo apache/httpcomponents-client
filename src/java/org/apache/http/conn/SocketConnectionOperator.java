@@ -32,7 +32,6 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
-import java.net.Socket;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;

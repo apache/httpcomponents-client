@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;

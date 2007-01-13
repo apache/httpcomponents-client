@@ -35,8 +35,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpInetConnection;
 import org.apache.http.params.HttpParams;
 
 

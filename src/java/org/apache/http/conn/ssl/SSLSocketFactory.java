@@ -31,7 +31,6 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.SecureSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
