@@ -432,7 +432,7 @@ Output
           <link href="${dist.core.api}"/>
 
           <doctitle>${comp.client.title}</doctitle>
-          <bottom>Copyright (c) 2005-2006 - Apache Software Foundation</bottom>
+          <bottom>Copyright (c) 2005-2007 - Apache Software Foundation</bottom>
         </javadoc>
 </target>
 
@@ -491,7 +491,7 @@ Output
           <link href="${dist.core.api}"/>
 
           <doctitle>${comp.client.title}</doctitle>
-          <bottom>Copyright (c) 2005-2006 - Apache Software Foundation</bottom>
+          <bottom>Copyright (c) 2005-2007 - Apache Software Foundation</bottom>
         </javadoc>
 </target>
 
