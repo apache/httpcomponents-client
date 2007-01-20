@@ -95,11 +95,18 @@ public class TalkativeSocketFactory implements SocketFactory {
                                 HttpParams params)
         throws IOException {
 
-        // just delegate the call to the default
+        // just delegate the call to the default factory
         return PlainSocketFactory.getSocketFactory().connectSocket
             (sock, host, port, localAddress, localPort, params);
     }
 
+
+    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    public boolean isSecure(Socket sock)
+        throws IllegalArgumentException {
+
+        return false;
+    }
 
     /**
      * Prepares a byte for debug printing.

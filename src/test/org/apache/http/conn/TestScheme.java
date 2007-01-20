@@ -62,12 +62,12 @@ public class TestScheme extends TestCase {
         assertEquals("http", http.getName()); 
         assertEquals(80, http.getDefaultPort()); 
         assertEquals(PlainSocketFactory.getSocketFactory(), http.getSocketFactory()); 
-        assertFalse(http.isSecure()); 
+        assertFalse(http.isLayered()); 
         Scheme https = new Scheme("http", SSLSocketFactory.getSocketFactory(), 443);
         assertEquals("http", https.getName()); 
         assertEquals(443, https.getDefaultPort()); 
         assertEquals(SSLSocketFactory.getSocketFactory(), https.getSocketFactory()); 
-        assertTrue(https.isSecure());
+        assertTrue(https.isLayered());
         
         try {
         	new Scheme(null, PlainSocketFactory.getSocketFactory(), 80);

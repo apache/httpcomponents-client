@@ -124,12 +124,13 @@ public class Scheme {
     /** The default port for this scheme */
     private int defaultPort;
     
-    /** True if this scheme is secure */
-    private boolean secure;
+    /** True if this scheme allows for layered connections */
+    private boolean layered;
   
     /**
-     * Constructs a new Protocol. Whether the created scheme is secure depends on
-     * the class of <code>factory</code>.
+     * Constructs a new scheme.
+     * Whether the created scheme allows for layered connections
+     * depends on the class of <code>factory</code>.
      * 
      * @param name the scheme name (e.g. http, https)
      * @param factory the factory for creating sockets for communication using
@@ -151,7 +152,7 @@ public class Scheme {
         this.name = name;
         this.socketFactory = factory;
         this.defaultPort = defaultPort;
-        this.secure = (factory instanceof SecureSocketFactory);
+        this.layered = (factory instanceof SecureSocketFactory);
     }
     
     /**
@@ -179,11 +180,12 @@ public class Scheme {
     }
 
     /**
-     * Returns true if this scheme is secure
-     * @return true if this scheme is secure
+     * Indicates whether this scheme allows for layered connections.
+     * @return <code>true</code> if layered connections are possible,
+     *         <code>false</code> otherwise
      */
-    public boolean isSecure() {
-        return secure;
+    public boolean isLayered() {
+        return layered;
     }
     
     /**
@@ -223,7 +225,7 @@ public class Scheme {
             return (
                 defaultPort == p.getDefaultPort()
                 && name.equalsIgnoreCase(p.getName())
-                && secure == p.isSecure()
+                && layered == p.isLayered()
                 && socketFactory.equals(p.getSocketFactory()));
             
         } else {
@@ -240,7 +242,7 @@ public class Scheme {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.defaultPort);
         hash = LangUtils.hashCode(hash, this.name.toLowerCase());
-        hash = LangUtils.hashCode(hash, this.secure);
+        hash = LangUtils.hashCode(hash, this.layered);
         hash = LangUtils.hashCode(hash, this.socketFactory);
         return hash;
     }

@@ -115,6 +115,41 @@ public final class PlainSocketFactory implements SocketFactory {
 
 
     /**
+     * Checks whether a socket connection is secure.
+     * This factory creates plain socket connections
+     * which are not considered secure.
+     *
+     * @param sock      the connected socket
+     *
+     * @return  <code>false</code>
+     *
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public final boolean isSecure(Socket sock)
+        throws IllegalArgumentException {
+
+        if (sock == null) {
+            throw new IllegalArgumentException("Socket may not be null.");
+        }
+        // This class check assumes that createSocket() calls the constructor
+        // directly. If it was using javax.net.SocketFactory, we couldn't make
+        // an assumption about the socket class here.
+        if (sock.getClass() != Socket.class) {
+            throw new IllegalArgumentException
+                ("Socket not created by this factory.");
+        }
+        // This check is performed last since it calls a method implemented
+        // by the argument object. getClass() is final in java.lang.Object.
+        if (sock.isClosed()) {
+            throw new IllegalArgumentException("Socket is closed.");
+        }
+
+        return false;
+
+    } // isSecure
+
+
+    /**
      * Compares this factory with an object.
      * There is only one instance of this class.
      *

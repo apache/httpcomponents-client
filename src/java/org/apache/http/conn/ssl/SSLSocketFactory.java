@@ -295,6 +295,42 @@ public class SSLSocketFactory implements SecureSocketFactory {
         return sslock;
     }
 
+
+    /**
+     * Checks whether a socket connection is secure.
+     * This factory creates TLS/SSL socket connections
+     * which, by default, are considered secure.
+     * <br/>
+     * Derived classes may override this method to perform
+     * runtime checks, for example based on the cypher suite.
+     *
+     * @param sock      the connected socket
+     *
+     * @return  <code>true</code>
+     *
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public boolean isSecure(Socket sock)
+        throws IllegalArgumentException {
+
+        if (sock == null) {
+            throw new IllegalArgumentException("Socket may not be null.");
+        }
+        // This instanceof check is in line with createSocket() above.
+        if (!(sock instanceof SSLSocket)) {
+            throw new IllegalArgumentException
+                ("Socket not created by this factory.");
+        }
+        // This check is performed last since it calls the argument object.
+        if (sock.isClosed()) {
+            throw new IllegalArgumentException("Socket is closed.");
+        }
+
+        return false;
+
+    } // isSecure
+
+
     /**
      * @see SecureSocketFactory#createSocket(java.net.Socket,java.lang.String,int,boolean)
      */

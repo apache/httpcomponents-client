@@ -100,4 +100,38 @@ public interface SocketFactory {
         HttpParams params
     ) throws IOException, UnknownHostException, ConnectTimeoutException;
 
+
+    /**
+     * Checks whether a socket provides a secure connection.
+     * The socket must be {@link #connectSocket connected}
+     * by this factory.
+     * The factory will <i>not</i> perform I/O operations
+     * in this method.
+     * <br/>
+     * As a rule of thumb, plain sockets are not secure and
+     * TLS/SSL sockets are secure. However, there may be
+     * application specific deviations. For example, a plain
+     * socket to a host in the same intranet ("trusted zone")
+     * could be considered secure. On the other hand, a
+     * TLS/SSL socket could be considered insecure based on
+     * the cypher suite chosen for the connection.
+     *
+     * @param sock      the connected socket to check
+     *
+     * @return  <code>true</code> if the connection of the socket
+     *          should be considered secure, or
+     *          <code>false</code> if it should not
+     *
+     * @throws IllegalArgumentException
+     *  if the argument is invalid, for example because it is
+     *  not a connected socket or was created by a different
+     *  socket factory.
+     *  Note that socket factories are <i>not</i> required to
+     *  check these conditions, they may simply return a default
+     *  value when called with an invalid socket argument.
+     */
+    boolean isSecure(Socket sock)
+        throws IllegalArgumentException
+        ;
+
 }

@@ -112,8 +112,7 @@ public class DefaultSocketConnectionOperator
             (sock, target.getHostName(), target.getPort(), local, 0, params);
         prepareSocket(sock, context, params);
 
-        //@@@ ask the factory whether the new socket is secure?
-        boolean secure = (sf instanceof SecureSocketFactory);
+        final boolean secure = sf.isSecure(sock);
 
         conn.open(sock, target, secure, params);
         //@@@ error handling: unprepare the connection?
@@ -166,8 +165,7 @@ public class DefaultSocketConnectionOperator
             (conn.getSocket(), target.getHostName(), target.getPort(), true);
         prepareSocket(sock, context, params);
 
-        //@@@ ask the factory whether the new socket is secure?
-        boolean secure = true;
+        final boolean secure = ssf.isSecure(sock);
 
         conn.update(sock, target, secure, params);
         //@@@ error handling: close the layered socket in case of exception?
