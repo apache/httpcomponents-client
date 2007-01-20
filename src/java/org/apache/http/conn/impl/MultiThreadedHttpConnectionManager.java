@@ -610,6 +610,8 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
         public synchronized void handleLostConnection(HostConfiguration config) {
             HostConnectionPool hostPool = getHostPool(config);
             hostPool.numConnections--;
+            if (hostPool.numConnections < 1)
+                mapHosts.remove(config);
 
             numConnections--;
             notifyWaitingThread(config);
@@ -715,6 +717,8 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
             hostPool.freeConnections.remove(connection);
             hostPool.numConnections--;
             numConnections--;
+            if (hostPool.numConnections < 1)
+                mapHosts.remove(connectionConfiguration);
 
             // remove the connection from the timeout handler
             idleConnectionHandler.remove(connection);            
