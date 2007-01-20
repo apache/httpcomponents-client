@@ -99,7 +99,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /**
      * Force-closes this connection.
-     * If it is not yet {@link #open open} but {@link #prepare prepared},
+     * If it is not yet {@link #open open} but {@link #announce announced},
      * the associated socket is closed. That will interrupt a thread that
      * is blocked on connecting the socket.
      *

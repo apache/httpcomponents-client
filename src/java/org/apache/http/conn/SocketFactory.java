@@ -46,7 +46,7 @@ import org.apache.http.params.HttpParams;
  * and {@link java.lang.Object#hashCode() Object.hashCode()}
  * must be overridden for the correct operation of some connection managers.
  * 
- * @author <a href="mailto:http-async@dubioso.net">Roland Weber</a>
+ * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  */
