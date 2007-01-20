@@ -43,13 +43,13 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.SecureSocketFactory;
-import org.apache.http.conn.UnmanagedClientConnection;
-import org.apache.http.conn.SocketConnectionOperator;
+import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.ClientConnectionOperator;
 
 
 /**
  * Default implementation of a
- * {@link SocketConnectionOperator SocketConnectionOperator}.
+ * {@link ClientConnectionOperator ClientConnectionOperator}.
  * It uses the {@link Scheme Scheme} class to look up
  * {@link SocketFactory SocketFactory} objects.
  *
@@ -59,9 +59,10 @@ import org.apache.http.conn.SocketConnectionOperator;
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$ $Date$
  *
+ * @since 4.0
  */
-public class DefaultSocketConnectionOperator
-    implements SocketConnectionOperator {
+public class DefaultClientConnectionOperator
+    implements ClientConnectionOperator {
 
 
 
@@ -69,8 +70,8 @@ public class DefaultSocketConnectionOperator
 
 
 
-    // non-javadoc, see interface SocketConnectionOperator
-    public void openConnection(UnmanagedClientConnection conn,
+    // non-javadoc, see interface ClientConnectionOperator
+    public void openConnection(OperatedClientConnection conn,
                                HttpHost target,
                                HttpContext context,
                                HttpParams params)
@@ -106,7 +107,7 @@ public class DefaultSocketConnectionOperator
         final SocketFactory sf = schm.getSocketFactory();
 
         Socket sock = sf.createSocket();
-        conn.prepare(sock);
+        conn.announce(sock);
 
         sock = sf.connectSocket
             (sock, target.getHostName(), target.getPort(), local, 0, params);
@@ -115,14 +116,14 @@ public class DefaultSocketConnectionOperator
         final boolean secure = sf.isSecure(sock);
 
         conn.open(sock, target, secure, params);
-        //@@@ error handling: unprepare the connection?
+        //@@@ error handling: unannounce at connection?
         //@@@ error handling: close the created socket?
 
     } // openConnection
 
 
-    // non-javadoc, see interface SocketConnectionOperator
-    public void updateSecureConnection(UnmanagedClientConnection conn,
+    // non-javadoc, see interface ClientConnectionOperator
+    public void updateSecureConnection(OperatedClientConnection conn,
                                        HttpHost target,
                                        HttpContext context,
                                        HttpParams params)
@@ -200,5 +201,5 @@ public class DefaultSocketConnectionOperator
     } // prepareSocket
 
 
-} // interface SocketConnectionOperator
+} // interface ClientConnectionOperator
 

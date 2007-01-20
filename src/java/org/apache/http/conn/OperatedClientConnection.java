@@ -40,8 +40,22 @@ import org.apache.http.HttpInetConnection;
 import org.apache.http.params.HttpParams;
 
 
-//@@@ merge this interface into HttpCore?
-public interface UnmanagedClientConnection
+/**
+ * A client-side connection that needs to be operated.
+ * It relies on outside logic to connect sockets to the appropriate hosts.
+ * It can be operated directly by an application, or through an
+ * {@link ClientConnectionOperator operator}.
+ *
+ *
+ * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ *
+ *
+ * <!-- empty lines to avoid svn diff problems -->
+ * @version   $Revision$ $Date$
+ *
+ * @since 4.0
+ */
+public interface OperatedClientConnection
     extends HttpClientConnection, HttpInetConnection {
 
     /**
@@ -89,10 +103,10 @@ public interface UnmanagedClientConnection
 
 
     /**
-     * Prepares opening this connection.
-     * Opening can be prepared only while the connection is closed.
+     * Announces opening of this connection.
+     * Opening can be announced only while the connection is closed.
      * This is an optional step, you can call {@link #open open}
-     * without preparing.
+     * without an announcement.
      * <br/>
      * By calling this method, you provide the connection with
      * the unconnected socket that will be connected in order
@@ -108,14 +122,14 @@ public interface UnmanagedClientConnection
      * <b>Note:</b>
      * The result of {@link #getSocket getSocket} is defined
      * only for open connections. You MUST NOT rely on that
-     * method to return the unconnected socket after preparing.
+     * method to return the unconnected socket after announcing.
      *
      * @param sock      the unconnected socket which is about to
      *                  be connected in order to call {@link #open open}.
      *                  <code>null</code> can be passed to undo a
      *                  previous call.
      */
-    void prepare(Socket sock)
+    void announce(Socket sock)
         ;
 
 
@@ -166,4 +180,4 @@ public interface UnmanagedClientConnection
         ;
 
 
-} // interface UnmanagedClientConnection
+} // interface OperatedClientConnection

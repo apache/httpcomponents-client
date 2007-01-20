@@ -39,11 +39,11 @@ import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
 
-import org.apache.http.conn.UnmanagedClientConnection;
+import org.apache.http.conn.OperatedClientConnection;
 
 
 /**
- * Default implementation of a managed client connection.
+ * Default implementation of an operated client connection.
  *
  * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
  *
@@ -51,12 +51,13 @@ import org.apache.http.conn.UnmanagedClientConnection;
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$ $Date$
  *
+ * @since 4.0
  */
 public class DefaultClientConnection extends SocketHttpClientConnection
-    implements UnmanagedClientConnection {
+    implements OperatedClientConnection {
 
-    /** The unconnected socket while being prepared. */
-    private volatile Socket preparedSocket;
+    /** The unconnected socket between announce and open. */
+    private volatile Socket announcedSocket;
 
     /** The target host of this connection. */
     private HttpHost targetHost;
@@ -69,29 +70,29 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     // public default constructor
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
+    // non-javadoc, see interface OperatedClientConnection
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
+    // non-javadoc, see interface OperatedClientConnection
     public final boolean isSecure() {
         return this.connSecure;
     }
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
+    // non-javadoc, see interface OperatedClientConnection
     public final Socket getSocket() {
         return this.socket; // base class attribute
     }
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
-    public void prepare(Socket sock) {
+    // non-javadoc, see interface OperatedClientConnection
+    public void announce(Socket sock) {
 
         assertNotOpen();
-        preparedSocket = sock;
+        announcedSocket = sock;
 
     } // prepare
 
@@ -107,7 +108,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public void shutdown()
         throws IOException {
 
-        Socket sock = preparedSocket; // copy volatile attribute
+        Socket sock = announcedSocket; // copy volatile attribute
         if (sock != null)
             sock.close();
 
@@ -116,7 +117,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     } // shutdown
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
+    // non-javadoc, see interface OperatedClientConnection
     public void open(Socket sock, HttpHost target,
                      boolean secure, HttpParams params)
         throws IOException {
@@ -139,12 +140,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         targetHost = target;
         connSecure = secure;
 
-        preparedSocket = null;
+        announcedSocket = null;
 
     } // open
 
 
-    // non-javadoc, see interface UnmanagedClientConnection
+    // non-javadoc, see interface OperatedClientConnection
     public void update(Socket sock, HttpHost target,
                        boolean secure, HttpParams params)
         throws IOException {

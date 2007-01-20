@@ -48,16 +48,16 @@ import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.UnmanagedClientConnection;
-import org.apache.http.conn.SocketConnectionOperator;
+import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.impl.DefaultClientConnection;
-import org.apache.http.conn.impl.DefaultSocketConnectionOperator;
+import org.apache.http.conn.impl.DefaultClientConnectionOperator;
 
 
 
 /**
  * How to open a secure connection through a proxy using
- * {@link SocketConnectionOperator SocketConnectionOperator}.
+ * {@link ClientConnectionOperator ClientConnectionOperator}.
  * This exemplifies the <i>opening</i> of the connection only.
  * The message exchange, both subsequently and for tunnelling,
  * should not be used as a template.
@@ -96,8 +96,8 @@ public class OperatorConnectProxy {
         setup(); // some general setup
 
         // one operator can be used for many connections
-        SocketConnectionOperator  scop = createOperator();
-        UnmanagedClientConnection conn = createConnection();
+        ClientConnectionOperator  scop = createOperator();
+        OperatedClientConnection conn = createConnection();
 
         HttpRequest req = createRequest(target);
         HttpContext ctx = createContext();
@@ -154,11 +154,11 @@ public class OperatorConnectProxy {
     } // main
 
 
-    private final static SocketConnectionOperator createOperator() {
-        return new DefaultSocketConnectionOperator();
+    private final static ClientConnectionOperator createOperator() {
+        return new DefaultClientConnectionOperator();
     }
 
-    private final static UnmanagedClientConnection createConnection() {
+    private final static OperatedClientConnection createConnection() {
         return new DefaultClientConnection();
     }
 

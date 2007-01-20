@@ -40,7 +40,7 @@ import org.apache.http.protocol.HttpContext;
 
 
 /**
- * Interface for opening {@link UnmanagedClientConnection connections}.
+ * Interface for opening {@link OperatedClientConnection connections}.
  * This interface encapsulates the logic to create sockets and to
  * open or update the connection with the new socket.
  * Implementations will most likely make use of
@@ -56,8 +56,9 @@ import org.apache.http.protocol.HttpContext;
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$ $Date$
  *
+ * @since 4.0
  */
-public interface SocketConnectionOperator {
+public interface ClientConnectionOperator {
 
 
     /**
@@ -70,7 +71,7 @@ public interface SocketConnectionOperator {
      *
      * @throws IOException      in case of a problem
      */
-    void openConnection(UnmanagedClientConnection conn,
+    void openConnection(OperatedClientConnection conn,
                         HttpHost target,
                         HttpContext context,
                         HttpParams params)
@@ -93,7 +94,7 @@ public interface SocketConnectionOperator {
      *
      * @throws IOException      in case of a problem
      */
-    void updateSecureConnection(UnmanagedClientConnection conn,
+    void updateSecureConnection(OperatedClientConnection conn,
                                 HttpHost target,
                                 HttpContext context,
                                 HttpParams params)
@@ -101,5 +102,5 @@ public interface SocketConnectionOperator {
         ;
 
 
-} // interface SocketConnectionOperator
+} // interface ClientConnectionOperator
 
