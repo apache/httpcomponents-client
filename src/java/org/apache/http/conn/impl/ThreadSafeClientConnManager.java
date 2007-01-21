@@ -958,8 +958,7 @@ public class ThreadSafeClientConnManager
         }
     }
 
-    //@@@ change argument to OperatedClientConnection
-    //@@@ private static void closeConnection(final org.apache.http.HttpConnection conn) {
+
     private static void closeConnection(final OperatedClientConnection conn) {
         try {
             conn.close();
@@ -969,8 +968,8 @@ public class ThreadSafeClientConnManager
     }
 
     /**
-     * A simple struct-like class to combine the objects needed to release a connection's
-     * resources when claimed by the garbage collector.
+     * A simple struct-like class to combine the objects needed to release
+     * a connection's resources when claimed by the garbage collector.
      */
     private static class ConnectionSource {
         
