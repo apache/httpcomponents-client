@@ -293,6 +293,8 @@ public class ThreadSafeClientConnManager
                 }
             }
         }
+
+
         return entry;
 
     } // doGetConnection
@@ -506,7 +508,7 @@ public class ThreadSafeClientConnManager
                     (ConnectionSource) REFERENCE_TO_CONNECTION_SOURCE.get(ref);
                 if (source.connectionPool == connectionPool) {
                     referenceIter.remove();
-                    Object entry = ref.get(); // class TrackingPoolEntry
+                    Object entry = ref.get(); // TrackingPoolEntry
                     if (entry != null) {
                         connectionsToClose.add(entry);
                     }
@@ -679,8 +681,11 @@ public class ThreadSafeClientConnManager
             idleConnectionHandler.removeAll();
         }
 
+
         /**
          * Creates a new pool entry for an operated connection.
+         * This method assumes that the new connection will be handed
+         * out immediately.
          *
          * @param route   the route associated with the new entry
          * @param conn    the underlying connection for the new entry
@@ -696,6 +701,7 @@ public class ThreadSafeClientConnManager
                 LOG.debug("Allocating new connection, hostConfiguration=" + route);
             }
             TrackingPoolEntry entry = new TrackingPoolEntry(conn);
+            entry.plannedRoute = route;
             numConnections++;
             hostPool.numConnections++;
     
@@ -707,12 +713,15 @@ public class ThreadSafeClientConnManager
 
 
         /**
-         * Handles cleaning up for a lost connection with the given config.  Decrements any 
-         * connection counts and notifies waiting threads, if appropriate.
+         * Handles cleaning up for a lost connection with the given config.
+         * Decrements any connection counts and notifies waiting threads,
+         * if appropriate.
          * 
          * @param config the host configuration of the connection that was lost
          */
-        public synchronized void handleLostConnection(HostConfiguration config) {
+        public synchronized
+            void handleLostConnection(HostConfiguration config) {
+
             HostConnectionPool hostPool = getHostPool(config);
             hostPool.numConnections--;
             if (hostPool.numConnections < 1)
@@ -723,25 +732,27 @@ public class ThreadSafeClientConnManager
         }
 
         /**
-         * Get the pool (list) of connections available for the given hostConfig.
+         * Get the pool (list) of connections available for the given route.
          *
-         * @param hostConfiguration the configuraton for the connection pool
-         * @return a pool (list) of connections available for the given config
+         * @param route   the configuraton for the connection pool
+         * @return a pool (list) of connections available for the given route
          */
-        public synchronized HostConnectionPool getHostPool(HostConfiguration hostConfiguration) {
+        public synchronized
+            HostConnectionPool getHostPool(HostConfiguration route) {
 
             // Look for a list of connections for the given config
-            HostConnectionPool listConnections = (HostConnectionPool) 
-                mapHosts.get(hostConfiguration);
+            HostConnectionPool listConnections =
+                (HostConnectionPool) mapHosts.get(route);
             if (listConnections == null) {
                 // First time for this config
                 listConnections = new HostConnectionPool();
-                listConnections.hostConfiguration = hostConfiguration;
-                mapHosts.put(hostConfiguration, listConnections);
+                listConnections.hostConfiguration = route;
+                mapHosts.put(route, listConnections);
             }
-            
+
             return listConnections;
         }
+
 
         /**
          * If available, get a free connection for this host
@@ -900,7 +911,7 @@ public class ThreadSafeClientConnManager
          */
         private void freeConnection(TrackingPoolEntry entry) {
 
-            HostConfiguration route = entry.route;
+            HostConfiguration route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freeing connection, hostConfig=" + route);
@@ -917,7 +928,8 @@ public class ThreadSafeClientConnManager
                 
                 HostConnectionPool hostPool = getHostPool(route);
 
-                // Put the connect back in the available list and notify a waiter
+                // Put the connection back in the available list
+                // and notify a waiter
                 hostPool.freeConnections.add(entry);
                 if (hostPool.numConnections == 0) {
                     // for some reason this connection pool didn't already exist
@@ -927,8 +939,9 @@ public class ThreadSafeClientConnManager
                 }
 
                 freeConnections.add(entry);
-                // we can remove the reference to this connection as we have control over
-                // it again.  this also ensures that the connection manager can be GCed
+                // We can remove the reference to this connection as we have
+                // control over it again. This also ensures that the connection
+                // manager can be GCed.
                 removeReferenceToConnection(entry);
                 if (numConnections == 0) {
                     // for some reason this connection pool didn't already exist
@@ -1075,10 +1088,13 @@ public class ThreadSafeClientConnManager
         /** The underlying connection being pooled or used. */
         private OperatedClientConnection connection;
 
-        /** The host configuration part of the route. */
+        /** The route for which this entry gets allocated. */
+        private HostConfiguration plannedRoute;
+
+        /** The host configuration part of the tracked route. */
         private HostConfiguration route;
 
-        /** The tunnel created flag part of the route. */
+        /** The tunnel created flag part of the tracked route. */
         private boolean tunnelled;
 
         /** The connection manager. */
