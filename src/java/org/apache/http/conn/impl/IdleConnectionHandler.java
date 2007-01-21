@@ -36,14 +36,15 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.HttpHostConnection;
+import org.apache.http.HttpConnection;
+
 
 /**
  * A helper class for connection managers to track idle connections.
  * 
  * <p>This class is not synchronized.</p>
  * 
- * @see org.apache.http.conn.HttpConnectionManager#closeIdleConnections(long)
+ * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections(long)
  * 
  * @since 3.0
  */
@@ -69,7 +70,7 @@ public class IdleConnectionHandler {
      * 
      * @see #remove
      */
-    public void add(HttpHostConnection connection) {
+    public void add(HttpConnection connection) {
         
         Long timeAdded = new Long(System.currentTimeMillis());
         
@@ -84,7 +85,7 @@ public class IdleConnectionHandler {
      * Removes the given connection from the list of connections to be closed when idle.
      * @param connection
      */
-    public void remove(HttpHostConnection connection) {
+    public void remove(HttpConnection connection) {
         connectionToAdded.remove(connection);
     }
 
@@ -112,7 +113,7 @@ public class IdleConnectionHandler {
         Iterator connectionIter = connectionToAdded.keySet().iterator();
         
         while (connectionIter.hasNext()) {
-            HttpHostConnection conn = (HttpHostConnection) connectionIter.next();
+            HttpConnection conn = (HttpConnection) connectionIter.next();
             Long connectionTime = (Long) connectionToAdded.get(conn);
             if (connectionTime.longValue() <= idleTimeout) {
                 if (LOG.isDebugEnabled()) {
