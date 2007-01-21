@@ -1096,6 +1096,9 @@ public class ThreadSafeClientConnManager
         /** The tunnel created flag part of the tracked route. */
         private boolean tunnelled;
 
+        /** The layered flag part of the tracked route. */
+        private boolean layered;
+
         /** The connection manager. */
         private ThreadSafeClientConnManager manager;
 
@@ -1178,6 +1181,87 @@ public class ThreadSafeClientConnManager
 
 
         /**
+         * Tracks tunnelling of the connection.
+         * The tunnel has to be established outside by sending a CONNECT
+         * request to the proxy.
+         *
+         * @param secure    <code>true</code> if the tunnel should be
+         *                  considered secure, <code>false</code> otherwise
+         * @param params    the parameters for tunnelling the connection
+         *
+         * @throws IOException  in case of a problem
+         */
+        private void tunnelCreated(boolean secure, HttpParams params)
+            throws IOException {
+
+            if (params == null) {
+                throw new IllegalArgumentException
+                    ("Parameters must not be null.");
+            }
+
+            if (route.getProxyHost() == null) {
+                throw new IllegalStateException("No proxy in route.");
+            }
+            if (tunnelled) {
+                throw new IllegalStateException
+                    ("Connection is already tunnelled.");
+            }
+
+            this.connection.update(null, route.getHost(),
+                                   secure, params);
+            tunnelled = true;
+
+        } // tunnelCreated
+
+
+        /**
+         * Layers a protocol on top of an established tunnel.
+         *
+         * @param context   the context for layering
+         * @param params    the parameters for layering
+         *
+         * @throws IOException  in case of a problem
+         */
+        private void layerProtocol(HttpContext context, HttpParams params)
+            throws IOException {
+
+            //@@@ is context allowed to be null? depends on operator?
+            if (params == null) {
+                throw new IllegalArgumentException
+                    ("Parameters must not be null.");
+            }
+
+            if (!this.tunnelled) {
+                throw new IllegalStateException
+                    ("Protocol layering without a tunnel not supported.");
+            }
+            if (this.layered) {
+                throw new IllegalStateException
+                    ("Protocol already layered.");
+            }
+
+            // - collect the arguments
+            // - call the operator
+            // - update the tracking data
+            // In this order, we can be sure that only a successful
+            // layering on top of the connection will be tracked.
+
+            final HttpHost target = route.getHost();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Layer protocol on connection to " + target);
+            }
+
+            ThreadSafeClientConnManager.this.connectionOperator
+                .updateSecureConnection(this.connection, target,
+                                        context, params);
+
+            this.layered = true;
+
+        } // layerProtocol
+
+
+        /**
          * Tracks close or shutdown of the connection.
          * There is no distinction between the two, the route is dropped
          * in both cases. This method should be called regardless of
@@ -1235,15 +1319,6 @@ public class ThreadSafeClientConnManager
         }
 
         /**
-         * Obtains the wrapped connection.
-         *
-         * @return the wrapped connection
-         */
-        OperatedClientConnection getXWrappedConnection() {
-            return wrappedConnection;
-        }
-
-        /**
          * Detaches this adapter from the wrapped connection.
          * This adapter becomes useless.
          */
@@ -1261,6 +1336,25 @@ public class ThreadSafeClientConnManager
             assertAttached();
             poolEntry.open(route, context, params);
         }
+
+
+        // non-javadoc, see interface ManagedHttpConnection
+        public void tunnelCreated(boolean secure, HttpParams params)
+            throws IOException {
+
+            assertAttached();
+            poolEntry.tunnelCreated(secure, params);
+        }
+
+
+        // non-javadoc, see interface ManagedHttpConnection
+        public void layerProtocol(HttpContext context, HttpParams params)
+            throws IOException {
+
+            assertAttached();
+            poolEntry.layerProtocol(context, params);
+        }
+
 
 
         // non-javadoc, see interface HttpConnection        

@@ -84,14 +84,44 @@ public interface ManagedClientConnection
         ;
 
 
-    /* *
-     * Indicates that a tunnel has been created.
+    /**
+     * Indicates that a tunnel has been established.
+     * The route is the one previously passed to {@link #open open}.
+     * Subsequently, {@link #layerProtocol layerProtocol} can be called
+     * to layer the TLS/SSL protocol on top of the tunnelled connection.
+     * <br/>
+     * <b>Note:</b> In HttpClient 3, a call to the corresponding method
+     * would automatically trigger the layering of the TLS/SSL protocol.
+     * This is not the case anymore, you can establish a tunnel without
+     * layering a new protocol over the connection.
      *
-     * @param route     the route along which the tunnel has been created
-     * @param params    the parameters for updating the connection
+     * @param secure    <code>true</code> if the tunnel should be considered
+     *                  secure, <code>false</code> otherwise
+     * @param params    the parameters for tunnelling this connection
+     *
+     * @throws IOException  in case of a problem
      */
-    //@@@ tunnelCreated in the old implementation triggers layering
-    //@@@ of the TLS/SSL connection. This should be split in two.
+    void tunnelCreated(boolean secure, HttpParams params)
+        throws IOException
+        ;
+
+
+    /**
+     * Layers a new protocol on top of a {@link #tunnelCreated tunnelled}
+     * connection. This is typically used to create a TLS/SSL connection
+     * through a proxy.
+     * The route is the one previously passed to {@link #open open}.
+     * It is not guaranteed that the layered connection is
+     * {@link #isSecure secure}.
+     *
+     * @param context   the context for layering on top of this connection
+     * @param params    the parameters for layering on top of this connection
+     *
+     * @throws IOException      in case of a problem
+     */
+    void layerProtocol(HttpContext context, HttpParams params)
+        throws IOException
+        ;
 
 
     /* *

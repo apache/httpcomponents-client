@@ -86,8 +86,8 @@ public interface ClientConnectionOperator {
      *
      * @param conn      the open connection to update
      * @param target    the target host for the updated connection.
-     *                  The connection must already be open to the
-     *                  host and port, but the scheme of the target
+     *                  The connection must already be open or tunnelled
+     *                  to the host and port, but the scheme of the target
      *                  will be used to create a layered connection.
      * @param context   the context for the connection
      * @param params    the parameters for the updated connection

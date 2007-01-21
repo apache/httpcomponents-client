@@ -47,6 +47,7 @@ import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
@@ -55,11 +56,11 @@ import org.apache.http.conn.impl.ThreadSafeClientConnManager;
 
 
 /**
- * How to open a direct connection using
+ * How to open a secure connection through a proxy using
  * {@link ClientConnectionManager ClientConnectionManager}.
  * This exemplifies the <i>opening</i> of the connection only.
- * The subsequent message exchange in this example should not
- * be used as a template.
+ * The message exchange, both subsequently and for tunnelling,
+ * should not be used as a template.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
@@ -69,7 +70,7 @@ import org.apache.http.conn.impl.ThreadSafeClientConnManager;
  *
  * @since 4.0
  */
-public class ManagerConnectDirect {
+public class ManagerConnectProxy {
 
     /**
      * The default parameters.
@@ -86,7 +87,11 @@ public class ManagerConnectDirect {
     public final static void main(String[] args)
         throws Exception {
 
-        final HttpHost target = new HttpHost("jakarta.apache.org", 80, "http");
+        // make sure to use a proxy that supports CONNECT
+        final HttpHost target =
+            new HttpHost("issues.apache.org", 443, "https");
+        final HttpHost proxy =
+            new HttpHost("127.0.0.1", 8666, "http");
 
         setup(); // some general setup
 
@@ -95,14 +100,40 @@ public class ManagerConnectDirect {
         HttpRequest req = createRequest(target);
         HttpContext ctx = createContext();
 
-        System.out.println("preparing route to " + target);
-        HostConfiguration route = new HostConfiguration(target, null, null);
+        System.out.println("preparing route to " + target + " via " + proxy);
+        HostConfiguration route = new HostConfiguration(target, proxy, null);
 
         System.out.println("requesting connection for " + route);
         ManagedClientConnection conn = clcm.getConnection(route);
         try {
             System.out.println("opening connection");
             conn.open(route, ctx, getParams());
+
+            HttpRequest connect = createConnect(target);
+            System.out.println("opening tunnel to " + target);
+            conn.sendRequestHeader(connect);
+            // there is no request entity
+            conn.flush();
+
+            System.out.println("receiving confirmation for tunnel");
+            HttpResponse connected = conn.receiveResponseHeader(getParams());
+            System.out.println("----------------------------------------");
+            printResponseHeader(connected);
+            System.out.println("----------------------------------------");
+            int status = connected.getStatusLine().getStatusCode();
+            if ((status < 200) || (status > 299)) {
+                System.out.println("unexpected status code " + status);
+                System.exit(1);
+            }
+            System.out.println("receiving response body (ignored)");
+            conn.receiveResponseEntity(connected);
+
+            conn.tunnelCreated(false, getParams());
+
+            System.out.println("layering secure connection");
+            conn.layerProtocol(ctx, getParams());
+
+            // finally we have the secure connection and can send the request
 
             System.out.println("sending request");
             conn.sendRequestHeader(req);
@@ -113,11 +144,7 @@ public class ManagerConnectDirect {
             HttpResponse rsp = conn.receiveResponseHeader(getParams());
 
             System.out.println("----------------------------------------");
-            System.out.println(rsp.getStatusLine());
-            Header[] headers = rsp.getAllHeaders();
-            for (int i=0; i<headers.length; i++) {
-                System.out.println(headers[i]);
-            }
+            printResponseHeader(rsp);
             System.out.println("----------------------------------------");
 
             System.out.println("closing connection");
@@ -153,10 +180,12 @@ public class ManagerConnectDirect {
      */
     private final static void setup() {
 
-        // Register the "http" protocol scheme, it is required
-        // by the default operator to look up socket factories.
+        // Register the "http" and "https" protocol schemes, they are
+        // required by the default operator to look up socket factories.
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         Scheme.registerScheme("http", new Scheme("http", sf, 80));
+        sf = SSLSocketFactory.getSocketFactory();
+        Scheme.registerScheme("https", new Scheme("https", sf, 80));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,
@@ -171,6 +200,29 @@ public class ManagerConnectDirect {
 
     private final static HttpParams getParams() {
         return defaultParameters;
+    }
+
+
+    /**
+     * Creates a request to tunnel a connection.
+     * In a real application, request interceptors should be used
+     * to add the required headers.
+     *
+     * @param target    the target server for the tunnel
+     *
+     * @return  a CONNECT request without an entity
+     */
+    private final static HttpRequest createConnect(HttpHost target) {
+
+        // see RFC 2817, section 5.2
+        final String authority = target.getHostName()+":"+target.getPort();
+
+        HttpRequest req = new BasicHttpRequest
+            ("CONNECT", authority, HttpVersion.HTTP_1_1);
+
+        req.addHeader("Host", authority);
+
+        return req;
     }
 
 
@@ -205,5 +257,15 @@ public class ManagerConnectDirect {
         return new HttpExecutionContext(null);
     }
 
-} // class ManagerConnectDirect
+
+    private final static void printResponseHeader(HttpResponse rsp) {
+
+        System.out.println(rsp.getStatusLine());
+        Header[] headers = rsp.getAllHeaders();
+        for (int i=0; i<headers.length; i++) {
+            System.out.println(headers[i]);
+        }
+    }
+
+} // class ManagerConnectProxy
 
