@@ -1104,11 +1104,27 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
             }
         }
 
+        public int getLocalPort() {
+            if (hasConnection()) {
+                return wrappedConnection.getLocalPort();
+            } else {
+                return -1;
+            }
+        }
+
         public InetAddress getRemoteAddress() {
             if (hasConnection()) {
                 return wrappedConnection.getRemoteAddress();
             } else {
                 return null;
+            }
+        }
+
+        public int getRemotePort() {
+            if (hasConnection()) {
+                return wrappedConnection.getRemotePort();
+            } else {
+                return -1;
             }
         }
 
