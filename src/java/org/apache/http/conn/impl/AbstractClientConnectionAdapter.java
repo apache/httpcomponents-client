@@ -170,6 +170,12 @@ public abstract class AbstractClientConnectionAdapter
         return wrappedConnection.getLocalAddress();
     }
 
+    // non-javadoc, see interface HttpInetConnection
+    public int getLocalPort() {
+        assertWrappedConn();
+        return wrappedConnection.getLocalPort();
+    }
+
 
     // non-javadoc, see interface HttpInetConnection
     public InetAddress getRemoteAddress() {
@@ -177,6 +183,11 @@ public abstract class AbstractClientConnectionAdapter
         return wrappedConnection.getRemoteAddress();
     }
 
+    // non-javadoc, see interface HttpInetConnection
+    public int getRemotePort() {
+        assertWrappedConn();
+        return wrappedConnection.getRemotePort();
+    }
 
     // non-javadoc, see interface ManagedClientConnection
     public boolean isSecure() {
