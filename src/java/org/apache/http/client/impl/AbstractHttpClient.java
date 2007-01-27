@@ -33,6 +33,7 @@ package org.apache.http.client.impl;
 
 import java.io.IOException;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
@@ -41,7 +42,9 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.SyncHttpExecutionContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.conn.ClientConnectionManager;
+
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.RoutedRequest;
 
 
 
@@ -170,12 +173,78 @@ public abstract class AbstractHttpClient
     }
 
 
-    // non-javadoc, see interface HttpClient
-    public final HttpResponse execute(HttpRequest request)
+    /**
+     * Maps to {@link #execute(HttpHost,HttpRequest,HttpContext)
+     *                 execute(target, request, context)}.
+     *
+     * @param target    the target host for the request.
+     *                  Some implementations may accept <code>null</code>.
+     * @param request   the request to execute
+     *
+     * @return  the response to the request
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     */
+    public final HttpResponse execute(HttpHost target, HttpRequest request)
         throws HttpException, IOException {
 
-        return execute(request, defaultContext);
+        return execute(target, request, defaultContext);
     }
+
+
+    /**
+     * Maps to {@link HttpClient#execute(RoutedRequest,HttpContext)
+     *                           execute(roureq, context)}.
+     * The route is computed by {@link #determineRoute determineRoute}.
+     *
+     * @param target    the target host for the request.
+     *                  Some implementations may accept <code>null</code>.
+     * @param request   the request to execute
+     */
+    public final HttpResponse execute(HttpHost target, HttpRequest request,
+                                      HttpContext context)
+        throws HttpException, IOException {
+
+        if (request == null) {
+            throw new IllegalArgumentException
+                ("Request must not be null.");
+        }
+        // A null target may be acceptable if there is a default target.
+        // Otherwise, the null target is detected in determineRoute().
+
+        if (context == null)
+            context = defaultContext;
+
+        RoutedRequest roureq = determineRoute(target, request, context);
+        return execute(roureq, context);
+    }
+
+
+    /**
+     * Determines the route for a request.
+     * Called by {@link #execute(HttpHost,HttpRequest,HttpContext)
+     *                   execute(target, request, context)}
+     * to map to {@link HttpClient#execute(RoutedRequest,HttpContext)
+     *                             execute(roureq, context)}.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param context   the context to use for the execution,
+     *                  never <code>null</code>
+     *
+     * @return  the request along with the route it should take
+     *
+     * @throws HttpException    in case of a problem
+     */
+    protected abstract RoutedRequest determineRoute(HttpHost target,
+                                                    HttpRequest request,
+                                                    HttpContext context)
+        throws HttpException
+        ;
 
 
 } // class AbstractHttpClient

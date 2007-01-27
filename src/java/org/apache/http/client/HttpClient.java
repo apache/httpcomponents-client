@@ -33,6 +33,7 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
@@ -44,9 +45,11 @@ import org.apache.http.conn.ClientConnectionManager;
 
 /**
  * Interface for an HTTP client.
- * HTTP clients encapsulate a collection of objects required to
+ * HTTP clients encapsulate a smorgasbord of objects required to
  * execute HTTP requests while handling cookies, authentication,
  * connection management, and other features.
+ * Thread safety of HTTP clients depends on the implementation
+ * and configuration of the specific client.
  *
  * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
  *
@@ -60,7 +63,7 @@ public interface HttpClient {
 
 
     /**
-     * Obtains the default context for this client.
+     * Obtains the default context used by this client.
      * This context will be used by default when executing requests
      * with this client.
      *
@@ -73,7 +76,7 @@ public interface HttpClient {
     /**
      * Obtains the parameters for this client.
      * These parameters will become defaults for all requests being
-     * executed with this client, and for the parameters of all
+     * executed with this client, and for the parameters of
      * dependent objects in this client.
      *
      * @return  the default parameters
@@ -91,27 +94,33 @@ public interface HttpClient {
         ;
 
     /**
-     * Executes a request using the {@link #getContext default context}.
-     * Same as {@link #execute(HttpRequest,HttpContext)
-     *          client.execute(request, client.getContext())},
+     * Executes a request for the given target using the
+     * {@link #getContext default context}.
+     * Same as {@link #execute(HttpHost,HttpRequest,HttpContext)
+     *          client.execute(target, request, client.getContext())},
      * see there for details.
      *
+     * @param target    the target host for the request.
+     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      *
      * @return  the response to the request
      *
-     * @throws HttpException    in case of a protocol problem
+     * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      * <br/><i @@@>timeout exceptions?</i>
      */
-    HttpResponse execute(HttpRequest request)
+    HttpResponse execute(HttpHost target, HttpRequest request)
         throws HttpException, IOException
         ;
 
 
     /**
-     * Executes a request using the given context.
+     * Executes a request for the given target using the given context.
+     * The route to the target will be determined by the HTTP client.
      *
+     * @param target    the target host for the request.
+     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
      *                  <code>null</code> to use the
@@ -119,15 +128,38 @@ public interface HttpClient {
      *
      * @return  the response to the request. This is always a final response,
      *          never an intermediate response with an 1xx status code.
-     *          Whether redirects or authentication requests will be returned
+     *          Whether redirects or authentication challenges will be returned
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
      *
-     * @throws HttpException    in case of a protocol problem
+     * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      * <br/><i @@@>timeout exceptions?</i>
      */
-    HttpResponse execute(HttpRequest request, HttpContext context)
+    HttpResponse execute(HttpHost target, HttpRequest request,
+                         HttpContext context)
+        throws HttpException, IOException
+        ;
+
+
+    /**
+     * Executes a request along the given route.
+     *
+     * @param roureq    the request to execute along with the route
+     * @param context   the context to use for the execution, or
+     *                  <code>null</code> to use the
+     *                  {@link #getContext default context}
+     *
+     * @return  the response to the request. See
+     *          {@link #execute(HttpHost,HttpRequest,HttpContext)
+     *                  execute(target,request,context)}
+     *          for details.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     * <br/><i @@@>timeout exceptions?</i>
+     */
+    HttpResponse execute(RoutedRequest roureq, HttpContext context)
         throws HttpException, IOException
         ;
 
