@@ -39,6 +39,7 @@ import org.apache.http.HttpException;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.SyncHttpExecutionContext;
+import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
 
@@ -68,6 +69,9 @@ public abstract class AbstractHttpClient
     /** The connection manager. */
     protected ClientConnectionManager connManager;
 
+    /** The HTTP processor, if defined. */
+    protected BasicHttpProcessor httpProcessor;
+
 
     /**
      * Creates a new HTTP client.
@@ -76,9 +80,11 @@ public abstract class AbstractHttpClient
      *        {@link SyncHttpExecutionContext SyncHttpExecutionContext}
      * @param params    the parameters
      * @param conman    the connection manager
+     * @param hproc     the HTTP processor, or <code>null</code>
      */
     protected AbstractHttpClient(HttpContext context, HttpParams params,
-                                 ClientConnectionManager conman) {
+                                 ClientConnectionManager conman,
+                                 BasicHttpProcessor hproc) {
         if (params == null)
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
@@ -86,10 +92,11 @@ public abstract class AbstractHttpClient
             throw new IllegalArgumentException
                 ("Connection manager must not be null.");
 
-        defaultParams  = params;
-        connManager    = conman;
         defaultContext = (context != null) ?
             context : new SyncHttpExecutionContext(null);
+        defaultParams  = params;
+        connManager    = conman;
+        httpProcessor  = hproc;
 
     } // constructor
 
@@ -141,6 +148,26 @@ public abstract class AbstractHttpClient
 
     // no setConnectionManager(), too dangerous to replace while in use
     // derived classes may offer that method at their own risk
+
+
+    /**
+     * Obtains the HTTP processor.
+     *
+     * @return  the HTTP processor, or <code>null</code> if not set
+     */
+    public BasicHttpProcessor getProcessor() {
+        return httpProcessor;
+    }
+
+
+    /**
+     * Specifies the HTTP processor.
+     *
+     * @param hproc     the HTTP processor, or <code>null</code> to unset
+     */
+    public void setProcessor(BasicHttpProcessor hproc) {
+        httpProcessor = hproc;
+    }
 
 
     // non-javadoc, see interface HttpClient
