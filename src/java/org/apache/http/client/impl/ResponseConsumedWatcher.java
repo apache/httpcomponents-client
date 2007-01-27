@@ -2,6 +2,7 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,26 +29,26 @@
  *
  */
 
-package org.apache.httpclient.impl;
+package org.apache.http.client.impl;
 
-import junit.framework.*;
+/**
+ * When a response stream has been consumed, various parts of the HttpClient
+ * implementation need to respond appropriately.
+ *
+ * <p>When one of the three types of {@link java.io.InputStream}, one of
+ * AutoCloseInputStream (package), {@link ContentLengthInputStream}, or
+ * {@link ChunkedInputStream} finishes with its content, either because
+ * all content has been consumed, or because it was explicitly closed,
+ * it notifies its corresponding method via this interface.</p>
+ *
+ * @see ContentLengthInputStream
+ * @see ChunkedInputStream
+ * @author Eric Johnson
+ */
+interface ResponseConsumedWatcher {
 
-public class TestAllHttpClientImpl extends TestCase {
-
-    public TestAllHttpClientImpl(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestAutoCloseInputStream.suite());
-        suite.addTest(TestDefaultResponseConsumedWatcher.suite());
-        return suite;
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllHttpClientImpl.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
+    /**
+     * A response has been consumed.
+     */
+    void responseConsumed();
 }

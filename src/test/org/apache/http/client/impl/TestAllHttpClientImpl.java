@@ -28,32 +28,25 @@
  *
  */
 
-package org.apache.httpclient;
-
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.cookie.impl.TestAllCookieImpl;
-import org.apache.http.conn.ssl.TestAllSSL;
-import org.apache.httpclient.impl.TestAllHttpClientImpl;
+package org.apache.http.client.impl;
 
 import junit.framework.*;
 
-public class TestAll extends TestCase {
+public class TestAllHttpClientImpl extends TestCase {
 
-    public TestAll(String testName) {
+    public TestAllHttpClientImpl(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(TestAllCookie.suite());
-        suite.addTest(TestAllCookieImpl.suite());
-        suite.addTest(TestAllHttpClientImpl.suite());
-        suite.addTest(TestAllSSL.suite());        
+        suite.addTest(TestAutoCloseInputStream.suite());
+        suite.addTest(TestDefaultResponseConsumedWatcher.suite());
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
+        String[] testCaseName = { TestAllHttpClientImpl.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 

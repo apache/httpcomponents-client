@@ -2,7 +2,6 @@
  * $HeadURL$
  * $Revision$
  * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,26 +28,33 @@
  *
  */
 
-package org.apache.httpclient.impl;
+package org.apache.http.client;
 
-/**
- * When a response stream has been consumed, various parts of the HttpClient
- * implementation need to respond appropriately.
- *
- * <p>When one of the three types of {@link java.io.InputStream}, one of
- * AutoCloseInputStream (package), {@link ContentLengthInputStream}, or
- * {@link ChunkedInputStream} finishes with its content, either because
- * all content has been consumed, or because it was explicitly closed,
- * it notifies its corresponding method via this interface.</p>
- *
- * @see ContentLengthInputStream
- * @see ChunkedInputStream
- * @author Eric Johnson
- */
-interface ResponseConsumedWatcher {
+import org.apache.http.cookie.TestAllCookie;
+import org.apache.http.cookie.impl.TestAllCookieImpl;
+import org.apache.http.conn.ssl.TestAllSSL;
+import org.apache.http.client.impl.TestAllHttpClientImpl;
 
-    /**
-     * A response has been consumed.
-     */
-    void responseConsumed();
+import junit.framework.*;
+
+public class TestAll extends TestCase {
+
+    public TestAll(String testName) {
+        super(testName);
+    }
+
+    public static Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTest(TestAllCookie.suite());
+        suite.addTest(TestAllCookieImpl.suite());
+        suite.addTest(TestAllHttpClientImpl.suite());
+        suite.addTest(TestAllSSL.suite());        
+        return suite;
+    }
+
+    public static void main(String args[]) {
+        String[] testCaseName = { TestAll.class.getName() };
+        junit.textui.TestRunner.main(testCaseName);
+    }
+
 }

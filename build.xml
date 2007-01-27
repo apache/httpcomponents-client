@@ -362,7 +362,7 @@ Output
         <java classname="junit.textui.TestRunner"
               fork="yes" failonerror="yes"
         >
-          <arg value="org.apache.httpclient.TestAll"/>
+          <arg value="org.apache.http.client.TestAll"/>
           <classpath>
             <path refid="classpath.client.compile"/>
             <pathelement location="${junit.jar}"/>
@@ -408,7 +408,6 @@ Output
         >
           <packageset dir="${comp.client.src}">
             <include name="org/apache/http/**" />
-            <include name="org/apache/httpclient/**" />
           </packageset>
 
           <group title="API">
@@ -418,13 +417,13 @@ Output
             <package name="org.apache.http.conn.ssl" />
             <package name="org.apache.http.cookie" />
             <package name="org.apache.http.cookie.params" />
-            <package name="org.apache.httpclient" />
+            <package name="org.apache.http.client" />
           </group>
           <group title="Implementation">
             <package name="org.apache.http.auth.impl*" />
             <package name="org.apache.http.conn.impl*" />
             <package name="org.apache.http.cookie.impl*" />
-            <package name="org.apache.httpclient.impl*" />
+            <package name="org.apache.http.client.impl*" />
           </group>
     
           <classpath refid="classpath.client.javadoc"/>
@@ -450,11 +449,9 @@ Output
         >
           <packageset dir="${comp.client.src}">
             <include name="org/apache/http/**" />
-            <include name="org/apache/httpclient/**" />
           </packageset>
           <packageset dir="${comp.client.xmpls}">
             <include name="org/apache/http/**" />
-            <include name="org/apache/httpclient/**" />
           </packageset>
           <packageset dir="${comp.client.contr}">
             <include name="org/apache/http/**" />
@@ -468,22 +465,22 @@ Output
             <package name="org.apache.http.conn.ssl" />
             <package name="org.apache.http.cookie" />
             <package name="org.apache.http.cookie.params" />
-            <package name="org.apache.httpclient" />
+            <package name="org.apache.http.client" />
           </group>
           <group title="Implementation">
             <package name="org.apache.http.auth.impl*" />
             <package name="org.apache.http.conn.impl*" />
             <package name="org.apache.http.cookie.impl*" />
-            <package name="org.apache.httpclient.impl*" />
+            <package name="org.apache.http.client.impl*" />
           </group>
 
           <group title="Examples">
             <package name="org.apache.http.examples*" />
-            <package name="org.apache.httpclient.examples*" />
+            <package name="org.apache.http.client.examples*" />
           </group>
           <group title="Contributions (unsupported)">
             <package name="org.apache.http.contrib*" />
-            <package name="org.apache.httpclient.contrib*" />
+            <package name="org.apache.http.client.contrib*" />
           </group>
     
           <classpath refid="classpath.client.javadoc"/>

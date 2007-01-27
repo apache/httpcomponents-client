@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.httpclient.impl;
+package org.apache.http.client.impl;
 
 import java.io.IOException;
 
