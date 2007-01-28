@@ -104,31 +104,38 @@ public class DefaultClientRequestDirector
 
         HttpResponse response = null;
         boolean done = false;
-        while (!done) {
-            allocateConnection(roureq.getRoute());
-            establishRoute(roureq.getRoute(), context);
-            //@@@ prepare request (authentication)
-            //@@@ will this be done here or via interceptor?
 
-            response = requestExec.execute
-                (roureq.getRequest(), managedConn, context);
+        try {
+            while (!done) {
+                allocateConnection(roureq.getRoute());
+                establishRoute(roureq.getRoute(), context);
 
-            RoutedRequest followup = handleResponse(roureq, response, context);
-            if (followup == null) {
-                done = true;
-            } else {
-                if ((managedConn != null) &&
-                    !followup.getRoute().equals(roureq.getRoute())) {
-                    // the followup has a different route, release connection
-                    //@@@ need to consume response body first?
-                    //@@@ or let that be done in handleResponse(...)?
-                    connManager.releaseConnection(managedConn);
+                HttpRequest prepreq = prepareRequest(roureq, context);
+                //@@@ handle authentication here or via interceptor?
+
+                response = requestExec.execute(prepreq, managedConn, context);
+
+                RoutedRequest followup =
+                    handleResponse(roureq, prepreq, response, context);
+                if (followup == null) {
+                    done = true;
+                } else {
+                    // check if we can use the same connection for the followup
+                    if ((managedConn != null) &&
+                        !followup.getRoute().equals(roureq.getRoute())) {
+                        // the followup has a different route, release conn
+                        //@@@ need to consume response body first?
+                        //@@@ or let that be done in handleResponse(...)?
+                        connManager.releaseConnection(managedConn);
+                    }
+                    roureq = followup;
                 }
-                roureq = followup;
-            }
-        } // while not done
+            } // while not done
 
-        //@@@ check response for entity, release connection if possible
+        } finally {
+            // if 'done' is false, we're handling an exception
+            cleanupConnection(done, response);
+        }
 
         return response;
 
@@ -195,9 +202,37 @@ public class DefaultClientRequestDirector
 
 
     /**
+     * Prepares a request for execution.
+     *
+     * @param roureq    the request to be sent, along with the route
+     * @param context   the context used for the current request execution
+     *
+     * @return  the prepared request to send. This can be a different
+     *          object than the request stored in <code>roureq</code>.
+     */
+    protected HttpRequest prepareRequest(RoutedRequest roureq,
+                                         HttpContext context)
+        throws HttpException {
+
+        HttpRequest prepared = roureq.getRequest();
+
+        //@@@ Instantiate a wrapper to prevent modification of the original
+        //@@@ request object? It might be needed for retries.
+        //@@@ If proxied and non-tunnelled, make sure an absolute URL is
+        //@@@ given in the request line. The target host is in the route.
+
+        return prepared;
+
+    } // prepareRequest
+
+
+    /**
      * Analyzes a response to check need for a followup.
      *
-     * @param roureq    the request that was sent
+     * @param roureq    the request and route. This is the same object as
+     *                  was passed to {@link #prepareRequest prepareRequest}.
+     * @param request   the request that was actually sent. This is the object
+     *                  returned by {@link #prepareRequest prepareRequest}.
      * @param response  the response to analayze
      * @param context   the context used for the current request execution
      *
@@ -208,6 +243,7 @@ public class DefaultClientRequestDirector
      * @throws IOException      in case of an IO problem
      */
     protected RoutedRequest handleResponse(RoutedRequest roureq,
+                                           HttpRequest request,
                                            HttpResponse response,
                                            HttpContext context)
         throws HttpException, IOException {
@@ -222,6 +258,55 @@ public class DefaultClientRequestDirector
         return null;
 
     } // handleResponse
+
+
+    /**
+     * Releases the connection if possible.
+     * This method is called from a <code>finally</code> block in
+     * {@link #execute execute}, possibly during exception handling.
+     *
+     * @param success   <code>true</code> if a response is to be returned
+     *                  from {@link #execute execute}, or
+     *                  <code>false</code> if exception handling is in progress
+     * @param response  the response available for return by
+     *                  {@link #execute execute}, or <code>null</code>
+     *
+     * @throws IOException      in case of an IO problem
+     */
+    protected void cleanupConnection(boolean success, HttpResponse response)
+        throws IOException {
+
+        ManagedClientConnection mcc = managedConn;
+        if (mcc == null)
+            return; // nothing to be cleaned up
+        
+        if (success) {
+            // not in exception handling, there probably is a response
+            // the connection (if any) is in a re-usable state
+            // check for entity, release connection if possible
+            //@@@ provide hook that allows for entity buffering?
+            if ((response == null) || (response.getEntity() == null) ||
+                !response.getEntity().isStreaming()) {
+                // connection not needed and assumed to be in re-usable state
+                //@@@ evaluate connection re-use strategy, close if necessary
+                managedConn = null;
+                connManager.releaseConnection(mcc);
+            }
+        } else {
+            // we got here as the result of an exception
+            // no response will be returned, release the connection
+            managedConn = null;
+            //@@@ is the connection in a re-usable state?
+            //@@@ for now, just shut it down
+            try {
+                if (mcc.isOpen())
+                    mcc.shutdown();
+            } catch (IOException ignore) {
+                // can't allow exception while handling exception
+            }
+            connManager.releaseConnection(mcc);
+        }
+    } // cleanupConnection
 
 
 } // class DefaultClientRequestDirector

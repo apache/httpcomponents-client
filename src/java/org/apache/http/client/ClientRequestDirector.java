@@ -46,9 +46,19 @@ import org.apache.http.conn.ManagedClientConnection;
  * It establishes connections and optionally processes redirects and
  * authentication challenges. The director may therefore generate and
  * send a sequence of requests in order to execute one initial request.
- * <br/>
+ *
+ * <br/><b>Note:</b>
+ * It is most likely that implementations of this interface will
+ * allocate connections, and return responses that depend on those
+ * connections for reading the response entity. Such connections
+ * MUST be released, but that is out of the scope of a request director.
+ * The {@link #getConnection getConnection} provides access to the
+ * connection that must be released when the response is handled.
+ *
+ * <p>
  * This interface and it's implementations replace the
  * <code>HttpMethodDirector</code> in HttpClient 3.
+ * </p>
  *
  * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
  *
