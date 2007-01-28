@@ -41,6 +41,7 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.HttpConnectionManager;
 import org.apache.http.conn.HttpHostConnection;
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SecureSocketFactory;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.impl.SocketHttpClientConnection;
@@ -130,7 +131,7 @@ public class DefaultHttpHostConnection
         }
 
         // Determine the type of the connection
-        Scheme scheme = Scheme.getScheme(host.getSchemeName());
+        Scheme scheme = SchemeSet.DEFAULT.getScheme(host.getSchemeName());
         SocketFactory socketFactory = scheme.getSocketFactory();
         boolean secure = (socketFactory instanceof SecureSocketFactory);
         boolean proxied = (proxyHost != null);
@@ -150,10 +151,10 @@ public class DefaultHttpHostConnection
            port = scheme.getDefaultPort(); 
         }
         if (secure && proxied) {
-            scheme = Scheme.getScheme("http");
+            scheme = SchemeSet.DEFAULT.getScheme("http");
             socketFactory = scheme.getSocketFactory();
         } else {
-            scheme = Scheme.getScheme(target.getSchemeName());
+            scheme = SchemeSet.DEFAULT.getScheme(target.getSchemeName());
         }
         socketFactory = scheme.getSocketFactory();
         Socket socket = socketFactory.connectSocket(
@@ -193,7 +194,7 @@ public class DefaultHttpHostConnection
             LOG.debug("Secure tunnel to " + host);
         }
         
-        Scheme scheme = Scheme.getScheme(host.getSchemeName());
+        Scheme scheme = SchemeSet.DEFAULT.getScheme(host.getSchemeName());
         SocketFactory socketFactory = scheme.getSocketFactory();
         boolean secure = (socketFactory instanceof SecureSocketFactory);
         boolean proxied = (proxyHost != null);

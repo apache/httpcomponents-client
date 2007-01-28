@@ -45,13 +45,16 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.impl.ThreadSafeClientConnManager;
+import org.apache.http.conn.impl.DefaultClientConnectionOperator;
 
 
 
@@ -77,6 +80,12 @@ public class ManagerConnectProxy {
      * Instantiated in {@link #setup setup}.
      */
     private static HttpParams defaultParameters = null;
+
+    /**
+     * The scheme set.
+     * Instantiated in {@link #setup setup}.
+     */
+    private static SchemeSet supportedSchemes;
 
 
     /**
@@ -170,7 +179,13 @@ public class ManagerConnectProxy {
 
 
     private final static ClientConnectionManager createManager() {
-        return new ThreadSafeClientConnManager(getParams());
+
+        return new ThreadSafeClientConnManager(getParams()) {
+            //@@@ we need a better way to pass in the SchemeSet or operator
+            protected ClientConnectionOperator createConnectionOperator() {
+                return new DefaultClientConnectionOperator(supportedSchemes);
+            }
+         };
     }
 
 
@@ -182,10 +197,11 @@ public class ManagerConnectProxy {
 
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.
+        supportedSchemes = new SchemeSet();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        Scheme.registerScheme("http", new Scheme("http", sf, 80));
+        supportedSchemes.register(new Scheme("http", sf, 80));
         sf = SSLSocketFactory.getSocketFactory();
-        Scheme.registerScheme("https", new Scheme("https", sf, 80));
+        supportedSchemes.register(new Scheme("https", sf, 80));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,

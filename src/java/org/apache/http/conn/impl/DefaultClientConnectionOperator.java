@@ -41,6 +41,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.SecureSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
@@ -50,7 +51,7 @@ import org.apache.http.conn.ClientConnectionOperator;
 /**
  * Default implementation of a
  * {@link ClientConnectionOperator ClientConnectionOperator}.
- * It uses the {@link Scheme Scheme} class to look up
+ * It uses a {@link SchemeSet SchemeSet} to look up
  * {@link SocketFactory SocketFactory} objects.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
@@ -65,8 +66,28 @@ public class DefaultClientConnectionOperator
     implements ClientConnectionOperator {
 
 
+    /** The scheme set for looking up socket factories. */
+    protected SchemeSet schemeSet;
 
-    // public default constructor
+
+    /**
+     * Creates a new client connection operator.
+     * Uses {@link SchemeSet#DEFAULT SchemeSet.DEFAULT}
+     * as the scheme set.
+     */
+    public DefaultClientConnectionOperator() {
+        this(null);
+    }
+
+    /**
+     * Creates a new client connection operator for the given scheme set.
+     *
+     * @param schemes   the scheme set, or <code>null</code> to use
+     *                  {@link SchemeSet#DEFAULT SchemeSet.DEFAULT}
+     */
+    public DefaultClientConnectionOperator(SchemeSet schemes) {
+        schemeSet = (schemes != null) ? schemes : SchemeSet.DEFAULT;
+    }
 
 
 
@@ -96,9 +117,9 @@ public class DefaultClientConnectionOperator
         }
 
         InetAddress local = null;
-        //@@@ TODO: deal with local address stuff from context
+        //@@@ TODO: deal with local address stuff (from context?)
 
-        final Scheme schm = Scheme.getScheme(target.getSchemeName());
+        final Scheme schm = schemeSet.getScheme(target.getSchemeName());
         if (schm == null) {
             throw new IllegalArgumentException
                 ("Unknown scheme '" + target.getSchemeName() +
@@ -148,7 +169,7 @@ public class DefaultClientConnectionOperator
                 ("Connection must be open.");
         }
 
-        final Scheme schm = Scheme.getScheme(target.getSchemeName());
+        final Scheme schm = schemeSet.getScheme(target.getSchemeName());
         if (schm == null) {
             throw new IllegalArgumentException
                 ("Unknown scheme '" + target.getSchemeName() +

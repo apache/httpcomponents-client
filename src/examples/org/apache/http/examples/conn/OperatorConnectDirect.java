@@ -45,6 +45,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
@@ -75,7 +76,13 @@ public class OperatorConnectDirect {
      * The default parameters.
      * Instantiated in {@link #setup setup}.
      */
-    private static HttpParams defaultParameters = null;
+    private static HttpParams defaultParameters;
+
+    /**
+     * The scheme set.
+     * Instantiated in {@link #setup setup}.
+     */
+    private static SchemeSet supportedSchemes;
 
 
     /**
@@ -123,7 +130,7 @@ public class OperatorConnectDirect {
 
 
     private final static ClientConnectionOperator createOperator() {
-        return new DefaultClientConnectionOperator();
+        return new DefaultClientConnectionOperator(supportedSchemes);
     }
 
     private final static OperatedClientConnection createConnection() {
@@ -139,8 +146,9 @@ public class OperatorConnectDirect {
 
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.
+        supportedSchemes = new SchemeSet();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        Scheme.registerScheme("http", new Scheme("http", sf, 80));
+        supportedSchemes.register(new Scheme("http", sf, 80));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,

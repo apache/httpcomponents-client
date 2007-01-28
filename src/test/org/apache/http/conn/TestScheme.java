@@ -31,6 +31,8 @@
 
 package org.apache.http.conn;
 
+import java.util.Iterator;
+
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import junit.framework.Test;
@@ -38,8 +40,9 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Unit tests for {@link Scheme}.
+ * Unit tests for {@link Scheme} and {@link SchemeSet}.
  *
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class TestScheme extends TestCase {
@@ -58,77 +61,153 @@ public class TestScheme extends TestCase {
     }
 
     public void testConstructor() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
         assertEquals("http", http.getName()); 
         assertEquals(80, http.getDefaultPort()); 
-        assertEquals(PlainSocketFactory.getSocketFactory(), http.getSocketFactory()); 
+        assertSame(PlainSocketFactory.getSocketFactory(),
+                   http.getSocketFactory()); 
         assertFalse(http.isLayered()); 
-        Scheme https = new Scheme("http", SSLSocketFactory.getSocketFactory(), 443);
-        assertEquals("http", https.getName()); 
+        Scheme https = new Scheme
+            ("https", SSLSocketFactory.getSocketFactory(), 443);
+        assertEquals("https", https.getName()); 
         assertEquals(443, https.getDefaultPort()); 
-        assertEquals(SSLSocketFactory.getSocketFactory(), https.getSocketFactory()); 
+        assertSame(SSLSocketFactory.getSocketFactory(),
+                   https.getSocketFactory()); 
         assertTrue(https.isLayered());
-        
+
+        Scheme hTtP = new Scheme
+            ("hTtP", PlainSocketFactory.getSocketFactory(), 80);
+        assertEquals("http", hTtP.getName());
+        // the rest is no different from above
+
         try {
-        	new Scheme(null, PlainSocketFactory.getSocketFactory(), 80);
-        	fail("IllegalArgumentException should have been thrown");
+            new Scheme(null, PlainSocketFactory.getSocketFactory(), 80);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	new Scheme("http", null, 80);
-        	fail("IllegalArgumentException should have been thrown");
+            new Scheme("http", null, 80);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	new Scheme("http", PlainSocketFactory.getSocketFactory(), -1);
-        	fail("IllegalArgumentException should have been thrown");
+            new Scheme("http", PlainSocketFactory.getSocketFactory(), -1);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
+        }
+        try {
+            new Scheme("http", PlainSocketFactory.getSocketFactory(), 70000);
+            fail("IllegalArgumentException should have been thrown");
+        } catch (IllegalArgumentException ex) {
+            // expected
         }
     }
 
     public void testRegisterUnregister() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
-        Scheme https = new Scheme("http", SSLSocketFactory.getSocketFactory(), 443);
-    	Scheme.registerScheme("http", http);
-    	Scheme.registerScheme("https", https);
-    	assertEquals(http, Scheme.getScheme("http"));
-    	assertEquals(https, Scheme.getScheme("https"));
-    	Scheme.unregisterScheme("http");
-    	Scheme.unregisterScheme("https");
-    	
+        SchemeSet schmset = new SchemeSet();
+
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme https = new Scheme
+            ("https", SSLSocketFactory.getSocketFactory(), 443);
+        Scheme myhttp = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+
+    	assertNull(schmset.register(myhttp));
+    	assertNull(schmset.register(https));
+    	assertSame(myhttp, schmset.register(http));
+    	assertSame(http, schmset.getScheme("http"));
+    	assertSame(https, schmset.getScheme("https"));
+
+    	schmset.unregister("http");
+    	schmset.unregister("https");
+
+        assertNull(schmset.get("http")); // get() does not throw exception
     	try {
-        	Scheme.getScheme("http");
-        	fail("IllegalStateException should have been thrown");
+            schmset.getScheme("http"); // getScheme() does throw exception
+            fail("IllegalStateException should have been thrown");
     	} catch (IllegalStateException ex) {
-        	// expected
+            // expected
     	}
     }
 
+
+    public void testIterator() {
+        SchemeSet schmset = new SchemeSet();
+
+        Iterator iter = schmset.getSchemeNames();
+        assertNotNull(iter);
+        assertFalse(iter.hasNext());
+
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme https = new Scheme
+            ("https", SSLSocketFactory.getSocketFactory(), 443);
+
+    	schmset.register(http);
+    	schmset.register(https);
+
+        iter = schmset.getSchemeNames();
+        assertNotNull(iter);
+        assertTrue(iter.hasNext());
+
+        boolean flaghttp  = false;
+        boolean flaghttps = false;
+        String name = (String) iter.next();
+        assertTrue(iter.hasNext());
+
+        if ("http".equals(name))
+            flaghttp = true;
+        else if ("https".equals(name))
+            flaghttps = true;
+        else
+            fail("unexpected name in iterator: " + name);
+
+        assertNotNull(schmset.get(name));
+        iter.remove();
+        assertTrue(iter.hasNext());
+        assertNull(schmset.get(name));
+
+        name = (String) iter.next();
+        assertFalse(iter.hasNext());
+
+        if ("http".equals(name)) {
+            if (flaghttp) fail("name 'http' found twice");
+        } else if ("https".equals(name)) {
+            if (flaghttps) fail("name 'https' found twice");
+        } else {
+            fail("unexpected name in iterator: " + name);
+        }
+
+        assertNotNull(schmset.get(name));
+    }
+
     public void testIllegalRegisterUnregister() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+        SchemeSet schmset = new SchemeSet();
         try {
-        	Scheme.registerScheme(null, http);
+        	schmset.register(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	Scheme.registerScheme("http", null);
+        	schmset.unregister(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	Scheme.unregisterScheme(null);
+        	schmset.get(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	Scheme.getScheme(null);
+        	schmset.getScheme(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
@@ -136,23 +215,33 @@ public class TestScheme extends TestCase {
     }
     
     public void testResolvePort() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+
         assertEquals(8080, http.resolvePort(8080));
         assertEquals(80, http.resolvePort(-1));
     }
     
     public void testHashCode() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
-        Scheme myhttp = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
-        Scheme https = new Scheme("http", SSLSocketFactory.getSocketFactory(), 443);
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme myhttp = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme https = new Scheme
+            ("http", SSLSocketFactory.getSocketFactory(), 443);
+
         assertTrue(http.hashCode() != https.hashCode());
         assertTrue(http.hashCode() == myhttp.hashCode());
     }
     
     public void testEquals() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
-        Scheme myhttp = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
-        Scheme https = new Scheme("http", SSLSocketFactory.getSocketFactory(), 443);
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme myhttp = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme https = new Scheme
+            ("http", SSLSocketFactory.getSocketFactory(), 443);
+
         assertFalse(http.equals(https));
         assertFalse(http.equals(null));
         assertFalse(http.equals("http"));
@@ -160,9 +249,10 @@ public class TestScheme extends TestCase {
         assertTrue(http.equals(myhttp));
         assertFalse(http.equals(https));
     }
-    
+
     public void testToString() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme http = new Scheme
+            ("http", PlainSocketFactory.getSocketFactory(), 80);
         assertEquals("http:80", http.toString());
     }
     

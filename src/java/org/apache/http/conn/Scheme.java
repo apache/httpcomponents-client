@@ -38,212 +38,185 @@ import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.LangUtils;
 
 /**
- * A class to encapsulate the specifics of a protocol scheme. This class also
- * provides the ability to customize the set and characteristics of the
- * schemes used.
- * 
- * <p>One use case for modifying the default set of protocols would be to set a
- * custom SSL socket factory.  This would look something like the following:
- * <pre> 
- * Scheme myHTTPS = new Scheme( "https", new MySSLSocketFactory(), 443 );
- * 
- * Scheme.registerScheme( "https", myHTTPS );
+ * Encapsulates specifics of a protocol scheme such as "http" or "https".
+ * Schemes are identified by lowercase names.
+ * Supported schemes are typically collected in a {@link SchemeSet SchemeSet}.
+ *
+ * <p>
+ * For example, to configure support for "https://" URLs,
+ * you could write code like the following:
+ * </p>
+ * <pre>
+ * Scheme https = new Scheme("https", new MySecureSocketFactory(), 443);
+ * SchemeSet.DEFAULT.register(https);
  * </pre>
  *
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author Michael Becke 
  * @author Jeff Dever
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- *  
- * @since 2.0 
  */
-public class Scheme {
+public final class Scheme {
 
-    /** The available schemes */
-    private static final Map SCHEMES = Collections.synchronizedMap(new HashMap());
-
-    /**
-     * Registers a new scheme with the given identifier. If a scheme with
-     * the given ID already exists it will be overridden.  This ID is the same
-     * one used to retrieve the scheme from getScheme(String).
-     * 
-     * @param id the identifier for this scheme
-     * @param scheme the scheme to register
-     * 
-     * @see #getScheme(String)
-     */
-    public static void registerScheme(final String id, final Scheme scheme) {
-        if (id == null) {
-            throw new IllegalArgumentException("Id may not be null");
-        }
-        if (scheme == null) {
-            throw new IllegalArgumentException("Scheme may not be null");
-        }
-        SCHEMES.put(id, scheme);
-    }
-
-    /**
-     * Unregisters the scheme with the given ID.
-     * 
-     * @param id the ID of the scheme to remove
-     */
-    public static void unregisterScheme(final String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Id may not be null");
-        }
-        SCHEMES.remove(id);
-    }
-
-    /**
-     * Gets the scheme with the given ID.
-     * 
-     * @param id the scheme ID
-     * 
-     * @return Scheme a scheme
-     * 
-     * @throws IllegalStateException if a scheme with the ID cannot be found
-     */
-    public static Scheme getScheme(String id) 
-        throws IllegalStateException {
-
-        if (id == null) {
-            throw new IllegalArgumentException("id is null");
-        }
-        Scheme scheme = (Scheme) SCHEMES.get(id);
-        if (scheme == null) {
-            throw new IllegalStateException("Unsupported scheme: '" + id + "'");
-        }
-        return scheme;
-    } 
-
-    /** the scheme of this scheme (e.g. http, https) */
-    private String name;
+    /** The name of this scheme, in lowercase. (e.g. http, https) */
+    private final String name;
     
     /** The socket factory for this scheme */
-    private SocketFactory socketFactory;
+    private final SocketFactory socketFactory;
     
     /** The default port for this scheme */
-    private int defaultPort;
+    private final int defaultPort;
     
-    /** True if this scheme allows for layered connections */
-    private boolean layered;
-  
+    /** Indicates whether this scheme allows for layered connections */
+    private final boolean layered;
+
+
+    /** A string representation, for {@link #toString toString}. */
+    private String stringRep;
+
+
     /**
-     * Constructs a new scheme.
+     * Creates a new scheme.
      * Whether the created scheme allows for layered connections
      * depends on the class of <code>factory</code>.
-     * 
-     * @param name the scheme name (e.g. http, https)
-     * @param factory the factory for creating sockets for communication using
-     * this scheme
-     * @param defaultPort the port this scheme defaults to
+     *
+     * @param name      the scheme name, for example "http".
+     *                  The name will be converted to lowercase.
+     * @param factory   the factory for creating sockets for communication
+     *                  with this scheme
+     * @param port      the default port for this scheme
      */
-    public Scheme(final String name, final SocketFactory factory, int defaultPort) {
-        
+    public Scheme(final String name,
+                  final SocketFactory factory,
+                  final int port) {
+
         if (name == null) {
-            throw new IllegalArgumentException("Scheme name may not be null");
+            throw new IllegalArgumentException
+                ("Scheme name may not be null");
         }
         if (factory == null) {
-            throw new IllegalArgumentException("Socket factory may not be null");
+            throw new IllegalArgumentException
+                ("Socket factory may not be null");
         }
-        if (defaultPort <= 0) {
-            throw new IllegalArgumentException("Port is invalid: " + defaultPort);
+        if ((port <= 0) || (port > 0xffff)) {
+            throw new IllegalArgumentException
+                ("Port is invalid: " + port);
         }
-        
-        this.name = name;
+
+        this.name = name.toLowerCase();
         this.socketFactory = factory;
-        this.defaultPort = defaultPort;
+        this.defaultPort = port;
         this.layered = (factory instanceof SecureSocketFactory);
     }
-    
+
+
     /**
-     * Returns the defaultPort.
-     * @return int
+     * Obtains the default port.
+     *
+     * @return  the default port for this scheme
      */
-    public int getDefaultPort() {
+    public final int getDefaultPort() {
         return defaultPort;
     }
 
+
     /**
-     * Returns the socketFactory.  If secure the factory is a SecureSocketFactory.
-     * @return SocketFactory
+     * Obtains the socket factory.
+     * If this scheme is {@link #isLayered layered}, the factory implements
+     * {@link SecureSocketFactory SecureSocketFactory}.
+     *
+     * @return  the socket factory for this scheme
      */
-    public SocketFactory getSocketFactory() {
+    public final SocketFactory getSocketFactory() {
         return socketFactory;
     }
 
+
     /**
-     * Returns the scheme.
-     * @return The scheme
+     * Obtains the scheme name.
+     *
+     * @return  the name of this scheme, in lowercase
      */
-    public String getName() {
+    public final String getName() {
         return name;
     }
 
+
     /**
      * Indicates whether this scheme allows for layered connections.
+     *
      * @return <code>true</code> if layered connections are possible,
      *         <code>false</code> otherwise
      */
-    public boolean isLayered() {
+    public final boolean isLayered() {
         return layered;
     }
-    
+
+
     /**
-     * Resolves the correct port for this scheme.  Returns the given port if
-     * valid or the default port otherwise.
+     * Resolves the correct port for this scheme.
+     * Returns the given port if it is valid, the default port otherwise.
      * 
-     * @param port the port to be resolved
+     * @param port      the port to be resolved,
+     *                  a negative number to obtain the default port
      * 
      * @return the given port or the defaultPort
      */
-    public int resolvePort(int port) {
-        return port <= 0 ? getDefaultPort() : port;
+    public final int resolvePort(int port) {
+        return ((port <= 0) || (port > 0xffff)) ? defaultPort : port;
     }
+
 
     /**
      * Return a string representation of this object.
-     * @return a string representation of this object.
+     *
+     * @return  a human-readable string description of this scheme
      */
-    public String toString() {
-    	CharArrayBuffer buffer = new CharArrayBuffer(32);
-    	buffer.append(this.name);
-    	buffer.append(':');
-    	buffer.append(Integer.toString(this.defaultPort));
-        return buffer.toString();
-    }
-    
-    /**
-     * Return true if the specified object equals this object.
-     * @param obj The object to compare against.
-     * @return true if the objects are equal.
-     */
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (obj instanceof Scheme) {
-            Scheme p = (Scheme) obj;
-            return (
-                defaultPort == p.getDefaultPort()
-                && name.equalsIgnoreCase(p.getName())
-                && layered == p.isLayered()
-                && socketFactory.equals(p.getSocketFactory()));
-            
-        } else {
-            return false;
+    public final String toString() {
+        if (stringRep == null) {
+            CharArrayBuffer buffer = new CharArrayBuffer(32);
+            buffer.append(this.name);
+            buffer.append(':');
+            buffer.append(Integer.toString(this.defaultPort));
+            stringRep = buffer.toString();
         }
-        
+        return stringRep;
     }
 
+
     /**
-     * Return a hash code for this object
-     * @return The hash code.
+     * Compares this scheme to an object.
+     *
+     * @param obj       the object to compare with
+     *
+     * @return  <code>true</code> iff the argument is equal to this scheme
+     */
+    public final boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (!(obj instanceof Scheme)) return false;
+
+        Scheme s = (Scheme) obj;
+        return (name.equals(s.name) &&
+                defaultPort == s.defaultPort &&
+                layered == s.layered &&
+                socketFactory.equals(s.socketFactory)
+                );
+    } // equals
+
+
+    /**
+     * Obtains a hash code for this scheme.
+     *
+     * @return  the hash code
      */
     public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.defaultPort);
-        hash = LangUtils.hashCode(hash, this.name.toLowerCase());
+        hash = LangUtils.hashCode(hash, this.name);
         hash = LangUtils.hashCode(hash, this.layered);
         hash = LangUtils.hashCode(hash, this.socketFactory);
         return hash;
     }
-}
+
+} // class Scheme

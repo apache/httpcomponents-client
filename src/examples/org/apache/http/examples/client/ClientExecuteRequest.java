@@ -49,6 +49,7 @@ import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
@@ -146,7 +147,7 @@ public class ClientExecuteRequest {
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        Scheme.registerScheme("http", new Scheme("http", sf, 80));
+        SchemeSet.DEFAULT.register(new Scheme("http", sf, 80));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,
