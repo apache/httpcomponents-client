@@ -53,7 +53,7 @@ import org.apache.http.conn.ManagedClientConnection;
  * are delegated to the wrapped connection if there is one, or
  * return a default value if there is none.
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

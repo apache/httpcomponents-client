@@ -63,7 +63,7 @@ import org.apache.http.protocol.HttpContext;
  * in HttpClient 3. See there for original authors.
  * </p>
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  *
  *

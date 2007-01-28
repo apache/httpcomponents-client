@@ -60,7 +60,7 @@ import org.apache.http.conn.ManagedClientConnection;
  * <code>HttpMethodDirector</code> in HttpClient 3.
  * </p>
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

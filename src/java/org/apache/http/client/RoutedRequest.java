@@ -38,7 +38,7 @@ import org.apache.http.conn.HostConfiguration;
 /**
  * A request with the route along which it should be sent.
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

@@ -55,7 +55,7 @@ import org.apache.http.client.ClientRequestDirector;
  * <br/>
  * This class replaces <code>HttpClient</code> in HttpClient 3.
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

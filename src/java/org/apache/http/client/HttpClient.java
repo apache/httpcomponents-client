@@ -51,7 +51,7 @@ import org.apache.http.conn.ClientConnectionManager;
  * Thread safety of HTTP clients depends on the implementation
  * and configuration of the specific client.
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

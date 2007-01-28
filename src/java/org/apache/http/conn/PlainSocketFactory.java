@@ -44,7 +44,7 @@ import org.apache.http.params.HttpParams;
  * This class just uses the {@link java.net.Socket socket} API
  * in Java 1.4 or greater.
  * 
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author Michael Becke
  */
 public final class PlainSocketFactory implements SocketFactory {

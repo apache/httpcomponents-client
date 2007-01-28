@@ -46,7 +46,7 @@ import org.apache.http.util.LangUtils;
  * Instances of this class are immutable.
  * Instances of derived classes should be immutable, too.
  * 
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>

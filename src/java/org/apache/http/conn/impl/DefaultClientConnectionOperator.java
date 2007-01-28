@@ -53,7 +53,7 @@ import org.apache.http.conn.ClientConnectionOperator;
  * It uses the {@link Scheme Scheme} class to look up
  * {@link SocketFactory SocketFactory} objects.
  *
- * @author <a href="mailto:rolandw@apache.org">Roland Weber</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
