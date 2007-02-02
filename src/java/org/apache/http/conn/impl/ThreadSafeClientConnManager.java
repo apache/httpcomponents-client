@@ -51,7 +51,7 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
-import org.apache.http.impl.DefaultHttpParams;
+import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 

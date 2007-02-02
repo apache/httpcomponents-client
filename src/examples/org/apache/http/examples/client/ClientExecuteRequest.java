@@ -40,7 +40,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.impl.DefaultHttpParams;
+import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;

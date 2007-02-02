@@ -35,7 +35,7 @@ import org.apache.http.cookie.impl.BrowserCompatSpecFactory;
 import org.apache.http.cookie.impl.NetscapeDraftSpecFactory;
 import org.apache.http.cookie.impl.RFC2109SpecFactory;
 import org.apache.http.cookie.params.CookieSpecParams;
-import org.apache.http.impl.DefaultHttpParams;
+import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.params.HttpParams;
 
 import junit.framework.Test;

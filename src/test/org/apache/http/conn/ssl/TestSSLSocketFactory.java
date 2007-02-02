@@ -34,7 +34,7 @@ package org.apache.http.conn.ssl;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.apache.http.impl.DefaultHttpParams;
+import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.params.HttpParams;
 
 import javax.net.ServerSocketFactory;

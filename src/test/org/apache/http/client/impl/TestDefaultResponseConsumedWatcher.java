@@ -37,7 +37,7 @@ import org.apache.http.HttpConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.impl.DefaultHttpParams;
+import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.mockup.HttpConnectionMockup;
 import org.apache.http.protocol.HttpContext;
