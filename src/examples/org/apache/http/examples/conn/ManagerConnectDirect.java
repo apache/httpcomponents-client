@@ -52,8 +52,8 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.impl.ThreadSafeClientConnManager;
-import org.apache.http.conn.impl.DefaultClientConnectionOperator;
+import org.apache.http.impl.conn.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 
 
 

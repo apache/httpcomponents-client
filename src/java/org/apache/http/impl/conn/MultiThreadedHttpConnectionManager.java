@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.conn.impl;
+package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.lang.ref.Reference;

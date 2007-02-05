@@ -50,8 +50,8 @@ import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.impl.DefaultClientConnection;
-import org.apache.http.conn.impl.DefaultClientConnectionOperator;
+import org.apache.http.impl.conn.DefaultClientConnection;
+import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 
 
 

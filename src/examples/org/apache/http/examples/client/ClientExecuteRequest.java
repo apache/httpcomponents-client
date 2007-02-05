@@ -53,7 +53,7 @@ import org.apache.http.conn.SchemeSet;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.impl.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.ThreadSafeClientConnManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 
