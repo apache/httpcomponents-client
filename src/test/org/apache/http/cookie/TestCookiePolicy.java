@@ -30,10 +30,10 @@
 
 package org.apache.http.cookie;
 
-import org.apache.http.cookie.impl.BrowserCompatSpec;
-import org.apache.http.cookie.impl.BrowserCompatSpecFactory;
-import org.apache.http.cookie.impl.NetscapeDraftSpecFactory;
-import org.apache.http.cookie.impl.RFC2109SpecFactory;
+import org.apache.http.impl.cookie.BrowserCompatSpec;
+import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
+import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.cookie.params.CookieSpecParams;
 import org.apache.http.impl.params.DefaultHttpParams;
 import org.apache.http.params.HttpParams;

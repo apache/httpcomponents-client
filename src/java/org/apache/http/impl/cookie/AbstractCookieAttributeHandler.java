@@ -28,34 +28,23 @@
  * <http://www.apache.org/>.
  *
  */ 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-public class BasicSecureHandler extends AbstractCookieAttributeHandler {
+public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
-    public BasicSecureHandler() {
-        super();
-    }
-    
-    public void parse(final Cookie cookie, final String value) 
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        cookie.setSecure(true);
+        // Do nothing
     }
     
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
-        return cookie.isSecure() ? origin.isSecure() : true;
+        // Always match
+        return true;
     }
     
 }

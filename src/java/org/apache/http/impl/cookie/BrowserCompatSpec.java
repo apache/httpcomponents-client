@@ -27,9 +27,9 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
+ */ 
 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -39,64 +39,61 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.DateParseException;
+import org.apache.http.util.DateUtils;
 
 /**
- * Netscape cookie draft compliant cookie policy
+ * Cookie specification that stives to closely mimic (mis)behavior of 
+ * common web browser applications such as Microsoft Internet Explorer
+ * and Mozilla FireFox.
  *
- * @author  B.C. Holmes
- * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
- * @author <a href="mailto:dsale@us.britannica.com">Doug Sale</a>
- * @author Rod Waldhoff
- * @author dIon Gillard
- * @author Sean C. Sullivan
- * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
- * @author Marc A. Saegesser
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0 
+ * @since 4.0 
  */
-public class NetscapeDraftSpec extends CookieSpecBase {
+public class BrowserCompatSpec extends CookieSpecBase {
+    
+    /** Valid date patterns used per default */
+    private static final String[] DATE_PATTERNS = new String[] {
+            DateUtils.PATTERN_RFC1123,
+            DateUtils.PATTERN_RFC1036,
+            DateUtils.PATTERN_ASCTIME,
+            "EEE, dd-MMM-yyyy HH:mm:ss z",
+            "EEE, dd-MMM-yyyy HH-mm-ss z",
+            "EEE, dd MMM yy HH:mm:ss z",
+            "EEE dd-MMM-yyyy HH:mm:ss z",
+            "EEE dd MMM yyyy HH:mm:ss z",
+            "EEE dd-MMM-yyyy HH-mm-ss z",
+            "EEE dd-MMM-yy HH:mm:ss z",
+            "EEE dd MMM yy HH:mm:ss z",
+            "EEE,dd-MMM-yy HH:mm:ss z",
+            "EEE,dd-MMM-yyyy HH:mm:ss z",
+            "EEE, dd-MM-yyyy HH:mm:ss z",                
+        };
 
+    private final String[] datepatterns; 
+    
     /** Default constructor */
-    public NetscapeDraftSpec() {
+    public BrowserCompatSpec(final String[] datepatterns) {
         super();
+        if (datepatterns != null) {
+            this.datepatterns = (String [])datepatterns.clone();
+        } else {
+            this.datepatterns = DATE_PATTERNS;
+        }
         registerAttribHandler("path", new BasicPathHandler());
-        registerAttribHandler("domain", new NetscapeDomainHandler());
+        registerAttribHandler("domain", new BasicDomainHandler());
         registerAttribHandler("max-age", new BasicMaxAgeHandler());
         registerAttribHandler("secure", new BasicSecureHandler());
         registerAttribHandler("comment", new BasicCommentHandler());
-        registerAttribHandler("expires", new BasicExpiresHandler(
-                new String[] {"EEE, dd-MMM-yyyy HH:mm:ss z"}));
+        registerAttribHandler("expires", new BasicExpiresHandler(this.datepatterns));
     }
 
-    /**
-      * Parses the Set-Cookie value into an array of <tt>Cookie</tt>s.
-      *
-      * <p>Syntax of the Set-Cookie HTTP Response Header:</p>
-      * 
-      * <p>This is the format a CGI script would use to add to 
-      * the HTTP headers a new piece of data which is to be stored by 
-      * the client for later retrieval.</p>
-      *  
-      * <PRE>
-      *  Set-Cookie: NAME=VALUE; expires=DATE; path=PATH; domain=DOMAIN_NAME; secure
-      * </PRE>
-      *
-      * <p>Please note that Netscape draft specification does not fully 
-      * conform to the HTTP header format. Netscape draft does not specify 
-      * whether multiple cookies may be sent in one header. Hence, comma 
-      * character may be present in unquoted cookie value or unquoted 
-      * parameter value.</p>
-      * 
-      * @link http://wp.netscape.com/newsref/std/cookie_spec.html
-      * 
-      * @param header the <tt>Set-Cookie</tt> received from the server
-      * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
-      * @throws MalformedCookieException if an exception occurs during parsing
-      * 
-      * @since 3.0
-      */
+    /** Default constructor */
+    public BrowserCompatSpec() {
+        this(null);
+    }
+    
     public Cookie[] parse(final Header header, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (header == null) {
@@ -106,7 +103,28 @@ public class NetscapeDraftSpec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         String headervalue = header.getValue();
-        return parse(new HeaderElement[] { BasicHeaderElement.parse(headervalue) }, origin);
+        boolean isNetscapeCookie = false; 
+        int i1 = headervalue.toLowerCase().indexOf("expires=");
+        if (i1 != -1) {
+            i1 += "expires=".length();
+            int i2 = headervalue.indexOf(";", i1);
+            if (i2 == -1) {
+                i2 = headervalue.length(); 
+            }
+            try {
+                DateUtils.parseDate(headervalue.substring(i1, i2), this.datepatterns);
+                isNetscapeCookie = true; 
+            } catch (DateParseException e) {
+                // Does not look like a valid expiry date
+            }
+        }
+        HeaderElement[] elems = null;
+        if (isNetscapeCookie) {
+            elems = new HeaderElement[] { BasicHeaderElement.parse(headervalue) };
+        } else {
+            elems = header.getElements();
+        }
+        return parse(elems, origin);
     }
 
     public Header[] formatCookies(final Cookie[] cookies) {
@@ -124,13 +142,13 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                 buffer.append("; ");
             }
             buffer.append(cookie.getName());
+            buffer.append("=");
             String s = cookie.getValue();
             if (s != null) {
-                buffer.append("=");
                 buffer.append(s);
             }
         }
         return new Header[] { new BufferedHeader(buffer) };
     }
-
+    
 }

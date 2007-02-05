@@ -27,24 +27,24 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
+ */ 
+package org.apache.http.impl.cookie;
 
-package org.apache.http.cookie.impl;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.MalformedCookieException;
 
-import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
-import org.apache.http.params.HttpParams;
+public class BasicCommentHandler extends AbstractCookieAttributeHandler {
 
-/**
- * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- *
- * @since 4.0
- */
-public class NetscapeDraftSpecFactory implements CookieSpecFactory {    
-
-    public CookieSpec newInstance(final HttpParams params) {
-        return new NetscapeDraftSpec();
+    public BasicCommentHandler() {
+        super();
     }
-
+    
+    public void parse(final Cookie cookie, final String value) 
+            throws MalformedCookieException {
+        if (cookie == null) {
+            throw new IllegalArgumentException("Cookie may not be null");
+        }
+        cookie.setComment(value);
+    }
+    
 }

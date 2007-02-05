@@ -2,6 +2,7 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,31 +29,29 @@
  *
  */
 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
-import junit.framework.*;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.params.CookieSpecParams;
+import org.apache.http.params.HttpParams;
 
-public class TestAllCookieImpl extends TestCase {
+/**
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 4.0
+ */
+public class RFC2109SpecFactory implements CookieSpecFactory {    
 
-    public TestAllCookieImpl(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestAbstractCookieSpec.suite());
-        suite.addTest(TestBasicCookieAttribHandlers.suite());
-        suite.addTest(TestNetscapeCookieAttribHandlers.suite());
-        suite.addTest(TestRFC2109CookieAttribHandlers.suite());
-        suite.addTest(TestBrowserCompatSpec.suite());
-        suite.addTest(TestCookieNetscapeDraft.suite());
-        suite.addTest(TestCookieRFC2109Spec.suite());
-        return suite;
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllCookieImpl.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
+    public CookieSpec newInstance(final HttpParams params) {
+        if (params != null) {
+            return new RFC2109Spec(
+                    (String []) params.getParameter(CookieSpecParams.DATE_PATTERNS), 
+                    params.getBooleanParameter(CookieSpecParams.SINGLE_COOKIE_HEADER, false));
+        } else {
+            return new RFC2109Spec();
+        }
     }
 
 }

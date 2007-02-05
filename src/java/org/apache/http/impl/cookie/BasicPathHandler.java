@@ -28,45 +28,64 @@
  * <http://www.apache.org/>.
  *
  */ 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
+public class BasicPathHandler implements CookieAttributeHandler {
 
-    public RFC2109VersionHandler() {
+    public BasicPathHandler() {
         super();
     }
     
-    public void parse(final Cookie cookie, final String value) 
+    public void parse(final Cookie cookie, String value) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for version attribute");
+        if (value == null || value.trim().equals("")) {
+            value = "/";
         }
-        if (value.trim().equals("")) {
-            throw new MalformedCookieException("Blank value for version attribute");
-        }
-        try {
-           cookie.setVersion(Integer.parseInt(value));
-        } catch (NumberFormatException e) {
-            throw new MalformedCookieException("Invalid version: " 
-                + e.getMessage());
-        }
+        cookie.setPath(value);
+        cookie.setPathAttributeSpecified(true);
     }
 
     public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
+        if (!match(cookie, origin)) {
+            throw new MalformedCookieException(
+                "Illegal path attribute \"" + cookie.getPath() 
+                + "\". Path of origin: \"" + origin.getPath() + "\"");
+        }
+    }
+    
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (cookie.getVersion() < 0) {
-            throw new MalformedCookieException("Cookie version may not be negative");
+        if (origin == null) {
+            throw new IllegalArgumentException("Cookie origin may not be null");
         }
+        String targetpath = origin.getPath();
+        String topmostPath = cookie.getPath();
+        if (topmostPath == null) {
+            topmostPath = "/";
+        }
+        if (topmostPath.length() > 1 && topmostPath.endsWith("/")) {
+            topmostPath = topmostPath.substring(0, topmostPath.length() - 1);
+        }
+        boolean match = targetpath.startsWith (topmostPath);
+        // if there is a match and these values are not exactly the same we have
+        // to make sure we're not matcing "/foobar" and "/foo"
+        if (match && targetpath.length() != topmostPath.length()) {
+            if (!topmostPath.endsWith("/")) {
+                match = (targetpath.charAt(topmostPath.length()) == '/');
+            }
+        }
+        return match;
     }
     
 }

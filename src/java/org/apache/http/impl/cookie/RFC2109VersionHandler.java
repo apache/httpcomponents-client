@@ -28,14 +28,15 @@
  * <http://www.apache.org/>.
  *
  */ 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-public class BasicCommentHandler extends AbstractCookieAttributeHandler {
+public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
 
-    public BasicCommentHandler() {
+    public RFC2109VersionHandler() {
         super();
     }
     
@@ -44,7 +45,28 @@ public class BasicCommentHandler extends AbstractCookieAttributeHandler {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        cookie.setComment(value);
+        if (value == null) {
+            throw new MalformedCookieException("Missing value for version attribute");
+        }
+        if (value.trim().equals("")) {
+            throw new MalformedCookieException("Blank value for version attribute");
+        }
+        try {
+           cookie.setVersion(Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            throw new MalformedCookieException("Invalid version: " 
+                + e.getMessage());
+        }
+    }
+
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
+            throws MalformedCookieException {
+        if (cookie == null) {
+            throw new IllegalArgumentException("Cookie may not be null");
+        }
+        if (cookie.getVersion() < 0) {
+            throw new MalformedCookieException("Cookie version may not be negative");
+        }
     }
     
 }

@@ -27,36 +27,30 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
-package org.apache.http.cookie.impl;
+ */
 
-import java.util.Date;
+package org.apache.http.impl.cookie;
 
-import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.params.CookieSpecParams;
+import org.apache.http.params.HttpParams;
 
-public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
+/**
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 4.0
+ */
+public class BrowserCompatSpecFactory implements CookieSpecFactory {    
 
-    public BasicMaxAgeHandler() {
-        super();
+    public CookieSpec newInstance(final HttpParams params) {
+        if (params != null) {
+            return new BrowserCompatSpec(
+                    (String []) params.getParameter(CookieSpecParams.DATE_PATTERNS));
+        } else {
+            return new BrowserCompatSpec();
+        }
     }
-    
-    public void parse(final Cookie cookie, final String value) 
-            throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for max-age attribute");
-        }
-        int age;
-        try {
-            age = Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new MalformedCookieException ("Invalid max-age attribute: " 
-                    + value);
-        }
-        cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
-    }
-    
+
 }

@@ -27,31 +27,36 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
+ */ 
+package org.apache.http.impl.cookie;
 
-package org.apache.http.cookie.impl;
+import java.util.Date;
 
-import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
-import org.apache.http.cookie.params.CookieSpecParams;
-import org.apache.http.params.HttpParams;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.MalformedCookieException;
 
-/**
- * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- *
- * @since 4.0
- */
-public class RFC2109SpecFactory implements CookieSpecFactory {    
+public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
 
-    public CookieSpec newInstance(final HttpParams params) {
-        if (params != null) {
-            return new RFC2109Spec(
-                    (String []) params.getParameter(CookieSpecParams.DATE_PATTERNS), 
-                    params.getBooleanParameter(CookieSpecParams.SINGLE_COOKIE_HEADER, false));
-        } else {
-            return new RFC2109Spec();
-        }
+    public BasicMaxAgeHandler() {
+        super();
     }
-
+    
+    public void parse(final Cookie cookie, final String value) 
+            throws MalformedCookieException {
+        if (cookie == null) {
+            throw new IllegalArgumentException("Cookie may not be null");
+        }
+        if (value == null) {
+            throw new MalformedCookieException("Missing value for max-age attribute");
+        }
+        int age;
+        try {
+            age = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new MalformedCookieException ("Invalid max-age attribute: " 
+                    + value);
+        }
+        cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
+    }
+    
 }

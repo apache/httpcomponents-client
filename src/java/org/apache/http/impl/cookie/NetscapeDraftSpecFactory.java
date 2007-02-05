@@ -29,11 +29,10 @@
  *
  */
 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
-import org.apache.http.cookie.params.CookieSpecParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -42,15 +41,10 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
-public class BrowserCompatSpecFactory implements CookieSpecFactory {    
+public class NetscapeDraftSpecFactory implements CookieSpecFactory {    
 
     public CookieSpec newInstance(final HttpParams params) {
-        if (params != null) {
-            return new BrowserCompatSpec(
-                    (String []) params.getParameter(CookieSpecParams.DATE_PATTERNS));
-        } else {
-            return new BrowserCompatSpec();
-        }
+        return new NetscapeDraftSpec();
     }
 
 }

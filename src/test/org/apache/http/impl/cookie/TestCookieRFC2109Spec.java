@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.Header;
 import org.apache.http.cookie.Cookie;

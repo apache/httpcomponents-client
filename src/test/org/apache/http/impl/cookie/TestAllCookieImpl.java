@@ -2,7 +2,6 @@
  * $HeadURL$
  * $Revision$
  * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,24 +26,33 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
-package org.apache.http.cookie.impl;
+ */
 
-import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
-import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.MalformedCookieException;
+package org.apache.http.impl.cookie;
 
-public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
+import junit.framework.*;
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
-            throws MalformedCookieException {
-        // Do nothing
+public class TestAllCookieImpl extends TestCase {
+
+    public TestAllCookieImpl(String testName) {
+        super(testName);
     }
-    
-    public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        // Always match
-        return true;
+
+    public static Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTest(TestAbstractCookieSpec.suite());
+        suite.addTest(TestBasicCookieAttribHandlers.suite());
+        suite.addTest(TestNetscapeCookieAttribHandlers.suite());
+        suite.addTest(TestRFC2109CookieAttribHandlers.suite());
+        suite.addTest(TestBrowserCompatSpec.suite());
+        suite.addTest(TestCookieNetscapeDraft.suite());
+        suite.addTest(TestCookieRFC2109Spec.suite());
+        return suite;
     }
-    
+
+    public static void main(String args[]) {
+        String[] testCaseName = { TestAllCookieImpl.class.getName() };
+        junit.textui.TestRunner.main(testCaseName);
+    }
+
 }

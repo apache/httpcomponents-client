@@ -28,7 +28,7 @@
  * <http://www.apache.org/>.
  *
  */ 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import java.util.StringTokenizer;
 

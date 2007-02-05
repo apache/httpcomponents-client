@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

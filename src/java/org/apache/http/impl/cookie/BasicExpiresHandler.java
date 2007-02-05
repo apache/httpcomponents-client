@@ -28,64 +28,47 @@
  * <http://www.apache.org/>.
  *
  */ 
-package org.apache.http.cookie.impl;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.util.DateParseException;
+import org.apache.http.util.DateUtils;
 
-public class BasicPathHandler implements CookieAttributeHandler {
+public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
 
-    public BasicPathHandler() {
-        super();
+    /** Valid date patterns */
+    private final String[] datepatterns;
+
+    public BasicExpiresHandler(final String[] datepatterns) {
+        if (datepatterns == null) {
+            throw new IllegalArgumentException("Array of date patterns may not be null");
+        }
+        this.datepatterns = datepatterns;
     }
-    
-    public void parse(final Cookie cookie, String value) 
+
+    public void parse(final Cookie cookie, final String value) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (value == null || value.trim().equals("")) {
-            value = "/";
+        if (value == null) {
+            throw new MalformedCookieException("Missing value for expires attribute");
         }
-        cookie.setPath(value);
-        cookie.setPathAttributeSpecified(true);
+        try {
+            cookie.setExpiryDate(DateUtils.parseDate(value, this.datepatterns));
+        } catch (DateParseException dpe) {
+            throw new MalformedCookieException("Unable to parse expires attribute: " 
+                + value);
+        }
     }
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
-            throws MalformedCookieException {
-        if (!match(cookie, origin)) {
-            throw new MalformedCookieException(
-                "Illegal path attribute \"" + cookie.getPath() 
-                + "\". Path of origin: \"" + origin.getPath() + "\"");
-        }
-    }
-    
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
-        String targetpath = origin.getPath();
-        String topmostPath = cookie.getPath();
-        if (topmostPath == null) {
-            topmostPath = "/";
-        }
-        if (topmostPath.length() > 1 && topmostPath.endsWith("/")) {
-            topmostPath = topmostPath.substring(0, topmostPath.length() - 1);
-        }
-        boolean match = targetpath.startsWith (topmostPath);
-        // if there is a match and these values are not exactly the same we have
-        // to make sure we're not matcing "/foobar" and "/foo"
-        if (match && targetpath.length() != topmostPath.length()) {
-            if (!topmostPath.endsWith("/")) {
-                match = (targetpath.charAt(topmostPath.length()) == '/');
-            }
-        }
-        return match;
+        return !cookie.isExpired();
     }
     
 }
