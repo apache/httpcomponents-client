@@ -36,13 +36,12 @@ package org.apache.http.impl.client;
  * implementation need to respond appropriately.
  *
  * <p>When one of the three types of {@link java.io.InputStream}, one of
- * AutoCloseInputStream (package), {@link ContentLengthInputStream}, or
- * {@link ChunkedInputStream} finishes with its content, either because
+ * <code>AutoCloseInputStream</code> (package),
+ * <code>ContentLengthInputStream</code>, or
+ * <code>ChunkedInputStream</code> finishes with its content, either because
  * all content has been consumed, or because it was explicitly closed,
  * it notifies its corresponding method via this interface.</p>
  *
- * @see ContentLengthInputStream
- * @see ChunkedInputStream
  * @author Eric Johnson
  */
 interface ResponseConsumedWatcher {
