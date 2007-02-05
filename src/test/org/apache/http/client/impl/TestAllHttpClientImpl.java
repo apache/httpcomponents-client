@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.client.impl;
+package org.apache.http.impl.client;
 
 import junit.framework.*;
 

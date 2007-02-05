@@ -33,7 +33,7 @@ package org.apache.http.client;
 import org.apache.http.cookie.TestAllCookie;
 import org.apache.http.cookie.impl.TestAllCookieImpl;
 import org.apache.http.conn.ssl.TestAllSSL;
-import org.apache.http.client.impl.TestAllHttpClientImpl;
+import org.apache.http.impl.client.TestAllHttpClientImpl;
 
 import junit.framework.*;
 
