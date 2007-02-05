@@ -411,19 +411,13 @@ Output
           </packageset>
 
           <group title="API">
-            <package name="org.apache.http.auth" />
-            <package name="org.apache.http.conn" />
-            <package name="org.apache.http.conn.params" />
-            <package name="org.apache.http.conn.ssl" />
-            <package name="org.apache.http.cookie" />
-            <package name="org.apache.http.cookie.params" />
-            <package name="org.apache.http.client" />
+            <package name="org.apache.http.auth*" />
+            <package name="org.apache.http.conn*" />
+            <package name="org.apache.http.cookie*" />
+            <package name="org.apache.http.client*" />
           </group>
           <group title="Implementation">
-            <package name="org.apache.http.auth.impl*" />
-            <package name="org.apache.http.conn.impl*" />
-            <package name="org.apache.http.cookie.impl*" />
-            <package name="org.apache.http.client.impl*" />
+            <package name="org.apache.http.impl.*" />
           </group>
     
           <classpath refid="classpath.client.javadoc"/>
@@ -459,19 +453,13 @@ Output
 
 
           <group title="API">
-            <package name="org.apache.http.auth" />
-            <package name="org.apache.http.conn" />
-            <package name="org.apache.http.conn.params" />
-            <package name="org.apache.http.conn.ssl" />
-            <package name="org.apache.http.cookie" />
-            <package name="org.apache.http.cookie.params" />
-            <package name="org.apache.http.client" />
+            <package name="org.apache.http.auth*" />
+            <package name="org.apache.http.conn*" />
+            <package name="org.apache.http.cookie*" />
+            <package name="org.apache.http.client*" />
           </group>
           <group title="Implementation">
-            <package name="org.apache.http.auth.impl*" />
-            <package name="org.apache.http.conn.impl*" />
-            <package name="org.apache.http.cookie.impl*" />
-            <package name="org.apache.http.client.impl*" />
+            <package name="org.apache.http.impl.*" />
           </group>
 
           <group title="Examples">
