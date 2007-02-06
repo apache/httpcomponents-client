@@ -32,7 +32,9 @@
 package org.apache.http.conn;
 
 /**
- * An interface for classes that manage {@link HttpHostConnection}s.
+ * "Old" connection manager interface, as ported from HttpClient 3.x.
+ * @deprecated kept temporarily for reference. To be replaced by
+ *      {@link ClientConnectionManager}.
  * 
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>

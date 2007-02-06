@@ -50,6 +50,10 @@ import org.apache.http.params.HttpParams;
 /**
  * Default {@link HttpHostConnection} implementation.
  *
+ * @deprecated kept temporarily for reference. To be replaced by
+ *      {@link DefaultClientConnection} and
+ *      {@link AbstractClientConnectionAdapter}.
+ *
  * @author Rod Waldhoff
  * @author Sean C. Sullivan
  * @author Ortwin Glueck

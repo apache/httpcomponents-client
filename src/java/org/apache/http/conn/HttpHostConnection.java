@@ -39,6 +39,12 @@ import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 
+/**
+ * "Old" connection interface, as ported from HttpClient 3.x.
+ * @deprecated kept temporarily for reference. To be replaced by
+ *      {@link OperatedClientConnection} and
+ *      {@link ManagedClientConnection}.
+ */
 public interface HttpHostConnection extends HttpClientConnection, HttpInetConnection {
     
     void setHttpConnectionManager(HttpConnectionManager manager);

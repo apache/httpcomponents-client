@@ -47,6 +47,7 @@ import org.apache.http.params.HttpParams;
  * A connection manager that provides access to a single HttpConnection.  This
  * manager makes no attempt to provide exclusive access to the contained
  * HttpConnection.
+ * @deprecated To be adapted to the new connection handler interface.
  *
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  * @author Eric Johnson

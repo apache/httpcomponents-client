@@ -59,6 +59,8 @@ import org.apache.http.params.HttpParams;
 
 /**
  * Manages a set of HttpConnections for various HostConfigurations.
+ * @deprecated kept temporarily for reference. To be replaced by
+ *      {@link ThreadSafeClientConnManager}.
  *
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  * @author Eric Johnson
