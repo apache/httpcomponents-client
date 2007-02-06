@@ -40,7 +40,8 @@ import org.apache.http.util.LangUtils;
 /**
  * Encapsulates specifics of a protocol scheme such as "http" or "https".
  * Schemes are identified by lowercase names.
- * Supported schemes are typically collected in a {@link SchemeSet SchemeSet}.
+ * Supported schemes are typically collected in a
+ * {@link SchemeRegistry SchemeRegistry}.
  *
  * <p>
  * For example, to configure support for "https://" URLs,
@@ -48,7 +49,7 @@ import org.apache.http.util.LangUtils;
  * </p>
  * <pre>
  * Scheme https = new Scheme("https", new MySecureSocketFactory(), 443);
- * SchemeSet.DEFAULT.register(https);
+ * SchemeRegistry.DEFAULT.register(https);
  * </pre>
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>

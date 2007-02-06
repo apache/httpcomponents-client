@@ -45,7 +45,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 
 import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeSet;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
@@ -83,7 +83,7 @@ public class OperatorConnectProxy {
      * The scheme set.
      * Instantiated in {@link #setup setup}.
      */
-    private static SchemeSet supportedSchemes;
+    private static SchemeRegistry supportedSchemes;
 
 
     /**
@@ -178,7 +178,7 @@ public class OperatorConnectProxy {
 
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.
-        supportedSchemes = new SchemeSet();
+        supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));
         sf = SSLSocketFactory.getSocketFactory();

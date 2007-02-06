@@ -40,7 +40,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Unit tests for {@link Scheme} and {@link SchemeSet}.
+ * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
@@ -108,7 +108,7 @@ public class TestScheme extends TestCase {
     }
 
     public void testRegisterUnregister() {
-        SchemeSet schmset = new SchemeSet();
+        SchemeRegistry schmreg = new SchemeRegistry();
 
         Scheme http = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
@@ -117,18 +117,18 @@ public class TestScheme extends TestCase {
         Scheme myhttp = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
 
-    	assertNull(schmset.register(myhttp));
-    	assertNull(schmset.register(https));
-    	assertSame(myhttp, schmset.register(http));
-    	assertSame(http, schmset.getScheme("http"));
-    	assertSame(https, schmset.getScheme("https"));
+    	assertNull(schmreg.register(myhttp));
+    	assertNull(schmreg.register(https));
+    	assertSame(myhttp, schmreg.register(http));
+    	assertSame(http, schmreg.getScheme("http"));
+    	assertSame(https, schmreg.getScheme("https"));
 
-    	schmset.unregister("http");
-    	schmset.unregister("https");
+    	schmreg.unregister("http");
+    	schmreg.unregister("https");
 
-        assertNull(schmset.get("http")); // get() does not throw exception
+        assertNull(schmreg.get("http")); // get() does not throw exception
     	try {
-            schmset.getScheme("http"); // getScheme() does throw exception
+            schmreg.getScheme("http"); // getScheme() does throw exception
             fail("IllegalStateException should have been thrown");
     	} catch (IllegalStateException ex) {
             // expected
@@ -137,9 +137,9 @@ public class TestScheme extends TestCase {
 
 
     public void testIterator() {
-        SchemeSet schmset = new SchemeSet();
+        SchemeRegistry schmreg = new SchemeRegistry();
 
-        Iterator iter = schmset.getSchemeNames();
+        Iterator iter = schmreg.getSchemeNames();
         assertNotNull(iter);
         assertFalse(iter.hasNext());
 
@@ -148,10 +148,10 @@ public class TestScheme extends TestCase {
         Scheme https = new Scheme
             ("https", SSLSocketFactory.getSocketFactory(), 443);
 
-    	schmset.register(http);
-    	schmset.register(https);
+    	schmreg.register(http);
+    	schmreg.register(https);
 
-        iter = schmset.getSchemeNames();
+        iter = schmreg.getSchemeNames();
         assertNotNull(iter);
         assertTrue(iter.hasNext());
 
@@ -167,10 +167,10 @@ public class TestScheme extends TestCase {
         else
             fail("unexpected name in iterator: " + name);
 
-        assertNotNull(schmset.get(name));
+        assertNotNull(schmreg.get(name));
         iter.remove();
         assertTrue(iter.hasNext());
-        assertNull(schmset.get(name));
+        assertNull(schmreg.get(name));
 
         name = (String) iter.next();
         assertFalse(iter.hasNext());
@@ -183,31 +183,31 @@ public class TestScheme extends TestCase {
             fail("unexpected name in iterator: " + name);
         }
 
-        assertNotNull(schmset.get(name));
+        assertNotNull(schmreg.get(name));
     }
 
     public void testIllegalRegisterUnregister() {
-        SchemeSet schmset = new SchemeSet();
+        SchemeRegistry schmreg = new SchemeRegistry();
         try {
-        	schmset.register(null);
+        	schmreg.register(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	schmset.unregister(null);
+        	schmreg.unregister(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	schmset.get(null);
+        	schmreg.get(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
         }
         try {
-        	schmset.getScheme(null);
+        	schmreg.getScheme(null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected

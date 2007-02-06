@@ -50,27 +50,27 @@ import java.util.Collections;
  *
  * @since 4.0
  */
-public final class SchemeSet {
+public final class SchemeRegistry {
 
     /**
-     * A default scheme set.
+     * A default scheme registry.
      * It is empty by default, but can be initialized by any application.
      * The default scheme set should only be used by applications that
      * know for sure that this class is NOT shared with any other applications.
      * For example a Servlet, Portlet or EJB should not rely on being the
      * only user of this class.
      */
-    public final static SchemeSet DEFAULT = new SchemeSet();
+    public final static SchemeRegistry DEFAULT = new SchemeRegistry();
 
 
-    /** The available schemes in this set. */
+    /** The available schemes in this registry. */
     private final Map registeredSchemes;
 
 
     /**
-     * Creates a new, empty scheme set.
+     * Creates a new, empty scheme registry.
      */
-    public SchemeSet() {
+    public SchemeRegistry() {
         registeredSchemes = Collections.synchronizedMap(new HashMap());
     }
 
@@ -115,7 +115,7 @@ public final class SchemeSet {
 
 
     /**
-     * Registers a scheme in this set.
+     * Registers a scheme.
      * The scheme can later be retrieved by it's name
      * using {@link #getScheme getScheme} or {@link #get get}.
      *
@@ -134,7 +134,7 @@ public final class SchemeSet {
 
 
     /**
-     * Unregisters a scheme from this set.
+     * Unregisters a scheme.
      *
      * @param name      the name of the scheme to unregister (in lowercase)
      *
@@ -163,5 +163,5 @@ public final class SchemeSet {
     }
 
 
-} // class SchemeSet
+} // class SchemeRegistry
 
