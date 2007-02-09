@@ -39,6 +39,8 @@ import org.apache.http.HttpException;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ManagedClientConnection;
@@ -166,40 +168,117 @@ public class DefaultClientRequestDirector
     /**
      * Establishes the target route.
      *
-     * @param route     the route to establish
+     * @param hostconf  the route to establish
      * @param context   the context for the request execution
      *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected void establishRoute(HostConfiguration route,
+    protected void establishRoute(HostConfiguration hostconf,
                                   HttpContext context)
         throws HttpException, IOException {
 
-        //@@@ where do we get the currently established route?
         //@@@ how to handle CONNECT requests for tunnelling?
+        //@@@ refuse to send external CONNECT via director? special handling?
 
-        //@@@ for now, let's just deal with connected and not connected
-        if ((route.getProxyHost() != null) &&
-            !"http".equals(route.getHost().getSchemeName())) {
-            //@@@ the actual check should be whether the socket factory
-            //@@@ for the target host scheme is a SecureSocketFactory
-            throw new UnsupportedOperationException
-                ("Currently only plain http via proxy is supported.");
-        }
-        if (managedConn.isOpen())
-            return; // already established
+        //@@@ this check for secure connections is an ugly hack until the
+        //@@@ director is changed to expect HttpRoute instead of HostConfig
+        //@@@ the actual check should be whether the socket factory
+        //@@@ for the target host scheme is a SecureSocketFactory
+        HttpRoute route = null;
+        {
+            final boolean secure =
+                !"http".equals(hostconf.getHost().getSchemeName());
+            if (hostconf.getProxyHost() == null)
+                route = new HttpRoute(hostconf.getHost(),
+                                      hostconf.getLocalAddress(),
+                                      secure);
+            else
+                route = new HttpRoute(hostconf.getHost(),
+                                      hostconf.getLocalAddress(),
+                                      hostconf.getProxyHost(),
+                                      secure);
+            System.out.println("@@@ planned: " + route);
+        } //@@@ end of ugly HostConfiguration -> HttpRoute conversion
 
-        //@@@ should the request parameters already be used here?
+
+        //@@@ should the request parameters already be used below?
         //@@@ probably yes, but they're not linked yet
-        //@@@ will linking above cause problems with linking in reqExec?
+        //@@@ will linking here/above cause problems with linking in reqExec?
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
-        managedConn.open(route, context, defaultParams);
+
+        RouteDirector rowdy = new RouteDirector();
+        int step;
+        do {
+            HttpRoute fact = managedConn.getRoute();
+            System.out.println("@@@ current: " + fact);
+            step = rowdy.nextStep(route, fact);
+            System.out.println("@@@ action => " + step);
+
+            switch (step) {
+
+            case RouteDirector.CONNECT_TARGET:
+            case RouteDirector.CONNECT_PROXY:
+                managedConn.open(hostconf, context, defaultParams);
+                break;
+
+            case RouteDirector.CREATE_TUNNEL:
+                boolean secure = createTunnel(route, context);
+                managedConn.tunnelCreated(secure, defaultParams);
+                break;
+
+            case RouteDirector.LAYER_PROTOCOL:
+                managedConn.layerProtocol(context, defaultParams);
+                break;
+
+            case RouteDirector.UNREACHABLE:
+                throw new IllegalStateException
+                    ("Unable to establish route." +
+                     "\nplanned = " + route +
+                     "\ncurrent = " + fact);
+
+            case RouteDirector.COMPLETE:
+                // do nothing
+                break;
+
+            default:
+                throw new IllegalStateException
+                    ("Unknown step indicator "+step+" from RouteDirector.");
+            } // switch
+
+        } while (step > RouteDirector.COMPLETE);
 
     } // establishConnection
 
+
+    /**
+     * Creates a tunnel.
+     * The connection must be established to the proxy.
+     * A CONNECT request for tunnelling through the proxy
+     * will be created and sent.
+     *
+     * @param route     the route to establish
+     * @param context   the context for request execution
+     *
+     * @return  <code>true</code> if the tunnelled route is secure,
+     *          <code>false</code> otherwise.
+     *          The implementation here always returns <code>false</code>,
+     *          but derived classes may override.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     */
+    protected boolean createTunnel(HttpRoute route, HttpContext context) {
+        if (true) throw new UnsupportedOperationException("@@@ don't know how to establish a tunnel yet");
+
+        // How to decide on security of the tunnelled connection?
+        // The socket factory knows only about the segment to the proxy.
+        // Even if that is secure, the hop to the target may be insecure.
+        // Leave it to derived classes, consider everything insecure here.
+        return false;
+    }
 
     /**
      * Prepares a request for execution.

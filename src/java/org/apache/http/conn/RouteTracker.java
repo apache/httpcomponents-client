@@ -142,7 +142,7 @@ public final class RouteTracker implements Cloneable {
      * @param secure    <code>true</code> if the route is secure,
      *                  <code>false</code> otherwise
      */
-    public final void establishTunnel(boolean secure) {
+    public final void createTunnel(boolean secure) {
         if (this.proxyHost == null) {
             throw new IllegalStateException("No tunnel without proxy.");
         }

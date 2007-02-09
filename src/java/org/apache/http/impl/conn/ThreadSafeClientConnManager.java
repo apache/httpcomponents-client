@@ -1211,7 +1211,7 @@ public class ThreadSafeClientConnManager
 
             this.connection.update(null, tracker.getTargetHost(),
                                    secure, params);
-            this.tracker.establishTunnel(secure);
+            this.tracker.createTunnel(secure);
 
         } // tunnelCreated
 
