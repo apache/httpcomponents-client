@@ -110,7 +110,7 @@ public final class RouteTracker implements Cloneable {
     /**
      * Tracks connecting to the target.
      *
-     * @param secure    <code>true</code> if the connection is secure,
+     * @param secure    <code>true</code> if the route is secure,
      *                  <code>false</code> otherwise
      */
     public final void connectTarget(boolean secure) {
@@ -123,20 +123,26 @@ public final class RouteTracker implements Cloneable {
      * Tracks connecting to a proxy.
      *
      * @param proxy     the proxy connected to
+     * @param secure    <code>true</code> if the route is secure,
+     *                  <code>false</code> otherwise
      */
-    public final void connectProxy(HttpHost proxy) {
+    public final void connectProxy(HttpHost proxy, boolean secure) {
         if (proxy == null) {
             throw new IllegalArgumentException("Proxy host may not be null.");
         }
         this.connected = true;
         this.proxyHost = proxy;
+        this.secure    = secure;
     }
 
 
     /**
      * Tracks tunnelling through the proxy.
+     *
+     * @param secure    <code>true</code> if the route is secure,
+     *                  <code>false</code> otherwise
      */
-    public final void establishTunnel() {
+    public final void establishTunnel(boolean secure) {
         if (this.proxyHost == null) {
             throw new IllegalStateException("No tunnel without proxy.");
         }
@@ -144,6 +150,7 @@ public final class RouteTracker implements Cloneable {
             throw new IllegalStateException("No tunnel unless connected.");
         }
         this.tunnelled = true;
+        this.secure    = secure;
     }
 
 

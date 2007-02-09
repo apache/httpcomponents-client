@@ -68,6 +68,16 @@ public interface ManagedClientConnection
 
 
     /**
+     * Obtains the current route of this connection.
+     *
+     * @return  the route established so far, or
+     *          <code>null</code> if not connected
+     */
+    HttpRoute getRoute()
+        ;
+
+
+    /**
      * Opens this connection according to the given route.
      *
      * @param route     the route along which to open. It will be opened

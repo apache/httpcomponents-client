@@ -47,6 +47,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.RouteTracker;
 import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
@@ -817,7 +819,7 @@ public class ThreadSafeClientConnManager
          */
         private synchronized void deleteConnection(TrackingPoolEntry entry) {
 
-            HostConfiguration route = entry.route;
+            HostConfiguration route = entry.tracker.toHostConfig();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Reclaiming connection, hostConfig=" + route);
@@ -1084,14 +1086,8 @@ public class ThreadSafeClientConnManager
         /** The route for which this entry gets allocated. */
         private HostConfiguration plannedRoute;
 
-        /** The host configuration part of the tracked route. */
-        private HostConfiguration route;
-
-        /** The tunnel created flag part of the tracked route. */
-        private boolean tunnelled;
-
-        /** The layered flag part of the tracked route. */
-        private boolean layered;
+        /** The tracked route, or <code>null</code> before tracking starts. */
+        private RouteTracker tracker;
 
         /** The connection manager. */
         private ThreadSafeClientConnManager manager;
@@ -1112,8 +1108,8 @@ public class ThreadSafeClientConnManager
          */
         private TrackingPoolEntry(OperatedClientConnection occ) {
             this.connection = occ;
-            this.route = null;
-            this.tunnelled = false;
+            //@@@ pass planned route to the constructor?
+            this.tracker = null;
             this.manager = ThreadSafeClientConnManager.this;
             this.reference = new WeakReference(this, REFERENCE_QUEUE);
         }
@@ -1141,6 +1137,9 @@ public class ThreadSafeClientConnManager
                 throw new IllegalArgumentException
                     ("Parameters must not be null.");
             }
+            if ((this.tracker != null) && this.tracker.isConnected()) {
+                throw new IllegalStateException("Connection already open.");
+            }
 
             // - collect the arguments
             // - call the operator
@@ -1155,6 +1154,8 @@ public class ThreadSafeClientConnManager
             }
             final HttpHost proxy = route.getProxyHost();
 
+            //@@@ verify against planned route?
+
             if (LOG.isDebugEnabled()) {
                 if (proxy == null) {
                     LOG.debug("Open connection to " + target);
@@ -1164,12 +1165,18 @@ public class ThreadSafeClientConnManager
                 }
             }
 
+            this.tracker = new RouteTracker
+                (route.getHost(), route.getLocalAddress());
+
             ThreadSafeClientConnManager.this.connectionOperator.openConnection
                 (this.connection,
                  (proxy != null) ? proxy : target,
                  context, params);
 
-            this.route = route;
+            if (proxy == null)
+                this.tracker.connectTarget(this.connection.isSecure());
+            else
+                this.tracker.connectProxy(proxy, this.connection.isSecure());
 
         } // open
 
@@ -1193,17 +1200,18 @@ public class ThreadSafeClientConnManager
                     ("Parameters must not be null.");
             }
 
-            if (route.getProxyHost() == null) {
-                throw new IllegalStateException("No proxy in route.");
+            //@@@ check for proxy in planned route?
+            if ((this.tracker == null) || !this.tracker.isConnected()) {
+                throw new IllegalStateException("Connection not open.");
             }
-            if (tunnelled) {
+            if (this.tracker.isTunnelled()) {
                 throw new IllegalStateException
                     ("Connection is already tunnelled.");
             }
 
-            this.connection.update(null, route.getHost(),
+            this.connection.update(null, tracker.getTargetHost(),
                                    secure, params);
-            tunnelled = true;
+            this.tracker.establishTunnel(secure);
 
         } // tunnelCreated
 
@@ -1225,13 +1233,17 @@ public class ThreadSafeClientConnManager
                     ("Parameters must not be null.");
             }
 
-            if (!this.tunnelled) {
+            if ((this.tracker == null) || !this.tracker.isConnected()) {
+                throw new IllegalStateException("Connection not open.");
+            }
+            if (!this.tracker.isTunnelled()) {
+                //@@@ allow this?
                 throw new IllegalStateException
                     ("Protocol layering without a tunnel not supported.");
             }
-            if (this.layered) {
+            if (this.tracker.isLayered()) {
                 throw new IllegalStateException
-                    ("Protocol already layered.");
+                    ("Multiple protocol layering not supported.");
             }
 
             // - collect the arguments
@@ -1240,7 +1252,7 @@ public class ThreadSafeClientConnManager
             // In this order, we can be sure that only a successful
             // layering on top of the connection will be tracked.
 
-            final HttpHost target = route.getHost();
+            final HttpHost target = tracker.getTargetHost();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Layer protocol on connection to " + target);
@@ -1250,7 +1262,7 @@ public class ThreadSafeClientConnManager
                 .updateSecureConnection(this.connection, target,
                                         context, params);
 
-            this.layered = true;
+            this.tracker.layerProtocol(this.connection.isSecure());
 
         } // layerProtocol
 
@@ -1261,9 +1273,8 @@ public class ThreadSafeClientConnManager
          * in both cases. This method should be called regardless of
          * whether the close or shutdown succeeds or triggers an error.
          */
-        private void closing() {
-            route     = null;
-            tunnelled = false;
+        private void closing() { 
+           tracker = null;
         }
 
     } // class TrackingPoolEntry
@@ -1321,6 +1332,14 @@ public class ThreadSafeClientConnManager
             this.poolEntry = null;
         }
 
+
+        // non-javadoc, see interface ManagedHttpConnection
+        public HttpRoute getRoute() {
+
+            assertAttached();
+            return (poolEntry.tracker == null) ?
+                null : poolEntry.tracker.toRoute();
+        }
 
         // non-javadoc, see interface ManagedHttpConnection
         public void open(HostConfiguration route,
