@@ -33,9 +33,11 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpVersion;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -106,6 +108,13 @@ public class DefaultClientRequestDirector
 
         HttpResponse response = null;
         boolean done = false;
+
+        //@@@ where to put the retry handling and counter?
+        //@@@ here, or retry in a calling method, or retry in an inner loop?
+        //@@@ Retry in a calling method would allow for selecting an alternate
+        //@@@ proxy, but it would not be aware of redirects that have already
+        //@@@ been followed. Would the retry counter apply for each request
+        //@@@ if redirects are followed, or for the whole sequence?
 
         try {
             while (!done) {
@@ -204,7 +213,7 @@ public class DefaultClientRequestDirector
 
         //@@@ should the request parameters already be used below?
         //@@@ probably yes, but they're not linked yet
-        //@@@ will linking here/above cause problems with linking in reqExec?
+        //@@@ will linking above cause problems with linking in reqExec?
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
@@ -256,8 +265,10 @@ public class DefaultClientRequestDirector
     /**
      * Creates a tunnel.
      * The connection must be established to the proxy.
-     * A CONNECT request for tunnelling through the proxy
-     * will be created and sent.
+     * A CONNECT request for tunnelling through the proxy will
+     * be created and sent, the response received and checked.
+     * This method does <i>not</i> update the connection with
+     * information about the tunnel, that is left to the caller.
      *
      * @param route     the route to establish
      * @param context   the context for request execution
@@ -270,8 +281,23 @@ public class DefaultClientRequestDirector
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected boolean createTunnel(HttpRoute route, HttpContext context) {
-        if (true) throw new UnsupportedOperationException("@@@ don't know how to establish a tunnel yet");
+    protected boolean createTunnel(HttpRoute route, HttpContext context)
+        throws HttpException, IOException {
+
+        HttpRequest connect = createConnectRequest(route, context);
+        //@@@ authenticate here, in method above, or in request interceptor?
+
+        HttpResponse connected =
+            requestExec.execute(connect, managedConn, context);
+        int status = connected.getStatusLine().getStatusCode();
+        //@@@ log something about the response?
+
+        //@@@ check for proxy authentication challenge, repeat with auth
+
+        if ((status < 200) || (status > 299)) {
+            throw new HttpException("CONNECT refused by proxy: " +
+                                    connected.getStatusLine());
+        }
 
         // How to decide on security of the tunnelled connection?
         // The socket factory knows only about the segment to the proxy.
@@ -279,6 +305,36 @@ public class DefaultClientRequestDirector
         // Leave it to derived classes, consider everything insecure here.
         return false;
     }
+
+
+    /**
+     * Creates the CONNECT request for tunnelling.
+     * Called by {@link #createTunnel createTunnel}.
+     *
+     * @param route     the route to establish
+     * @param context   the context for request execution
+     *
+     * @return  the CONNECT request for tunnelling
+     */
+    protected HttpRequest createConnectRequest(HttpRoute route,
+                                               HttpContext context) {
+        // see RFC 2817, section 5.2
+        final String authority =
+            route.getTargetHost().getHostName() + ":" +
+            route.getTargetHost().getPort();
+
+        //@@@ do we need a more refined algorithm to choose the HTTP version?
+        //@@@ use a request factory provided by the caller/creator?
+        HttpRequest req = new BasicHttpRequest
+            ("CONNECT", authority, HttpVersion.HTTP_1_1);
+
+        req.addHeader("Host", authority);
+
+        //@@@ authenticate here, in caller, or in request interceptor?
+
+        return req;
+    }
+
 
     /**
      * Prepares a request for execution.

@@ -130,10 +130,12 @@ public class RouteDirector {
             return UNREACHABLE;
         if (!plan.getTargetHost().equals(fact.getTargetHost()))
             return UNREACHABLE;
-        // If the security values differ, we could now suggest to layer
+        // If the security is too low, we could now suggest to layer
         // a secure protocol on the direct connection. Layering on direct
         // connections has not been supported in HttpClient 3.x, we don't
         // consider it here until there is a real-life use case for it.
+
+        // Should we tolerate if security is better than planned?
 
         // yes, this would cover the two checks above as well...
         if (!plan.equals(fact))
@@ -171,6 +173,7 @@ public class RouteDirector {
             return LAYER_PROTOCOL;
 
         // tunnel and layering are the same, remains to check the security
+        // Should we tolerate if security is better than planned?
         if (plan.isSecure() != fact.isSecure())
             return UNREACHABLE;
 
