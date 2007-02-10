@@ -1125,13 +1125,13 @@ public class ThreadSafeClientConnManager
          *
          * @throws IOException  in case of a problem
          */
-        private void open(HostConfiguration route,
+        private void open(HttpRoute route,
                           HttpContext context, HttpParams params)
             throws IOException {
 
             if (route == null) {
                 throw new IllegalArgumentException
-                    ("HostConfiguration must not be null.");
+                    ("Route must not be null.");
             }
             //@@@ is context allowed to be null? depends on operator?
             if (params == null) {
@@ -1148,30 +1148,19 @@ public class ThreadSafeClientConnManager
             // In this order, we can be sure that only a successful
             // opening of the connection will be tracked.
 
-            final HttpHost target = route.getHost();
-            if (target == null) {
-                throw new IllegalStateException
-                    ("Target host must not be null.");
-            }
-            final HttpHost proxy = route.getProxyHost();
+            //@@@ verify route against planned route?
 
-            //@@@ verify against planned route?
 
             if (LOG.isDebugEnabled()) {
-                if (proxy == null) {
-                    LOG.debug("Open connection to " + target);
-                } else {
-                    LOG.debug("Open connection to " + target +
-                              " via proxy " + proxy);
-                }
+                LOG.debug("Open connection for " + route);
             }
 
-            this.tracker = new RouteTracker
-                (route.getHost(), route.getLocalAddress());
+            this.tracker = new RouteTracker(route);
+            final HttpHost proxy  = route.getProxyHost();
 
             ThreadSafeClientConnManager.this.connectionOperator.openConnection
                 (this.connection,
-                 (proxy != null) ? proxy : target,
+                 (proxy != null) ? proxy : route.getTargetHost(),
                  context, params);
 
             if (proxy == null)
@@ -1343,7 +1332,7 @@ public class ThreadSafeClientConnManager
         }
 
         // non-javadoc, see interface ManagedHttpConnection
-        public void open(HostConfiguration route,
+        public void open(HttpRoute route,
                          HttpContext context, HttpParams params)
             throws IOException {
 

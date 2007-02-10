@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpContext;
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
+ * @version   $Revision$
  *
  * @since 4.0
  */
@@ -87,7 +87,7 @@ public interface ManagedClientConnection
      *
      * @throws IOException      in case of a problem
      */
-    void open(HostConfiguration route, HttpContext context, HttpParams params)
+    void open(HttpRoute route, HttpContext context, HttpParams params)
         throws IOException
         ;
 

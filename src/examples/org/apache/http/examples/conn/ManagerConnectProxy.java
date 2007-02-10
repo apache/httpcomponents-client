@@ -118,7 +118,7 @@ public class ManagerConnectProxy {
         ManagedClientConnection conn = clcm.getConnection(route);
         try {
             System.out.println("opening connection");
-            conn.open(route.toHostConfig(), ctx, getParams());
+            conn.open(route, ctx, getParams());
 
             HttpRequest connect = createConnect(target);
             System.out.println("opening tunnel to " + target);

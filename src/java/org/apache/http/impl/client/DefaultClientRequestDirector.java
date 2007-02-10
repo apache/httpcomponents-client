@@ -229,7 +229,7 @@ public class DefaultClientRequestDirector
 
             case RouteDirector.CONNECT_TARGET:
             case RouteDirector.CONNECT_PROXY:
-                managedConn.open(route.toHostConfig(), context, defaultParams);
+                managedConn.open(route, context, defaultParams);
                 break;
 
             case RouteDirector.CREATE_TUNNEL:

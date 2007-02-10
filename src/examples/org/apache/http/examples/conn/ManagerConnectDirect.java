@@ -112,7 +112,7 @@ public class ManagerConnectDirect {
         ManagedClientConnection conn = clcm.getConnection(route);
         try {
             System.out.println("opening connection");
-            conn.open(route.toHostConfig(), ctx, getParams());
+            conn.open(route, ctx, getParams());
 
             System.out.println("sending request");
             conn.sendRequestHeader(req);
