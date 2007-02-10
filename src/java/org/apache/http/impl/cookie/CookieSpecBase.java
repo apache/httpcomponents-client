@@ -45,7 +45,7 @@ import org.apache.http.cookie.MalformedCookieException;
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0 
+ * @since 4.0 
  */
 public abstract class CookieSpecBase extends AbstractCookieSpec {
     

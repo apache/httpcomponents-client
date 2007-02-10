@@ -38,7 +38,7 @@ import org.apache.http.ProtocolException;
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0
+ * @since 4.0
  */
 public class MalformedChallengeException extends ProtocolException {
 
@@ -66,8 +66,6 @@ public class MalformedChallengeException extends ProtocolException {
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
-     * 
-     * @since 3.0
      */
     public MalformedChallengeException(String message, Throwable cause) {
         super(message, cause);

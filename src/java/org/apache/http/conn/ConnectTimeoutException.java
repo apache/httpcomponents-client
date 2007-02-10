@@ -39,7 +39,7 @@ import java.io.InterruptedIOException;
  * 
  * @author <a href="mailto:laura@lwerner.org">Laura Werner</a>
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class ConnectTimeoutException extends InterruptedIOException {
 

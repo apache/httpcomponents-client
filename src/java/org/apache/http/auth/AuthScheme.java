@@ -65,7 +65,7 @@ import org.apache.http.HttpMessage;
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:adrian@ephox.com">Adrian Sutton</a>
  *
- * @since 2.0beta1
+ * @since 4.0
  */
 
 public interface AuthScheme {
@@ -76,8 +76,6 @@ public interface AuthScheme {
      * to maintain the state information when dealing with sequential challenges 
      * 
      * @param header the challenge header
-     * 
-     * @since 3.0
      */
     void processChallenge(final Header header) throws MalformedChallengeException;
     
@@ -112,8 +110,6 @@ public interface AuthScheme {
      * 
      * @return <tt>true</tt> if the scheme is connection based, <tt>false</tt>
      * if the scheme is request based.
-     * 
-     * @since 3.0
      */
     boolean isConnectionBased();    
     
@@ -125,8 +121,6 @@ public interface AuthScheme {
      * 
      * @return <tt>true</tt> if the authentication process has been completed, 
      * <tt>false</tt> otherwise.
-     * 
-     * @since 3.0
      */
     boolean isComplete();    
 
@@ -139,8 +133,6 @@ public interface AuthScheme {
      *   be generated due to an authentication failure
      * 
      * @return the authorization string
-     * 
-     * @since 3.0
      */
     Header authenticate(Credentials credentials, HttpMessage message) throws AuthenticationException;
     

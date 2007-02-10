@@ -57,7 +57,7 @@ import org.apache.http.util.DateUtils;
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
- * @since 2.0 
+ * @since 4.0 
  */
 
 public class RFC2109Spec extends CookieSpecBase {

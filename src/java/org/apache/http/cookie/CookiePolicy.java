@@ -45,7 +45,7 @@ import org.apache.http.params.HttpParams;
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *
- * @since 2.0
+ * @since 4.0
  */
 public class CookiePolicy {
 
@@ -64,8 +64,6 @@ public class CookiePolicy {
      * @param factory the {@link CookieSpecFactory} class to register
      * 
      * @see #getCookieSpec(String)
-     * 
-     * @since 3.0
      */
     public static void register(final String id, final CookieSpecFactory factory) {
          if (id == null) {
@@ -81,8 +79,6 @@ public class CookiePolicy {
      * Unregisters the {@link CookieSpecFactory} with the given ID.
      * 
      * @param id the ID of the {@link CookieSpec cookie specification} to unregister
-     * 
-     * @since 3.0
      */
     public static void unregister(final String id) {
          if (id == null) {
@@ -101,8 +97,6 @@ public class CookiePolicy {
      * @return {@link CookieSpec cookie specification}
      * 
      * @throws IllegalStateException if a policy with the ID cannot be found
-     * 
-     * @since 4.0
      */
     public static CookieSpec getCookieSpec(final String id, final HttpParams params) 
         throws IllegalStateException {
@@ -131,8 +125,6 @@ public class CookiePolicy {
      * @throws IllegalStateException if a policy with the ID cannot be found
      * 
      * @see CookieSpecParams#getCookiePolicy(HttpParams)
-     * 
-     * @since 4.0
      */
     public static CookieSpec getCookieSpec(final HttpParams params) 
         throws IllegalStateException {
@@ -150,8 +142,6 @@ public class CookiePolicy {
      * @return {@link CookieSpec cookie specification}
      * 
      * @throws IllegalStateException if a policy with the ID cannot be found
-     * 
-     * @since 3.0
      */
     public static CookieSpec getCookieSpec(final String id) 
         throws IllegalStateException {
@@ -165,8 +155,6 @@ public class CookiePolicy {
      * as one of the other policies, but does not have to be.
      * 
      * @return array of registered cookie policy names
-     * 
-     * @since 3.1
      */
     public static String[] getRegisteredCookieSpecs(){
             return (String[]) SPECS.keySet().toArray(new String [SPECS.size()]); 

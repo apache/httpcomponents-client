@@ -41,7 +41,7 @@ package org.apache.http.cookie;
  *
  * @author jain.samit@gmail.com (Samit Jain)
  * 
- * @since 3.1
+ * @since 4.0
  */
 public interface CookieAttributeHandler {
 

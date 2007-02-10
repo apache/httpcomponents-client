@@ -41,7 +41,7 @@ import java.net.UnknownHostException;
  * 
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @since 2.0
+ * @since 4.0
  */
 public interface SecureSocketFactory extends SocketFactory {
 

@@ -100,8 +100,6 @@ public interface ClientConnectionManager {
      * Currently allocated connections are not subject to this method.
      * 
      * @param idletime       the idle time in milliseconds
-     * 
-     * @since 3.0
      */
     void closeIdleConnections(long idletime)
         ;

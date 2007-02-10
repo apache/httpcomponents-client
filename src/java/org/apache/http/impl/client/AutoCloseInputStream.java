@@ -39,11 +39,11 @@ import java.io.InputStream;
  * Closes an underlying stream as soon as the end of the stream is reached, and
  * notifies a client when it has done so.
  *
- * @author Ortwin Gl�ck
+ * @author Ortwin Glueck
  * @author Eric Johnson
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *
- * @since 2.0
+ * @since 4.0
  */
 class AutoCloseInputStream extends FilterInputStream {
 

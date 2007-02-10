@@ -54,7 +54,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
- * @since 2.0 
+ * @since 4.0 
  */
 public class NetscapeDraftSpec extends CookieSpecBase {
 
@@ -94,8 +94,6 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * @param header the <tt>Set-Cookie</tt> received from the server
       * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing
-      * 
-      * @since 3.0
       */
     public Cookie[] parse(final Header header, final CookieOrigin origin) 
             throws MalformedCookieException {

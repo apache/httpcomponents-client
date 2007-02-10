@@ -46,7 +46,7 @@ import org.apache.http.Header;
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
  *
- * @since 2.0
+ * @since 4.0
  */
 public interface CookieSpec {    
 

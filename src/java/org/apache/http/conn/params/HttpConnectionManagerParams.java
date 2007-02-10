@@ -48,7 +48,7 @@ import org.apache.http.params.HttpParams;
  * 
  * @version $Revision$
  * 
- * @since 3.0
+ * @since 4.0
  */
 public final class HttpConnectionManagerParams {
 

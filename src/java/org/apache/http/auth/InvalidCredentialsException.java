@@ -36,7 +36,7 @@ package org.apache.http.auth;
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class InvalidCredentialsException extends AuthenticationException {
 

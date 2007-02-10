@@ -46,7 +46,7 @@ import org.apache.http.HttpConnection;
  * 
  * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections(long)
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class IdleConnectionHandler {
     

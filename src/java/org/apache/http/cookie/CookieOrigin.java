@@ -36,7 +36,7 @@ package org.apache.http.cookie;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 3.1
+ * @since 4.0
  */
 public final class CookieOrigin {
 

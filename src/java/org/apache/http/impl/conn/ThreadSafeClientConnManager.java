@@ -612,8 +612,6 @@ public class ThreadSafeClientConnManager
      * Assigns {@link HttpParams parameters} for this 
      * connection manager.
      * 
-     * @since 3.0
-     * 
      * @see HttpConnectionManagerParams
      */
     public void setParams(final HttpParams params) {

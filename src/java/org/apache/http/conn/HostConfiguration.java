@@ -52,7 +52,7 @@ import org.apache.http.util.LangUtils;
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author Laura Werner
  * 
- * @since 2.0 
+ * @since 4.0
  */
 public class HostConfiguration implements Cloneable {
 

@@ -32,12 +32,12 @@
 package org.apache.http.conn;
 
 /**
- * A timeout while connecting waiting for an available connection 
- * from an HttpConnectionManager.
+ * A timeout while waiting for an available connection 
+ * from a connection manager.
  * 
  * @author <a href="mailto:laura@lwerner.org">Laura Werner</a>
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class ConnectionPoolTimeoutException extends ConnectTimeoutException {
 
