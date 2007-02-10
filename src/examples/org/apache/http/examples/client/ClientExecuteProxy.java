@@ -54,7 +54,7 @@ import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HostConfiguration;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.impl.conn.ThreadSafeClientConnManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RoutedRequest;
@@ -81,6 +81,12 @@ public class ClientExecuteProxy {
      */
     private static HttpParams defaultParameters = null;
 
+    /**
+     * The scheme registry.
+     * Instantiated in {@link #setup setup}.
+     */
+    private static SchemeRegistry supportedSchemes;
+
 
     /**
      * Main entry point to this example.
@@ -102,9 +108,10 @@ public class ClientExecuteProxy {
 
         HttpRequest req = createRequest(target);
 
-        final HostConfiguration config =
-            new HostConfiguration(target, proxy, null);
-        final RoutedRequest roureq = new RoutedRequest.Impl(req, config);
+        final HttpRoute route = new HttpRoute
+            (target, null, proxy,
+             supportedSchemes.getScheme(target).isLayered());
+        final RoutedRequest roureq = new RoutedRequest.Impl(req, route);
         
         System.out.println("executing request to " + target + " via " + proxy);
         try {
@@ -134,7 +141,7 @@ public class ClientExecuteProxy {
             new ThreadSafeClientConnManager(getParams());
 
         DefaultHttpClient dhc =
-            new DefaultHttpClient(getParams(), ccm);
+            new DefaultHttpClient(getParams(), ccm, supportedSchemes);
 
         BasicHttpProcessor bhp = dhc.getProcessor();
         // Required protocol interceptors
@@ -155,12 +162,16 @@ public class ClientExecuteProxy {
      */
     private final static void setup() {
 
+        //@@@ use dedicated SchemeRegistry instance
+        //@@@ currently no way to pass it to TSCCM
+        supportedSchemes = SchemeRegistry.DEFAULT; //new SchemeRegistry();
+
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        SchemeRegistry.DEFAULT.register(new Scheme("http", sf, 80));
+        supportedSchemes.register(new Scheme("http", sf, 80));
         sf = SSLSocketFactory.getSocketFactory();
-        SchemeRegistry.DEFAULT.register(new Scheme("https", sf, 80));
+        supportedSchemes.register(new Scheme("https", sf, 80));
 
         // prepare parameters
         HttpParams params = new DefaultHttpParams();

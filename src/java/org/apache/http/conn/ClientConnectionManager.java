@@ -39,10 +39,11 @@ package org.apache.http.conn;
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
+ * @version   $Revision$
  *
  * @since 4.0
  */
@@ -58,7 +59,7 @@ public interface ClientConnectionManager {
      * @return  a connection that can be used to communicate
      *          along the given route
      */
-    ManagedClientConnection getConnection(HostConfiguration route)
+    ManagedClientConnection getConnection(HttpRoute route)
         ;
 
 
@@ -77,7 +78,7 @@ public interface ClientConnectionManager {
      * @throws ConnectionPoolTimeoutException
      *          in case of a timeout
      */
-    ManagedClientConnection getConnection(HostConfiguration route,
+    ManagedClientConnection getConnection(HttpRoute route,
                                           long timeout)
         throws ConnectionPoolTimeoutException
         ;

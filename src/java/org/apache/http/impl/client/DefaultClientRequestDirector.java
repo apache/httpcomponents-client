@@ -43,7 +43,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.RouteDirector;
-import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.client.RoutedRequest;
@@ -160,7 +159,7 @@ public class DefaultClientRequestDirector
      *
      * @throws HttpException    in case of a problem
      */
-    protected void allocateConnection(HostConfiguration route)
+    protected void allocateConnection(HttpRoute route)
         throws HttpException {
 
         // we assume that the connection would have been released
@@ -177,14 +176,13 @@ public class DefaultClientRequestDirector
     /**
      * Establishes the target route.
      *
-     * @param hostconf  the route to establish
+     * @param route     the route to establish
      * @param context   the context for the request execution
      *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected void establishRoute(HostConfiguration hostconf,
-                                  HttpContext context)
+    protected void establishRoute(HttpRoute route, HttpContext context)
         throws HttpException, IOException {
 
         //@@@ how to handle CONNECT requests for tunnelling?
@@ -192,6 +190,7 @@ public class DefaultClientRequestDirector
 
         //@@@ this check for secure connections is an ugly hack until the
         //@@@ director is changed to expect HttpRoute instead of HostConfig
+/*
         //@@@ the actual check should be whether the socket factory
         //@@@ for the target host scheme is a SecureSocketFactory
         HttpRoute route = null;
@@ -207,9 +206,8 @@ public class DefaultClientRequestDirector
                                       hostconf.getLocalAddress(),
                                       hostconf.getProxyHost(),
                                       secure);
-            System.out.println("@@@ planned: " + route);
         } //@@@ end of ugly HostConfiguration -> HttpRoute conversion
-
+*/
 
         //@@@ should the request parameters already be used below?
         //@@@ probably yes, but they're not linked yet
@@ -217,6 +215,7 @@ public class DefaultClientRequestDirector
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
+        System.out.println("@@@ planned: " + route);
 
         RouteDirector rowdy = new RouteDirector();
         int step;
@@ -230,7 +229,7 @@ public class DefaultClientRequestDirector
 
             case RouteDirector.CONNECT_TARGET:
             case RouteDirector.CONNECT_PROXY:
-                managedConn.open(hostconf, context, defaultParams);
+                managedConn.open(route.toHostConfig(), context, defaultParams);
                 break;
 
             case RouteDirector.CREATE_TUNNEL:

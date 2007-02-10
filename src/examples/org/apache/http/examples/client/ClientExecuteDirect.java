@@ -78,6 +78,12 @@ public class ClientExecuteDirect {
      */
     private static HttpParams defaultParameters = null;
 
+    /**
+     * The scheme registry.
+     * Instantiated in {@link #setup setup}.
+     */
+    private static SchemeRegistry supportedSchemes;
+
 
     /**
      * Main entry point to this example.
@@ -123,7 +129,7 @@ public class ClientExecuteDirect {
             new ThreadSafeClientConnManager(getParams());
 
         DefaultHttpClient dhc =
-            new DefaultHttpClient(getParams(), ccm);
+            new DefaultHttpClient(getParams(), ccm, null);
 
         BasicHttpProcessor bhp = dhc.getProcessor();
         // Required protocol interceptors
@@ -144,10 +150,14 @@ public class ClientExecuteDirect {
      */
     private final static void setup() {
 
+        //@@@ use dedicated SchemeRegistry instance
+        //@@@ currently no way to pass it to TSCCM
+        supportedSchemes = SchemeRegistry.DEFAULT; //new SchemeRegistry();
+
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        SchemeRegistry.DEFAULT.register(new Scheme("http", sf, 80));
+        supportedSchemes.register(new Scheme("http", sf, 80));
 
         // prepare parameters
         HttpParams params = new DefaultHttpParams();

@@ -144,7 +144,7 @@ public class ThreadSafeClientConnManager
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public ManagedClientConnection getConnection(HostConfiguration route) {
+    public ManagedClientConnection getConnection(HttpRoute route) {
 
         while (true) {
             try {
@@ -163,20 +163,21 @@ public class ThreadSafeClientConnManager
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public ManagedClientConnection getConnection(HostConfiguration route,
+    public ManagedClientConnection getConnection(HttpRoute route,
                                                  long timeout)
         throws ConnectionPoolTimeoutException {
 
         if (route == null) {
-            throw new IllegalArgumentException("hostConfiguration is null");
+            throw new IllegalArgumentException("Route may not be null.");
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("ThreadSafeClientConnManager.getConnection:  route = "
+            LOG.debug("ThreadSafeClientConnManager.getConnection: "
                 + route + ", timeout = " + timeout);
         }
 
-        final TrackingPoolEntry entry = doGetConnection(route, timeout);
+        final TrackingPoolEntry entry =
+            doGetConnection(route.toHostConfig(), timeout);
 
         return new HttpConnectionAdapter(entry);
     }

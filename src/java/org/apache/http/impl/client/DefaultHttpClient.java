@@ -41,7 +41,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.conn.HostConfiguration;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 
 import org.apache.http.client.HttpClient;
@@ -71,10 +73,14 @@ public class DefaultHttpClient extends AbstractHttpClient {
      *
      * @param params    the parameters
      * @param conman    the connection manager
+     * @param schemes   the scheme registry, or 
+     *                  <code>null</code> to use the
+     *                  {@link SchemeRegistry#DEFAULT default}
      */
     public DefaultHttpClient(HttpParams params,
-                             ClientConnectionManager conman) {
-        super(null, params, conman, null);
+                             ClientConnectionManager conman,
+                             SchemeRegistry schemes) {
+        super(null, params, conman, null, schemes);
         httpProcessor = createProcessor();
     }
 
@@ -136,14 +142,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
                                            HttpContext context)
         throws HttpException {
 
+        //@@@ refer to a default HostConfiguration?
         //@@@ allow null target if there is a default route with a target?
         if (target == null) {
             throw new IllegalArgumentException
                 ("Target host must not be null.");
         }
 
-        //@@@ refer to a default HostConfiguration?
-        HostConfiguration route = new HostConfiguration(target, null, null);
+        Scheme schm = supportedSchemes.getScheme(target.getSchemeName());
+        // as it is typically used for TLS/SSL, we assume that
+        // a layered scheme implies a secure connection
+        HttpRoute route = new HttpRoute(target, null, schm.isLayered());
 
         return new RoutedRequest.Impl(request, route);
     }

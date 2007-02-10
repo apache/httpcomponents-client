@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Collections;
 
+import org.apache.http.HttpHost;
+
 
 
 /**
@@ -92,6 +94,25 @@ public final class SchemeRegistry {
                 ("Scheme '"+name+"' not registered.");
         }
         return found;
+    }
+
+
+    /**
+     * Obtains the scheme for a host.
+     * Convenience method for <code>getScheme(host.getSchemeName())</pre>
+     *
+     * @param host      the host for which to obtain the scheme
+     *
+     * @return  the scheme for the given host, never <code>null</code>
+     *
+     * @throws IllegalStateException
+     *          if a scheme with the respective name is not registered
+     */
+    public final Scheme getScheme(HttpHost host) {
+        if (host == null) {
+            throw new IllegalArgumentException("Host must not be null.");
+        }
+        return getScheme(host.getSchemeName());
     }
 
 

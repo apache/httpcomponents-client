@@ -41,6 +41,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.SyncHttpExecutionContext;
 import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 
 import org.apache.http.client.HttpClient;
@@ -75,6 +76,9 @@ public abstract class AbstractHttpClient
     /** The HTTP processor, if defined. */
     protected BasicHttpProcessor httpProcessor;
 
+    /** The scheme registry. */
+    protected SchemeRegistry supportedSchemes;
+
 
     /**
      * Creates a new HTTP client.
@@ -84,10 +88,14 @@ public abstract class AbstractHttpClient
      * @param params    the parameters
      * @param conman    the connection manager
      * @param hproc     the HTTP processor, or <code>null</code>
+     * @param schemes   the scheme registry, or 
+     *                  <code>null</code> to use the
+     *                  {@link SchemeRegistry#DEFAULT default}
      */
     protected AbstractHttpClient(HttpContext context, HttpParams params,
                                  ClientConnectionManager conman,
-                                 BasicHttpProcessor hproc) {
+                                 BasicHttpProcessor hproc,
+                                 SchemeRegistry schemes) {
         if (params == null)
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
@@ -95,11 +103,13 @@ public abstract class AbstractHttpClient
             throw new IllegalArgumentException
                 ("Connection manager must not be null.");
 
-        defaultContext = (context != null) ?
+        defaultContext   = (context != null) ?
             context : new SyncHttpExecutionContext(null);
-        defaultParams  = params;
-        connManager    = conman;
-        httpProcessor  = hproc;
+        defaultParams    = params;
+        connManager      = conman;
+        httpProcessor    = hproc;
+        supportedSchemes = (schemes != null) ?
+            schemes : SchemeRegistry.DEFAULT;
 
     } // constructor
 

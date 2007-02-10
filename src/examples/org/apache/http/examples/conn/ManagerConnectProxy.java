@@ -49,7 +49,7 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.HostConfiguration;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
@@ -110,13 +110,15 @@ public class ManagerConnectProxy {
         HttpContext ctx = createContext();
 
         System.out.println("preparing route to " + target + " via " + proxy);
-        HostConfiguration route = new HostConfiguration(target, proxy, null);
+        HttpRoute route = new HttpRoute
+            (target, null, proxy,
+             supportedSchemes.getScheme(target).isLayered());
 
         System.out.println("requesting connection for " + route);
         ManagedClientConnection conn = clcm.getConnection(route);
         try {
             System.out.println("opening connection");
-            conn.open(route, ctx, getParams());
+            conn.open(route.toHostConfig(), ctx, getParams());
 
             HttpRequest connect = createConnect(target);
             System.out.println("opening tunnel to " + target);

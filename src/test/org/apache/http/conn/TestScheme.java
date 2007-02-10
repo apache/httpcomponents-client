@@ -33,6 +33,7 @@ package org.apache.http.conn;
 
 import java.util.Iterator;
 
+import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import junit.framework.Test;
@@ -207,7 +208,13 @@ public class TestScheme extends TestCase {
         	// expected
         }
         try {
-        	schmreg.getScheme(null);
+        	schmreg.getScheme((String)null);
+        	fail("IllegalArgumentException should have been thrown");
+        } catch (IllegalArgumentException ex) {
+        	// expected
+        }
+        try {
+        	schmreg.getScheme((HttpHost)null);
         	fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
         	// expected
