@@ -79,7 +79,7 @@ public class OperatorConnectDirect {
     private static HttpParams defaultParameters;
 
     /**
-     * The scheme set.
+     * The scheme registry.
      * Instantiated in {@link #setup setup}.
      */
     private static SchemeRegistry supportedSchemes;

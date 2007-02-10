@@ -326,7 +326,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
             throw new IllegalArgumentException("Socket is closed.");
         }
 
-        return false;
+        return true;
 
     } // isSecure
 

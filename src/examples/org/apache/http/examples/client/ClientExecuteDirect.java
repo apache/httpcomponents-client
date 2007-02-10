@@ -60,17 +60,17 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 
 /**
- * How to send a request using {@link HttpClient HttpClient}.
+ * How to send a request directly using {@link HttpClient HttpClient}.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines above to avoid 'svn diff' context problems -->
- * @version $Revision$ $Date$
+ * @version $Revision$
  *
  * @since 4.0
  */
-public class ClientExecuteRequest {
+public class ClientExecuteDirect {
 
     /**
      * The default parameters.
@@ -149,9 +149,7 @@ public class ClientExecuteRequest {
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         SchemeRegistry.DEFAULT.register(new Scheme("http", sf, 80));
 
-        // Prepare parameters.
-        // Since this example doesn't use the full core framework,
-        // only few parameters are actually required.
+        // prepare parameters
         HttpParams params = new DefaultHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
@@ -187,5 +185,5 @@ public class ClientExecuteRequest {
     }
 
 
-} // class ManagerConnectDirect
+} // class ClientExecuteDirect
 

@@ -80,7 +80,7 @@ public class OperatorConnectProxy {
     private static HttpParams defaultParameters = null;
 
     /**
-     * The scheme set.
+     * The scheme registry.
      * Instantiated in {@link #setup setup}.
      */
     private static SchemeRegistry supportedSchemes;

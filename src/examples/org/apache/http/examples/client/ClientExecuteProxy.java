@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.examples.conn;
+package org.apache.http.examples.client;
 
 
 import org.apache.http.HttpHost;
@@ -41,50 +41,45 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.impl.params.DefaultHttpParams;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
+import org.apache.http.protocol.RequestExpectContinue;
+import org.apache.http.protocol.RequestTargetHost;
+import org.apache.http.protocol.RequestUserAgent;
 
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.HostConfiguration;
-import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.HostConfiguration;
 import org.apache.http.impl.conn.ThreadSafeClientConnManager;
-import org.apache.http.impl.conn.DefaultClientConnectionOperator;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.RoutedRequest;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 
 
 /**
- * How to open a direct connection using
- * {@link ClientConnectionManager ClientConnectionManager}.
- * This exemplifies the <i>opening</i> of the connection only.
- * The subsequent message exchange in this example should not
- * be used as a template.
+ * How to send a request via proxy using {@link HttpClient HttpClient}.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines above to avoid 'svn diff' context problems -->
- * @version $Revision$ $Date$
+ * @version $Revision$
  *
  * @since 4.0
  */
-public class ManagerConnectDirect {
+public class ClientExecuteProxy {
 
     /**
      * The default parameters.
      * Instantiated in {@link #setup setup}.
      */
     private static HttpParams defaultParameters = null;
-
-    /**
-     * The scheme registry.
-     * Instantiated in {@link #setup setup}.
-     */
-    private static SchemeRegistry supportedSchemes;
 
 
     /**
@@ -95,31 +90,25 @@ public class ManagerConnectDirect {
     public final static void main(String[] args)
         throws Exception {
 
-        final HttpHost target = new HttpHost("jakarta.apache.org", 80, "http");
+        // make sure to use a proxy that supports CONNECT
+        final HttpHost target =
+            new HttpHost("issues.apache.org", 443, "https");
+        final HttpHost proxy =
+            new HttpHost("127.0.0.1", 8666, "http");
 
         setup(); // some general setup
 
-        ClientConnectionManager clcm = createManager();
+        HttpClient client = createHttpClient();
 
         HttpRequest req = createRequest(target);
-        HttpContext ctx = createContext();
 
-        System.out.println("preparing route to " + target);
-        HostConfiguration route = new HostConfiguration(target, null, null);
-
-        System.out.println("requesting connection for " + route);
-        ManagedClientConnection conn = clcm.getConnection(route);
+        final HostConfiguration config =
+            new HostConfiguration(target, proxy, null);
+        final RoutedRequest roureq = new RoutedRequest.Impl(req, config);
+        
+        System.out.println("executing request to " + target + " via " + proxy);
         try {
-            System.out.println("opening connection");
-            conn.open(route, ctx, getParams());
-
-            System.out.println("sending request");
-            conn.sendRequestHeader(req);
-            // there is no request entity
-            conn.flush();
-
-            System.out.println("receiving response header");
-            HttpResponse rsp = conn.receiveResponseHeader(getParams());
+            HttpResponse rsp = client.execute(roureq, null);
 
             System.out.println("----------------------------------------");
             System.out.println(rsp.getStatusLine());
@@ -129,36 +118,34 @@ public class ManagerConnectDirect {
             }
             System.out.println("----------------------------------------");
 
-            System.out.println("closing connection");
-            conn.close();
+            //@@@ there is no entity, so we can't call close() there
+            //@@@ there is no need to call close() either, since the
+            //@@@ connection will have been released immediately
 
         } finally {
-
-            if (conn.isOpen()) {
-                System.out.println("shutting down connection");
-                try {
-                    conn.shutdown();
-                } catch (Exception x) {
-                    System.out.println("problem during shutdown");
-                    x.printStackTrace(System.out);
-                }
-            }
-
-            System.out.println("releasing connection");
-            clcm.releaseConnection(conn);
+            //@@@ any kind of cleanup that should be performed?
         }
-
     } // main
 
 
-    private final static ClientConnectionManager createManager() {
+    private final static HttpClient createHttpClient() {
 
-        return new ThreadSafeClientConnManager(getParams()) {
-            //@@@ need better way to pass in the SchemeRegistry or operator
-            protected ClientConnectionOperator createConnectionOperator() {
-                return new DefaultClientConnectionOperator(supportedSchemes);
-            }
-         };
+        ClientConnectionManager ccm =
+            new ThreadSafeClientConnManager(getParams());
+
+        DefaultHttpClient dhc =
+            new DefaultHttpClient(getParams(), ccm);
+
+        BasicHttpProcessor bhp = dhc.getProcessor();
+        // Required protocol interceptors
+        bhp.addInterceptor(new RequestContent());
+        bhp.addInterceptor(new RequestTargetHost());
+        // Recommended protocol interceptors
+        bhp.addInterceptor(new RequestConnControl());
+        bhp.addInterceptor(new RequestUserAgent());
+        bhp.addInterceptor(new RequestExpectContinue());
+
+        return dhc;
     }
 
 
@@ -168,18 +155,19 @@ public class ManagerConnectDirect {
      */
     private final static void setup() {
 
-        // Register the "http" protocol scheme, it is required
-        // by the default operator to look up socket factories.
-        supportedSchemes = new SchemeRegistry();
+        // Register the "http" and "https" protocol schemes, they are
+        // required by the default operator to look up socket factories.
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeRegistry.DEFAULT.register(new Scheme("http", sf, 80));
+        sf = SSLSocketFactory.getSocketFactory();
+        SchemeRegistry.DEFAULT.register(new Scheme("https", sf, 80));
 
-        // Prepare parameters.
-        // Since this example doesn't use the full core framework,
-        // only few parameters are actually required.
+        // prepare parameters
         HttpParams params = new DefaultHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
+        HttpProtocolParams.setContentCharset(params, "UTF-8");
+        HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
+        HttpProtocolParams.setUseExpectContinue(params, true);
         defaultParameters = params;
 
     } // setup
@@ -210,16 +198,5 @@ public class ManagerConnectDirect {
     }
 
 
-    /**
-     * Creates a context for executing a request.
-     * Since this example doesn't really use the execution framework,
-     * the context can be left empty.
-     *
-     * @return  a new, empty context
-     */
-    private final static HttpContext createContext() {
-        return new HttpExecutionContext(null);
-    }
-
-} // class ManagerConnectDirect
+} // class ClientExecuteProxy
 
