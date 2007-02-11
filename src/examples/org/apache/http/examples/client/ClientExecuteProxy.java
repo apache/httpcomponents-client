@@ -40,7 +40,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
@@ -174,7 +174,7 @@ public class ClientExecuteProxy {
         supportedSchemes.register(new Scheme("https", sf, 80));
 
         // prepare parameters
-        HttpParams params = new DefaultHttpParams();
+        HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");

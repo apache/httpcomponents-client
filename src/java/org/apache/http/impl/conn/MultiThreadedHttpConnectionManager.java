@@ -54,7 +54,7 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.HttpConnectionManager;
 import org.apache.http.conn.HttpHostConnection;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -233,7 +233,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
     /**
      * Collection of parameters associated with this connection manager.
      */
-    private HttpParams params = new DefaultHttpParams(); 
+    private HttpParams params = new BasicHttpParams(); 
 
     /** Connection Pool */
     private ConnectionPool connectionPool;

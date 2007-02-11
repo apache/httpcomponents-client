@@ -53,7 +53,7 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -107,7 +107,7 @@ public class ThreadSafeClientConnManager
 
 
     /** The parameters of this connection manager. */
-    private HttpParams params = new DefaultHttpParams(); 
+    private HttpParams params = new BasicHttpParams(); 
 
 
     /** The pool of connections being managed. */

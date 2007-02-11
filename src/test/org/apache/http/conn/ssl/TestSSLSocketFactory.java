@@ -34,7 +34,7 @@ package org.apache.http.conn.ssl;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 import javax.net.ServerSocketFactory;
@@ -93,7 +93,7 @@ public class TestSSLSocketFactory extends TestCase
     public void testToString() {}
 
     public void testCreateSocket() throws Exception {
-        HttpParams params = new DefaultHttpParams();
+        HttpParams params = new BasicHttpParams();
         String password = "changeit";
         char[] pwd = password.toCharArray();
 

@@ -40,7 +40,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 
@@ -178,7 +178,7 @@ public class ManagerConnectDirect {
         // Prepare parameters.
         // Since this example doesn't use the full core framework,
         // only few parameters are actually required.
-        HttpParams params = new DefaultHttpParams();
+        HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setUseExpectContinue(params, false);
         defaultParameters = params;

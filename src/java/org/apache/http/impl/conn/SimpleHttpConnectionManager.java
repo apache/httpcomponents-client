@@ -40,7 +40,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.HttpConnectionManager;
 import org.apache.http.conn.HttpHostConnection;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -93,7 +93,7 @@ public class SimpleHttpConnectionManager implements HttpConnectionManager {
     /**
      * Collection of parameters associated with this connection manager.
      */
-    private HttpParams params = new DefaultHttpParams(); 
+    private HttpParams params = new BasicHttpParams(); 
 
     /**
      * The time the connection was made idle.

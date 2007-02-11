@@ -37,7 +37,7 @@ import org.apache.http.HttpConnection;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.mockup.HttpConnectionMockup;
 import org.apache.http.protocol.HttpContext;
@@ -92,7 +92,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_0, 200, "OK");
         response.addHeader("Connection", "Close");
-        response.setParams(new DefaultHttpParams(null));
+        response.setParams(new BasicHttpParams(null));
         response.setEntity(entity);
         
         // Wrap the entity input stream 
@@ -115,7 +115,7 @@ public class TestDefaultResponseConsumedWatcher extends TestCase {
         
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader("Connection", "Keep-alive");
-        response.setParams(new DefaultHttpParams(null));
+        response.setParams(new BasicHttpParams(null));
         response.setEntity(entity);
         
         // Wrap the entity input stream 

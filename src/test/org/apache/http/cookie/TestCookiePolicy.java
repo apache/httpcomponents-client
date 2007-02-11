@@ -35,7 +35,7 @@ import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.cookie.params.CookieSpecParams;
-import org.apache.http.impl.params.DefaultHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 import junit.framework.Test;
@@ -106,7 +106,7 @@ public class TestCookiePolicy extends TestCase {
         } catch (IllegalStateException ex) {
             // expected
         }
-        HttpParams params = new DefaultHttpParams();
+        HttpParams params = new BasicHttpParams();
         assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.NETSCAPE, params));
         assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.RFC_2109, params));
         assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.BROWSER_COMPATIBILITY, params));
