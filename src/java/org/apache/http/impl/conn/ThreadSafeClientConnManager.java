@@ -117,7 +117,7 @@ public class ThreadSafeClientConnManager
     private ClientConnectionOperator connectionOperator;
 
     /** Indicates whether this connection manager is shut down. */
-    private boolean isShutDown;
+    private volatile boolean isShutDown;
     
 
 
@@ -1011,7 +1011,7 @@ public class ThreadSafeClientConnManager
      */
     private static class ReferenceQueueThread extends Thread {
 
-        private boolean isShutDown = false;
+        private volatile boolean isShutDown = false;
         
         /**
          * Create an instance and make this a daemon thread.
@@ -1023,6 +1023,7 @@ public class ThreadSafeClientConnManager
 
         public void shutdown() {
             this.isShutDown = true;
+            this.interrupt();
         }
         
         /**
@@ -1056,10 +1057,8 @@ public class ThreadSafeClientConnManager
         public void run() {
             while (!isShutDown) {
                 try {
-                    // remove the next reference and process it, a timeout 
-                    // is used so that the thread does not block indefinitely 
-                    // and therefore keep the thread from shutting down
-                    Reference ref = REFERENCE_QUEUE.remove(1000);
+                    // remove the next reference and process it
+                    Reference ref = REFERENCE_QUEUE.remove();
                     if (ref != null) {
                         handleReference(ref);
                     }
