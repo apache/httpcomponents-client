@@ -362,9 +362,10 @@ public class ThreadSafeClientConnManager
 
         try {
             // make sure that the response has been read completely
-            if (!hca.isMarkedReusable()) {
+            if (hca.isOpen() && !hca.isMarkedReusable()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Released connection not marked reusable.");
+                    LOG.debug
+                        ("Released connection open but not marked reusable.");
                 }
                 // In MTHCM, method releasePoolEntry below would call
                 // SimpleHttpConnectionManager.finishLastResponse(conn);
