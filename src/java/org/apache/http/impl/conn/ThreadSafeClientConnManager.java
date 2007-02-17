@@ -405,12 +405,20 @@ public class ThreadSafeClientConnManager
         synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
             // shutdown all connection managers
             synchronized (ALL_CONNECTION_MANAGERS) {
-                Iterator connIter = ALL_CONNECTION_MANAGERS.keySet().iterator();
-                while (connIter.hasNext()) {
-                    ThreadSafeClientConnManager connManager = 
-                        (ThreadSafeClientConnManager) connIter.next();
-                    connIter.remove();
-                    connManager.shutdown();
+                // Don't use an iterator here. Iterators on WeakHashMap can
+                // get ConcurrentModificationException on garbage collection.
+                MultiThreadedHttpConnectionManager[]
+                    connManagers = (MultiThreadedHttpConnectionManager[])
+                    ALL_CONNECTION_MANAGERS.keySet().toArray(
+                        new MultiThreadedHttpConnectionManager
+                            [ALL_CONNECTION_MANAGERS.size()]
+                        );
+
+                // The map may shrink after size() is called, or some entry
+                // may get GCed while the array is built, so expect null.
+                for (int i=0; i<connManagers.length; i++) {
+                    if (connManagers[i] != null)
+                        connManagers[i].shutdown();
                 }
             }
             
