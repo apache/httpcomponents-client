@@ -188,27 +188,6 @@ public class DefaultClientRequestDirector
         //@@@ how to handle CONNECT requests for tunnelling?
         //@@@ refuse to send external CONNECT via director? special handling?
 
-        //@@@ this check for secure connections is an ugly hack until the
-        //@@@ director is changed to expect HttpRoute instead of HostConfig
-/*
-        //@@@ the actual check should be whether the socket factory
-        //@@@ for the target host scheme is a SecureSocketFactory
-        HttpRoute route = null;
-        {
-            final boolean secure =
-                !"http".equals(hostconf.getHost().getSchemeName());
-            if (hostconf.getProxyHost() == null)
-                route = new HttpRoute(hostconf.getHost(),
-                                      hostconf.getLocalAddress(),
-                                      secure);
-            else
-                route = new HttpRoute(hostconf.getHost(),
-                                      hostconf.getLocalAddress(),
-                                      hostconf.getProxyHost(),
-                                      secure);
-        } //@@@ end of ugly HostConfiguration -> HttpRoute conversion
-*/
-
         //@@@ should the request parameters already be used below?
         //@@@ probably yes, but they're not linked yet
         //@@@ will linking above cause problems with linking in reqExec?
@@ -288,6 +267,7 @@ public class DefaultClientRequestDirector
 
         HttpResponse connected =
             requestExec.execute(connect, managedConn, context);
+        managedConn.markReusable();
         int status = connected.getStatusLine().getStatusCode();
         //@@@ log something about the response?
 
@@ -422,21 +402,26 @@ public class DefaultClientRequestDirector
             if ((response == null) || (response.getEntity() == null) ||
                 !response.getEntity().isStreaming()) {
                 // connection not needed and assumed to be in re-usable state
-                //@@@ evaluate connection re-use strategy, close if necessary
+                //@@@ evaluate connection re-use strategy,
+                //@@@ close and/or mark as non-reusable if necessary
                 managedConn = null;
+                mcc.markReusable();
                 connManager.releaseConnection(mcc);
             }
         } else {
             // we got here as the result of an exception
             // no response will be returned, release the connection
             managedConn = null;
-            //@@@ is the connection in a re-usable state?
+            //@@@ is the connection in a re-usable state? consume response?
             //@@@ for now, just shut it down
+            // Do not delegate this to the connection manager, can't
+            // tell whether it would shut down or close gracefully.
             try {
                 if (mcc.isOpen())
                     mcc.shutdown();
             } catch (IOException ignore) {
                 // can't allow exception while handling exception
+                //@@@ log as debug or warning?
             }
             connManager.releaseConnection(mcc);
         }

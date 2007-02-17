@@ -144,4 +144,52 @@ public interface ManagedClientConnection
     */
 
 
+    /**
+     * Marks this connection as being in a reusable communication state.
+     * The checkpoints for reuseable communication states (in the absence
+     * of pipelining) are before sending a request and after receiving
+     * the response in it's entirety.
+     * The connection will automatically clear the checkpoint when
+     * used for communication. A call to this method indicates that
+     * the next checkpoint has been reached.
+     * <br/>
+     * A reusable communication state is necessary but not sufficient
+     * for the connection to be reused.
+     * A {@link #getRoute route} mismatch, the connection being closed,
+     * or other circumstances might prevent reuse.
+     */
+    void markReusable()
+        ;
+
+
+    /**
+     * Marks this connection as not being in a reusable state.
+     * This can be used immediately before releasing this connection
+     * to prevent it's reuse. Reasons for preventing reuse include
+     * error conditions and the evaluation of a
+     * {@link org.apache.http.ConnectionReuseStrategy reuse strategy}.
+     * <br/>
+     * <b>Note:</b>
+     * It is <i>not</i> necessary to call here before writing to
+     * or reading from this connection. Communication attempts will
+     * automatically unmark the state as non-reusable. It can then
+     * be switched back using {@link #markReusable markReusable}.
+     */
+    void unmarkReusable()
+        ;
+
+
+    /**
+     * Indicates whether this connection is in a reusable communication state.
+     * See {@link #markReusable markReusable} and
+     * {@link #unmarkReusable unmarkReusable} for details.
+     *
+     * @return  <code>true</code> if this connection is marked as being in
+     *          a reusable communication state,
+     *          <code>false</code> otherwise
+     */
+    boolean isMarkedReusable()
+        ;
+
+
 } // interface ManagedClientConnection

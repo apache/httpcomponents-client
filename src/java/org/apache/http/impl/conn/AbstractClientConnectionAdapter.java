@@ -52,6 +52,11 @@ import org.apache.http.conn.ManagedClientConnection;
  * by derived classes. Operations for querying the connection state
  * are delegated to the wrapped connection if there is one, or
  * return a default value if there is none.
+ * <br/>
+ * This adapter tracks the checkpoints for reusable communication states,
+ * as indicated by {@link #markReusable markReusable} and queried by
+ * {@link #isMarkedReusable isMarkedReusable}.
+ * All send and receive operations will automatically clear the mark.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
@@ -67,15 +72,21 @@ public abstract class AbstractClientConnectionAdapter
     /** The wrapped connection. */
     protected OperatedClientConnection wrappedConnection;
 
+    /** The reusability marker. */
+    protected boolean markedReusable;
+
 
     /**
      * Creates a new connection adapter.
+     * The adapter is initially <i>not</i>
+     * {@link #isMarkedReusable marked} as reusable.
      *
      * @param conn      the connection to wrap, or <code>null</code>
      */
     protected AbstractClientConnectionAdapter(OperatedClientConnection conn) {
 
         wrappedConnection = conn;
+        markedReusable = false;
 
     } // <constructor>
 
@@ -133,6 +144,7 @@ public abstract class AbstractClientConnectionAdapter
         throws HttpException, IOException {
 
         assertWrappedConn();
+        markedReusable = false;
         wrappedConnection.receiveResponseEntity(response);
     }
 
@@ -142,6 +154,7 @@ public abstract class AbstractClientConnectionAdapter
         throws HttpException, IOException {
 
         assertWrappedConn();
+        markedReusable = false;
         return wrappedConnection.receiveResponseHeader(params);
     }
 
@@ -151,6 +164,7 @@ public abstract class AbstractClientConnectionAdapter
         throws HttpException, IOException {
 
         assertWrappedConn();
+        markedReusable = false;
         wrappedConnection.sendRequestEntity(request);
     }
 
@@ -160,6 +174,7 @@ public abstract class AbstractClientConnectionAdapter
         throws HttpException, IOException {
 
         assertWrappedConn();
+        markedReusable = false;
         wrappedConnection.sendRequestHeader(request);
     }
 
@@ -195,5 +210,19 @@ public abstract class AbstractClientConnectionAdapter
         return wrappedConnection.isSecure();
     }
 
+    // non-javadoc, see interface ManagedClientConnection
+    public void markReusable() {
+        markedReusable = true;
+    }
+
+    // non-javadoc, see interface ManagedClientConnection
+    public void unmarkReusable() {
+        markedReusable = false;
+    }
+
+    // non-javadoc, see interface ManagedClientConnection
+    public boolean isMarkedReusable() {
+        return markedReusable;
+    }
 
 } // class AbstractClientConnectionAdapter

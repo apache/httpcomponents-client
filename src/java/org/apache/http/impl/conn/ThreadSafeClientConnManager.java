@@ -360,9 +360,34 @@ public class ThreadSafeClientConnManager
                 ("Connection not obtained from this manager.");
         }
 
-        TrackingPoolEntry entry = hca.poolEntry;
-        hca.detach();
-        releasePoolEntry(entry);
+        try {
+            // make sure that the response has been read completely
+            if (!hca.isMarkedReusable()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Released connection not marked reusable.");
+                }
+                // In MTHCM, method releasePoolEntry below would call
+                // SimpleHttpConnectionManager.finishLastResponse(conn);
+                //@@@ consume response here or outside? (rolandw: outside)
+
+                // make sure this connection will not be re-used
+                //@@@ Can we set some kind of flag before shutting down?
+                //@@@ If shutdown throws an exception, we can't be sure
+                //@@@ that the connection will consider itself closed.
+                // be nice and call close() rather than shutdown()?
+                // I'm not in a nice mood today. -rolandw-
+                hca.shutdown();
+            }
+        } catch (IOException iox) {
+            //@@@ log as warning? let pass?
+            if (LOG.isDebugEnabled())
+                LOG.debug("Exception shutting down released connection",
+                          iox);
+        } finally {
+            TrackingPoolEntry entry = hca.poolEntry;
+            hca.detach();
+            releasePoolEntry(entry);
+        }
     }
 
 
@@ -377,9 +402,6 @@ public class ThreadSafeClientConnManager
         if (entry == null)
             return;
 
-        // make sure that the response has been read completely
-        System.out.println("@@@ should consume response and free connection");
-        //@@@ SimpleHttpConnectionManager.finishLastResponse(conn);
         connectionPool.freeConnection(entry);
     }
 
@@ -1295,6 +1317,7 @@ public class ThreadSafeClientConnManager
         protected HttpConnectionAdapter(TrackingPoolEntry entry) {
             super(entry.connection);
             poolEntry = entry;
+            super.markedReusable = true;
         }
 
 
