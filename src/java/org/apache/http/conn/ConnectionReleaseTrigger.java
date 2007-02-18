@@ -36,7 +36,9 @@ import java.io.IOException;
 /**
  * Interface for releasing a connection.
  * This can be implemented by various "trigger" objects which are
- * associated with a connection, for example a stream or an entity
+ * associated with a connection, for example
+ * a {@link EofSensorInputStream stream}
+ * or an entity
  * or the {@link ManagedClientConnection connection} itself.
  * <br/>
  * The methods in this interface can safely be called multiple times.

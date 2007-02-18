@@ -32,8 +32,9 @@
 package org.apache.http.examples.client;
 
 
-import org.apache.http.HttpHost;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -47,7 +48,7 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
-//import org.apache.http.util.EntityUtils;
+import org.apache.http.util.EntityUtils;
 
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
@@ -115,8 +116,10 @@ public class ClientExecuteProxy {
         final RoutedRequest roureq = new RoutedRequest.Impl(req, route);
         
         System.out.println("executing request to " + target + " via " + proxy);
+        HttpEntity entity = null;
         try {
             HttpResponse rsp = client.execute(roureq, null);
+            entity = rsp.getEntity();
 
             System.out.println("----------------------------------------");
             System.out.println(rsp.getStatusLine());
@@ -127,23 +130,17 @@ public class ClientExecuteProxy {
             System.out.println("----------------------------------------");
 
             if (rsp.getEntity() != null) {
-                // the entity is probably tied to the connection
-                rsp.getEntity().getContent().close();
-                // If you want to see the content, use the line below
-                // _instead_ of the close() call above. The utility class
-                // will read to the end of the stream and close it,
-                // thereby releasing the underlying connection.
-                //System.out.println(EntityUtils.toString(rsp.getEntity()));
-                //@@@ in case of an exception from EntityUtils.toString,
-                //@@@ there currently is no way of releasing the connection.
-                //@@@ The stream can be obtained from the entity only once.
+                System.out.println(EntityUtils.toString(rsp.getEntity()));
             }
-            // if there is no entity, the connection is already released
 
         } finally {
-            //@@@ any kind of cleanup that should be performed?
-            //@@@ if content is read instead of being ignored, this is
-            //@@@ the place for connection release in case of an error
+            // If we could be sure that the stream of the entity has been
+            // closed, we wouldn't need this code to release the connection.
+            // However, EntityUtils.toString(...) can throw an exception.
+
+            // if there is no entity, the connection is already released
+            if (entity != null)
+                entity.consumeContent(); // release connection gracefully
         }
     } // main
 

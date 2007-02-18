@@ -86,6 +86,8 @@ public interface ClientConnectionManager {
 
     /**
      * Releases a connection for use by others.
+     * If the argument connection has been released before,
+     * the call will be ignored.
      *
      * @param conn      the connection to release
      */

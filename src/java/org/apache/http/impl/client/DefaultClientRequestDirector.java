@@ -47,9 +47,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.EofSensorInputStream;
-import org.apache.http.conn.EofSensorWatcher;
-import org.apache.http.conn.BasicEofSensorWatcher;
+import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.ClientRequestDirector;
 
@@ -413,24 +411,11 @@ public class DefaultClientRequestDirector
                 mcc.markReusable();
                 connManager.releaseConnection(mcc);
             } else {
+                // install an auto-release entity
                 HttpEntity entity = response.getEntity();
-                if (!(entity instanceof BasicHttpEntity)) {
-                    //@@@ fall back to an entity wrapper in this case?
-                    managedConn = null;
-                    connManager.releaseConnection(mcc);
-                    throw new IllegalStateException
-                        ("Unsupported entity type: " +
-                         entity.getClass().getName());
-                }
-                // install an auto-release handler
-                BasicHttpEntity bhe = (BasicHttpEntity) entity;
                 //@@@ evaluate connection re-use strategy
                 boolean reuse = false;
-                BasicEofSensorWatcher esw =
-                    new BasicEofSensorWatcher(mcc, reuse);
-                EofSensorInputStream esis =
-                    new EofSensorInputStream(bhe.getContent(), esw);
-                bhe.setContent(esis);
+                response.setEntity(new BasicManagedEntity(entity, mcc, reuse));
             }
         } else {
             // we got here as the result of an exception
@@ -438,16 +423,12 @@ public class DefaultClientRequestDirector
             managedConn = null;
             //@@@ is the connection in a re-usable state? consume response?
             //@@@ for now, just shut it down
-            // Do not delegate this to the connection manager, can't
-            // tell whether it would shut down or close gracefully.
             try {
-                if (mcc.isOpen())
-                    mcc.shutdown();
+                mcc.abortConnection();
             } catch (IOException ignore) {
                 // can't allow exception while handling exception
                 //@@@ log as debug or warning?
             }
-            connManager.releaseConnection(mcc);
         }
     } // cleanupConnection
 

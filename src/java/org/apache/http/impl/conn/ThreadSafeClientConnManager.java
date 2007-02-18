@@ -369,7 +369,7 @@ public class ThreadSafeClientConnManager
                 }
                 // In MTHCM, method releasePoolEntry below would call
                 // SimpleHttpConnectionManager.finishLastResponse(conn);
-                //@@@ consume response here or outside? (rolandw: outside)
+                // Consuming the response is handled outside in 4.0.
 
                 // make sure this connection will not be re-used
                 //@@@ Can we set some kind of flag before shutting down?
