@@ -40,8 +40,6 @@ public class TestAllHttpClientImpl extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(TestAutoCloseInputStream.suite());
-        suite.addTest(TestDefaultResponseConsumedWatcher.suite());
         return suite;
     }
 
