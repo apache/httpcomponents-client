@@ -123,13 +123,12 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
         ClientRequestDirector director = createDirector(context);
         HttpResponse          response = director.execute(roureq, context);
+        // If the response depends on the connection, the director
+        // will have set up an auto-release input stream.
+        //@@@ or move that logic here into the client?
 
         //@@@ "finalize" response, to allow for buffering of entities?
         //@@@ here or in director?
-
-        System.out.println("@@@ what about "+director.getConnection()+"?");
-        //@@@ return a "connected response" with a release() callback?
-        //@@@ use a special response entity to implement the release()?
 
         return response;
 

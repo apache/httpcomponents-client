@@ -47,6 +47,7 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+//import org.apache.http.util.EntityUtils;
 
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
@@ -125,12 +126,24 @@ public class ClientExecuteProxy {
             }
             System.out.println("----------------------------------------");
 
-            //@@@ there is no entity, so we can't call close() there
-            //@@@ there is no need to call close() either, since the
-            //@@@ connection will have been released immediately
+            if (rsp.getEntity() != null) {
+                // the entity is probably tied to the connection
+                rsp.getEntity().getContent().close();
+                // If you want to see the content, use the line below
+                // _instead_ of the close() call above. The utility class
+                // will read to the end of the stream and close it,
+                // thereby releasing the underlying connection.
+                //System.out.println(EntityUtils.toString(rsp.getEntity()));
+                //@@@ in case of an exception from EntityUtils.toString,
+                //@@@ there currently is no way of releasing the connection.
+                //@@@ The stream can be obtained from the entity only once.
+            }
+            // if there is no entity, the connection is already released
 
         } finally {
             //@@@ any kind of cleanup that should be performed?
+            //@@@ if content is read instead of being ignored, this is
+            //@@@ the place for connection release in case of an error
         }
     } // main
 
@@ -201,7 +214,8 @@ public class ClientExecuteProxy {
     private final static HttpRequest createRequest(HttpHost target) {
 
         HttpRequest req = new BasicHttpRequest
-            ("OPTIONS", "*", HttpVersion.HTTP_1_1);
+            ("GET", "/", HttpVersion.HTTP_1_1);
+          //("OPTIONS", "*", HttpVersion.HTTP_1_1);
 
         req.addHeader("Host", target.getHostName());
 

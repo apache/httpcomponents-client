@@ -37,6 +37,8 @@ import org.apache.http.HttpVersion;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -45,6 +47,9 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.EofSensorInputStream;
+import org.apache.http.conn.EofSensorWatcher;
+import org.apache.http.conn.BasicEofSensorWatcher;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.ClientRequestDirector;
 
@@ -407,6 +412,25 @@ public class DefaultClientRequestDirector
                 managedConn = null;
                 mcc.markReusable();
                 connManager.releaseConnection(mcc);
+            } else {
+                HttpEntity entity = response.getEntity();
+                if (!(entity instanceof BasicHttpEntity)) {
+                    //@@@ fall back to an entity wrapper in this case?
+                    managedConn = null;
+                    connManager.releaseConnection(mcc);
+                    throw new IllegalStateException
+                        ("Unsupported entity type: " +
+                         entity.getClass().getName());
+                }
+                // install an auto-release handler
+                BasicHttpEntity bhe = (BasicHttpEntity) entity;
+                //@@@ evaluate connection re-use strategy
+                boolean reuse = false;
+                BasicEofSensorWatcher esw = new BasicEofSensorWatcher
+                    (mcc, connManager, reuse);
+                EofSensorInputStream esis = new EofSensorInputStream
+                    (bhe.getContent(), esw);
+                bhe.setContent(esis);
             }
         } else {
             // we got here as the result of an exception
