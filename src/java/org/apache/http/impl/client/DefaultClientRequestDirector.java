@@ -426,10 +426,10 @@ public class DefaultClientRequestDirector
                 BasicHttpEntity bhe = (BasicHttpEntity) entity;
                 //@@@ evaluate connection re-use strategy
                 boolean reuse = false;
-                BasicEofSensorWatcher esw = new BasicEofSensorWatcher
-                    (mcc, connManager, reuse);
-                EofSensorInputStream esis = new EofSensorInputStream
-                    (bhe.getContent(), esw);
+                BasicEofSensorWatcher esw =
+                    new BasicEofSensorWatcher(mcc, reuse);
+                EofSensorInputStream esis =
+                    new EofSensorInputStream(bhe.getContent(), esw);
                 bhe.setContent(esis);
             }
         } else {

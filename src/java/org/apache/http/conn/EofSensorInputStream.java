@@ -60,9 +60,10 @@ import java.io.IOException;
  *
  * @since 4.0
  */
-public class EofSensorInputStream extends InputStream {
-    // don't use FilterInputStream as the base class, we'd have to
-    // override markSupported(), mark(), and reset() to disable them
+// don't use FilterInputStream as the base class, we'd have to
+// override markSupported(), mark(), and reset() to disable them
+public class EofSensorInputStream extends InputStream
+    implements ConnectionReleaseTrigger {
 
     /**
      * The wrapped input stream, while accessible.
@@ -244,6 +245,56 @@ public class EofSensorInputStream extends InputStream {
                 wrappedStream = null;
             }
         }
+    }
+
+
+    /**
+     * Detects stream abort and notifies the watcher.
+     * There's not much to detect since this is called by
+     * {@link #abortConnection abortConnection}.
+     * The watcher will only be notified if this stream is aborted
+     * for the first time and before EOF has been detected or the
+     * stream has been {@link #close closed} gracefully.
+     * This stream will be detached from the underlying stream to prevent
+     * multiple notifications to the watcher.
+     *
+     * @throws IOException
+     *          in case of an IO problem on closing the underlying stream
+     */
+    protected void checkAbort() throws IOException {
+
+        if (wrappedStream != null) {
+            try {
+                boolean scws = true; // should close wrapped stream?
+                if (eofWatcher != null)
+                    scws = eofWatcher.streamAbort(wrappedStream);
+                if (scws)
+                    wrappedStream.close();
+            } finally {
+                wrappedStream = null;
+            }
+        }
+    }
+
+
+    /**
+     * Same as {@link #close close()}.
+     */
+    public void releaseConnection() throws IOException {
+        this.close();
+    }
+
+    /**
+     * Aborts this stream.
+     * This is a special version of {@link #close close()} which prevents
+     * re-use of the underlying connection, if any. Calling this method
+     * indicates that there should be no attempt to read until the end of
+     * the stream.
+     */
+    public void abortConnection() throws IOException {
+        // tolerate multiple calls
+        selfClosed = true;
+        checkAbort();
     }
 
 } // class EOFSensorInputStream

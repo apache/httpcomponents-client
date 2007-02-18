@@ -85,4 +85,25 @@ public interface EofSensorWatcher {
         throws IOException
         ;
 
+
+    /**
+     * Indicates that the {@link EofSensorInputStream stream} is aborted.
+     * This method will be called only if EOF was <i>not</i> detected
+     * before aborting. Otherwise, {@link #eofDetected eofDetected} is called.
+     *
+     * @param wrapped   the underlying stream which has not reached EOF
+     *
+     * @return  <code>true</code> if <code>wrapped</code> should be closed,
+     *          <code>false</code> if it should be left alone
+     *
+     * @throws IOException
+     *         in case of an IO problem, for example if the watcher itself
+     *         closes the underlying stream. The caller will leave the
+     *         wrapped stream alone, as if <code>false</code> was returned.
+     */
+    boolean streamAbort(InputStream wrapped)
+        throws IOException
+        ;
+
+
 } // interface EofSensorWatcher

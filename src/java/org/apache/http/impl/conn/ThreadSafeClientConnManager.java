@@ -1316,7 +1316,7 @@ public class ThreadSafeClientConnManager
          * @param entry   the pool entry for the connection being wrapped
          */
         protected HttpConnectionAdapter(TrackingPoolEntry entry) {
-            super(entry.connection);
+            super(ThreadSafeClientConnManager.this, entry.connection);
             poolEntry = entry;
             super.markedReusable = true;
         }

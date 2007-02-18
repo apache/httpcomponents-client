@@ -41,6 +41,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.ClientConnectionManager;
 
 
 
@@ -57,6 +58,11 @@ import org.apache.http.conn.ManagedClientConnection;
  * as indicated by {@link #markReusable markReusable} and queried by
  * {@link #isMarkedReusable isMarkedReusable}.
  * All send and receive operations will automatically clear the mark.
+ * <br/>
+ * Connection release calls are delegated to the connection manager,
+ * if there is one. {@link #abortConnection abortConnection} will
+ * clear the reusability mark first. The connection manager is
+ * expected to tolerate multiple calls to the release method.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
@@ -68,6 +74,9 @@ import org.apache.http.conn.ManagedClientConnection;
  */
 public abstract class AbstractClientConnectionAdapter
     implements ManagedClientConnection {
+
+    /** The connection manager, if any. */
+    protected final ClientConnectionManager connManager;
 
     /** The wrapped connection. */
     protected OperatedClientConnection wrappedConnection;
@@ -81,10 +90,13 @@ public abstract class AbstractClientConnectionAdapter
      * The adapter is initially <i>not</i>
      * {@link #isMarkedReusable marked} as reusable.
      *
+     * @param mgr       the connection manager, or <code>null</code>
      * @param conn      the connection to wrap, or <code>null</code>
      */
-    protected AbstractClientConnectionAdapter(OperatedClientConnection conn) {
+    protected AbstractClientConnectionAdapter(ClientConnectionManager mgr,
+                                              OperatedClientConnection conn) {
 
+        connManager = mgr;
         wrappedConnection = conn;
         markedReusable = false;
 
@@ -223,6 +235,27 @@ public abstract class AbstractClientConnectionAdapter
     // non-javadoc, see interface ManagedClientConnection
     public boolean isMarkedReusable() {
         return markedReusable;
+    }
+
+    // non-javadoc, see interface ConnectionReleaseTrigger
+    public void releaseConnection() {
+        if (connManager == null)
+            throw new IllegalStateException
+                ("No connection manager to release to.");
+
+        connManager.releaseConnection(this);
+    }
+
+    // non-javadoc, see interface ConnectionReleaseTrigger
+    public void abortConnection() {
+
+        unmarkReusable();
+
+        if (connManager == null)
+            throw new IllegalStateException
+                ("No connection manager to release to.");
+
+        connManager.releaseConnection(this);
     }
 
 } // class AbstractClientConnectionAdapter

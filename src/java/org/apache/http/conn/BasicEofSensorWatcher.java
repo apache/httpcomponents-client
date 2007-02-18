@@ -52,9 +52,6 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
     /** The connection to auto-release. */
     protected ManagedClientConnection managedConn;
 
-    /** The connection manager to release to. */
-    protected ClientConnectionManager connManager;
-
     /** Whether to keep the connection alive. */
     protected boolean attemptReuse;
 
@@ -64,22 +61,15 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
      * Creates a new watcher for auto-releasing a connection.
      *
      * @param conn      the connection to auto-release
-     * @param mgr       the connection manager to release to
      * @param reuse     whether the connection should be re-used
      */
     public BasicEofSensorWatcher(ManagedClientConnection conn,
-                                 ClientConnectionManager mgr,
                                  boolean reuse) {
         if (conn == null)
             throw new IllegalArgumentException
                 ("Connection may not be null.");
-        if (mgr == null)
-            throw new IllegalArgumentException
-                ("Connection manager may not be null.");
 
         managedConn = conn;
-        //@@@ put a release method in the connection interface?
-        connManager = mgr;
         attemptReuse = reuse;
     }
 
@@ -96,7 +86,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
                 managedConn.markReusable();
             }
         } finally {
-            connManager.releaseConnection(managedConn);
+            managedConn.releaseConnection();
         }
         return false;
     }
@@ -114,8 +104,17 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
                 managedConn.markReusable();
             }
         } finally {
-            connManager.releaseConnection(managedConn);
+            managedConn.releaseConnection();
         }
+        return false;
+    }
+
+
+    // non-javadoc, see interface EofSensorWatcher
+    public boolean streamAbort(InputStream wrapped)
+        throws IOException {
+
+        managedConn.abortConnection();
         return false;
     }
 

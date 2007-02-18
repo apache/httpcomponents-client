@@ -51,8 +51,8 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-public interface ManagedClientConnection
-    extends HttpClientConnection, HttpInetConnection {
+public interface ManagedClientConnection extends
+    HttpClientConnection, HttpInetConnection, ConnectionReleaseTrigger {
 
 
     /**
@@ -130,18 +130,6 @@ public interface ManagedClientConnection
     void layerProtocol(HttpContext context, HttpParams params)
         throws IOException
         ;
-
-
-    /* *
-     * Releases this connection back to it's connection manager.
-     *
-     * @throws IllegalStateException
-     *          if this connection is already released
-     * /
-    boolean release()
-        throws IllegalStateException
-        ;
-    */
 
 
     /**
