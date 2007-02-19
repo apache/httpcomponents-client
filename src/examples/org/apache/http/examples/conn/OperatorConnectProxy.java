@@ -109,7 +109,7 @@ public class OperatorConnectProxy {
         HttpContext ctx = createContext();
 
         System.out.println("opening connection to " + proxy);
-        scop.openConnection(conn, proxy, ctx, getParams());
+        scop.openConnection(conn, proxy, null, ctx, getParams());
 
         HttpRequest connect = createConnect(target);
         System.out.println("opening tunnel to " + target);

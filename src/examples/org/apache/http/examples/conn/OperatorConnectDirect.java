@@ -104,7 +104,7 @@ public class OperatorConnectDirect {
         HttpContext ctx = createContext();
 
         System.out.println("opening connection to " + target);
-        scop.openConnection(conn, target, ctx, getParams());
+        scop.openConnection(conn, target, null, ctx, getParams());
 
         System.out.println("sending request");
         conn.sendRequestHeader(req);

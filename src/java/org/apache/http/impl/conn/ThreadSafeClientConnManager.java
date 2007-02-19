@@ -1183,6 +1183,7 @@ public class ThreadSafeClientConnManager
             ThreadSafeClientConnManager.this.connOperator.openConnection
                 (this.connection,
                  (proxy != null) ? proxy : route.getTargetHost(),
+                 route.getLocalAddress(),
                  context, params);
 
             if (proxy == null)

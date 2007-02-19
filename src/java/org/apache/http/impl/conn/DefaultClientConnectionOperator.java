@@ -99,6 +99,7 @@ public class DefaultClientConnectionOperator
     // non-javadoc, see interface ClientConnectionOperator
     public void openConnection(OperatedClientConnection conn,
                                HttpHost target,
+                               InetAddress local,
                                HttpContext context,
                                HttpParams params)
         throws IOException {
@@ -111,6 +112,7 @@ public class DefaultClientConnectionOperator
             throw new IllegalArgumentException
                 ("Target host must not be null.");
         }
+        // local address may be null
         //@@@ is context allowed to be null?
         if (params == null) {
             throw new IllegalArgumentException
@@ -120,9 +122,6 @@ public class DefaultClientConnectionOperator
             throw new IllegalArgumentException
                 ("Connection must not be open.");
         }
-
-        InetAddress local = null;
-        //@@@ TODO: deal with local address stuff (from context?)
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
         if (schm == null) {

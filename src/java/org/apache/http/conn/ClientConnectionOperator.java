@@ -32,6 +32,7 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
@@ -75,6 +76,8 @@ public interface ClientConnectionOperator {
      *
      * @param conn      the connection to open
      * @param target    the target host to connect to
+     * @param local     the local address to route from, or
+     *                  <code>null</code> for the default
      * @param context   the context for the connection
      * @param params    the parameters for the connection
      *
@@ -82,6 +85,7 @@ public interface ClientConnectionOperator {
      */
     void openConnection(OperatedClientConnection conn,
                         HttpHost target,
+                        InetAddress local,
                         HttpContext context,
                         HttpParams params)
         throws IOException
