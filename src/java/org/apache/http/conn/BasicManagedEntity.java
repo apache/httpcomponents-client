@@ -39,6 +39,9 @@ import org.apache.http.entity.HttpEntityWrapper;
 
 /**
  * An entity that releases a {@link ManagedClientConnection connection}.
+ * A {@link ManagedClientConnection ManagedClientConnection} will
+ * typically <i>not</i> return a managed entity, but you can replace
+ * the unmanaged entity in the response with a managed one.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
