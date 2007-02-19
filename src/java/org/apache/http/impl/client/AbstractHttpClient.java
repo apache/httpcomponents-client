@@ -37,6 +37,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.SyncHttpExecutionContext;
@@ -73,6 +74,9 @@ public abstract class AbstractHttpClient
     /** The connection manager. */
     protected ClientConnectionManager connManager;
 
+    /** The connection re-use strategy. */
+    protected ConnectionReuseStrategy reuseStrategy;
+
     /** The HTTP processor, if defined. */
     protected BasicHttpProcessor httpProcessor;
 
@@ -87,14 +91,12 @@ public abstract class AbstractHttpClient
      *        {@link SyncHttpExecutionContext SyncHttpExecutionContext}
      * @param params    the parameters
      * @param conman    the connection manager
-     * @param hproc     the HTTP processor, or <code>null</code>
      * @param schemes   the scheme registry, or 
      *                  <code>null</code> to use the
      *                  {@link SchemeRegistry#DEFAULT default}
      */
     protected AbstractHttpClient(HttpContext context, HttpParams params,
                                  ClientConnectionManager conman,
-                                 BasicHttpProcessor hproc,
                                  SchemeRegistry schemes) {
         if (params == null)
             throw new IllegalArgumentException
@@ -107,9 +109,12 @@ public abstract class AbstractHttpClient
             context : new SyncHttpExecutionContext(null);
         defaultParams    = params;
         connManager      = conman;
-        httpProcessor    = hproc;
         supportedSchemes = (schemes != null) ?
             schemes : SchemeRegistry.DEFAULT;
+
+        // to be initialized by derived class constructors, if needed:
+        reuseStrategy    = null;
+        httpProcessor    = null;
 
     } // constructor
 

@@ -37,6 +37,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -80,8 +82,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
     public DefaultHttpClient(HttpParams params,
                              ClientConnectionManager conman,
                              SchemeRegistry schemes) {
-        super(null, params, conman, null, schemes);
+
+        super(null, params, conman, schemes);
+
         httpProcessor = createProcessor();
+        reuseStrategy = createReuseStrategy();
     }
 
 
@@ -98,6 +103,20 @@ public class DefaultHttpClient extends AbstractHttpClient {
         //@@@ evaluate defaultParams to initialize interceptors
 
         return bhp;
+    }
+
+
+    /**
+     * Creates a connection reuse strategy.
+     * This method is typically called by the constructor,
+     * after the base class has been initialized.
+     */
+    protected ConnectionReuseStrategy createReuseStrategy() {
+
+        //@@@ evaluate defaultParams to determine implementation
+        ConnectionReuseStrategy rus = new DefaultConnectionReuseStrategy();
+
+        return rus;
     }
 
 
@@ -173,8 +192,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         reqexec.setParams(defaultParams);
 
         return new DefaultClientRequestDirector
-            (connManager, reqexec, defaultParams);
-
+            (connManager, reuseStrategy, reqexec, defaultParams);
     }
 
 } // class DefaultHttpClient

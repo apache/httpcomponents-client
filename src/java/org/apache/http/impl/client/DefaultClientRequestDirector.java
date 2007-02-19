@@ -37,6 +37,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
@@ -72,6 +73,9 @@ public class DefaultClientRequestDirector
     /** The connection manager. */
     protected final ClientConnectionManager connManager;
 
+    /** The connection re-use strategy. */
+    protected final ConnectionReuseStrategy reuseStrategy;
+
     /** The request executor. */
     protected final HttpRequestExecutor requestExec;
 
@@ -83,10 +87,12 @@ public class DefaultClientRequestDirector
 
 
     public DefaultClientRequestDirector(ClientConnectionManager conman,
+                                        ConnectionReuseStrategy reustrat,
                                         HttpRequestExecutor reqexec,
                                         HttpParams params) {
 
         this.connManager   = conman;
+        this.reuseStrategy = reustrat;
         this.requestExec   = reqexec;
         this.defaultParams = params;
 
@@ -147,7 +153,7 @@ public class DefaultClientRequestDirector
 
         } finally {
             // if 'done' is false, we're handling an exception
-            cleanupConnection(done, response);
+            cleanupConnection(done, response, context);
         }
 
         return response;
@@ -197,15 +203,15 @@ public class DefaultClientRequestDirector
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
-        System.out.println("@@@ planned: " + route);
+        //System.out.println("@@@ planned: " + route);
 
         RouteDirector rowdy = new RouteDirector();
         int step;
         do {
             HttpRoute fact = managedConn.getRoute();
-            System.out.println("@@@ current: " + fact);
+            //System.out.println("@@@ current: " + fact);
             step = rowdy.nextStep(route, fact);
-            System.out.println("@@@ action => " + step);
+            //System.out.println("@@@ action => " + step);
 
             switch (step) {
 
@@ -284,7 +290,7 @@ public class DefaultClientRequestDirector
         // How to decide on security of the tunnelled connection?
         // The socket factory knows only about the segment to the proxy.
         // Even if that is secure, the hop to the target may be insecure.
-        // Leave it to derived classes, consider everything insecure here.
+        // Leave it to derived classes, consider insecure by default here.
         return false;
     }
 
@@ -387,10 +393,13 @@ public class DefaultClientRequestDirector
      *                  <code>false</code> if exception handling is in progress
      * @param response  the response available for return by
      *                  {@link #execute execute}, or <code>null</code>
+     * @param context   the context used for the last request execution
      *
      * @throws IOException      in case of an IO problem
      */
-    protected void cleanupConnection(boolean success, HttpResponse response)
+    protected void cleanupConnection(boolean success,
+                                     HttpResponse response,
+                                     HttpContext context)
         throws IOException {
 
         ManagedClientConnection mcc = managedConn;
@@ -398,24 +407,22 @@ public class DefaultClientRequestDirector
             return; // nothing to be cleaned up
         
         if (success) {
-            // not in exception handling, there probably is a response
-            // the connection (if any) is in a re-usable state
+            // Not in exception handling, there probably is a response.
+            // The connection is in or can be brought to a re-usable state.
+            boolean reuse = false;
+            if (reuseStrategy != null)
+                reuse = reuseStrategy.keepAlive(response, context);
+
             // check for entity, release connection if possible
-            //@@@ provide hook that allows for entity buffering?
             if ((response == null) || (response.getEntity() == null) ||
                 !response.getEntity().isStreaming()) {
-                // connection not needed and assumed to be in re-usable state
-                //@@@ evaluate connection re-use strategy,
-                //@@@ close and/or mark as non-reusable if necessary
+                // connection not needed and (assumed to be) in re-usable state
                 managedConn = null;
-                mcc.markReusable();
+                if (reuse)
+                    mcc.markReusable();
                 connManager.releaseConnection(mcc);
             } else {
-                // install an auto-release entity
-                HttpEntity entity = response.getEntity();
-                //@@@ evaluate connection re-use strategy
-                boolean reuse = false;
-                response.setEntity(new BasicManagedEntity(entity, mcc, reuse));
+                setupResponseEntity(response, context, reuse);
             }
         } else {
             // we got here as the result of an exception
@@ -431,6 +438,38 @@ public class DefaultClientRequestDirector
             }
         }
     } // cleanupConnection
+
+
+    /**
+     * Prepares the entity in the ultimate response being returned.
+     * The default implementation here installs an entity with auto-release
+     * capability for the connection.
+     * <br/>
+     * This method might be overridden to buffer the response entity
+     * and release the connection immediately.
+     * Derived implementations MUST release the connection if an exception
+     * is thrown here!
+     *
+     * @param response  the response holding the entity to prepare
+     * @param context   the context used for the last request execution
+     * @param reuse     <code>true</code> if the connection should be
+     *                  kept alive and re-used for another request,
+     *                  <code>false</code> if the connection should be
+     *                  closed and not re-used
+     *
+     * @throws IOException      in case of an IO problem.
+     *         The connection MUST be released in this method if
+     *         an exception is thrown!
+     */
+    protected void setupResponseEntity(HttpResponse response,
+                                       HttpContext context,
+                                       boolean reuse)
+        throws IOException {
+
+        // install an auto-release entity
+        HttpEntity entity = response.getEntity();
+        response.setEntity(new BasicManagedEntity(entity, managedConn, reuse));
+    }
 
 
 } // class DefaultClientRequestDirector
