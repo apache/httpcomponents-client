@@ -66,23 +66,23 @@ public class DefaultClientConnectionOperator
     implements ClientConnectionOperator {
 
 
-    /** The scheme set for looking up socket factories. */
+    /** The scheme registry for looking up socket factories. */
     protected SchemeRegistry schemeRegistry;
 
 
     /**
      * Creates a new client connection operator.
      * Uses {@link SchemeRegistry#DEFAULT SchemeRegistry.DEFAULT}
-     * as the scheme set.
+     * as the scheme registry.
      */
     public DefaultClientConnectionOperator() {
         this(null);
     }
 
     /**
-     * Creates a new client connection operator for the given scheme set.
+     * Creates a new client connection operator for the given scheme registry.
      *
-     * @param schemes   the scheme set, or <code>null</code> to use
+     * @param schemes   the scheme registry, or <code>null</code> to use
      *                  {@link SchemeRegistry#DEFAULT SchemeRegistry.DEFAULT}
      */
     public DefaultClientConnectionOperator(SchemeRegistry schemes) {
@@ -227,5 +227,5 @@ public class DefaultClientConnectionOperator
     } // prepareSocket
 
 
-} // interface ClientConnectionOperator
+} // class DefaultClientConnectionOperator
 
