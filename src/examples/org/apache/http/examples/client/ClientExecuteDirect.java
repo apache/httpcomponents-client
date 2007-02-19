@@ -136,10 +136,10 @@ public class ClientExecuteDirect {
     private final static HttpClient createHttpClient() {
 
         ClientConnectionManager ccm =
-            new ThreadSafeClientConnManager(getParams());
+            new ThreadSafeClientConnManager(getParams(), supportedSchemes);
 
         DefaultHttpClient dhc =
-            new DefaultHttpClient(getParams(), ccm, null);
+            new DefaultHttpClient(getParams(), ccm, supportedSchemes);
 
         BasicHttpProcessor bhp = dhc.getProcessor();
         // Required protocol interceptors
@@ -160,9 +160,7 @@ public class ClientExecuteDirect {
      */
     private final static void setup() {
 
-        //@@@ use dedicated SchemeRegistry instance
-        //@@@ currently no way to pass it to TSCCM
-        supportedSchemes = SchemeRegistry.DEFAULT; //new SchemeRegistry();
+        supportedSchemes = new SchemeRegistry();
 
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.

@@ -51,7 +51,6 @@ import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.impl.conn.DefaultClientConnection;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 
 
@@ -103,8 +102,8 @@ public class OperatorConnectProxy {
         setup(); // some general setup
 
         // one operator can be used for many connections
-        ClientConnectionOperator  scop = createOperator();
-        OperatedClientConnection conn = createConnection();
+        ClientConnectionOperator scop = createOperator();
+        OperatedClientConnection conn = scop.createConnection();
 
         HttpRequest req = createRequest(target);
         HttpContext ctx = createContext();
@@ -163,10 +162,6 @@ public class OperatorConnectProxy {
 
     private final static ClientConnectionOperator createOperator() {
         return new DefaultClientConnectionOperator(supportedSchemes);
-    }
-
-    private final static OperatedClientConnection createConnection() {
-        return new DefaultClientConnection();
     }
 
 

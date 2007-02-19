@@ -62,6 +62,15 @@ public interface ClientConnectionOperator {
 
 
     /**
+     * Creates a new connection that can be operated.
+     *
+     * @return  a new, unopened connection for use with this operator
+     */
+    OperatedClientConnection createConnection()
+        ;
+
+
+    /**
      * Opens a connection to the given target host.
      *
      * @param conn      the connection to open

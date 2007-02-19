@@ -154,12 +154,7 @@ public class ManagerConnectDirect {
 
     private final static ClientConnectionManager createManager() {
 
-        return new ThreadSafeClientConnManager(getParams()) {
-            //@@@ need better way to pass in the SchemeRegistry or operator
-            protected ClientConnectionOperator createConnectionOperator() {
-                return new DefaultClientConnectionOperator(supportedSchemes);
-            }
-         };
+        return new ThreadSafeClientConnManager(getParams(), supportedSchemes);
     }
 
 

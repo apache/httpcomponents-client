@@ -90,6 +90,11 @@ public class DefaultClientConnectionOperator
     }
 
 
+    // non-javadoc, see interface ClientConnectionOperator
+    public OperatedClientConnection createConnection() {
+        return new DefaultClientConnection();
+    }
+
 
     // non-javadoc, see interface ClientConnectionOperator
     public void openConnection(OperatedClientConnection conn,

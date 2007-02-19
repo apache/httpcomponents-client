@@ -148,7 +148,7 @@ public class ClientExecuteProxy {
     private final static HttpClient createHttpClient() {
 
         ClientConnectionManager ccm =
-            new ThreadSafeClientConnManager(getParams());
+            new ThreadSafeClientConnManager(getParams(), supportedSchemes);
 
         DefaultHttpClient dhc =
             new DefaultHttpClient(getParams(), ccm, supportedSchemes);
@@ -172,9 +172,7 @@ public class ClientExecuteProxy {
      */
     private final static void setup() {
 
-        //@@@ use dedicated SchemeRegistry instance
-        //@@@ currently no way to pass it to TSCCM
-        supportedSchemes = SchemeRegistry.DEFAULT; //new SchemeRegistry();
+        supportedSchemes = new SchemeRegistry();
 
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.

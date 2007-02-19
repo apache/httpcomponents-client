@@ -47,6 +47,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.RouteTracker;
 import org.apache.http.conn.HostConfiguration;
@@ -114,7 +115,7 @@ public class ThreadSafeClientConnManager
     private ConnectionPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    private ClientConnectionOperator connectionOperator;
+    private ClientConnectionOperator connOperator;
 
     /** Indicates whether this connection manager is shut down. */
     private volatile boolean isShutDown;
@@ -125,15 +126,18 @@ public class ThreadSafeClientConnManager
      * Creates a new thread safe connection manager.
      *
      * @param params    the parameters for this manager
+     * @param schreg    the scheme registry, or
+     *                  <code>null</code> for the default registry
      */
-    public ThreadSafeClientConnManager(HttpParams params) {
+    public ThreadSafeClientConnManager(HttpParams params,
+                                       SchemeRegistry schreg) {
 
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
         this.params = params;
         this.connectionPool = new ConnectionPool();
-        this.connectionOperator = createConnectionOperator();
+        this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
 
         synchronized(ALL_CONNECTION_MANAGERS) {
@@ -306,22 +310,8 @@ public class ThreadSafeClientConnManager
      */
     private TrackingPoolEntry createPoolEntry(HostConfiguration route) {
 
-        OperatedClientConnection occ = createOperatedConnection();
+        OperatedClientConnection occ = connOperator.createConnection();
         return connectionPool.createEntry(route, occ);
-    }
-
-
-    /**
-     * Hook for creating an operated connection to be managed.
-     * Derived classes can override this method to change the
-     * instantiation of operated connections.
-     * The default implementation here instantiates
-     * {@link DefaultClientConnection DefaultClientConnection}.
-     *
-     * @return  a new connection to be managed
-     */
-    protected OperatedClientConnection createOperatedConnection() {
-        return new DefaultClientConnection();
     }
 
 
@@ -333,10 +323,14 @@ public class ThreadSafeClientConnManager
      * The default implementation here instantiates
      * {@link DefaultClientConnectionOperator DefaultClientConnectionOperator}.
      *
+     * @param schreg    the scheme registry to use, or <code>null</code>
+     *
      * @return  the connection operator to use
      */
-    protected ClientConnectionOperator createConnectionOperator() {
-        return new DefaultClientConnectionOperator();
+    protected ClientConnectionOperator
+        createConnectionOperator(SchemeRegistry schreg) {
+
+        return new DefaultClientConnectionOperator(schreg);
     }
 
     
@@ -1186,7 +1180,7 @@ public class ThreadSafeClientConnManager
             this.tracker = new RouteTracker(route);
             final HttpHost proxy  = route.getProxyHost();
 
-            ThreadSafeClientConnManager.this.connectionOperator.openConnection
+            ThreadSafeClientConnManager.this.connOperator.openConnection
                 (this.connection,
                  (proxy != null) ? proxy : route.getTargetHost(),
                  context, params);
@@ -1276,7 +1270,7 @@ public class ThreadSafeClientConnManager
                 LOG.debug("Layer protocol on connection to " + target);
             }
 
-            ThreadSafeClientConnManager.this.connectionOperator
+            ThreadSafeClientConnManager.this.connOperator
                 .updateSecureConnection(this.connection, target,
                                         context, params);
 
