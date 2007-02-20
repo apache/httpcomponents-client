@@ -55,6 +55,7 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
+//import org.apache.http.impl.conn.SimpleClientConnManager;
 import org.apache.http.impl.conn.ThreadSafeClientConnManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -137,6 +138,7 @@ public class ClientExecuteDirect {
 
         ClientConnectionManager ccm =
             new ThreadSafeClientConnManager(getParams(), supportedSchemes);
+        //  new SimpleClientConnManager(getParams(), supportedSchemes);
 
         DefaultHttpClient dhc =
             new DefaultHttpClient(getParams(), ccm, supportedSchemes);

@@ -376,7 +376,7 @@ public class ThreadSafeClientConnManager
         } catch (IOException iox) {
             //@@@ log as warning? let pass?
             if (LOG.isDebugEnabled())
-                LOG.debug("Exception shutting down released connection",
+                LOG.debug("Exception shutting down released connection.",
                           iox);
         } finally {
             TrackingPoolEntry entry = hca.poolEntry;
@@ -1409,70 +1409,10 @@ public class ThreadSafeClientConnManager
         }
 
 
-
-
-
 /*
         //===========================
         // HttpHostConnection methods
         //===========================
-        public void setHttpConnectionManager(final HttpConnectionManager httpConnectionManager) {
-            if (hasConnection()) {
-                wrappedConnection.setHttpConnectionManager(httpConnectionManager);
-            } else {
-                // do nothing
-            }
-        }
-
-        public boolean isLocked() {
-            if (hasConnection()) {
-                return wrappedConnection.isLocked();
-            } else {
-                return false;
-            }
-        }
-
-        public void setLocked(boolean locked) {
-            if (hasConnection()) {
-                wrappedConnection.setLocked(locked);
-            } else {
-                // do nothing
-            }
-        }
-
-        public void releaseConnection() {
-            HttpHostConnection conn = this.wrappedConnection;
-            if (conn != null && !conn.isLocked()) {
-                this.wrappedConnection = null;
-                conn.releaseConnection();
-            } else {
-                // do nothing
-            }
-        }
-
-        public HostConfiguration getHostConfiguration() {
-            if (hasConnection()) {
-                return wrappedConnection.getHostConfiguration();
-            } else {
-                return null;
-            }
-        }
-
-        public void open(final HttpParams params) throws IOException {
-            if (hasConnection()) {
-                wrappedConnection.open(params);
-            } else {
-                // do nothing
-            }
-        }
-
-        public void tunnelCreated(final HttpParams params) throws IOException {
-            if (hasConnection()) {
-                wrappedConnection.tunnelCreated(params);
-            } else {
-                // do nothing
-            }
-        }
 
         public void setSocketTimeout(int timeout) throws SocketException {
             if (hasConnection()) {
@@ -1481,24 +1421,8 @@ public class ThreadSafeClientConnManager
                 // do nothing
             }
         }
-
-        public HttpResponse getLastResponse() {
-            if (hasConnection()) {
-                return wrappedConnection.getLastResponse();
-            } else {
-                return null;
-            }
-        }
-
-        public void setLastResponse(final HttpResponse response) {
-            if (hasConnection()) {
-                wrappedConnection.setLastResponse(response);
-            } else {
-                // do nothing
-            }
-        }
 */        
     } // class HttpConnectionAdapter
 
-}
+} // class ThreadSafeClientConnManager
 

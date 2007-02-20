@@ -57,6 +57,7 @@ import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
+//import org.apache.http.impl.conn.SimpleClientConnManager;
 import org.apache.http.impl.conn.ThreadSafeClientConnManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RoutedRequest;
@@ -149,6 +150,7 @@ public class ClientExecuteProxy {
 
         ClientConnectionManager ccm =
             new ThreadSafeClientConnManager(getParams(), supportedSchemes);
+        //  new SimpleClientConnManager(getParams(), supportedSchemes);
 
         DefaultHttpClient dhc =
             new DefaultHttpClient(getParams(), ccm, supportedSchemes);
