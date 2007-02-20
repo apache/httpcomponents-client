@@ -424,10 +424,10 @@ public class ThreadSafeClientConnManager
             synchronized (ALL_CONNECTION_MANAGERS) {
                 // Don't use an iterator here. Iterators on WeakHashMap can
                 // get ConcurrentModificationException on garbage collection.
-                MultiThreadedHttpConnectionManager[]
-                    connManagers = (MultiThreadedHttpConnectionManager[])
+                ThreadSafeClientConnManager[]
+                    connManagers = (ThreadSafeClientConnManager[])
                     ALL_CONNECTION_MANAGERS.keySet().toArray(
-                        new MultiThreadedHttpConnectionManager
+                        new ThreadSafeClientConnManager
                             [ALL_CONNECTION_MANAGERS.size()]
                         );
 
