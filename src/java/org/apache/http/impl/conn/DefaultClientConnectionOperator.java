@@ -135,9 +135,8 @@ public class DefaultClientConnectionOperator
         conn.announce(sock);
 
         sock = sf.connectSocket
-            (sock, target.getHostName(), 
-                    target.getPort() == -1 ? schm.getDefaultPort() : target.getPort(), 
-                    local, 0, params);
+            (sock, target.getHostName(), target.resolvePort(),
+             local, 0, params);
         prepareSocket(sock, context, params);
 
         final boolean secure = sf.isSecure(sock);
