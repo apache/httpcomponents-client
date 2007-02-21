@@ -44,6 +44,7 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.ClientConnectionManager;
@@ -132,6 +133,8 @@ public class DefaultClientRequestDirector
                 HttpRequest prepreq = prepareRequest(roureq, context);
                 //@@@ handle authentication here or via interceptor?
 
+                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
+                                     roureq.getRoute().getTargetHost());
                 response = requestExec.execute(prepreq, managedConn, context);
 
                 RoutedRequest followup =

@@ -102,7 +102,7 @@ public class ClientExecuteDirect {
 
         HttpClient client = createHttpClient();
 
-        HttpRequest req = createRequest(target);
+        HttpRequest req = createRequest();
 
         System.out.println("executing request to " + target);
         HttpEntity entity = null;
@@ -187,20 +187,14 @@ public class ClientExecuteDirect {
 
     /**
      * Creates a request to execute in this example.
-     * In a real application, request interceptors should be used
-     * to add the required headers.
-     *
-     * @param target    the target server for the request
      *
      * @return  a request without an entity
      */
-    private final static HttpRequest createRequest(HttpHost target) {
+    private final static HttpRequest createRequest() {
 
         HttpRequest req = new BasicHttpRequest
             ("GET", "/", HttpVersion.HTTP_1_1);
           //("OPTIONS", "*", HttpVersion.HTTP_1_1);
-
-        req.addHeader("Host", target.getHostName());
 
         return req;
     }
