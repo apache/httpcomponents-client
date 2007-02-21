@@ -133,6 +133,20 @@ public abstract class AbstractClientConnectionAdapter
     }
 
 
+    // non-javadoc, see interface HttpConnection
+    public void setSocketTimeout(int timeout) {
+        assertWrappedConn();
+        wrappedConnection.setSocketTimeout(timeout);
+    }
+
+
+    // non-javadoc, see interface HttpConnection
+    public int getSocketTimeout() {
+        assertWrappedConn();
+        return wrappedConnection.getSocketTimeout();
+    }
+
+
     // non-javadoc, see interface HttpClientConnection
     public void flush()
         throws IOException {

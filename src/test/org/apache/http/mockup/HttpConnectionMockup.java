@@ -55,7 +55,7 @@ public class HttpConnectionMockup implements HttpConnection {
         this.open = false;
     }
     
-    public int getSocketTimeout() throws IOException {
+    public int getSocketTimeout() {
         return 0;
     }
     
@@ -67,6 +67,6 @@ public class HttpConnectionMockup implements HttpConnection {
         return false;
     }
 
-    public void setSocketTimeout(int timeout) throws IOException {
+    public void setSocketTimeout(int timeout) {
     }
 }

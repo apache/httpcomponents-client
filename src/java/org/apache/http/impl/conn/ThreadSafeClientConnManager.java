@@ -1408,20 +1408,6 @@ public class ThreadSafeClientConnManager
             }
         }
 
-
-/*
-        //===========================
-        // HttpHostConnection methods
-        //===========================
-
-        public void setSocketTimeout(int timeout) throws SocketException {
-            if (hasConnection()) {
-                wrappedConnection.setSocketTimeout(timeout);
-            } else {
-                // do nothing
-            }
-        }
-*/        
     } // class HttpConnectionAdapter
 
 } // class ThreadSafeClientConnManager
