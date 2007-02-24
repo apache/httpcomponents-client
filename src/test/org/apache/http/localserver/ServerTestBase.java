@@ -147,7 +147,7 @@ public abstract class ServerTestBase extends TestCase {
             localServer.registerDefaultHandlers();
         }
 
-        localServer.start(getPreferredPort());
+        localServer.start();
 
     } // setUp
 
@@ -165,33 +165,23 @@ public abstract class ServerTestBase extends TestCase {
 
 
     /**
-     * Obtains the preferred service port for the local test server.
-     *
-     * @return  the preferred service port, or negative for don't care
-     */
-    protected int getPreferredPort() {
-        return -1;
-    }
-
-
-    /**
      * Obtains the address of the local test server.
      *
      * @return  the test server host, with a scheme name of "http"
      */
     protected HttpHost getServerHttp() {
 
-        return new HttpHost(LocalTestServer.TEST_SERVER_ADDR,
+        return new HttpHost(LocalTestServer.TEST_SERVER_ADDR.getHostName(),
                             localServer.getServicePort(),
                             "http");
     }
 
 
     /**
-     * Opens a connection to the given target.
-     * Maps to {@link #connectTo(String,int) connectTo(host,port)}.
-     * This method performs a scheme lookup and determines the
-     * default port for the scheme if necessary.
+     * Opens a connection to the given target using
+     * {@link #defaultParams default parameters}.
+     * Maps to {@link #connectTo(HttpHost,HttpParams)
+     *                 connectTo(target,defaultParams)}.
      *
      * @param target    the target to connect to
      *
@@ -202,29 +192,30 @@ public abstract class ServerTestBase extends TestCase {
     protected DefaultHttpClientConnection connectTo(HttpHost target)
         throws Exception {
 
-        Scheme schm = supportedSchemes.get(target.getSchemeName());
-        int port = schm.resolvePort(target.getPort());
-
-        return connectTo(target.getHostName(), port);
+        return connectTo(target, defaultParams);
     }
 
 
     /**
-     * Opens a connection.
+     * Opens a connection to the given target using the given parameters.
      *
-     * @param hostname  the host name to connect to
-     * @param port      the port to connect to
+     * @param target    the target to connect to
      *
      * @return  a new connection opened to the target
      *
      * @throws Exception        in case of a problem
      */
-    protected DefaultHttpClientConnection connectTo(String hostname, int port)
+    protected DefaultHttpClientConnection connectTo(HttpHost target,
+                                                    HttpParams params)
         throws Exception {
 
+        Scheme schm = supportedSchemes.get(target.getSchemeName());
+        int port = schm.resolvePort(target.getPort());
+
         DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
-        Socket sock = new Socket(hostname, port);
-        conn.bind(sock, defaultParams);
+        Socket sock = schm.getSocketFactory().connectSocket
+            (null, target.getHostName(), target.getPort(), null, 0, params);
+        conn.bind(sock, params);
 
         return conn;
     }

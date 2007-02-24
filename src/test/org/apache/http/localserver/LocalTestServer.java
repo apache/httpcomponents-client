@@ -89,14 +89,13 @@ import org.apache.http.util.EntityUtils;
 public class LocalTestServer {
 
     /**
-     * The local network address to bind to.
-     * This is an IP number rather than "localhost" to avoid surprises
+     * The local address to bind to.
+     * The host is an IP number rather than "localhost" to avoid surprises
      * on hosts that map "localhost" to an IPv6 address or something else.
+     * The port is 0 to let the system pick one.
      */
-    public final static String TEST_SERVER_ADDR = "127.0.0.1";
-
-    /** The suggested port number for a local test server. */
-    public final static int TEST_SERVER_PORT = 39888;
+    public final static InetSocketAddress TEST_SERVER_ADDR =
+        new InetSocketAddress("127.0.0.1", 0);
 
     /** The request handler registry. */
     public HttpRequestHandlerRegistry handlerRegistry;
@@ -226,37 +225,17 @@ public class LocalTestServer {
 
     /**
      * Starts this test server.
-     * Since stopping and starting this server in quick succession may
-     * leave a local port bound to an already closed server socket for
-     * a while, the port number can not be guaranteed.
-     * Use {@link #getServicePort getServicePort} to obtain the port number.
-     *
-     * @param port      the port number to try first,
-     *                  0 or negative if you don't care
+     * Use {@link #getServicePort getServicePort}
+     * to obtain the port number afterwards.
      */
-    public void start(int port) throws Exception {
+    public void start() throws Exception {
         if (servicedSocket != null)
             throw new IllegalStateException
                 (this.toString() + " already running");
 
-        if (port <= 0)
-            port = TEST_SERVER_PORT;
-        final int stop = port + 10;
-
         ServerSocket ssock = new ServerSocket();
-        ssock.setReuseAddress(true);
-        while (!ssock.isBound()) {
-            try {
-                InetSocketAddress addr = new
-                    InetSocketAddress(TEST_SERVER_ADDR, port);
-                ssock.bind(addr);
-
-            } catch (BindException bx) {
-                port++;                 // try next one
-                if (port >= stop)
-                    throw bx;           // no use trying any more
-            }
-        }
+        ssock.setReuseAddress(true); // probably pointless for port '0'
+        ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;
 
         listenerThread = new Thread(new RequestListener());
@@ -282,6 +261,7 @@ public class LocalTestServer {
 
         if (listenerThread != null) {
             listenerThread.interrupt();
+            //@@@ listenerThread.join(); ?
             listenerThread = null;
         }
     }
@@ -422,87 +402,5 @@ public class LocalTestServer {
 
     } // class RequestListener
 
-
-
-/*
     
-    static class HttpFileHandler implements HttpRequestHandler  {
-        
-        private final String docRoot;
-        
-        public HttpFileHandler(final String docRoot) {
-            super();
-            this.docRoot = docRoot;
-        }
-        
-        public void handle(
-                final HttpRequest request, 
-                final HttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-
-            String method = request.getRequestLine().getMethod().toUpperCase();
-            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
-                throw new MethodNotSupportedException(method + " method not supported"); 
-            }
-            String target = request.getRequestLine().getUri();
-
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-                byte[] entityContent = EntityUtils.toByteArray(entity);
-                System.out.println("Incoming entity content (bytes): " + entityContent.length);
-            }
-            
-            final File file = new File(this.docRoot, URLDecoder.decode(target));
-            if (!file.exists()) {
-
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-                EntityTemplate body = new EntityTemplate(new ContentProducer() {
-                    
-                    public void writeTo(final OutputStream outstream) throws IOException {
-                        OutputStreamWriter writer = new OutputStreamWriter(outstream, "UTF-8"); 
-                        writer.write("<html><body><h1>");
-                        writer.write("File ");
-                        writer.write(file.getPath());
-                        writer.write(" not found");
-                        writer.write("</h1></body></html>");
-                        writer.flush();
-                    }
-                    
-                });
-                body.setContentType("text/html; charset=UTF-8");
-                response.setEntity(body);
-                System.out.println("File " + file.getPath() + " not found");
-                
-            } else if (!file.canRead() || file.isDirectory()) {
-                
-                response.setStatusCode(HttpStatus.SC_FORBIDDEN);
-                EntityTemplate body = new EntityTemplate(new ContentProducer() {
-                    
-                    public void writeTo(final OutputStream outstream) throws IOException {
-                        OutputStreamWriter writer = new OutputStreamWriter(outstream, "UTF-8"); 
-                        writer.write("<html><body><h1>");
-                        writer.write("Access denied");
-                        writer.write("</h1></body></html>");
-                        writer.flush();
-                    }
-                    
-                });
-                body.setContentType("text/html; charset=UTF-8");
-                response.setEntity(body);
-                System.out.println("Cannot read file " + file.getPath());
-                
-            } else {
-                
-                response.setStatusCode(HttpStatus.SC_OK);
-                FileEntity body = new FileEntity(file, "text/html");
-                response.setEntity(body);
-                System.out.println("Serving file " + file.getPath());
-                
-            }
-        }
-        
-    }
-*/
-
-    
-}
+} // class LocalTestServer
