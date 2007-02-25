@@ -1177,8 +1177,10 @@ public class ThreadSafeClientConnManager
         }
 
         /**
-         * Tests if the wrapped connection is still available.
-         * @return boolean
+         * Checks if the wrapped connection is still available.
+         *
+         * @return <code>true</code> if still available,
+         *         <code>false</code> if {@link #detach detached}
          */
         protected boolean hasConnection() {
             return wrappedConnection != null;

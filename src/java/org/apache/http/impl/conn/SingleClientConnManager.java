@@ -81,14 +81,14 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-public class SimpleClientConnManager implements ClientConnectionManager {
+public class SingleClientConnManager implements ClientConnectionManager {
 
     private static final Log LOG =
-        LogFactory.getLog(SimpleClientConnManager.class);
+        LogFactory.getLog(SingleClientConnManager.class);
 
     /** The message to be logged on multiple allocation. */
     public final static String MISUSE_MESSAGE =
-    "Invalid use of SimpleClientConnManager: connection still allocated.\n" +
+    "Invalid use of SingleClientConnManager: connection still allocated.\n" +
     "Make sure to release the connection before allocating another one.";
 
 
@@ -98,14 +98,11 @@ public class SimpleClientConnManager implements ClientConnectionManager {
     /** The operator for opening and updating connections. */
     protected ClientConnectionOperator connOperator;
 
-    /** The one and only connection being managed here. */
-    protected OperatedClientConnection operatedConn;
-
-    /** The tracked route, or <code>null</code> while not connected. */
-    protected RouteTracker trackedRoute;
+    /** The one and only entry in this pool. */
+    protected PoolEntry uniquePoolEntry;
 
     /** The currently issued managed connection, if any. */
-    protected SimpleConnAdapter managedConn;
+    protected ConnAdapter managedConn;
 
     /** The time of the last connection release, or -1. */
     protected long lastReleaseTime;
@@ -126,7 +123,7 @@ public class SimpleClientConnManager implements ClientConnectionManager {
      * @param schreg    the scheme registry, or
      *                  <code>null</code> for the default registry
      */
-    public SimpleClientConnManager(HttpParams params,
+    public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
 
         if (params == null) {
@@ -134,8 +131,7 @@ public class SimpleClientConnManager implements ClientConnectionManager {
         }
         this.params          = params;
         this.connOperator    = createConnectionOperator(schreg);
-        this.operatedConn    = this.connOperator.createConnection();
-        this.trackedRoute    = null;
+        this.uniquePoolEntry = new PoolEntry(connOperator.createConnection());
         this.managedConn     = null;
         this.lastReleaseTime = -1L;
         this.alwaysShutDown  = false; //@@@ from params? as argument?
@@ -210,32 +206,32 @@ public class SimpleClientConnManager implements ClientConnectionManager {
         assertStillUp();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("SimpleClientConnManager.getConnection: " + route);
+            LOG.debug("SingleClientConnManager.getConnection: " + route);
         }
 
         if (managedConn != null)
             revokeConnection();
 
         // check re-usability of the connection
-        if (operatedConn.isOpen()) {
+        if (uniquePoolEntry.connection.isOpen()) {
             final boolean shutdown =
-                (trackedRoute == null) || // how could that happen?
-                !trackedRoute.toRoute().equals(route);
+                (uniquePoolEntry.tracker == null) || // how could that happen?
+                !uniquePoolEntry.tracker.toRoute().equals(route);
 
             if (shutdown) {
+                uniquePoolEntry.closing();
                 try {
-                    operatedConn.shutdown();
+                    uniquePoolEntry.connection.shutdown();
                 } catch (IOException iox) {
                     LOG.debug("Problem shutting down connection.", iox);
                     // create a new connection, just to be sure
-                    operatedConn = connOperator.createConnection();
-                } finally {
-                    trackedRoute = null;
+                    uniquePoolEntry =
+                        new PoolEntry(connOperator.createConnection());
                 }
             }
         }
 
-        managedConn = new SimpleConnAdapter(operatedConn, route);
+        managedConn = new ConnAdapter(uniquePoolEntry, route);
 
         return managedConn;
     }
@@ -245,12 +241,12 @@ public class SimpleClientConnManager implements ClientConnectionManager {
     public void releaseConnection(ManagedClientConnection conn) {
         assertStillUp();
 
-        if (!(conn instanceof SimpleConnAdapter)) {
+        if (!(conn instanceof ConnAdapter)) {
             throw new IllegalArgumentException
                 ("Connection class mismatch, " +
                  "connection not obtained from this manager.");
         }
-        SimpleConnAdapter sca = (SimpleConnAdapter) conn;
+        ConnAdapter sca = (ConnAdapter) conn;
         if (sca.connManager != this) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
@@ -293,16 +289,15 @@ public class SimpleClientConnManager implements ClientConnectionManager {
     public void closeIdleConnections(long idletime) {
         assertStillUp();
 
-        if ((managedConn == null) && operatedConn.isOpen()) {
+        if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
             final long cutoff = System.currentTimeMillis() - idletime;
             if (lastReleaseTime <= cutoff) {
+                uniquePoolEntry.closing();
                 try {
-                    operatedConn.close();
+                    uniquePoolEntry.connection.close();
                 } catch (IOException iox) {
                     // ignore
                     LOG.debug("Problem closing idle connection.", iox);
-                } finally {
-                    trackedRoute = null;
                 }
             }
         }
@@ -318,14 +313,13 @@ public class SimpleClientConnManager implements ClientConnectionManager {
             managedConn.detach();
 
         try {
-            if (operatedConn != null)
-                operatedConn.shutdown();
+            if (uniquePoolEntry != null) // and connection open?
+                uniquePoolEntry.connection.shutdown();
         } catch (IOException iox) {
             // ignore
             LOG.debug("Problem while shutting down manager.", iox);
         } finally {
-            trackedRoute = null;
-            operatedConn = null;
+            uniquePoolEntry = null;
         }
     }
 
@@ -348,15 +342,44 @@ public class SimpleClientConnManager implements ClientConnectionManager {
             managedConn.detach();
 
         try {
-            if (operatedConn.isOpen())
-                operatedConn.shutdown();
+            
+            if (uniquePoolEntry.connection.isOpen()) {
+                uniquePoolEntry.closing();
+                uniquePoolEntry.connection.shutdown();
+            }
         } catch (IOException iox) {
             // ignore
             LOG.debug("Problem while shutting down connection.", iox);
-        } finally {
-            trackedRoute = null;
         }
     }
+
+    
+    /**
+     * The pool entry for this connection manager.
+     */
+    protected class PoolEntry extends AbstractPoolEntry {
+
+        //@@@ move to base class when TSCCM is cleaned up
+        /** The route for which this entry gets allocated. */
+        private HttpRoute plannedRoute;
+
+            
+        /**
+         * Creates a new pool entry.
+         *
+         * @param occ   the underlying connection for this entry
+         */
+        private PoolEntry(OperatedClientConnection occ) {
+            super(occ);
+        }
+
+
+        // non-javadoc, see base AbstractPoolEntry
+        protected ClientConnectionOperator getOperator() {
+            return SingleClientConnManager.this.connOperator;
+        }
+
+    } // class PoolEntry
 
 
 
@@ -367,28 +390,24 @@ public class SimpleClientConnManager implements ClientConnectionManager {
      * <code>TrackingPoolEntry</code> and <code>HttpConnectionAdapter</code>
      * in {@link ThreadSafeClientConnManager ThreadSafeClientConnManager}.
      */
-    protected class SimpleConnAdapter
+    protected class ConnAdapter
         extends AbstractClientConnectionAdapter {
 
-        /** The route for which the connection got allocated. */
-        private HttpRoute plannedRoute;
-
-        // the tracked route is kept in the enclosing manager
-        //@@@ switch to an adapter+poolentry style, as in TSCCM
+        /** The wrapped pool entry. */
+        private PoolEntry poolEntry;
 
 
         /**
          * Creates a new connection adapter.
          *
-         * @param occ   the underlying connection for this adapter
-         * @param plan  the planned route for the connection
+         * @param entry   the pool entry for the connection being wrapped
          */
-        protected SimpleConnAdapter(OperatedClientConnection occ,
-                                    HttpRoute plan) {
-            super(SimpleClientConnManager.this, occ);
+        protected ConnAdapter(PoolEntry entry, HttpRoute plan) {
+            super(SingleClientConnManager.this, entry.connection);
             super.markedReusable = true;
 
-            this.plannedRoute = plan;
+            entry.plannedRoute = plan;
+            this.poolEntry = entry;
         }
 
 
@@ -405,6 +424,16 @@ public class SimpleClientConnManager implements ClientConnectionManager {
         }
 
         /**
+         * Checks if the wrapped connection is still available.
+         *
+         * @return <code>true</code> if still available,
+         *         <code>false</code> if {@link #detach detached}
+         */
+        protected boolean hasConnection() {
+            return wrappedConnection != null;
+        }
+
+        /**
          * Detaches this adapter from the wrapped connection.
          * This adapter becomes useless.
          */
@@ -417,9 +446,10 @@ public class SimpleClientConnManager implements ClientConnectionManager {
         public HttpRoute getRoute() {
 
             assertAttached();
-            return (trackedRoute == null) ?
-                null : trackedRoute.toRoute();
+            return (poolEntry.tracker == null) ?
+                null : poolEntry.tracker.toRoute();
         }
+
 
 
         // non-javadoc, see interface ManagedHttpConnection
@@ -427,129 +457,36 @@ public class SimpleClientConnManager implements ClientConnectionManager {
                          HttpContext context, HttpParams params)
             throws IOException {
 
-            if (route == null) {
-                throw new IllegalArgumentException
-                    ("Route must not be null.");
-            }
-            //@@@ is context allowed to be null? depends on operator?
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
             assertAttached();
-
-            if ((trackedRoute != null) &&
-                trackedRoute.isConnected()) {
-                throw new IllegalStateException("Connection already open.");
-            }
-
-            // - collect the arguments
-            // - call the operator
-            // - update the tracking data
-            // In this order, we can be sure that only a successful
-            // opening of the connection will be tracked.
-
-            //@@@ verify route against planned route?
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Open connection for " + route);
-            }
-
-            trackedRoute = new RouteTracker(route);
-            final HttpHost proxy  = route.getProxyHost();
-
-            SimpleClientConnManager.this.connOperator.openConnection
-                (wrappedConnection,
-                 (proxy != null) ? proxy : route.getTargetHost(),
-                 route.getLocalAddress(),
-                 context, params);
-
-            if (proxy == null)
-                trackedRoute.connectTarget(wrappedConnection.isSecure());
-            else
-                trackedRoute.connectProxy(proxy, wrappedConnection.isSecure());
-
-        } // open
+            poolEntry.open(route, context, params);
+        }
 
 
         // non-javadoc, see interface ManagedHttpConnection
         public void tunnelCreated(boolean secure, HttpParams params)
             throws IOException {
 
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
             assertAttached();
-
-            //@@@ check for proxy in planned route?
-            if ((trackedRoute == null) ||
-                !trackedRoute.isConnected()) {
-                throw new IllegalStateException("Connection not open.");
-            }
-            if (trackedRoute.isTunnelled()) {
-                throw new IllegalStateException
-                    ("Connection is already tunnelled.");
-            }
-
-            wrappedConnection.update(null, trackedRoute.getTargetHost(),
-                                   secure, params);
-            trackedRoute.createTunnel(secure);
-
-        } // tunnelCreated
+            poolEntry.tunnelCreated(secure, params);
+        }
 
 
         // non-javadoc, see interface ManagedHttpConnection
         public void layerProtocol(HttpContext context, HttpParams params)
             throws IOException {
 
-            //@@@ is context allowed to be null? depends on operator?
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
             assertAttached();
+            poolEntry.layerProtocol(context, params);
+        }
 
-            if ((trackedRoute == null) ||
-                !trackedRoute.isConnected()) {
-                throw new IllegalStateException("Connection not open.");
-            }
-            if (!trackedRoute.isTunnelled()) {
-                //@@@ allow this?
-                throw new IllegalStateException
-                    ("Protocol layering without a tunnel not supported.");
-            }
-            if (trackedRoute.isLayered()) {
-                throw new IllegalStateException
-                    ("Multiple protocol layering not supported.");
-            }
-
-            // - collect the arguments
-            // - call the operator
-            // - update the tracking data
-            // In this order, we can be sure that only a successful
-            // layering on top of the connection will be tracked.
-
-            final HttpHost target = trackedRoute.getTargetHost();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Layer protocol on connection to " + target);
-            }
-
-            SimpleClientConnManager.this.connOperator
-                .updateSecureConnection(wrappedConnection, target,
-                                        context, params);
-
-            trackedRoute.layerProtocol(wrappedConnection.isSecure());
-
-        } // layerProtocol
 
 
         // non-javadoc, see interface HttpConnection        
         public void close() throws IOException {
-            trackedRoute = null;
+            if (poolEntry != null)
+                poolEntry.closing();
 
-            if (wrappedConnection != null) {
+            if (hasConnection()) {
                 wrappedConnection.close();
             } else {
                 // do nothing
@@ -558,16 +495,17 @@ public class SimpleClientConnManager implements ClientConnectionManager {
 
         // non-javadoc, see interface HttpConnection        
         public void shutdown() throws IOException {
-            trackedRoute = null;
+            if (poolEntry != null)
+                poolEntry.closing();
 
-            if (wrappedConnection != null) {
+            if (hasConnection()) {
                 wrappedConnection.shutdown();
             } else {
                 // do nothing
             }
         }
 
-    } // class SimpleConnAdapter
+    } // class ConnAdapter
 
 
-} // class SimpleClientConnManager
+} // class SingleClientConnManager
