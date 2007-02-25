@@ -36,6 +36,7 @@ import java.io.IOException;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
 
 
@@ -59,7 +60,8 @@ import org.apache.http.conn.ClientConnectionManager;
  * @since 4.0
  */
 public abstract class AbstractPooledConnAdapter
-    extends AbstractClientConnAdapter {
+    extends AbstractClientConnAdapter
+    implements ManagedClientConnection {
 
     /** The wrapped pool entry. */
     protected AbstractPoolEntry poolEntry;
