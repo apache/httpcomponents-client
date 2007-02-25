@@ -72,7 +72,7 @@ import org.apache.http.conn.ClientConnectionManager;
  *
  * @since 4.0
  */
-public abstract class AbstractClientConnectionAdapter
+public abstract class AbstractClientConnAdapter
     implements ManagedClientConnection {
 
     /** The connection manager, if any. */
@@ -93,8 +93,8 @@ public abstract class AbstractClientConnectionAdapter
      * @param mgr       the connection manager, or <code>null</code>
      * @param conn      the connection to wrap, or <code>null</code>
      */
-    protected AbstractClientConnectionAdapter(ClientConnectionManager mgr,
-                                              OperatedClientConnection conn) {
+    protected AbstractClientConnAdapter(ClientConnectionManager mgr,
+                                        OperatedClientConnection conn) {
 
         connManager = mgr;
         wrappedConnection = conn;
@@ -272,4 +272,4 @@ public abstract class AbstractClientConnectionAdapter
         connManager.releaseConnection(this);
     }
 
-} // class AbstractClientConnectionAdapter
+} // class AbstractClientConnAdapter

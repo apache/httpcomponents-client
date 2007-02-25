@@ -215,13 +215,12 @@ public class SingleClientConnManager implements ClientConnectionManager {
         // check re-usability of the connection
         if (uniquePoolEntry.connection.isOpen()) {
             final boolean shutdown =
-                (uniquePoolEntry.tracker == null) || // how could that happen?
-                !uniquePoolEntry.tracker.toRoute().equals(route);
+                ((uniquePoolEntry.tracker == null) || // how could that happen?
+                 !uniquePoolEntry.tracker.toRoute().equals(route));
 
             if (shutdown) {
-                uniquePoolEntry.closing();
                 try {
-                    uniquePoolEntry.connection.shutdown();
+                    uniquePoolEntry.shutdown();
                 } catch (IOException iox) {
                     LOG.debug("Problem shutting down connection.", iox);
                     // create a new connection, just to be sure
@@ -251,7 +250,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
-        if (sca.wrappedConnection == null)
+        if (sca.poolEntry == null)
             return; // already released
 
         try {
@@ -265,9 +264,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 }
 
                 // make sure this connection will not be re-used
-                //@@@ Can we set some kind of flag before shutting down?
-                //@@@ If shutdown throws an exception, we can't be sure
-                //@@@ that the connection will consider itself closed.
                 // we might have gotten here because of a shutdown trigger
                 // shutdown of the adapter also clears the tracked route
                 sca.shutdown();
@@ -292,9 +288,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
         if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
             final long cutoff = System.currentTimeMillis() - idletime;
             if (lastReleaseTime <= cutoff) {
-                uniquePoolEntry.closing();
                 try {
-                    uniquePoolEntry.connection.close();
+                    uniquePoolEntry.close();
                 } catch (IOException iox) {
                     // ignore
                     LOG.debug("Problem closing idle connection.", iox);
@@ -314,7 +309,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
         try {
             if (uniquePoolEntry != null) // and connection open?
-                uniquePoolEntry.connection.shutdown();
+                uniquePoolEntry.shutdown();
         } catch (IOException iox) {
             // ignore
             LOG.debug("Problem while shutting down manager.", iox);
@@ -342,11 +337,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             managedConn.detach();
 
         try {
-            
-            if (uniquePoolEntry.connection.isOpen()) {
-                uniquePoolEntry.closing();
-                uniquePoolEntry.connection.shutdown();
-            }
+            uniquePoolEntry.shutdown();
         } catch (IOException iox) {
             // ignore
             LOG.debug("Problem while shutting down connection.", iox);
@@ -361,7 +352,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
         //@@@ move to base class when TSCCM is cleaned up
         /** The route for which this entry gets allocated. */
-        private HttpRoute plannedRoute;
+        protected HttpRoute plannedRoute;
 
             
         /**
@@ -369,7 +360,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
          *
          * @param occ   the underlying connection for this entry
          */
-        private PoolEntry(OperatedClientConnection occ) {
+        protected PoolEntry(OperatedClientConnection occ) {
             super(occ);
         }
 
@@ -379,133 +370,51 @@ public class SingleClientConnManager implements ClientConnectionManager {
             return SingleClientConnManager.this.connOperator;
         }
 
+
+        /**
+         * Closes the connection in this pool entry.
+         */
+        protected void close()
+            throws IOException {
+
+            closing();
+            if (connection.isOpen())
+                connection.close();
+        }
+
+
+        /**
+         * Shuts down the connection in this pool entry.
+         */
+        protected void shutdown()
+            throws IOException {
+
+            closing();
+            if (connection.isOpen())
+                connection.shutdown();
+        }
+
     } // class PoolEntry
 
 
 
     /**
      * The connection adapter used by this manager.
-     * <p><i>Refactoring pending!</i>
-     * This has a lot of common code with private classes
-     * <code>TrackingPoolEntry</code> and <code>HttpConnectionAdapter</code>
-     * in {@link ThreadSafeClientConnManager ThreadSafeClientConnManager}.
      */
-    protected class ConnAdapter
-        extends AbstractClientConnectionAdapter {
-
-        /** The wrapped pool entry. */
-        private PoolEntry poolEntry;
-
+    protected class ConnAdapter extends AbstractPooledConnAdapter {
 
         /**
          * Creates a new connection adapter.
          *
          * @param entry   the pool entry for the connection being wrapped
+         * @param plan    the planned route for this connection
          */
         protected ConnAdapter(PoolEntry entry, HttpRoute plan) {
-            super(SingleClientConnManager.this, entry.connection);
+            super(SingleClientConnManager.this, entry);
             super.markedReusable = true;
-
             entry.plannedRoute = plan;
-            this.poolEntry = entry;
         }
-
-
-        /**
-         * Asserts that this adapter is still attached.
-         *
-         * @throws IllegalStateException
-         *      if it is {@link #detach detach}ed
-         */
-        protected final void assertAttached() {
-            if (wrappedConnection == null) {
-                throw new IllegalStateException("Adapter is detached.");
-            }
-        }
-
-        /**
-         * Checks if the wrapped connection is still available.
-         *
-         * @return <code>true</code> if still available,
-         *         <code>false</code> if {@link #detach detached}
-         */
-        protected boolean hasConnection() {
-            return wrappedConnection != null;
-        }
-
-        /**
-         * Detaches this adapter from the wrapped connection.
-         * This adapter becomes useless.
-         */
-        protected void detach() {
-            this.wrappedConnection = null;
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public HttpRoute getRoute() {
-
-            assertAttached();
-            return (poolEntry.tracker == null) ?
-                null : poolEntry.tracker.toRoute();
-        }
-
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void open(HttpRoute route,
-                         HttpContext context, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.open(route, context, params);
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void tunnelCreated(boolean secure, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.tunnelCreated(secure, params);
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void layerProtocol(HttpContext context, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.layerProtocol(context, params);
-        }
-
-
-
-        // non-javadoc, see interface HttpConnection        
-        public void close() throws IOException {
-            if (poolEntry != null)
-                poolEntry.closing();
-
-            if (hasConnection()) {
-                wrappedConnection.close();
-            } else {
-                // do nothing
-            }
-        }
-
-        // non-javadoc, see interface HttpConnection        
-        public void shutdown() throws IOException {
-            if (poolEntry != null)
-                poolEntry.closing();
-
-            if (hasConnection()) {
-                wrappedConnection.shutdown();
-            } else {
-                // do nothing
-            }
-        }
-
-    } // class ConnAdapter
+    }
 
 
 } // class SingleClientConnManager

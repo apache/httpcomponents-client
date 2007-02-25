@@ -1146,7 +1146,7 @@ public class ThreadSafeClientConnManager
      * can be {@link #detach detach}ed to prevent further use on release.
      */
     private class HttpConnectionAdapter
-        extends AbstractClientConnectionAdapter {
+        extends AbstractClientConnAdapter {
 
         /** The wrapped pool entry. */
         private TrackingPoolEntry poolEntry;
