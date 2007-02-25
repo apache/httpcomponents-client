@@ -42,7 +42,8 @@ import org.apache.http.conn.ClientConnectionManager;
 
 /**
  * Abstract adapter from pool {@link AbstractPoolEntry entries} to
- * {@link ManagedClientConnection managed} client connections.
+ * {@link org.apache.http.conn.ManagedClientConnection managed}
+ * client connections.
  * The connection in the pool entry is used to initialize the base class.
  * In addition, methods to establish a route are delegated to the
  * pool entry. {@link #shutdown shutdown} and {@link #close close}
@@ -69,18 +70,10 @@ public abstract class AbstractPooledConnAdapter
      *
      * @param manager   the connection manager
      * @param entry     the pool entry for the connection being wrapped
-     * <!--
-     * @ param plan      the planned route, which will be used
-     *                  to update the pool entry
-     * -->
      */
     protected AbstractPooledConnAdapter(ClientConnectionManager manager,
-                                        AbstractPoolEntry entry
-                                        //, HttpRoute plan
-                                        ) {
+                                        AbstractPoolEntry entry) {
         super(manager, entry.connection);
-
-        //entry.plannedRoute = plan;
         this.poolEntry = entry;
     }
 

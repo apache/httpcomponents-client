@@ -349,7 +349,9 @@ public class ThreadSafeClientConnManager
                  "connection not obtained from this manager.");
         }
         HttpConnectionAdapter hca = (HttpConnectionAdapter) conn;
-        if ((hca.poolEntry != null) && (hca.poolEntry.manager != this)) {
+        if ((hca.poolEntry != null) &&
+            //@@@ (hca.poolEntry.manager != this) &&
+            (hca.connManager != this)) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
@@ -366,11 +368,9 @@ public class ThreadSafeClientConnManager
                 // Consuming the response is handled outside in 4.0.
 
                 // make sure this connection will not be re-used
-                //@@@ Can we set some kind of flag before shutting down?
-                //@@@ If shutdown throws an exception, we can't be sure
-                //@@@ that the connection will consider itself closed.
-                // be nice and call close() rather than shutdown()?
-                // I'm not in a nice mood today. -rolandw-
+                // Shut down rather than close, we might have gotten here
+                // because of a shutdown trigger.
+                // Shutdown of the adapter also clears the tracked route.
                 hca.shutdown();
             }
         } catch (IOException iox) {
@@ -379,7 +379,7 @@ public class ThreadSafeClientConnManager
                 LOG.debug("Exception shutting down released connection.",
                           iox);
         } finally {
-            TrackingPoolEntry entry = hca.poolEntry;
+            TrackingPoolEntry entry = (TrackingPoolEntry) hca.poolEntry;
             hca.detach();
             releasePoolEntry(entry);
         }
@@ -1126,6 +1126,7 @@ public class ThreadSafeClientConnManager
         private TrackingPoolEntry(OperatedClientConnection occ) {
             super(occ);
             //@@@ pass planned route to the constructor?
+            //@@@ or update when the adapter is created?
             this.manager = ThreadSafeClientConnManager.this;
             this.reference = new WeakReference(this, REFERENCE_QUEUE);
         }
@@ -1145,12 +1146,7 @@ public class ThreadSafeClientConnManager
      * All connections given out by the manager are wrappers which
      * can be {@link #detach detach}ed to prevent further use on release.
      */
-    private class HttpConnectionAdapter
-        extends AbstractClientConnAdapter {
-
-        /** The wrapped pool entry. */
-        private TrackingPoolEntry poolEntry;
-
+    private class HttpConnectionAdapter extends AbstractPooledConnAdapter {
 
         /**
          * Creates a new adapter.
@@ -1158,106 +1154,10 @@ public class ThreadSafeClientConnManager
          * @param entry   the pool entry for the connection being wrapped
          */
         protected HttpConnectionAdapter(TrackingPoolEntry entry) {
-            super(ThreadSafeClientConnManager.this, entry.connection);
-            poolEntry = entry;
+            super(ThreadSafeClientConnManager.this, entry);
             super.markedReusable = true;
         }
-
-
-        /**
-         * Asserts that this adapter is still attached.
-         *
-         * @throws IllegalStateException
-         *      if it is {@link #detach detach}ed
-         */
-        protected final void assertAttached() {
-            if (poolEntry == null) {
-                throw new IllegalStateException("Adapter is detached.");
-            }
-        }
-
-        /**
-         * Checks if the wrapped connection is still available.
-         *
-         * @return <code>true</code> if still available,
-         *         <code>false</code> if {@link #detach detached}
-         */
-        protected boolean hasConnection() {
-            return wrappedConnection != null;
-        }
-
-        /**
-         * Detaches this adapter from the wrapped connection.
-         * This adapter becomes useless.
-         */
-        private void detach() {
-            this.wrappedConnection = null;
-            this.poolEntry = null;
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public HttpRoute getRoute() {
-
-            assertAttached();
-            return (poolEntry.tracker == null) ?
-                null : poolEntry.tracker.toRoute();
-        }
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void open(HttpRoute route,
-                         HttpContext context, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.open(route, context, params);
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void tunnelCreated(boolean secure, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.tunnelCreated(secure, params);
-        }
-
-
-        // non-javadoc, see interface ManagedHttpConnection
-        public void layerProtocol(HttpContext context, HttpParams params)
-            throws IOException {
-
-            assertAttached();
-            poolEntry.layerProtocol(context, params);
-        }
-
-
-
-        // non-javadoc, see interface HttpConnection        
-        public void close() throws IOException {
-            if (poolEntry != null)
-                poolEntry.closing();
-
-            if (hasConnection()) {
-                wrappedConnection.close();
-            } else {
-                // do nothing
-            }
-        }
-
-        // non-javadoc, see interface HttpConnection        
-        public void shutdown() throws IOException {
-            if (poolEntry != null)
-                poolEntry.closing();
-
-            if (hasConnection()) {
-                wrappedConnection.shutdown();
-            } else {
-                // do nothing
-            }
-        }
-
-    } // class HttpConnectionAdapter
+    }
 
 } // class ThreadSafeClientConnManager
 

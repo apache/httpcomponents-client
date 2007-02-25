@@ -46,7 +46,7 @@ import org.apache.http.conn.OperatedClientConnection;
 /**
  * A pool entry for use by connection manager implementations.
  * Pool entries work in conjunction with an
- * {@link AbstractClientConnectionAdapter adapter}.
+ * {@link AbstractClientConnAdapter adapter}.
  * The adapter is handed out to applications that obtain a connection.
  * The pool entry stores the underlying connection and tracks the
  * {@link HttpRoute route} established.
@@ -182,7 +182,7 @@ public abstract class AbstractPoolEntry {
                 ("Connection is already tunnelled.");
         }
 
-        // LOG.debug
+        // LOG.debug?
 
         this.connection.update(null, tracker.getTargetHost(),
                                secure, params);
