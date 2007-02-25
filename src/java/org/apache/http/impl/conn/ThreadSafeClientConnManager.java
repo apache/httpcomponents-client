@@ -1101,16 +1101,10 @@ public class ThreadSafeClientConnManager
      * For historical reasons, these entries are sometimes referred to
      * as <i>connections</i> throughout the code.
      */
-    private class TrackingPoolEntry {
-
-        /** The underlying connection being pooled or used. */
-        private OperatedClientConnection connection;
+    private class TrackingPoolEntry extends AbstractPoolEntry {
 
         /** The route for which this entry gets allocated. */
         private HostConfiguration plannedRoute;
-
-        /** The tracked route, or <code>null</code> before tracking starts. */
-        private RouteTracker tracker;
 
         /** The connection manager. */
         private ThreadSafeClientConnManager manager;
@@ -1130,165 +1124,18 @@ public class ThreadSafeClientConnManager
          * @param occ   the underlying connection for this entry
          */
         private TrackingPoolEntry(OperatedClientConnection occ) {
-            this.connection = occ;
+            super(occ);
             //@@@ pass planned route to the constructor?
-            this.tracker = null;
             this.manager = ThreadSafeClientConnManager.this;
             this.reference = new WeakReference(this, REFERENCE_QUEUE);
         }
 
 
-        /**
-         * Opens the underlying connection.
-         *
-         * @param route         the route along which to open the connection
-         * @param context       the context for opening the connection
-         * @param params        the parameters for opening the connection
-         *
-         * @throws IOException  in case of a problem
-         */
-        private void open(HttpRoute route,
-                          HttpContext context, HttpParams params)
-            throws IOException {
-
-            if (route == null) {
-                throw new IllegalArgumentException
-                    ("Route must not be null.");
-            }
-            //@@@ is context allowed to be null? depends on operator?
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
-            if ((this.tracker != null) && this.tracker.isConnected()) {
-                throw new IllegalStateException("Connection already open.");
-            }
-
-            // - collect the arguments
-            // - call the operator
-            // - update the tracking data
-            // In this order, we can be sure that only a successful
-            // opening of the connection will be tracked.
-
-            //@@@ verify route against planned route?
-
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Open connection for " + route);
-            }
-
-            this.tracker = new RouteTracker(route);
-            final HttpHost proxy  = route.getProxyHost();
-
-            ThreadSafeClientConnManager.this.connOperator.openConnection
-                (this.connection,
-                 (proxy != null) ? proxy : route.getTargetHost(),
-                 route.getLocalAddress(),
-                 context, params);
-
-            if (proxy == null)
-                this.tracker.connectTarget(this.connection.isSecure());
-            else
-                this.tracker.connectProxy(proxy, this.connection.isSecure());
-
-        } // open
-
-
-        /**
-         * Tracks tunnelling of the connection.
-         * The tunnel has to be established outside by sending a CONNECT
-         * request to the proxy.
-         *
-         * @param secure    <code>true</code> if the tunnel should be
-         *                  considered secure, <code>false</code> otherwise
-         * @param params    the parameters for tunnelling the connection
-         *
-         * @throws IOException  in case of a problem
-         */
-        private void tunnelCreated(boolean secure, HttpParams params)
-            throws IOException {
-
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
-
-            //@@@ check for proxy in planned route?
-            if ((this.tracker == null) || !this.tracker.isConnected()) {
-                throw new IllegalStateException("Connection not open.");
-            }
-            if (this.tracker.isTunnelled()) {
-                throw new IllegalStateException
-                    ("Connection is already tunnelled.");
-            }
-
-            this.connection.update(null, tracker.getTargetHost(),
-                                   secure, params);
-            this.tracker.createTunnel(secure);
-
-        } // tunnelCreated
-
-
-        /**
-         * Layers a protocol on top of an established tunnel.
-         *
-         * @param context   the context for layering
-         * @param params    the parameters for layering
-         *
-         * @throws IOException  in case of a problem
-         */
-        private void layerProtocol(HttpContext context, HttpParams params)
-            throws IOException {
-
-            //@@@ is context allowed to be null? depends on operator?
-            if (params == null) {
-                throw new IllegalArgumentException
-                    ("Parameters must not be null.");
-            }
-
-            if ((this.tracker == null) || !this.tracker.isConnected()) {
-                throw new IllegalStateException("Connection not open.");
-            }
-            if (!this.tracker.isTunnelled()) {
-                //@@@ allow this?
-                throw new IllegalStateException
-                    ("Protocol layering without a tunnel not supported.");
-            }
-            if (this.tracker.isLayered()) {
-                throw new IllegalStateException
-                    ("Multiple protocol layering not supported.");
-            }
-
-            // - collect the arguments
-            // - call the operator
-            // - update the tracking data
-            // In this order, we can be sure that only a successful
-            // layering on top of the connection will be tracked.
-
-            final HttpHost target = tracker.getTargetHost();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Layer protocol on connection to " + target);
-            }
-
-            ThreadSafeClientConnManager.this.connOperator
-                .updateSecureConnection(this.connection, target,
-                                        context, params);
-
-            this.tracker.layerProtocol(this.connection.isSecure());
-
-        } // layerProtocol
-
-
-        /**
-         * Tracks close or shutdown of the connection.
-         * There is no distinction between the two, the route is dropped
-         * in both cases. This method should be called regardless of
-         * whether the close or shutdown succeeds or triggers an error.
-         */
-        private void closing() { 
-           tracker = null;
+        // non-javadoc, see base AbstractPoolEntry
+        protected ClientConnectionOperator getOperator() {
+            return ThreadSafeClientConnManager.this.connOperator;
         }
+
 
     } // class TrackingPoolEntry
 
