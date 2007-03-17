@@ -30,13 +30,15 @@
 
 package org.apache.http.client;
 
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.impl.cookie.TestAllCookieImpl;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import org.apache.http.conn.ssl.TestAllSSL;
+import org.apache.http.cookie.TestAllCookie;
 import org.apache.http.impl.client.TestAllHttpClientImpl;
 import org.apache.http.impl.conn.TestAllConnImpl;
-
-import junit.framework.*;
+import org.apache.http.impl.cookie.TestAllCookieImpl;
 
 public class TestAll extends TestCase {
 

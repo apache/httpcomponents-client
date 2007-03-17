@@ -30,22 +30,19 @@
 
 package org.apache.http.impl.conn;
 
-import java.net.Socket;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-import junit.framework.*;
-
-import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.HttpGet;
 import org.apache.http.message.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
-
-import org.apache.http.localserver.ServerTestBase;
 
 
 /**

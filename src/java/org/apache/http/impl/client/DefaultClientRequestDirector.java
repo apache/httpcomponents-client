@@ -33,25 +33,24 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpVersion;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpException;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
-import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.RoutedRequest;
+import org.apache.http.conn.BasicManagedEntity;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.RouteDirector;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpExecutionContext;
-import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.RouteDirector;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.BasicManagedEntity;
-import org.apache.http.client.RoutedRequest;
-import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.protocol.HttpRequestExecutor;
 
 
 

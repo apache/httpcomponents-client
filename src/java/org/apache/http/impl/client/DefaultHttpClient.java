@@ -33,24 +33,22 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
+import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpException;
-import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.RoutedRequest;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.ClientConnectionManager;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.RoutedRequest;
-import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestExecutor;
 
 
 

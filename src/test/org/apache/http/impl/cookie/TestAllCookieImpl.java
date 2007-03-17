@@ -30,7 +30,9 @@
 
 package org.apache.http.impl.cookie;
 
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 public class TestAllCookieImpl extends TestCase {
 

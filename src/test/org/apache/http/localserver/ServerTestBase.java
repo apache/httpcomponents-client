@@ -32,25 +32,23 @@ package org.apache.http.localserver;
 
 import java.net.Socket;
 
-import junit.framework.*;
+import junit.framework.TestCase;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.RequestConnControl;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.HttpExecutionContext;
-import org.apache.http.impl.DefaultHttpClientConnection;
+import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
+import org.apache.http.impl.DefaultHttpClientConnection;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
 
 
 /**

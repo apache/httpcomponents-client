@@ -33,12 +33,12 @@ package org.apache.http.conn;
 
 import java.util.Iterator;
 
-import org.apache.http.HttpHost;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import org.apache.http.HttpHost;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 
 /**
  * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
