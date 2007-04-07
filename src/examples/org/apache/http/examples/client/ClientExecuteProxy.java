@@ -33,15 +33,26 @@ package org.apache.http.examples.client;
 
 
 import org.apache.http.Header;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.RoutedRequest;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.PlainSocketFactory;
+import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeRegistry;
+import org.apache.http.conn.SocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
@@ -49,19 +60,6 @@ import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
-
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoute;
-//import org.apache.http.impl.conn.SingleClientConnManager;
-import org.apache.http.impl.conn.ThreadSafeClientConnManager;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.RoutedRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 
 

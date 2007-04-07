@@ -38,6 +38,8 @@ import java.net.Socket;
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
+import org.apache.http.io.HttpDataReceiver;
+import org.apache.http.io.HttpDataTransmitter;
 
 import org.apache.http.conn.OperatedClientConnection;
 
@@ -117,6 +119,26 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     } // shutdown
 
 
+    protected HttpDataReceiver createHttpDataReceiver(
+            final HttpParams params) throws IOException {
+        HttpDataReceiver receiver = super.createHttpDataReceiver(params);
+        if (Wire.WIRE_LOG.enabled()) {
+            receiver = new LoggingHttpDataReceiverDecorator(receiver, Wire.WIRE_LOG);
+        }
+        return receiver;
+    }
+
+    
+    protected HttpDataTransmitter createHttpDataTransmitter(
+            final HttpParams params) throws IOException {
+        HttpDataTransmitter transmitter = super.createHttpDataTransmitter(params);
+        if (Wire.WIRE_LOG.enabled()) {
+            transmitter = new LoggingHttpDataTransmitterDecorator(transmitter, Wire.WIRE_LOG);
+        }
+        return transmitter;
+    }
+
+    
     // non-javadoc, see interface OperatedClientConnection
     public void open(Socket sock, HttpHost target,
                      boolean secure, HttpParams params)
@@ -137,6 +159,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
 
         bind(sock, params);
+        
         targetHost = target;
         connSecure = secure;
 

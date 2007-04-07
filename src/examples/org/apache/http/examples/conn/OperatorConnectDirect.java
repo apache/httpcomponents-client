@@ -32,25 +32,24 @@
 package org.apache.http.examples.conn;
 
 
-import org.apache.http.HttpHost;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
-
+import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExecutionContext;
 
 
 
