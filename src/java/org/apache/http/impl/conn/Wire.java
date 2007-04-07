@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Logs data to the wire LOG.
@@ -45,12 +44,9 @@ import org.apache.commons.logging.LogFactory;
  */
 class Wire {
 
-    public static Wire WIRE_LOG = new Wire(LogFactory.getLog("org.apache.http.wire"));
-    
-    /** Log for any wire messages. */
     private Log log;
     
-    private Wire(Log log) {
+    public Wire(Log log) {
         this.log = log;
     }
     

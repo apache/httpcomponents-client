@@ -35,7 +35,13 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.net.Socket;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpDataReceiver;
@@ -58,6 +64,9 @@ import org.apache.http.conn.OperatedClientConnection;
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection {
 
+    private static final Log HEADERS_LOG = LogFactory.getLog("org.apache.http.conn.headers");
+    private static final Log WIRE_LOG = LogFactory.getLog("org.apache.http.conn.wire");
+    
     /** The unconnected socket between announce and open. */
     private volatile Socket announcedSocket;
 
@@ -122,8 +131,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     protected HttpDataReceiver createHttpDataReceiver(
             final HttpParams params) throws IOException {
         HttpDataReceiver receiver = super.createHttpDataReceiver(params);
-        if (Wire.WIRE_LOG.enabled()) {
-            receiver = new LoggingHttpDataReceiverDecorator(receiver, Wire.WIRE_LOG);
+        if (WIRE_LOG.isDebugEnabled()) {
+            receiver = new LoggingHttpDataReceiverDecorator(receiver, new Wire(WIRE_LOG));
         }
         return receiver;
     }
@@ -132,8 +141,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     protected HttpDataTransmitter createHttpDataTransmitter(
             final HttpParams params) throws IOException {
         HttpDataTransmitter transmitter = super.createHttpDataTransmitter(params);
-        if (Wire.WIRE_LOG.enabled()) {
-            transmitter = new LoggingHttpDataTransmitterDecorator(transmitter, Wire.WIRE_LOG);
+        if (WIRE_LOG.isDebugEnabled()) {
+            transmitter = new LoggingHttpDataTransmitterDecorator(transmitter, new Wire(WIRE_LOG));
         }
         return transmitter;
     }
@@ -190,5 +199,30 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     } // update
 
+
+    public HttpResponse receiveResponseHeader(
+            final HttpParams params) throws HttpException, IOException {
+        HttpResponse response = super.receiveResponseHeader(params);
+        if (HEADERS_LOG.isDebugEnabled()) {
+            HEADERS_LOG.debug(">> " + response.getStatusLine().toString());
+            Header[] headers = response.getAllHeaders();
+            for (int i = 0; i < headers.length; i++) {
+                HEADERS_LOG.debug(">> " + headers[i].toString());
+            }
+        }
+        return response;
+    }
+
+
+    public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
+        super.sendRequestHeader(request);
+        if (HEADERS_LOG.isDebugEnabled()) {
+            HEADERS_LOG.debug("<< " + request.getRequestLine().toString());
+            Header[] headers = request.getAllHeaders();
+            for (int i = 0; i < headers.length; i++) {
+                HEADERS_LOG.debug("<< " + headers[i].toString());
+            }
+        }
+    }
 
 } // class DefaultClientConnection
