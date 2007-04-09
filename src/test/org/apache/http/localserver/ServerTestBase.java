@@ -212,7 +212,7 @@ public abstract class ServerTestBase extends TestCase {
 
         DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
         Socket sock = schm.getSocketFactory().connectSocket
-            (null, target.getHostName(), target.getPort(), null, 0, params);
+            (null, target.getHostName(), port, null, 0, params);
         conn.bind(sock, params);
 
         return conn;
