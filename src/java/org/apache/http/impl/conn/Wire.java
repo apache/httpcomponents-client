@@ -42,7 +42,7 @@ import org.apache.commons.logging.Log;
  * 
  * @since 2.0beta1
  */
-class Wire {
+public class Wire {
 
     private Log log;
     

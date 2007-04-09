@@ -134,6 +134,7 @@ public interface AuthScheme {
      * 
      * @return the authorization string
      */
-    Header authenticate(Credentials credentials, HttpMessage message) throws AuthenticationException;
+    Header authenticate(Credentials credentials, HttpMessage message) 
+            throws AuthenticationException;
     
 }

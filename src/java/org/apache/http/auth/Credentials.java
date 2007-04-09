@@ -32,13 +32,19 @@ package org.apache.http.auth;
 
 /**
  * <p>Authentication credentials.</p>
- * <p>
- * This  is just a marker interface, the  current implementation has no methods.
- * </p>
+ * 
  * @author Unascribed
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
  * @version $Revision$ $Date$
  */
 public interface Credentials {
+    
+    /** Returns textual representation of the user credentials, which, for instance,
+     * could be sent in the {@link HTTPAuth#WWW_AUTH} header.
+     * 
+     * @return user credentials as a string of text
+     */ 
+    String toText();
+    
 }
