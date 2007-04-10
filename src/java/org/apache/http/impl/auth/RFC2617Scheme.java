@@ -84,8 +84,10 @@ public abstract class RFC2617Scheme implements AuthScheme {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
         }
-        if (!header.getName().equalsIgnoreCase(HTTPAuth.WWW_AUTH)) {
-            throw new MalformedChallengeException("Unexpected header name: " + header.getName());
+        String authheader = header.getName();
+        if (!authheader.equalsIgnoreCase(HTTPAuth.WWW_AUTH) 
+                && !authheader.equalsIgnoreCase(HTTPAuth.PROXY_AUTH)) {
+            throw new MalformedChallengeException("Unexpected header name: " + authheader);
         }
         CharArrayBuffer buffer;
         int pos;
@@ -114,6 +116,10 @@ public abstract class RFC2617Scheme implements AuthScheme {
             throw new MalformedChallengeException("Invalid scheme identifier: " + s);
         }
         HeaderElement[] elements = BasicHeaderElement.parseAll(buffer, pos, buffer.length());
+        if (elements.length == 0) {
+            throw new MalformedChallengeException("Authentication challenge is empty");
+        }
+        
         this.params = new HashMap(elements.length);
         for (int i = 0; i < elements.length; i++) {
             HeaderElement element = elements[i];

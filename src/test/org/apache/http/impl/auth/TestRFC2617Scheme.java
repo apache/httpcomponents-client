@@ -37,6 +37,8 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.HTTPAuth;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BufferedHeader;
+import org.apache.http.util.CharArrayBuffer;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -97,7 +99,9 @@ public class TestRFC2617Scheme extends TestCase {
 
     public void testProcessChallengeWithLotsOfBlanks() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
-        Header header = new BasicHeader(HTTPAuth.WWW_AUTH, "     Test       realm=\"realm1\"");
+        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        buffer.append(" WWW-Authenticate:    Test       realm=\"realm1\"");
+        Header header = new BufferedHeader(buffer);
         
         authscheme.processChallenge(header);
         
@@ -108,6 +112,17 @@ public class TestRFC2617Scheme extends TestCase {
     public void testInvalidHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader("whatever", "Test realm=\"realm1\"");
+        try {
+            authscheme.processChallenge(header);
+            fail("MalformedChallengeException should have been thrown");
+        } catch (MalformedChallengeException ex) {
+            //expected
+        }
+    }
+    
+    public void testEmptyHeader() throws Exception {
+        TestAuthScheme authscheme = new TestAuthScheme();
+        Header header = new BasicHeader(HTTPAuth.WWW_AUTH, "Test    ");
         try {
             authscheme.processChallenge(header);
             fail("MalformedChallengeException should have been thrown");

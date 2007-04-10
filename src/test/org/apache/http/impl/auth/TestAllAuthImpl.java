@@ -44,6 +44,7 @@ public class TestAllAuthImpl extends TestCase {
         TestSuite suite = new TestSuite();
 
         suite.addTest(TestRFC2617Scheme.suite());
+        suite.addTest(TestBasicAuth.suite());
 
         return suite;
     }
