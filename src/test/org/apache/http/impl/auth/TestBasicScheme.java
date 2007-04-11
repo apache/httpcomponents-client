@@ -53,23 +53,23 @@ import org.apache.http.util.EncodingUtils;
  * 
  * @version $Id$
  */
-public class TestBasicAuth extends TestCase {
+public class TestBasicScheme extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestBasicAuth(final String testName) throws IOException {
+    public TestBasicScheme(final String testName) throws IOException {
         super(testName);
     }
 
     // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestBasicAuth.class.getName() };
+        String[] testCaseName = { TestBasicScheme.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
     // ------------------------------------------------------- TestCase Methods
 
     public static Test suite() {
-        TestSuite suite = new TestSuite(TestBasicAuth.class);
+        TestSuite suite = new TestSuite(TestBasicScheme.class);
         return suite;
     }
 

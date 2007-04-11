@@ -55,23 +55,23 @@ import org.apache.http.message.BasicHttpRequest;
  * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  */
-public class TestDigestAuth extends TestCase {
+public class TestDigestScheme extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestDigestAuth(String testName) {
+    public TestDigestScheme(String testName) {
         super(testName);
     }
 
     // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestDigestAuth.class.getName() };
+        String[] testCaseName = { TestDigestScheme.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
     // ------------------------------------------------------- TestCase Methods
 
     public static Test suite() {
-        return new TestSuite(TestDigestAuth.class);
+        return new TestSuite(TestDigestScheme.class);
     }
 
     public void testDigestAuthenticationWithNoRealm() throws Exception {
