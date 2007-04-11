@@ -32,7 +32,7 @@ package org.apache.http.impl.auth;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
-import org.apache.http.HttpMessage;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.HTTPAuth;
@@ -89,7 +89,7 @@ public class BasicScheme extends RFC2617Scheme {
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
      * 
-     * @since 3.0
+     * @since 4.0
      */
     public void processChallenge(
             final Header header) throws MalformedChallengeException {
@@ -124,7 +124,7 @@ public class BasicScheme extends RFC2617Scheme {
      * Produces basic authorization header for the given set of {@link Credentials}.
      * 
      * @param credentials The set of credentials to be used for athentication
-     * @param message The message being authenticated
+     * @param request The request being authenticated
      * @throws InvalidCredentialsException if authentication credentials
      *         are not valid or not applicable for this authentication scheme
      * @throws AuthenticationException if authorization string cannot 
@@ -136,17 +136,17 @@ public class BasicScheme extends RFC2617Scheme {
      */
     public Header authenticate(
             final Credentials credentials, 
-            final HttpMessage message) throws AuthenticationException {
+            final HttpRequest request) throws AuthenticationException {
 
         if (credentials == null) {
             throw new IllegalArgumentException("Credentials may not be null");
         }
-        if (message == null) {
-            throw new IllegalArgumentException("HTTP message may not be null");
+        if (request == null) {
+            throw new IllegalArgumentException("HTTP request may not be null");
         }
         
-        String charset = AuthParams.getCredentialCharset(message.getParams());
-        return authenticate(credentials, charset);
+        String charset = AuthParams.getCredentialCharset(request.getParams());
+        return authenticate(credentials, charset, isProxy());
     }
     
     /**
@@ -160,22 +160,33 @@ public class BasicScheme extends RFC2617Scheme {
      * 
      * @since 4.0
      */
-    public static Header authenticate(final Credentials credentials, final String charset) {
+    public static Header authenticate(
+            final Credentials credentials, 
+            final String charset, 
+            boolean proxy) {
         if (credentials == null) {
             throw new IllegalArgumentException("Credentials may not be null"); 
         }
         if (charset == null) {
             throw new IllegalArgumentException("charset may not be null");
         }
+
         CharArrayBuffer buffer = new CharArrayBuffer(32);
-        buffer.append(HTTPAuth.WWW_AUTH_RESP);
-        buffer.append(": ");
-        buffer.append("Basic ");
+        buffer.append(credentials.getPrincipalName());
+        buffer.append(":");
+        buffer.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
+
+        byte[] base64password = Base64.encodeBase64(
+                EncodingUtils.getBytes(buffer.toString(), charset));
         
-        byte[] passwd = Base64.encodeBase64(
-                EncodingUtils.getBytes(credentials.toText(), charset));
-        
-        buffer.append(passwd, 0, passwd.length);
+        buffer.clear();
+        if (proxy) {
+            buffer.append(HTTPAuth.PROXY_AUTH_RESP);
+        } else {
+            buffer.append(HTTPAuth.WWW_AUTH_RESP);
+        }
+        buffer.append(": Basic ");
+        buffer.append(base64password, 0, base64password.length);
         
         return new BufferedHeader(buffer);
     }

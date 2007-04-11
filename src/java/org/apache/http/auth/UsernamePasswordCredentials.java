@@ -106,7 +106,7 @@ public class UsernamePasswordCredentials implements Credentials {
      * @return the userName
      * @see #setUserName(String)
      */
-    public String getUserName() {
+    public String getPrincipalName() {
         return userName;
     }
 

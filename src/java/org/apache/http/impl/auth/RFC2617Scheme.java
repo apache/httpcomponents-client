@@ -60,6 +60,11 @@ public abstract class RFC2617Scheme implements AuthScheme {
     private Map params = null;
 
     /**
+     * Flag whether authenticating against a proxy.
+     */
+    private boolean proxy;
+    
+    /**
      * Default constructor for RFC2617 compliant authetication schemes.
      * 
      * @since 3.0
@@ -85,10 +90,14 @@ public abstract class RFC2617Scheme implements AuthScheme {
             throw new IllegalArgumentException("Header may not be null");
         }
         String authheader = header.getName();
-        if (!authheader.equalsIgnoreCase(HTTPAuth.WWW_AUTH) 
-                && !authheader.equalsIgnoreCase(HTTPAuth.PROXY_AUTH)) {
+        if (authheader.equalsIgnoreCase(HTTPAuth.WWW_AUTH)) {
+            this.proxy = false;
+        } else if (authheader.equalsIgnoreCase(HTTPAuth.PROXY_AUTH)) {
+            this.proxy = true;
+        } else {
             throw new MalformedChallengeException("Unexpected header name: " + authheader);
         }
+
         CharArrayBuffer buffer;
         int pos;
         if (header instanceof BufferedHeader) {
@@ -160,6 +169,17 @@ public abstract class RFC2617Scheme implements AuthScheme {
      */
     public String getRealm() {
         return getParameter("realm");
+    }
+
+    /**
+     * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
+     * otherwise.
+     *  
+     * @return <code>true</code> if authenticating against a proxy, <code>false</code>
+     * otherwise
+     */
+    public boolean isProxy() {
+        return this.proxy;
     }
     
 }

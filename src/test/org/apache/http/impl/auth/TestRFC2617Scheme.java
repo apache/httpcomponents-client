@@ -31,7 +31,7 @@
 package org.apache.http.impl.auth;
 
 import org.apache.http.Header;
-import org.apache.http.HttpMessage;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.HTTPAuth;
@@ -63,7 +63,7 @@ public class TestRFC2617Scheme extends TestCase {
 
         public Header authenticate(
                 final Credentials credentials, 
-                final HttpMessage message) throws AuthenticationException {
+                final HttpRequest request) throws AuthenticationException {
             return null;
         }
 

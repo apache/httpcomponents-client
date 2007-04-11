@@ -31,7 +31,7 @@
 package org.apache.http.auth;
 
 import org.apache.http.Header;
-import org.apache.http.HttpMessage;
+import org.apache.http.HttpRequest;
 
 /**
  * <p>
@@ -128,13 +128,13 @@ public interface AuthScheme {
      * Produces an authorization string for the given set of {@link Credentials}.
      * 
      * @param credentials The set of credentials to be used for athentication
-     * @param message The request being authenticated
+     * @param request The request being authenticated
      * @throws AuthenticationException if authorization string cannot 
      *   be generated due to an authentication failure
      * 
      * @return the authorization string
      */
-    Header authenticate(Credentials credentials, HttpMessage message) 
+    Header authenticate(Credentials credentials, HttpRequest request) 
             throws AuthenticationException;
     
 }

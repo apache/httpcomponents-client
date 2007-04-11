@@ -37,14 +37,13 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpVersion;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.HTTPAuth;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.util.EncodingUtils;
 
 /**
@@ -94,7 +93,7 @@ public class TestBasicAuth extends TestCase {
         }
         
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("dh", buffer.toString());
-        Header header = BasicScheme.authenticate(credentials, "ISO-8859-1");
+        Header header = BasicScheme.authenticate(credentials, "ISO-8859-1", false);
         assertEquals("Basic ZGg65C32Lfw=", header.getValue());
     }
     
@@ -107,11 +106,33 @@ public class TestBasicAuth extends TestCase {
         BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
         
-        HttpMessage message = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        Header authResponse = authscheme.authenticate(creds, message);
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+        Header authResponse = authscheme.authenticate(creds, request);
         
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
+        assertEquals(HTTPAuth.WWW_AUTH_RESP, authResponse.getName());
+        assertEquals(expected, authResponse.getValue());
+        assertEquals("test", authscheme.getRealm());
+        assertTrue(authscheme.isComplete());
+        assertFalse(authscheme.isConnectionBased());
+    }
+
+    public void testBasicProxyAuthentication() throws Exception {
+        UsernamePasswordCredentials creds = 
+            new UsernamePasswordCredentials("testuser", "testpass");
+        
+        Header challenge = new BasicHeader(HTTPAuth.PROXY_AUTH, "Basic realm=\"test\"");
+        
+        BasicScheme authscheme = new BasicScheme();
+        authscheme.processChallenge(challenge);
+        
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+        Header authResponse = authscheme.authenticate(creds, request);
+        
+        String expected = "Basic " + EncodingUtils.getAsciiString(
+            Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
+        assertEquals(HTTPAuth.PROXY_AUTH_RESP, authResponse.getName());
         assertEquals(expected, authResponse.getValue());
         assertEquals("test", authscheme.getRealm());
         assertTrue(authscheme.isComplete());

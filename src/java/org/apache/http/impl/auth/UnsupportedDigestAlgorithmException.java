@@ -28,20 +28,44 @@
  *
  */
 
-package org.apache.http.auth;
+package org.apache.http.impl.auth;
 
 /**
- * User name and password based authentication credentials.
+ * Authentication credentials required to respond to a authentication 
+ * challenge are invalid
+ *
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @author Unascribed
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * 
- * @version $Revision$ $Date$
+ * @since 4.0
  */
-public interface Credentials {
+public class UnsupportedDigestAlgorithmException extends RuntimeException {
 
-    String getPrincipalName();
+    private static final long serialVersionUID = 319558534317118022L;
 
-    String getPassword();
-    
+    /**
+     * Creates a new UnsupportedAuthAlgoritmException with a <tt>null</tt> detail message. 
+     */
+    public UnsupportedDigestAlgorithmException() {
+        super();
+    }
+
+    /**
+     * Creates a new UnsupportedAuthAlgoritmException with the specified message.
+     * 
+     * @param message the exception detail message
+     */
+    public UnsupportedDigestAlgorithmException(String message) {
+        super(message);
+    }
+
+    /**
+     * Creates a new UnsupportedAuthAlgoritmException with the specified detail message and cause.
+     * 
+     * @param message the exception detail message
+     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
+     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     */
+    public UnsupportedDigestAlgorithmException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
