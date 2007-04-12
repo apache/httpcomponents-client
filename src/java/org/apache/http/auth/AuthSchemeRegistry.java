@@ -35,7 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -54,7 +53,7 @@ public final class AuthSchemeRegistry {
     private final Map registeredSchemes = new LinkedHashMap();
     
     /**
-     * Registers a {@link CookieSpecFactory} with  the given identifier. If a factory with the 
+     * Registers a {@link AuthSchemeFactory} with  the given identifier. If a factory with the 
      * given name already exists it will be overridden. This name is the same one used to 
      * retrieve the {@link AuthScheme authentication scheme} from {@link #getAuthScheme(String)}.
      * 
