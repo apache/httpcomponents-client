@@ -45,7 +45,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 /**
- * Test cases for {@link CookiePolicy}.
+ * Test cases for {@link CookieSpecRegistry}.
  */
 public class TestCookiePolicy extends TestCase {
 
@@ -63,7 +63,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testRegisterUnregisterCookieSpecFactory() {
-        CookiePolicy registry  = CookiePolicy.DEFAULT; 
+        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
         List names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(0, names.size());
@@ -98,7 +98,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testGetNewCookieSpec() {
-        CookiePolicy registry  = CookiePolicy.DEFAULT; 
+        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
         registry.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
                 new BrowserCompatSpecFactory());
         registry.register(CookieSpecParams.NETSCAPE, 
@@ -131,7 +131,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testInvalidInput() {
-        CookiePolicy registry  = CookiePolicy.DEFAULT; 
+        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
         try {
             registry.register(null, null);
             fail("IllegalArgumentException should have been thrown");

@@ -39,17 +39,17 @@ import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * Authentication policy class. The Authentication policy provides corresponding
- * authentication scheme interfrace for a given type of authorization challenge. 
+ * Authentication scheme registry that can be used to obtain the corresponding
+ * authentication scheme implementation for a given type of authorization challenge. 
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * @since 3.0
  */
-public final class AuthPolicy {
+public final class AuthSchemeRegistry {
 
-    public final static AuthPolicy DEFAULT = new AuthPolicy();
+    public final static AuthSchemeRegistry DEFAULT = new AuthSchemeRegistry();
     
     private final Map registeredSchemes = new LinkedHashMap();
     

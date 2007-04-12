@@ -105,7 +105,7 @@ public final class CookieSpecParams {
     }
     
     /**
-     * Assigns the {@link org.apache.http.cookie.CookiePolicy cookie policy} to be used
+     * Assigns the {@link org.apache.http.cookie.CookieSpecRegistry cookie policy} to be used
      * when executing a request based on these parameters.
      *
      * @param policy the cookie policy

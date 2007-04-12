@@ -40,21 +40,22 @@ import org.apache.http.cookie.params.CookieSpecParams;
 import org.apache.http.params.HttpParams;
 
 /**
- * Cookie management policy class. The cookie policy provides corresponding
- * cookie management interfrace for a given type or version of cookie. 
+ * Cookie specification registry that can be used to obtain the corresponding
+ * cookie specification implementation for a given type of type or version of 
+ * cookie. 
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *
  * @since 4.0
  */
-public final class CookiePolicy {
+public final class CookieSpecRegistry {
 
-    public final static CookiePolicy DEFAULT = new CookiePolicy();
+    public final static CookieSpecRegistry DEFAULT = new CookieSpecRegistry();
     
     private final Map registeredSpecs;
     
-    public CookiePolicy() {
+    public CookieSpecRegistry() {
         super();
         this.registeredSpecs = new LinkedHashMap();
     }
