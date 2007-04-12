@@ -30,6 +30,8 @@
 
 package org.apache.http.cookie;
 
+import java.util.List;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -61,93 +63,101 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testRegisterUnregisterCookieSpecFactory() {
-        String[] specs = CookiePolicy.getRegisteredCookieSpecs();
-        assertNotNull(specs);
-        assertEquals(0, specs.length);
+        CookiePolicy registry  = CookiePolicy.DEFAULT; 
+        List names = registry.getSpecNames();
+        assertNotNull(names);
+        assertEquals(0, names.size());
         
-        CookiePolicy.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
+        registry.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
                 new BrowserCompatSpecFactory());
-        CookiePolicy.register(CookieSpecParams.NETSCAPE, 
+        registry.register(CookieSpecParams.NETSCAPE, 
                 new NetscapeDraftSpecFactory());
-        CookiePolicy.register(CookieSpecParams.RFC_2109, 
+        registry.register(CookieSpecParams.RFC_2109, 
                 new RFC2109SpecFactory());
-        CookiePolicy.register(CookieSpecParams.RFC_2109, 
+        registry.register(CookieSpecParams.RFC_2109, 
                 new RFC2109SpecFactory());
+        registry.register(CookieSpecParams.NETSCAPE, 
+                new NetscapeDraftSpecFactory());
 
-        specs = CookiePolicy.getRegisteredCookieSpecs();
-        assertNotNull(specs);
-        assertEquals(3, specs.length);
+        names = registry.getSpecNames();
+        assertNotNull(names);
+        assertEquals(3, names.size());
+        assertEquals(CookieSpecParams.BROWSER_COMPATIBILITY, (String) names.get(0));
+        assertEquals(CookieSpecParams.NETSCAPE, (String) names.get(1));
+        assertEquals(CookieSpecParams.RFC_2109, (String) names.get(2));
 
-        CookiePolicy.unregister(CookieSpecParams.NETSCAPE); 
-        CookiePolicy.unregister(CookieSpecParams.NETSCAPE); 
-        CookiePolicy.unregister(CookieSpecParams.RFC_2109); 
-        CookiePolicy.unregister(CookieSpecParams.BROWSER_COMPATIBILITY); 
-        CookiePolicy.unregister("whatever"); 
+        registry.unregister(CookieSpecParams.NETSCAPE); 
+        registry.unregister(CookieSpecParams.NETSCAPE); 
+        registry.unregister(CookieSpecParams.RFC_2109); 
+        registry.unregister(CookieSpecParams.BROWSER_COMPATIBILITY); 
+        registry.unregister("whatever"); 
         
-        specs = CookiePolicy.getRegisteredCookieSpecs();
-        assertNotNull(specs);
-        assertEquals(0, specs.length);
+        names = registry.getSpecNames();
+        assertNotNull(names);
+        assertEquals(0, names.size());
     }
 
     public void testGetNewCookieSpec() {
-        CookiePolicy.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
+        CookiePolicy registry  = CookiePolicy.DEFAULT; 
+        registry.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
                 new BrowserCompatSpecFactory());
-        CookiePolicy.register(CookieSpecParams.NETSCAPE, 
+        registry.register(CookieSpecParams.NETSCAPE, 
                 new NetscapeDraftSpecFactory());
-        CookiePolicy.register(CookieSpecParams.RFC_2109, 
+        registry.register(CookieSpecParams.RFC_2109, 
                 new RFC2109SpecFactory());
         
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.NETSCAPE));
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.RFC_2109));
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.BROWSER_COMPATIBILITY));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.NETSCAPE));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.RFC_2109));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.BROWSER_COMPATIBILITY));
         try {
-            CookiePolicy.getCookieSpec("whatever");
+            registry.getCookieSpec("whatever");
             fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
             // expected
         }
         HttpParams params = new BasicHttpParams();
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.NETSCAPE, params));
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.RFC_2109, params));
-        assertNotNull(CookiePolicy.getCookieSpec(CookieSpecParams.BROWSER_COMPATIBILITY, params));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.NETSCAPE, params));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.RFC_2109, params));
+        assertNotNull(registry.getCookieSpec(CookieSpecParams.BROWSER_COMPATIBILITY, params));
         try {
-            CookiePolicy.getCookieSpec("whatever", params);
+            registry.getCookieSpec("whatever", params);
             fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
             // expected
         }
         CookieSpecParams.setCookiePolicy(params, CookieSpecParams.BROWSER_COMPATIBILITY);
-        CookieSpec cookiespec = CookiePolicy.getCookieSpec(params);
+        CookieSpec cookiespec = registry.getCookieSpec(params);
         assertTrue(cookiespec instanceof BrowserCompatSpec);
     }
 
     public void testInvalidInput() {
+        CookiePolicy registry  = CookiePolicy.DEFAULT; 
         try {
-            CookiePolicy.register(null, null);
+            registry.register(null, null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
-            CookiePolicy.register("whatever", null);
+            registry.register("whatever", null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
-            CookiePolicy.unregister(null);
+            registry.unregister(null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
-            CookiePolicy.getCookieSpec((String)null);
+            registry.getCookieSpec((String)null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
-            CookiePolicy.getCookieSpec((HttpParams)null);
+            registry.getCookieSpec((HttpParams)null);
             fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

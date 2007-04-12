@@ -31,8 +31,9 @@
 
 package org.apache.http.cookie;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.cookie.params.CookieSpecParams;
@@ -47,74 +48,78 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
-public class CookiePolicy {
+public final class CookiePolicy {
 
-    private static Map SPECS = Collections.synchronizedMap(new HashMap());
+    public final static CookiePolicy DEFAULT = new CookiePolicy();
     
-    private CookiePolicy() {
+    private final Map registeredSpecs;
+    
+    public CookiePolicy() {
+        super();
+        this.registeredSpecs = new LinkedHashMap();
     }
     
     /**
      * Registers a {@link CookieSpecFactory} with the given identifier. 
-     * If a specification with the given ID already exists it will be overridden.  
-     * This ID is the same one used to retrieve the {@link CookieSpecFactory} 
+     * If a specification with the given name already exists it will be overridden.  
+     * This nameis the same one used to retrieve the {@link CookieSpecFactory} 
      * from {@link #getCookieSpec(String)}.
      * 
-     * @param id the identifier for this specification
+     * @param name the identifier for this specification
      * @param factory the {@link CookieSpecFactory} class to register
      * 
      * @see #getCookieSpec(String)
      */
-    public static void register(final String id, final CookieSpecFactory factory) {
-         if (id == null) {
-             throw new IllegalArgumentException("Id may not be null");
+    public synchronized void register(final String name, final CookieSpecFactory factory) {
+         if (name == null) {
+             throw new IllegalArgumentException("Name may not be null");
          }
         if (factory == null) {
             throw new IllegalArgumentException("Cookie spec factory may not be null");
         }
-        SPECS.put(id.toLowerCase(), factory);
+        registeredSpecs.put(name.toLowerCase(), factory);
     }
 
     /**
      * Unregisters the {@link CookieSpecFactory} with the given ID.
      * 
-     * @param id the ID of the {@link CookieSpec cookie specification} to unregister
+     * @param name the identifier of the {@link CookieSpec cookie specification} to unregister
      */
-    public static void unregister(final String id) {
+    public synchronized void unregister(final String id) {
          if (id == null) {
              throw new IllegalArgumentException("Id may not be null");
          }
-         SPECS.remove(id.toLowerCase());
+         registeredSpecs.remove(id.toLowerCase());
     }
 
     /**
      * Gets the {@link CookieSpec cookie specification} with the given ID.
      * 
-     * @param id the {@link CookieSpec cookie specification} ID
+     * @param name the {@link CookieSpec cookie specification} identifier
      * @param params the {@link HttpParams HTTP parameters} for the cookie
      *  specification. 
      * 
      * @return {@link CookieSpec cookie specification}
      * 
-     * @throws IllegalStateException if a policy with the ID cannot be found
+     * @throws IllegalStateException if a policy with the given name cannot be found
      */
-    public static CookieSpec getCookieSpec(final String id, final HttpParams params) 
+    public synchronized CookieSpec getCookieSpec(final String name, final HttpParams params) 
         throws IllegalStateException {
 
-        if (id == null) {
-            throw new IllegalArgumentException("Id may not be null");
+        if (name == null) {
+            throw new IllegalArgumentException("Name may not be null");
         }
-        CookieSpecFactory factory = (CookieSpecFactory) SPECS.get(id.toLowerCase());
+        CookieSpecFactory factory = (CookieSpecFactory) registeredSpecs.get(name.toLowerCase());
         if (factory != null) {
             return factory.newInstance(params);
         } else {
-            throw new IllegalStateException("Unsupported cookie spec " + id);
+            throw new IllegalStateException("Unsupported cookie spec: " + name);
         }
     } 
 
     /**
      * Gets the {@link CookieSpec cookie specification} based on the given
-     * HTTP parameters. The cookie specification ID will be obtained from
+     * HTTP parameters. The cookie specification name will be obtained from
      * the HTTP parameters.
      * 
      * @param params the {@link HttpParams HTTP parameters} for the cookie
@@ -122,11 +127,11 @@ public class CookiePolicy {
      * 
      * @return {@link CookieSpec cookie specification}
      * 
-     * @throws IllegalStateException if a policy with the ID cannot be found
+     * @throws IllegalStateException if a policy with the given name cannot be found
      * 
      * @see CookieSpecParams#getCookiePolicy(HttpParams)
      */
-    public static CookieSpec getCookieSpec(final HttpParams params) 
+    public CookieSpec getCookieSpec(final HttpParams params) 
         throws IllegalStateException {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
@@ -135,29 +140,30 @@ public class CookiePolicy {
     } 
 
     /**
-     * Gets the {@link CookieSpec cookie specification} with the given ID.
+     * Gets the {@link CookieSpec cookie specification} with the given name.
      * 
-     * @param id the {@link CookieSpec cookie specification} ID
+     * @param name the {@link CookieSpec cookie specification} identifier
      * 
      * @return {@link CookieSpec cookie specification}
      * 
-     * @throws IllegalStateException if a policy with the ID cannot be found
+     * @throws IllegalStateException if a policy with the given name cannot be found
      */
-    public static CookieSpec getCookieSpec(final String id) 
+    public synchronized CookieSpec getCookieSpec(final String name) 
         throws IllegalStateException {
-        return getCookieSpec(id, null);
+        return getCookieSpec(name, null);
     } 
 
     /**
-     * Obtains the currently registered cookie policy names.
+     * Obtains a list containing names of all registered {@link CookieSpec cookie 
+     * specs} in their default order.
      * 
      * Note that the DEFAULT policy (if present) is likely to be the same
      * as one of the other policies, but does not have to be.
      * 
-     * @return array of registered cookie policy names
+     * @return list of registered cookie spec names
      */
-    public static String[] getRegisteredCookieSpecs(){
-            return (String[]) SPECS.keySet().toArray(new String [SPECS.size()]); 
+    public synchronized List getSpecNames(){
+        return new ArrayList(registeredSpecs.keySet()); 
     }
     
 }

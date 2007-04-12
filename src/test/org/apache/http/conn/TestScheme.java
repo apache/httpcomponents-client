@@ -31,7 +31,7 @@
 
 package org.apache.http.conn;
 
-import java.util.Iterator;
+import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -140,9 +140,9 @@ public class TestScheme extends TestCase {
     public void testIterator() {
         SchemeRegistry schmreg = new SchemeRegistry();
 
-        Iterator iter = schmreg.getSchemeNames();
-        assertNotNull(iter);
-        assertFalse(iter.hasNext());
+        List names = schmreg.getSchemeNames();
+        assertNotNull(names);
+        assertTrue(names.isEmpty());
 
         Scheme http = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
@@ -152,14 +152,13 @@ public class TestScheme extends TestCase {
     	schmreg.register(http);
     	schmreg.register(https);
 
-        iter = schmreg.getSchemeNames();
-        assertNotNull(iter);
-        assertTrue(iter.hasNext());
+        names = schmreg.getSchemeNames();
+        assertNotNull(names);
+        assertFalse(names.isEmpty());
 
         boolean flaghttp  = false;
         boolean flaghttps = false;
-        String name = (String) iter.next();
-        assertTrue(iter.hasNext());
+        String name = (String) names.get(0);
 
         if ("http".equals(name))
             flaghttp = true;
@@ -169,12 +168,10 @@ public class TestScheme extends TestCase {
             fail("unexpected name in iterator: " + name);
 
         assertNotNull(schmreg.get(name));
-        iter.remove();
-        assertTrue(iter.hasNext());
+        schmreg.unregister(name);
         assertNull(schmreg.get(name));
 
-        name = (String) iter.next();
-        assertFalse(iter.hasNext());
+        name = (String) names.get(1);
 
         if ("http".equals(name)) {
             if (flaghttp) fail("name 'http' found twice");

@@ -30,14 +30,12 @@
  */
 package org.apache.http.conn;
 
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Collections;
 
 import org.apache.http.HttpHost;
-
 
 
 /**
@@ -73,7 +71,8 @@ public final class SchemeRegistry {
      * Creates a new, empty scheme registry.
      */
     public SchemeRegistry() {
-        registeredSchemes = Collections.synchronizedMap(new HashMap());
+        super();
+        registeredSchemes = new LinkedHashMap();
     }
 
 
@@ -87,7 +86,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if the scheme with the given name is not registered
      */
-    public final Scheme getScheme(String name) {
+    public synchronized final Scheme getScheme(String name) {
         Scheme found = get(name);
         if (found == null) {
             throw new IllegalStateException
@@ -108,7 +107,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if a scheme with the respective name is not registered
      */
-    public final Scheme getScheme(HttpHost host) {
+    public synchronized final Scheme getScheme(HttpHost host) {
         if (host == null) {
             throw new IllegalArgumentException("Host must not be null.");
         }
@@ -124,7 +123,7 @@ public final class SchemeRegistry {
      * @return  the scheme, or
      *          <code>null</code> if there is none by this name
      */
-    public final Scheme get(String name) {
+    public synchronized final Scheme get(String name) {
         if (name == null)
             throw new IllegalArgumentException("Name must not be null.");
 
@@ -145,7 +144,7 @@ public final class SchemeRegistry {
      * @return  the scheme previously registered with that name, or
      *          <code>null</code> if none was registered
      */
-    public final Scheme register(Scheme sch) {
+    public synchronized final Scheme register(Scheme sch) {
         if (sch == null)
             throw new IllegalArgumentException("Scheme must not be null.");
 
@@ -162,7 +161,7 @@ public final class SchemeRegistry {
      * @return  the unregistered scheme, or
      *          <code>null</code> if there was none
      */
-    public final Scheme unregister(String name) {
+    public synchronized final Scheme unregister(String name) {
         if (name == null)
             throw new IllegalArgumentException("Name must not be null.");
 
@@ -174,13 +173,12 @@ public final class SchemeRegistry {
 
 
     /**
-     * Obtains the names of the registered schemes.
+     * Obtains the names of the registered schemes in their default order.
      *
-     * @return  iterator over the registered scheme names.
-     *          The iterator supports {@link Iterator#remove remove()}.
+     * @return  List containing registered scheme names.
      */
-    public final Iterator getSchemeNames() {
-        return registeredSchemes.keySet().iterator();
+    public final List getSchemeNames() {
+        return new ArrayList(registeredSchemes.keySet());
     }
 
 
