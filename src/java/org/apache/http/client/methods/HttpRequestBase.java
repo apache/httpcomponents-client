@@ -31,11 +31,13 @@
 
 package org.apache.http.client.methods;
 
+import java.io.IOException;
 import java.net.URI;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
@@ -49,9 +51,11 @@ import org.apache.http.params.HttpProtocolParams;
  * 
  * @since 4.0
  */
-abstract class HttpRequestBase extends AbstractHttpMessage implements HttpRequest {
+abstract class HttpRequestBase extends AbstractHttpMessage 
+    implements HttpRequest, AbortableHttpRequest {
     
     private URI uri;
+    private ConnectionReleaseTrigger releaseTrigger;
     
     public HttpRequestBase() {
         super();
@@ -83,5 +87,19 @@ abstract class HttpRequestBase extends AbstractHttpMessage implements HttpReques
     public void setURI(final URI uri) {
         this.uri = uri;
     }
+
+    public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
+        this.releaseTrigger = releaseTrigger;
+    }
     
+    public void abort() {
+        if (this.releaseTrigger != null) {
+            try {
+                this.releaseTrigger.abortConnection();
+            } catch (IOException ex) {
+                // ignore
+            }
+        }
+    }
+
 }

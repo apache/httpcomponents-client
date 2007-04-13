@@ -41,6 +41,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
@@ -131,6 +132,10 @@ public class DefaultClientRequestDirector
 
                 HttpRequest prepreq = prepareRequest(roureq, context);
                 //@@@ handle authentication here or via interceptor?
+                
+                if (prepreq instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) prepreq).setReleaseTrigger(managedConn);
+                }
 
                 context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
                                      roureq.getRoute().getTargetHost());
