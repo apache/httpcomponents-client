@@ -37,11 +37,11 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.message.HttpGet;
-import org.apache.http.message.HttpPost;
 import org.apache.http.util.EntityUtils;
 
 
