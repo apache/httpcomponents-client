@@ -50,7 +50,8 @@ HttpClient: Jakarta HttpComponents Client
           dist.core.api       - for javadoc
 
         External dependencies for which there is no default location:
-          commons-logging.jar - (to be added to default dependencies)
+          commons-logging.jar - for logging
+          commons-codec.jar   - for URL encoding and authentication
           junit.jar           - for test and clover targets
           clover.jar          - for clover target
   -->
@@ -84,6 +85,7 @@ HttpClient: Jakarta HttpComponents Client
 <path id="classpath.client.compile">
   <pathelement location="${httpcore.jar}"/>
   <pathelement location="${commons-logging.jar}"/>
+  <pathelement location="${commons-codec.jar}"/>
 </path>
 
 <path id="classpath.client.javadoc">
@@ -149,6 +151,7 @@ General
 Dependencies
   HttpCore        ${httpcore.jar}
   Commons Logging ${commons-logging.jar}
+  Commons Codec   ${commons-codec.jar}
   JUnit           ${junit.jar}
   Clover          ${clover.jar}
 
