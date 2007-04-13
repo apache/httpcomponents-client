@@ -71,12 +71,14 @@ public class URLUtils {
      * 
      * @since 4.0
      */
-     public static String formUrlEncode(final NameValuePair[] pairs, final String charset) {
+     public static String simpleFormUrlEncode(
+             final NameValuePair[] pairs, 
+             final String charset) {
         try {
-            return doFormUrlEncode(pairs, charset);
+            return formUrlEncode(pairs, charset);
         } catch (UnsupportedEncodingException e) {
             try {
-                return doFormUrlEncode(pairs, DEFAULT_CHARSET);
+                return formUrlEncode(pairs, DEFAULT_CHARSET);
             } catch (UnsupportedEncodingException fatal) {
                 // Should never happen. ISO-8859-1 must be supported on all JVMs
                 throw new Error("HttpClient requires " + DEFAULT_CHARSET + " support");
@@ -104,7 +106,7 @@ public class URLUtils {
      * 
      * @since 2.0 final
      */
-     private static String doFormUrlEncode(
+     public static String formUrlEncode(
              final NameValuePair[] pairs, 
              final String charset) throws UnsupportedEncodingException {
         CharArrayBuffer buf = new CharArrayBuffer(32);
