@@ -48,8 +48,11 @@ public final class AuthParams {
 
     /**
      * Defines the charset to be used when encoding 
-     * {@link org.apache.http.auth.Credentials}. If not defined then the 
-     * {@link #HTTP_ELEMENT_CHARSET} should be used.
+     * {@link org.apache.http.auth.Credentials}.
+     * If not defined then the 
+     * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
+     *        HttpProtocolParams.HTTP_ELEMENT_CHARSET}
+     * should be used.
      * <p>
      * This parameter expects a value of type {@link String}.
      * </p>
@@ -62,8 +65,11 @@ public final class AuthParams {
     }
 
     /**
-     * Returns the charset to be used when encoding {@link org.apache.http.auth.Credentials}.
-     * If not configured the {@link HTTP.DEFAULT_PROTOCOL_CHARSET} is used instead.
+     * Defines the charset to be used when encoding
+     * {@link org.apache.http.auth.Credentials}.
+     * If not configured,
+     * {@link HTTP#DEFAULT_PROTOCOL_CHARSET HTTP.DEFAULT_PROTOCOL_CHARSET}
+     * is used instead.
      * 
      * @return The charset
      */

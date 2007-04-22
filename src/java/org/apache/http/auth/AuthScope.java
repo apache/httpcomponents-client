@@ -35,7 +35,7 @@ import org.apache.http.util.LangUtils;
 /** 
  * The class represents an authentication scope consisting of a host name,
  * a port number, a realm name and an authentication scheme name which 
- * {@link org.apache.commons.httpclient.Credentials} apply to.
+ * {@link Credentials Credentials} apply to.
  * 
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:adrian@intencha.com">Adrian Sutton</a>

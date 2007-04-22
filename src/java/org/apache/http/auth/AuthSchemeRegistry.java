@@ -55,7 +55,7 @@ public final class AuthSchemeRegistry {
     /**
      * Registers a {@link AuthSchemeFactory} with  the given identifier. If a factory with the 
      * given name already exists it will be overridden. This name is the same one used to 
-     * retrieve the {@link AuthScheme authentication scheme} from {@link #getAuthScheme(String)}.
+     * retrieve the {@link AuthScheme authentication scheme} from {@link #getAuthScheme}.
      * 
      * <p>
      * Please note that custom authentication preferences, if used, need to be updated accordingly 
@@ -65,7 +65,7 @@ public final class AuthSchemeRegistry {
      * @param name the identifier for this scheme
      * @param factory the {@link AuthSchemeFactory} class to register
      * 
-     * @see #getAuthScheme(String)
+     * @see #getAuthScheme
      */
     public synchronized void registerAuthScheme(
             final String name, 

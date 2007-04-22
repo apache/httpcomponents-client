@@ -78,7 +78,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
      * may involve multiple challenge-response exchanges. Such schemes must be able 
      * to maintain the state information when dealing with sequential challenges 
      * 
-     * @param challenge the challenge string
+     * @param header the challenge header
      * 
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed

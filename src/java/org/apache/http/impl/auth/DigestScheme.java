@@ -57,11 +57,12 @@ import org.apache.http.util.EncodingUtils;
  * </p>
  * <p>
  * Credential charset is configured via the 
- * {@link org.apache.commons.httpclient.params.HttpMethodParams#CREDENTIAL_CHARSET credential
- * charset} parameter.  Since the digest username is included as clear text in the generated 
- * Authentication header, the charset of the username must be compatible with the 
- * {@link org.apache.commons.httpclient.params.HttpMethodParams#HTTP_ELEMENT_CHARSET http element 
- * charset}.
+ * {@link AuthParams#CREDENTIAL_CHARSET credential charset} parameter.
+ * Since the digest username is included as clear text in the generated 
+ * Authentication header, the charset of the username must be compatible
+ * with the 
+ * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
+ *        http element charset}.
  * </p>
  * 
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
@@ -112,7 +113,7 @@ public class DigestScheme extends RFC2617Scheme {
     /**
      * Processes the Digest challenge.
      *  
-     * @param challenge the challenge string
+     * @param header the challenge header
      * 
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
@@ -198,7 +199,7 @@ public class DigestScheme extends RFC2617Scheme {
      * {@link Credentials}, method name and URI.
      * 
      * @param credentials A set of credentials to be used for athentication
-     * @param method The method being authenticated
+     * @param request    The request being authenticated
      * 
      * @throws InvalidCredentialsException if authentication credentials
      *         are not valid or not applicable for this authentication scheme

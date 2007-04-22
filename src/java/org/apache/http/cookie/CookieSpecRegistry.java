@@ -84,7 +84,7 @@ public final class CookieSpecRegistry {
     /**
      * Unregisters the {@link CookieSpecFactory} with the given ID.
      * 
-     * @param name the identifier of the {@link CookieSpec cookie specification} to unregister
+     * @param id the identifier of the {@link CookieSpec cookie specification} to unregister
      */
     public synchronized void unregister(final String id) {
          if (id == null) {

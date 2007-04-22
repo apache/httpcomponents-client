@@ -84,7 +84,7 @@ public class BasicScheme extends RFC2617Scheme {
     /**
      * Processes the Basic challenge.
      *  
-     * @param challenge the challenge string
+     * @param header the challenge header
      * 
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed

@@ -104,7 +104,6 @@ public class UsernamePasswordCredentials implements Credentials {
      * User name property getter.
      *
      * @return the userName
-     * @see #setUserName(String)
      */
     public String getPrincipalName() {
         return userName;
@@ -115,7 +114,6 @@ public class UsernamePasswordCredentials implements Credentials {
      * Password property getter.
      *
      * @return the password
-     * @see #setPassword(String)
      */
     public String getPassword() {
         return password;

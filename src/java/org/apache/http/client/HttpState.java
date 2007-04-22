@@ -138,9 +138,6 @@ public class HttpState {
      * state currently contains.
      * 
      * @return an array of {@link Cookie cookies}.
-     * 
-     * @see #getCookies(String, int, String, boolean)
-     * 
      */
     public synchronized Cookie[] getCookies() {
         return (Cookie[]) (cookies.toArray(new Cookie[cookies.size()]));
@@ -150,11 +147,9 @@ public class HttpState {
      * Removes all of {@link Cookie cookies} in this HTTP state
      * that have expired by the specified {@link java.util.Date date}. 
      * 
-     * @param date The {@link java.util.Date date} to compare against.
-     * 
      * @return true if any cookies were purged.
      * 
-     * @see Cookie#isExpired(java.util.Date)
+     * @see Cookie#isExpired()
      * 
      * @see #purgeExpiredCookies()
      */
