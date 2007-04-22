@@ -266,6 +266,8 @@ public class ThreadSafeClientConnManager
                             waitingThread = new WaitingThread();
                             waitingThread.hostConnectionPool = hostPool;
                             waitingThread.thread = Thread.currentThread();
+                        } else {
+                            waitingThread.interruptedByConnectionPool = false;
                         }
                                     
                         if (useTimeout) {
@@ -276,13 +278,27 @@ public class ThreadSafeClientConnManager
                         connectionPool.waitingThreads.addLast(waitingThread);
                         connectionPool.wait(timeToWait);
                         
-                        // we have not been interrupted so we need to remove ourselves from the 
-                        // wait queue
-                        hostPool.waitingThreads.remove(waitingThread);
-                        connectionPool.waitingThreads.remove(waitingThread);
                     } catch (InterruptedException e) {
-                        // do nothing
+                        if (!waitingThread.interruptedByConnectionPool) {
+                            LOG.debug("Interrupted while waiting for connection", e);
+                            throw new IllegalThreadStateException(
+                                "Interrupted while waiting in ThreadSafeClientConnManager");
+                        }
+                        // Else, do nothing, we were interrupted by the
+                        // connection pool and should now have a connection
+                        // waiting for us. Continue in the loop and get it.
+                        // Or else we are shutting down, which is also
+                        // detected in the loop.
                     } finally {
+                        if (!waitingThread.interruptedByConnectionPool) {
+                            // Either we timed out, experienced a
+                            // "spurious wakeup", or were interrupted by an
+                            // external thread.  Regardless we need to 
+                            // cleanup for ourselves in the wait queue.
+                            hostPool.waitingThreads.remove(waitingThread);
+                            connectionPool.waitingThreads.remove(waitingThread);
+                        }
+                        
                         if (useTimeout) {
                             endWait = System.currentTimeMillis();
                             timeToWait -= (endWait - startWait);
@@ -688,6 +704,7 @@ public class ThreadSafeClientConnManager
             while (iter.hasNext()) {
                 WaitingThread waiter = (WaitingThread) iter.next();
                 iter.remove();
+                waiter.interruptedByConnectionPool = true;
                 waiter.thread.interrupt();
             }
             
@@ -903,7 +920,7 @@ public class ThreadSafeClientConnManager
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Notifying thread waiting on host pool, hostConfig=" 
                         + hostPool.hostConfiguration);
-                }                
+                }
                 waitingThread = (WaitingThread) hostPool.waitingThreads.removeFirst();
                 waitingThreads.remove(waitingThread);
             } else if (waitingThreads.size() > 0) {
@@ -917,6 +934,7 @@ public class ThreadSafeClientConnManager
             }
                 
             if (waitingThread != null) {
+                waitingThread.interruptedByConnectionPool = true;
                 waitingThread.thread.interrupt();
             }
         }
@@ -1025,6 +1043,16 @@ public class ThreadSafeClientConnManager
         
         /** The connection pool the thread is waiting for */
         public HostConnectionPool hostConnectionPool;
+        
+        /**
+         * Indicates the source of an interruption.
+         * Set to <code>true</code> inside
+         * {@link ConnectionPool#notifyWaitingThread(HostConnectionPool)}
+         * and {@link ThreadSafeClientConnManager#shutdown shutdown()}
+         * before the thread is interrupted.
+         * If not set, the thread was interrupted from the outside.
+         */
+        public boolean interruptedByConnectionPool = false;
     }
 
     /**
