@@ -256,12 +256,16 @@ public class Cookie {
 
     /**
      * Returns true if this cookie has expired.
+     * @param date Current time
      * 
      * @return <tt>true</tt> if the cookie has expired.
      */
-    public boolean isExpired() {
+    public boolean isExpired(final Date date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date may not be null");
+        }
         return (cookieExpiryDate != null  
-            && cookieExpiryDate.getTime() <= System.currentTimeMillis());
+            && cookieExpiryDate.getTime() <= date.getTime());
     }
 
     /**

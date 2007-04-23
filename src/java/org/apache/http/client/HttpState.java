@@ -31,6 +31,7 @@
 package org.apache.http.client;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -109,7 +110,7 @@ public class HttpState {
                     break;
                 }
             }
-            if (!cookie.isExpired()) {
+            if (!cookie.isExpired(new Date())) {
                 cookies.add(cookie);
             }
         }
@@ -155,9 +156,10 @@ public class HttpState {
      */
     public synchronized boolean purgeExpiredCookies() {
         boolean removed = false;
+        Date now = new Date();
         Iterator it = cookies.iterator();
         while (it.hasNext()) {
-            if (((Cookie) (it.next())).isExpired()) {
+            if (((Cookie) (it.next())).isExpired(now)) {
                 it.remove();
                 removed = true;
             }

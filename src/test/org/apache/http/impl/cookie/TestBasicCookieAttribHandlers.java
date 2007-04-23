@@ -447,20 +447,6 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         }
     }
 
-    public void testBasicExpiresMatch() throws Exception {
-        Cookie cookie = new Cookie("name", "value"); 
-        CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
-        
-        Date past = new Date(System.currentTimeMillis() - 20000000);
-        Date future = new Date(System.currentTimeMillis() + 20000000);
-        
-        cookie.setExpiryDate(past);
-        assertFalse(h.match(cookie, origin));
-        cookie.setExpiryDate(future);
-        assertTrue(h.match(cookie, origin));
-    }
-    
     public void testBasicExpiresInvalidInput() throws Exception {
         try {
             new BasicExpiresHandler(null);
@@ -471,12 +457,6 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
         try {
             h.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
-        try {
-            h.match(null, null);
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

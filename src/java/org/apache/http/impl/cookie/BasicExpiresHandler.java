@@ -31,7 +31,6 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.util.DateParseException;
 import org.apache.http.util.DateUtils;
@@ -64,11 +63,4 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         }
     }
 
-    public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        return !cookie.isExpired();
-    }
-    
 }
