@@ -44,6 +44,7 @@ public class TestAllConnImpl extends TestCase {
         TestSuite suite = new TestSuite();
 
         suite.addTest(TestLocalServer.suite());
+        suite.addTest(TestTSCCMNoServer.suite());
 
         return suite;
     }
