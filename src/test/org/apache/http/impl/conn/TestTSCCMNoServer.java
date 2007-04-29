@@ -169,6 +169,14 @@ public class TestTSCCMNoServer extends TestCase {
         assertFalse(conn.isOpen());
 
         mgr.releaseConnection(conn);
+
+        try {
+            conn = mgr.getConnection(null);
+            fail("null route not detected");
+        } catch (IllegalArgumentException iax) {
+            // expected
+        }
+
         mgr.shutdown();
     }
 
@@ -268,6 +276,21 @@ public class TestTSCCMNoServer extends TestCase {
             mgr.getConnection(route1, 10L);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+
+        // check releaseConnection with invalid arguments
+        try {
+            mgr.releaseConnection(null);
+            fail("null connection adapter not detected");
+        } catch (IllegalArgumentException iax) {
+            // expected
+        }
+        try {
+            mgr.releaseConnection(new ClientConnAdapterMockup());
+            fail("foreign connection adapter not detected");
+        } catch (IllegalArgumentException iax) {
             // expected
         }
 
