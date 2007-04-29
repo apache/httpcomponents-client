@@ -44,7 +44,10 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.HostConfiguration; //@@@ deprecated
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.params.HttpConnectionManagerParams;
 
 
 /**
@@ -117,6 +120,43 @@ public class TestTSCCMNoServer extends TestCase {
     }
 
 
+    public void testConstructor() {
+        HttpParams     params = createDefaultParams();
+        SchemeRegistry schreg = createSchemeRegistry();
+
+        final String paramkey = "test.parameter";
+        final String paramval = "Value of the test parameter.";
+        params.setParameter(paramkey, paramval);
+
+        ThreadSafeClientConnManager mgr =
+            new ThreadSafeClientConnManager(params, schreg);
+        assertNotNull(mgr);
+        assertNotNull(mgr.getParams());
+        assertEquals(paramval, mgr.getParams().getParameter(paramkey));
+        mgr.shutdown();
+        mgr = null;
+
+        try {
+            mgr = new ThreadSafeClientConnManager(null, schreg);
+            fail("null parameters not detected");
+        } catch (IllegalArgumentException iax) {
+            // expected
+        } finally {
+            if (mgr != null)
+                mgr.shutdown();
+        }
+        mgr = null;
+
+        mgr = new ThreadSafeClientConnManager(params, null);
+        assertNotNull(mgr);
+        assertNotNull(mgr.getParams());
+        assertEquals(paramval, mgr.getParams().getParameter(paramkey));
+        mgr.shutdown();
+        mgr = null;
+
+    } // testConstructor
+
+
     public void testGetConnection() {
         ThreadSafeClientConnManager mgr = createTSCCM(null, null);
 
@@ -132,5 +172,209 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.shutdown();
     }
 
+    // testTimeout in 3.x TestHttpConnectionManager is redundant
+    // several other tests here rely on timeout behavior
+
+
+    public void testMaxConnTotal() {
+
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 2);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
+        HttpRoute route1 = new HttpRoute(target1, null, false);
+        HttpHost target2 = new HttpHost("www.test2.invalid", 80, "http");
+        HttpRoute route2 = new HttpRoute(target2, null, false);
+
+        ManagedClientConnection conn1 = mgr.getConnection(route1);
+        ManagedClientConnection conn2 = mgr.getConnection(route2);
+
+        try {
+            // this should fail quickly, connection has not been released
+            mgr.getConnection(route2, 100L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+        
+        // release one of the connections
+        mgr.releaseConnection(conn2);
+        conn2 = null;
+
+        // there should be a connection available now
+        try {
+            conn2 = mgr.getConnection(route2, 100L);
+        } catch (ConnectionPoolTimeoutException cptx) {
+            cptx.printStackTrace();
+            fail("connection should have been available: " + cptx);
+        }
+
+        mgr.shutdown();
+    }
+
+
+    public void testMaxConnPerHost() throws Exception {
+
+        HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
+        HttpRoute route1 = new HttpRoute(target1, null, false);
+        HttpHost target2 = new HttpHost("www.test2.invalid", 80, "http");
+        HttpRoute route2 = new HttpRoute(target2, null, false);
+        HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
+        HttpRoute route3 = new HttpRoute(target3, null, false);
+        
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 100);
+        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        //@@@ HostConfiguration is deprecated
+        //@@@ should it be mapped to HttpHost or HttpRoute here?
+        //@@@ provide setter in TSCCM, it is implementation specific
+        HttpConnectionManagerParams.setMaxConnectionsPerHost
+            (params, route2.toHostConfig(), 2);
+        HttpConnectionManagerParams.setMaxConnectionsPerHost
+            (params, route3.toHostConfig(), 3);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        // route 3, limit 3
+        ManagedClientConnection conn1 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn2 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn3 = mgr.getConnection(route3, 10L);
+        try {
+            // should fail quickly, connection has not been released
+            mgr.getConnection(route3, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+        
+        // route 2, limit 2
+        conn1 = mgr.getConnection(route2, 10L);
+        conn2 = mgr.getConnection(route2, 10L);
+        try {
+            // should fail quickly, connection has not been released
+            mgr.getConnection(route2, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        // route 1, should use default limit of 1
+        conn1 = mgr.getConnection(route1, 10L);
+        try {
+            // should fail quickly, connection has not been released
+            mgr.getConnection(route1, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        mgr.shutdown();
+    }    
+
+
+    public void testReleaseConnection() throws Exception {
+
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 3);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
+        HttpRoute route1 = new HttpRoute(target1, null, false);
+        HttpHost target2 = new HttpHost("www.test2.invalid", 80, "http");
+        HttpRoute route2 = new HttpRoute(target2, null, false);
+        HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
+        HttpRoute route3 = new HttpRoute(target3, null, false);
+
+        // the first three allocations should pass
+        ManagedClientConnection conn1 = mgr.getConnection(route1, 10L);
+        ManagedClientConnection conn2 = mgr.getConnection(route2, 10L);
+        ManagedClientConnection conn3 = mgr.getConnection(route3, 10L);
+        assertNotNull(conn1);
+        assertNotNull(conn2);
+        assertNotNull(conn3);
+
+        // obtaining another connection for either of the three should fail
+        // this is somehow redundant with testMaxConnPerHost
+        try {
+            mgr.getConnection(route1, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+        try {
+            mgr.getConnection(route2, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+        try {
+            mgr.getConnection(route3, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        // now release one and check that exactly that one can be obtained then
+        mgr.releaseConnection(conn2);
+        conn2 = null;
+        try {
+            mgr.getConnection(route1, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+        // this one succeeds
+        conn2 = mgr.getConnection(route2, 10L);
+        assertNotNull(conn2);
+        try {
+            mgr.getConnection(route3, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        mgr.shutdown();
+    }
+
+
+    public void testDeleteClosedConnections() {
+        
+        ThreadSafeClientConnManager mgr = createTSCCM(null, null);
+        
+        HttpHost target = new HttpHost("www.test.invalid", 80, "http");
+        HttpRoute route = new HttpRoute(target, null, false);
+        HostConfiguration hcfg = route.toHostConfig(); //@@@ deprecated
+
+        ManagedClientConnection conn = mgr.getConnection(route);
+        
+        assertEquals("connectionsInPool",
+                     mgr.getConnectionsInPool(), 1);
+        assertEquals("connectionsInPool(host)",
+                     mgr.getConnectionsInPool(hcfg), 1);
+        mgr.releaseConnection(conn);
+
+        assertEquals("connectionsInPool",
+                     mgr.getConnectionsInPool(), 1);
+        assertEquals("connectionsInPool(host)",
+                     mgr.getConnectionsInPool(hcfg), 1);
+
+        mgr.closeIdleConnections(0L); // implicitly deletes them, too
+
+        assertEquals("connectionsInPool",
+                     mgr.getConnectionsInPool(), 0);
+        assertEquals("connectionsInPool(host)",
+                     mgr.getConnectionsInPool(hcfg), 0);
+
+        mgr.shutdown();
+    }
+
+    // testShutdownAll, depends on parameterization and extra threads
+    // testShutdown, depends on parameterization and extra threads
+    // testHostReusePreference, depends on parameterization and extra threads
 
 } // class TestTSCCMNoServer

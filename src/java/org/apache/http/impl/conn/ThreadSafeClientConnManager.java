@@ -857,7 +857,7 @@ public class ThreadSafeClientConnManager
          */
         private synchronized void deleteConnection(TrackingPoolEntry entry) {
 
-            HostConfiguration route = entry.tracker.toHostConfig();
+            HostConfiguration route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Reclaiming connection, hostConfig=" + route);
