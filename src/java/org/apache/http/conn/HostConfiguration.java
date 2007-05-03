@@ -54,7 +54,7 @@ import org.apache.http.util.LangUtils;
  * 
  * @since 4.0
  */
-public class HostConfiguration implements Cloneable {
+public class HostConfiguration {
 
     /**
      * Constant representing a configuration for <i>any</i> host.

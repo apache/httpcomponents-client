@@ -35,20 +35,15 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.RequestConnControl;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.RequestExpectContinue;
-import org.apache.http.protocol.RequestTargetHost;
-import org.apache.http.protocol.RequestUserAgent;
 
 /**
  * How to abort an HTTP method before its normal completion.
@@ -74,20 +69,8 @@ public class MethodAbort {
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
         
-        DefaultHttpClient httpclient = new DefaultHttpClient(
-                params, 
-                new SingleClientConnManager(params, supportedSchemes), 
-                supportedSchemes);
+        HttpClient httpclient = new DefaultHttpClient(params);
 
-        // Required protocol interceptors
-        httpclient.getProcessor().addInterceptor(new RequestContent());
-        httpclient.getProcessor().addInterceptor(new RequestTargetHost());
-        // Recommended protocol interceptors
-        httpclient.getProcessor().addInterceptor(new RequestConnControl());
-        httpclient.getProcessor().addInterceptor(new RequestUserAgent());
-        httpclient.getProcessor().addInterceptor(new RequestExpectContinue());
-        
-        
         HttpHost target = new HttpHost("www.apache.org", 80, "http");
 
         HttpGet httpget = new HttpGet("/"); 

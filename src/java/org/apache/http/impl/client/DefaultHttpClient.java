@@ -31,24 +31,33 @@
 
 package org.apache.http.impl.client;
 
-import java.io.IOException;
-
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
+import org.apache.http.protocol.RequestExpectContinue;
+import org.apache.http.protocol.RequestTargetHost;
+import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.protocol.SyncHttpExecutionContext;
 
 
 
@@ -77,79 +86,88 @@ public class DefaultHttpClient extends AbstractHttpClient {
      *                  <code>null</code> to use the
      *                  {@link SchemeRegistry#DEFAULT default}
      */
-    public DefaultHttpClient(HttpParams params,
-                             ClientConnectionManager conman,
-                             SchemeRegistry schemes) {
+    public DefaultHttpClient(
+            final ClientConnectionManager conman,
+            final HttpParams params) {
+        super(conman, params);
+    }
 
-        super(null, params, conman, schemes);
+    
+    public DefaultHttpClient(final HttpParams params) {
+        super(null, params);
+    }
 
-        httpProcessor = createProcessor();
-        reuseStrategy = createReuseStrategy();
+    
+    protected HttpParams createHttpParams() {
+        return new BasicHttpParams();
+    }
+
+    
+    protected ClientConnectionManager createClientConnectionManager() {
+        SchemeRegistry registry = new SchemeRegistry();
+        registry.register(
+                new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        registry.register(
+                new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+
+        return new SingleClientConnManager(getParams(), registry);
     }
 
 
-    /**
-     * Creates and initializes an HTTP processor.
-     * This method is typically called by the constructor,
-     * after the base class has been initialized.
-     *
-     * @return  a new, initialized HTTP processor
-     */
-    protected BasicHttpProcessor createProcessor() {
+    protected HttpContext createHttpContext() {
+        return new SyncHttpExecutionContext(null);
+    }
 
-        BasicHttpProcessor bhp = new BasicHttpProcessor();
-        //@@@ evaluate defaultParams to initialize interceptors
+    
+    protected ConnectionReuseStrategy createConnectionReuseStrategy() {
+        return new DefaultConnectionReuseStrategy();
+    }
+    
 
-        return bhp;
+    protected AuthSchemeRegistry createAuthSchemeRegistry() {
+        AuthSchemeRegistry registry = new AuthSchemeRegistry(); 
+        return registry;
     }
 
 
-    /**
-     * Creates a connection reuse strategy.
-     * This method is typically called by the constructor,
-     * after the base class has been initialized.
-     */
-    protected ConnectionReuseStrategy createReuseStrategy() {
-
-        //@@@ evaluate defaultParams to determine implementation
-        ConnectionReuseStrategy rus = new DefaultConnectionReuseStrategy();
-
-        return rus;
+    protected CookieSpecRegistry createCookieSpecRegistry() {
+        CookieSpecRegistry registry = new CookieSpecRegistry(); 
+        return registry;
     }
 
 
-    // non-javadoc, see interface HttpClient
-    public HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException {
+    protected BasicHttpProcessor createHttpProcessor() {
+        BasicHttpProcessor httpproc = new BasicHttpProcessor();
+        // Required protocol interceptors
+        httpproc.addInterceptor(new RequestContent());
+        httpproc.addInterceptor(new RequestTargetHost());
+        // Recommended protocol interceptors
+        httpproc.addInterceptor(new RequestConnControl());
+        httpproc.addInterceptor(new RequestUserAgent());
+        httpproc.addInterceptor(new RequestExpectContinue());
+        return httpproc;
+    }
 
-        if (roureq == null) {
-            throw new IllegalArgumentException
-                ("Routed request must not be null.");
-        }
-        if (roureq.getRequest() == null) {
-            throw new IllegalArgumentException
-                ("Request must not be null.");
-        }
-        if (roureq.getRoute() == null) {
-            throw new IllegalArgumentException
-                ("Route must not be null.");
-        }
 
-        if (context == null)
-            context = defaultContext;
+    protected HttpState createHttpState() {
+        return new HttpState();
+    }
 
-        ClientRequestDirector director = createDirector(context);
-        HttpResponse          response = director.execute(roureq, context);
-        // If the response depends on the connection, the director
-        // will have set up an auto-release input stream.
-        //@@@ or move that logic here into the client?
 
-        //@@@ "finalize" response, to allow for buffering of entities?
-        //@@@ here or in director?
-
-        return response;
-
-    } // execute
+    protected void populateContext(final HttpContext context) {
+        context.setAttribute(
+                HttpClientContext.SCHEME_REGISTRY, 
+                getConnectionManager().getSchemeRegistry());
+        context.setAttribute(
+                HttpClientContext.AUTHSCHEME_REGISTRY, 
+                getAuthSchemes());
+        context.setAttribute(
+                HttpClientContext.COOKIESPEC_REGISTRY, 
+                getCookieSpecs());
+        context.setAttribute(
+                HttpClientContext.HTTP_STATE, 
+                getState());
+    }
 
 
     // non-javadoc, see base class AbstractHttpClient
@@ -165,7 +183,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 ("Target host must not be null.");
         }
 
-        Scheme schm = supportedSchemes.getScheme(target.getSchemeName());
+        SchemeRegistry schemeRegistry = getConnectionManager().getSchemeRegistry();
+        Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
         HttpRoute route = new HttpRoute(target, null, schm.isLayered());
@@ -173,24 +192,5 @@ public class DefaultHttpClient extends AbstractHttpClient {
         return new RoutedRequest.Impl(request, route);
     }
 
-
-    /**
-     * Creates a new director for a request execution.
-     *
-     * @param context   the context to use for the execution,
-     *                  never <code>null</code>
-     *
-     * @return  the new director for executing a method in the given context
-     */
-    protected ClientRequestDirector createDirector(HttpContext context) {
-
-        //@@@ can we use a single reqexec without sacrificing thread safety?
-        //@@@ it seems wasteful to throw away both director and reqexec
-        HttpRequestExecutor reqexec = new HttpRequestExecutor(httpProcessor);
-        reqexec.setParams(defaultParams);
-
-        return new DefaultClientRequestDirector
-            (connManager, reuseStrategy, reqexec, defaultParams);
-    }
 
 } // class DefaultHttpClient

@@ -32,21 +32,29 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpException;
-import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.SyncHttpExecutionContext;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.ClientConnectionManager;
-
+import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.HttpRequestInterceptorList;
+import org.apache.http.protocol.HttpResponseInterceptorList;
 
 
 
@@ -62,84 +70,79 @@ import org.apache.http.client.RoutedRequest;
  * @since 4.0
  */
 public abstract class AbstractHttpClient
-    implements HttpClient {
+    implements HttpClient, HttpRequestInterceptorList, HttpResponseInterceptorList {
 
 
     /** The default context. */
-    protected HttpContext defaultContext;
+    private HttpContext defaultContext;
 
     /** The parameters. */
-    protected HttpParams defaultParams;
+    private HttpParams defaultParams;
 
     /** The connection manager. */
-    protected ClientConnectionManager connManager;
+    private ClientConnectionManager connManager;
 
     /** The connection re-use strategy. */
-    protected ConnectionReuseStrategy reuseStrategy;
+    private ConnectionReuseStrategy reuseStrategy;
 
-    /** The HTTP processor, if defined. */
-    protected BasicHttpProcessor httpProcessor;
+    /** The cookie spec registry. */
+    private CookieSpecRegistry supportedCookieSpecs;
 
-    /** The scheme registry. */
-    protected SchemeRegistry supportedSchemes;
+    /** The authentication scheme registry. */
+    private AuthSchemeRegistry supportedAuthSchemes;
+    
+    /** The HTTP processor. */
+    private BasicHttpProcessor httpProcessor;
 
+    /** The default HTTP state. */
+    private HttpState defaultState;
 
     /**
      * Creates a new HTTP client.
      *
-     * @param context   the context, or <code>null</code> to use an instance of
-     *        {@link SyncHttpExecutionContext SyncHttpExecutionContext}
-     * @param params    the parameters
      * @param conman    the connection manager
-     * @param schemes   the scheme registry, or 
-     *                  <code>null</code> to use the
-     *                  {@link SchemeRegistry#DEFAULT default}
+     * @param params    the parameters
      */
-    protected AbstractHttpClient(HttpContext context, HttpParams params,
-                                 ClientConnectionManager conman,
-                                 SchemeRegistry schemes) {
-        if (params == null)
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
-        if (conman == null)
-            throw new IllegalArgumentException
-                ("Connection manager must not be null.");
-
-        defaultContext   = (context != null) ?
-            context : new SyncHttpExecutionContext(null);
-        defaultParams    = params;
-        connManager      = conman;
-        supportedSchemes = (schemes != null) ?
-            schemes : SchemeRegistry.DEFAULT;
-
-        // to be initialized by derived class constructors, if needed:
-        reuseStrategy    = null;
-        httpProcessor    = null;
-
+    protected AbstractHttpClient(
+            final ClientConnectionManager conman,
+            final HttpParams params) {
+        defaultParams        = params;
+        connManager          = conman;
     } // constructor
 
 
+    protected abstract HttpParams createHttpParams();
+
+    
+    protected abstract HttpContext createHttpContext();
+
+    
+    protected abstract ClientConnectionManager createClientConnectionManager();
+
+
+    protected abstract AuthSchemeRegistry createAuthSchemeRegistry();
+
+    
+    protected abstract CookieSpecRegistry createCookieSpecRegistry();
+
+    
+    protected abstract ConnectionReuseStrategy createConnectionReuseStrategy();
+    
+    
+    protected abstract BasicHttpProcessor createHttpProcessor();
+
+    
+    protected abstract HttpState createHttpState();
+    
+    
+    protected abstract void populateContext(HttpContext context);
+
+    
     // non-javadoc, see interface HttpClient
-    public final HttpContext getContext() {
-        return defaultContext;
-    }
-
-
-    /**
-     * Replaces the default context.
-     *
-     * @param context   the new default context
-     */
-    public void setContext(HttpContext context) {
-        if (context == null)
-            throw new IllegalArgumentException
-                ("Context must not be null.");
-        defaultContext = context;
-    }
-
-
-    // non-javadoc, see interface HttpClient
-    public final HttpParams getParams() {
+    public synchronized final HttpParams getParams() {
+        if (defaultParams == null) {
+            defaultParams = createHttpParams();
+        }
         return defaultParams;
     }
 
@@ -150,16 +153,16 @@ public abstract class AbstractHttpClient
      *
      * @param params    the new default parameters
      */
-    public void setParams(HttpParams params) {
-        if (params == null)
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
+    public synchronized void setParams(HttpParams params) {
         defaultParams = params;
     }
 
 
     // non-javadoc, see interface HttpClient
-    public final ClientConnectionManager getConnectionManager() {
+    public synchronized final ClientConnectionManager getConnectionManager() {
+        if (connManager == null) {
+            connManager = createClientConnectionManager();
+        }
         return connManager;
     }
 
@@ -168,23 +171,116 @@ public abstract class AbstractHttpClient
     // derived classes may offer that method at their own risk
 
 
-    /**
-     * Obtains the HTTP processor.
-     *
-     * @return  the HTTP processor, or <code>null</code> if not set
-     */
-    public BasicHttpProcessor getProcessor() {
+    public synchronized final AuthSchemeRegistry getAuthSchemes() {
+        if (supportedAuthSchemes == null) {
+            supportedAuthSchemes = createAuthSchemeRegistry();
+        }
+        return supportedAuthSchemes;
+    }
+
+
+    public synchronized void setAuthSchemes(final AuthSchemeRegistry authSchemeRegistry) {
+        supportedAuthSchemes = authSchemeRegistry;
+    }
+
+
+    public synchronized final CookieSpecRegistry getCookieSpecs() {
+        if (supportedCookieSpecs == null) {
+            supportedCookieSpecs = createCookieSpecRegistry();
+        }
+        return supportedCookieSpecs;
+    }
+
+
+    public synchronized void setCookieSpecs(final CookieSpecRegistry cookieSpecRegistry) {
+        supportedCookieSpecs = cookieSpecRegistry;
+    }
+
+    
+    public synchronized final ConnectionReuseStrategy getConnectionReuseStrategy() {
+        if (reuseStrategy == null) {
+            reuseStrategy = createConnectionReuseStrategy();
+        }
+        return reuseStrategy;
+    }
+
+
+    public synchronized void setReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
+        this.reuseStrategy = reuseStrategy;
+    }
+
+
+    public synchronized final HttpState getState() {
+        if (defaultState == null) {
+            defaultState = createHttpState();
+        }
+        return defaultState;
+    }
+
+
+    public synchronized void setState(final HttpState state) {
+        defaultState = state;
+    }
+
+
+    protected synchronized final BasicHttpProcessor getHttpProcessor() {
+        if (httpProcessor == null) {
+            httpProcessor = createHttpProcessor();
+        }
         return httpProcessor;
     }
 
 
-    /**
-     * Specifies the HTTP processor.
-     *
-     * @param hproc     the HTTP processor, or <code>null</code> to unset
-     */
-    public void setProcessor(BasicHttpProcessor hproc) {
-        httpProcessor = hproc;
+    public synchronized final HttpContext getContext() {
+        if (defaultContext == null) {
+            defaultContext = createHttpContext();
+        }
+        return defaultContext;
+    }
+    
+    
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp) {
+        getHttpProcessor().addInterceptor(itcp);
+    }
+
+
+    public synchronized void clearResponseInterceptors() {
+        getHttpProcessor().clearResponseInterceptors();
+    }
+
+
+    public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
+        return getHttpProcessor().getResponseInterceptor(index);
+    }
+
+
+    public synchronized int getResponseInterceptorCount() {
+        return getHttpProcessor().getResponseInterceptorCount();
+    }
+
+    
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
+        getHttpProcessor().addInterceptor(itcp);
+    }
+
+
+    public synchronized void clearRequestInterceptors() {
+        getHttpProcessor().clearRequestInterceptors();
+    }
+
+
+    public synchronized HttpRequestInterceptor getRequestInterceptor(int index) {
+        return getHttpProcessor().getRequestInterceptor(index);
+    }
+
+
+    public synchronized int getRequestInterceptorCount() {
+        return getHttpProcessor().getRequestInterceptorCount();
+    }
+
+
+    public synchronized void setInterceptors(final List itcps) {
+        getHttpProcessor().setInterceptors(itcps);
     }
 
 
@@ -204,7 +300,7 @@ public abstract class AbstractHttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
         throws HttpException, IOException {
 
-        return execute(target, request, defaultContext);
+        return execute(target, request, null);
     }
 
 
@@ -229,11 +325,62 @@ public abstract class AbstractHttpClient
         // Otherwise, the null target is detected in determineRoute().
 
         if (context == null)
-            context = defaultContext;
-
+            context = new HttpExecutionContext(getContext());
+        
         RoutedRequest roureq = determineRoute(target, request, context);
         return execute(roureq, context);
     }
+
+    // non-javadoc, see interface HttpClient
+    public final HttpResponse execute(RoutedRequest roureq, HttpContext context)
+        throws HttpException, IOException {
+
+        if (roureq == null) {
+            throw new IllegalArgumentException
+                ("Routed request must not be null.");
+        }
+        if (roureq.getRequest() == null) {
+            throw new IllegalArgumentException
+                ("Request must not be null.");
+        }
+        if (roureq.getRoute() == null) {
+            throw new IllegalArgumentException
+                ("Route must not be null.");
+        }
+
+        if (context == null)
+            context = new HttpExecutionContext(getContext());
+        
+        ClientRequestDirector director = null;
+        
+        // Initialize the request execution context making copies of 
+        // all shared objects that are potentially threading unsafe.
+        synchronized (this) {
+            // Populate the context for this request
+            populateContext(context);
+            // Create a copy of the HTTP processor
+            BasicHttpProcessor httpproc = getHttpProcessor().copy();
+            // Create an HTTP request executor for this request
+            HttpRequestExecutor reqexec = new HttpRequestExecutor(httpproc);
+            reqexec.setParams(getParams());
+            // Create a director for this request
+            director = new DefaultClientRequestDirector(
+                    getConnectionManager(),
+                    getConnectionReuseStrategy(),
+                    reqexec);
+        }
+
+        HttpResponse  response = director.execute(roureq, context);
+        // If the response depends on the connection, the director
+        // will have set up an auto-release input stream.
+        //@@@ or move that logic here into the client?
+
+        //@@@ "finalize" response, to allow for buffering of entities?
+        //@@@ here or in director?
+
+        return response;
+
+    } // execute
 
 
     /**

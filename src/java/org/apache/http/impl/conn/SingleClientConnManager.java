@@ -78,6 +78,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
     "Make sure to release the connection before allocating another one.";
 
 
+    /** The schemes supported by this connection manager. */
+    protected SchemeRegistry schemeRegistry; 
+    
     /** The parameters of this connection manager. */
     protected HttpParams params = new BasicHttpParams(); 
 
@@ -115,7 +118,11 @@ public class SingleClientConnManager implements ClientConnectionManager {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
+        if (schreg == null) {
+            throw new IllegalArgumentException("Scheme registry must not be null.");
+        }
         this.params          = params;
+        this.schemeRegistry  = schreg;
         this.connOperator    = createConnectionOperator(schreg);
         this.uniquePoolEntry = new PoolEntry(connOperator.createConnection());
         this.managedConn     = null;
@@ -126,6 +133,11 @@ public class SingleClientConnManager implements ClientConnectionManager {
     } // <constructor>
 
 
+    public SchemeRegistry getSchemeRegistry() {
+        return this.schemeRegistry;
+    }
+
+    
     /**
      * Hook for creating the connection operator.
      * It is called by the constructor.

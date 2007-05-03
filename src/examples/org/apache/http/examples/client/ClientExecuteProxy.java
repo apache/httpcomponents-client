@@ -53,12 +53,6 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.RequestConnControl;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.RequestExpectContinue;
-import org.apache.http.protocol.RequestTargetHost;
-import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 
 
@@ -151,16 +145,7 @@ public class ClientExecuteProxy {
         //  new SingleClientConnManager(getParams(), supportedSchemes);
 
         DefaultHttpClient dhc =
-            new DefaultHttpClient(getParams(), ccm, supportedSchemes);
-
-        BasicHttpProcessor bhp = dhc.getProcessor();
-        // Required protocol interceptors
-        bhp.addInterceptor(new RequestContent());
-        bhp.addInterceptor(new RequestTargetHost());
-        // Recommended protocol interceptors
-        bhp.addInterceptor(new RequestConnControl());
-        bhp.addInterceptor(new RequestUserAgent());
-        bhp.addInterceptor(new RequestExpectContinue());
+            new DefaultHttpClient(ccm, getParams());
 
         return dhc;
     }

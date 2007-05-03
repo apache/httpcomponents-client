@@ -48,7 +48,6 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -80,22 +79,17 @@ public class DefaultClientRequestDirector
     /** The request executor. */
     protected final HttpRequestExecutor requestExec;
 
-    /** The parameters. */
-    protected final HttpParams defaultParams;
-
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
 
     public DefaultClientRequestDirector(ClientConnectionManager conman,
                                         ConnectionReuseStrategy reustrat,
-                                        HttpRequestExecutor reqexec,
-                                        HttpParams params) {
+                                        HttpRequestExecutor reqexec) {
 
         this.connManager   = conman;
         this.reuseStrategy = reustrat;
         this.requestExec   = reqexec;
-        this.defaultParams = params;
 
         this.managedConn   = null;
 
@@ -224,16 +218,16 @@ public class DefaultClientRequestDirector
 
             case RouteDirector.CONNECT_TARGET:
             case RouteDirector.CONNECT_PROXY:
-                managedConn.open(route, context, defaultParams);
+                managedConn.open(route, context, requestExec.getParams());
                 break;
 
             case RouteDirector.CREATE_TUNNEL:
                 boolean secure = createTunnel(route, context);
-                managedConn.tunnelCreated(secure, defaultParams);
+                managedConn.tunnelCreated(secure, requestExec.getParams());
                 break;
 
             case RouteDirector.LAYER_PROTOCOL:
-                managedConn.layerProtocol(context, defaultParams);
+                managedConn.layerProtocol(context, requestExec.getParams());
                 break;
 
             case RouteDirector.UNREACHABLE:

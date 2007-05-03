@@ -52,17 +52,6 @@ import org.apache.http.HttpHost;
  */
 public final class SchemeRegistry {
 
-    /**
-     * A default scheme registry.
-     * It is empty by default, but can be initialized by any application.
-     * The default scheme registry should only be used by applications that
-     * know for sure that this class is NOT shared with any other application.
-     * For example a Servlet, Portlet or EJB should not rely on being the
-     * only user of this class.
-     */
-    public final static SchemeRegistry DEFAULT = new SchemeRegistry();
-
-
     /** The available schemes in this registry. */
     private final Map registeredSchemes;
 

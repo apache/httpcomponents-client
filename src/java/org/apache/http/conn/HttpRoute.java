@@ -50,7 +50,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-public final class HttpRoute implements Cloneable {
+public final class HttpRoute {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;

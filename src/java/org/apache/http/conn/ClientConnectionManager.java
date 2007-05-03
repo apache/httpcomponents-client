@@ -49,6 +49,8 @@ package org.apache.http.conn;
  */
 public interface ClientConnectionManager {
 
+    SchemeRegistry getSchemeRegistry();
+    
     /**
      * Obtains a connection.
      * This method will block until a connection becomes available

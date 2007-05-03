@@ -48,8 +48,6 @@ import org.apache.http.params.HttpParams;
  */
 public final class AuthSchemeRegistry {
 
-    public final static AuthSchemeRegistry DEFAULT = new AuthSchemeRegistry();
-    
     private final Map registeredSchemes = new LinkedHashMap();
     
     /**

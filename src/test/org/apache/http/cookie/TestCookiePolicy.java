@@ -63,7 +63,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testRegisterUnregisterCookieSpecFactory() {
-        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
+        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
         List names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(0, names.size());
@@ -98,7 +98,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testGetNewCookieSpec() {
-        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
+        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
         registry.register(CookieSpecParams.BROWSER_COMPATIBILITY, 
                 new BrowserCompatSpecFactory());
         registry.register(CookieSpecParams.NETSCAPE, 
@@ -131,7 +131,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testInvalidInput() {
-        CookieSpecRegistry registry  = CookieSpecRegistry.DEFAULT; 
+        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
         try {
             registry.register(null, null);
             fail("IllegalArgumentException should have been thrown");

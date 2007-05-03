@@ -48,7 +48,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-public final class RouteTracker implements Cloneable {
+public final class RouteTracker {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;

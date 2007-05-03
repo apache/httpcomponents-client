@@ -104,6 +104,9 @@ public class ThreadSafeClientConnManager
     private static WeakHashMap ALL_CONNECTION_MANAGERS = new WeakHashMap();
 
 
+    /** The schemes supported by this connection manager. */
+    protected SchemeRegistry schemeRegistry; 
+    
     /** The parameters of this connection manager. */
     private HttpParams params = new BasicHttpParams(); 
 
@@ -133,6 +136,7 @@ public class ThreadSafeClientConnManager
             throw new IllegalArgumentException("Parameters must not be null.");
         }
         this.params = params;
+        this.schemeRegistry  = schreg;
         this.connectionPool = new ConnectionPool();
         this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
@@ -143,7 +147,11 @@ public class ThreadSafeClientConnManager
     } // <constructor>
 
 
+    public SchemeRegistry getSchemeRegistry() {
+        return this.schemeRegistry;
+    }
 
+    
     // non-javadoc, see interface ClientConnectionManager
     public ManagedClientConnection getConnection(HttpRoute route) {
 

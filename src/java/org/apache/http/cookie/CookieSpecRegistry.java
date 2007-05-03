@@ -51,8 +51,6 @@ import org.apache.http.params.HttpParams;
  */
 public final class CookieSpecRegistry {
 
-    public final static CookieSpecRegistry DEFAULT = new CookieSpecRegistry();
-    
     private final Map registeredSpecs;
     
     public CookieSpecRegistry() {

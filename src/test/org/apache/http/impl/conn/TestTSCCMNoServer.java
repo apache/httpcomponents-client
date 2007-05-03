@@ -147,7 +147,7 @@ public class TestTSCCMNoServer extends TestCase {
         }
         mgr = null;
 
-        mgr = new ThreadSafeClientConnManager(params, null);
+        mgr = new ThreadSafeClientConnManager(params, schreg);
         assertNotNull(mgr);
         assertNotNull(mgr.getParams());
         assertEquals(paramval, mgr.getParams().getParameter(paramkey));

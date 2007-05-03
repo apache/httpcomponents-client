@@ -86,7 +86,11 @@ public class DefaultClientConnectionOperator
      *                  {@link SchemeRegistry#DEFAULT SchemeRegistry.DEFAULT}
      */
     public DefaultClientConnectionOperator(SchemeRegistry schemes) {
-        schemeRegistry = (schemes != null) ? schemes : SchemeRegistry.DEFAULT;
+        if (schemes == null) {
+            throw new IllegalArgumentException
+                ("Scheme registry must not be null.");
+        }
+        schemeRegistry = schemes;
     }
 
 
