@@ -1,0 +1,184 @@
+/*
+ * $HeadURL$
+ * $Revision$
+ * $Date$
+ *
+ * ====================================================================
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+
+package org.apache.http.client.params;
+
+import org.apache.http.params.HttpParams;
+
+/**
+ * An adaptor for accessing HTTP client parameters in {@link HttpParams}.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @version $Revision$
+ * 
+ * @since 3.0
+ */
+public class HttpClientParams {
+
+    /**
+     * Sets the timeout in milliseconds used when retrieving an instance of 
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
+     * <p>
+     * This parameter expects a value of type {@link Long}.
+     * </p>
+     */ 
+    public static final String CONNECTION_MANAGER_TIMEOUT = "http.connection-manager.timeout"; 
+
+    /**
+     * Defines the class name of the default {@link org.apache.http.conn.ClientConnectionManager}
+     * <p>
+     * This parameter expects a value of type {@link String}.
+     * </p>
+     */ 
+    public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory"; 
+
+    /**
+     * Defines whether authentication should be attempted preemptively.
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String PREEMPTIVE_AUTHENTICATION = "http.authentication.preemptive";
+
+    /**
+     * Defines whether relative redirects should be rejected.
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String REJECT_RELATIVE_REDIRECT = "http.protocol.reject-relative-redirect"; 
+
+    /** 
+     * Defines the maximum number of redirects to be followed. 
+     * The limit on number of redirects is intended to prevent infinite loops. 
+     * <p>
+     * This parameter expects a value of type {@link Integer}.
+     * </p>
+     */
+    public static final String MAX_REDIRECTS = "http.protocol.max-redirects";
+
+    /** 
+     * Defines whether circular redirects (redirects to the same location) should be allowed. 
+     * The HTTP spec is not sufficiently clear whether circular redirects are permitted, 
+     * therefore optionally they can be enabled
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String ALLOW_CIRCULAR_REDIRECTS = "http.protocol.allow-circular-redirects";
+
+    /**
+     * Defines the name of the cookie specification to be used for HTTP state management.
+     * <p>
+     * This parameter expects a value of type {@link String}.
+     * </p>
+     */
+    public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
+    
+    private HttpClientParams() {
+        super();
+    }
+
+    /**
+     * Returns the timeout in milliseconds used when retrieving an 
+     * {@link org.apache.commons.httpclient.HttpConnection HTTP connection} from the
+     * {@link org.apache.commons.httpclient.HttpConnectionManager HTTP connection manager}.
+     * 
+     * @return timeout in milliseconds.
+     */ 
+    public static long getConnectionManagerTimeout(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        return params.getLongParameter(CONNECTION_MANAGER_TIMEOUT, 0);
+    }
+
+    /**
+     * Sets the timeout in milliseconds used when retrieving an 
+     * {@link org.apache.commons.httpclient.HttpConnection HTTP connection} from the
+     * {@link org.apache.commons.httpclient.HttpConnectionManager HTTP connection manager}.
+     * 
+     * @param timeout the timeout in milliseconds
+     */ 
+    public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setLongParameter(CONNECTION_MANAGER_TIMEOUT, timeout);
+    }
+
+    /**
+     * Returns <tt>true</tt> if authentication should be attempted preemptively, 
+     * <tt>false</tt> otherwise.
+     * 
+     * @return <tt>true</tt> if authentication should be attempted preemptively,
+     *   <tt>false</tt> otherwise.
+     */
+    public static boolean isAuthenticationPreemptive(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        return params.getBooleanParameter(PREEMPTIVE_AUTHENTICATION, false); 
+    }
+
+    /**
+     * Sets whether authentication should be attempted preemptively.
+     * 
+     * @param value <tt>true</tt> if authentication should be attempted preemptively,
+     *   <tt>false</tt> otherwise.
+     */
+    public static void setAuthenticationPreemptive(final HttpParams params, boolean value) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setBooleanParameter(PREEMPTIVE_AUTHENTICATION, value); 
+    }
+    
+    public static String getCookiePolicy(final HttpParams params) { 
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        String cookiePolicy = (String) params.getParameter(COOKIE_POLICY);
+        if (cookiePolicy == null) {
+            return CookiePolicy.BROWSER_COMPATIBILITY;
+        }
+        return cookiePolicy;
+    }
+    
+    public static void setCookiePolicy(final HttpParams params, final String cookiePolicy) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setParameter(COOKIE_POLICY, cookiePolicy);
+    }
+
+}

@@ -65,7 +65,7 @@ public final class AuthSchemeRegistry {
      * 
      * @see #getAuthScheme
      */
-    public synchronized void registerAuthScheme(
+    public synchronized void register(
             final String name, 
             final AuthSchemeFactory factory) {
          if (name == null) {
@@ -83,7 +83,7 @@ public final class AuthSchemeRegistry {
      * 
      * @param name the identifier of the class to unregister
      */
-    public synchronized void unregisterAuthScheme(final String name) {
+    public synchronized void unregister(final String name) {
          if (name == null) {
              throw new IllegalArgumentException("Name may not be null");
          }

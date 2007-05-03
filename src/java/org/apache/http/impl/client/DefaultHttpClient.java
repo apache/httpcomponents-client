@@ -35,11 +35,16 @@ import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
@@ -47,10 +52,17 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.impl.auth.BasicSchemeFactory;
+import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
+import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
@@ -99,7 +111,12 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     
     protected HttpParams createHttpParams() {
-        return new BasicHttpParams();
+        HttpParams params = new BasicHttpParams();
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
+        HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
+        HttpProtocolParams.setUseExpectContinue(params, true);
+        return params;
     }
 
     
@@ -110,7 +127,29 @@ public class DefaultHttpClient extends AbstractHttpClient {
         registry.register(
                 new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 
-        return new SingleClientConnManager(getParams(), registry);
+        ClientConnectionManager connManager = null;        
+        
+        HttpParams params = getParams();
+        String className = (String) params.getParameter(
+                HttpClientParams.CONNECTION_MANAGER_FACTORY);
+        
+        if (className != null) {
+            try {
+                Class clazz = Class.forName(className);
+                ClientConnectionManagerFactory factory = 
+                    (ClientConnectionManagerFactory) clazz.newInstance();
+                connManager = factory.newInstance(params, registry);
+            } catch (ClassNotFoundException ex) {
+                throw new IllegalStateException("Invalid class name: " + className);
+            } catch (IllegalAccessException ex) {
+                throw new IllegalAccessError(ex.getMessage());
+            } catch (InstantiationException ex) {
+                throw new InstantiationError(ex.getMessage());
+            }
+        } else {
+            connManager = new SingleClientConnManager(getParams(), registry); 
+        }
+        return connManager;
     }
 
 
@@ -126,12 +165,27 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected AuthSchemeRegistry createAuthSchemeRegistry() {
         AuthSchemeRegistry registry = new AuthSchemeRegistry(); 
+        registry.register(
+                AuthPolicy.BASIC, 
+                new BasicSchemeFactory());
+        registry.register(
+                AuthPolicy.DIGEST, 
+                new DigestSchemeFactory());
         return registry;
     }
 
 
     protected CookieSpecRegistry createCookieSpecRegistry() {
-        CookieSpecRegistry registry = new CookieSpecRegistry(); 
+        CookieSpecRegistry registry = new CookieSpecRegistry();
+        registry.register(
+                CookiePolicy.BROWSER_COMPATIBILITY, 
+                new BrowserCompatSpecFactory());
+        registry.register(
+                CookiePolicy.NETSCAPE, 
+                new NetscapeDraftSpecFactory());
+        registry.register(
+                CookiePolicy.RFC_2109, 
+                new RFC2109SpecFactory());
         return registry;
     }
 
