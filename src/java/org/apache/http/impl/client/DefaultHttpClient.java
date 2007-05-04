@@ -43,6 +43,8 @@ import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.RequestAddCookies;
+import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.HttpRoute;
@@ -199,6 +201,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new RequestConnControl());
         httpproc.addInterceptor(new RequestUserAgent());
         httpproc.addInterceptor(new RequestExpectContinue());
+        // HTTP state management interceptors
+        httpproc.addInterceptor(new RequestAddCookies());
+        httpproc.addInterceptor(new ResponseProcessCookies());
         return httpproc;
     }
 

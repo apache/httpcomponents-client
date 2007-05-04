@@ -33,6 +33,8 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
+import org.apache.http.util.CharArrayBuffer;
+
 /**
  * <p>
  * HTTP "magic-cookie" represents a piece of state information
@@ -328,7 +330,32 @@ public class Cookie {
         return hasDomainAttribute;
     }
 
+    public String toString() {
+        CharArrayBuffer buffer = new CharArrayBuffer(64);
+        buffer.append("[version: ");
+        buffer.append(Integer.toString(this.cookieVersion));
+        buffer.append("]");
+        buffer.append("[name: ");
+        buffer.append(this.name);
+        buffer.append("]");
+        buffer.append("[name: ");
+        buffer.append(this.value);
+        buffer.append("]");
+        buffer.append("[domain: ");
+        buffer.append(this.cookieDomain);
+        buffer.append("]");
+        buffer.append("[path: ");
+        buffer.append(this.cookiePath);
+        buffer.append("]");
+        buffer.append("[expiry: ");
+        buffer.append(this.cookieExpiryDate);
+        buffer.append("]");
+        return buffer.toString();
+    }
+    
+    
    // ----------------------------------------------------- Instance Variables
+
 
     private final String name;
     private final String value;

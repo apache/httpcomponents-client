@@ -54,11 +54,6 @@ public final class CookiePolicy {
      */
     public static final String RFC_2965 = "rfc2965";
 
-    /**
-     * The policy that ignores cookies. 
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-    
     private CookiePolicy() {
         super();
     }

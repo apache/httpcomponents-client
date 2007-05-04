@@ -39,6 +39,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.DateUtils;
@@ -148,7 +149,8 @@ public class RFC2109Spec extends CookieSpecBase {
             }
         }
         CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.length);
-        buffer.append("Cookie: ");
+        buffer.append(SM.COOKIE);
+        buffer.append(": ");
         formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
         for (int i = 0; i < cookies.length; i++) {
             buffer.append("; ");

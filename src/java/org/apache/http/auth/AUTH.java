@@ -29,22 +29,38 @@
  *
  */
 
-package org.apache.http.client.protocol;
+package org.apache.http.auth;
 
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+/**
+ * Constants and static helpers related to the HTTP authentication.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 4.0
+ */
+public final class AUTH {
 
-public class HttpClientContext extends HttpExecutionContext {
+    /**
+     * The www authenticate challange header.
+     */
+    public static final String WWW_AUTH = "WWW-Authenticate";
+
+    /**
+     * The www authenticate response header.
+     */
+    public static final String WWW_AUTH_RESP = "Authorization";
+
+    /**
+     * The proxy authenticate challange header.
+     */
+    public static final String PROXY_AUTH = "Proxy-Authenticate";
+
+    /**
+     * The proxy authenticate response header.
+     */
+    public static final String PROXY_AUTH_RESP = "Proxy-Authorization";
     
-    public static final String SCHEME_REGISTRY       = "http.scheme-registry"; 
-    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
-    public static final String HTTP_STATE            = "http.state"; 
-    public static final String COOKIE_SPEC           = "http.cookie-spec"; 
-    public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
-    
-    public HttpClientContext(final HttpContext parentContext) {
-        super(parentContext);
+    private AUTH() {
     }
-    
+       
 }

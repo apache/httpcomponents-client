@@ -29,38 +29,22 @@
  *
  */
 
-package org.apache.http.auth;
+package org.apache.http.cookie;
 
 /**
- * Constants and static helpers related to the HTTP authentication.
+ * Constants and static helpers related to the HTTP state management.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */
-public final class HTTPAuth {
+public final class SM {
 
-    /**
-     * The www authenticate challange header.
-     */
-    public static final String WWW_AUTH = "WWW-Authenticate";
+    public static final String COOKIE= "Cookie";
 
-    /**
-     * The www authenticate response header.
-     */
-    public static final String WWW_AUTH_RESP = "Authorization";
-
-    /**
-     * The proxy authenticate challange header.
-     */
-    public static final String PROXY_AUTH = "Proxy-Authenticate";
-
-    /**
-     * The proxy authenticate response header.
-     */
-    public static final String PROXY_AUTH_RESP = "Proxy-Authorization";
+    public static final String SET_COOKIE = "Set-Cookie";
     
-    private HTTPAuth() {
+    private SM() {
     }
        
 }

@@ -39,7 +39,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BasicNameValuePair;
@@ -368,9 +368,9 @@ public class DigestScheme extends RFC2617Scheme {
         
         CharArrayBuffer buffer = new CharArrayBuffer(128);
         if (isProxy()) {
-            buffer.append(HTTPAuth.PROXY_AUTH_RESP);
+            buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
-            buffer.append(HTTPAuth.WWW_AUTH_RESP);
+            buffer.append(AUTH.WWW_AUTH_RESP);
         }
         buffer.append(": Digest ");
         

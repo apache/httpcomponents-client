@@ -36,6 +36,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SM;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
@@ -135,7 +136,8 @@ public class BrowserCompatSpec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie array may not be empty");
         }
         CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.length);
-        buffer.append("Cookie: ");
+        buffer.append(SM.COOKIE);
+        buffer.append(": ");
         for (int i = 0; i < cookies.length; i++) {
             Cookie cookie = cookies[i];
             if (i > 0) {

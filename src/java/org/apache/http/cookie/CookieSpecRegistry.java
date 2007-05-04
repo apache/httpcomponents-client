@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.cookie.params.CookieSpecParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -114,28 +113,6 @@ public final class CookieSpecRegistry {
         } else {
             throw new IllegalStateException("Unsupported cookie spec: " + name);
         }
-    } 
-
-    /**
-     * Gets the {@link CookieSpec cookie specification} based on the given
-     * HTTP parameters. The cookie specification name will be obtained from
-     * the HTTP parameters.
-     * 
-     * @param params the {@link HttpParams HTTP parameters} for the cookie
-     *  specification. 
-     * 
-     * @return {@link CookieSpec cookie specification}
-     * 
-     * @throws IllegalStateException if a policy with the given name cannot be found
-     * 
-     * @see CookieSpecParams#getCookiePolicy(HttpParams)
-     */
-    public CookieSpec getCookieSpec(final HttpParams params) 
-        throws IllegalStateException {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
-        return getCookieSpec(CookieSpecParams.getCookiePolicy(params), params);
     } 
 
     /**

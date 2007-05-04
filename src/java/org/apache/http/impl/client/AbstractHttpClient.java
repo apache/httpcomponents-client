@@ -324,8 +324,13 @@ public abstract class AbstractHttpClient
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in determineRoute().
 
-        if (context == null)
-            context = new HttpExecutionContext(getContext());
+        synchronized (this) {
+            if (context == null) {
+                context = new HttpExecutionContext(getContext());
+                // Populate the context for this request
+                populateContext(context);
+            }
+        }
         
         RoutedRequest roureq = determineRoute(target, request, context);
         return execute(roureq, context);
@@ -348,16 +353,16 @@ public abstract class AbstractHttpClient
                 ("Route must not be null.");
         }
 
-        if (context == null)
-            context = new HttpExecutionContext(getContext());
-        
         ClientRequestDirector director = null;
         
         // Initialize the request execution context making copies of 
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
-            // Populate the context for this request
-            populateContext(context);
+            if (context == null) {
+                context = new HttpExecutionContext(getContext());
+                // Populate the context for this request
+                populateContext(context);
+            }
             // Create a copy of the HTTP processor
             BasicHttpProcessor httpproc = getHttpProcessor().copy();
             // Create an HTTP request executor for this request

@@ -35,7 +35,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BufferedHeader;
@@ -181,9 +181,9 @@ public class BasicScheme extends RFC2617Scheme {
         
         buffer.clear();
         if (proxy) {
-            buffer.append(HTTPAuth.PROXY_AUTH_RESP);
+            buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
-            buffer.append(HTTPAuth.WWW_AUTH_RESP);
+            buffer.append(AUTH.WWW_AUTH_RESP);
         }
         buffer.append(": Basic ");
         buffer.append(base64password, 0, base64password.length);

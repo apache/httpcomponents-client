@@ -41,7 +41,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
@@ -75,7 +75,7 @@ public class TestDigestScheme extends TestCase {
     }
 
     public void testDigestAuthenticationWithNoRealm() throws Exception {
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, "Digest");
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, "Digest");
         try {
             AuthScheme authscheme = new DigestScheme();
             authscheme.processChallenge(authChallenge);
@@ -86,7 +86,7 @@ public class TestDigestScheme extends TestCase {
     }
 
     public void testDigestAuthenticationWithNoRealm2() throws Exception {
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, "Digest ");
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, "Digest ");
         try {
             AuthScheme authscheme = new DigestScheme();
             authscheme.processChallenge(authChallenge);
@@ -98,7 +98,7 @@ public class TestDigestScheme extends TestCase {
 
     public void testDigestAuthenticationWithDefaultCreds() throws Exception {
         String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
         AuthScheme authscheme = new DigestScheme();
@@ -115,7 +115,7 @@ public class TestDigestScheme extends TestCase {
 
     public void testDigestAuthentication() throws Exception {
         String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
         AuthScheme authscheme = new DigestScheme();
@@ -132,7 +132,7 @@ public class TestDigestScheme extends TestCase {
 
     public void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
         String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
         Credentials cred = new UsernamePasswordCredentials("username","password");
         AuthScheme authscheme = new DigestScheme();
@@ -153,7 +153,7 @@ public class TestDigestScheme extends TestCase {
         Credentials cred = new UsernamePasswordCredentials("username","password");
         Credentials cred2 = new UsernamePasswordCredentials("uname2","password2");
 
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge1);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge1);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         AuthScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
@@ -166,7 +166,7 @@ public class TestDigestScheme extends TestCase {
         assertEquals("abcde", table.get("nonce"));
         assertEquals("786f500303eac1478f3c2865e676ed68", table.get("response"));
 
-        authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge2);
+        authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge2);
         AuthScheme authscheme2 = new DigestScheme();
         authscheme2.processChallenge(authChallenge);
         authResponse = authscheme2.authenticate(cred2, request);
@@ -197,7 +197,7 @@ public class TestDigestScheme extends TestCase {
             + "algorithm=MD5-sess, "
             + "qop=\"auth,auth-int\""; // we pass both but expect auth to be used
 
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         
         Credentials cred = new UsernamePasswordCredentials(username, password);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
@@ -241,7 +241,7 @@ public class TestDigestScheme extends TestCase {
             + "stale=false, "
             + "algorithm=MD5-sess";
 
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         
         Credentials cred = new UsernamePasswordCredentials(username, password);
 
@@ -280,7 +280,7 @@ public class TestDigestScheme extends TestCase {
             + "algorithm=MD5-sess, "
             + "qop=\"jakarta\""; // jakarta is an invalid qop value
 
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         
         try {
             AuthScheme authscheme = new DigestScheme();
@@ -293,7 +293,7 @@ public class TestDigestScheme extends TestCase {
     public void testDigestAuthenticationWithStaleNonce() throws Exception {
         String challenge = "Digest realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", stale=\"true\"";
-        Header authChallenge = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         AuthScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
 

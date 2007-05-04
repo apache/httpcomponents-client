@@ -36,7 +36,7 @@ import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BufferedHeader;
@@ -90,9 +90,9 @@ public abstract class RFC2617Scheme implements AuthScheme {
             throw new IllegalArgumentException("Header may not be null");
         }
         String authheader = header.getName();
-        if (authheader.equalsIgnoreCase(HTTPAuth.WWW_AUTH)) {
+        if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
             this.proxy = false;
-        } else if (authheader.equalsIgnoreCase(HTTPAuth.PROXY_AUTH)) {
+        } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
             this.proxy = true;
         } else {
             throw new MalformedChallengeException("Unexpected header name: " + authheader);

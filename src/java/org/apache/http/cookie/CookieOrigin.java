@@ -30,6 +30,8 @@
  */
 package org.apache.http.cookie;
 
+import org.apache.http.util.CharArrayBuffer;
+
 /**
  * CookieOrigin class incapsulates details of an origin server that 
  * are relevant when parsing, validating or matching HTTP cookies.
@@ -87,5 +89,19 @@ public final class CookieOrigin {
 	public boolean isSecure() {
 		return this.secure;
 	}
-	
+
+    public String toString() {
+        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        buffer.append("[");
+        if (this.secure) {
+            buffer.append("(secure)");
+        }
+        buffer.append(this.host);
+        buffer.append(":");
+        buffer.append(Integer.toString(this.port));
+        buffer.append(this.path);
+        buffer.append("]");
+        return buffer.toString();
+    }
+    
 }

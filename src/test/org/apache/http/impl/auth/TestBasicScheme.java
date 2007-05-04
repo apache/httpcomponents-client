@@ -39,7 +39,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
@@ -75,7 +75,7 @@ public class TestBasicScheme extends TestCase {
 
     public void testBasicAuthenticationWithNoRealm() {
         String challenge = "Basic";
-        Header header = new BasicHeader(HTTPAuth.WWW_AUTH, challenge);
+        Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
         try {
             AuthScheme authscheme = new BasicScheme();
             authscheme.processChallenge(header);
@@ -101,7 +101,7 @@ public class TestBasicScheme extends TestCase {
         UsernamePasswordCredentials creds = 
             new UsernamePasswordCredentials("testuser", "testpass");
         
-        Header challenge = new BasicHeader(HTTPAuth.WWW_AUTH, "Basic realm=\"test\"");
+        Header challenge = new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\"");
         
         BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
@@ -111,7 +111,7 @@ public class TestBasicScheme extends TestCase {
         
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        assertEquals(HTTPAuth.WWW_AUTH_RESP, authResponse.getName());
+        assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
         assertEquals(expected, authResponse.getValue());
         assertEquals("test", authscheme.getRealm());
         assertTrue(authscheme.isComplete());
@@ -122,7 +122,7 @@ public class TestBasicScheme extends TestCase {
         UsernamePasswordCredentials creds = 
             new UsernamePasswordCredentials("testuser", "testpass");
         
-        Header challenge = new BasicHeader(HTTPAuth.PROXY_AUTH, "Basic realm=\"test\"");
+        Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
         
         BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
@@ -132,7 +132,7 @@ public class TestBasicScheme extends TestCase {
         
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        assertEquals(HTTPAuth.PROXY_AUTH_RESP, authResponse.getName());
+        assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());
         assertEquals(expected, authResponse.getValue());
         assertEquals("test", authscheme.getRealm());
         assertTrue(authscheme.isComplete());

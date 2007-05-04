@@ -34,7 +34,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.HTTPAuth;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BufferedHeader;
@@ -84,7 +84,7 @@ public class TestRFC2617Scheme extends TestCase {
     public void testProcessChallenge() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader(
-                HTTPAuth.WWW_AUTH,
+                AUTH.WWW_AUTH,
                 "Test realm=\"realm1\", test, test1 =  stuff, test2 =  \"stuff, stuff\", test3=\"crap");
         
         authscheme.processChallenge(header);
@@ -122,7 +122,7 @@ public class TestRFC2617Scheme extends TestCase {
     
     public void testEmptyHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
-        Header header = new BasicHeader(HTTPAuth.WWW_AUTH, "Test    ");
+        Header header = new BasicHeader(AUTH.WWW_AUTH, "Test    ");
         try {
             authscheme.processChallenge(header);
             fail("MalformedChallengeException should have been thrown");

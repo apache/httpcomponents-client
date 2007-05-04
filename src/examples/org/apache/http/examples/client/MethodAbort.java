@@ -37,9 +37,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
@@ -56,12 +53,6 @@ import org.apache.http.params.HttpProtocolParams;
 public class MethodAbort {
 
     public final static void main(String[] args) throws Exception {
-
-        // Create a registry of available protocol schemes
-        SchemeRegistry supportedSchemes = new SchemeRegistry();
-
-        supportedSchemes.register(
-                new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 
         // Initialize default parameters
         HttpParams params = new BasicHttpParams();
