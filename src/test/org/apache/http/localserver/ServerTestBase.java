@@ -136,8 +136,7 @@ public abstract class ServerTestBase extends TestCase {
         }
 
         if (httpExecutor == null) {
-            httpExecutor = new HttpRequestExecutor(httpProcessor);
-            httpExecutor.setParams(defaultParams);
+            httpExecutor = new HttpRequestExecutor(defaultParams);
         }
 
         if (localServer == null) {

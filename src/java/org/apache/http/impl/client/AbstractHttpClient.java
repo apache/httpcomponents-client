@@ -52,7 +52,6 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
-import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpRequestInterceptorList;
 import org.apache.http.protocol.HttpResponseInterceptorList;
 
@@ -363,16 +362,12 @@ public abstract class AbstractHttpClient
                 // Populate the context for this request
                 populateContext(context);
             }
-            // Create a copy of the HTTP processor
-            BasicHttpProcessor httpproc = getHttpProcessor().copy();
-            // Create an HTTP request executor for this request
-            HttpRequestExecutor reqexec = new HttpRequestExecutor(httpproc);
-            reqexec.setParams(getParams());
             // Create a director for this request
             director = new DefaultClientRequestDirector(
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
-                    reqexec);
+                    getHttpProcessor().copy(),
+                    getParams());
         }
 
         HttpResponse  response = director.execute(roureq, context);

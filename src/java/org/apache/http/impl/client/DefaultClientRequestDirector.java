@@ -48,8 +48,10 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
 
@@ -79,18 +81,22 @@ public class DefaultClientRequestDirector
     /** The request executor. */
     protected final HttpRequestExecutor requestExec;
 
+    /** The HTTP protocol processor. */
+    protected final HttpProcessor httpProcessor;
+    
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
 
     public DefaultClientRequestDirector(ClientConnectionManager conman,
                                         ConnectionReuseStrategy reustrat,
-                                        HttpRequestExecutor reqexec) {
+                                        HttpProcessor httpProcessor,
+                                        HttpParams params) {
 
         this.connManager   = conman;
         this.reuseStrategy = reustrat;
-        this.requestExec   = reqexec;
-
+        this.requestExec   = new HttpRequestExecutor(params);
+        this.httpProcessor = httpProcessor;
         this.managedConn   = null;
 
         //@@@ authentication?
@@ -124,6 +130,11 @@ public class DefaultClientRequestDirector
                 allocateConnection(roureq.getRoute());
                 establishRoute(roureq.getRoute(), context);
 
+                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
+                        roureq.getRoute().getTargetHost());
+                context.setAttribute(HttpExecutionContext.HTTP_CONNECTION,
+                        managedConn);
+                
                 HttpRequest prepreq = prepareRequest(roureq, context);
                 //@@@ handle authentication here or via interceptor?
                 
@@ -131,10 +142,13 @@ public class DefaultClientRequestDirector
                     ((AbortableHttpRequest) prepreq).setReleaseTrigger(managedConn);
                 }
 
-                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
-                                     roureq.getRoute().getTargetHost());
+                context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
+                        prepreq);
+                
                 response = requestExec.execute(prepreq, managedConn, context);
 
+                finalizeResponse(response, context);
+                
                 RoutedRequest followup =
                     handleResponse(roureq, prepreq, response, context);
                 if (followup == null) {
@@ -336,10 +350,11 @@ public class DefaultClientRequestDirector
      */
     protected HttpRequest prepareRequest(RoutedRequest roureq,
                                          HttpContext context)
-        throws HttpException {
+        throws IOException, HttpException {
 
         HttpRequest prepared = roureq.getRequest();
-
+        requestExec.preProcess(prepared, httpProcessor, context);
+        
         //@@@ Instantiate a wrapper to prevent modification of the original
         //@@@ request object? It might be needed for retries.
         //@@@ If proxied and non-tunnelled, make sure an absolute URL is
@@ -348,6 +363,20 @@ public class DefaultClientRequestDirector
         return prepared;
 
     } // prepareRequest
+
+
+    /**
+     * Finalizes the response received as a result of the request execution.
+     *
+     * @param response  the response received
+     * @param context   the context used for the current request execution
+     */
+    protected void finalizeResponse(HttpResponse response,
+                                    HttpContext context)
+        throws IOException, HttpException {
+
+        requestExec.postProcess(response, httpProcessor, context);
+    } // finalizeResponse
 
 
     /**

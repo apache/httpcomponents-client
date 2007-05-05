@@ -42,6 +42,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.util.EntityUtils;
 
 
@@ -77,8 +78,20 @@ public class TestLocalServer extends ServerTestBase {
         request.setEntity(new StringEntity(message, charset));
 
         HttpClientConnection conn = connectTo(target);
+
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_CONNECTION, conn);
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_TARGET_HOST, target);
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_REQUEST, request);
+        
+        httpExecutor.preProcess
+            (request, httpProcessor, httpContext);
         HttpResponse response = httpExecutor.execute
             (request, conn, httpContext);
+        httpExecutor.postProcess
+            (response, httpProcessor, httpContext);
 
         assertEquals("wrong status in response", HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
@@ -106,8 +119,20 @@ public class TestLocalServer extends ServerTestBase {
             HttpGet request = new HttpGet(uri);
 
             HttpClientConnection conn = connectTo(target);
+            
+            httpContext.setAttribute(
+                    HttpExecutionContext.HTTP_CONNECTION, conn);
+            httpContext.setAttribute(
+                    HttpExecutionContext.HTTP_TARGET_HOST, target);
+            httpContext.setAttribute(
+                    HttpExecutionContext.HTTP_REQUEST, request);
+            
+            httpExecutor.preProcess
+                (request, httpProcessor, httpContext);
             HttpResponse response = httpExecutor.execute
                 (request, conn, httpContext);
+            httpExecutor.postProcess
+                (response, httpProcessor, httpContext);
 
             assertEquals("(" + sizes[i] + ") wrong status in response",
                          HttpStatus.SC_OK,

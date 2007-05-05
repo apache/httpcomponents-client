@@ -31,30 +31,24 @@
 package org.apache.http.impl.conn;
 
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-
 import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.HostConfiguration; //@@@ deprecated
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.util.EntityUtils;
 
 
 /**
@@ -126,7 +120,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
 
-        final HttpRoute route = new HttpRoute(getServerHttp(), null, false);
+        HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
         final String    uri   = "/random/8"; // read 8 bytes
 
         HttpRequest request =
@@ -135,8 +130,19 @@ public class TestTSCCMWithServer extends ServerTestBase {
         ManagedClientConnection conn = mgr.getConnection(route);
         conn.open(route, httpContext, defaultParams);
 
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_CONNECTION, conn);
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_TARGET_HOST, target);
+        httpContext.setAttribute(
+                HttpExecutionContext.HTTP_REQUEST, request);
+        
+        httpExecutor.preProcess
+            (request, httpProcessor, httpContext);
         HttpResponse response =
             httpExecutor.execute(request, conn, httpContext);
+        httpExecutor.postProcess
+            (response, httpProcessor, httpContext);
 
         assertEquals("wrong status in response",
                      HttpStatus.SC_OK,
