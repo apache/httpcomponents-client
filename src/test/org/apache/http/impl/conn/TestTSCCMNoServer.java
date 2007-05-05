@@ -374,7 +374,7 @@ public class TestTSCCMNoServer extends TestCase {
         HostConfiguration hcfg = route.toHostConfig(); //@@@ deprecated
 
         ManagedClientConnection conn = mgr.getConnection(route);
-        
+
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
@@ -399,5 +399,6 @@ public class TestTSCCMNoServer extends TestCase {
     // testShutdownAll, depends on parameterization and extra threads
     // testShutdown, depends on parameterization and extra threads
     // testHostReusePreference, depends on parameterization and extra threads
+    // testWaitingThreadInterrupted - depends on extra thread
 
 } // class TestTSCCMNoServer
