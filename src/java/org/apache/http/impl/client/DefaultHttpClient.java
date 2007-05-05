@@ -96,9 +96,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
      *
      * @param params    the parameters
      * @param conman    the connection manager
-     * @param schemes   the scheme registry, or 
-     *                  <code>null</code> to use the
-     *                  {@link SchemeRegistry#DEFAULT default}
      */
     public DefaultHttpClient(
             final ClientConnectionManager conman,

@@ -150,9 +150,7 @@ public class HttpState {
      * 
      * @return true if any cookies were purged.
      * 
-     * @see Cookie#isExpired()
-     * 
-     * @see #purgeExpiredCookies()
+     * @see Cookie#isExpired(Date)
      */
     public synchronized boolean purgeExpiredCookies() {
         boolean removed = false;

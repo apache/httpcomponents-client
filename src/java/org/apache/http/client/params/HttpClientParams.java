@@ -44,7 +44,7 @@ import org.apache.http.params.HttpParams;
 public class HttpClientParams {
 
     /**
-     * Sets the timeout in milliseconds used when retrieving an instance of 
+     * Defines the timeout in milliseconds used when retrieving an instance of 
      * {@link org.apache.http.conn.ManagedClientConnection} from the
      * {@link org.apache.http.conn.ClientConnectionManager}.
      * <p>
@@ -109,9 +109,9 @@ public class HttpClientParams {
     }
 
     /**
-     * Returns the timeout in milliseconds used when retrieving an 
-     * {@link org.apache.commons.httpclient.HttpConnection HTTP connection} from the
-     * {@link org.apache.commons.httpclient.HttpConnectionManager HTTP connection manager}.
+     * Returns the timeout in milliseconds used when retrieving a
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
      * 
      * @return timeout in milliseconds.
      */ 
@@ -123,9 +123,9 @@ public class HttpClientParams {
     }
 
     /**
-     * Sets the timeout in milliseconds used when retrieving an 
-     * {@link org.apache.commons.httpclient.HttpConnection HTTP connection} from the
-     * {@link org.apache.commons.httpclient.HttpConnectionManager HTTP connection manager}.
+     * Sets the timeout in milliseconds used when retrieving a
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
      * 
      * @param timeout the timeout in milliseconds
      */ 

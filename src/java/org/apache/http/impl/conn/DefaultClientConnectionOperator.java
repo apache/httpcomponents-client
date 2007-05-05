@@ -71,19 +71,9 @@ public class DefaultClientConnectionOperator
 
 
     /**
-     * Creates a new client connection operator.
-     * Uses {@link SchemeRegistry#DEFAULT SchemeRegistry.DEFAULT}
-     * as the scheme registry.
-     */
-    public DefaultClientConnectionOperator() {
-        this(null);
-    }
-
-    /**
      * Creates a new client connection operator for the given scheme registry.
      *
-     * @param schemes   the scheme registry, or <code>null</code> to use
-     *                  {@link SchemeRegistry#DEFAULT SchemeRegistry.DEFAULT}
+     * @param schemes   the scheme registry
      */
     public DefaultClientConnectionOperator(SchemeRegistry schemes) {
         if (schemes == null) {
