@@ -98,15 +98,19 @@ public abstract class ServerTestBase extends TestCase {
      * This method will re-use the helper objects from a previous run
      * if they are still available. For example, the local test server
      * will be re-started rather than re-created.
-     * Tests that modify the helper objects should afterwards
-     * set the respective attributes to <code>null</code> to force
-     * re-creation for subsequent tests. Of course that shouldn't
-     * be done to the test server, or only after shutting that down.
+     * {@link #httpContext httpContext} will always be re-created.
+     * Tests that modify the other helper objects should afterwards
+     * set the respective attributes to <code>null</code> in a
+     * <code>finally{}</code> block to force re-creation for
+     * subsequent tests.
+     * Of course that shouldn't be done with the test server,
+     * or only after shutting that down.
      *
      * @throws Exception        in case of a problem
      */
     protected void setUp() throws Exception {
 
+        boolean newparams = false;
         if (defaultParams == null) {
             defaultParams = new BasicHttpParams(null);
             HttpProtocolParams.setVersion
@@ -117,6 +121,7 @@ public abstract class ServerTestBase extends TestCase {
                 (defaultParams, "Jakarta-HttpComponents-Test/1.1");
             HttpProtocolParams.setUseExpectContinue
                 (defaultParams, false);
+            newparams = true;
         }
 
         if (supportedSchemes == null) {
@@ -131,11 +136,10 @@ public abstract class ServerTestBase extends TestCase {
             httpProcessor.addInterceptor(new RequestConnControl()); // optional
         }
 
-        if (httpContext == null) {
-            httpContext = new HttpExecutionContext(null);
-        }
+        // the context is created each time, it may get modified by test cases
+        httpContext = new HttpExecutionContext(null);
 
-        if (httpExecutor == null) {
+        if ((httpExecutor == null) || newparams) {
             httpExecutor = new HttpRequestExecutor(defaultParams);
         }
 

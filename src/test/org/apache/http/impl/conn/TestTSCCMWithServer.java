@@ -42,6 +42,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
@@ -110,19 +111,18 @@ public class TestTSCCMWithServer extends ServerTestBase {
     /**
      * Tests releasing and re-using a connection after a response is read.
      */
-    // public void testReleaseConnection() throws Exception {
-    public void testSkeleton() throws Exception {
-        //@@@ this testcase is not yet complete
+    public void testReleaseConnection() throws Exception {
+        //public void testSkeleton() throws Exception {
 
         HttpParams mgrpar = createManagerParams();
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(mgrpar, 1);
-        HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 3);
+        HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 1);
 
         ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
 
-        HttpHost target = getServerHttp();
+        final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
-        final String    uri   = "/random/8"; // read 8 bytes
+        final int      rsplen = 8;
+        final String      uri = "/random/" + rsplen;
 
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
@@ -130,13 +130,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
         ManagedClientConnection conn = mgr.getConnection(route);
         conn.open(route, httpContext, defaultParams);
 
+        // a new context is created for each testcase, no need to reset
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_CONNECTION, conn);
+            HttpExecutionContext.HTTP_CONNECTION, conn);
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_TARGET_HOST, target);
+            HttpExecutionContext.HTTP_TARGET_HOST, target);
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_REQUEST, request);
-        
+            HttpExecutionContext.HTTP_REQUEST, request);
+
         httpExecutor.preProcess
             (request, httpProcessor, httpContext);
         HttpResponse response =
@@ -144,18 +145,65 @@ public class TestTSCCMWithServer extends ServerTestBase {
         httpExecutor.postProcess
             (response, httpProcessor, httpContext);
 
-        assertEquals("wrong status in response",
+        assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
         byte[] data = EntityUtils.toByteArray(response.getEntity());
+        assertEquals("wrong length of first response entity",
+                     rsplen, data.length);
+        // ignore data, but it must be read
+
+        // check that there is no auto-release by default
+        try {
+            // this should fail quickly, connection has not been released
+            mgr.getConnection(route, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        // release connection without marking for re-use
+        // expect the next connection obtained to be closed
+        mgr.releaseConnection(conn);
+        conn = mgr.getConnection(route);
+        assertFalse("connection should have been closed", conn.isOpen());
+
+        // repeat the communication, no need to prepare the request again
+        conn.open(route, httpContext, defaultParams);
+        httpContext.setAttribute(HttpExecutionContext.HTTP_CONNECTION, conn);
+        response = httpExecutor.execute(request, conn, httpContext);
+        httpExecutor.postProcess(response, httpProcessor, httpContext);
+
+        assertEquals("wrong status in second response",
+                     HttpStatus.SC_OK,
+                     response.getStatusLine().getStatusCode());
+        data = EntityUtils.toByteArray(response.getEntity());
+        assertEquals("wrong length of second response entity",
+                     rsplen, data.length);
+        // ignore data, but it must be read
+
+        // release connection after marking it for re-use
+        // expect the next connection obtained to be open
+        conn.markReusable();
+        mgr.releaseConnection(conn);
+        conn = mgr.getConnection(route);
+        assertTrue("connection should have been open", conn.isOpen());
+
+        // repeat the communication, no need to prepare the request again
+        httpContext.setAttribute(HttpExecutionContext.HTTP_CONNECTION, conn);
+        response = httpExecutor.execute(request, conn, httpContext);
+        httpExecutor.postProcess(response, httpProcessor, httpContext);
+
+        assertEquals("wrong status in third response",
+                     HttpStatus.SC_OK,
+                     response.getStatusLine().getStatusCode());
+        data = EntityUtils.toByteArray(response.getEntity());
+        assertEquals("wrong length of third response entity",
+                     rsplen, data.length);
         // ignore data, but it must be read
 
         mgr.releaseConnection(conn);
-
-        //@@@ to be checked:
-        // - connection is NOT re-used if not marked before release
-        // - connection is re-used if marked before release
-        // - re-using the connections works
+        mgr.shutdown();
     }
 
 
@@ -166,7 +214,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     // testConnectMethodFailureRelease
     // testDroppedThread
     // testWriteRequestReleaseConnection, depends on execution framework
-    // testReleaseConnection, depends on execution framework
+    // + testReleaseConnection, depends on execution framework
     // testResponseAutoRelease
     // testMaxConnectionsPerServer - what's the server used/needed for?
     // testReclaimUnusedConnection, depends on execution framework
