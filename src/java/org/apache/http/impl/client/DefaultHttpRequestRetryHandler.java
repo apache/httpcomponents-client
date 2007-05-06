@@ -38,9 +38,9 @@ import java.net.UnknownHostException;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.http.NoHttpResponseException;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
-import org.apache.http.protocol.HttpRequestRetryHandler;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
