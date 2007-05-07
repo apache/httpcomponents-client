@@ -46,6 +46,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.HttpState;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.cookie.Cookie;
@@ -119,11 +120,15 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         
         URI requestURI;
-        try {
-            requestURI = new URI(request.getRequestLine().getUri());
-        } catch (URISyntaxException ex) {
-            throw new ProtocolException("Invalid request URI: " + 
-                    request.getRequestLine().getUri(), ex);
+        if (request instanceof HttpUriRequest) {
+            requestURI = ((HttpUriRequest) request).getURI();
+        } else {
+            try {
+                requestURI = new URI(request.getRequestLine().getUri());
+            } catch (URISyntaxException ex) {
+                throw new ProtocolException("Invalid request URI: " + 
+                        request.getRequestLine().getUri(), ex);
+            }
         }
         
         CookieOrigin cookieOrigin = new CookieOrigin(
