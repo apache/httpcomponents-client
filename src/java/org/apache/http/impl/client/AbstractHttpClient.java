@@ -44,6 +44,7 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -93,6 +94,9 @@ public abstract class AbstractHttpClient
     /** The HTTP processor. */
     private BasicHttpProcessor httpProcessor;
 
+    /** The request retry handler. */
+    private HttpRequestRetryHandler retryHandler;
+
     /** The default HTTP state. */
     private HttpState defaultState;
 
@@ -129,6 +133,9 @@ public abstract class AbstractHttpClient
     
     
     protected abstract BasicHttpProcessor createHttpProcessor();
+
+    
+    protected abstract HttpRequestRetryHandler createHttpRequestRetryHandler();
 
     
     protected abstract HttpState createHttpState();
@@ -206,6 +213,19 @@ public abstract class AbstractHttpClient
 
     public synchronized void setReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
+    }
+
+
+    public synchronized final HttpRequestRetryHandler getHttpRequestRetryHandler() {
+        if (retryHandler == null) {
+            retryHandler = createHttpRequestRetryHandler();
+        }
+        return retryHandler;
+    }
+
+
+    public synchronized void setHttpRequestRetryHandler(final HttpRequestRetryHandler retryHandler) {
+        this.retryHandler = retryHandler;
     }
 
 
@@ -367,6 +387,7 @@ public abstract class AbstractHttpClient
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
                     getHttpProcessor().copy(),
+                    getHttpRequestRetryHandler(),
                     getParams());
         }
 

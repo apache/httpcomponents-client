@@ -37,6 +37,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.params.AuthPolicy;
@@ -202,6 +203,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new RequestAddCookies());
         httpproc.addInterceptor(new ResponseProcessCookies());
         return httpproc;
+    }
+
+
+    protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
+        return new DefaultHttpRequestRetryHandler();
     }
 
 

@@ -33,6 +33,8 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -40,21 +42,22 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-
-
 
 /**
  * Default implementation of a client-side request director.
@@ -72,6 +75,8 @@ import org.apache.http.protocol.HttpRequestExecutor;
 public class DefaultClientRequestDirector
     implements ClientRequestDirector {
 
+    private static final Log LOG = LogFactory.getLog(DefaultClientRequestDirector.class);
+    
     /** The connection manager. */
     protected final ClientConnectionManager connManager;
 
@@ -84,19 +89,45 @@ public class DefaultClientRequestDirector
     /** The HTTP protocol processor. */
     protected final HttpProcessor httpProcessor;
     
+    /** The request retry handler. */
+    protected final HttpRequestRetryHandler retryHandler;
+    
+    /** The HTTP parameters. */
+    protected final HttpParams params;
+    
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
 
-    public DefaultClientRequestDirector(ClientConnectionManager conman,
-                                        ConnectionReuseStrategy reustrat,
-                                        HttpProcessor httpProcessor,
-                                        HttpParams params) {
+    public DefaultClientRequestDirector(
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final HttpParams params) {
 
+        if (conman == null) {
+            throw new IllegalArgumentException("Client connection manager may not be null");
+        }
+        if (reustrat == null) {
+            throw new IllegalArgumentException("Connection reuse strategy may not be null");
+        }
+        if (httpProcessor == null) {
+            throw new IllegalArgumentException("HTTP protocol processor may not be null");
+        }
+        if (retryHandler == null) {
+            throw new IllegalArgumentException("HTTP request retry handler may not be null");
+        }
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
         this.connManager   = conman;
         this.reuseStrategy = reustrat;
-        this.requestExec   = new HttpRequestExecutor(params);
         this.httpProcessor = httpProcessor;
+        this.retryHandler  = retryHandler;
+        this.params        = params;
+        this.requestExec   = new HttpRequestExecutor(params);
+
         this.managedConn   = null;
 
         //@@@ authentication?
@@ -126,6 +157,7 @@ public class DefaultClientRequestDirector
         //@@@ if redirects are followed, or for the whole sequence?
 
         try {
+            int execCount = 0;
             while (!done) {
                 allocateConnection(roureq.getRoute());
                 establishRoute(roureq.getRoute(), context);
@@ -145,7 +177,40 @@ public class DefaultClientRequestDirector
                 context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
                         prepreq);
                 
-                response = requestExec.execute(prepreq, managedConn, context);
+                execCount++;
+                try {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Attempt number " + execCount + " to execute request");
+                    }
+
+                    if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
+                        // validate connection
+                        LOG.debug("Stale connection check");
+                        if (managedConn.isStale()) {
+                            LOG.debug("Stale connection detected");
+                            managedConn.close();
+                        }
+                    }
+                    
+                    response = requestExec.execute(prepreq, managedConn, context);
+                    
+                } catch (IOException ex) {
+                    LOG.debug("Closing the connection.");
+                    managedConn.close();
+                    if (retryHandler.retryRequest(ex, execCount, context)) {
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("I/O exception ("+ ex.getClass().getName() + 
+                                    ") caught when processing request: "
+                                    + ex.getMessage());
+                        }
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(ex.getMessage(), ex);
+                        }
+                        LOG.info("Retrying request");
+                        continue;
+                    }
+                    throw ex;
+                }
 
                 finalizeResponse(response, context);
                 
@@ -184,15 +249,16 @@ public class DefaultClientRequestDirector
      * @throws HttpException    in case of a problem
      */
     protected void allocateConnection(HttpRoute route)
-        throws HttpException {
+        throws HttpException, IOException {
 
         // we assume that the connection would have been released
         // if it was not appropriate for the route of the followup
-        if (managedConn != null)
+        if (managedConn != null) {
             return;
+        }
 
-        //@@@ use connection manager timeout
-        managedConn = connManager.getConnection(route);
+        long timeout = HttpClientParams.getConnectionManagerTimeout(params);
+        managedConn = connManager.getConnection(route, timeout);
 
     } // allocateConnection
 
@@ -439,9 +505,7 @@ public class DefaultClientRequestDirector
         if (success) {
             // Not in exception handling, there probably is a response.
             // The connection is in or can be brought to a re-usable state.
-            boolean reuse = false;
-            if (reuseStrategy != null)
-                reuse = reuseStrategy.keepAlive(response, context);
+            boolean reuse = reuseStrategy.keepAlive(response, context);
 
             // check for entity, release connection if possible
             if ((response == null) || (response.getEntity() == null) ||
@@ -462,9 +526,10 @@ public class DefaultClientRequestDirector
             //@@@ for now, just shut it down
             try {
                 mcc.abortConnection();
-            } catch (IOException ignore) {
-                // can't allow exception while handling exception
-                //@@@ log as debug or warning?
+            } catch (IOException ex) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(ex.getMessage(), ex);
+                }
             }
         }
     } // cleanupConnection
