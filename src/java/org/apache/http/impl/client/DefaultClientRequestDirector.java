@@ -48,6 +48,7 @@ import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
@@ -144,22 +145,15 @@ public class DefaultClientRequestDirector
     public HttpResponse execute(RoutedRequest roureq, HttpContext context)
         throws HttpException, IOException {
 
-        //@@@ link parameters? Let's rely on the request executor for now.
-
         HttpResponse response = null;
         boolean done = false;
-
-        //@@@ where to put the retry handling and counter?
-        //@@@ here, or retry in a calling method, or retry in an inner loop?
-        //@@@ Retry in a calling method would allow for selecting an alternate
-        //@@@ proxy, but it would not be aware of redirects that have already
-        //@@@ been followed. Would the retry counter apply for each request
-        //@@@ if redirects are followed, or for the whole sequence?
 
         try {
             int execCount = 0;
             while (!done) {
-                allocateConnection(roureq.getRoute());
+                if (managedConn == null) {
+                    managedConn = allocateConnection(roureq.getRoute());
+                }
                 establishRoute(roureq.getRoute(), context);
 
                 context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
@@ -176,22 +170,22 @@ public class DefaultClientRequestDirector
 
                 context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
                         prepreq);
+
+                if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
+                    // validate connection
+                    LOG.debug("Stale connection check");
+                    if (managedConn.isStale() || execCount == 1) {
+                        LOG.debug("Stale connection detected");
+                        managedConn.close();
+                        continue;
+                    }
+                }
                 
                 execCount++;
                 try {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Attempt number " + execCount + " to execute request");
+                        LOG.debug("Attempt " + execCount + " to execute request");
                     }
-
-                    if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
-                        // validate connection
-                        LOG.debug("Stale connection check");
-                        if (managedConn.isStale()) {
-                            LOG.debug("Stale connection detected");
-                            managedConn.close();
-                        }
-                    }
-                    
                     response = requestExec.execute(prepreq, managedConn, context);
                     
                 } catch (IOException ex) {
@@ -248,17 +242,11 @@ public class DefaultClientRequestDirector
      *
      * @throws HttpException    in case of a problem
      */
-    protected void allocateConnection(HttpRoute route)
-        throws HttpException, IOException {
-
-        // we assume that the connection would have been released
-        // if it was not appropriate for the route of the followup
-        if (managedConn != null) {
-            return;
-        }
+    protected ManagedClientConnection allocateConnection(HttpRoute route)
+        throws HttpException, ConnectionPoolTimeoutException {
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
-        managedConn = connManager.getConnection(route, timeout);
+        return connManager.getConnection(route, timeout);
 
     } // allocateConnection
 
