@@ -32,15 +32,18 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolException;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RoutedRequest;
@@ -141,10 +144,29 @@ public class DefaultClientRequestDirector
         return managedConn;
     }
 
+    
+    private RequestWrapper wrapRequest(final RoutedRequest roureq) throws ProtocolException {
+        HttpRequest request = roureq.getRequest();
+        try {
+            if (request instanceof HttpEntityEnclosingRequest) {
+                return new EntityEnclosingRequestWrapper(
+                        (HttpEntityEnclosingRequest) request);
+            } else {
+                return new RequestWrapper(
+                        request);
+            }
+        } catch (URISyntaxException ex) {
+            throw new ProtocolException("Invalid URI: " + 
+                    request.getRequestLine().getUri(), ex);
+        }
+    }
+    
+    
     // non-javadoc, see interface ClientRequestDirector
     public HttpResponse execute(RoutedRequest roureq, HttpContext context)
         throws HttpException, IOException {
 
+        RequestWrapper request = wrapRequest(roureq);
         HttpResponse response = null;
         boolean done = false;
 
@@ -161,20 +183,20 @@ public class DefaultClientRequestDirector
                 context.setAttribute(HttpExecutionContext.HTTP_CONNECTION,
                         managedConn);
                 
-                HttpRequest prepreq = prepareRequest(roureq, context);
+                requestExec.preProcess(request, httpProcessor, context);
                 //@@@ handle authentication here or via interceptor?
                 
-                if (prepreq instanceof AbortableHttpRequest) {
-                    ((AbortableHttpRequest) prepreq).setReleaseTrigger(managedConn);
+                if (request instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) request).setReleaseTrigger(managedConn);
                 }
 
                 context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
-                        prepreq);
+                        request);
 
                 if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
                     // validate connection
                     LOG.debug("Stale connection check");
-                    if (managedConn.isStale() || execCount == 1) {
+                    if (managedConn.isStale()) {
                         LOG.debug("Stale connection detected");
                         managedConn.close();
                         continue;
@@ -186,7 +208,7 @@ public class DefaultClientRequestDirector
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Attempt " + execCount + " to execute request");
                     }
-                    response = requestExec.execute(prepreq, managedConn, context);
+                    response = requestExec.execute(request, managedConn, context);
                     
                 } catch (IOException ex) {
                     LOG.debug("Closing the connection.");
@@ -206,10 +228,10 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                finalizeResponse(response, context);
+                requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
-                    handleResponse(roureq, prepreq, response, context);
+                    handleResponse(roureq, request, response, context);
                 if (followup == null) {
                     done = true;
                 } else {
@@ -391,46 +413,6 @@ public class DefaultClientRequestDirector
 
         return req;
     }
-
-
-    /**
-     * Prepares a request for execution.
-     *
-     * @param roureq    the request to be sent, along with the route
-     * @param context   the context used for the current request execution
-     *
-     * @return  the prepared request to send. This can be a different
-     *          object than the request stored in <code>roureq</code>.
-     */
-    protected HttpRequest prepareRequest(RoutedRequest roureq,
-                                         HttpContext context)
-        throws IOException, HttpException {
-
-        HttpRequest prepared = roureq.getRequest();
-        requestExec.preProcess(prepared, httpProcessor, context);
-        
-        //@@@ Instantiate a wrapper to prevent modification of the original
-        //@@@ request object? It might be needed for retries.
-        //@@@ If proxied and non-tunnelled, make sure an absolute URL is
-        //@@@ given in the request line. The target host is in the route.
-
-        return prepared;
-
-    } // prepareRequest
-
-
-    /**
-     * Finalizes the response received as a result of the request execution.
-     *
-     * @param response  the response received
-     * @param context   the context used for the current request execution
-     */
-    protected void finalizeResponse(HttpResponse response,
-                                    HttpContext context)
-        throws IOException, HttpException {
-
-        requestExec.postProcess(response, httpProcessor, context);
-    } // finalizeResponse
 
 
     /**
