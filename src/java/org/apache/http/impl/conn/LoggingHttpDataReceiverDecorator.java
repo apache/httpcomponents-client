@@ -33,6 +33,7 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 
 import org.apache.http.io.HttpDataReceiver;
+import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -112,6 +113,10 @@ class LoggingHttpDataReceiverDecorator implements HttpDataReceiver {
             this.wire.input(s + "[EOL]");
         }
         return l;
+    }
+
+    public HttpTransportMetrics getMetrics() {
+        return this.in.getMetrics();
     }
 
 }
