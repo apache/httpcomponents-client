@@ -34,7 +34,6 @@ package org.apache.http.client.methods;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.conn.ConnectionReleaseTrigger;
@@ -52,7 +51,7 @@ import org.apache.http.params.HttpProtocolParams;
  * @since 4.0
  */
 abstract class HttpRequestBase extends AbstractHttpMessage 
-    implements HttpRequest, AbortableHttpRequest {
+    implements HttpUriRequest, AbortableHttpRequest {
     
     private URI uri;
     private ConnectionReleaseTrigger releaseTrigger;

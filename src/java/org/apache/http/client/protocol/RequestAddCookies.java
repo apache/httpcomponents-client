@@ -131,9 +131,15 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             }
         }
         
+        String hostName = targetHost.getHostName();
+        int port = targetHost.getPort();
+        if (port < 0) {
+            port = conn.getRemotePort();
+        }
+        
         CookieOrigin cookieOrigin = new CookieOrigin(
-                targetHost.getHostName(), 
-                targetHost.getPort(), 
+                hostName, 
+                port, 
                 requestURI.getPath(),
                 conn.isSecure());
         

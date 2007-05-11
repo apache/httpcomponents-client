@@ -32,6 +32,7 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 import org.apache.http.ConnectionReuseStrategy;
@@ -47,6 +48,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
@@ -304,11 +306,9 @@ public abstract class AbstractHttpClient
 
 
     /**
-     * Maps to {@link #execute(HttpHost,HttpRequest,HttpContext)
-     *                 execute(target, request, context)}.
+     * Maps to {@link #execute(HttpUriRequest,HttpContext)
+     *                 execute(request, context)}.
      *
-     * @param target    the target host for the request.
-     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      *
      * @return  the response to the request
@@ -316,10 +316,10 @@ public abstract class AbstractHttpClient
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    public final HttpResponse execute(HttpHost target, HttpRequest request)
+    public final HttpResponse execute(HttpUriRequest request)
         throws HttpException, IOException {
 
-        return execute(target, request, null);
+        return execute(request, null);
     }
 
 
@@ -332,17 +332,26 @@ public abstract class AbstractHttpClient
      *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      */
-    public final HttpResponse execute(HttpHost target, HttpRequest request,
-                                      HttpContext context)
+    public final HttpResponse execute(HttpUriRequest request, HttpContext context)
         throws HttpException, IOException {
 
         if (request == null) {
             throw new IllegalArgumentException
                 ("Request must not be null.");
         }
+
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in determineRoute().
-
+        HttpHost target = null;
+        
+        URI requestURI = request.getURI();
+        if (requestURI.isAbsolute()) {
+            target = new HttpHost(
+                    requestURI.getHost(), 
+                    requestURI.getPort(), 
+                    requestURI.getScheme());
+        }
+        
         synchronized (this) {
             if (context == null) {
                 context = new HttpExecutionContext(getContext());

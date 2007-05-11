@@ -39,7 +39,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.RoutedRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
@@ -96,10 +98,13 @@ public class ClientExecuteDirect {
 
         HttpRequest req = createRequest();
 
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final RoutedRequest roureq = new RoutedRequest.Impl(req, route);
+        
         System.out.println("executing request to " + target);
         HttpEntity entity = null;
         try {
-            HttpResponse rsp = client.execute(target, req);
+            HttpResponse rsp = client.execute(roureq, null);
             entity = rsp.getEntity();
 
             System.out.println("----------------------------------------");

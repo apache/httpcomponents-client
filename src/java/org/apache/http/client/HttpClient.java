@@ -39,6 +39,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 
 
@@ -94,14 +95,11 @@ public interface HttpClient {
         ;
 
     /**
-     * Executes a request for the given target using the
-     * {@link #getContext default context}.
-     * Same as {@link #execute(HttpHost,HttpRequest,HttpContext)
-     *          client.execute(target, request, client.getContext())},
+     * Executes a request using the {@link #getContext default context}.
+     * Same as {@link #execute(HttpUriRequest,HttpContext)
+     *          client.execute(request, client.getContext())},
      * see there for details.
      *
-     * @param target    the target host for the request.
-     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      *
      * @return  the response to the request
@@ -110,17 +108,15 @@ public interface HttpClient {
      * @throws IOException      in case of an IO problem
      * <br/><i @@@>timeout exceptions?</i>
      */
-    HttpResponse execute(HttpHost target, HttpRequest request)
+    HttpResponse execute(HttpUriRequest request)
         throws HttpException, IOException
         ;
 
 
     /**
-     * Executes a request for the given target using the given context.
+     * Executes a request using the given context.
      * The route to the target will be determined by the HTTP client.
      *
-     * @param target    the target host for the request.
-     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
      *                  <code>null</code> to use the
@@ -136,8 +132,7 @@ public interface HttpClient {
      * @throws IOException      in case of an IO problem
      * <br/><i @@@>timeout exceptions?</i>
      */
-    HttpResponse execute(HttpHost target, HttpRequest request,
-                         HttpContext context)
+    HttpResponse execute(HttpUriRequest request, HttpContext context)
         throws HttpException, IOException
         ;
 

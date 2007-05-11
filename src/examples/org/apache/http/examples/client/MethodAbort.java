@@ -32,7 +32,6 @@
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
@@ -62,12 +61,10 @@ public class MethodAbort {
         
         HttpClient httpclient = new DefaultHttpClient(params);
 
-        HttpHost target = new HttpHost("www.apache.org", 80, "http");
+        HttpGet httpget = new HttpGet("http://www.apache.org/"); 
 
-        HttpGet httpget = new HttpGet("/"); 
-
-        System.out.println("executing request to " + target);
-        HttpResponse response = httpclient.execute(target, httpget);
+        System.out.println("executing request " + httpget.getURI());
+        HttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
 
         System.out.println("----------------------------------------");
