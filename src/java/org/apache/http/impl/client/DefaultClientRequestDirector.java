@@ -32,6 +32,7 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
@@ -40,6 +41,7 @@ import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -69,7 +71,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  * This class replaces the <code>HttpMethodDirector</code> in HttpClient 3.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- *
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version $Revision$
@@ -145,8 +147,8 @@ public class DefaultClientRequestDirector
     }
 
     
-    private RequestWrapper wrapRequest(final RoutedRequest roureq) throws ProtocolException {
-        HttpRequest request = roureq.getRequest();
+    private RequestWrapper wrapRequest(
+            final HttpRequest request) throws ProtocolException {
         try {
             if (request instanceof HttpEntityEnclosingRequest) {
                 return new EntityEnclosingRequestWrapper(
@@ -162,21 +164,65 @@ public class DefaultClientRequestDirector
     }
     
     
+    private void rewriteRequestURI(
+            final RequestWrapper request,
+            final HttpRoute route) throws ProtocolException {
+        try {
+            
+            URI uri = request.getURI();
+            if (route.getProxyHost() != null && !route.isTunnelled()) {
+                // Make sure the request URI is absolute
+                if (!uri.isAbsolute()) {
+                    HttpHost target = route.getTargetHost();
+                    uri = new URI(
+                            target.getSchemeName(), 
+                            null, 
+                            target.getHostName(), 
+                            target.getPort(), 
+                            uri.getPath(), 
+                            uri.getQuery(), 
+                            uri.getFragment());
+                    request.setURI(uri);
+                }
+            } else {
+                // Make sure the request URI is relative
+                if (uri.isAbsolute()) {
+                    uri = new URI(null, null, null, -1, 
+                            uri.getPath(), 
+                            uri.getQuery(), 
+                            uri.getFragment());
+                    request.setURI(uri);
+                }
+            }
+            
+        } catch (URISyntaxException ex) {
+            throw new ProtocolException("Invalid URI: " + 
+                    request.getRequestLine().getUri(), ex);
+        }
+    }
+    
+    
     // non-javadoc, see interface ClientRequestDirector
     public HttpResponse execute(RoutedRequest roureq, HttpContext context)
         throws HttpException, IOException {
 
-        RequestWrapper request = wrapRequest(roureq);
+        RequestWrapper request = wrapRequest(roureq.getRequest());
         HttpResponse response = null;
         boolean done = false;
 
         try {
             int execCount = 0;
             while (!done) {
+
+                HttpRoute route = roureq.getRoute();
+
+                // Re-write request URI if needed
+                rewriteRequestURI(request, route);
+                
                 if (managedConn == null) {
-                    managedConn = allocateConnection(roureq.getRoute());
+                    managedConn = allocateConnection(route);
                 }
-                establishRoute(roureq.getRoute(), context);
+                establishRoute(route, context);
 
                 context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
                         roureq.getRoute().getTargetHost());
