@@ -127,6 +127,17 @@ public final class HttpRoute {
 
 
     /**
+     * Creates a new direct insecure route.
+     * That is a route without a proxy.
+     *
+     * @param target    the host to which to route
+     */
+    public HttpRoute(HttpHost target) {
+        this(target, null, null, false, false, false);
+    }
+
+
+    /**
      * Creates a new route through a proxy.
      * When using this constructor, the <code>proxy</code> MUST be given.
      * For convenience, it is assumed that a secure connection will be

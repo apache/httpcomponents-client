@@ -47,6 +47,7 @@ import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -99,6 +100,9 @@ public abstract class AbstractHttpClient
     /** The request retry handler. */
     private HttpRequestRetryHandler retryHandler;
 
+    /** The redirect handler. */
+    private RedirectHandler redirectHandler;
+
     /** The default HTTP state. */
     private HttpState defaultState;
 
@@ -138,6 +142,9 @@ public abstract class AbstractHttpClient
 
     
     protected abstract HttpRequestRetryHandler createHttpRequestRetryHandler();
+
+    
+    protected abstract RedirectHandler createRedirectHandler();
 
     
     protected abstract HttpState createHttpState();
@@ -228,6 +235,19 @@ public abstract class AbstractHttpClient
 
     public synchronized void setHttpRequestRetryHandler(final HttpRequestRetryHandler retryHandler) {
         this.retryHandler = retryHandler;
+    }
+
+
+    public synchronized final RedirectHandler getRedirectHandler() {
+        if (redirectHandler == null) {
+            redirectHandler = createRedirectHandler();
+        }
+        return redirectHandler;
+    }
+
+
+    public synchronized void setRedirectHandler(final RedirectHandler redirectHandler) {
+        this.redirectHandler = redirectHandler;
     }
 
 
@@ -397,6 +417,7 @@ public abstract class AbstractHttpClient
                     getConnectionReuseStrategy(),
                     getHttpProcessor().copy(),
                     getHttpRequestRetryHandler(),
+                    getRedirectHandler(),
                     getParams());
         }
 

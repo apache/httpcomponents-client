@@ -39,6 +39,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
@@ -208,6 +209,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
         return new DefaultHttpRequestRetryHandler();
+    }
+
+
+    protected RedirectHandler createRedirectHandler() {
+        return new DefaultRedirectHandler();
     }
 
 

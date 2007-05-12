@@ -69,6 +69,14 @@ public class HttpClientParams {
      */
     public static final String PREEMPTIVE_AUTHENTICATION = "http.authentication.preemptive";
 
+    /** 
+     * Defines whether redirects should be handled automatically
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String HANDLE_REDIRECTS = "http.protocol.handle-redirects";
+
     /**
      * Defines whether relative redirects should be rejected.
      * <p>
@@ -103,6 +111,15 @@ public class HttpClientParams {
      * </p>
      */
     public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
+    
+    /**
+     * Defines the request headers to be sent per default with each request.
+     * <p>
+     * This parameter expects a value of type {@link java.util.Collection}. The 
+     * collection is expected to contain {@link org.apache.http.Header}s. 
+     * </p>
+     */
+    public static final String DEFAULT_HEADERS = "http.default-headers"; 
     
     private HttpClientParams() {
         super();

@@ -130,8 +130,8 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         return new BasicRequestLine(method, uritext, ver);
     }
 
-    public void resetHeaders() {
-        setHeaders(this.original.getAllHeaders());
+    public HttpRequest getOriginal() {
+        return this.original;
     }
     
 }

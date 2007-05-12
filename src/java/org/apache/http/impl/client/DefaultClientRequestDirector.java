@@ -32,12 +32,16 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -48,8 +52,10 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
@@ -57,6 +63,8 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
+import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -98,6 +106,9 @@ public class DefaultClientRequestDirector
     /** The request retry handler. */
     protected final HttpRequestRetryHandler retryHandler;
     
+    /** The redirect handler. */
+    protected final RedirectHandler redirectHandler;
+    
     /** The HTTP parameters. */
     protected final HttpParams params;
     
@@ -110,6 +121,7 @@ public class DefaultClientRequestDirector
             final ConnectionReuseStrategy reustrat,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
+            final RedirectHandler redirectHandler,
             final HttpParams params) {
 
         if (conman == null) {
@@ -124,6 +136,9 @@ public class DefaultClientRequestDirector
         if (retryHandler == null) {
             throw new IllegalArgumentException("HTTP request retry handler may not be null");
         }
+        if (redirectHandler == null) {
+            throw new IllegalArgumentException("Redirect handler may not be null");
+        }
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
@@ -131,6 +146,7 @@ public class DefaultClientRequestDirector
         this.reuseStrategy = reustrat;
         this.httpProcessor = httpProcessor;
         this.retryHandler  = retryHandler;
+        this.redirectHandler = redirectHandler;
         this.params        = params;
         this.requestExec   = new HttpRequestExecutor(params);
 
@@ -206,20 +222,35 @@ public class DefaultClientRequestDirector
     public HttpResponse execute(RoutedRequest roureq, HttpContext context)
         throws HttpException, IOException {
 
-        RequestWrapper request = wrapRequest(roureq.getRequest());
+        HttpRequest orig = roureq.getRequest();
+        
+        // Link parameter collections to form a hierarchy:
+        // request -> client
+        orig.getParams().setDefaults(this.params);
+
+        // Add default headers
+        Collection defHeaders = (Collection) orig.getParams().getParameter(
+                HttpClientParams.DEFAULT_HEADERS);
+        if (defHeaders != null) {
+            for (Iterator it = defHeaders.iterator(); it.hasNext(); ) {
+                orig.addHeader((Header) it.next());
+            }
+        }
+        
+        int execCount = 0;
+
         HttpResponse response = null;
         boolean done = false;
-
         try {
-            int execCount = 0;
             while (!done) {
 
+                RequestWrapper request = wrapRequest(roureq.getRequest());
                 HttpRoute route = roureq.getRoute();
 
                 // Re-write request URI if needed
                 rewriteRequestURI(request, route);
                 
-                if (managedConn == null) {
+                if (managedConn == null || !managedConn.isOpen()) {
                     managedConn = allocateConnection(route);
                 }
                 establishRoute(route, context);
@@ -465,9 +496,9 @@ public class DefaultClientRequestDirector
      * Analyzes a response to check need for a followup.
      *
      * @param roureq    the request and route. This is the same object as
-     *                  was passed to {@link #prepareRequest prepareRequest}.
+     *                  was passed to {@link #wrapRequest(HttpRequest)}.
      * @param request   the request that was actually sent. This is the object
-     *                  returned by {@link #prepareRequest prepareRequest}.
+     *                  returned by {@link #wrapRequest(HttpRequest)}.
      * @param response  the response to analayze
      * @param context   the context used for the current request execution
      *
@@ -483,15 +514,50 @@ public class DefaultClientRequestDirector
                                            HttpContext context)
         throws HttpException, IOException {
 
-        //@@@ if there is a followup, check connection keep-alive and
-        //@@@ consume response body if necessary or close otherwise
+        HttpParams params = request.getParams();
+        if (params.getBooleanParameter(HttpClientParams.HANDLE_REDIRECTS, true) && 
+                this.redirectHandler.isRedirectNeeded(response)) {
 
-        //@@@ if the request needs to be re-sent with authentication,
-        //@@@ how to revert the modifications applied by the interceptors?
-        //@@@ use a wrapper when sending?
+            URI uri;
+            try {
+                uri = this.redirectHandler.getLocationURI(response, context);
+            } catch (ProtocolException ex) {
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn(ex.getMessage());
+                }
+                return null;
+            }
 
+            HttpRoute oldRoute = roureq.getRoute();
+
+            HttpHost newTarget = new HttpHost(
+                    uri.getHost(), 
+                    uri.getPort(),
+                    uri.getScheme());
+            
+            SchemeRegistry schemeRegistry = this.connManager.getSchemeRegistry();
+            Scheme schm = schemeRegistry.getScheme(newTarget.getSchemeName());
+            
+            InetAddress localAddress = oldRoute.getLocalAddress();
+            HttpHost proxy = oldRoute.getProxyHost();
+            
+            HttpRoute newRoute = new HttpRoute(
+                    newTarget,
+                    localAddress,
+                    proxy,
+                    schm.isLayered(),
+                    (proxy != null),
+                    (proxy != null));
+
+            HttpGet redirect = new HttpGet(uri);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Redirecting to '" + uri + "' via " + newRoute);
+            }
+            
+            return new RoutedRequest.Impl(redirect, newRoute);
+        }
         return null;
-
     } // handleResponse
 
 
