@@ -549,6 +549,12 @@ public class DefaultClientRequestDirector
                     (proxy != null),
                     (proxy != null));
 
+            // Make sure redirect response body is fully consumed, if present
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                entity.consumeContent();
+            }
+            
             HttpGet redirect = new HttpGet(uri);
             
             if (LOG.isDebugEnabled()) {
