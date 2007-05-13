@@ -65,6 +65,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.Scheme;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -262,7 +263,15 @@ public class DefaultClientRequestDirector
                 if (managedConn == null || !managedConn.isOpen()) {
                     managedConn = allocateConnection(route);
                 }
-                establishRoute(route, context);
+                try {
+                    establishRoute(route, context);
+                } catch (TunnelRefusedException ex) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(ex.getMessage());
+                    }
+                    response = ex.getResponse();
+                    break;
+                }
 
                 context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
                         roureq.getRoute().getTargetHost());
@@ -451,17 +460,24 @@ public class DefaultClientRequestDirector
         HttpRequest connect = createConnectRequest(route, context);
         //@@@ authenticate here, in method above, or in request interceptor?
 
-        HttpResponse connected =
+        HttpResponse response =
             requestExec.execute(connect, managedConn, context);
         managedConn.markReusable();
-        int status = connected.getStatusLine().getStatusCode();
-        //@@@ log something about the response?
+        int status = response.getStatusLine().getStatusCode();
 
-        //@@@ check for proxy authentication challenge, repeat with auth
+        if (status < 200) {
+            throw new HttpException("Unexpected response to CONNECT request: " +
+                    response.getStatusLine());
+        }
+        
+        // Buffer response
+        if (response.getEntity() != null) {
+            response.setEntity(new BufferedHttpEntity(response.getEntity()));
+        }
 
-        if ((status < 200) || (status > 299)) {
-            throw new HttpException("CONNECT refused by proxy: " +
-                                    connected.getStatusLine());
+        if (status > 299) {
+            throw new TunnelRefusedException("CONNECT refused by proxy: " +
+                    response.getStatusLine(), response);
         }
 
         // How to decide on security of the tunnelled connection?
