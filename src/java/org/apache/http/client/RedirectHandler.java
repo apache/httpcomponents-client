@@ -56,11 +56,12 @@ public interface RedirectHandler {
      * given the response from the target server.
      * 
      * @param response the response received from the target server
+     * @param context the context for the request execution
      * 
      * @return <code>true</code> if the request should be redirected, <code>false</code>
      * otherwise
      */
-    boolean isRedirectNeeded(HttpResponse response);
+    boolean isRedirectNeeded(HttpResponse response, HttpContext context);
     
     /**
      * Determines the location request is expected to be redirected to 

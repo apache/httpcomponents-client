@@ -52,6 +52,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
@@ -115,7 +116,10 @@ public class DefaultClientRequestDirector
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
+    private int redirectCount;
 
+    private int maxRedirects;
+    
     public DefaultClientRequestDirector(
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
@@ -151,6 +155,9 @@ public class DefaultClientRequestDirector
         this.requestExec   = new HttpRequestExecutor(params);
 
         this.managedConn   = null;
+        
+        this.redirectCount = 0;
+        this.maxRedirects = this.params.getIntParameter(HttpClientParams.MAX_REDIRECTS, 100);
 
         //@@@ authentication?
 
@@ -238,7 +245,7 @@ public class DefaultClientRequestDirector
         }
         
         int execCount = 0;
-
+        
         HttpResponse response = null;
         boolean done = false;
         try {
@@ -516,8 +523,14 @@ public class DefaultClientRequestDirector
 
         HttpParams params = request.getParams();
         if (params.getBooleanParameter(HttpClientParams.HANDLE_REDIRECTS, true) && 
-                this.redirectHandler.isRedirectNeeded(response)) {
+                this.redirectHandler.isRedirectNeeded(response, context)) {
 
+            if (redirectCount >= maxRedirects) {
+                throw new RedirectException("Maximum redirects ("
+                        + maxRedirects + ") exceeded");
+            }
+            redirectCount++;
+            
             URI uri;
             try {
                 uri = this.redirectHandler.getLocationURI(response, context);

@@ -33,6 +33,8 @@ package org.apache.http.impl.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +43,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.params.HttpParams;
@@ -60,8 +63,16 @@ import org.apache.http.protocol.HttpExecutionContext;
 public class DefaultRedirectHandler implements RedirectHandler {
 
     private static final Log LOG = LogFactory.getLog(DefaultRedirectHandler.class);
+    
+    private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
-    public boolean isRedirectNeeded(final HttpResponse response) {
+    public DefaultRedirectHandler() {
+        super();
+    }
+    
+    public boolean isRedirectNeeded(
+            final HttpResponse response,
+            final HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
@@ -131,6 +142,42 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 throw new ProtocolException(ex.getMessage(), ex);
             }
         }
+        
+        if (params.isParameterFalse(HttpClientParams.ALLOW_CIRCULAR_REDIRECTS)) {
+            
+            Set redirectLocations = (Set) context.getAttribute(REDIRECT_LOCATIONS);
+            
+            if (redirectLocations == null) {
+                redirectLocations = new HashSet();
+                context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
+            }
+            
+            URI redirectURI;
+            if (uri.getQuery() != null || uri.getFragment() != null) {
+                try {
+                    redirectURI = new URI(
+                            uri.getScheme(),
+                            null,
+                            uri.getHost(),
+                            uri.getPort(),
+                            uri.getPath(),
+                            null,
+                            null);
+                } catch (URISyntaxException ex) {
+                    throw new ProtocolException(ex.getMessage(), ex);
+                }
+            } else {
+                redirectURI = uri;
+            }
+            
+            if (redirectLocations.contains(redirectURI)) {
+                throw new CircularRedirectException("Circular redirect to '" +
+                        redirectURI + "'");
+            } else {
+                redirectLocations.add(redirectURI);
+            }
+        }
+        
         return uri;
     }
 
