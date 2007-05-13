@@ -175,7 +175,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
         }
         TrustManager[] trustmanagers = null;
         if (truststore != null) {
-            trustmanagers = createTrustManagers(keystore);
+            trustmanagers = createTrustManagers(truststore);
         }
         this.sslcontext = SSLContext.getInstance(algorithm);
         this.sslcontext.init(keymanagers, trustmanagers, random);

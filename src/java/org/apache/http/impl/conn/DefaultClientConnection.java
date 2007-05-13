@@ -204,10 +204,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             final HttpParams params) throws HttpException, IOException {
         HttpResponse response = super.receiveResponseHeader(params);
         if (HEADERS_LOG.isDebugEnabled()) {
-            HEADERS_LOG.debug(">> " + response.getStatusLine().toString());
+            HEADERS_LOG.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();
             for (int i = 0; i < headers.length; i++) {
-                HEADERS_LOG.debug(">> " + headers[i].toString());
+                HEADERS_LOG.debug("<< " + headers[i].toString());
             }
         }
         return response;
@@ -217,10 +217,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
         super.sendRequestHeader(request);
         if (HEADERS_LOG.isDebugEnabled()) {
-            HEADERS_LOG.debug("<< " + request.getRequestLine().toString());
+            HEADERS_LOG.debug(">> " + request.getRequestLine().toString());
             Header[] headers = request.getAllHeaders();
             for (int i = 0; i < headers.length; i++) {
-                HEADERS_LOG.debug("<< " + headers[i].toString());
+                HEADERS_LOG.debug(">> " + headers[i].toString());
             }
         }
     }

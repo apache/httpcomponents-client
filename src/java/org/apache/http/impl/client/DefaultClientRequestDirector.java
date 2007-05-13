@@ -69,10 +69,13 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Default implementation of a client-side request director.
@@ -481,17 +484,34 @@ public class DefaultClientRequestDirector
      */
     protected HttpRequest createConnectRequest(HttpRoute route,
                                                HttpContext context) {
-        // see RFC 2817, section 5.2
-        final String authority =
-            route.getTargetHost().getHostName() + ":" +
-            route.getTargetHost().getPort();
-
-        //@@@ do we need a more refined algorithm to choose the HTTP version?
-        //@@@ use a request factory provided by the caller/creator?
+        // see RFC 2817, section 5.2 and 
+        // INTERNET-DRAFT: Tunneling TCP based protocols through 
+        // Web proxy servers
+            
+        HttpHost target = route.getTargetHost();
+        
+        String host = target.getHostName();
+        int port = target.getPort();
+        if (port < 0) {
+            SchemeRegistry schemeREgistry = connManager.getSchemeRegistry();
+            Scheme scheme = schemeREgistry.getScheme(target.getSchemeName());
+            port = scheme.getDefaultPort();
+        }
+        
+        CharArrayBuffer buffer = new CharArrayBuffer(host.length() + 6);
+        buffer.append(host);
+        buffer.append(":");
+        buffer.append(Integer.toString(port));
+        
+        String authority = buffer.toString();
+        HttpVersion ver = HttpProtocolParams.getVersion(params);
         HttpRequest req = new BasicHttpRequest
-            ("CONNECT", authority, HttpVersion.HTTP_1_1);
+            ("CONNECT", authority, ver);
 
-        req.addHeader("Host", authority);
+        String agent = HttpProtocolParams.getUserAgent(params);
+        if (agent != null) {
+            req.addHeader(HTTP.USER_AGENT, agent);
+        }
 
         //@@@ authenticate here, in caller, or in request interceptor?
 
