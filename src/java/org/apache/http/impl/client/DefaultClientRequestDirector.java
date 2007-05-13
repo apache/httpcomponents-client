@@ -65,7 +65,6 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.RouteDirector;
 import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -493,8 +492,8 @@ public class DefaultClientRequestDirector
         String host = target.getHostName();
         int port = target.getPort();
         if (port < 0) {
-            SchemeRegistry schemeREgistry = connManager.getSchemeRegistry();
-            Scheme scheme = schemeREgistry.getScheme(target.getSchemeName());
+            Scheme scheme = connManager.getSchemeRegistry().
+                getScheme(target.getSchemeName());
             port = scheme.getDefaultPort();
         }
         
@@ -568,8 +567,8 @@ public class DefaultClientRequestDirector
                     uri.getPort(),
                     uri.getScheme());
             
-            SchemeRegistry schemeRegistry = this.connManager.getSchemeRegistry();
-            Scheme schm = schemeRegistry.getScheme(newTarget.getSchemeName());
+            Scheme schm = connManager.getSchemeRegistry().
+                getScheme(newTarget.getSchemeName());
             
             InetAddress localAddress = oldRoute.getLocalAddress();
             HttpHost proxy = oldRoute.getProxyHost();

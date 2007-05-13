@@ -251,8 +251,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 ("Target host must not be null.");
         }
 
-        SchemeRegistry schemeRegistry = getConnectionManager().getSchemeRegistry();
-        Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        Scheme schm = getConnectionManager().getSchemeRegistry().
+            getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
         HttpRoute route = new HttpRoute(target, null, schm.isLayered());
