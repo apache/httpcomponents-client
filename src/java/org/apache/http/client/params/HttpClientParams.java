@@ -61,14 +61,6 @@ public class HttpClientParams {
      */ 
     public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory"; 
 
-    /**
-     * Defines whether authentication should be attempted preemptively.
-     * <p>
-     * This parameter expects a value of type {@link Boolean}.
-     * </p>
-     */
-    public static final String PREEMPTIVE_AUTHENTICATION = "http.authentication.preemptive";
-
     /** 
      * Defines whether redirects should be handled automatically
      * <p>
@@ -105,6 +97,22 @@ public class HttpClientParams {
     public static final String ALLOW_CIRCULAR_REDIRECTS = "http.protocol.allow-circular-redirects";
 
     /**
+     * Defines whether authentication should be handled automatically.
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String HANDLE_AUTHENTICATION = "http.protocol.handle-authentication";
+
+    /**
+     * Defines whether authentication should be attempted preemptively.
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String PREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
+
+    /**
      * Defines the name of the cookie specification to be used for HTTP state management.
      * <p>
      * This parameter expects a value of type {@link String}.
@@ -121,6 +129,24 @@ public class HttpClientParams {
      */
     public static final String DEFAULT_HEADERS = "http.default-headers"; 
     
+    /**
+     * Defines the default host. The default value will be used if the target host is
+     * not explicitly specified in the request URI.
+     * <p>
+     * This parameter expects a value of type {@link HttpHost}.
+     * </p>
+     */
+    public static final String DEFAULT_HOST = "http.default-host";
+    
+    /**
+     * Defines the default proxy. The default value will be used if the proxy
+     * information is not explicitly specified in the request route. 
+     * <p>
+     * This parameter expects a value of type {@link HttpHost}.
+     * </p>
+     */
+    public static final String DEFAULT_PROXY = "http.default-proxy";
+
     private HttpClientParams() {
         super();
     }

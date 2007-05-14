@@ -244,18 +244,23 @@ public class DefaultHttpClient extends AbstractHttpClient {
                                            HttpContext context)
         throws HttpException {
 
-        //@@@ refer to a default HostConfiguration?
-        //@@@ allow null target if there is a default route with a target?
         if (target == null) {
-            throw new IllegalArgumentException
+            target = (HttpHost) request.getParams().getParameter(
+                    HttpClientParams.DEFAULT_HOST);
+        }
+        if (target == null) {
+            throw new IllegalStateException
                 ("Target host must not be null.");
         }
 
+        HttpHost proxy = (HttpHost) request.getParams().getParameter(
+                HttpClientParams.DEFAULT_PROXY);
+        
         Scheme schm = getConnectionManager().getSchemeRegistry().
             getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
-        HttpRoute route = new HttpRoute(target, null, schm.isLayered());
+        HttpRoute route = new HttpRoute(target, null, proxy, schm.isLayered());
 
         return new RoutedRequest.Impl(request, route);
     }
