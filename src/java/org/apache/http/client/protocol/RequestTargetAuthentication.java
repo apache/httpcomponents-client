@@ -42,7 +42,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.impl.client.AuthState;
+import org.apache.http.client.AuthState;
 import org.apache.http.protocol.HttpContext;
 
 /**

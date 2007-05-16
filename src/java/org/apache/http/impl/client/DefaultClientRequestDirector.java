@@ -56,6 +56,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.AuthState;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpRequestRetryHandler;

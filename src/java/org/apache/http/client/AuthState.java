@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.client;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
