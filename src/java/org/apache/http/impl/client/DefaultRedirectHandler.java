@@ -70,7 +70,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
         super();
     }
     
-    public boolean isRedirectNeeded(
+    public boolean isRedirectRequested(
             final HttpResponse response,
             final HttpContext context) {
         if (response == null) {

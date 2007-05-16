@@ -37,6 +37,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
@@ -46,6 +47,8 @@ import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
+import org.apache.http.client.protocol.RequestProxyAuthentication;
+import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
@@ -203,6 +206,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         // HTTP state management interceptors
         httpproc.addInterceptor(new RequestAddCookies());
         httpproc.addInterceptor(new ResponseProcessCookies());
+        // HTTP authentication interceptors
+        httpproc.addInterceptor(new RequestTargetAuthentication());
+        httpproc.addInterceptor(new RequestProxyAuthentication());
         return httpproc;
     }
 
@@ -214,6 +220,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
+    }
+
+
+    protected AuthenticationHandler createAuthenticationHandler() {
+        return new DefaultAuthenticationHandler(getAuthSchemes());
     }
 
 

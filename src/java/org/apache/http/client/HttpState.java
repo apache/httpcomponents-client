@@ -69,12 +69,6 @@ public class HttpState {
     private HashMap credMap = new HashMap();
 
     /**
-     * Map of {@link Credentials proxy credentials} by realm that this
-     * HTTP state contains
-     */
-    private HashMap proxyCred = new HashMap();
-
-    /**
      * Array of {@link Cookie cookies} that this HTTP state contains.
      */
     private ArrayList cookies = new ArrayList();
@@ -234,45 +228,6 @@ public class HttpState {
         return matchCredentials(this.credMap, authscope);
     }
 
-    /** 
-     * Sets the {@link Credentials proxy credentials} for the given authentication 
-     * realm. Any previous credentials for the given realm will be overwritten.
-     * 
-     * @param authscope the {@link AuthScope authentication scope}
-     * @param credentials the authentication {@link Credentials credentials} 
-     * for the given realm.
-     * 
-     * @see #getProxyCredentials(AuthScope)
-     * @see #setCredentials(AuthScope, Credentials) 
-     * 
-     * @since 3.0
-     */
-    public synchronized void setProxyCredentials(
-            final AuthScope authscope, 
-            final Credentials credentials) {
-        if (authscope == null) {
-            throw new IllegalArgumentException("Authentication scope may not be null");
-        }
-        proxyCred.put(authscope, credentials);
-    }
-
-    /**
-     * Get the {@link Credentials proxy credentials} for the given authentication scope.
-     *
-     * @param authscope the {@link AuthScope authentication scope}
-     * @return the credentials 
-     * 
-     * @see #setProxyCredentials(AuthScope, Credentials)
-     * 
-     * @since 3.0
-     */
-    public synchronized Credentials getProxyCredentials(final AuthScope authscope) {
-        if (authscope == null) {
-            throw new IllegalArgumentException("Authentication scope may not be null");
-        }
-        return matchCredentials(this.proxyCred, authscope);
-    }
-
     /**
      * Returns a string representation of this HTTP state.
      * 
@@ -282,7 +237,6 @@ public class HttpState {
      */
     public synchronized String toString() {
         StringBuffer buffer = new StringBuffer();
-        buffer.append(proxyCred);
         buffer.append(credMap);
         buffer.append(cookies);
         return buffer.toString();
@@ -293,13 +247,6 @@ public class HttpState {
      */
     public synchronized void clearCredentials() {
         this.credMap.clear();
-    }
-    
-    /**
-     * Clears all proxy credentials.
-     */
-    public synchronized void clearProxyCredentials() {
-        this.proxyCred.clear();
     }
     
     /**
@@ -315,7 +262,6 @@ public class HttpState {
     public synchronized void clear() {
         clearCookies();
         clearCredentials();
-        clearProxyCredentials();
     }
     
 }

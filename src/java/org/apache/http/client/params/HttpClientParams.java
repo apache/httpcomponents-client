@@ -113,6 +113,22 @@ public class HttpClientParams {
     public static final String PREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
 
     /**
+     * The key used to look up the list of IDs of supported {@link AuthScheme 
+     * authentication schemes} in their order of preference. The scheme IDs are 
+     * stored in a {@link java.util.Collection} as {@link java.lang.String}s. 
+     * 
+     * <p>
+     * If several schemes are returned in the <tt>WWW-Authenticate</tt> 
+     * or <tt>Proxy-Authenticate</tt> header, this parameter defines which
+     * {@link AuthScheme authentication schemes} takes precedence over others.
+     * The first item in the collection represents the most preferred 
+     * {@link AuthScheme authentication scheme}, the last item represents the ID 
+     * of the least preferred one.
+     * </p>
+     */
+    public static final String AUTH_SCHEME_PRIORITY = "http.protocol-auth-scheme-priority";
+
+    /**
      * Defines the name of the cookie specification to be used for HTTP state management.
      * <p>
      * This parameter expects a value of type {@link String}.
@@ -120,6 +136,14 @@ public class HttpClientParams {
      */
     public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
     
+    /**
+     * Defines the virtual host name.
+     * <p>
+     * This parameter expects a value of type {@link org.apache.http.HttpHost}. 
+     * </p>
+     */
+    public static final String VIRTUAL_HOST = "http.virtual-host"; 
+
     /**
      * Defines the request headers to be sent per default with each request.
      * <p>
@@ -133,7 +157,7 @@ public class HttpClientParams {
      * Defines the default host. The default value will be used if the target host is
      * not explicitly specified in the request URI.
      * <p>
-     * This parameter expects a value of type {@link HttpHost}.
+     * This parameter expects a value of type {@link org.apache.http.HttpHost}.
      * </p>
      */
     public static final String DEFAULT_HOST = "http.default-host";
@@ -142,7 +166,7 @@ public class HttpClientParams {
      * Defines the default proxy. The default value will be used if the proxy
      * information is not explicitly specified in the request route. 
      * <p>
-     * This parameter expects a value of type {@link HttpHost}.
+     * This parameter expects a value of type {@link org.apache.http.HttpHost}.
      * </p>
      */
     public static final String DEFAULT_PROXY = "http.default-proxy";
@@ -179,6 +203,34 @@ public class HttpClientParams {
         params.setLongParameter(CONNECTION_MANAGER_TIMEOUT, timeout);
     }
 
+    public static boolean isRedirecting(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        return params.getBooleanParameter(HANDLE_REDIRECTS, true); 
+    }
+
+    public static void setRedirecting(final HttpParams params, boolean value) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setBooleanParameter(HANDLE_REDIRECTS, value); 
+    }
+    
+    public static boolean isAuthenticating(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        return params.getBooleanParameter(HANDLE_AUTHENTICATION, true); 
+    }
+
+    public static void setAuthenticating(final HttpParams params, boolean value) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setBooleanParameter(HANDLE_AUTHENTICATION, value); 
+    }
+    
     /**
      * Returns <tt>true</tt> if authentication should be attempted preemptively, 
      * <tt>false</tt> otherwise.

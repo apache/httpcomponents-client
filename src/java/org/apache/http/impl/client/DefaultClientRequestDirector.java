@@ -37,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,14 +51,22 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -113,6 +122,12 @@ public class DefaultClientRequestDirector
     /** The redirect handler. */
     protected final RedirectHandler redirectHandler;
     
+    /** The authentication handler. */
+    private final AuthenticationHandler authHandler;
+    
+    /** The HTTP state */
+    private final HttpState state;
+    
     /** The HTTP parameters. */
     protected final HttpParams params;
     
@@ -123,12 +138,18 @@ public class DefaultClientRequestDirector
 
     private int maxRedirects;
     
+    private final AuthState targetAuthState;
+    
+    private final AuthState proxyAuthState;
+    
     public DefaultClientRequestDirector(
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
             final RedirectHandler redirectHandler,
+            final AuthenticationHandler authHandler,
+            final HttpState state,
             final HttpParams params) {
 
         if (conman == null) {
@@ -146,6 +167,12 @@ public class DefaultClientRequestDirector
         if (redirectHandler == null) {
             throw new IllegalArgumentException("Redirect handler may not be null");
         }
+        if (authHandler == null) {
+            throw new IllegalArgumentException("Authentication handler may not be null");
+        }
+        if (state == null) {
+            throw new IllegalArgumentException("HTTP state may not be null");
+        }
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
@@ -154,6 +181,8 @@ public class DefaultClientRequestDirector
         this.httpProcessor = httpProcessor;
         this.retryHandler  = retryHandler;
         this.redirectHandler = redirectHandler;
+        this.authHandler   = authHandler;
+        this.state         = state;
         this.params        = params;
         this.requestExec   = new HttpRequestExecutor(params);
 
@@ -161,9 +190,8 @@ public class DefaultClientRequestDirector
         
         this.redirectCount = 0;
         this.maxRedirects = this.params.getIntParameter(HttpClientParams.MAX_REDIRECTS, 100);
-
-        //@@@ authentication?
-
+        this.targetAuthState = new AuthState();
+        this.proxyAuthState = new AuthState();
     } // constructor
 
 
@@ -254,12 +282,8 @@ public class DefaultClientRequestDirector
         try {
             while (!done) {
 
-                RequestWrapper request = wrapRequest(roureq.getRequest());
                 HttpRoute route = roureq.getRoute();
 
-                // Re-write request URI if needed
-                rewriteRequestURI(request, route);
-                
                 if (managedConn == null || !managedConn.isOpen()) {
                     managedConn = allocateConnection(route);
                 }
@@ -273,21 +297,6 @@ public class DefaultClientRequestDirector
                     break;
                 }
 
-                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
-                        roureq.getRoute().getTargetHost());
-                context.setAttribute(HttpExecutionContext.HTTP_CONNECTION,
-                        managedConn);
-                
-                requestExec.preProcess(request, httpProcessor, context);
-                //@@@ handle authentication here or via interceptor?
-                
-                if (request instanceof AbortableHttpRequest) {
-                    ((AbortableHttpRequest) request).setReleaseTrigger(managedConn);
-                }
-
-                context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
-                        request);
-
                 if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
                     // validate connection
                     LOG.debug("Stale connection check");
@@ -297,7 +306,44 @@ public class DefaultClientRequestDirector
                         continue;
                     }
                 }
+
+                // Wrap the original request
+                RequestWrapper request = wrapRequest(roureq.getRequest());
                 
+                // Re-write request URI if needed
+                rewriteRequestURI(request, route);
+                
+                // Use virtual host if set
+                HttpHost target = (HttpHost) request.getParams().getParameter(
+                        HttpClientParams.VIRTUAL_HOST);
+                
+                if (target == null) {
+                    target = route.getTargetHost();
+                }
+
+                HttpHost proxy = route.getProxyHost();
+                
+                // Populate the execution context
+                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
+                        target);
+                context.setAttribute(HttpExecutionContext.HTTP_PROXY_HOST,
+                        proxy);
+                context.setAttribute(HttpExecutionContext.HTTP_CONNECTION,
+                        managedConn);
+                context.setAttribute(HttpClientContext.TARGET_AUTH_STATE,
+                        targetAuthState);
+                context.setAttribute(HttpClientContext.PROXY_AUTH_STATE,
+                        proxyAuthState);
+                
+                requestExec.preProcess(request, httpProcessor, context);
+                
+                if (orig instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
+                }
+
+                context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
+                        request);
+
                 execCount++;
                 try {
                     if (LOG.isDebugEnabled()) {
@@ -330,6 +376,11 @@ public class DefaultClientRequestDirector
                 if (followup == null) {
                     done = true;
                 } else {
+                    // Make sure the response body is fully consumed, if present
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        entity.consumeContent();
+                    }
                     // check if we can use the same connection for the followup
                     if ((managedConn != null) &&
                         !followup.getRoute().equals(roureq.getRoute())) {
@@ -556,9 +607,14 @@ public class DefaultClientRequestDirector
                                            HttpContext context)
         throws HttpException, IOException {
 
+        HttpRoute route = roureq.getRoute();
+        HttpHost target = route.getTargetHost();
+        HttpHost proxy = route.getProxyHost();
+        InetAddress localAddress = route.getLocalAddress();
+        
         HttpParams params = request.getParams();
-        if (params.getBooleanParameter(HttpClientParams.HANDLE_REDIRECTS, true) && 
-                this.redirectHandler.isRedirectNeeded(response, context)) {
+        if (HttpClientParams.isRedirecting(params) && 
+                this.redirectHandler.isRedirectRequested(response, context)) {
 
             if (redirectCount >= maxRedirects) {
                 throw new RedirectException("Maximum redirects ("
@@ -576,8 +632,6 @@ public class DefaultClientRequestDirector
                 return null;
             }
 
-            HttpRoute oldRoute = roureq.getRoute();
-
             HttpHost newTarget = new HttpHost(
                     uri.getHost(), 
                     uri.getPort(),
@@ -585,9 +639,6 @@ public class DefaultClientRequestDirector
             
             Scheme schm = connManager.getSchemeRegistry().
                 getScheme(newTarget.getSchemeName());
-            
-            InetAddress localAddress = oldRoute.getLocalAddress();
-            HttpHost proxy = oldRoute.getProxyHost();
             
             HttpRoute newRoute = new HttpRoute(
                     newTarget,
@@ -597,12 +648,6 @@ public class DefaultClientRequestDirector
                     (proxy != null),
                     (proxy != null));
 
-            // Make sure redirect response body is fully consumed, if present
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                entity.consumeContent();
-            }
-            
             HttpGet redirect = new HttpGet(uri);
             
             if (LOG.isDebugEnabled()) {
@@ -610,6 +655,64 @@ public class DefaultClientRequestDirector
             }
             
             return new RoutedRequest.Impl(redirect, newRoute);
+        }
+
+        if (HttpClientParams.isAuthenticating(params)) {
+
+            if (this.authHandler.isTargetAuthenticationRequested(response, context)) {
+
+                target = (HttpHost) context.getAttribute(HttpExecutionContext.HTTP_TARGET_HOST);
+                if (target == null) {
+                    target = route.getTargetHost();
+                }
+                
+                LOG.debug("Target requested authentication");
+                Map challenges = this.authHandler.getTargetChallenges(response, context); 
+                try {
+                    processChallenges(challenges, this.targetAuthState, response, context);
+                } catch (AuthenticationException ex) {
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Authentication error: " +  ex.getMessage());
+                        return null;
+                    }
+                }
+                updateAuthState(this.targetAuthState, target);
+                
+                if (this.targetAuthState.getCredentials() != null) {
+                    // Re-try the same request via the same route
+                    return roureq;
+                } else {
+                    return null;
+                }
+            } else {
+                // Reset target auth scope
+                this.targetAuthState.setAuthScope(null);
+            }
+            
+            if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
+
+                LOG.debug("Proxy requested authentication");
+                Map challenges = this.authHandler.getProxyChallenges(response, context);
+                try {
+                    processChallenges(challenges, this.proxyAuthState, response, context);
+                } catch (AuthenticationException ex) {
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Authentication error: " +  ex.getMessage());
+                        return null;
+                    }
+                }
+                updateAuthState(this.proxyAuthState, proxy);
+                
+                if (this.proxyAuthState.getCredentials() != null) {
+                    // Re-try the same request via the same route
+                    return roureq;
+                } else {
+                    return null;
+                }
+            } else {
+                // Reset proxy auth scope
+                this.proxyAuthState.setAuthScope(null);
+            }
         }
         return null;
     } // handleResponse
@@ -671,6 +774,63 @@ public class DefaultClientRequestDirector
     } // cleanupConnection
 
 
+    private void processChallenges(
+            final Map challenges, 
+            final AuthState authState,
+            final HttpResponse response, 
+            final HttpContext context) 
+                throws MalformedChallengeException, AuthenticationException {
+        
+        AuthScheme authScheme = authState.getAuthScheme();
+        if (authScheme == null) {
+            // Authentication not attempted before
+            authScheme = this.authHandler.selectScheme(challenges, response, context);
+            authState.setAuthScheme(authScheme);
+        }
+        AuthScheme authscheme = authState.getAuthScheme();
+        String id = authscheme.getSchemeName();
+
+        Header challenge = (Header) challenges.get(id.toLowerCase());
+        if (challenge == null) {
+            throw new AuthenticationException(id + 
+                " authorization challenge expected, but not found");
+        }
+        authscheme.processChallenge(challenge);
+        LOG.debug("Authorization challenge processed");
+    }
+    
+    
+    private void updateAuthState(final AuthState authState, final HttpHost host) {
+        AuthScheme authScheme = authState.getAuthScheme();
+        AuthScope authScope = new AuthScope(
+                host.getHostName(),
+                host.getPort(),
+                authScheme.getRealm(), 
+                authScheme.getSchemeName());  
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Authentication scope: " + authScope);
+        }
+        Credentials creds = authState.getCredentials();
+        if (creds == null) {
+            creds = this.state.getCredentials(authScope);
+            if (LOG.isDebugEnabled()) {
+                if (creds != null) {
+                    LOG.debug("Found credentials");
+                } else {
+                    LOG.debug("Credentials not found");
+                }
+            }
+        } else {
+            if (authScheme.isComplete()) {
+                LOG.debug("Authentication failed");
+                creds = null;
+            }
+        }
+        authState.setAuthScope(authScope);
+        authState.setCredentials(creds);
+    }
+    
     /**
      * Prepares the entity in the ultimate response being returned.
      * The default implementation here installs an entity with auto-release
@@ -702,5 +862,5 @@ public class DefaultClientRequestDirector
         response.setEntity(new BasicManagedEntity(entity, managedConn, reuse));
     }
 
-
+    
 } // class DefaultClientRequestDirector

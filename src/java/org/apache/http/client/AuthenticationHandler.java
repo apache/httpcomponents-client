@@ -29,24 +29,40 @@
  *
  */
 
-package org.apache.http.client.protocol;
+package org.apache.http.client;
 
+import java.util.Map;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
 
-public class HttpClientContext extends HttpExecutionContext {
+/**
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ */
+public interface AuthenticationHandler {
+
+    boolean isTargetAuthenticationRequested(
+            HttpResponse response, 
+            HttpContext context);
     
-    public static final String SCHEME_REGISTRY       = "http.scheme-registry"; 
-    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
-    public static final String HTTP_STATE            = "http.state"; 
-    public static final String COOKIE_SPEC           = "http.cookie-spec"; 
-    public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
-    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
-    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope"; 
+    boolean isProxyAuthenticationRequested(
+            HttpResponse response, 
+            HttpContext context);
     
-    public HttpClientContext(final HttpContext parentContext) {
-        super(parentContext);
-    }
+    Map getTargetChallenges(
+            HttpResponse response, 
+            HttpContext context) throws MalformedChallengeException;
+    
+    Map getProxyChallenges(
+            HttpResponse response, 
+            HttpContext context) throws MalformedChallengeException;
+
+    AuthScheme selectScheme(
+            Map challenges, 
+            HttpResponse response, 
+            HttpContext context) throws AuthenticationException;
     
 }

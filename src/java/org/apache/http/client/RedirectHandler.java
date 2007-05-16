@@ -61,7 +61,7 @@ public interface RedirectHandler {
      * @return <code>true</code> if the request should be redirected, <code>false</code>
      * otherwise
      */
-    boolean isRedirectNeeded(HttpResponse response, HttpContext context);
+    boolean isRedirectRequested(HttpResponse response, HttpContext context);
     
     /**
      * Determines the location request is expected to be redirected to 

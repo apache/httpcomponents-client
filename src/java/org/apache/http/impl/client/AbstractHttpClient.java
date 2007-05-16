@@ -43,6 +43,7 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -103,6 +104,9 @@ public abstract class AbstractHttpClient
     /** The redirect handler. */
     private RedirectHandler redirectHandler;
 
+    /** The authentication handler. */
+    private AuthenticationHandler authHandler;
+
     /** The default HTTP state. */
     private HttpState defaultState;
 
@@ -145,6 +149,9 @@ public abstract class AbstractHttpClient
 
     
     protected abstract RedirectHandler createRedirectHandler();
+
+    
+    protected abstract AuthenticationHandler createAuthenticationHandler();
 
     
     protected abstract HttpState createHttpState();
@@ -248,6 +255,19 @@ public abstract class AbstractHttpClient
 
     public synchronized void setRedirectHandler(final RedirectHandler redirectHandler) {
         this.redirectHandler = redirectHandler;
+    }
+
+
+    public synchronized final AuthenticationHandler getAuthenticationHandler() {
+        if (authHandler == null) {
+            authHandler = createAuthenticationHandler();
+        }
+        return authHandler;
+    }
+
+
+    public synchronized void setAuthenticationHandler(final AuthenticationHandler authHandler) {
+        this.authHandler = authHandler;
     }
 
 
@@ -418,6 +438,8 @@ public abstract class AbstractHttpClient
                     getHttpProcessor().copy(),
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
+                    getAuthenticationHandler(),
+                    getState(),
                     getParams());
         }
 

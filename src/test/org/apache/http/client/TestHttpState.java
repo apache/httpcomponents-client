@@ -103,26 +103,6 @@ public class TestHttpState extends TestCase {
         assertEquals(CREDS1, state.getCredentials(BOGUS));
     }
 
-    public void testHttpStateProxyCredentials() {
-        HttpState state = new HttpState();
-        state.setProxyCredentials(SCOPE1, CREDS1);
-        state.setProxyCredentials(SCOPE2, CREDS2);
-        assertEquals(CREDS1, state.getProxyCredentials(SCOPE1));
-        assertEquals(CREDS2, state.getProxyCredentials(SCOPE2));
-    }
-
-    public void testHttpStateProxyNoCredentials() {
-        HttpState state = new HttpState();
-        assertEquals(null, state.getProxyCredentials(BOGUS));
-    }
-
-    public void testHttpStateProxyDefaultCredentials() {
-        HttpState state = new HttpState();
-	    state.setProxyCredentials(AuthScope.ANY, CREDS1);
-	    state.setProxyCredentials(SCOPE2, CREDS2);
-        assertEquals(CREDS1, state.getProxyCredentials(BOGUS));
-    }
-
     // --------------------------------- Test Methods for Selecting Credentials
     
     public void testDefaultCredentials() throws Exception {
