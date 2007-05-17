@@ -50,6 +50,7 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
@@ -68,14 +69,8 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
             "basic"
     });
     
-    private final AuthSchemeRegistry registry;
-    
-    public DefaultAuthenticationHandler(final AuthSchemeRegistry registry) {
+    public DefaultAuthenticationHandler() {
         super();
-        if (registry == null) {
-            throw new IllegalArgumentException("AuthScheme registry may not be null");
-        }
-        this.registry = registry;
     }
     
     public boolean isTargetAuthenticationRequested(
@@ -157,6 +152,12 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
         
+        AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
+                HttpClientContext.AUTHSCHEME_REGISTRY);
+        if (registry == null) {
+            throw new IllegalStateException("AuthScheme registry not set in HTTP context");
+        }
+        
         HttpParams params = response.getParams();
         Collection authPrefs = (Collection) params.getParameter(
                 HttpClientParams.AUTH_SCHEME_PRIORITY);
@@ -177,7 +178,7 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
                     LOG.debug(id + " authentication scheme selected");
                 }
                 try {
-                    authScheme = this.registry.getAuthScheme(id, params);
+                    authScheme = registry.getAuthScheme(id, params);
                 } catch (IllegalStateException e) {
                     throw new AuthenticationException(e.getMessage());
                 }

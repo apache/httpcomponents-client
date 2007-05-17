@@ -439,7 +439,6 @@ public abstract class AbstractHttpClient
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
                     getAuthenticationHandler(),
-                    getState(),
                     getParams());
         }
 

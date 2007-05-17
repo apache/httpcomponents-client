@@ -224,7 +224,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     protected AuthenticationHandler createAuthenticationHandler() {
-        return new DefaultAuthenticationHandler(getAuthSchemes());
+        return new DefaultAuthenticationHandler();
     }
 
 

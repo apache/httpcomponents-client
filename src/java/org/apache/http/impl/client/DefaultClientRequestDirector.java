@@ -126,9 +126,6 @@ public class DefaultClientRequestDirector
     /** The authentication handler. */
     private final AuthenticationHandler authHandler;
     
-    /** The HTTP state */
-    private final HttpState state;
-    
     /** The HTTP parameters. */
     protected final HttpParams params;
     
@@ -150,7 +147,6 @@ public class DefaultClientRequestDirector
             final HttpRequestRetryHandler retryHandler,
             final RedirectHandler redirectHandler,
             final AuthenticationHandler authHandler,
-            final HttpState state,
             final HttpParams params) {
 
         if (conman == null) {
@@ -171,9 +167,6 @@ public class DefaultClientRequestDirector
         if (authHandler == null) {
             throw new IllegalArgumentException("Authentication handler may not be null");
         }
-        if (state == null) {
-            throw new IllegalArgumentException("HTTP state may not be null");
-        }
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
@@ -183,7 +176,6 @@ public class DefaultClientRequestDirector
         this.retryHandler  = retryHandler;
         this.redirectHandler = redirectHandler;
         this.authHandler   = authHandler;
-        this.state         = state;
         this.params        = params;
         this.requestExec   = new HttpRequestExecutor(params);
 
@@ -658,7 +650,9 @@ public class DefaultClientRequestDirector
             return new RoutedRequest.Impl(redirect, newRoute);
         }
 
-        if (HttpClientParams.isAuthenticating(params)) {
+        HttpState state = (HttpState) context.getAttribute(HttpClientContext.HTTP_STATE);
+        
+        if (state != null && HttpClientParams.isAuthenticating(params)) {
 
             if (this.authHandler.isTargetAuthenticationRequested(response, context)) {
 
@@ -677,7 +671,7 @@ public class DefaultClientRequestDirector
                         return null;
                     }
                 }
-                updateAuthState(this.targetAuthState, target);
+                updateAuthState(this.targetAuthState, target, state);
                 
                 if (this.targetAuthState.getCredentials() != null) {
                     // Re-try the same request via the same route
@@ -702,7 +696,7 @@ public class DefaultClientRequestDirector
                         return null;
                     }
                 }
-                updateAuthState(this.proxyAuthState, proxy);
+                updateAuthState(this.proxyAuthState, proxy, state);
                 
                 if (this.proxyAuthState.getCredentials() != null) {
                     // Re-try the same request via the same route
@@ -801,7 +795,10 @@ public class DefaultClientRequestDirector
     }
     
     
-    private void updateAuthState(final AuthState authState, final HttpHost host) {
+    private void updateAuthState(
+            final AuthState authState, 
+            final HttpHost host,
+            final HttpState state) {
         AuthScheme authScheme = authState.getAuthScheme();
         AuthScope authScope = new AuthScope(
                 host.getHostName(),
@@ -814,7 +811,7 @@ public class DefaultClientRequestDirector
         }
         Credentials creds = authState.getCredentials();
         if (creds == null) {
-            creds = this.state.getCredentials(authScope);
+            creds = state.getCredentials(authScope);
             if (LOG.isDebugEnabled()) {
                 if (creds != null) {
                     LOG.debug("Found credentials");
