@@ -67,6 +67,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     private static final Log HEADERS_LOG = LogFactory.getLog("org.apache.http.conn.headers");
     private static final Log WIRE_LOG = LogFactory.getLog("org.apache.http.conn.wire");
     
+    private static final Log LOG = LogFactory.getLog(DefaultClientConnection.class);
+    
     /** The unconnected socket between announce and open. */
     private volatile Socket announcedSocket;
 
@@ -116,9 +118,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
      *
      * @throws IOException      in case of a problem
      */
-    public void shutdown()
-        throws IOException {
-
+    public void shutdown() throws IOException {
+        LOG.debug("Connection shut down");
+        
         Socket sock = announcedSocket; // copy volatile attribute
         if (sock != null)
             sock.close();
@@ -126,6 +128,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         super.shutdown();
 
     } // shutdown
+
+    
+    public void close() throws IOException {
+        LOG.debug("Connection closed");
+        super.close();
+    }
 
 
     protected HttpDataReceiver createHttpDataReceiver(

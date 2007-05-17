@@ -277,9 +277,15 @@ public class DefaultClientRequestDirector
 
                 HttpRoute route = roureq.getRoute();
 
-                if (managedConn == null || !managedConn.isOpen()) {
+                // Allocate connection if needed
+                if (managedConn == null) {
                     managedConn = allocateConnection(route);
                 }
+                // Reopen connection if needed
+                if (!managedConn.isOpen()) {
+                    managedConn.open(route, context, params);
+                }
+                
                 try {
                     establishRoute(route, context);
                 } catch (TunnelRefusedException ex) {
@@ -369,10 +375,15 @@ public class DefaultClientRequestDirector
                 if (followup == null) {
                     done = true;
                 } else {
-                    // Make sure the response body is fully consumed, if present
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        entity.consumeContent();
+                    if (this.reuseStrategy.keepAlive(response, context)) {
+                        LOG.debug("Connection kept alive");
+                        // Make sure the response body is fully consumed, if present
+                        HttpEntity entity = response.getEntity();
+                        if (entity != null) {
+                            entity.consumeContent();
+                        }
+                    } else {
+                        managedConn.close();
                     }
                     // check if we can use the same connection for the followup
                     if ((managedConn != null) &&
@@ -381,6 +392,7 @@ public class DefaultClientRequestDirector
                         //@@@ need to consume response body first?
                         //@@@ or let that be done in handleResponse(...)?
                         connManager.releaseConnection(managedConn);
+                        managedConn = null;
                     }
                     roureq = followup;
                 }
@@ -799,10 +811,18 @@ public class DefaultClientRequestDirector
             final AuthState authState, 
             final HttpHost host,
             final HttpState state) {
+        
+        String hostname = host.getHostName();
+        int port = host.getPort();
+        if (port < 0) {
+            Scheme scheme = connManager.getSchemeRegistry().getScheme(host);
+            port = scheme.getDefaultPort();
+        }
+        
         AuthScheme authScheme = authState.getAuthScheme();
         AuthScope authScope = new AuthScope(
-                host.getHostName(),
-                host.getPort(),
+                hostname,
+                port,
                 authScheme.getRealm(), 
                 authScheme.getSchemeName());  
         
