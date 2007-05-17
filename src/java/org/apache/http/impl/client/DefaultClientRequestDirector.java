@@ -398,13 +398,36 @@ public class DefaultClientRequestDirector
                 }
             } // while not done
 
-        } finally {
-            // if 'done' is false, we're handling an exception
-            cleanupConnection(done, response, context);
+            // The connection is in or can be brought to a re-usable state.
+            boolean reuse = reuseStrategy.keepAlive(response, context);
+
+            // check for entity, release connection if possible
+            if ((response == null) || (response.getEntity() == null) ||
+                !response.getEntity().isStreaming()) {
+                // connection not needed and (assumed to be) in re-usable state
+                if (reuse)
+                    managedConn.markReusable();
+                connManager.releaseConnection(managedConn);
+                managedConn = null;
+            } else {
+                // install an auto-release entity
+                HttpEntity entity = response.getEntity();
+                entity = new BasicManagedEntity(entity, managedConn, reuse);
+                response.setEntity(entity);
+            }
+
+            return response;
+            
+        } catch (HttpException ex) {
+            abortConnection();
+            throw ex;
+        } catch (IOException ex) {
+            abortConnection();
+            throw ex;
+        } catch (RuntimeException ex) {
+            abortConnection();
+            throw ex;
         }
-
-        return response;
-
     } // execute
 
 
@@ -726,45 +749,16 @@ public class DefaultClientRequestDirector
 
 
     /**
-     * Releases the connection if possible.
-     * This method is called from a <code>finally</code> block in
-     * {@link #execute execute}, possibly during exception handling.
-     *
-     * @param success   <code>true</code> if a response is to be returned
-     *                  from {@link #execute execute}, or
-     *                  <code>false</code> if exception handling is in progress
-     * @param response  the response available for return by
-     *                  {@link #execute execute}, or <code>null</code>
-     * @param context   the context used for the last request execution
+     * Shuts down the connection.
+     * This method is called from a <code>catch</code> block in
+     * {@link #execute execute} during exception handling.
      *
      * @throws IOException      in case of an IO problem
      */
-    protected void cleanupConnection(boolean success,
-                                     HttpResponse response,
-                                     HttpContext context)
-        throws IOException {
+    private void abortConnection() throws IOException {
 
         ManagedClientConnection mcc = managedConn;
-        if (mcc == null)
-            return; // nothing to be cleaned up
-        
-        if (success) {
-            // Not in exception handling, there probably is a response.
-            // The connection is in or can be brought to a re-usable state.
-            boolean reuse = reuseStrategy.keepAlive(response, context);
-
-            // check for entity, release connection if possible
-            if ((response == null) || (response.getEntity() == null) ||
-                !response.getEntity().isStreaming()) {
-                // connection not needed and (assumed to be) in re-usable state
-                managedConn = null;
-                if (reuse)
-                    mcc.markReusable();
-                connManager.releaseConnection(mcc);
-            } else {
-                setupResponseEntity(response, context, reuse);
-            }
-        } else {
+        if (mcc != null) {
             // we got here as the result of an exception
             // no response will be returned, release the connection
             managedConn = null;
@@ -778,7 +772,7 @@ public class DefaultClientRequestDirector
                 }
             }
         }
-    } // cleanupConnection
+    } // abortConnection
 
 
     private void processChallenges(
@@ -848,37 +842,5 @@ public class DefaultClientRequestDirector
         authState.setAuthScope(authScope);
         authState.setCredentials(creds);
     }
-    
-    /**
-     * Prepares the entity in the ultimate response being returned.
-     * The default implementation here installs an entity with auto-release
-     * capability for the connection.
-     * <br/>
-     * This method might be overridden to buffer the response entity
-     * and release the connection immediately.
-     * Derived implementations MUST release the connection if an exception
-     * is thrown here!
-     *
-     * @param response  the response holding the entity to prepare
-     * @param context   the context used for the last request execution
-     * @param reuse     <code>true</code> if the connection should be
-     *                  kept alive and re-used for another request,
-     *                  <code>false</code> if the connection should be
-     *                  closed and not re-used
-     *
-     * @throws IOException      in case of an IO problem.
-     *         The connection MUST be released in this method if
-     *         an exception is thrown!
-     */
-    protected void setupResponseEntity(HttpResponse response,
-                                       HttpContext context,
-                                       boolean reuse)
-        throws IOException {
-
-        // install an auto-release entity
-        HttpEntity entity = response.getEntity();
-        response.setEntity(new BasicManagedEntity(entity, managedConn, reuse));
-    }
-
     
 } // class DefaultClientRequestDirector
