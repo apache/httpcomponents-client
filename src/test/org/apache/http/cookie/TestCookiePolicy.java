@@ -85,9 +85,9 @@ public class TestCookiePolicy extends TestCase {
         names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(3, names.size());
-        assertEquals(BROWSER_COMPATIBILITY, (String) names.get(0));
-        assertEquals(NETSCAPE, (String) names.get(1));
-        assertEquals(RFC_2109, (String) names.get(2));
+        assertEquals(BROWSER_COMPATIBILITY.toLowerCase(), (String) names.get(0));
+        assertEquals(NETSCAPE.toLowerCase(), (String) names.get(1));
+        assertEquals(RFC_2109.toLowerCase(), (String) names.get(2));
 
         registry.unregister(NETSCAPE); 
         registry.unregister(NETSCAPE); 
