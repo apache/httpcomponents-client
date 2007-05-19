@@ -68,6 +68,7 @@ import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -80,11 +81,13 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -267,6 +270,8 @@ public class DefaultClientRequestDirector
                 orig.addHeader((Header) it.next());
             }
         }
+
+        long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
         int execCount = 0;
         
@@ -279,7 +284,7 @@ public class DefaultClientRequestDirector
 
                 // Allocate connection if needed
                 if (managedConn == null) {
-                    managedConn = allocateConnection(route);
+                    managedConn = allocateConnection(route, timeout);
                 }
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
@@ -438,10 +443,9 @@ public class DefaultClientRequestDirector
      *
      * @throws HttpException    in case of a problem
      */
-    protected ManagedClientConnection allocateConnection(HttpRoute route)
+    protected ManagedClientConnection allocateConnection(HttpRoute route, long timeout)
         throws HttpException, ConnectionPoolTimeoutException {
 
-        long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         return connManager.getConnection(route, timeout);
 
     } // allocateConnection
@@ -468,15 +472,11 @@ public class DefaultClientRequestDirector
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
-        //System.out.println("@@@ planned: " + route);
-
         RouteDirector rowdy = new RouteDirector();
         int step;
         do {
             HttpRoute fact = managedConn.getRoute();
-            //System.out.println("@@@ current: " + fact);
             step = rowdy.nextStep(route, fact);
-            //System.out.println("@@@ action => " + step);
 
             switch (step) {
 
@@ -487,6 +487,7 @@ public class DefaultClientRequestDirector
 
             case RouteDirector.CREATE_TUNNEL:
                 boolean secure = createTunnel(route, context);
+                LOG.debug("Tunnel created");
                 managedConn.tunnelCreated(secure, requestExec.getParams());
                 break;
 
@@ -536,29 +537,106 @@ public class DefaultClientRequestDirector
     protected boolean createTunnel(HttpRoute route, HttpContext context)
         throws HttpException, IOException {
 
-        HttpRequest connect = createConnectRequest(route, context);
-        //@@@ authenticate here, in method above, or in request interceptor?
+        HttpHost proxy = route.getProxyHost();
+        HttpResponse response = null;
+        
+        boolean done = false;
+        while (!done) {
 
-        HttpResponse response =
-            requestExec.execute(connect, managedConn, context);
-        managedConn.markReusable();
-        int status = response.getStatusLine().getStatusCode();
+            done = true;
+            
+            if (!this.managedConn.isOpen()) {
+                this.managedConn.open(route, context, this.params);
+            }
+            
+            HttpRequest connect = createConnectRequest(route, context);
+            
+            String agent = HttpProtocolParams.getUserAgent(params);
+            if (agent != null) {
+                connect.addHeader(HTTP.USER_AGENT, agent);
+            }
+            
+            AuthScheme authScheme = this.proxyAuthState.getAuthScheme();
+            AuthScope authScope = this.proxyAuthState.getAuthScope();
+            Credentials creds = this.proxyAuthState.getCredentials();
+            if (creds != null) {
+                if (authScope != null || !authScheme.isConnectionBased()) {
+                    try {
+                        connect.addHeader(authScheme.authenticate(creds, connect));
+                    } catch (AuthenticationException ex) {
+                        if (LOG.isErrorEnabled()) {
+                            LOG.error("Proxy authentication error: " + ex.getMessage());
+                        }
+                    }
+                }
+            }
+            
+            response = requestExec.execute(connect, this.managedConn, context);
+            
+            int status = response.getStatusLine().getStatusCode();
+            if (status < 200) {
+                throw new HttpException("Unexpected response to CONNECT request: " +
+                        response.getStatusLine());
+            }
+            
+            HttpState state = (HttpState) context.getAttribute(HttpClientContext.HTTP_STATE);
+            
+            if (state != null && HttpClientParams.isAuthenticating(params)) {
+                if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
 
-        if (status < 200) {
-            throw new HttpException("Unexpected response to CONNECT request: " +
-                    response.getStatusLine());
+                    LOG.debug("Proxy requested authentication");
+                    Map challenges = this.authHandler.getProxyChallenges(response, context);
+                    try {
+                        processChallenges(challenges, this.proxyAuthState, response, context);
+                    } catch (AuthenticationException ex) {
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("Authentication error: " +  ex.getMessage());
+                            break;
+                        }
+                    }
+                    updateAuthState(this.proxyAuthState, proxy, state);
+                    
+                    if (this.proxyAuthState.getCredentials() != null) {
+                        done = false;
+
+                        // Retry request
+                        if (this.reuseStrategy.keepAlive(response, context)) {
+                            LOG.debug("Connection kept alive");
+                            // Consume response content
+                            HttpEntity entity = response.getEntity();
+                            if (entity != null) {
+                                entity.consumeContent();
+                            }                
+                        } else {
+                            this.managedConn.close();
+                        }
+                        
+                    }
+                    
+                } else {
+                    // Reset proxy auth scope
+                    this.proxyAuthState.setAuthScope(null);
+                }
+            }
         }
         
-        // Buffer response
-        if (response.getEntity() != null) {
-            response.setEntity(new BufferedHttpEntity(response.getEntity()));
-        }
+        int status = response.getStatusLine().getStatusCode();
 
         if (status > 299) {
+
+            // Buffer response content
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                response.setEntity(new BufferedHttpEntity(entity));
+            }                
+            
+            this.managedConn.close();
             throw new TunnelRefusedException("CONNECT refused by proxy: " +
                     response.getStatusLine(), response);
         }
 
+        this.managedConn.markReusable();
+        
         // How to decide on security of the tunnelled connection?
         // The socket factory knows only about the segment to the proxy.
         // Even if that is secure, the hop to the target may be insecure.
@@ -601,13 +679,6 @@ public class DefaultClientRequestDirector
         HttpVersion ver = HttpProtocolParams.getVersion(params);
         HttpRequest req = new BasicHttpRequest
             ("CONNECT", authority, ver);
-
-        String agent = HttpProtocolParams.getUserAgent(params);
-        if (agent != null) {
-            req.addHeader(HTTP.USER_AGENT, agent);
-        }
-
-        //@@@ authenticate here, in caller, or in request interceptor?
 
         return req;
     }
