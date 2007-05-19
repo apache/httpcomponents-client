@@ -30,6 +30,9 @@
 
 package org.apache.http.impl.conn;
 
+
+import java.lang.ref.WeakReference;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -112,7 +115,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
      * Tests releasing and re-using a connection after a response is read.
      */
     public void testReleaseConnection() throws Exception {
-        //public void testSkeleton() throws Exception {
 
         HttpParams mgrpar = createManagerParams();
         HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 1);
@@ -131,19 +133,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
-        httpContext.setAttribute(
-            HttpExecutionContext.HTTP_CONNECTION, conn);
-        httpContext.setAttribute(
-            HttpExecutionContext.HTTP_TARGET_HOST, target);
-        httpContext.setAttribute(
-            HttpExecutionContext.HTTP_REQUEST, request);
-
-        httpExecutor.preProcess
-            (request, httpProcessor, httpContext);
-        HttpResponse response =
-            httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess
-            (response, httpProcessor, httpContext);
+        HttpResponse response = Helper.execute
+            (request, conn, target, httpExecutor, httpProcessor, httpContext);
 
         assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -207,17 +198,81 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
 
 
+    /**
+     * Tests GC of an unreferenced connection manager.
+     */
+    public void testConnectionManagerGC() throws Exception {
+        // 3.x: TestHttpConnectionManager.testDroppedThread
+
+        ThreadSafeClientConnManager mgr = createTSCCM(null, null);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final int      rsplen = 8;
+        final String      uri = "/random/" + rsplen;
+
+        HttpRequest request =
+            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+
+        ManagedClientConnection conn = mgr.getConnection(route);
+        conn.open(route, httpContext, defaultParams);
+
+        // a new context is created for each testcase, no need to reset
+        HttpResponse response = Helper.execute
+            (request, conn, target, httpExecutor, httpProcessor, httpContext);
+        byte[] data = EntityUtils.toByteArray(response.getEntity());
+
+        // release connection after marking it for re-use
+        conn.markReusable();
+        mgr.releaseConnection(conn);
+
+        // We now have a manager with an open connection. We drop all
+        // potential hard reference to it and check whether it is GCed.
+        // Note that the connection keeps a reference even if detached.
+        // Internal references might prevent that if set up incorrectly.
+
+        WeakReference wref = new WeakReference(mgr);
+
+        request = null;
+        response = null;
+        mgr = null;
+
+        //@@@ the connection currently prevents the manager from being GCed
+        conn = null;
+        httpContext = null; // holds the connection and request
+
+        // Java does not guarantee that this will trigger the GC, but
+        // it does in the test environment. GC is asynchronous, so we
+        // need to give the garbage collector some time afterwards.
+        System.gc();
+        Thread.sleep(1000);
+
+        assertNull("TSCCM not garbage collected", wref.get());
+    }
+
+
     // List of server-based tests in 3.x TestHttpConnectionManager
     // The execution framework (HttpClient) used by some of them
     // can probably be replaced by hand-coded request execution
     //
-    // testConnectMethodFailureRelease
-    // testDroppedThread
-    // testWriteRequestReleaseConnection, depends on execution framework
-    // + testReleaseConnection, depends on execution framework
-    // testResponseAutoRelease
-    // testMaxConnectionsPerServer - what's the server used/needed for?
+    // + testReleaseConnection
+    // + testDroppedThread
     // testReclaimUnusedConnection, depends on execution framework
     // testGetFromMultipleThreads, depends on execution framework
+
+
+    // Server-based tests not ported from 3.x TestHttpConnectionManager
+    //
+    // testWriteRequestReleaseConnection
+    //      This tests auto-release in case of an I/O error while writing.
+    //      It's a test of the execution framework, not of the manager.
+    // testConnectMethodFailureRelease
+    //      This tests method.fakeResponse() and auto-release. It's a
+    //      test of a 3.x specific hack and the execution framework.
+    // testResponseAutoRelease
+    //      Auto-release is not part of the connection manager.
+    // testMaxConnectionsPerServer
+    //      Connection limits are already tested without a server.
+
 
 } // class TestTSCCMWithServer

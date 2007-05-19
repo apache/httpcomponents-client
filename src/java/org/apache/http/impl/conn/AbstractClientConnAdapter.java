@@ -75,8 +75,12 @@ import org.apache.http.conn.ClientConnectionManager;
 public abstract class AbstractClientConnAdapter
     implements ManagedClientConnection {
 
-    /** The connection manager, if any. */
-    protected final ClientConnectionManager connManager;
+    /**
+     * The connection manager, if any.
+     * This attribute MUST NOT be final, so the adapter can be detached
+     * from the connection manager without keeping a hard reference there.
+     */
+    protected ClientConnectionManager connManager;
 
     /** The wrapped connection. */
     protected OperatedClientConnection wrappedConnection;
@@ -253,11 +257,8 @@ public abstract class AbstractClientConnAdapter
 
     // non-javadoc, see interface ConnectionReleaseTrigger
     public void releaseConnection() {
-        if (connManager == null)
-            throw new IllegalStateException
-                ("No connection manager to release to.");
-
-        connManager.releaseConnection(this);
+        if (connManager != null)
+            connManager.releaseConnection(this);
     }
 
     // non-javadoc, see interface ConnectionReleaseTrigger
@@ -265,11 +266,8 @@ public abstract class AbstractClientConnAdapter
 
         unmarkReusable();
 
-        if (connManager == null)
-            throw new IllegalStateException
-                ("No connection manager to release to.");
-
-        connManager.releaseConnection(this);
+        if (connManager != null)
+            connManager.releaseConnection(this);
     }
 
 } // class AbstractClientConnAdapter

@@ -99,6 +99,7 @@ public abstract class AbstractPooledConnAdapter
     protected void detach() {
         wrappedConnection = null;
         poolEntry = null;
+        connManager = null; // base class attribute
     }
 
 
