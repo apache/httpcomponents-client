@@ -61,6 +61,20 @@ import org.apache.http.util.EntityUtils;
  */
 public class TestTSCCMWithServer extends ServerTestBase {
 
+    // Server-based tests not ported from 3.x TestHttpConnectionManager
+    //
+    // testWriteRequestReleaseConnection
+    //      This tests auto-release in case of an I/O error while writing.
+    //      It's a test of the execution framework, not of the manager.
+    // testConnectMethodFailureRelease
+    //      This tests method.fakeResponse() and auto-release. It's a
+    //      test of a 3.x specific hack and the execution framework.
+    // testResponseAutoRelease
+    //      Auto-release is not part of the connection manager anymore.
+    // testMaxConnectionsPerServer
+    //      Connection limits are already tested without a server.
+
+
     public TestTSCCMWithServer(String testName) {
         super(testName);
     }
@@ -93,6 +107,70 @@ public class TestTSCCMWithServer extends ServerTestBase {
             schreg = supportedSchemes;
 
         return new ThreadSafeClientConnManager(params, schreg);
+    }
+
+
+
+    /**
+     * Tests executing several requests in parallel.
+     */
+    public void testParallelRequests() throws Exception {
+        // 3.x: TestHttpConnectionManager.testGetFromMultipleThreads
+
+        final int COUNT = 8; // adjust to execute more requests
+
+        HttpParams mgrpar = defaultParams.copy();
+        HttpConnectionManagerParams.setMaxTotalConnections
+            (mgrpar, COUNT/2);
+        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost
+            (mgrpar, COUNT/2);
+        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final int      rsplen = 8;
+        final String      uri = "/random/" + rsplen;
+
+        ExecReqThread[] threads = new ExecReqThread [COUNT];
+        for (int i=0; i<COUNT; i++) {
+
+            HttpRequest request = new BasicHttpRequest
+                ("GET", uri, HttpVersion.HTTP_1_1);
+
+            ExecReqThread.RequestSpec ertrs = new ExecReqThread.RequestSpec();
+            ertrs.executor = httpExecutor;
+            ertrs.processor = httpProcessor;
+            ertrs.context = new HttpExecutionContext(null);
+            ertrs.params = defaultParams;
+
+            ertrs.context.setAttribute
+                (HttpExecutionContext.HTTP_TARGET_HOST, target);
+            ertrs.context.setAttribute
+                (HttpExecutionContext.HTTP_REQUEST, request);
+
+            threads[i] = new ExecReqThread(mgr, route, 5000L, ertrs);
+        }
+
+        for (int i=0; i<threads.length; i++) {
+            threads[i].start();
+        }
+
+        for (int i=0; i<threads.length; i++) {
+            threads[i].join(10000);
+            assertNull("exception in thread " + i,
+                       threads[i].getException());
+            assertNotNull("no response in thread " + i,
+                          threads[i].getResponse());
+            assertEquals("wrong status code in thread " + i, 200,
+                         threads[i].getResponse()
+                         .getStatusLine().getStatusCode());
+            assertNotNull("no response data in thread " + i,
+                          threads[i].getResponseData());
+            assertEquals("wrong length of data in thread" + i, rsplen,
+                         threads[i].getResponseData().length);
+        }
+
+        mgr.shutdown();
     }
 
 
@@ -293,28 +371,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         assertNull("TSCCM not garbage collected", wref.get());
     }
-
-
-    // List of server-based tests in 3.x TestHttpConnectionManager
-    //
-    // + testReleaseConnection
-    // + testDroppedThread
-    // + testReclaimUnusedConnection
-    // testGetFromMultipleThreads, depends on extra threads
-
-
-    // Server-based tests not ported from 3.x TestHttpConnectionManager
-    //
-    // testWriteRequestReleaseConnection
-    //      This tests auto-release in case of an I/O error while writing.
-    //      It's a test of the execution framework, not of the manager.
-    // testConnectMethodFailureRelease
-    //      This tests method.fakeResponse() and auto-release. It's a
-    //      test of a 3.x specific hack and the execution framework.
-    // testResponseAutoRelease
-    //      Auto-release is not part of the connection manager.
-    // testMaxConnectionsPerServer
-    //      Connection limits are already tested without a server.
 
 
 } // class TestTSCCMWithServer
