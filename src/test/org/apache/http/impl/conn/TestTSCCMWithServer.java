@@ -296,13 +296,11 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
 
     // List of server-based tests in 3.x TestHttpConnectionManager
-    // The execution framework (HttpClient) used by some of them
-    // can probably be replaced by hand-coded request execution
     //
     // + testReleaseConnection
     // + testDroppedThread
     // + testReclaimUnusedConnection
-    // testGetFromMultipleThreads, depends on execution framework
+    // testGetFromMultipleThreads, depends on extra threads
 
 
     // Server-based tests not ported from 3.x TestHttpConnectionManager

@@ -368,7 +368,7 @@ public class TestTSCCMNoServer extends TestCase {
     public void testDeleteClosedConnections() {
         
         ThreadSafeClientConnManager mgr = createTSCCM(null, null);
-        
+
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
         HostConfiguration hcfg = route.toHostConfig(); //@@@ deprecated
@@ -396,9 +396,142 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.shutdown();
     }
 
-    // testShutdownAll, depends on parameterization and extra threads
-    // testShutdown, depends on parameterization and extra threads
-    // testHostReusePreference, depends on parameterization and extra threads
-    // testWaitingThreadInterrupted - depends on extra thread
+
+    public void testShutdown() throws Exception {
+        // 3.x: TestHttpConnectionManager.testShutdown
+
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target = new HttpHost("www.test.invalid", 80, "http");
+        HttpRoute route = new HttpRoute(target, null, false);
+
+        // get the only connection, then start an extra thread
+        // on shutdown, the extra thread should get an exception
+
+        ManagedClientConnection conn = mgr.getConnection(route, 1L);
+        GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
+        gct.start();
+        Thread.sleep(100); // give extra thread time to block
+
+
+        mgr.shutdown();
+
+        // First release the connection. If the manager keeps working
+        // despite the shutdown, this will deblock the extra thread.
+        // The release itself should turn into a no-op, without exception.
+        mgr.releaseConnection(conn);
+
+
+        gct.join(10000);
+        assertNull("thread should not have obtained connection",
+                   gct.getConnection());
+        assertNotNull("thread should have gotten an exception",
+                      gct.getException());
+        assertSame("thread got wrong exception",
+                   IllegalStateException.class, gct.getException().getClass());
+
+        // the manager is down, we should not be able to get a connection
+        try {
+            conn = mgr.getConnection(route, 1L);
+            fail("shut-down manager does not raise exception");
+        } catch (IllegalStateException isx) {
+            // expected
+        }
+    }
+
+
+    public void testInterruptThread() throws Exception {
+        // 3.x: TestHttpConnectionManager.testWaitingThreadInterrupted
+
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target = new HttpHost("www.test.invalid", 80, "http");
+        HttpRoute route = new HttpRoute(target, null, false);
+
+        // get the only connection, then start an extra thread
+        ManagedClientConnection conn = mgr.getConnection(route, 1L);
+        GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
+        gct.start();
+        Thread.sleep(100); // give extra thread time to block
+
+
+        // interrupt the thread, it should cancel waiting with an exception
+        gct.interrupt();
+
+
+        gct.join(10000);
+        assertNotNull("thread should have gotten an exception",
+                      gct.getException());
+        assertSame("thread got wrong exception",
+                   IllegalThreadStateException.class,
+                   gct.getException().getClass());
+
+        // make sure the manager is still working
+        try {
+            mgr.getConnection(route, 10L);
+            fail("should have gotten a timeout");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        mgr.releaseConnection(conn);
+        conn = mgr.getConnection(route, 10L); // this time, no exception
+        assertNotNull("should have gotten a connection", conn);
+
+        mgr.shutdown();
+    }
+
+
+
+    public void testReusePreference() throws Exception {
+        // 3.x: TestHttpConnectionManager.testHostReusePreference
+
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
+        HttpRoute route1 = new HttpRoute(target1, null, false);
+        HttpHost target2 = new HttpHost("www.test2.invalid", 80, "http");
+        HttpRoute route2 = new HttpRoute(target2, null, false);
+
+        // get the only connection, then start two extra threads
+        ManagedClientConnection conn = mgr.getConnection(route1, 1L);
+        GetConnThread gct1 = new GetConnThread(mgr, route1, 1000L);
+        GetConnThread gct2 = new GetConnThread(mgr, route2, 1000L);
+
+        // the second thread is started first, to distinguish the
+        // route-based reuse preference from first-come, first-served
+        gct2.start();
+        Thread.sleep(100); // give the thread time to block
+        gct1.start();
+        Thread.sleep(100); // give the thread time to block
+
+
+        // releasing the connection for route1 should deblock thread1
+        // the other thread gets a timeout
+        mgr.releaseConnection(conn);
+
+        gct1.join(10000);
+        gct2.join(10000);
+
+        assertNotNull("thread 1 should have gotten a connection",
+                      gct1.getConnection());
+        assertNull   ("thread 2 should NOT have gotten a connection",
+                      gct2.getConnection());
+
+        mgr.shutdown();
+    }
+
+    // 3.x TestHttpConnectionManager.testShutdownAll is not ported
+    // the shutdownAll() method is scheduled for removal
 
 } // class TestTSCCMNoServer
