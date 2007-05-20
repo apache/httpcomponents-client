@@ -97,26 +97,11 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
 
     /**
-     * Instantiates default parameters for a connection manager.
-     *
-     * @return  the default parameters
-     */
-    public HttpParams createManagerParams() {
-
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-
-        return params;
-    }
-
-
-    /**
      * Tests releasing and re-using a connection after a response is read.
      */
     public void testReleaseConnection() throws Exception {
 
-        HttpParams mgrpar = createManagerParams();
+        HttpParams mgrpar = defaultParams.copy();
         HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 1);
 
         ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
@@ -199,6 +184,65 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
 
     /**
+     * Tests GC of an unreferenced connection.
+     */
+    public void testConnectionGC() throws Exception {
+        // 3.x: TestHttpConnectionManager.testReclaimUnusedConnection
+
+        HttpParams mgrpar = defaultParams.copy();
+        HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final int      rsplen = 8;
+        final String      uri = "/random/" + rsplen;
+
+        HttpRequest request =
+            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+
+        ManagedClientConnection conn = mgr.getConnection(route);
+        conn.open(route, httpContext, defaultParams);
+
+        // a new context is created for each testcase, no need to reset
+        HttpResponse response = Helper.execute
+            (request, conn, target, httpExecutor, httpProcessor, httpContext);
+
+        // we leave the connection in mid-use
+        // it's not really re-usable, but it must be closed anyway
+        conn.markReusable();
+
+        // first check that we can't get another connection
+        try {
+            // this should fail quickly, connection has not been released
+            mgr.getConnection(route, 10L);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        // We now drop the hard references to the connection and trigger GC.
+        WeakReference wref = new WeakReference(conn);
+        conn = null;
+        response = null;
+        httpContext = null; // holds a reference to the connection
+
+        // Java does not guarantee that this will trigger the GC, but
+        // it does in the test environment. GC is asynchronous, so we
+        // need to give the garbage collector some time afterwards.
+        System.gc();
+        Thread.sleep(1000);
+
+        assertNull("connection not garbage collected", wref.get());
+        conn = mgr.getConnection(route, 10L);
+        assertFalse("GCed connection not closed", conn.isOpen());
+
+        mgr.shutdown();
+    }
+
+
+    /**
      * Tests GC of an unreferenced connection manager.
      */
     public void testConnectionManagerGC() throws Exception {
@@ -257,7 +301,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     //
     // + testReleaseConnection
     // + testDroppedThread
-    // testReclaimUnusedConnection, depends on execution framework
+    // + testReclaimUnusedConnection
     // testGetFromMultipleThreads, depends on execution framework
 
 
