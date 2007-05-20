@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   $HeadURL$
+   $Revision$
+   $Date$
+
+   ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+   ====================================================================
+
+   This software consists of voluntary contributions made by many
+   individuals on behalf of the Apache Software Foundation.  For more
+   information on the Apache Software Foundation, please see
+   <http://www.apache.org />.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>project</artifactId>
+    <groupId>org.apache.httpcomponents</groupId>
+    <version>4.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.httpcomponents</groupId>
+  <artifactId>client</artifactId>
+  <name>HttpComponents Client</name>
+  <version>4.0-alpha1-SNAPSHOT</version>
+  <description>Components to build client side HTTP services</description>
+  <url>http://jakarta.apache.org/httpcomponents/httpclient</url>
+  <inceptionYear>2000</inceptionYear>
+  <packaging>pom</packaging>
+
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org/</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License</name>
+      <url>LICENSE.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <issueManagement>
+    <system>Jira</system>
+    <url>http://issues.apache.org/jira/browse/HTTPCLIENT</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</connection>
+    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</developerConnection>
+    <url>http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</url>
+  </scm>
+
+  <modules>
+    <module>module-client</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagBase>https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/</tagBase>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-clover-plugin</artifactId>
+        <configuration>
+          <flushPolicy>threaded</flushPolicy>
+          <flushInterval>100</flushInterval>
+          <targetPercentage>50%</targetPercentage>
+        </configuration>
+        <executions>
+          <execution>
+            <id>site</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>instrument</goal>
+              <goal>aggregate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+
+       <plugin>
+         <artifactId>maven-project-info-reports-plugin</artifactId>
+         <reportSets>
+           <reportSet>
+             <reports>
+               <report>project-team</report>
+               <report>mailing-list</report>
+               <report>issue-tracking</report>
+               <report>scm</report>
+             </reports>
+           </reportSet>
+         </reportSets>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-clover-plugin</artifactId>
+        <configuration>
+          <jdk>1.5</jdk>
+          <licenseLocation>${clover.license}</licenseLocation>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+</project>
