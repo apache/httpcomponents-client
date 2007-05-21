@@ -30,14 +30,14 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpClientConnection;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.HttpExecutionContext;
 
 
 /**

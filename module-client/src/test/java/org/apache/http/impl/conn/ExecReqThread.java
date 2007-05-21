@@ -32,16 +32,14 @@ package org.apache.http.impl.conn;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.util.EntityUtils;
-
-import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.ClientConnectionManager;
 
 
 /**

@@ -30,9 +30,9 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.conn.HttpRoute;
 
 
 /**
@@ -40,8 +40,6 @@ import org.apache.http.conn.HttpRoute;
  */
 public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
 
-    private boolean open = true;
-    
     public ClientConnAdapterMockup() {
         super(null, null);
     }

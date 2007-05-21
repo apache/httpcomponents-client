@@ -30,9 +30,9 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.ClientConnectionManager;
 
 
 /**

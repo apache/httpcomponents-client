@@ -36,18 +36,18 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.HostConfiguration;
+import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.HostConfiguration; //@@@ deprecated
-import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 
 
 /**
