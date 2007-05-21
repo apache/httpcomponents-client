@@ -140,6 +140,14 @@ public class SSLSocketFactory implements SecureSocketFactory {
     public static final String SSL   = "SSL";
     public static final String SSLV2 = "SSLv2";
     
+    public static final HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER 
+        = new AllowAllHostnameVerifier();
+    
+    public static final HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER 
+        = new BrowserCompatHostnameVerifier();
+    
+    public static final HostnameVerifier STRICT_HOSTNAME_VERIFIER 
+        = new StrictHostnameVerifier();
     /**
      * The factory using the default JVM settings for secure connections.
      */
@@ -155,7 +163,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
     
     private final SSLContext sslcontext;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
-    private HostnameVerifier hostnameVerifier = HostnameVerifier.DEFAULT;
+    private HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
     public SSLSocketFactory(
         String algorithm, 
@@ -353,10 +361,9 @@ public class SSLSocketFactory implements SecureSocketFactory {
 
     public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
         if ( hostnameVerifier == null ) {
-            this.hostnameVerifier = HostnameVerifier.DEFAULT;
-        } else {
-            this.hostnameVerifier = hostnameVerifier;
+            throw new IllegalArgumentException("Hostname verifier may not be null");
         }
+        this.hostnameVerifier = hostnameVerifier;
     }
 
     public HostnameVerifier getHostnameVerifier() {

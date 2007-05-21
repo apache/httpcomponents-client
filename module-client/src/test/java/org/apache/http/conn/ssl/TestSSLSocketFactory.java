@@ -57,7 +57,6 @@ import junit.framework.TestSuite;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
-
 /**
  * Unit tests for {@link SSLSocketFactory}.
  *
@@ -81,18 +80,6 @@ public class TestSSLSocketFactory extends TestCase
         ts.addTestSuite(TestSSLSocketFactory.class);
         return ts;
     }
-
-    public void testConstructor() {}
-
-    public void testCreateKeyManagers() {}
-
-    public void testCreateTrustManagers() {}
-
-    public void testHashCode() {}
-
-    public void testEquals() {}
-
-    public void testToString() {}
 
     public void testCreateSocket() throws Exception {
         HttpParams params = new BasicHttpParams();
@@ -147,7 +134,7 @@ public class TestSSLSocketFactory extends TestCase
             // System.out.println("\nlistening on port: " + port);
 
             SSLSocketFactory ssf = SSLSocketFactory.getSocketFactory();
-            ssf.setHostnameVerifier(HostnameVerifier.ALLOW_ALL);
+            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
             // Test 1 - createSocket()
             IOException[] e = new IOException[1];

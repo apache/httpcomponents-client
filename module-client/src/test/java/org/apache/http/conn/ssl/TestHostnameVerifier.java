@@ -67,9 +67,9 @@ public class TestHostnameVerifier extends TestCase
     }
 
     public void testVerify() throws Exception {
-        HostnameVerifier DEFAULT = HostnameVerifier.DEFAULT;
-        HostnameVerifier STRICT = HostnameVerifier.STRICT;
-        HostnameVerifier ALLOW_ALL = HostnameVerifier.ALLOW_ALL;
+        HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
+        HostnameVerifier STRICT = new StrictHostnameVerifier();
+        HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
