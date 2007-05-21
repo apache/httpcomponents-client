@@ -96,10 +96,14 @@ HttpClient: Jakarta HttpComponents Client
 
 <!-- directory structure of the source tree -->
 <property name="comp.client.home"  value="${basedir}"/>
-<property name="comp.client.src"   value="${comp.client.home}/src/java"/>
-<property name="comp.client.tests" value="${comp.client.home}/src/test"/>
-<property name="comp.client.xmpls" value="${comp.client.home}/src/examples"/>
-<property name="comp.client.contr" value="${comp.client.home}/src/contrib"/>
+<property name="comp.client.src"
+         value="${comp.client.home}/module-client/src/main/java"/>
+<property name="comp.client.tests"
+         value="${comp.client.home}/module-client/src/test/java"/>
+<property name="comp.client.xmpls"
+         value="${comp.client.home}/module-client/src/examples"/>
+<property name="comp.client.contr"
+         value="${comp.client.home}/contrib"/>
 
 
 <!-- locations for intermediate and final build results
