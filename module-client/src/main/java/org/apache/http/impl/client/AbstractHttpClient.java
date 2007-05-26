@@ -368,11 +368,12 @@ public abstract class AbstractHttpClient
      *                           execute(roureq, context)}.
      * The route is computed by {@link #determineRoute determineRoute}.
      *
-     * @param target    the target host for the request.
-     *                  Some implementations may accept <code>null</code>.
      * @param request   the request to execute
+     * @param context   the request-specific execution context,
+     *                  or <code>null</code> to use a default context
      */
-    public final HttpResponse execute(HttpUriRequest request, HttpContext context)
+    public final HttpResponse execute(HttpUriRequest request,
+                                      HttpContext context)
         throws HttpException, IOException {
 
         if (request == null) {
@@ -457,8 +458,8 @@ public abstract class AbstractHttpClient
 
     /**
      * Determines the route for a request.
-     * Called by {@link #execute(HttpHost,HttpRequest,HttpContext)
-     *                   execute(target, request, context)}
+     * Called by {@link #execute(HttpUriRequest,HttpContext)
+     *                   execute(urirequest, context)}
      * to map to {@link HttpClient#execute(RoutedRequest,HttpContext)
      *                             execute(roureq, context)}.
      *

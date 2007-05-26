@@ -146,7 +146,7 @@ public interface HttpClient {
      *                  {@link #getContext default context}
      *
      * @return  the response to the request. See
-     *          {@link #execute(HttpHost,HttpRequest,HttpContext)
+     *          {@link #execute(HttpUriRequest,HttpContext)
      *                  execute(target,request,context)}
      *          for details.
      *

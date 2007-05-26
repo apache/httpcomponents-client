@@ -37,11 +37,9 @@ import org.apache.http.conn.HostConfiguration;
 import org.apache.http.params.HttpParams;
 
 /**
- * This class represents a collection of HTTP protocol parameters applicable to 
- * {@link org.apache.http.conn.HttpConnectionManager HTTP connection managers}. 
- * Protocol parameters may be linked together to form a hierarchy. If a particular 
- * parameter value has not been explicitly defined in the collection itself, its 
- * value will be drawn from the parent collection of parameters.
+ * This class represents a collection of HTTP protocol parameters applicable
+ * to client-side
+ * {@link org.apache.http.conn.ClientConnectionManager connection managers}. 
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author Michael Becke

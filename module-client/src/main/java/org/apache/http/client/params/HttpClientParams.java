@@ -113,17 +113,18 @@ public class HttpClientParams {
     public static final String PREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
 
     /**
-     * The key used to look up the list of IDs of supported {@link AuthScheme 
-     * authentication schemes} in their order of preference. The scheme IDs are 
-     * stored in a {@link java.util.Collection} as {@link java.lang.String}s. 
+     * The key used to look up the list of IDs of supported
+     * {@link AuthPolicy authentication schemes} in their order of preference.
+     * The scheme IDs are stored in a {@link java.util.Collection} as
+     * instances of {@link java.lang.String}.
      * 
      * <p>
      * If several schemes are returned in the <tt>WWW-Authenticate</tt> 
      * or <tt>Proxy-Authenticate</tt> header, this parameter defines which
-     * {@link AuthScheme authentication schemes} takes precedence over others.
+     * {@link AuthPolicy authentication schemes} takes precedence over others.
      * The first item in the collection represents the most preferred 
-     * {@link AuthScheme authentication scheme}, the last item represents the ID 
-     * of the least preferred one.
+     * {@link AuthPolicy authentication scheme}, the last item represents
+     * the ID of the least preferred one.
      * </p>
      */
     public static final String AUTH_SCHEME_PRIORITY = "http.protocol-auth-scheme-priority";

@@ -168,7 +168,6 @@ public class HttpState {
      * for the given scope.
      * 
      * @see #getCredentials(AuthScope)
-     * @see #setProxyCredentials(AuthScope, Credentials) 
      * 
      * @since 3.0
      */
