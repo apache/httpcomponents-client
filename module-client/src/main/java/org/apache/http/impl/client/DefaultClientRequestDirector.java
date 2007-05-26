@@ -338,7 +338,8 @@ public class DefaultClientRequestDirector
                         targetAuthState);
                 context.setAttribute(HttpClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                
+                //@@@ review parameter hierachy building
+                request.getParams().setDefaults(requestExec.getParams());
                 requestExec.preProcess(request, httpProcessor, context);
                 
                 if (orig instanceof AbortableHttpRequest) {

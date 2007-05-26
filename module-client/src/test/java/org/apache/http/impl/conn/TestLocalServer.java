@@ -85,7 +85,8 @@ public class TestLocalServer extends ServerTestBase {
                 HttpExecutionContext.HTTP_TARGET_HOST, target);
         httpContext.setAttribute(
                 HttpExecutionContext.HTTP_REQUEST, request);
-        
+        request.getParams().setDefaults(httpExecutor.getParams());
+
         httpExecutor.preProcess
             (request, httpProcessor, httpContext);
         HttpResponse response = httpExecutor.execute
@@ -126,7 +127,8 @@ public class TestLocalServer extends ServerTestBase {
                     HttpExecutionContext.HTTP_TARGET_HOST, target);
             httpContext.setAttribute(
                     HttpExecutionContext.HTTP_REQUEST, request);
-            
+            request.getParams().setDefaults(httpExecutor.getParams());
+
             httpExecutor.preProcess
                 (request, httpProcessor, httpContext);
             HttpResponse response = httpExecutor.execute

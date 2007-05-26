@@ -66,6 +66,7 @@ public final class Helper {
         ctxt.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST, target);
         ctxt.setAttribute(HttpExecutionContext.HTTP_REQUEST, req);
 
+        req.getParams().setDefaults(exec.getParams());
         exec.preProcess(req, proc, ctxt);
         HttpResponse rsp = exec.execute(req, conn, ctxt);
         exec.postProcess(rsp, proc, ctxt);
