@@ -68,7 +68,6 @@ import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -81,13 +80,11 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -374,6 +371,10 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
+                // Link parameter collections to form a hierarchy:
+                // response -> client
+                response.getParams().setDefaults(this.params);
+                
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
