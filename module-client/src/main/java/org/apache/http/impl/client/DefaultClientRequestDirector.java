@@ -537,6 +537,7 @@ public class DefaultClientRequestDirector
         throws HttpException, IOException {
 
         HttpHost proxy = route.getProxyHost();
+        HttpHost target = route.getTargetHost();
         HttpResponse response = null;
         
         boolean done = false;
@@ -554,6 +555,7 @@ public class DefaultClientRequestDirector
             if (agent != null) {
                 connect.addHeader(HTTP.USER_AGENT, agent);
             }
+            connect.addHeader(HTTP.TARGET_HOST, target.toHostString());
             
             AuthScheme authScheme = this.proxyAuthState.getAuthScheme();
             AuthScope authScope = this.proxyAuthState.getAuthScope();
