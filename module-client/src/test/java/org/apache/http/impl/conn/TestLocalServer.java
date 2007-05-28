@@ -42,6 +42,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.util.EntityUtils;
 
@@ -85,12 +86,13 @@ public class TestLocalServer extends ServerTestBase {
                 HttpExecutionContext.HTTP_TARGET_HOST, target);
         httpContext.setAttribute(
                 HttpExecutionContext.HTTP_REQUEST, request);
-        request.getParams().setDefaults(httpExecutor.getParams());
 
+        HttpParamsLinker.link(request, defaultParams);
         httpExecutor.preProcess
             (request, httpProcessor, httpContext);
         HttpResponse response = httpExecutor.execute
             (request, conn, httpContext);
+        HttpParamsLinker.link(response, defaultParams);
         httpExecutor.postProcess
             (response, httpProcessor, httpContext);
 
@@ -127,12 +129,13 @@ public class TestLocalServer extends ServerTestBase {
                     HttpExecutionContext.HTTP_TARGET_HOST, target);
             httpContext.setAttribute(
                     HttpExecutionContext.HTTP_REQUEST, request);
-            request.getParams().setDefaults(httpExecutor.getParams());
 
+            HttpParamsLinker.link(request, defaultParams);
             httpExecutor.preProcess
                 (request, httpProcessor, httpContext);
             HttpResponse response = httpExecutor.execute
                 (request, conn, httpContext);
+            HttpParamsLinker.link(response, defaultParams);
             httpExecutor.postProcess
                 (response, httpProcessor, httpContext);
 

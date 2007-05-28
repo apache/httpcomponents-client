@@ -194,8 +194,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute
-            (request, conn, target, httpExecutor, httpProcessor, httpContext);
+        HttpResponse response = Helper.execute(
+                request, conn, target, 
+                httpExecutor, httpProcessor, defaultParams, httpContext);
 
         assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -282,8 +283,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute
-            (request, conn, target, httpExecutor, httpProcessor, httpContext);
+        Helper.execute(request, conn, target, 
+                httpExecutor, httpProcessor, defaultParams, httpContext);
 
         // we leave the connection in mid-use
         // it's not really re-usable, but it must be closed anyway
@@ -301,7 +302,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // We now drop the hard references to the connection and trigger GC.
         WeakReference wref = new WeakReference(conn);
         conn = null;
-        response = null;
         httpContext = null; // holds a reference to the connection
 
         // Java does not guarantee that this will trigger the GC, but
@@ -338,9 +338,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute
-            (request, conn, target, httpExecutor, httpProcessor, httpContext);
-        byte[] data = EntityUtils.toByteArray(response.getEntity());
+        HttpResponse response = Helper.execute(request, conn, target, 
+                httpExecutor, httpProcessor, defaultParams, httpContext);
+        EntityUtils.toByteArray(response.getEntity());
 
         // release connection after marking it for re-use
         conn.markReusable();

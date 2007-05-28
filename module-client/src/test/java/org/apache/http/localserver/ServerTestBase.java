@@ -110,7 +110,6 @@ public abstract class ServerTestBase extends TestCase {
      */
     protected void setUp() throws Exception {
 
-        boolean newparams = false;
         if (defaultParams == null) {
             defaultParams = new BasicHttpParams(null);
             HttpProtocolParams.setVersion
@@ -121,7 +120,6 @@ public abstract class ServerTestBase extends TestCase {
                 (defaultParams, "Jakarta-HttpComponents-Test/1.1");
             HttpProtocolParams.setUseExpectContinue
                 (defaultParams, false);
-            newparams = true;
         }
 
         if (supportedSchemes == null) {
@@ -139,8 +137,8 @@ public abstract class ServerTestBase extends TestCase {
         // the context is created each time, it may get modified by test cases
         httpContext = new HttpExecutionContext(null);
 
-        if ((httpExecutor == null) || newparams) {
-            httpExecutor = new HttpRequestExecutor(defaultParams);
+        if (httpExecutor == null) {
+            httpExecutor = new HttpRequestExecutor();
         }
 
         if (localServer == null) {

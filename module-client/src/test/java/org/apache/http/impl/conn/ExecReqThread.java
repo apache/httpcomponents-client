@@ -102,7 +102,6 @@ public class ExecReqThread extends GetConnThread {
 
             HttpRequest request = (HttpRequest) request_spec.context.
                 getAttribute(HttpExecutionContext.HTTP_REQUEST);
-            request.getParams().setDefaults(request_spec.executor.getParams());
             request_spec.executor.preProcess
                 (request, request_spec.processor, request_spec.context);
 

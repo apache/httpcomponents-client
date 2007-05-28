@@ -34,6 +34,8 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -59,6 +61,7 @@ public final class Helper {
                                        HttpHost target,
                                        HttpRequestExecutor exec,
                                        HttpProcessor proc,
+                                       HttpParams params,
                                        HttpContext ctxt)
         throws Exception {
 
@@ -66,9 +69,10 @@ public final class Helper {
         ctxt.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST, target);
         ctxt.setAttribute(HttpExecutionContext.HTTP_REQUEST, req);
 
-        req.getParams().setDefaults(exec.getParams());
+        HttpParamsLinker.link(req, params);
         exec.preProcess(req, proc, ctxt);
         HttpResponse rsp = exec.execute(req, conn, ctxt);
+        HttpParamsLinker.link(rsp, params);
         exec.postProcess(rsp, proc, ctxt);
 
         return rsp;

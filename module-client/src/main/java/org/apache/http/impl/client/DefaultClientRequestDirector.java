@@ -79,6 +79,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -177,7 +178,7 @@ public class DefaultClientRequestDirector
         this.redirectHandler = redirectHandler;
         this.authHandler   = authHandler;
         this.params        = params;
-        this.requestExec   = new HttpRequestExecutor(params);
+        this.requestExec   = new HttpRequestExecutor();
 
         this.managedConn   = null;
         
@@ -254,10 +255,7 @@ public class DefaultClientRequestDirector
         throws HttpException, IOException {
 
         HttpRequest orig = roureq.getRequest();
-        
-        // Link parameter collections to form a hierarchy:
-        // request -> client
-        orig.getParams().setDefaults(this.params);
+        HttpParamsLinker.link(orig, this.params);
 
         // Add default headers
         Collection defHeaders = (Collection) orig.getParams().getParameter(
@@ -335,8 +333,6 @@ public class DefaultClientRequestDirector
                         targetAuthState);
                 context.setAttribute(HttpClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                //@@@ review parameter hierachy building
-                request.getParams().setDefaults(requestExec.getParams());
                 requestExec.preProcess(request, httpProcessor, context);
                 
                 if (orig instanceof AbortableHttpRequest) {
@@ -371,10 +367,7 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                // Link parameter collections to form a hierarchy:
-                // response -> client
-                response.getParams().setDefaults(this.params);
-                
+                HttpParamsLinker.link(request, this.params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
@@ -484,13 +477,13 @@ public class DefaultClientRequestDirector
 
             case RouteDirector.CONNECT_TARGET:
             case RouteDirector.CONNECT_PROXY:
-                managedConn.open(route, context, requestExec.getParams());
+                managedConn.open(route, context, this.params);
                 break;
 
             case RouteDirector.TUNNEL_TARGET:
                 boolean secure = createTunnel(route, context);
                 LOG.debug("Tunnel created");
-                managedConn.tunnelCreated(secure, requestExec.getParams());
+                managedConn.tunnelCreated(secure, this.params);
                 break;
 
             case RouteDirector.TUNNEL_PROXY:
@@ -498,7 +491,7 @@ public class DefaultClientRequestDirector
                     ("Proxy chains are not supported.");
 
             case RouteDirector.LAYER_PROTOCOL:
-                managedConn.layerProtocol(context, requestExec.getParams());
+                managedConn.layerProtocol(context, this.params);
                 break;
 
             case RouteDirector.UNREACHABLE:
