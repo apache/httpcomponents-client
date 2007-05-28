@@ -208,9 +208,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     } // update
 
 
-    public HttpResponse receiveResponseHeader(
-            final HttpParams params) throws HttpException, IOException {
-        HttpResponse response = super.receiveResponseHeader(params);
+    public HttpResponse receiveResponseHeader() throws HttpException, IOException {
+        HttpResponse response = super.receiveResponseHeader();
         if (HEADERS_LOG.isDebugEnabled()) {
             HEADERS_LOG.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();

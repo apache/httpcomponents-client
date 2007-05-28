@@ -117,7 +117,7 @@ public class ManagerConnectDirect {
             conn.flush();
 
             System.out.println("receiving response header");
-            HttpResponse rsp = conn.receiveResponseHeader(getParams());
+            HttpResponse rsp = conn.receiveResponseHeader();
 
             System.out.println("----------------------------------------");
             System.out.println(rsp.getStatusLine());

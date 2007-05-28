@@ -38,11 +38,9 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.params.HttpParams;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
-
 
 
 /**
@@ -180,12 +178,12 @@ public abstract class AbstractClientConnAdapter
 
 
     // non-javadoc, see interface HttpClientConnection
-    public HttpResponse receiveResponseHeader(HttpParams params)
+    public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
 
         assertWrappedConn();
         markedReusable = false;
-        return wrappedConnection.receiveResponseHeader(params);
+        return wrappedConnection.receiveResponseHeader();
     }
 
 
