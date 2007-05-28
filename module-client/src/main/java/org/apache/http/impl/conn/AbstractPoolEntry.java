@@ -186,7 +186,7 @@ public abstract class AbstractPoolEntry {
 
         this.connection.update(null, tracker.getTargetHost(),
                                secure, params);
-        this.tracker.createTunnel(secure);
+        this.tracker.tunnelTarget(secure);
 
     } // tunnelCreated
 

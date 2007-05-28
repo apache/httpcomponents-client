@@ -48,7 +48,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-public final class RouteTracker {
+public final class RouteTracker implements Cloneable {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;
@@ -65,10 +65,10 @@ public final class RouteTracker {
     /** Whether the first hop of the route is established. */
     private boolean connected;
 
-    /** The proxy server, if any. */
-    private HttpHost proxyHost;
+    /** The proxy chain, if any. */
+    private HttpHost[] proxyChain;
 
-    /** Whether the the route is tunnelled through the proxy. */
+    /** Whether the the route is tunnelled end-to-end through proxies. */
     private boolean tunnelled;
 
     /** Whether the route is layered over a tunnel. */
@@ -114,13 +114,16 @@ public final class RouteTracker {
      *                  <code>false</code> otherwise
      */
     public final void connectTarget(boolean secure) {
+        if (this.connected) {
+            throw new IllegalStateException("Already connected.");
+        }
         this.connected = true;
         this.secure = secure;
     }
 
 
     /**
-     * Tracks connecting to a proxy.
+     * Tracks connecting to the first proxy.
      *
      * @param proxy     the proxy connected to
      * @param secure    <code>true</code> if the route is secure,
@@ -130,20 +133,23 @@ public final class RouteTracker {
         if (proxy == null) {
             throw new IllegalArgumentException("Proxy host may not be null.");
         }
-        this.connected = true;
-        this.proxyHost = proxy;
-        this.secure    = secure;
+        if (this.connected) {
+            throw new IllegalStateException("Already connected.");
+        }
+        this.connected  = true;
+        this.proxyChain = new HttpHost[]{ proxy };
+        this.secure     = secure;
     }
 
 
     /**
-     * Tracks tunnelling through the proxy.
+     * Tracks tunnelling to the target.
      *
      * @param secure    <code>true</code> if the route is secure,
      *                  <code>false</code> otherwise
      */
-    public final void createTunnel(boolean secure) {
-        if (this.proxyHost == null) {
+    public final void tunnelTarget(boolean secure) {
+        if (this.proxyChain == null) {
             throw new IllegalStateException("No tunnel without proxy.");
         }
         if (!this.connected) {
@@ -151,6 +157,37 @@ public final class RouteTracker {
         }
         this.tunnelled = true;
         this.secure    = secure;
+    }
+
+
+    /**
+     * Tracks tunnelling to a proxy in a proxy chain.
+     * This will extend the tracked proxy chain, but it does not mark
+     * the route as tunnelled. Only end-to-end tunnels are considered there.
+     *
+     * @param proxy     the proxy tunnelled to
+     * @param secure    <code>true</code> if the route is secure,
+     *                  <code>false</code> otherwise
+     */
+    public final void tunnelProxy(HttpHost proxy, boolean secure) {
+        if (proxy == null) {
+            throw new IllegalArgumentException("Proxy host may not be null.");
+        }
+        if (this.proxyChain == null) {
+            throw new IllegalStateException("No proxy tunnel without proxy.");
+        }
+        if (!this.connected) {
+            throw new IllegalStateException("No tunnel unless connected.");
+        }
+
+        // prepare an extended proxy chain
+        HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
+        System.arraycopy(this.proxyChain, 0,
+                         proxies, 0, this.proxyChain.length);
+        proxies[proxies.length+1] = proxy;
+
+        this.proxyChain = proxies;
+        this.secure     = secure;
     }
 
 
@@ -194,12 +231,67 @@ public final class RouteTracker {
 
 
     /**
-     * Obtains the proxy host.
+     * Obtains the number of tracked hops.
+     * An unconnected route has no hops.
+     * Connecting directly to the target adds one hop.
+     * Connecting to a proxy adds two hops, one for the proxy and
+     * one for the target.
+     * Tunnelling to a proxy in a proxy chain adds one hop.
+     *
+     * @return  the number of hops in the tracked route
+     */
+    public final int getHopCount() {
+        int hops = 0;
+        if (this.connected) {
+            if (proxyChain == null)
+                hops = 1;
+            else
+                hops = proxyChain.length + 1;
+        }
+        return hops;
+    }
+
+
+    /**
+     * Obtains the target of a hop in this route.
+     *
+     * @param hop       index of the hop for which to get the target,
+     *                  0 for first
+     *
+     * @return  the target of the given hop
+     *
+     * @throws IllegalArgumentException
+     *  if the argument is negative or not less than
+     *  {@link #getHopCount getHopCount()}
+     */
+    public final HttpHost getHopTarget(int hop) {
+        if (hop < 0)
+            throw new IllegalArgumentException
+                ("Hop index must not be negative: " + hop);
+        final int hopcount = getHopCount();
+        if (hop >= hopcount) {
+            throw new IllegalArgumentException
+                ("Hop index " + hop +
+                 " exceeds tracked route length " + hopcount +".");
+        }
+
+        HttpHost result = null;
+        if ((this.proxyChain != null) && (hop < this.proxyChain.length))
+            result = this.proxyChain[hop];
+        else
+            result = this.targetHost;
+
+        return result;
+    }
+
+
+    /**
+     * Obtains the first proxy host.
      * 
-     * @return the proxy host, or <code>null</code> if not tracked
+     * @return the first proxy host, or <code>null</code> if not tracked
      */
     public final HttpHost getProxyHost() {
-        return this.proxyHost;
+        return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
 
@@ -258,7 +350,7 @@ public final class RouteTracker {
     public final HttpRoute toRoute() {
         return !this.connected ?
             null : new HttpRoute(this.targetHost, this.localAddress,
-                                 this.proxyHost, this.secure,
+                                 this.proxyChain, this.secure,
                                  this.tunnelled, this.layered);
     }
 
@@ -277,8 +369,11 @@ public final class RouteTracker {
      * @return  a representation of the route tracked so far
      */
     public final HostConfiguration toHostConfig() {
+        if ((this.proxyChain != null) && (this.proxyChain.length > 1)) {
+            throw new IllegalStateException("Cannot convert proxy chain.");
+        }
         return new HostConfiguration
-            (this.targetHost, this.proxyHost, this.localAddress);
+            (this.targetHost, getProxyHost(), this.localAddress);
     }
 
 
@@ -299,18 +394,25 @@ public final class RouteTracker {
         RouteTracker that = (RouteTracker) o;
         boolean equal = this.targetHost.equals(that.targetHost);
         equal &=
-            ( this.localAddress == that.localAddress) |
+            ( this.localAddress == that.localAddress) ||
             ((this.localAddress != null) &&
               this.localAddress.equals(that.localAddress));
         equal &=
-            ( this.proxyHost == that.proxyHost) |
-            ((this.proxyHost != null) &&
-              this.proxyHost.equals(that.proxyHost));
+            ( this.proxyChain        == that.proxyChain) ||
+            ((this.proxyChain        != null) &&
+             (this.proxyChain.length == that.proxyChain.length));
+        // comparison of actual proxies follows below
         equal &=
             (this.connected == that.connected) &&
             (this.secure    == that.secure) &&
             (this.tunnelled == that.tunnelled) &&
             (this.layered   == that.layered);
+
+        // chain length has been compared above, now check the proxies
+        if (equal && (this.proxyChain != null)) {
+            for (int i=0; equal && (i<this.proxyChain.length); i++)
+                equal = this.proxyChain[i].equals(that.proxyChain[i]);
+        }
 
         return equal;
     }
@@ -330,8 +432,11 @@ public final class RouteTracker {
 
         if (this.localAddress != null)
             hc ^= localAddress.hashCode();
-        if (this.proxyHost != null)
-            hc ^= proxyHost.hashCode();
+        if (this.proxyChain != null) {
+            hc ^= proxyChain.length;
+            for (int i=0; i<proxyChain.length; i++)
+                hc ^= proxyChain[i].hashCode();
+        }
 
         if (this.connected)
             hc ^= 0x11111111;
@@ -352,7 +457,7 @@ public final class RouteTracker {
      * @return  a human-readable representation of the tracked route
      */
     public final String toString() {
-        CharArrayBuffer cab = new CharArrayBuffer(80);
+        CharArrayBuffer cab = new CharArrayBuffer(50 + getHopCount()*30);
 
         cab.append("RouteTracker[");
         if (this.localAddress != null) {
@@ -369,14 +474,23 @@ public final class RouteTracker {
         if (this.secure)
             cab.append('s');
         cab.append("}->");
-        if (this.proxyHost != null) {
-            cab.append(this.proxyHost);
-            cab.append("->");
+        if (this.proxyChain != null) {
+            for (int i=0; i<this.proxyChain.length; i++) {
+                cab.append(this.proxyChain[i]);
+                cab.append("->");
+            }
         }
         cab.append(this.targetHost);
         cab.append(']');
 
         return cab.toString();
     }
+
+
+    // default implementation of clone() is sufficient
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
 
 } // class RouteTracker

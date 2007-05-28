@@ -50,7 +50,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-public final class HttpRoute {
+public final class HttpRoute implements Cloneable {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;
@@ -61,8 +61,8 @@ public final class HttpRoute {
      */
     private final InetAddress localAddress;
 
-    /** The proxy server, if any. */
-    private final HttpHost proxyHost;
+    /** The proxy servers, if any. */
+    private final HttpHost[] proxyChain;
 
     /** Whether the the route is tunnelled through the proxy. */
     private final boolean tunnelled;
@@ -75,7 +75,72 @@ public final class HttpRoute {
 
 
     /**
+     * Internal, fully-specified constructor.
+     * This constructor does <i>not</i> clone the proxy chain array,
+     * nor test it for <code>null</code> elements. This conversion and
+     * check is the responsibility of the public constructors.
+     * The order of arguments here is different from the similar public
+     * constructor, as required by Java.
+     *
+     * @param local     the local address to route from, or
+     *                  <code>null</code> for the default
+     * @param target    the host to which to route
+     * @param proxies   the proxy chain to use, or
+     *                  <code>null</code> for a direct route
+     * @param secure    <code>true</code> if the route is (to be) secure,
+     *                  <code>false</code> otherwise
+     * @param tunnelled <code>true</code> if the route is (to be) tunnelled
+     *                  end-to-end via the proxy chain,
+     *                  <code>false</code> otherwise
+     * @param layered   <code>true</code> if the route includes a
+     *                  layered protocol,
+     *                  <code>false</code> otherwise
+     */
+    private HttpRoute(InetAddress local, HttpHost target, HttpHost[] proxies,
+                      boolean secure, boolean tunnelled, boolean layered) {
+        if (target == null) {
+            throw new IllegalArgumentException
+                ("Target host may not be null.");
+        }
+        if (tunnelled && (proxies == null)) {
+            throw new IllegalArgumentException
+                ("Proxy required if tunnelled.");
+        }
+
+        this.targetHost   = target;
+        this.localAddress = local;
+        this.proxyChain   = proxies;
+        this.secure       = secure;
+        this.tunnelled    = tunnelled;
+        this.layered      = layered;
+    }
+
+
+    /**
      * Creates a new route with all attributes specified explicitly.
+     *
+     * @param target    the host to which to route
+     * @param local     the local address to route from, or
+     *                  <code>null</code> for the default
+     * @param proxies   the proxy chain to use, or
+     *                  <code>null</code> for a direct route
+     * @param secure    <code>true</code> if the route is (to be) secure,
+     *                  <code>false</code> otherwise
+     * @param tunnelled <code>true</code> if the route is (to be) tunnelled
+     *                  end-to-end via the proxy chain,
+     *                  <code>false</code> otherwise
+     * @param layered   <code>true</code> if the route includes a
+     *                  layered protocol,
+     *                  <code>false</code> otherwise
+     */
+    public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
+                     boolean secure, boolean tunnelled, boolean layered) {
+        this(local, target, toChain(proxies), secure, tunnelled, layered);
+    }
+
+
+    /**
+     * Creates a new route with at most one proxy.
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
@@ -93,21 +158,7 @@ public final class HttpRoute {
      */
     public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
                      boolean secure, boolean tunnelled, boolean layered) {
-        if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host may not be null.");
-        }
-        if (tunnelled && (proxy == null)) {
-            throw new IllegalArgumentException
-                ("Proxy host may not be null if tunnelled.");
-        }
-
-        this.targetHost   = target;
-        this.localAddress = local;
-        this.proxyHost    = proxy;
-        this.secure       = secure;
-        this.tunnelled    = tunnelled;
-        this.layered      = layered;
+        this(local, target, toChain(proxy), secure, tunnelled, layered);
     }
 
 
@@ -122,18 +173,17 @@ public final class HttpRoute {
      *                  <code>false</code> otherwise
      */
     public HttpRoute(HttpHost target, InetAddress local, boolean secure) {
-        this(target, local, null, secure, false, false);
+        this(local, target, null, secure, false, false);
     }
 
 
     /**
      * Creates a new direct insecure route.
-     * That is a route without a proxy.
      *
      * @param target    the host to which to route
      */
     public HttpRoute(HttpHost target) {
-        this(target, null, null, false, false, false);
+        this(null, target, null, false, false, false);
     }
 
 
@@ -152,11 +202,52 @@ public final class HttpRoute {
      */
     public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
                      boolean secure) {
-        this(target, local, proxy, secure, secure, secure);
+        this(local, target, toChain(proxy), secure, secure, secure);
         if (proxy == null) {
             throw new IllegalArgumentException
                 ("Proxy host may not be null.");
         }
+    }
+
+
+    /**
+     * Helper to convert a proxy to a proxy chain.
+     *
+     * @param proxy     the only proxy in the chain, or <code>null</code>
+     *
+     * @return  a proxy chain array, or <code>null</code>
+     */
+    private static HttpHost[] toChain(HttpHost proxy) {
+        if (proxy == null)
+            return null;
+
+        return new HttpHost[]{ proxy };
+    }
+
+
+    /**
+     * Helper to duplicate and check a proxy chain.
+     * An empty proxy chain is converted to <code>null</code>.
+     *
+     * @param proxies   the proxy chain to duplicate, or <code>null</code>
+     *
+     * @return  a new proxy chain array, or <code>null</code>
+     */
+    private static HttpHost[] toChain(HttpHost[] proxies) {
+        if ((proxies == null) || (proxies.length < 1))
+            return null;
+
+        for (int i=0; i<proxies.length; i++) {
+            if (proxies[i] == null)
+                throw new IllegalArgumentException
+                    ("Proxy chain may not contain null elements.");
+        }
+
+        // copy the proxy chain, the traditional way
+        HttpHost[] result = new HttpHost[proxies.length];
+        System.arraycopy(proxies, 0, result, 0, proxies.length);
+
+        return result;
     }
 
 
@@ -182,20 +273,71 @@ public final class HttpRoute {
 
 
     /**
-     * Obtains the proxy host.
+     * Obtains the number of hops in this route.
+     * A direct route has one hop. A route through a proxy has two hops.
+     * A route through a chain of <i>n</i> proxies has <i>n+1</i> hops.
+     *
+     * @return  the number of hops in this route
+     */
+    public final int getHopCount() {
+        return (proxyChain == null) ? 1 : (proxyChain.length+1);
+    }
+
+
+    /**
+     * Obtains the target of a hop in this route.
+     * The target of the last hop is the {@link #getTargetHost target host},
+     * the target of previous hops is the respective proxy in the chain.
+     * For a route through exactly one proxy, target of hop 0 is the proxy
+     * and target of hop 1 is the target host.
+     *
+     * @param hop       index of the hop for which to get the target,
+     *                  0 for first
+     *
+     * @return  the target of the given hop
+     *
+     * @throws IllegalArgumentException
+     *  if the argument is negative or not less than
+     *  {@link #getHopCount getHopCount()}
+     */
+    public final HttpHost getHopTarget(int hop) {
+        if (hop < 0)
+            throw new IllegalArgumentException
+                ("Hop index must not be negative: " + hop);
+        if (((this.proxyChain == null) && (hop > 0)) ||
+            ( this.proxyChain.length < hop)) {
+            throw new IllegalArgumentException
+                ("Hop index " + hop +
+                 " exceeds route length " + getHopCount() +".");
+        }
+
+        HttpHost result = null;
+        if ((this.proxyChain != null) && (hop < this.proxyChain.length))
+            result = this.proxyChain[hop];
+        else
+            result = this.targetHost;
+
+        return result;
+    }
+
+
+    /**
+     * Obtains the first proxy host.
      * 
-     * @return the proxy host, or
+     * @return the first proxy in the proxy chain, or
      *         <code>null</code> if this route is direct
      */
     public final HttpHost getProxyHost() {
-        return this.proxyHost;
+        return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
 
     /**
      * Checks whether this route is tunnelled through a proxy.
+     * If there is a proxy chain, only end-to-end tunnels are considered.
      *
-     * @return  <code>true</code> if tunnelled,
+     * @return  <code>true</code> if tunnelled end-to-end through at least
+     *          one proxy,
      *          <code>false</code> otherwise
      */
     public final boolean isTunnelled() {
@@ -205,6 +347,8 @@ public final class HttpRoute {
 
     /**
      * Checks whether this route includes a layered protocol.
+     * In the presence of proxies, only layering over an end-to-end tunnel
+     * is considered.
      *
      * @return  <code>true</code> if layered,
      *          <code>false</code> otherwise
@@ -235,8 +379,11 @@ public final class HttpRoute {
      *          where routes need to be represented. No conversion necessary.
      */
     public final HostConfiguration toHostConfig() {
+        if ((this.proxyChain != null) && (this.proxyChain.length > 1)) {
+            throw new IllegalStateException("Cannot convert proxy chain.");
+        }
         return new HostConfiguration
-            (this.targetHost, this.proxyHost, this.localAddress);
+            (this.targetHost, getProxyHost(), this.localAddress);
     }
 
 
@@ -257,17 +404,24 @@ public final class HttpRoute {
         HttpRoute that = (HttpRoute) o;
         boolean equal = this.targetHost.equals(that.targetHost);
         equal &=
-            ( this.localAddress == that.localAddress) |
+            ( this.localAddress == that.localAddress) ||
             ((this.localAddress != null) &&
               this.localAddress.equals(that.localAddress));
         equal &=
-            ( this.proxyHost == that.proxyHost) |
-            ((this.proxyHost != null) &&
-              this.proxyHost.equals(that.proxyHost));
+            ( this.proxyChain        == that.proxyChain) ||
+            ((this.proxyChain        != null) &&
+             (this.proxyChain.length == that.proxyChain.length));
+        // comparison of actual proxies follows below
         equal &=
             (this.secure    == that.secure) &&
             (this.tunnelled == that.tunnelled) &&
             (this.layered   == that.layered);
+
+        // chain length has been compared above, now check the proxies
+        if (equal && (this.proxyChain != null)) {
+            for (int i=0; equal && (i<this.proxyChain.length); i++)
+                equal = this.proxyChain[i].equals(that.proxyChain[i]);
+        }
 
         return equal;
     }
@@ -284,8 +438,11 @@ public final class HttpRoute {
 
         if (this.localAddress != null)
             hc ^= localAddress.hashCode();
-        if (this.proxyHost != null)
-            hc ^= proxyHost.hashCode();
+        if (this.proxyChain != null) {
+            hc ^= proxyChain.length;
+            for (int i=0; i<proxyChain.length; i++)
+                hc ^= proxyChain[i].hashCode();
+        }
 
         if (this.secure)
             hc ^= 0x11111111;
@@ -304,7 +461,7 @@ public final class HttpRoute {
      * @return  a human-readable representation of this route
      */
     public final String toString() {
-        CharArrayBuffer cab = new CharArrayBuffer(80);
+        CharArrayBuffer cab = new CharArrayBuffer(50 + getHopCount()*30);
 
         cab.append("HttpRoute[");
         if (this.localAddress != null) {
@@ -319,14 +476,23 @@ public final class HttpRoute {
         if (this.secure)
             cab.append('s');
         cab.append("}->");
-        if (this.proxyHost != null) {
-            cab.append(this.proxyHost);
-            cab.append("->");
+        if (this.proxyChain != null) {
+            for (int i=0; i<this.proxyChain.length; i++) {
+                cab.append(this.proxyChain[i]);
+                cab.append("->");
+            }
         }
         cab.append(this.targetHost);
         cab.append(']');
 
         return cab.toString();
     }
+
+
+    // default implementation of clone() is sufficient
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
 
 } // class HttpRoute

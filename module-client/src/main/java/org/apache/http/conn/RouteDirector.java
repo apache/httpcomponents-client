@@ -60,11 +60,14 @@ public class RouteDirector {
     /** Step: open connection to proxy. */
     public final static int CONNECT_PROXY = 2;
 
-    /** Step: tunnel through proxy. */
-    public final static int CREATE_TUNNEL = 3;
+    /** Step: tunnel through proxy to target. */
+    public final static int TUNNEL_TARGET = 3;
+
+    /** Step: tunnel through proxy to other proxy. */
+    public final static int TUNNEL_PROXY = 4;
 
     /** Step: layer protocol (over tunnel). */
-    public final static int LAYER_PROTOCOL = 4;
+    public final static int LAYER_PROTOCOL = 5;
 
 
     // public default constructor
@@ -91,10 +94,10 @@ public class RouteDirector {
 
         if (fact == null)
             step = firstStep(plan);
-        else if (plan.getProxyHost() == null)
-            step = directStep(plan, fact);
-        else
+        else if (plan.getHopCount() > 1)
             step = proxiedStep(plan, fact);
+        else
+            step = directStep(plan, fact);
 
         return step;
 
@@ -110,8 +113,8 @@ public class RouteDirector {
      */
     protected int firstStep(HttpRoute plan) {
 
-        return (plan.getProxyHost() == null) ?
-            CONNECT_TARGET : CONNECT_PROXY;
+        return (plan.getHopCount() > 1) ?
+            CONNECT_PROXY : CONNECT_TARGET;
     }
 
 
@@ -126,7 +129,7 @@ public class RouteDirector {
      */
     protected int directStep(HttpRoute plan, HttpRoute fact) {
 
-        if (fact.getProxyHost() != null)
+        if (fact.getHopCount() > 1)
             return UNREACHABLE;
         if (!plan.getTargetHost().equals(fact.getTargetHost()))
             return UNREACHABLE;
@@ -156,19 +159,30 @@ public class RouteDirector {
      */
     protected int proxiedStep(HttpRoute plan, HttpRoute fact) {
 
-        if (fact.getProxyHost() == null)
+        if (fact.getHopCount() <= 1)
             return UNREACHABLE;
-        if (!plan.getProxyHost().equals(fact.getProxyHost()) ||
-            !plan.getTargetHost().equals(fact.getTargetHost()))
+        if (!plan.getTargetHost().equals(fact.getTargetHost()))
+            return UNREACHABLE;
+        final int phc = plan.getHopCount();
+        final int fhc = fact.getHopCount();
+        if (phc < fhc)
             return UNREACHABLE;
 
-        // proxy and target are the same, check tunnelling and layering
+        for (int i=0; i<phc-1; i++) {
+            if (!plan.getHopTarget(i).equals(fact.getHopTarget(i)))
+                return UNREACHABLE;
+        }
+        // now we know that the target matches and proxies so far are the same
+        if (phc > fhc)
+            return TUNNEL_PROXY; // need to extend the proxy chain
+            
+        // proxy chain and target are the same, check tunnelling and layering
         if ((fact.isTunnelled() && !plan.isTunnelled()) ||
             (fact.isLayered()   && !plan.isLayered()))
             return UNREACHABLE;
 
         if (plan.isTunnelled() && !fact.isTunnelled())
-            return CREATE_TUNNEL;
+            return TUNNEL_TARGET;
         if (plan.isLayered() && !fact.isLayered())
             return LAYER_PROTOCOL;
 

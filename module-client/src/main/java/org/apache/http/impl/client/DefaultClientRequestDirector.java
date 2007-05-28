@@ -487,11 +487,15 @@ public class DefaultClientRequestDirector
                 managedConn.open(route, context, requestExec.getParams());
                 break;
 
-            case RouteDirector.CREATE_TUNNEL:
+            case RouteDirector.TUNNEL_TARGET:
                 boolean secure = createTunnel(route, context);
                 LOG.debug("Tunnel created");
                 managedConn.tunnelCreated(secure, requestExec.getParams());
                 break;
+
+            case RouteDirector.TUNNEL_PROXY:
+                throw new UnsupportedOperationException
+                    ("Proxy chains are not supported.");
 
             case RouteDirector.LAYER_PROTOCOL:
                 managedConn.layerProtocol(context, requestExec.getParams());
