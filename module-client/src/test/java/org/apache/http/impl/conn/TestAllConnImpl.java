@@ -43,6 +43,7 @@ public class TestAllConnImpl extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
 
+        suite.addTest(TestHttpRoute.suite());
         suite.addTest(TestLocalServer.suite());
         suite.addTest(TestTSCCMNoServer.suite());
         suite.addTest(TestTSCCMWithServer.suite());

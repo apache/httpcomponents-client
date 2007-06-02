@@ -304,15 +304,14 @@ public final class HttpRoute implements Cloneable {
         if (hop < 0)
             throw new IllegalArgumentException
                 ("Hop index must not be negative: " + hop);
-        if (((this.proxyChain == null) && (hop > 0)) ||
-            ( this.proxyChain.length < hop)) {
+        final int hopcount = getHopCount();
+        if (hop >= hopcount)
             throw new IllegalArgumentException
                 ("Hop index " + hop +
-                 " exceeds route length " + getHopCount() +".");
-        }
+                 " exceeds route length " + hopcount +".");
 
         HttpHost result = null;
-        if ((this.proxyChain != null) && (hop < this.proxyChain.length))
+        if (hop < hopcount-1)
             result = this.proxyChain[hop];
         else
             result = this.targetHost;
@@ -410,6 +409,7 @@ public final class HttpRoute implements Cloneable {
         equal &=
             ( this.proxyChain        == that.proxyChain) ||
             ((this.proxyChain        != null) &&
+             (that.proxyChain        != null) &&
              (this.proxyChain.length == that.proxyChain.length));
         // comparison of actual proxies follows below
         equal &=

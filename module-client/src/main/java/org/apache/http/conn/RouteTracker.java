@@ -276,7 +276,7 @@ public final class RouteTracker implements Cloneable {
         }
 
         HttpHost result = null;
-        if ((this.proxyChain != null) && (hop < this.proxyChain.length))
+        if (hop < hopcount-1)
             result = this.proxyChain[hop];
         else
             result = this.targetHost;
@@ -400,6 +400,7 @@ public final class RouteTracker implements Cloneable {
         equal &=
             ( this.proxyChain        == that.proxyChain) ||
             ((this.proxyChain        != null) &&
+             (that.proxyChain        != null) &&
              (this.proxyChain.length == that.proxyChain.length));
         // comparison of actual proxies follows below
         equal &=
