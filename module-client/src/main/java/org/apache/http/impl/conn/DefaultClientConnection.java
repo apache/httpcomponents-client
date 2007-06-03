@@ -64,8 +64,8 @@ import org.apache.http.conn.OperatedClientConnection;
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection {
 
-    private static final Log HEADERS_LOG = LogFactory.getLog("org.apache.http.conn.headers");
-    private static final Log WIRE_LOG = LogFactory.getLog("org.apache.http.conn.wire");
+    private static final Log HEADERS_LOG = LogFactory.getLog("org.apache.http.headers");
+    private static final Log WIRE_LOG = LogFactory.getLog("org.apache.http.wire");
     
     private static final Log LOG = LogFactory.getLog(DefaultClientConnection.class);
     
