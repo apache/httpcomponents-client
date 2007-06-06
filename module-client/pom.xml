@@ -62,7 +62,7 @@
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>jakarta-httpcore</artifactId>
+      <artifactId>httpcore</artifactId>
       <version>4.0-alpha5-SNAPSHOT</version>
     </dependency>
     <dependency>
