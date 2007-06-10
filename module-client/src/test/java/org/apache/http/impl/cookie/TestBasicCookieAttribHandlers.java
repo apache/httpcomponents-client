@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -421,7 +422,7 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         Cookie cookie = new Cookie("name", "value"); 
         CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
         
-        DateFormat dateformat = new SimpleDateFormat(DateUtils.PATTERN_RFC1123);
+        DateFormat dateformat = new SimpleDateFormat(DateUtils.PATTERN_RFC1123, Locale.US);
         dateformat.setTimeZone(DateUtils.GMT);
         
         Date now = new Date();
