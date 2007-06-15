@@ -34,7 +34,6 @@ import java.io.IOException;
 
 import org.apache.http.io.HttpDataReceiver;
 import org.apache.http.io.HttpTransportMetrics;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -65,10 +64,6 @@ class LoggingHttpDataReceiverDecorator implements HttpDataReceiver {
         this.wire = wire;
     }
 
-    public void reset(final HttpParams params) {
-        this.in.reset(params);
-    }
-    
     public boolean isDataAvailable(int timeout) throws IOException {
         return this.in.isDataAvailable(timeout);
     }

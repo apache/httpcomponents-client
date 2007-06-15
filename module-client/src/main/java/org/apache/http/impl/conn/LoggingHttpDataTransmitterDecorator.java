@@ -34,7 +34,6 @@ import java.io.IOException;
 
 import org.apache.http.io.HttpDataTransmitter;
 import org.apache.http.io.HttpTransportMetrics;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -61,10 +60,6 @@ class LoggingHttpDataTransmitterDecorator implements HttpDataTransmitter {
         super();
         this.out = out;
         this.wire = wire;
-    }
-    
-    public void reset(final HttpParams params) {
-        this.out.reset(params);
     }
     
     public void write(byte[] b, int off, int len) throws IOException {

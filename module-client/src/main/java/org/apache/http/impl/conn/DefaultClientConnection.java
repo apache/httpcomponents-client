@@ -97,7 +97,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     // non-javadoc, see interface OperatedClientConnection
     public final Socket getSocket() {
-        return this.socket; // base class attribute
+        return getSocket(); // base class attribute
     }
 
 
@@ -137,8 +137,13 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
 
     protected HttpDataReceiver createHttpDataReceiver(
+            final Socket socket,
+            int buffersize,
             final HttpParams params) throws IOException {
-        HttpDataReceiver receiver = super.createHttpDataReceiver(params);
+        HttpDataReceiver receiver = super.createHttpDataReceiver(
+                socket, 
+                buffersize,
+                params);
         if (WIRE_LOG.isDebugEnabled()) {
             receiver = new LoggingHttpDataReceiverDecorator(receiver, new Wire(WIRE_LOG));
         }
@@ -147,8 +152,13 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     
     protected HttpDataTransmitter createHttpDataTransmitter(
+            final Socket socket,
+            int buffersize,
             final HttpParams params) throws IOException {
-        HttpDataTransmitter transmitter = super.createHttpDataTransmitter(params);
+        HttpDataTransmitter transmitter = super.createHttpDataTransmitter(
+                socket,
+                buffersize,
+                params);
         if (WIRE_LOG.isDebugEnabled()) {
             transmitter = new LoggingHttpDataTransmitterDecorator(transmitter, new Wire(WIRE_LOG));
         }
