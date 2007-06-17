@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.impl.conn;
+package org.apache.http.conn;
 
 
 import java.net.InetAddress;
@@ -40,7 +40,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.HttpRoute;
 
 
 /**

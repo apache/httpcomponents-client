@@ -33,6 +33,7 @@ package org.apache.http.mockup;
 import java.io.IOException;
 
 import org.apache.http.HttpConnection;
+import org.apache.http.HttpConnectionMetrics;
 
 /**
  * {@link HttpConnection} mockup implementation.
@@ -68,5 +69,9 @@ public class HttpConnectionMockup implements HttpConnection {
     }
 
     public void setSocketTimeout(int timeout) {
+    }
+
+    public HttpConnectionMetrics getMetrics() {
+        return null;
     }
 }
