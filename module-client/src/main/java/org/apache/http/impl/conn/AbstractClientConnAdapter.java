@@ -38,6 +38,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
@@ -146,6 +147,13 @@ public abstract class AbstractClientConnAdapter
     public int getSocketTimeout() {
         assertWrappedConn();
         return wrappedConnection.getSocketTimeout();
+    }
+
+
+    // non-javadoc, see interface HttpConnection
+    public HttpConnectionMetrics getMetrics() {
+        assertWrappedConn();
+        return wrappedConnection.getMetrics();
     }
 
 
