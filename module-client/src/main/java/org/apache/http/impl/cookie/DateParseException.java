@@ -27,39 +27,34 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
+
 package org.apache.http.impl.cookie;
 
-import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.MalformedCookieException;
 
+/**
+ * An exception to indicate an error parsing a date string.
+ * 
+ * @see DateUtils
+ * 
+ * @author Michael Becke
+ */
+public class DateParseException extends Exception {
 
-public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
-
-    /** Valid date patterns */
-    private final String[] datepatterns;
-
-    public BasicExpiresHandler(final String[] datepatterns) {
-        if (datepatterns == null) {
-            throw new IllegalArgumentException("Array of date patterns may not be null");
-        }
-        this.datepatterns = datepatterns;
+    static final long serialVersionUID = 4417696455000643370L;
+    
+    /**
+     * 
+     */
+    public DateParseException() {
+        super();
     }
 
-    public void parse(final Cookie cookie, final String value) 
-            throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for expires attribute");
-        }
-        try {
-            cookie.setExpiryDate(DateUtils.parseDate(value, this.datepatterns));
-        } catch (DateParseException dpe) {
-            throw new MalformedCookieException("Unable to parse expires attribute: " 
-                + value);
-        }
+    /**
+     * @param message the exception message
+     */
+    public DateParseException(String message) {
+        super(message);
     }
 
 }

@@ -40,8 +40,7 @@ import org.apache.http.cookie.SM;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.DateParseException;
-import org.apache.http.util.DateUtils;
+
 
 /**
  * Cookie specification that stives to closely mimic (mis)behavior of 

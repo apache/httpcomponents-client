@@ -1,5 +1,5 @@
 /*
- * $HeadRL$
+ * $HeadURL$
  * $Revision$
  * $Date$
  * 
@@ -42,7 +42,7 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.DateUtils;
+
 
 /**
  * RFC 2109 compliant cookie policy
