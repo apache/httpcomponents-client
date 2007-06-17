@@ -28,30 +28,40 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.mockup;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import java.net.Socket;
+import java.net.InetAddress;
 
-public class TestAllConn extends TestCase {
+import org.apache.http.conn.SecureSocketFactory;
+import org.apache.http.params.HttpParams;
 
-    public TestAllConn(String testName) {
-        super(testName);
+
+
+/**
+ * {@link SecureSocketFactory} mockup implementation.
+ */
+public class SecureSocketFactoryMockup extends SocketFactoryMockup
+    implements SecureSocketFactory {
+
+    /* A default instance of this mockup. */
+    public final static SecureSocketFactory INSTANCE =
+        new SecureSocketFactoryMockup("INSTANCE");
+
+
+    public SecureSocketFactoryMockup(String name) {
+        super(name);
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
+    // don't implement equals and hashcode, all instances are different!
 
-        suite.addTest(TestHttpRoute.suite());
-        suite.addTest(TestScheme.suite());
-
-        return suite;
+    public String toString() {
+        return "SecureSocketFactoryMockup." + mockup_name;
     }
 
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllConn.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
 
+    public Socket createSocket(Socket socket, String host, int port,
+                                      boolean autoClose) {
+        throw new UnsupportedOperationException("I'm a mockup!");
+    }
 }

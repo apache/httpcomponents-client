@@ -38,7 +38,9 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+//import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.mockup.SecureSocketFactoryMockup;
+
 
 /**
  * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
@@ -70,10 +72,12 @@ public class TestScheme extends TestCase {
                    http.getSocketFactory()); 
         assertFalse(http.isLayered()); 
         Scheme https = new Scheme
-            ("https", SSLSocketFactory.getSocketFactory(), 443);
+            ("https", SecureSocketFactoryMockup.INSTANCE, 443);
+        //  ("https", SSLSocketFactory.getSocketFactory(), 443);
         assertEquals("https", https.getName()); 
         assertEquals(443, https.getDefaultPort()); 
-        assertSame(SSLSocketFactory.getSocketFactory(),
+        assertSame(//SSLSocketFactory.getSocketFactory()
+                   SecureSocketFactoryMockup.INSTANCE,
                    https.getSocketFactory()); 
         assertTrue(https.isLayered());
 
@@ -114,7 +118,8 @@ public class TestScheme extends TestCase {
         Scheme http = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
         Scheme https = new Scheme
-            ("https", SSLSocketFactory.getSocketFactory(), 443);
+            ("https", SecureSocketFactoryMockup.INSTANCE, 443);
+        //  ("https", SSLSocketFactory.getSocketFactory(), 443);
         Scheme myhttp = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
 
@@ -147,7 +152,8 @@ public class TestScheme extends TestCase {
         Scheme http = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
         Scheme https = new Scheme
-            ("https", SSLSocketFactory.getSocketFactory(), 443);
+            ("https", SecureSocketFactoryMockup.INSTANCE, 443);
+        //  ("https", SSLSocketFactory.getSocketFactory(), 443);
 
     	schmreg.register(http);
     	schmreg.register(https);
@@ -232,9 +238,10 @@ public class TestScheme extends TestCase {
         Scheme myhttp = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
         Scheme https = new Scheme
-            ("http", SSLSocketFactory.getSocketFactory(), 443);
+            ("https", SecureSocketFactoryMockup.INSTANCE, 443);
+        //  ("https", SSLSocketFactory.getSocketFactory(), 443);
 
-        assertTrue(http.hashCode() != https.hashCode());
+        assertTrue(http.hashCode() != https.hashCode()); // not guaranteed
         assertTrue(http.hashCode() == myhttp.hashCode());
     }
     
@@ -244,7 +251,8 @@ public class TestScheme extends TestCase {
         Scheme myhttp = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
         Scheme https = new Scheme
-            ("http", SSLSocketFactory.getSocketFactory(), 443);
+            ("https", SecureSocketFactoryMockup.INSTANCE, 443);
+        //  ("https", SSLSocketFactory.getSocketFactory(), 443);
 
         assertFalse(http.equals(https));
         assertFalse(http.equals(null));
