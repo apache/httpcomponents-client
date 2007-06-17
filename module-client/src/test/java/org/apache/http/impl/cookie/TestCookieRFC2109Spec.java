@@ -40,7 +40,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.util.DateUtils;
+
 
 /**
  * Test cases for RFC2109 cookie spec
