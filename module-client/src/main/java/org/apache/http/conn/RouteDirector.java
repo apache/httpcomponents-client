@@ -139,9 +139,14 @@ public class RouteDirector {
         // consider it here until there is a real-life use case for it.
 
         // Should we tolerate if security is better than planned?
+        // (plan.isSecure() && !fact.isSecure())
+        if (plan.isSecure() != fact.isSecure())
+            return UNREACHABLE;
 
-        // yes, this would cover the two checks above as well...
-        if (!plan.equals(fact))
+        // Local address has to match only if the plan specifies one.
+        if ((plan.getLocalAddress() != null) &&
+            !plan.getLocalAddress().equals(fact.getLocalAddress())
+            )
             return UNREACHABLE;
 
         return COMPLETE;
@@ -168,7 +173,7 @@ public class RouteDirector {
         if (phc < fhc)
             return UNREACHABLE;
 
-        for (int i=0; i<phc-1; i++) {
+        for (int i=0; i<fhc-1; i++) {
             if (!plan.getHopTarget(i).equals(fact.getHopTarget(i)))
                 return UNREACHABLE;
         }
@@ -188,6 +193,7 @@ public class RouteDirector {
 
         // tunnel and layering are the same, remains to check the security
         // Should we tolerate if security is better than planned?
+        // (plan.isSecure() && !fact.isSecure())
         if (plan.isSecure() != fact.isSecure())
             return UNREACHABLE;
 
