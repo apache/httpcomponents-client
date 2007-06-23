@@ -123,11 +123,16 @@ public class TestScheme extends TestCase {
         Scheme myhttp = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
 
+        HttpHost host  = new HttpHost("www.test.invalid", -1, "http");
+        HttpHost hosts = new HttpHost("www.test.invalid", -1, "https");
+
     	assertNull(schmreg.register(myhttp));
     	assertNull(schmreg.register(https));
     	assertSame(myhttp, schmreg.register(http));
     	assertSame(http, schmreg.getScheme("http"));
+    	assertSame(http, schmreg.getScheme(host));
     	assertSame(https, schmreg.getScheme("https"));
+    	assertSame(https, schmreg.getScheme(hosts));
 
     	schmreg.unregister("http");
     	schmreg.unregister("https");
