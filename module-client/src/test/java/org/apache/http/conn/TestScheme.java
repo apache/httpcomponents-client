@@ -265,6 +265,8 @@ public class TestScheme extends TestCase {
     public void testToString() {
         Scheme http = new Scheme
             ("http", PlainSocketFactory.getSocketFactory(), 80);
+        // test it twice, the result is cached
+        assertEquals("http:80", http.toString());
         assertEquals("http:80", http.toString());
     }
     
