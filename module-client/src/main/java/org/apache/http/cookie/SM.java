@@ -38,13 +38,10 @@ package org.apache.http.cookie;
  *
  * @since 4.0
  */
-public final class SM {
+public interface SM {
 
     public static final String COOKIE= "Cookie";
 
     public static final String SET_COOKIE = "Set-Cookie";
-    
-    private SM() {
-    }
        
 }
