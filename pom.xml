@@ -36,7 +36,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents</groupId>
-  <artifactId>client</artifactId>
+  <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
   <version>4.0-alpha1-SNAPSHOT</version>
   <description>Components to build client side HTTP services</description>

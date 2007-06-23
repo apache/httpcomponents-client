@@ -33,7 +33,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>client</artifactId>
+    <artifactId>httpcomponents-client</artifactId>
     <version>4.0-alpha1-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient</artifactId>
