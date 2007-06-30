@@ -118,7 +118,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
-        HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
+        HttpProtocolParams.setUserAgent(params, "Apache-HttpClient/4.0");
         HttpProtocolParams.setUseExpectContinue(params, true);
         return params;
     }
@@ -235,9 +235,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected void populateContext(final HttpContext context) {
         context.setAttribute(
-                HttpClientContext.SCHEME_REGISTRY, 
-                getConnectionManager().getSchemeRegistry());
-        context.setAttribute(
                 HttpClientContext.AUTHSCHEME_REGISTRY, 
                 getAuthSchemes());
         context.setAttribute(
@@ -266,13 +263,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
         HttpHost proxy = (HttpHost) request.getParams().getParameter(
                 HttpClientParams.DEFAULT_PROXY);
-        
-        Scheme schm = getConnectionManager().getSchemeRegistry().
-            getScheme(target.getSchemeName());
-        // as it is typically used for TLS/SSL, we assume that
-        // a layered scheme implies a secure connection
-        HttpRoute route = new HttpRoute(target, null, proxy, schm.isLayered());
 
+        HttpRoute route;
+        if (proxy == null) {
+            route = new HttpRoute(target);
+        } else {
+            Scheme schm = getConnectionManager().getSchemeRegistry().
+            getScheme(target.getSchemeName());
+            // as it is typically used for TLS/SSL, we assume that
+            // a layered scheme implies a secure connection
+            route = new HttpRoute(target, null, proxy, schm.isLayered());
+        }
         return new RoutedRequest.Impl(request, route);
     }
 

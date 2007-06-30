@@ -36,7 +36,6 @@ import org.apache.http.protocol.HttpExecutionContext;
 
 public class HttpClientContext extends HttpExecutionContext {
     
-    public static final String SCHEME_REGISTRY       = "http.scheme-registry"; 
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
     public static final String HTTP_STATE            = "http.state"; 

@@ -49,7 +49,7 @@ import org.apache.http.params.HttpProtocolParams;
  *
  * @since 4.0
  */
-public class MethodAbort {
+public class ClientAbortMethod {
 
     public final static void main(String[] args) throws Exception {
 
@@ -57,7 +57,7 @@ public class MethodAbort {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
+        HttpProtocolParams.setUserAgent(params, "Apache-HttpClient/4.0");
         
         HttpClient httpclient = new DefaultHttpClient(params);
 

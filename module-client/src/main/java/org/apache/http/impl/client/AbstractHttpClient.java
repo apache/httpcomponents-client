@@ -51,12 +51,12 @@ import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
 import org.apache.http.protocol.HttpRequestInterceptorList;
 import org.apache.http.protocol.HttpResponseInterceptorList;
 
@@ -292,10 +292,11 @@ public abstract class AbstractHttpClient
     }
 
 
-    public synchronized final HttpContext getContext() {
+    public synchronized final HttpContext getDefaultContext() {
         if (defaultContext == null) {
             defaultContext = createHttpContext();
         }
+        populateContext(defaultContext);
         return defaultContext;
     }
     
@@ -395,9 +396,7 @@ public abstract class AbstractHttpClient
         
         synchronized (this) {
             if (context == null) {
-                context = new HttpExecutionContext(getContext());
-                // Populate the context for this request
-                populateContext(context);
+                context = new HttpClientContext(getDefaultContext());
             }
         }
         
@@ -428,9 +427,7 @@ public abstract class AbstractHttpClient
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
             if (context == null) {
-                context = new HttpExecutionContext(getContext());
-                // Populate the context for this request
-                populateContext(context);
+                context = new HttpClientContext(getDefaultContext());
             }
             // Create a director for this request
             director = new DefaultClientRequestDirector(
