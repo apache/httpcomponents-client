@@ -32,6 +32,7 @@
 package org.apache.http.examples.client;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.http.HttpEntity;
@@ -73,27 +74,36 @@ public class ClientConnectionRelease {
             // do something useful with the response
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(entity.getContent()));
-            System.out.println(reader.readLine());
-            // In case of an IOException the connection will be released
-            // back to the connection manager automatically
-            // No need for ugly try-finally clause
-            
-            // If a runtime exception can be thrown in the process
-            // of response processing make sure the HTTP request 
-            // gets aborted to ensure connection release.
             try {
-                // Do something that can throw a non-fatal 
-                // unchecked exception
+                
+                System.out.println(reader.readLine());
+                // In case of an IOException the connection will be released
+                // back to the connection manager automatically
+                
+            } catch (IOException ex) {
+
+                // In case of an IOException the connection will be released
+                // back to the connection manager automatically
+                throw ex;
+                
             } catch (RuntimeException ex) {
-                // Abort HTTP request to ensure connection release
+
+                // In case of an unexpected exception you may want to abort
+                // the HTTP request in order to shut down the underlying 
+                // connection and release it back to the connection manager.
                 httpget.abort();
+                throw ex;
+                
+            } finally {
+
+                // Closing the input stream will trigger connection release
+                reader.close();
+                // Alternatively you may want to call this method when done 
+                // with the response entity. It will also trigger connection 
+                // release
+                entity.consumeContent();
+                
             }
-            
-            // When done with the response either close the stream
-            reader.close();
-            // Or call
-            entity.consumeContent();
-            // Either of these methods will cause connection release 
         }
     }
 
