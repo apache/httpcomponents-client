@@ -42,6 +42,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.VersionInfo;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
@@ -121,10 +122,14 @@ public class DefaultHttpClient extends AbstractHttpClient {
     
     protected HttpParams createHttpParams() {
         HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
-        HttpProtocolParams.setUserAgent(params, "Apache-HttpClient/4.0");
-        HttpProtocolParams.setUseExpectContinue(params, true);
+        HttpProtocolParams.setVersion(params, 
+                HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setContentCharset(params, 
+                HTTP.DEFAULT_CONTENT_CHARSET);
+        HttpProtocolParams.setUserAgent(params, 
+                "Apache-HttpClient/" + VersionInfo.getReleaseVersion() + " (java 1.4)");
+        HttpProtocolParams.setUseExpectContinue(params, 
+                true);
         return params;
     }
 
