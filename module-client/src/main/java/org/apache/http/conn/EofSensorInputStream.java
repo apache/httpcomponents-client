@@ -114,7 +114,7 @@ public class EofSensorInputStream extends InputStream
 
 
     /**
-     * Checks whether the underyling stream can be read from.
+     * Checks whether the underlying stream can be read from.
      *
      * @return  <code>true</code> if the underlying stream is accessible,
      *          <code>false</code> if this stream is in EOF mode and
@@ -135,8 +135,13 @@ public class EofSensorInputStream extends InputStream
         int l = -1;
 
         if (isReadAllowed()) {
-            l = wrappedStream.read();
-            checkEOF(l);
+            try {
+                l = wrappedStream.read();
+                checkEOF(l);
+            } catch (IOException ex) {
+                checkAbort();
+                throw ex;
+            }
         }
 
         return l;
@@ -148,8 +153,13 @@ public class EofSensorInputStream extends InputStream
         int l = -1;
 
         if (isReadAllowed()) {
-            l = wrappedStream.read(b,  off,  len);
-            checkEOF(l);
+            try {
+                l = wrappedStream.read(b,  off,  len);
+                checkEOF(l);
+            } catch (IOException ex) {
+                checkAbort();
+                throw ex;
+            }
         }
 
         return l;
@@ -161,8 +171,13 @@ public class EofSensorInputStream extends InputStream
         int l = -1;
 
         if (isReadAllowed()) {
-            l = wrappedStream.read(b);
-            checkEOF(l);
+            try {
+                l = wrappedStream.read(b);
+                checkEOF(l);
+            } catch (IOException ex) {
+                checkAbort();
+                throw ex;
+            }
         }
         return l;
     }
@@ -173,8 +188,13 @@ public class EofSensorInputStream extends InputStream
         int a = 0; // not -1
 
         if (isReadAllowed()) {
-            a = wrappedStream.available();
-            // no checkEOF() here, available() can't trigger EOF
+            try {
+                a = wrappedStream.available();
+                // no checkEOF() here, available() can't trigger EOF
+            } catch (IOException ex) {
+                checkAbort();
+                throw ex;
+            }
         }
 
         return a;
