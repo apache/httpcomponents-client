@@ -114,6 +114,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
     
+    public DefaultHttpClient() {
+        super(null, null);
+    }
+
+    
     protected HttpParams createHttpParams() {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);

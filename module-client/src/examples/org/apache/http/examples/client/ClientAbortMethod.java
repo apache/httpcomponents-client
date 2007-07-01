@@ -33,13 +33,9 @@ package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 
 /**
  * How to abort an HTTP method before its normal completion.
@@ -52,14 +48,7 @@ import org.apache.http.params.HttpProtocolParams;
 public class ClientAbortMethod {
 
     public final static void main(String[] args) throws Exception {
-
-        // Initialize default parameters
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "Apache-HttpClient/4.0");
-        
-        HttpClient httpclient = new DefaultHttpClient(params);
+        HttpClient httpclient = new DefaultHttpClient();
 
         HttpGet httpget = new HttpGet("http://www.apache.org/"); 
 

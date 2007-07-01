@@ -161,7 +161,6 @@ public class ClientExecuteDirect {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "Jakarta-HttpClient/4.0");
         HttpProtocolParams.setUseExpectContinue(params, true);
         defaultParameters = params;
 
