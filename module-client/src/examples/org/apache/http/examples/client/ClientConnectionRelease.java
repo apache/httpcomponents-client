@@ -71,14 +71,12 @@ public class ClientConnectionRelease {
         // If the response does not enclose an entity, there is no need
         // to bother about connection release
         if (entity != null) {
-            // do something useful with the response
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(entity.getContent()));
             try {
                 
+                // do something useful with the response
                 System.out.println(reader.readLine());
-                // In case of an IOException the connection will be released
-                // back to the connection manager automatically
                 
             } catch (IOException ex) {
 
@@ -99,8 +97,9 @@ public class ClientConnectionRelease {
                 // Closing the input stream will trigger connection release
                 reader.close();
                 // Alternatively you may want to call this method when done 
-                // with the response entity. It will also trigger connection 
-                // release
+                // with the response entity to ensure the response content has
+                // been fully consumed. This will also trigger connection 
+                // release 
                 entity.consumeContent();
                 
             }
