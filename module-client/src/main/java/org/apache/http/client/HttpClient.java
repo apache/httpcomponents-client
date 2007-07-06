@@ -91,9 +91,8 @@ public interface HttpClient {
         ;
 
     /**
-     * Executes a request using the {@link #getContext default context}.
-     * Same as {@link #execute(HttpUriRequest,HttpContext)
-     *          client.execute(request, client.getContext())},
+     * Executes a request using the {@link #getDefaultContext() default context}.
+     *              
      * see there for details.
      *
      * @param request   the request to execute
@@ -142,8 +141,7 @@ public interface HttpClient {
      *                  {@link #getContext default context}
      *
      * @return  the response to the request. See
-     *          {@link #execute(HttpUriRequest,HttpContext)
-     *                  execute(target,request,context)}
+     *          {@link #execute(HttpUriRequest,HttpContext)}
      *          for details.
      *
      * @throws HttpException    in case of a problem
@@ -154,5 +152,22 @@ public interface HttpClient {
         throws HttpException, IOException
         ;
 
+    /**
+     * Executes a request along the given route using the 
+     * {@link #getDefaultContext() default context}.
+
+     * @param roureq    the request to execute along with the route
+     *
+     * @return  the response to the request. See
+     *          {@link #execute(HttpUriRequest,HttpContext)}
+     *          for details.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     * <br/><i @@@>timeout exceptions?</i>
+     */
+    HttpResponse execute(RoutedRequest roureq)
+        throws HttpException, IOException
+        ;
 
 } // interface HttpClient

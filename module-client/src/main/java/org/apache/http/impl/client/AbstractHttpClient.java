@@ -349,6 +349,8 @@ public abstract class AbstractHttpClient
     /**
      * Maps to {@link #execute(HttpUriRequest,HttpContext)
      *                 execute(request, context)}.
+     * The route is computed by {@link #determineRoute determineRoute}.
+     * This method uses {@link #getDefaultContext() default context}.
      *
      * @param request   the request to execute
      *
@@ -403,6 +405,13 @@ public abstract class AbstractHttpClient
         RoutedRequest roureq = determineRoute(target, request, context);
         return execute(roureq, context);
     }
+
+    
+    public HttpResponse execute(RoutedRequest roureq) 
+        throws HttpException, IOException {
+        return execute(roureq, null);
+    }
+
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(RoutedRequest roureq, HttpContext context)
