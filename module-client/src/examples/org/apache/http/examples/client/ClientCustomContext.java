@@ -84,6 +84,10 @@ public class ClientCustomContext {
         for (int i = 0; i < cookies.length; i++) {
             System.out.println("Local cookie: " + cookies[i]);
         }
+        
+        // Consume response content
+        entity.consumeContent();
+        
         System.out.println("----------------------------------------");
     }
     
