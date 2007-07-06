@@ -109,11 +109,8 @@ public class ClientGZipContentCompression {
         System.out.println(response.getStatusLine());
         System.out.println("----------------------------------------");
 
-        // Get hold of the response entity
         HttpEntity entity = response.getEntity();
         
-        // If the response does not enclose an entity, there is no need
-        // to bother about connection release
         if (entity != null) {
             String content = EntityUtils.toString(entity);
             System.out.println(content);
