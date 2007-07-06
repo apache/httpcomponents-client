@@ -274,15 +274,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
         HttpHost proxy = (HttpHost) request.getParams().getParameter(
                 HttpClientParams.DEFAULT_PROXY);
 
+        Scheme schm = getConnectionManager().getSchemeRegistry().
+            getScheme(target.getSchemeName());
+        // as it is typically used for TLS/SSL, we assume that
+        // a layered scheme implies a secure connection
+        boolean secure = schm.isLayered();
+        
         HttpRoute route;
         if (proxy == null) {
-            route = new HttpRoute(target);
+            route = new HttpRoute(target, null, secure);
         } else {
-            Scheme schm = getConnectionManager().getSchemeRegistry().
-            getScheme(target.getSchemeName());
-            // as it is typically used for TLS/SSL, we assume that
-            // a layered scheme implies a secure connection
-            route = new HttpRoute(target, null, proxy, schm.isLayered());
+            route = new HttpRoute(target, null, proxy, secure);
         }
         return new RoutedRequest.Impl(request, route);
     }
