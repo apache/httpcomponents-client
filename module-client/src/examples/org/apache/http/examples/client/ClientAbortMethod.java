@@ -38,12 +38,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * How to abort an HTTP method before its normal completion.
- *
- * <!-- empty lines above to avoid 'svn diff' context problems -->
- * @version $Revision$
- *
- * @since 4.0
+ * This example demonstrates how to abort an HTTP method before its normal completion.
  */
 public class ClientAbortMethod {
 

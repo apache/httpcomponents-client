@@ -42,13 +42,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * This examples demonstrates the use of a local HTTP context
- * populated with custom attributes.
- *
- * <!-- empty lines above to avoid 'svn diff' context problems -->
- * @version $Revision$
- *
- * @since 4.0
+ * This example demonstrates the use of a local HTTP context populated with 
+ * custom attributes.
  */
 public class ClientCustomContext {
 

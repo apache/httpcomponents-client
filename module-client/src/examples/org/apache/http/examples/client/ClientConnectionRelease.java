@@ -42,13 +42,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * This examples demonstrates the recommended way of using API to make sure 
+ * This example demonstrates the recommended way of using API to make sure 
  * the underlying connection gets released back to the connection manager.
- *
- * <!-- empty lines above to avoid 'svn diff' context problems -->
- * @version $Revision$
- *
- * @since 4.0
  */
 public class ClientConnectionRelease {
 
