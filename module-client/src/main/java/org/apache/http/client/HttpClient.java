@@ -115,7 +115,7 @@ public interface HttpClient {
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
      *                  <code>null</code> to use the
-     *                  {@link #getContext default context}
+     *                  {@link #getDefaultContext default context}
      *
      * @return  the response to the request. This is always a final response,
      *          never an intermediate response with an 1xx status code.
@@ -138,7 +138,7 @@ public interface HttpClient {
      * @param roureq    the request to execute along with the route
      * @param context   the context to use for the execution, or
      *                  <code>null</code> to use the
-     *                  {@link #getContext default context}
+     *                  {@link #getDefaultContext default context}
      *
      * @return  the response to the request. See
      *          {@link #execute(HttpUriRequest,HttpContext)}

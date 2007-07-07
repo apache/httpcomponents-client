@@ -50,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
- * This examples demonstrates the use of protocol interceptors to transparently 
+ * Demonstration of the use of protocol interceptors to transparently 
  * modify properties of HTTP messages sent / received by the HTTP client.
  * <p/>
  * In this particular case HTTP client is made capable of transparent content 
@@ -58,8 +58,9 @@ import org.apache.http.util.EntityUtils;
  * that adds 'Accept-Encoding: gzip' header to all outgoing requests and
  * a response interceptor that automatically expands compressed response
  * entities by wrapping them with a uncompressing decorator class. The use of
- * protocol interceptors makes content compression completely transparent to the 
- * consumer of the {@linkHttpClient} interface.
+ * protocol interceptors makes content compression completely transparent to 
+ * the consumer of the {@link org.apache.http.client.HttpClient HttpClient}
+ * interface.
  */
 public class ClientGZipContentCompression {
 
