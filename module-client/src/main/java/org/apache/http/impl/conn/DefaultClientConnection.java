@@ -97,7 +97,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     // non-javadoc, see interface OperatedClientConnection
     public final Socket getSocket() {
-        return getSocket(); // base class attribute
+        return super.getSocket(); // base class attribute
     }
 
 
