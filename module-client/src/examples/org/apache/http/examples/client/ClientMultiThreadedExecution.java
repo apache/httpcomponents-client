@@ -81,7 +81,7 @@ public class ClientMultiThreadedExecution {
             "http://jakarta.apache.org/",
             "http://jakarta.apache.org/commons/",
             "http://jakarta.apache.org/commons/httpclient/",
-            "http://cvs.apache.org/viewcvs.cgi/jakarta-commons/httpclient/"
+            "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
         };
         
         // create a thread for each URI
