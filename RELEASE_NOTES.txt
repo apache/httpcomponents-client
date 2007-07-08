@@ -1,0 +1,41 @@
+Release 4.0 Alpha 1
+-------------------
+
+* [HTTPCLIENT-655] User-Agent string no longer violates RFC
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-541] Virtual host API redesign
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-614] Allow for different strategies when checking CN of x509 certificates
+  Contributed by Julius Davies <juliusdavies at gmail.com>
+
+* [HTTPCLIENT-136] Fixed inadequate proxy support
+  Long standing architectural problem. Issue opened on 19/Dec/2002 .
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-63] Support for pluggable redirect and authentication handlers
+  Long standing architectural problem. Issue opened on 15/Jul/2002. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-245] Fixed redirect handling. HttpClient can now automatically handle redirects of 
+  entity enclosing requests. 
+  Long standing architectural problem. Issue opened on 14/Jul/2003 .
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-613] HTTPS connections now verify CN of x509 certificates
+  Contributed by Julius Davies <juliusdavies at gmail.com>
+
+* [HTTPCLIENT-497] Wire / header logger names are now consistent with class loggers
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-484] AuthSSLProtocolSocketFactory included into the main distribution
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-589] Do not consume the remaining response content if the connection is to be closed
+  Contributed by Roland Weber <rolandw at apache.org>
+
+* [HTTPCLIENT-475] Support for unconnected sockets. HTTP requests can now be aborted while network 
+  socket is still being connected.
+  Contributed by Roland Weber <rolandw at apache.org>
+
