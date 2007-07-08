@@ -1,0 +1,18 @@
+    ----------
+    HttpComponents HttpClient Module
+    ----------
+    ----------
+    ----------
+
+HttpClient
+
+    This module is a full-featured, {{{http://www.ietf.org/rfc/rfc2616.txt}RFC 2616}} compliant
+    HTTP client built on top of {{{/httpcomponents/httpcomponents-core/index.html}HttpCore}}
+
+    {{{apidocs/index.html}Javadocs}}
+    
+    {{{xref/index.html}Project sources}}
+    
+    {{{dependencies.html}Dependencies}}    
+    
+    {{{issue-tracking.html}Issue Tracking}}    

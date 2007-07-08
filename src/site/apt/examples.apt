@@ -1,0 +1,69 @@
+    ----------
+    HttpComponents HttpClient Examples
+    ----------
+    ----------
+    ----------
+
+HttpClient Examples
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientExecuteDirect.java}Direct request}}
+    
+    This example demonstrates how to send an HTTP request directly.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientExecuteProxy.java}Request via a proxy}}
+    
+    This example demonstrates how to send an HTTP request via a proxy.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientConnectionRelease.java}Connection management}}
+    
+    This example demonstrates the recommended way of using API to make sure the underlying 
+    connection gets released back to the connection manager.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientAbortMethod.java}Abort method}}
+    
+    This example demonstrates how to abort an HTTP request before its normal completion.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientAuthentication.java}Client authentication}}
+    
+    This example uses HttpClient to execute an HTTP request against a target site that requires user
+    authentication.  
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientProxyAuthentication.java}Proxy authentication}}
+    
+    A simple example showing execution of an HTTP request over a secure connection tunneled through 
+    an authenticating proxy.  
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientChunkEncodedPost.java}Chunk encoded POST}}
+    
+    This example shows how to stream out a request entity using chunk encoding.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientCustomContext.java}Custom execution context}}
+    
+    This example demonstrates the use of a local HTTP context populated custom attributes.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientFormLogin.java}Form based logon}}
+    
+    This example demonstrates how HttpClient can be used to perform form-based logon.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientMultiThreadedExecution.java}Threaded request execution}}
+    
+    An example that executes HTTP requests from multiple worker threads.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientCustomSSL.java}Custom SSL context}}
+    
+    This example demonstrates how to create secure connections with a custom SSL context.
+
+    * {{{http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientGZipContentCompression.java}Custom protocol interceptors}}
+
+    This example shows the use of protocol interceptors to transparently modify properties of HTTP 
+    messages sent / received by the HTTP client.
+ 
+    In this particular case HTTP client is made capable of transparent content GZIP compression by 
+    adding two protocol interceptors: a request interceptor that adds 'Accept-Encoding: gzip' header
+    to all outgoing requests and a response interceptor that automatically expands compressed 
+    response entities by wrapping them with a uncompressing decorator class. The use of protocol 
+    interceptors makes content compression completely transparent to the consumer of the HttpClient
+    interface.
+    
+
+

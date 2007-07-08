@@ -1,0 +1,102 @@
+    ----------
+    HttpComponents HttpClient Overview
+    ----------
+    ----------
+    ----------
+
+HttpClient Overview
+
+    The Hyper-Text Transfer Protocol (HTTP) is perhaps the most significant protocol used on the 
+    Internet today. Web services, network-enabled appliances and the growth of network computing 
+    continue to expand the role of the HTTP protocol beyond user-driven web browsers, while 
+    increasing the number of applications that require HTTP support.
+
+    Although the java.net package provides basic functionality for accessing resources via HTTP, it 
+    doesn't provide the full flexibility or functionality needed by many applications. HttpClient 
+    seeks to fill this void by providing an efficient, up-to-date, and feature-rich package 
+    implementing the client side of the most recent HTTP standards and recommendations.
+
+    Designed for extension while providing robust support for the base HTTP protocol, HttpClient 
+    may be of interest to anyone building HTTP-aware client applications such as web browsers, web 
+    service clients, or systems that leverage or extend the HTTP protocol for distributed 
+    communication.
+
+    HttpClient has a modular structure with a base module and a number of specialized 
+    extensions.
+
+Features
+
+    * Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1
+ 
+    * Full implementation of all HTTP methods (GET, POST, PUT, DELETE, HEAD, OPTIONS, and TRACE) 
+    in an extensible OO framework.
+    
+    * Supports encryption with HTTPS (HTTP over SSL) protocol.
+
+    * Granular non-standards configuration and tracking.
+
+    * Transparent connections through HTTP proxies.
+
+    * Tunneled HTTPS connections through HTTP proxies, via the CONNECT method.
+
+    * Authentication using Basic, Digest and the encrypting NTLM (NT Lan Manager) methods.
+
+    * Plug-in mechanism for custom authentication methods.
+
+    * Multi-Part form POST for uploading large files.
+
+    * Pluggable secure sockets implementations, making it easier to use third party solutions
+
+    * Connection management support for use in multi-threaded applications. Supports setting the 
+      maximum total connections as well as the maximum connections per host. Detects and closes 
+      stale connections.
+
+    * Automatic Cookie handling for reading Set-Cookie: headers from the server and sending them 
+      back out in a Cookie: header when appropriate.
+
+    * Plug-in mechanism for custom cookie policies.
+
+    * Request output streams to avoid buffering any content body by streaming directly to the socket
+      to the server.
+
+    * Response input streams to efficiently read the response body by streaming directly from the 
+      socket to the server.
+
+    * Persistent connections using KeepAlive in HTTP/1.0 and persistance in HTTP/1.1
+
+    * Direct access to the response code and headers sent by the server.
+
+    * The ability to set connection timeouts.
+
+    * Source code is freely available under the Apache Software License.
+
+Modules
+
+    HttpClient has a modular structure and consists of several modules.
+
+* HttpClient module
+
+    The {{{httpclient/index.html}HttpClient}} is a full-featured, standards compliant HTTP client 
+    built on top of {{{/httpcomponents/httpcomponents-core/index.html}HttpCore}}.
+
+Standards Compliance
+
+    HttpClient strives to conform to the following specifications endorsed by the Internet 
+    Engineering Task Force (IETF) and the internet at large:
+
+    * {{{http://www.ietf.org/rfc/rfc1945.txt}RFC 1945}} - Hypertext Transfer Protocol -- HTTP/1.0
+
+    * {{{http://www.ietf.org/rfc/rfc2616.txt}RFC 2116}} - Hypertext Transfer Protocol -- HTTP/1.1
+    
+    * {{{http://www.ietf.org/rfc/rfc2617.txt}RFC2617}}  HTTP Authentication: Basic and Digest Access 
+      Authentication
+
+    * {{{http://www.ietf.org/rfc/rfc2109.txt}RFC2109}} HTTP State Management Mechanism (Cookies)
+    
+    * {{{http://www.ietf.org/rfc/rfc2965.txt}RFC2965}} HTTP State Management Mechanism (Cookies v2)
+    
+    * {{{http://www.ietf.org/rfc/rfc1945.txt}RFC1945}} Form-based File Upload in HTML 
+
+Examples
+
+    Some examples of HttpClient components in action can be found {{{examples.html}here}}
