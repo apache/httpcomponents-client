@@ -31,6 +31,7 @@
 package org.apache.http.client;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import java.util.Iterator;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieIdentityComparator;
 
 /**
  * <p>
@@ -66,13 +68,15 @@ public class HttpState {
      * Map of {@link Credentials credentials} by realm that this 
      * HTTP state contains.
      */
-    private HashMap credMap = new HashMap();
+    private final HashMap credMap;
 
     /**
      * Array of {@link Cookie cookies} that this HTTP state contains.
      */
-    private ArrayList cookies = new ArrayList();
+    private final ArrayList cookies;
 
+    private final Comparator cookieComparator;
+    
     // -------------------------------------------------------- Class Variables
 
     /**
@@ -80,6 +84,9 @@ public class HttpState {
      */
     public HttpState() {
         super();
+        this.credMap = new HashMap();
+        this.cookies = new ArrayList();
+        this.cookieComparator = new CookieIdentityComparator();
     }
 
     // ------------------------------------------------------------- Properties
@@ -99,7 +106,7 @@ public class HttpState {
             // first remove any old cookie that is equivalent
             for (Iterator it = cookies.iterator(); it.hasNext();) {
                 Cookie tmp = (Cookie) it.next();
-                if (cookie.equals(tmp)) {
+                if (cookieComparator.compare(cookie, tmp) == 0) {
                     it.remove();
                     break;
                 }
