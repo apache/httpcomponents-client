@@ -1,6 +1,49 @@
 Release 4.0 Alpha 1
 -------------------
 
+HttpClient represents a complete, ground-up redesign and almost a complete rewrite of the HttpClient
+codeline. This release finally addresses several design flaws that existed since 1.0 release and 
+could not be fixed without a major code overhaul and breaking API compatibility.
+
+HttpClient 4.0 API is still very experimental and is bound to change in the course of the ALPHA
+development phase. Several important features have not yet been ported to the new API.  
+
+Architectural changes:
+-------------------
+
+* Redesign of the HttpClient internals addressing all known architectural shortcomings of 
+  the 3.x codeline
+
+* Cleaner, more flexible and expressive API   
+
+* More modular structure   
+
+* Pluggable redirect and authentication handlers   
+
+* Support for protocol incerceptors
+
+* Improved connection management 
+
+* Improved support for sending requests via a proxy or a chain of proxies 
+
+* Improved handling redirects of entity enclosing requests
+
+* More flexible SSL context customization 
+
+* Reduced intermediate garbage in the process of generating HTTP requests and parsing HTTP responses 
+
+-------------------
+
+HttpClient 3.x features that have NOT yet been ported
+-------------------
+* NTLM authentication scheme
+
+* RFC2965 cookie policy (Cookie2)
+
+* Support for multipart MIME coded entities  
+
+-------------------
+
 * [HTTPCLIENT-655] User-Agent string no longer violates RFC
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
