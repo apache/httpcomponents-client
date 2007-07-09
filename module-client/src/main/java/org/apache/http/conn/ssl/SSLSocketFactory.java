@@ -55,7 +55,7 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
 /**
- * Secure socket factory based on {@link javax.net.ssl JSSE}
+ * Secure socket factory based on JSSE
  *.
  * <p>
  * SSLProtocolSocketFactory can be used to validate the identity of the HTTPS 
