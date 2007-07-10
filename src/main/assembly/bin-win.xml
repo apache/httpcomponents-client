@@ -32,6 +32,14 @@
     <formats>
         <format>zip</format>
     </formats>
+    <moduleSets>
+        <moduleSet>
+          <binaries>
+            <outputDirectory>/lib</outputDirectory>
+            <unpack>false</unpack>
+          </binaries>
+        </moduleSet>
+    </moduleSets>
     <fileSets>
         <fileSet>
           <includes>
@@ -43,13 +51,6 @@
           <lineEnding>crlf</lineEnding>
         </fileSet>
         <!-- Base module -->
-        <fileSet>
-          <directory>module-client/target</directory>
-          <outputDirectory>lib</outputDirectory>
-          <includes>
-            <include>*.jar</include>
-          </includes>
-        </fileSet>
         <fileSet>
           <directory>module-client/target/site/apidocs</directory>
           <outputDirectory>javadoc/httpclient</outputDirectory>
