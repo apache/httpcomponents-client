@@ -29,7 +29,7 @@
    <http://www.apache.org/>.
  -->
 
-<project name="HttpClient">
+<project name="HttpComponents Client">
   <bannerLeft>
     <name>Jakarta</name>
     <src>http://jakarta.apache.org/images/logos/jakarta-logo.png</src>
@@ -37,7 +37,7 @@
   </bannerLeft>
 
   <bannerRight>
-    <name>HttpComponents HttpCore</name>
+    <name>HttpComponents</name>
     <src>http://jakarta.apache.org/httpcomponents/images/logos/httpcomponents.png</src>
     <href>http://jakarta.apache.org/httpcomponents/</href>
   </bannerRight>

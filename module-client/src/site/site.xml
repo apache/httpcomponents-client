@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="HttpCore">
+<project name="HttpClient">
   <bannerLeft>
     <name>Jakarta</name>
     <src>http://jakarta.apache.org/images/logos/jakarta-logo.png</src>
@@ -7,7 +7,7 @@
   </bannerLeft>
 
   <bannerRight>
-    <name>HttpComponents HttpClient</name>
+    <name>HttpComponents</name>
     <src>http://jakarta.apache.org/httpcomponents/images/logos/httpcomponents.png</src>
     <href>http://jakarta.apache.org/httpcomponents/</href>
   </bannerRight>
