@@ -1,18 +1,20 @@
 Release 4.0 Alpha 1
 -------------------
 
-HttpClient represents a complete, ground-up redesign and almost a complete rewrite of the HttpClient
-codeline. This release finally addresses several design flaws that existed since 1.0 release and 
-could not be fixed without a major code overhaul and breaking API compatibility.
+HttpClient 4.0 represents a complete, ground-up redesign and almost a complete
+rewrite of the HttpClient 3.x codeline. This release finally addresses several
+design flaws that existed since the 1.0 release and could not be fixed without
+a major code overhaul and breaking API compatibility.
 
-HttpClient 4.0 API is still very experimental and is bound to change in the course of the ALPHA
-development phase. Several important features have not yet been ported to the new API.  
+The HttpClient 4.0 API is still very experimental and is bound to change
+during the course of the ALPHA development phase. Several important features
+have not yet been ported to the new API.
 
-Architectural changes:
--------------------
+Architectural changes
+---------------------
 
-* Redesign of the HttpClient internals addressing all known architectural shortcomings of 
-  the 3.x codeline
+* Redesign of the HttpClient internals addressing all known
+  major architectural shortcomings of the 3.x codeline
 
 * Cleaner, more flexible and expressive API   
 
@@ -30,7 +32,8 @@ Architectural changes:
 
 * More flexible SSL context customization 
 
-* Reduced intermediate garbage in the process of generating HTTP requests and parsing HTTP responses 
+* Reduced intermediate garbage in the process of
+  generating HTTP requests and parsing HTTP responses 
 
 -------------------
 
@@ -43,6 +46,10 @@ HttpClient 3.x features that have NOT yet been ported
 * Support for multipart MIME coded entities  
 
 -------------------
+The following is a list of contributions tracked in JIRA.
+Note that this is not a complete list of contributions or changes.
+Since the API was redesigned completely, tracking everything outside
+of the source code repository would have been too burdensome.
 
 * [HTTPCLIENT-655] User-Agent string no longer violates RFC
   Contributed by Oleg Kalnichevski <olegk at apache.org>
@@ -50,35 +57,37 @@ HttpClient 3.x features that have NOT yet been ported
 * [HTTPCLIENT-541] Virtual host API redesign
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-614] Allow for different strategies when checking CN of x509 certificates
+* [HTTPCLIENT-614] Allow for different strategies when checking
+  CN of x509 certificates
   Contributed by Julius Davies <juliusdavies at gmail.com>
 
 * [HTTPCLIENT-136] Fixed inadequate proxy support
-  Long standing architectural problem. Issue opened on 19/Dec/2002 .
+  Long standing architectural problem. Issue opened on 19/Dec/2002.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-63] Support for pluggable redirect and authentication handlers
   Long standing architectural problem. Issue opened on 15/Jul/2002. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-245] Fixed redirect handling. HttpClient can now automatically handle redirects of 
-  entity enclosing requests. 
-  Long standing architectural problem. Issue opened on 14/Jul/2003 .
+* [HTTPCLIENT-245] Fixed redirect handling. HttpClient can now automatically
+  handle redirects of entity enclosing requests. 
+  Long standing architectural problem. Issue opened on 14/Jul/2003.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-613] HTTPS connections now verify CN of x509 certificates
   Contributed by Julius Davies <juliusdavies at gmail.com>
 
-* [HTTPCLIENT-497] Wire / header logger names are now consistent with class loggers
+* [HTTPCLIENT-497] Wire/header logger names consistent with class loggers
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-484] AuthSSLProtocolSocketFactory included into the main distribution
+* [HTTPCLIENT-484] AuthSSLProtocolSocketFactory in the main distribution
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-589] Do not consume the remaining response content if the connection is to be closed
+* [HTTPCLIENT-589] Do not consume the remaining response content if
+  the connection is to be closed
   Contributed by Roland Weber <rolandw at apache.org>
 
-* [HTTPCLIENT-475] Support for unconnected sockets. HTTP requests can now be aborted while network 
-  socket is still being connected.
+* [HTTPCLIENT-475] Support for unconnected sockets. HTTP requests can now be
+  aborted while network socket is still being connected.
   Contributed by Roland Weber <rolandw at apache.org>
 
