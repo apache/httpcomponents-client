@@ -45,6 +45,7 @@ public class TestAllConn extends TestCase {
 
         suite.addTest(TestHttpRoute.suite());
         suite.addTest(TestRouteDirector.suite());
+        suite.addTest(TestRouteTracker.suite());
         suite.addTest(TestScheme.suite());
 
         return suite;

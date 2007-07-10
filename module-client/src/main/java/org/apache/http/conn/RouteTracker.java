@@ -149,11 +149,11 @@ public final class RouteTracker implements Cloneable {
      *                  <code>false</code> otherwise
      */
     public final void tunnelTarget(boolean secure) {
-        if (this.proxyChain == null) {
-            throw new IllegalStateException("No tunnel without proxy.");
-        }
         if (!this.connected) {
             throw new IllegalStateException("No tunnel unless connected.");
+        }
+        if (this.proxyChain == null) {
+            throw new IllegalStateException("No tunnel without proxy.");
         }
         this.tunnelled = true;
         this.secure    = secure;
@@ -173,11 +173,11 @@ public final class RouteTracker implements Cloneable {
         if (proxy == null) {
             throw new IllegalArgumentException("Proxy host may not be null.");
         }
-        if (this.proxyChain == null) {
-            throw new IllegalStateException("No proxy tunnel without proxy.");
-        }
         if (!this.connected) {
             throw new IllegalStateException("No tunnel unless connected.");
+        }
+        if (this.proxyChain == null) {
+            throw new IllegalStateException("No proxy tunnel without proxy.");
         }
 
         // prepare an extended proxy chain
