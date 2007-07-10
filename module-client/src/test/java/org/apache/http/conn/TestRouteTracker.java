@@ -102,7 +102,7 @@ public class TestRouteTracker extends TestCase {
 
 
     public void testCstrTargetLocal() {
-System.out.println("\n@@@");
+
         RouteTracker rt = new RouteTracker(TARGET1, null);
         assertEquals("wrong target (target,null)",
                      TARGET1, rt.getTargetHost());
@@ -138,12 +138,11 @@ System.out.println("\n@@@");
         } catch (IllegalArgumentException iax) {
             // expected
         }
-System.out.println("1 @@@");
     }
 
 
     public void testCstrRoute() {
-System.out.println("\n@@@");
+
         HttpRoute    r  = new HttpRoute(TARGET1);
         RouteTracker rt = new RouteTracker(r);
         assertEquals("wrong target (r1)",
@@ -195,12 +194,10 @@ System.out.println("\n@@@");
         } catch (NullPointerException npx) {
             // expected
         }
-System.out.println("2 @@@");
     }
 
 
     public void testIllegalArgs() {
-        System.out.println("\n@@@");
 
         RouteTracker rt = new RouteTracker(TARGET2, null);
 
@@ -247,13 +244,10 @@ System.out.println("2 @@@");
         } catch (IllegalArgumentException iax) {
             // expected
         }
-
-System.out.println("3 @@@");
     }
 
 
     public void testIllegalStates() {
-        System.out.println("\n@@@");
 
         RouteTracker rt = new RouteTracker(TARGET1, null);
 
@@ -309,15 +303,12 @@ System.out.println("3 @@@");
         } catch (IllegalStateException isx) {
             // expected
         }
-
-
-System.out.println("4 @@@");
     }
 
 
 
     public void testDirectRoutes() {
-        System.out.println("\n@@@");
+
         final RouteDirector rd = new RouteDirector();
         HttpRoute r = new HttpRoute(TARGET1, LOCAL41, false);
         RouteTracker rt = new RouteTracker(r);
@@ -328,8 +319,6 @@ System.out.println("4 @@@");
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 2);
         assertTrue("incomplete route 2", complete);
-
-System.out.println("5 @@@");
     }
 
 
@@ -384,7 +373,6 @@ System.out.println("5 @@@");
             } break;
 /*
  	CONNECT_PROXY
- 	
  	LAYER_PROTOCOL
  	TUNNEL_PROXY
  	TUNNEL_TARGET
