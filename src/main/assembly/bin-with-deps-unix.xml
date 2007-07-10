@@ -28,12 +28,20 @@
    <http://www.apache.org/>.
  -->
 <assembly>
-    <id>src-unix</id>
+    <id>bin-with-dependencies-unix</id>
     <formats>
         <format>tar.gz</format>
     </formats>
+    <moduleSets>
+        <moduleSet>
+          <binaries>
+            <outputDirectory>/lib</outputDirectory>
+            <unpack>false</unpack>
+            <includeDependencies>true</includeDependencies>
+          </binaries>
+        </moduleSet>
+    </moduleSets>
     <fileSets>
-        <!-- Release materials -->
         <fileSet>
           <directory></directory>
           <outputDirectory>/</outputDirectory>
@@ -45,31 +53,17 @@
           </includes>
           <lineEnding>lf</lineEnding>
         </fileSet>
-        <!-- Build files -->
+        <!-- Base module -->
         <fileSet>
-          <directory></directory>
-          <outputDirectory>/</outputDirectory>
-          <includes>
-            <include>*.xml</include>
-          </includes>
-          <lineEnding>lf</lineEnding>
+          <directory>module-client/target/site/apidocs</directory>
+          <outputDirectory>javadoc/httpclient</outputDirectory>
         </fileSet>
-        <!-- Base module source and text resources -->
         <fileSet>
-          <directory>module-client/src</directory>
-          <outputDirectory>module-client/src</outputDirectory>
-          <lineEnding>lf</lineEnding>
-          <excludes>
-            <exclude>site/**</exclude>
-          </excludes>
-        </fileSet>
-        <!-- Base module build files -->
-        <fileSet>
-          <directory>module-client</directory>
-          <outputDirectory>module-client</outputDirectory>
+          <directory>module-client/src/examples/</directory>
+          <outputDirectory>examples</outputDirectory>
           <lineEnding>lf</lineEnding>
           <includes>
-            <include>*.xml</include>
+            <include>**/*.java</include>
           </includes>
         </fileSet>
     </fileSets>

@@ -35,6 +35,8 @@
     <fileSets>
         <!-- Release materials -->
         <fileSet>
+          <directory></directory>
+          <outputDirectory>/</outputDirectory>
           <includes>
             <include>README.txt</include>
             <include>LICENSE.txt</include>
@@ -45,6 +47,8 @@
         </fileSet>
         <!-- Build files -->
         <fileSet>
+          <directory></directory>
+          <outputDirectory>/</outputDirectory>
           <includes>
             <include>*.xml</include>
           </includes>
