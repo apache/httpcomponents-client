@@ -91,11 +91,6 @@ public class ClientConnectionRelease {
 
                 // Closing the input stream will trigger connection release
                 reader.close();
-                // Alternatively you may want to call this method when done 
-                // with the response entity to ensure the response content has
-                // been fully consumed. This will also trigger connection 
-                // release 
-                entity.consumeContent();
                 
             }
         }
