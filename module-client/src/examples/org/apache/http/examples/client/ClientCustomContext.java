@@ -57,16 +57,16 @@ public class ClientCustomContext {
         // Obtain default HTTP context
         HttpContext defaultContext = httpclient.getDefaultContext();
         // Create local HTTP context
-        HttpContext localContent = new HttpClientContext(defaultContext);
+        HttpContext localContext = new HttpClientContext(defaultContext);
         // Bind custom HTTP state to the local context
-        localContent.setAttribute(HttpClientContext.HTTP_STATE, localState);
+        localContext.setAttribute(HttpClientContext.HTTP_STATE, localState);
         
         HttpGet httpget = new HttpGet("http://www.google.com/"); 
 
         System.out.println("executing request " + httpget.getURI());
 
         // Pass local context as a parameter
-        HttpResponse response = httpclient.execute(httpget, localContent);
+        HttpResponse response = httpclient.execute(httpget, localContext);
         HttpEntity entity = response.getEntity();
 
         System.out.println("----------------------------------------");
