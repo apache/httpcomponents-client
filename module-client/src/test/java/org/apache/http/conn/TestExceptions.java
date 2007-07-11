@@ -2,6 +2,7 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ * 
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,28 +35,45 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-public class TestAllConn extends TestCase {
 
-    public TestAllConn(String testName) {
+/**
+ * Unit tests for exceptions.
+ * Trivial, but it looks better in the Clover reports.
+ */
+public class TestExceptions extends TestCase {
+
+    public TestExceptions(String testName) {
         super(testName);
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-
-        suite.addTest(TestHttpRoute.suite());
-        suite.addTest(TestRouteDirector.suite());
-        suite.addTest(TestRouteTracker.suite());
-        suite.addTest(TestScheme.suite());
-        suite.addTest(TestParams.suite());
-        suite.addTest(TestExceptions.suite());
-
-        return suite;
-    }
-
     public static void main(String args[]) {
-        String[] testCaseName = { TestAllConn.class.getName() };
+        String[] testCaseName = { TestExceptions.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
+    public static Test suite() {
+        return new TestSuite(TestExceptions.class);
+    }
+
+    public void testCTX() {
+        String msg = "sample exception message";
+        ConnectTimeoutException ctx =
+            new ConnectTimeoutException(msg);
+        assertFalse(ctx.toString().indexOf(msg) < 0);
+        assertSame(msg, ctx.getMessage());
+
+        ctx = new ConnectTimeoutException();
+        assertNull(ctx.getMessage());
+    }
+
+    public void testCPTX() {
+        String msg = "sample exception message";
+        ConnectionPoolTimeoutException cptx =
+            new ConnectionPoolTimeoutException(msg);
+        assertFalse(cptx.toString().indexOf(msg) < 0);
+        assertSame(msg, cptx.getMessage());
+
+        cptx = new ConnectionPoolTimeoutException();
+        assertNull(cptx.getMessage());
+    }
 }
