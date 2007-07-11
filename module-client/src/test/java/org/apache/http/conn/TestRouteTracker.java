@@ -306,7 +306,6 @@ public class TestRouteTracker extends TestCase {
     }
 
 
-
     public void testDirectRoutes() {
 
         final RouteDirector rd = new RouteDirector();
@@ -319,6 +318,246 @@ public class TestRouteTracker extends TestCase {
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 2);
         assertTrue("incomplete route 2", complete);
+    }
+
+
+    public void testProxyRoutes() {
+
+        final RouteDirector rd = new RouteDirector();
+        HttpRoute r = new HttpRoute(TARGET2, null, PROXY1, false);
+        RouteTracker rt = new RouteTracker(r);
+        boolean complete = checkVia(rt, r, rd, 2);
+        assertTrue("incomplete route 1", complete);
+
+        // tunnelled, but neither secure nor layered
+        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false, true, false);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 3);
+        assertTrue("incomplete route 2", complete);
+
+        // tunnelled, layered, but not secure
+        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false, true, true);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 4);
+        assertTrue("incomplete route 3", complete);
+
+        // tunnelled, layered, secure
+        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, true);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 4);
+        assertTrue("incomplete route 4", complete);
+    }
+
+
+    public void testProxyChainRoutes() {
+
+        final RouteDirector rd = new RouteDirector();
+        HttpHost[] proxies = { PROXY1, PROXY2 };
+        HttpRoute r = new HttpRoute(TARGET2, LOCAL42, proxies,
+                                    false, false, false);
+        RouteTracker rt = new RouteTracker(r);
+        boolean complete = checkVia(rt, r, rd, 3);
+        assertTrue("incomplete route 1", complete);
+
+        // tunnelled, but neither secure nor layered
+        proxies = new HttpHost[]{ PROXY3, PROXY2 };
+        r = new HttpRoute(TARGET1, null, proxies, false, true, false);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 4);
+        assertTrue("incomplete route 2", complete);
+
+        // tunnelled, layered, but not secure
+        proxies = new HttpHost[]{ PROXY3, PROXY2, PROXY1 };
+        r = new HttpRoute(TARGET2, LOCAL61, proxies, false, true, true);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 6);
+        assertTrue("incomplete route 3", complete);
+
+        // tunnelled, layered, secure
+        proxies = new HttpHost[]{ PROXY1, PROXY3 };
+        r = new HttpRoute(TARGET1, LOCAL61, proxies, true, true, true);
+        rt = new RouteTracker(r);
+        complete = checkVia(rt, r, rd, 5);
+        assertTrue("incomplete route 4", complete);
+    }
+
+
+    public void testEqualsHashcodeCloneToString()
+        throws CloneNotSupportedException {
+
+        RouteTracker rt0 = new RouteTracker(TARGET1, null);
+        RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
+        RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
+
+        assertFalse("rt0", rt0.equals(null));
+        assertTrue("rt0", rt0.equals(rt0));
+        assertFalse("rt0", rt0.equals(rt0.toString()));
+
+        assertFalse("rt0 == rt4", rt0.equals(rt4));
+        assertFalse("rt4 == rt0", rt4.equals(rt0));
+        assertFalse("rt0 == rt6", rt0.equals(rt6));
+        assertFalse("rt6 == rt0", rt6.equals(rt0));
+        assertFalse("rt4 == rt6", rt4.equals(rt6));
+        assertFalse("rt6 == rt4", rt6.equals(rt4));
+
+        // it is likely but not guaranteed that the hashcodes are different
+        assertFalse("rt0 == rt4 (hashcode)", rt0.hashCode() == rt4.hashCode());
+        assertFalse("rt0 == rt6 (hashcode)", rt0.hashCode() == rt6.hashCode());
+        assertFalse("rt6 == rt4 (hashcode)", rt6.hashCode() == rt4.hashCode());
+
+        assertEquals("rt0 (clone)", rt0, rt0.clone());
+        assertEquals("rt4 (clone)", rt4, rt4.clone());
+        assertEquals("rt6 (clone)", rt6, rt6.clone());
+
+
+        // we collect (clones of) the different tracked routes along the way
+        // rt0 -> direct connection
+        // rt1 -> via single proxy
+        // rt2 -> via proxy chain
+        HashSet hs = new HashSet();
+
+        // we also collect hashcodes for the different paths
+        // since we can't guarantee what influence the HttpHost hashcodes have,
+        // we keep separate sets here
+        HashSet hc0 = new HashSet();
+        HashSet hc4 = new HashSet();
+        HashSet hc6 = new HashSet();
+
+        RouteTracker rt = null;
+
+        assertTrue(hs.add(rt0));
+        assertTrue(hs.add(rt4));
+        assertTrue(hs.add(rt6));
+
+        assertTrue(hc0.add(new Integer(rt0.hashCode())));
+        assertTrue(hc4.add(new Integer(rt4.hashCode())));
+        assertTrue(hc6.add(new Integer(rt6.hashCode())));
+
+        rt = (RouteTracker) rt0.clone();
+        rt.connectTarget(false);
+        assertTrue(hs.add(rt));
+        assertTrue(hc0.add(new Integer(rt.hashCode())));
+
+        rt = (RouteTracker) rt0.clone();
+        rt.connectTarget(true);
+        assertTrue(hs.add(rt));
+        assertTrue(hc0.add(new Integer(rt.hashCode())));
+
+
+        // proxy (insecure) -> tunnel (insecure) -> layer (secure)
+        rt = (RouteTracker) rt4.clone();
+        rt.connectProxy(PROXY1, false);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+        rt.tunnelTarget(false);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+        rt.layerProtocol(true);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+
+        // proxy (secure) -> tunnel (secure) -> layer (insecure)
+        rt = (RouteTracker) rt4.clone();
+        rt.connectProxy(PROXY1, true);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+        rt.tunnelTarget(true);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+        rt.layerProtocol(false);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc4.add(new Integer(rt.hashCode())));
+
+
+        // PROXY1/i -> PROXY2/i -> tunnel/i -> layer/s
+        rt = (RouteTracker) rt6.clone();
+        rt.connectProxy(PROXY1, false);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelProxy(PROXY2, false);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelTarget(false);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.layerProtocol(true);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+
+        // PROXY1/s -> PROXY2/s -> tunnel/s -> layer/i
+        rt = (RouteTracker) rt6.clone();
+        rt.connectProxy(PROXY1, true);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelProxy(PROXY2, true);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelTarget(true);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.layerProtocol(false);
+        assertTrue(hs.add(rt.clone()));
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+
+        // PROXY2/i -> PROXY1/i -> tunnel/i -> layer/s
+        rt = (RouteTracker) rt6.clone();
+        rt.connectProxy(PROXY2, false);
+        assertTrue(hs.add(rt.clone()));
+        // this is not guaranteed to be unique...
+        assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelProxy(PROXY1, false);
+        assertTrue(hs.add(rt.clone()));
+        // proxy chain sequence does not affect hashcode, so duplicate:
+        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.tunnelTarget(false);
+        assertTrue(hs.add(rt.clone()));
+        // proxy chain sequence does not affect hashcode, so duplicate:
+        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+        rt.layerProtocol(true);
+        assertTrue(hs.add(rt.clone()));
+        // proxy chain sequence does not affect hashcode, so duplicate:
+        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+
+
+        // check that all toString are OK and different
+        HashSet rtstrings = new HashSet();
+        Iterator iter = hs.iterator();
+        while (iter.hasNext()) {
+            rt = (RouteTracker) iter.next();
+            final String rts = checkToString(rt);
+            assertTrue("duplicate toString: " + rts, rtstrings.add(rts));
+
+            // it's scheduled for removal, but keep Clover happy...
+            try {
+                rt.toHostConfig();
+            } catch (IllegalStateException isx) {
+                if (rt.getHopCount() < 3)
+                    fail("could not get HostConfig for " + rt);
+                // else expected
+            }
+        }
     }
 
 
@@ -371,13 +610,69 @@ public class TestRouteTracker extends TestCase {
                 assertEquals("wrong hop0 "+msg,
                              r.getTargetHost(), rt.getHopTarget(0));
             } break;
-/*
- 	CONNECT_PROXY
- 	LAYER_PROTOCOL
- 	TUNNEL_PROXY
- 	TUNNEL_TARGET
- 	UNREACHABLE
-*/
+
+            case RouteDirector.CONNECT_PROXY: {
+                // we assume an insecure proxy connection
+                final boolean sec = false;
+                rt.connectProxy(r.getProxyHost(), sec);
+                checkCTLS(rt, true, false, false, sec);
+                assertEquals("wrong hop count "+msg,
+                             2, rt.getHopCount());
+                assertEquals("wrong hop0 "+msg,
+                             r.getProxyHost(), rt.getHopTarget(0));
+                assertEquals("wrong hop1 "+msg,
+                             r.getTargetHost(), rt.getHopTarget(1));
+            } break;
+
+            case RouteDirector.TUNNEL_TARGET: {
+                final int hops = rt.getHopCount();
+                // we assume an insecure tunnel
+                final boolean sec = false;
+                rt.tunnelTarget(sec);
+                checkCTLS(rt, true, true, false, sec);
+                assertEquals("wrong hop count "+msg,
+                             hops, rt.getHopCount());
+                assertEquals("wrong hop0 "+msg,
+                             r.getProxyHost(), rt.getHopTarget(0));
+                assertEquals("wrong hopN "+msg,
+                             r.getTargetHost(), rt.getHopTarget(hops-1));
+            } break;
+
+            case RouteDirector.TUNNEL_PROXY: {
+                final int hops = rt.getHopCount(); // before tunnelling
+                // we assume an insecure tunnel
+                final boolean  sec = false;
+                final HttpHost pxy = r.getHopTarget(hops-1);
+                rt.tunnelProxy(pxy, sec);
+                // Since we're tunnelling to a proxy and not the target,
+                // the 'tunelling' flag is false: no end-to-end tunnel.
+                checkCTLS(rt, true, false, false, sec);
+                assertEquals("wrong hop count "+msg,
+                             hops+1, rt.getHopCount());
+                assertEquals("wrong hop0 "+msg,
+                             r.getProxyHost(), rt.getHopTarget(0));
+                assertEquals("wrong hop"+hops+" "+msg,
+                             pxy, rt.getHopTarget(hops-1));
+                assertEquals("wrong hopN "+msg,
+                             r.getTargetHost(), rt.getHopTarget(hops));
+            } break;
+
+            case RouteDirector.LAYER_PROTOCOL: {
+                final int    hops = rt.getHopCount();
+                final boolean tun = rt.isTunnelled();
+                final boolean sec = r.isSecure();
+                rt.layerProtocol(sec);
+                checkCTLS(rt, true, tun, true, sec);
+                assertEquals("wrong hop count "+msg,
+                             hops, rt.getHopCount());
+                assertEquals("wrong proxy "+msg,
+                             r.getProxyHost(), rt.getProxyHost());
+                assertEquals("wrong target "+msg,
+                             r.getTargetHost(), rt.getTargetHost());
+            } break;
+
+
+            // UNREACHABLE
             default:
                 fail("unexpected action " + action + " from director, "+msg);
                 break;
@@ -389,502 +684,34 @@ public class TestRouteTracker extends TestCase {
         return complete;
     } // checkVia
 
-/*
-    public void testCstrFullRoute() {
-        // create a route with all arguments and check the details
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
-        HttpRoute route = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                        false, false, false);
-        assertEquals("wrong target",
-                     TARGET1, route.getTargetHost());
-        assertEquals("wrong local address",
-                     LOCAL41, route.getLocalAddress());
-        assertEquals("wrong proxy host",
-                     PROXY1, route.getProxyHost());
-        assertEquals("wrong hop count",
-                     4, route.getHopCount());
-        assertEquals("wrong hop 0",
-                     PROXY1, route.getHopTarget(0));
-        assertEquals("wrong hop 1",
-                     PROXY2, route.getHopTarget(1));
-        assertEquals("wrong hop 2",
-                     PROXY3, route.getHopTarget(2));
-        assertEquals("wrong hop 3",
-                     TARGET1, route.getHopTarget(3));
-        assertEquals("wrong flag: secured",
-                     false, route.isSecure());
-        assertEquals("wrong flag: tunnelled",
-                     false, route.isTunnelled());
-        assertEquals("wrong flag: layered",
-                     false, route.isLayered());
+    /**
+     * Checks the output of <code>toString</code>.
+     *
+     * @param rt        the tracker for which to check the output
+     *
+     * @return  the result of <code>rt.toString()</code>
+     */
+    public final static String checkToString(RouteTracker rt) {
+        if (rt == null)
+            return null;
 
-        String routestr = route.toString();
-        assertTrue("missing target in toString",
-                   routestr.indexOf(TARGET1.getHostName()) >= 0);
-        assertTrue("missing local address in toString",
-                   routestr.indexOf(LOCAL41.toString()) >= 0);
-        assertTrue("missing proxy 1 in toString",
-                   routestr.indexOf(PROXY1.getHostName()) >= 0);
-        assertTrue("missing proxy 2 in toString",
-                   routestr.indexOf(PROXY2.getHostName()) >= 0);
-        assertTrue("missing proxy 3 in toString",
-                   routestr.indexOf(PROXY3.getHostName()) >= 0);
+        final String rts = rt.toString();
+
+        if (rt.getLocalAddress() != null) {
+            final String las = rt.getLocalAddress().toString();
+            assertFalse("no local address in toString(): " + rts,
+                        rts.indexOf(las) < 0);
+        }
+
+        for (int i=0; i<rt.getHopCount(); i++) {
+            final String hts = rt.getHopTarget(i).toString();
+            assertFalse("hop "+i+" ("+hts+") missing in toString(): " + rts,
+                        rts.indexOf(hts) < 0);
+        }
+
+        return rts;
     }
 
-    public void testCstrFullFlags() {
-        // tests the flag parameters in the full-blown constructor
-
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
-
-        HttpRoute routefff = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, false, false);
-        HttpRoute routefft = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, false, true);
-        HttpRoute routeftf = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, true, false);
-        HttpRoute routeftt = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, true, true);
-        HttpRoute routetff = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, false, false);
-        HttpRoute routetft = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, false, true);
-        HttpRoute routettf = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, true, false);
-        HttpRoute routettt = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, true, true);
-
-        assertFalse("routefff.secure", routefff.isSecure());
-        assertFalse("routefff.tunnel", routefff.isTunnelled());
-        assertFalse("routefff.layer" , routefff.isLayered());
-
-        assertFalse("routefft.secure", routefft.isSecure());
-        assertFalse("routefft.tunnel", routefft.isTunnelled());
-        assertTrue ("routefft.layer" , routefft.isLayered());
-
-        assertFalse("routeftf.secure", routeftf.isSecure());
-        assertTrue ("routeftf.tunnel", routeftf.isTunnelled());
-        assertFalse("routeftf.layer" , routeftf.isLayered());
-
-        assertFalse("routeftt.secure", routeftt.isSecure());
-        assertTrue ("routeftt.tunnel", routeftt.isTunnelled());
-        assertTrue ("routeftt.layer" , routeftt.isLayered());
-
-        assertTrue ("routetff.secure", routetff.isSecure());
-        assertFalse("routetff.tunnel", routetff.isTunnelled());
-        assertFalse("routetff.layer" , routetff.isLayered());
-
-        assertTrue ("routetft.secure", routetft.isSecure());
-        assertFalse("routetft.tunnel", routetft.isTunnelled());
-        assertTrue ("routetft.layer" , routetft.isLayered());
-
-        assertTrue ("routettf.secure", routettf.isSecure());
-        assertTrue ("routettf.tunnel", routettf.isTunnelled());
-        assertFalse("routettf.layer" , routettf.isLayered());
-
-        assertTrue ("routettt.secure", routettt.isSecure());
-        assertTrue ("routettt.tunnel", routettt.isTunnelled());
-        assertTrue ("routettt.layer" , routettt.isLayered());
-
-
-        HashSet routes = new HashSet();
-        routes.add(routefff);
-        routes.add(routefft);
-        routes.add(routeftf);
-        routes.add(routeftt);
-        routes.add(routetff);
-        routes.add(routetft);
-        routes.add(routettf);
-        routes.add(routettt);
-        assertEquals("some flagged routes are equal", 8, routes.size());
-
-        // we can't test hashCode in general due to it's dependency
-        // on InetAddress and HttpHost, but we can check for the flags
-        HashSet routecodes = new HashSet();
-        routecodes.add(new Integer(routefff.hashCode()));
-        routecodes.add(new Integer(routefft.hashCode()));
-        routecodes.add(new Integer(routeftf.hashCode()));
-        routecodes.add(new Integer(routeftt.hashCode()));
-        routecodes.add(new Integer(routetff.hashCode()));
-        routecodes.add(new Integer(routetft.hashCode()));
-        routecodes.add(new Integer(routettf.hashCode()));
-        routecodes.add(new Integer(routettt.hashCode()));
-        assertEquals("some flagged routes have same hashCode",
-                     8, routecodes.size());
-
-        HashSet routestrings = new HashSet();
-        routestrings.add(routefff.toString());
-        routestrings.add(routefft.toString());
-        routestrings.add(routeftf.toString());
-        routestrings.add(routeftt.toString());
-        routestrings.add(routetff.toString());
-        routestrings.add(routetft.toString());
-        routestrings.add(routettf.toString());
-        routestrings.add(routettt.toString());
-        assertEquals("some flagged route.toString() are equal",
-                     8, routestrings.size());
-    }
-
-
-    public void testInvalidArguments() {
-        HttpHost[] chain0 = { null };
-        HttpHost[] chain1 = { PROXY1 };
-        HttpHost[] chain4 = { PROXY1, PROXY2, null, PROXY3 };
-
-        // for reference: this one should succeed
-        HttpRoute route = new HttpRoute(TARGET1, null, chain1,
-                                        false, true, false);
-
-        try {
-            route = new HttpRoute(null, null, chain1,
-                                  false, true, false);
-            fail("missing target not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-
-        try {
-            route = new HttpRoute(TARGET1, null, (HttpHost[]) null,
-                                  false, true, false);
-            fail("missing proxy for tunnel not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-
-        // for the next two, we don't indicate a tunnel anymore
-        try {
-            route = new HttpRoute(TARGET1, null, chain0,
-                                  false, false, false);
-            fail("invalid proxy chain (0) not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-
-        try {
-            route = new HttpRoute(TARGET1, null, chain4,
-                                  false, false, false);
-            fail("invalid proxy chain (4) not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-    }
-
-
-    public void testEqualsHashcodeClone() throws CloneNotSupportedException {
-        HttpHost[] chain0 = { };
-        HttpHost[] chain1 = { PROXY1 };
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
-        HttpHost[] chain4 = { PROXY1, PROXY3, PROXY2 };
-
-        // create some identical routes
-        HttpRoute route1a = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, false);
-        HttpRoute route1b = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, false);
-        HttpRoute route1c = (HttpRoute) route1a.clone();
-
-        assertEquals("1a 1a", route1a, route1a);
-        assertEquals("1a 1b", route1a, route1b);
-        assertEquals("1a 1c", route1a, route1c);
-
-        assertEquals("hashcode 1a", route1a.hashCode(), route1a.hashCode());
-        assertEquals("hashcode 1b", route1a.hashCode(), route1b.hashCode());
-        assertEquals("hashcode 1c", route1a.hashCode(), route1c.hashCode());
-
-        assertEquals("toString 1a", route1a.toString(), route1a.toString());
-        assertEquals("toString 1b", route1a.toString(), route1b.toString());
-        assertEquals("toString 1c", route1a.toString(), route1c.toString());
-
-        // now create some differing routes
-        HttpRoute route2a = new HttpRoute(TARGET2, LOCAL41, chain3,
-                                          false, false, false);
-        HttpRoute route2b = new HttpRoute(TARGET1, LOCAL42, chain3,
-                                          false, false, false);
-        HttpRoute route2c = new HttpRoute(TARGET1, LOCAL61, chain3,
-                                          false, false, false);
-        HttpRoute route2d = new HttpRoute(TARGET1, null, chain3,
-                                          false, false, false);
-        HttpRoute route2e = new HttpRoute(TARGET1, LOCAL41, (HttpHost[]) null,
-                                          false, false, false);
-        HttpRoute route2f = new HttpRoute(TARGET1, LOCAL41, chain0,
-                                          false, false, false);
-        HttpRoute route2g = new HttpRoute(TARGET1, LOCAL41, chain1,
-                                          false, false, false);
-        HttpRoute route2h = new HttpRoute(TARGET1, LOCAL41, chain4,
-                                          false, false, false);
-        HttpRoute route2i = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          true, false, false);
-        HttpRoute route2j = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, true, false);
-        HttpRoute route2k = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, true);
-
-        // check a special case first: 2f should be the same as 2e
-        assertEquals("2e 2f", route2e, route2f);
-        assertEquals("hashcode 2e 2f", route2e.hashCode(), route2f.hashCode());
-        assertEquals("toString 2e 2f", route2e.toString(), route2f.toString());
-
-        assertFalse("1a 2a", route1a.equals(route2a));
-        assertFalse("1a 2b", route1a.equals(route2b));
-        assertFalse("1a 2c", route1a.equals(route2c));
-        assertFalse("1a 2d", route1a.equals(route2d));
-        assertFalse("1a 2e", route1a.equals(route2e));
-        assertFalse("1a 2f", route1a.equals(route2f));
-        assertFalse("1a 2g", route1a.equals(route2g));
-        assertFalse("1a 2h", route1a.equals(route2h));
-        assertFalse("1a 2i", route1a.equals(route2i));
-        assertFalse("1a 2j", route1a.equals(route2j));
-        assertFalse("1a 2k", route1a.equals(route2k));
-
-        // repeat the checks in the other direction
-        // there could be problems with detecting null attributes
-
-        assertFalse("2a 1a", route2a.equals(route1a));
-        assertFalse("2b 1a", route2b.equals(route1a));
-        assertFalse("2c 1a", route2c.equals(route1a));
-        assertFalse("2d 1a", route2d.equals(route1a));
-        assertFalse("2e 1a", route2e.equals(route1a));
-        assertFalse("2f 1a", route2f.equals(route1a));
-        assertFalse("2g 1a", route2g.equals(route1a));
-        assertFalse("2h 1a", route2h.equals(route1a));
-        assertFalse("2i 1a", route2i.equals(route1a));
-        assertFalse("2j 1a", route2j.equals(route1a));
-        assertFalse("2k 1a", route2k.equals(route1a));
-
-        // don't check hashCode, it's not guaranteed to be different
-
-        assertFalse("toString 1a 2a",
-                    route1a.toString().equals(route2a.toString()));
-        assertFalse("toString 1a 2b",
-                    route1a.toString().equals(route2b.toString()));
-        assertFalse("toString 1a 2c",
-                    route1a.toString().equals(route2c.toString()));
-        assertFalse("toString 1a 2d",
-                    route1a.toString().equals(route2d.toString()));
-        assertFalse("toString 1a 2e",
-                    route1a.toString().equals(route2e.toString()));
-        assertFalse("toString 1a 2f",
-                    route1a.toString().equals(route2f.toString()));
-        assertFalse("toString 1a 2g",
-                    route1a.toString().equals(route2g.toString()));
-        assertFalse("toString 1a 2h",
-                    route1a.toString().equals(route2h.toString()));
-        assertFalse("toString 1a 2i",
-                    route1a.toString().equals(route2i.toString()));
-        assertFalse("toString 1a 2j",
-                    route1a.toString().equals(route2j.toString()));
-        assertFalse("toString 1a 2k",
-                    route1a.toString().equals(route2k.toString()));
-
-        // now check that all of the routes are different from eachother
-        // except for those that aren't :-)
-        HashSet routes = new HashSet();
-        routes.add(route1a);
-        routes.add(route2a);
-        routes.add(route2b);
-        routes.add(route2c);
-        routes.add(route2d);
-        routes.add(route2e);
-        //routes.add(route2f); // 2f is the same as 2e
-        routes.add(route2g);
-        routes.add(route2h);
-        routes.add(route2i);
-        routes.add(route2j);
-        routes.add(route2k);
-        assertEquals("some routes are equal", 11, routes.size());
-
-        // and a run of cloning over the set
-        Iterator iter = routes.iterator();
-        while (iter.hasNext()) {
-            HttpRoute origin = (HttpRoute) iter.next();
-            HttpRoute cloned = (HttpRoute) origin.clone();
-            assertEquals("clone of " + origin, origin, cloned);
-            assertTrue("clone of " + origin, routes.contains(cloned));
-        }
-
-        // and don't forget toString
-        HashSet routestrings = new HashSet();
-        routestrings.add(route1a.toString());
-        routestrings.add(route2a.toString());
-        routestrings.add(route2b.toString());
-        routestrings.add(route2c.toString());
-        routestrings.add(route2d.toString());
-        routestrings.add(route2e.toString());
-        //routestrings.add(route2f.toString()); // 2f is the same as 2e
-        routestrings.add(route2g.toString());
-        routestrings.add(route2h.toString());
-        routestrings.add(route2i.toString());
-        routestrings.add(route2j.toString());
-        routestrings.add(route2k.toString());
-        assertEquals("some route.toString() are equal",
-                     11, routestrings.size());
-
-        // finally, compare with nonsense
-        assertFalse("route equals null", route1a.equals(null));
-        assertFalse("route equals string", route1a.equals("route1a"));
-    }
-
-
-    public void testHopping() {
-        // test getHopCount() and getHopTarget() with different proxy chains
-        HttpHost[] proxies = null;
-        HttpRoute  route   = new HttpRoute(TARGET1, null, proxies,
-                                           true, false, false);
-        assertEquals("A: hop count", 1, route.getHopCount());
-        assertEquals("A: hop 0", TARGET1, route.getHopTarget(0));
-        try {
-            HttpHost beyond = route.getHopTarget(1);
-            fail("A: hop 1 is " + beyond);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            HttpHost before = route.getHopTarget(-1);
-            fail("A: hop -1 is " + before);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-
-
-        proxies = new HttpHost[]{ PROXY3 };
-        route   = new HttpRoute(TARGET1, LOCAL62, proxies,
-                                false, true, false);
-        assertEquals("B: hop count", 2, route.getHopCount());
-        assertEquals("B: hop 0", PROXY3, route.getHopTarget(0));
-        assertEquals("B: hop 1", TARGET1, route.getHopTarget(1));
-        try {
-            HttpHost beyond = route.getHopTarget(2);
-            fail("B: hop 2 is " + beyond);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            HttpHost before = route.getHopTarget(-2);
-            fail("B: hop -2 is " + before);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-
-
-        proxies = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
-        route   = new HttpRoute(TARGET1, LOCAL42, proxies,
-                                false, false, true);
-        assertEquals("C: hop count", 4, route.getHopCount());
-        assertEquals("C: hop 0", PROXY3 , route.getHopTarget(0));
-        assertEquals("C: hop 1", PROXY1 , route.getHopTarget(1));
-        assertEquals("C: hop 2", PROXY2 , route.getHopTarget(2));
-        assertEquals("C: hop 3", TARGET1, route.getHopTarget(3));
-        try {
-            HttpHost beyond = route.getHopTarget(4);
-            fail("C: hop 4 is " + beyond);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            HttpHost before = route.getHopTarget(Integer.MIN_VALUE);
-            fail("C: hop -<min> is " + before);
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-    }
-
-
-    public void testCstr1() {
-        HttpRoute route = new HttpRoute(TARGET2);
-        HttpRoute should = new HttpRoute(TARGET2, null, (HttpHost[]) null,
-                                         false, false, false);
-        assertEquals("bad convenience route", route, should);
-    }
-
-
-    public void testCstr3() {
-        // test convenience constructor with 3 arguments
-        HttpRoute route = new HttpRoute(TARGET2, LOCAL61, false);
-        HttpRoute should = new HttpRoute(TARGET2, LOCAL61, (HttpHost[]) null,
-                                         false, false, false);
-        assertEquals("bad convenience route 3/insecure", route, should);
-
-        route = new HttpRoute(TARGET2, null, true);
-        should = new HttpRoute(TARGET2, null, (HttpHost[]) null,
-                               true, false, false);
-        assertEquals("bad convenience route 3/secure", route, should);
-    }
-
-
-    public void testCstr4() {
-        // test convenience constructor with 4 arguments
-        HttpRoute route = new HttpRoute(TARGET2, null, PROXY2, false);
-        HttpRoute should = new HttpRoute
-            (TARGET2, null, new HttpHost[]{ PROXY2 }, false, false, false);
-        assertEquals("bad convenience route 4/insecure", route, should);
-
-        route = new HttpRoute(TARGET2, LOCAL42, PROXY1, true);
-        should = new HttpRoute
-            (TARGET2, LOCAL42, new HttpHost[]{ PROXY1 }, true, true, true);
-        assertEquals("bad convenience route 4/secure", route, should);
-
-        // this constructor REQUIRES a proxy to be specified
-        try {
-            route = new HttpRoute(TARGET1, LOCAL61, null, false);
-            fail("missing proxy not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        }
-    }
-
-
-    public void testCstr6() {
-        // test convenience constructor with 6 arguments
-        HttpRoute route = new HttpRoute
-            (TARGET2, null, PROXY2, true, true, false);
-        HttpRoute should = new HttpRoute
-            (TARGET2, null, new HttpHost[]{ PROXY2 }, true, true, false);
-        assertEquals("bad convenience route 6/proxied", route, should);
-
-        route = new HttpRoute
-            (TARGET2, null, (HttpHost) null, true, false, true);
-        should = new HttpRoute
-            (TARGET2, null, (HttpHost[]) null, true, false, true);
-        assertEquals("bad convenience route 6/direct", route, should);
-
-        // handling of null vs. empty chain is checked in the equals tests
-    }
-
-
-    public void testImmutable() throws CloneNotSupportedException {
-
-        HttpHost[] proxies = new HttpHost[]{ PROXY1, PROXY2, PROXY3 };
-        HttpRoute route1 = new HttpRoute(TARGET1, null, proxies,
-                                         false, false, false);
-        HttpRoute route2 = (HttpRoute) route1.clone();
-        HttpRoute route3 = new HttpRoute(TARGET1, null,
-                                         (HttpHost[]) proxies.clone(),
-                                         false, false, false);
-
-        // modify the array that was passed to the constructor of route1
-        proxies[1] = PROXY3;
-        proxies[2] = PROXY2;
-
-        assertEquals("route differs from clone", route2, route1);
-        assertEquals("route was modified", route3, route1);
-    }
-
-
-    // for completeness, although it's deprecated
-    public void testHostConfig() {
-        // these tests are sloppy, the method is scheduled for removal anyway
-        HttpRoute route = new HttpRoute(TARGET1);
-        assertNotNull("no host config", route.toHostConfig());
-
-        route = new HttpRoute(TARGET2, null, new HttpHost[]{ PROXY1, PROXY2 },
-                              false, false, false);
-        try {
-            route.toHostConfig();
-            fail("proxy chain not detected");
-        } catch (IllegalStateException isx) {
-            // expected
-        }
-    }
-*/
 
 } // class TestRouteTracker
