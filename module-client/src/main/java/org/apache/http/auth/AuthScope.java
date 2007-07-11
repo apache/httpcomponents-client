@@ -40,7 +40,7 @@ import org.apache.http.util.LangUtils;
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * @author <a href="mailto:adrian@intencha.com">Adrian Sutton</a>
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class AuthScope {
     
@@ -100,8 +100,6 @@ public class AuthScope {
      * @param scheme the authentication scheme the credentials apply to. 
      *   May be set to <tt>null</tt> if credenticals are applicable to
      *   any authentication scheme. 
-     * 
-     * @since 3.0
      */
     public AuthScope(final String host, int port, 
         final String realm, final String scheme)
@@ -125,8 +123,6 @@ public class AuthScope {
      * @param realm the realm the credentials apply to. May be set 
      *   to <tt>null</tt> if credenticals are applicable to
      *   any realm. 
-     * 
-     * @since 3.0
      */
     public AuthScope(final String host, int port, final String realm) {
         this(host, port, realm, ANY_SCHEME);
@@ -142,8 +138,6 @@ public class AuthScope {
      * @param port the port the credentials apply to. May be set
      *   to negative value if credenticals are applicable to
      *   any port. 
-     * 
-     * @since 3.0
      */
     public AuthScope(final String host, int port) {
         this(host, port, ANY_REALM, ANY_SCHEME);
@@ -151,8 +145,6 @@ public class AuthScope {
     
     /** 
      * Creates a copy of the given credentials scope.
-     * 
-     * @since 3.0
      */
     public AuthScope(final AuthScope authscope) {
         super();
@@ -167,8 +159,6 @@ public class AuthScope {
     
     /**
      * @return the host
-     * 
-     * @since 3.0
      */
     public String getHost() {
         return this.host;
@@ -176,8 +166,6 @@ public class AuthScope {
 
     /**
      * @return the port
-     * 
-     * @since 3.0
      */
     public int getPort() {
         return this.port;
@@ -185,8 +173,6 @@ public class AuthScope {
 
     /**
      * @return the realm name
-     * 
-     * @since 3.0
      */
     public String getRealm() {
         return this.realm;
@@ -194,8 +180,6 @@ public class AuthScope {
 
     /**
      * @return the scheme type
-     * 
-     * @since 3.0
      */
     public String getScheme() {
         return this.scheme;
@@ -207,8 +191,6 @@ public class AuthScope {
      * @return the match factor. Negative value signifies no match. 
      *    Non-negative signifies a match. The greater the returned value 
      *    the closer the match.
-     * 
-     * @since 3.0
      */
     public int match(final AuthScope that) {
         int factor = 0;

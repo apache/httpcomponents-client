@@ -35,7 +35,7 @@ package org.apache.http.client;
  * 
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 3.0
+ * @since 4.0
  */
 public class CircularRedirectException extends RedirectException {
 

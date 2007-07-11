@@ -175,8 +175,6 @@ public class HttpState {
      * for the given scope.
      * 
      * @see #getCredentials(AuthScope)
-     * 
-     * @since 3.0
      */
     public synchronized void setCredentials(final AuthScope authscope, final Credentials credentials) {
         if (authscope == null) {
@@ -224,8 +222,6 @@ public class HttpState {
      * @return the credentials 
      * 
      * @see #setCredentials(AuthScope, Credentials)
-     * 
-     * @since 3.0
      */
     public synchronized Credentials getCredentials(final AuthScope authscope) {
         if (authscope == null) {

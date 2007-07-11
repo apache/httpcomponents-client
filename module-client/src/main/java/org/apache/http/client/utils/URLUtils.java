@@ -41,7 +41,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @author Michael Becke
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0 final
+ * @since 4.0
  */
 public class URLUtils {
 
@@ -68,8 +68,6 @@ public class URLUtils {
      * @param charset the character set of pairs to be encoded
      * 
      * @return the urlencoded pairs
-     * 
-     * @since 4.0
      */
      public static String simpleFormUrlEncode(
              final NameValuePair[] pairs, 
@@ -103,8 +101,6 @@ public class URLUtils {
      * 
      * @return the urlencoded pairs
      * @throws UnsupportedEncodingException if charset is not supported
-     * 
-     * @since 2.0 final
      */
      public static String formUrlEncode(
              final NameValuePair[] pairs, 

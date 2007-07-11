@@ -73,6 +73,8 @@ import org.apache.http.util.EncodingUtils;
  * @author <a href="mailto:adrian@ephox.com">Adrian Sutton</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @since 4.0
  */
 
 public class DigestScheme extends RFC2617Scheme {
@@ -102,8 +104,6 @@ public class DigestScheme extends RFC2617Scheme {
 
     /**
      * Default constructor for the digest authetication scheme.
-     * 
-     * @since 3.0
      */
     public DigestScheme() {
         super();
@@ -117,8 +117,6 @@ public class DigestScheme extends RFC2617Scheme {
      * 
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
-     * 
-     * @since 4.0
      */
     public void processChallenge(
             final Header header) throws MalformedChallengeException {
@@ -162,8 +160,6 @@ public class DigestScheme extends RFC2617Scheme {
      * 
      * @return <tt>true</tt> if Digest authorization has been processed,
      *   <tt>false</tt> otherwise.
-     * 
-     * @since 3.0
      */
     public boolean isComplete() {
         String s = getParameter("stale");
@@ -187,8 +183,6 @@ public class DigestScheme extends RFC2617Scheme {
      * Returns <tt>false</tt>. Digest authentication scheme is request based.
      * 
      * @return <tt>false</tt>.
-     * 
-     * @since 3.0
      */
     public boolean isConnectionBased() {
         return false;    
@@ -207,8 +201,6 @@ public class DigestScheme extends RFC2617Scheme {
      *   be generated due to an authentication failure
      * 
      * @return a digest authorization string
-     * 
-     * @since 4.0
      */
     public Header authenticate(
             final Credentials credentials, 

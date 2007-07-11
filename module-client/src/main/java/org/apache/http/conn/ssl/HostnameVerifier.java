@@ -53,7 +53,8 @@ import java.security.cert.X509Certificate;
  *
  * @author Julius Davies
  * @author <a href="mailto:hauer@psicode.com">Sebastian Hauer</a>
- * @since 8-Dec-2006
+ *
+ * @since 4.0 (8-Dec-2006)
  */
 public interface HostnameVerifier extends javax.net.ssl.HostnameVerifier {
 

@@ -43,8 +43,9 @@ import org.apache.http.params.HttpParams;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
+ *
  * @version $Revision$
- * @since 3.0
+ * @since 4.0
  */
 public final class AuthSchemeRegistry {
 

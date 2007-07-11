@@ -41,7 +41,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0beta1
+ * @since 4.0
  */
 class LoggingHttpDataTransmitterDecorator implements HttpDataTransmitter {
 

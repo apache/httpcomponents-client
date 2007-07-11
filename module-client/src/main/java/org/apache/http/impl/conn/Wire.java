@@ -40,7 +40,7 @@ import org.apache.commons.logging.Log;
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @since 2.0beta1
+ * @since 4.0
  */
 public class Wire {
 

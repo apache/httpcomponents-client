@@ -66,8 +66,6 @@ public abstract class RFC2617Scheme implements AuthScheme {
     
     /**
      * Default constructor for RFC2617 compliant authetication schemes.
-     * 
-     * @since 3.0
      */
     public RFC2617Scheme() {
         super();
@@ -82,8 +80,6 @@ public abstract class RFC2617Scheme implements AuthScheme {
      * 
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
-     * 
-     * @since 3.0
      */
     public void processChallenge(final Header header) throws MalformedChallengeException {
         if (header == null) {
