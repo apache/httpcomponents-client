@@ -21,9 +21,6 @@ HttpClient Overview
     service clients, or systems that leverage or extend the HTTP protocol for distributed 
     communication.
 
-    HttpClient has a modular structure with a base module and a number of specialized 
-    extensions.
-
 Features
 
     * Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1
@@ -72,7 +69,9 @@ Features
 
 Modules
 
-    HttpClient has a modular structure and consists of several modules.
+    HttpClient currently is a single module that comprises code for 
+    authentication, cookies, connection management, and the client itself.
+    It may be changed to a more modular structure in the future.
 
 * HttpClient module
 
