@@ -184,7 +184,7 @@ public final class RouteTracker implements Cloneable {
         HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
         System.arraycopy(this.proxyChain, 0,
                          proxies, 0, this.proxyChain.length);
-        proxies[proxies.length+1] = proxy;
+        proxies[proxies.length-1] = proxy;
 
         this.proxyChain = proxies;
         this.secure     = secure;
