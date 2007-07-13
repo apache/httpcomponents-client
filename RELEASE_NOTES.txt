@@ -18,6 +18,10 @@ Architectural changes
 
 * Cleaner, more flexible and expressive API   
 
+* Better performance and smaller memory footprint due to a more 
+  efficient HTTP transport based on HttpCore. HttpClient 4.0 is 
+  expected to be 10% to 25% faster than HttpClient 3.x codeline
+
 * More modular structure   
 
 * Pluggable redirect and authentication handlers   
@@ -26,7 +30,8 @@ Architectural changes
 
 * Improved connection management 
 
-* Improved support for sending requests via a proxy or a chain of proxies 
+* Improved support for sending requests via a proxy or a chain of 
+  proxies 
 
 * Improved handling redirects of entity enclosing requests
 
