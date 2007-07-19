@@ -82,7 +82,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     protected SchemeRegistry schemeRegistry; 
     
     /** The parameters of this connection manager. */
-    protected HttpParams params = new BasicHttpParams(); 
+    protected HttpParams params;
 
     /** The operator for opening and updating connections. */
     protected ClientConnectionOperator connOperator;

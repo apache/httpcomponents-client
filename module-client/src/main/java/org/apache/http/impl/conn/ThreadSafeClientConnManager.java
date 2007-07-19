@@ -108,7 +108,7 @@ public class ThreadSafeClientConnManager
     protected SchemeRegistry schemeRegistry; 
     
     /** The parameters of this connection manager. */
-    private HttpParams params = new BasicHttpParams(); 
+    private HttpParams params;
 
 
     /** The pool of connections being managed. */
