@@ -306,8 +306,8 @@ public abstract class AbstractHttpClient
     }
 
 
-    public synchronized void clearResponseInterceptors() {
-        getHttpProcessor().clearResponseInterceptors();
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
+        getHttpProcessor().addInterceptor(itcp, index);
     }
 
 
@@ -320,14 +320,24 @@ public abstract class AbstractHttpClient
         return getHttpProcessor().getResponseInterceptorCount();
     }
 
+
+    public synchronized void clearResponseInterceptors() {
+        getHttpProcessor().clearResponseInterceptors();
+    }
+
+
+    public void removeResponseInterceptorByClass(Class clazz) {
+        getHttpProcessor().removeResponseInterceptorByClass(clazz);
+    }
+
     
     public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
         getHttpProcessor().addInterceptor(itcp);
     }
 
 
-    public synchronized void clearRequestInterceptors() {
-        getHttpProcessor().clearRequestInterceptors();
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
+        getHttpProcessor().addInterceptor(itcp, index);
     }
 
 
@@ -338,6 +348,16 @@ public abstract class AbstractHttpClient
 
     public synchronized int getRequestInterceptorCount() {
         return getHttpProcessor().getRequestInterceptorCount();
+    }
+
+
+    public synchronized void clearRequestInterceptors() {
+        getHttpProcessor().clearRequestInterceptors();
+    }
+
+
+    public void removeRequestInterceptorByClass(Class clazz) {
+        getHttpProcessor().removeRequestInterceptorByClass(clazz);
     }
 
 
