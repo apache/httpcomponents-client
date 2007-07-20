@@ -40,9 +40,10 @@ public interface ClientContext {
     
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
-    public static final String HTTP_STATE            = "http.state"; 
+    public static final String COOKIE_STORE          = "http.cookie-store"; 
     public static final String COOKIE_SPEC           = "http.cookie-spec"; 
     public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
+    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
     public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope"; 
 }

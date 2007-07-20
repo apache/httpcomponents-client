@@ -39,7 +39,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.client.HttpState;
+import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -74,11 +74,11 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
         
-        // Obtain HTTP state
-        HttpState state = (HttpState) context.getAttribute(
-                ClientContext.HTTP_STATE);
-        if (state == null) {
-            LOG.info("HTTP state not available in HTTP context");
+        // Obtain cookie store
+        CookieStore cookieStore = (CookieStore) context.getAttribute(
+                ClientContext.COOKIE_STORE);
+        if (cookieStore == null) {
+            LOG.info("Cookie store not available in HTTP context");
             return;
         }
         // Obtain actual CookieSpec instance
@@ -96,14 +96,14 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             return;
         }
         Header[] headers = response.getHeaders(SM.SET_COOKIE);
-        processCookies(headers, cookieSpec, cookieOrigin, state);
+        processCookies(headers, cookieSpec, cookieOrigin, cookieStore);
     }
      
     private static void processCookies(
             final Header[] headers, 
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
-            final HttpState state) {
+            final CookieStore cookieStore) {
         for (int i = 0; i < headers.length; i++) {
             Header header = headers[i];
             try {
@@ -112,7 +112,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                     Cookie cookie = cookies[c];
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
-                        state.addCookie(cookie);
+                        cookieStore.addCookie(cookie);
                         
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Cookie accepted: \""

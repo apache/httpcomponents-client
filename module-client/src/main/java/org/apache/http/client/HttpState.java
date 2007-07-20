@@ -59,6 +59,7 @@ import org.apache.http.cookie.CookieIdentityComparator;
  * 
  * @version $Revision$ $Date$
  * 
+ * @deprecated
  */
 public class HttpState implements CookieStore, CredentialsProvider {
 

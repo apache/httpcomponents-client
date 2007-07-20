@@ -59,8 +59,8 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthState;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
@@ -580,10 +580,10 @@ public class DefaultClientRequestDirector
                         response.getStatusLine());
             }
             
-            HttpState state = (HttpState)
-                context.getAttribute(ClientContext.HTTP_STATE);
+            CredentialsProvider credsProvider = (CredentialsProvider)
+                context.getAttribute(ClientContext.CREDS_PROVIDER);
             
-            if (state != null && HttpClientParams.isAuthenticating(params)) {
+            if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
                 if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
 
                     LOG.debug("Proxy requested authentication");
@@ -596,7 +596,7 @@ public class DefaultClientRequestDirector
                             break;
                         }
                     }
-                    updateAuthState(this.proxyAuthState, proxy, state);
+                    updateAuthState(this.proxyAuthState, proxy, credsProvider);
                     
                     if (this.proxyAuthState.getCredentials() != null) {
                         done = false;
@@ -758,10 +758,10 @@ public class DefaultClientRequestDirector
             return new RoutedRequest.Impl(redirect, newRoute);
         }
 
-        HttpState state = (HttpState)
-            context.getAttribute(ClientContext.HTTP_STATE);
-        
-        if (state != null && HttpClientParams.isAuthenticating(params)) {
+        CredentialsProvider credsProvider = (CredentialsProvider)
+            context.getAttribute(ClientContext.CREDS_PROVIDER);
+    
+        if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
 
             if (this.authHandler.isTargetAuthenticationRequested(response, context)) {
 
@@ -781,7 +781,7 @@ public class DefaultClientRequestDirector
                         return null;
                     }
                 }
-                updateAuthState(this.targetAuthState, target, state);
+                updateAuthState(this.targetAuthState, target, credsProvider);
                 
                 if (this.targetAuthState.getCredentials() != null) {
                     // Re-try the same request via the same route
@@ -806,7 +806,7 @@ public class DefaultClientRequestDirector
                         return null;
                     }
                 }
-                updateAuthState(this.proxyAuthState, proxy, state);
+                updateAuthState(this.proxyAuthState, proxy, credsProvider);
                 
                 if (this.proxyAuthState.getCredentials() != null) {
                     // Re-try the same request via the same route
@@ -879,7 +879,7 @@ public class DefaultClientRequestDirector
     private void updateAuthState(
             final AuthState authState, 
             final HttpHost host,
-            final HttpState state) {
+            final CredentialsProvider credsProvider) {
         
         String hostname = host.getHostName();
         int port = host.getPort();
@@ -900,7 +900,7 @@ public class DefaultClientRequestDirector
         }
         Credentials creds = authState.getCredentials();
         if (creds == null) {
-            creds = state.getCredentials(authScope);
+            creds = credsProvider.getCredentials(authScope);
             if (LOG.isDebugEnabled()) {
                 if (creds != null) {
                     LOG.debug("Found credentials");

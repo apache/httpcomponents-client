@@ -45,7 +45,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.ProtocolException;
-import org.apache.http.client.HttpState;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ManagedClientConnection;
@@ -84,11 +84,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
         
-        // Obtain HTTP state
-        HttpState state = (HttpState) context.getAttribute(
-                ClientContext.HTTP_STATE);
-        if (state == null) {
-            LOG.info("HTTP state not available in HTTP context");
+        // Obtain cookie store
+        CookieStore cookieStore = (CookieStore) context.getAttribute(
+                ClientContext.COOKIE_STORE);
+        if (cookieStore == null) {
+            LOG.info("Cookie store not available in HTTP context");
             return;
         }
         
@@ -146,7 +146,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get an instance of the selected cookie policy
         CookieSpec cookieSpec = registry.getCookieSpec(policy, request.getParams());
         // Get all cookies available in the HTTP state
-        Cookie[] cookies = state.getCookies();
+        Cookie[] cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         List matchedCookies = new ArrayList(cookies.length);
         for (int i = 0; i < cookies.length; i++) {

@@ -33,6 +33,7 @@ package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.methods.HttpGet;
@@ -53,15 +54,15 @@ public class ClientCustomContext {
         
         HttpClient httpclient = new DefaultHttpClient();
 
-        // Create a local instance of HttpState
-        HttpState localState = new HttpState();
+        // Create a local instance of cookie store
+        CookieStore cookieStore = new HttpState();
         
         // Obtain default HTTP context
         HttpContext defaultContext = httpclient.getDefaultContext();
         // Create local HTTP context
         HttpContext localContext = new BasicHttpContext(defaultContext);
-        // Bind custom HTTP state to the local context
-        localContext.setAttribute(ClientContext.HTTP_STATE, localState);
+        // Bind custom cookie store to the local context
+        localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         
         HttpGet httpget = new HttpGet("http://www.google.com/"); 
 
@@ -77,7 +78,7 @@ public class ClientCustomContext {
             System.out.println("Response content length: " + entity.getContentLength());
             System.out.println("Chunked?: " + entity.isChunked());
         }
-        Cookie[] cookies = localState.getCookies();
+        Cookie[] cookies = cookieStore.getCookies();
         for (int i = 0; i < cookies.length; i++) {
             System.out.println("Local cookie: " + cookies[i]);
         }

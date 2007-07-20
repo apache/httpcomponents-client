@@ -251,7 +251,10 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 ClientContext.COOKIESPEC_REGISTRY, 
                 getCookieSpecs());
         context.setAttribute(
-                ClientContext.HTTP_STATE, 
+                ClientContext.COOKIE_STORE, 
+                getState());
+        context.setAttribute(
+                ClientContext.CREDS_PROVIDER, 
                 getState());
     }
 
