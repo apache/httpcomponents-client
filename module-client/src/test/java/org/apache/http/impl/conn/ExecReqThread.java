@@ -36,7 +36,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.util.EntityUtils;
@@ -96,12 +96,12 @@ public class ExecReqThread extends GetConnThread {
 
         try {
             request_spec.context.setAttribute
-                (HttpExecutionContext.HTTP_CONNECTION, connection);
+                (ExecutionContext.HTTP_CONNECTION, connection);
 
             doOpenConnection();
 
             HttpRequest request = (HttpRequest) request_spec.context.
-                getAttribute(HttpExecutionContext.HTTP_REQUEST);
+                getAttribute(ExecutionContext.HTTP_REQUEST);
             request_spec.executor.preProcess
                 (request, request_spec.processor, request_spec.context);
 

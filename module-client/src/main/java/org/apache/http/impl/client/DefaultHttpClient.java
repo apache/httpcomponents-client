@@ -46,7 +46,7 @@ import org.apache.http.client.VersionInfo;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.client.protocol.RequestTargetAuthentication;
@@ -77,7 +77,7 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
-import org.apache.http.protocol.SyncHttpExecutionContext;
+import org.apache.http.protocol.SyncBasicHttpContext;
 
 
 
@@ -168,7 +168,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     protected HttpContext createHttpContext() {
-        return new SyncHttpExecutionContext(null);
+        return new SyncBasicHttpContext(null);
     }
 
     
@@ -245,13 +245,13 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected void populateContext(final HttpContext context) {
         context.setAttribute(
-                HttpClientContext.AUTHSCHEME_REGISTRY, 
+                ClientContext.AUTHSCHEME_REGISTRY, 
                 getAuthSchemes());
         context.setAttribute(
-                HttpClientContext.COOKIESPEC_REGISTRY, 
+                ClientContext.COOKIESPEC_REGISTRY, 
                 getCookieSpecs());
         context.setAttribute(
-                HttpClientContext.HTTP_STATE, 
+                ClientContext.HTTP_STATE, 
                 getState());
     }
 

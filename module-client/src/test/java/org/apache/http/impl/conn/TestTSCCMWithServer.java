@@ -49,7 +49,8 @@ import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
 
 
@@ -138,13 +139,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
             ExecReqThread.RequestSpec ertrs = new ExecReqThread.RequestSpec();
             ertrs.executor = httpExecutor;
             ertrs.processor = httpProcessor;
-            ertrs.context = new HttpExecutionContext(null);
+            ertrs.context = new BasicHttpContext(null);
             ertrs.params = defaultParams;
 
             ertrs.context.setAttribute
-                (HttpExecutionContext.HTTP_TARGET_HOST, target);
+                (ExecutionContext.HTTP_TARGET_HOST, target);
             ertrs.context.setAttribute
-                (HttpExecutionContext.HTTP_REQUEST, request);
+                (ExecutionContext.HTTP_REQUEST, request);
 
             threads[i] = new ExecReqThread(mgr, route, 5000L, ertrs);
         }
@@ -223,7 +224,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         // repeat the communication, no need to prepare the request again
         conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(HttpExecutionContext.HTTP_CONNECTION, conn);
+        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = httpExecutor.execute(request, conn, httpContext);
         httpExecutor.postProcess(response, httpProcessor, httpContext);
 
@@ -243,7 +244,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        httpContext.setAttribute(HttpExecutionContext.HTTP_CONNECTION, conn);
+        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = httpExecutor.execute(request, conn, httpContext);
         httpExecutor.postProcess(response, httpProcessor, httpContext);
 

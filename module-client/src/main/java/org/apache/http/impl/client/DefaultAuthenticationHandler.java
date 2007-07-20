@@ -50,7 +50,7 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
@@ -153,7 +153,7 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
             final HttpContext context) throws AuthenticationException {
         
         AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
-                HttpClientContext.AUTHSCHEME_REGISTRY);
+                ClientContext.AUTHSCHEME_REGISTRY);
         if (registry == null) {
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }

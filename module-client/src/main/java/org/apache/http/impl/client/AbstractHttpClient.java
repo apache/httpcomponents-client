@@ -51,12 +51,12 @@ import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpRequestInterceptorList;
 import org.apache.http.protocol.HttpResponseInterceptorList;
 
@@ -418,7 +418,7 @@ public abstract class AbstractHttpClient
         
         synchronized (this) {
             if (context == null) {
-                context = new HttpClientContext(getDefaultContext());
+                context = new BasicHttpContext(getDefaultContext());
             }
         }
         
@@ -456,7 +456,7 @@ public abstract class AbstractHttpClient
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
             if (context == null) {
-                context = new HttpClientContext(getDefaultContext());
+                context = new BasicHttpContext(getDefaultContext());
             }
             // Create a director for this request
             director = new DefaultClientRequestDirector(

@@ -40,7 +40,7 @@ import javax.net.ssl.SSLHandshakeException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
@@ -105,7 +105,8 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // SSL handshake exception
             return false;
         }
-        Boolean b = (Boolean) context.getAttribute(HttpExecutionContext.HTTP_REQ_SENT);
+        Boolean b = (Boolean)
+            context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
         boolean sent = (b != null && b.booleanValue());
         if (!sent || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or

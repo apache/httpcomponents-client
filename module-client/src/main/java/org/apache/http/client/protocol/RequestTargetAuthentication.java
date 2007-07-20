@@ -75,7 +75,7 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
         
         // Obtain authentication state
         AuthState authState = (AuthState) context.getAttribute(
-                HttpClientContext.TARGET_AUTH_STATE);
+                ClientContext.TARGET_AUTH_STATE);
         if (authState == null) {
             return;
         }

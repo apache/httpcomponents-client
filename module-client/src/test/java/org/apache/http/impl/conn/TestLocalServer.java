@@ -43,7 +43,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.HttpParamsLinker;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
 
 
@@ -81,11 +81,11 @@ public class TestLocalServer extends ServerTestBase {
         HttpClientConnection conn = connectTo(target);
 
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_CONNECTION, conn);
+                ExecutionContext.HTTP_CONNECTION, conn);
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_TARGET_HOST, target);
+                ExecutionContext.HTTP_TARGET_HOST, target);
         httpContext.setAttribute(
-                HttpExecutionContext.HTTP_REQUEST, request);
+                ExecutionContext.HTTP_REQUEST, request);
 
         HttpParamsLinker.link(request, defaultParams);
         httpExecutor.preProcess
@@ -124,11 +124,11 @@ public class TestLocalServer extends ServerTestBase {
             HttpClientConnection conn = connectTo(target);
             
             httpContext.setAttribute(
-                    HttpExecutionContext.HTTP_CONNECTION, conn);
+                    ExecutionContext.HTTP_CONNECTION, conn);
             httpContext.setAttribute(
-                    HttpExecutionContext.HTTP_TARGET_HOST, target);
+                    ExecutionContext.HTTP_TARGET_HOST, target);
             httpContext.setAttribute(
-                    HttpExecutionContext.HTTP_REQUEST, request);
+                    ExecutionContext.HTTP_REQUEST, request);
 
             HttpParamsLinker.link(request, defaultParams);
             httpExecutor.preProcess

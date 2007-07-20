@@ -67,7 +67,7 @@ import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -83,7 +83,7 @@ import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.util.CharArrayBuffer;
@@ -323,15 +323,15 @@ public class DefaultClientRequestDirector
                 HttpHost proxy = route.getProxyHost();
                 
                 // Populate the execution context
-                context.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST,
+                context.setAttribute(ExecutionContext.HTTP_TARGET_HOST,
                         target);
-                context.setAttribute(HttpExecutionContext.HTTP_PROXY_HOST,
+                context.setAttribute(ExecutionContext.HTTP_PROXY_HOST,
                         proxy);
-                context.setAttribute(HttpExecutionContext.HTTP_CONNECTION,
+                context.setAttribute(ExecutionContext.HTTP_CONNECTION,
                         managedConn);
-                context.setAttribute(HttpClientContext.TARGET_AUTH_STATE,
+                context.setAttribute(ClientContext.TARGET_AUTH_STATE,
                         targetAuthState);
-                context.setAttribute(HttpClientContext.PROXY_AUTH_STATE,
+                context.setAttribute(ClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
                 requestExec.preProcess(request, httpProcessor, context);
                 
@@ -339,7 +339,7 @@ public class DefaultClientRequestDirector
                     ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
                 }
 
-                context.setAttribute(HttpExecutionContext.HTTP_REQUEST,
+                context.setAttribute(ExecutionContext.HTTP_REQUEST,
                         request);
 
                 execCount++;
@@ -580,7 +580,8 @@ public class DefaultClientRequestDirector
                         response.getStatusLine());
             }
             
-            HttpState state = (HttpState) context.getAttribute(HttpClientContext.HTTP_STATE);
+            HttpState state = (HttpState)
+                context.getAttribute(ClientContext.HTTP_STATE);
             
             if (state != null && HttpClientParams.isAuthenticating(params)) {
                 if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
@@ -757,13 +758,15 @@ public class DefaultClientRequestDirector
             return new RoutedRequest.Impl(redirect, newRoute);
         }
 
-        HttpState state = (HttpState) context.getAttribute(HttpClientContext.HTTP_STATE);
+        HttpState state = (HttpState)
+            context.getAttribute(ClientContext.HTTP_STATE);
         
         if (state != null && HttpClientParams.isAuthenticating(params)) {
 
             if (this.authHandler.isTargetAuthenticationRequested(response, context)) {
 
-                target = (HttpHost) context.getAttribute(HttpExecutionContext.HTTP_TARGET_HOST);
+                target = (HttpHost)
+                    context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 if (target == null) {
                     target = route.getTargetHost();
                 }

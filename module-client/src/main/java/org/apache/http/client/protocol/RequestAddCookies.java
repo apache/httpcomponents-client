@@ -54,7 +54,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 
 /**
  * Request interceptor that matches cookies available in the current
@@ -86,7 +86,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         
         // Obtain HTTP state
         HttpState state = (HttpState) context.getAttribute(
-                HttpClientContext.HTTP_STATE);
+                ClientContext.HTTP_STATE);
         if (state == null) {
             LOG.info("HTTP state not available in HTTP context");
             return;
@@ -94,7 +94,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         
         // Obtain the registry of cookie specs
         CookieSpecRegistry registry= (CookieSpecRegistry) context.getAttribute(
-                HttpClientContext.COOKIESPEC_REGISTRY);
+                ClientContext.COOKIESPEC_REGISTRY);
         if (registry == null) {
             LOG.info("CookieSpec registry not available in HTTP context");
             return;
@@ -102,14 +102,14 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         
         // Obtain the target host (required)
         HttpHost targetHost = (HttpHost) context.getAttribute(
-                HttpExecutionContext.HTTP_TARGET_HOST);
+                ExecutionContext.HTTP_TARGET_HOST);
         if (targetHost == null) {
             throw new IllegalStateException("Target host not specified in HTTP context");
         }
         
         // Obtain the client connection (required)
         ManagedClientConnection conn = (ManagedClientConnection) context.getAttribute(
-                HttpExecutionContext.HTTP_CONNECTION);
+                ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
             throw new IllegalStateException("Client connection not specified in HTTP context");
         }
@@ -169,8 +169,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         
         // Stick the CookieSpec and CookieOrigin instances to the HTTP context
         // so they could be obtained by the response interceptor
-        context.setAttribute(HttpClientContext.COOKIE_SPEC, cookieSpec);
-        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, cookieOrigin);
+        context.setAttribute(ClientContext.COOKIE_SPEC, cookieSpec);
+        context.setAttribute(ClientContext.COOKIE_ORIGIN, cookieOrigin);
     }
     
 }

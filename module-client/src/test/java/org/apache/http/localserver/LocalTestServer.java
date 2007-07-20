@@ -51,7 +51,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.HttpRequestHandlerRegistry;
 import org.apache.http.protocol.HttpService;
@@ -365,7 +365,7 @@ public class LocalTestServer {
 
 
             public void run() {
-                HttpContext context = new HttpExecutionContext(null);
+                HttpContext context = new BasicHttpContext(null);
                 try {
                     while ((servicedSocket != null) &&
                            this.conn.isOpen() && !Thread.interrupted()) {

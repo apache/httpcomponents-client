@@ -37,7 +37,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
@@ -65,9 +65,9 @@ public final class Helper {
                                        HttpContext ctxt)
         throws Exception {
 
-        ctxt.setAttribute(HttpExecutionContext.HTTP_CONNECTION, conn);
-        ctxt.setAttribute(HttpExecutionContext.HTTP_TARGET_HOST, target);
-        ctxt.setAttribute(HttpExecutionContext.HTTP_REQUEST, req);
+        ctxt.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        ctxt.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        ctxt.setAttribute(ExecutionContext.HTTP_REQUEST, req);
 
         HttpParamsLinker.link(req, params);
         exec.preProcess(req, proc, ctxt);

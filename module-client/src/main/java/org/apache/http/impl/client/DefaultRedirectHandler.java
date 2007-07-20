@@ -48,7 +48,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.ExecutionContext;
 
 /**
  * Default implementation of a redirect handler.
@@ -124,7 +124,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             }
             // Adjust location URI
             HttpHost target = (HttpHost) context.getAttribute(
-                    HttpExecutionContext.HTTP_TARGET_HOST);
+                    ExecutionContext.HTTP_TARGET_HOST);
             if (target == null) {
                 throw new IllegalStateException("Target host not available " +
                         "in the HTTP context");

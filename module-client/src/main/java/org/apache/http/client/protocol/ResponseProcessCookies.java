@@ -76,21 +76,21 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         
         // Obtain HTTP state
         HttpState state = (HttpState) context.getAttribute(
-                HttpClientContext.HTTP_STATE);
+                ClientContext.HTTP_STATE);
         if (state == null) {
             LOG.info("HTTP state not available in HTTP context");
             return;
         }
         // Obtain actual CookieSpec instance
         CookieSpec cookieSpec = (CookieSpec) context.getAttribute(
-                HttpClientContext.COOKIE_SPEC);
+                ClientContext.COOKIE_SPEC);
         if (cookieSpec == null) {
             LOG.info("CookieSpec not available in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance
         CookieOrigin cookieOrigin = (CookieOrigin) context.getAttribute(
-                HttpClientContext.COOKIE_ORIGIN);
+                ClientContext.COOKIE_ORIGIN);
         if (cookieOrigin == null) {
             LOG.info("CookieOrigin not available in HTTP context");
             return;

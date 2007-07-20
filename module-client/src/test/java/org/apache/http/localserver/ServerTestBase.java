@@ -45,7 +45,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
@@ -74,7 +74,7 @@ public abstract class ServerTestBase extends TestCase {
     protected BasicHttpProcessor httpProcessor;
 
     /** The default context for the client side. */
-    protected HttpExecutionContext httpContext;
+    protected BasicHttpContext httpContext;
 
     /** The request executor for the client side. */
     protected HttpRequestExecutor httpExecutor;
@@ -135,7 +135,7 @@ public abstract class ServerTestBase extends TestCase {
         }
 
         // the context is created each time, it may get modified by test cases
-        httpContext = new HttpExecutionContext(null);
+        httpContext = new BasicHttpContext(null);
 
         if (httpExecutor == null) {
             httpExecutor = new HttpRequestExecutor();

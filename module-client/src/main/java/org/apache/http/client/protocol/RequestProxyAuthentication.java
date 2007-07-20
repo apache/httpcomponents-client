@@ -75,7 +75,7 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         
         // Obtain authentication state
         AuthState authState = (AuthState) context.getAttribute(
-                HttpClientContext.PROXY_AUTH_STATE);
+                ClientContext.PROXY_AUTH_STATE);
         if (authState == null) {
             return;
         }
