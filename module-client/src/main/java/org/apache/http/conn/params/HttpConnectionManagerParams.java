@@ -67,8 +67,8 @@ public final class HttpConnectionManagerParams {
      * <p>
      * This parameter expects a value of type {@link java.util.Map}.  The value
      * should map instances of {@link HttpRoute}
-     * to {@link Integer integers}.  The default value can be specified using
-     * {@link HttpRoute#ANY_HOST_CONFIGURATION}.
+     * to {@link Integer integers}.
+     * The default value is mapped to a special, private key.
      * </p>
      */
     public static final String MAX_HOST_CONNECTIONS = "http.connection-manager.max-per-host";
