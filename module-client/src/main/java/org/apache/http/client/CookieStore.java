@@ -30,41 +30,46 @@
 
 package org.apache.http.client;
 
+import java.util.Date;
+
+import org.apache.http.cookie.Cookie;
+
 /**
- * Signals a circular redirect
+ * Abstract cookie store.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */
-public class CircularRedirectException extends RedirectException {
-
-    private static final long serialVersionUID = 6830063487001091803L;
+public interface CookieStore {
 
     /**
-     * Creates a new CircularRedirectException with a <tt>null</tt> detail message. 
-     */
-    public CircularRedirectException() {
-        super();
-    }
-
-    /**
-     * Creates a new CircularRedirectException with the specified detail message.
+     * Adds an {@link Cookie HTTP cookie}, replacing any existing equivalent cookies.
+     * If the given cookie has already expired it will not be added, but existing 
+     * values will still be removed.
      * 
-     * @param message The exception detail message
+     * @param cookie the {@link Cookie cookie} to be added
      */
-    public CircularRedirectException(String message) {
-        super(message);
-    }
+    void addCookie(Cookie cookie);
 
     /**
-     * Creates a new CircularRedirectException with the specified detail message and cause.
+     * Returns all cookies contained in this store.
      * 
-     * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     * @return all cookies
      */
-    public CircularRedirectException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    Cookie[] getCookies();
+
+    /**
+     * Removes all of {@link Cookie cookies} in this store that have expired by 
+     * the specified {@link java.util.Date date}. 
+     * 
+     * @return true if any cookies were purged.
+     */
+    boolean clearExpired(Date date);
+
+    /**
+     * Clears all cookies.
+     */
+    void clear();
+    
 }

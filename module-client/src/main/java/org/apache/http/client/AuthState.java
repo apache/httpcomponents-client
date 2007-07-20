@@ -39,7 +39,7 @@ import org.apache.http.util.CharArrayBuffer;
  * This class provides detailed information about the state of the
  * authentication process.
  * 
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */

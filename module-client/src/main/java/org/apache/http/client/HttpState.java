@@ -60,7 +60,7 @@ import org.apache.http.cookie.CookieIdentityComparator;
  * @version $Revision$ $Date$
  * 
  */
-public class HttpState {
+public class HttpState implements CookieStore {
 
     // ----------------------------------------------------- Instance Variables
 
@@ -153,12 +153,11 @@ public class HttpState {
      * 
      * @see Cookie#isExpired(Date)
      */
-    public synchronized boolean purgeExpiredCookies() {
+    public synchronized boolean clearExpired(Date date) {
         boolean removed = false;
-        Date now = new Date();
         Iterator it = cookies.iterator();
         while (it.hasNext()) {
-            if (((Cookie) (it.next())).isExpired(now)) {
+            if (((Cookie) (it.next())).isExpired(date)) {
                 it.remove();
                 removed = true;
             }
@@ -166,6 +165,8 @@ public class HttpState {
         return removed;
     }
 
+    
+    
     /** 
      * Sets the {@link Credentials credentials} for the given authentication 
      * scope. Any previous credentials for the given scope will be overwritten.
