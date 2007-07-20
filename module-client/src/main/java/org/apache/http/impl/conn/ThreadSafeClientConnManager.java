@@ -46,7 +46,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.HostConfiguration;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
@@ -68,7 +68,7 @@ import org.apache.http.params.HttpParams;
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
+ * @version $Revision$ $Date$
  *
  * @since 4.0
  */
@@ -185,8 +185,7 @@ public class ThreadSafeClientConnManager
                 + route + ", timeout = " + timeout);
         }
 
-        final TrackingPoolEntry entry =
-            doGetConnection(route.toHostConfig(), timeout);
+        final TrackingPoolEntry entry = doGetConnection(route, timeout);
 
         return new HttpConnectionAdapter(entry);
     }
@@ -202,7 +201,7 @@ public class ThreadSafeClientConnManager
      *
      * @throws ConnectionPoolTimeoutException   if the timeout expired
      */
-    private TrackingPoolEntry doGetConnection(HostConfiguration route,
+    private TrackingPoolEntry doGetConnection(HttpRoute route,
                                               long timeout)
         throws ConnectionPoolTimeoutException {
 
@@ -216,7 +215,7 @@ public class ThreadSafeClientConnManager
         synchronized (connectionPool) {
 
             // we used to clone the hostconfig here, but it is now immutable:
-            //route = new HostConfiguration(route);
+            //route = new HttpRoute(route);
             HostConnectionPool hostPool = connectionPool.getHostPool(route);
             WaitingThread waitingThread = null;
 
@@ -329,7 +328,7 @@ public class ThreadSafeClientConnManager
      *
      * @return  the pool entry for the new connection
      */
-    private TrackingPoolEntry createPoolEntry(HostConfiguration route) {
+    private TrackingPoolEntry createPoolEntry(HttpRoute route) {
 
         OperatedClientConnection occ = connOperator.createConnection();
         return connectionPool.createEntry(route, occ);
@@ -491,7 +490,7 @@ public class ThreadSafeClientConnManager
      */
     private static void storeReferenceToConnection(
         TrackingPoolEntry connection,
-        HostConfiguration hostConfiguration,
+        HttpRoute hostConfiguration,
         ConnectionPool connectionPool
     ) {
 
@@ -605,7 +604,7 @@ public class ThreadSafeClientConnManager
      * @param hostConfiguration The host configuration
      * @return The total number of pooled connections
      */
-    public int getConnectionsInPool(HostConfiguration hostConfiguration) {
+    public int getConnectionsInPool(HttpRoute hostConfiguration) {
         synchronized (connectionPool) {
             HostConnectionPool hostPool = connectionPool.getHostPool(hostConfiguration);
             return hostPool.numConnections;
@@ -681,7 +680,7 @@ public class ThreadSafeClientConnManager
         private LinkedList waitingThreads = new LinkedList();
 
         /**
-         * Map where keys are {@link HostConfiguration}s and values are
+         * Map where keys are {@link HttpRoute}s and values are
          * {@link HostConnectionPool}s
          */
         private final Map mapHosts = new HashMap();
@@ -735,7 +734,7 @@ public class ThreadSafeClientConnManager
          * @return the new pool entry
          */
         protected synchronized
-            TrackingPoolEntry createEntry(HostConfiguration route,
+            TrackingPoolEntry createEntry(HttpRoute route,
                                           OperatedClientConnection conn) {
 
             HostConnectionPool hostPool = getHostPool(route);
@@ -762,7 +761,7 @@ public class ThreadSafeClientConnManager
          * @param config the host configuration of the connection that was lost
          */
         public synchronized
-            void handleLostConnection(HostConfiguration config) {
+            void handleLostConnection(HttpRoute config) {
 
             HostConnectionPool hostPool = getHostPool(config);
             hostPool.numConnections--;
@@ -780,7 +779,7 @@ public class ThreadSafeClientConnManager
          * @return a pool (list) of connections available for the given route
          */
         public synchronized
-            HostConnectionPool getHostPool(HostConfiguration route) {
+            HostConnectionPool getHostPool(HttpRoute route) {
 
             // Look for a list of connections for the given config
             HostConnectionPool listConnections =
@@ -802,7 +801,7 @@ public class ThreadSafeClientConnManager
          * @param hostConfiguration the configuraton for the connection pool
          * @return an available connection for the given config
          */
-        public synchronized TrackingPoolEntry getFreeConnection(HostConfiguration hostConfiguration) {
+        public synchronized TrackingPoolEntry getFreeConnection(HttpRoute hostConfiguration) {
 
             TrackingPoolEntry entry = null;
 
@@ -865,7 +864,7 @@ public class ThreadSafeClientConnManager
          */
         private synchronized void deleteConnection(TrackingPoolEntry entry) {
 
-            HostConfiguration route = entry.plannedRoute;
+            HttpRoute route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Reclaiming connection, hostConfig=" + route);
@@ -906,7 +905,7 @@ public class ThreadSafeClientConnManager
          * @param configuration the host config to use for notifying
          * @see #notifyWaitingThread(HostConnectionPool)
          */
-        public synchronized void notifyWaitingThread(HostConfiguration configuration) {
+        public synchronized void notifyWaitingThread(HttpRoute configuration) {
             notifyWaitingThread(getHostPool(configuration));
         }
 
@@ -954,7 +953,7 @@ public class ThreadSafeClientConnManager
          */
         private void freeConnection(TrackingPoolEntry entry) {
 
-            HostConfiguration route = entry.plannedRoute;
+            HttpRoute route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freeing connection, hostConfig=" + route);
@@ -1020,7 +1019,7 @@ public class ThreadSafeClientConnManager
         public ConnectionPool connectionPool;
 
         /** The connection's host configuration */
-        public HostConfiguration hostConfiguration;
+        public HttpRoute hostConfiguration;
     }
     
     /**
@@ -1029,7 +1028,7 @@ public class ThreadSafeClientConnManager
      */
     private static class HostConnectionPool {
         /** The hostConfig this pool is for */
-        public HostConfiguration hostConfiguration;
+        public HttpRoute hostConfiguration;
         
         /** The list of free connections */
         public LinkedList freeConnections = new LinkedList();
@@ -1136,8 +1135,9 @@ public class ThreadSafeClientConnManager
      */
     private class TrackingPoolEntry extends AbstractPoolEntry {
 
+        //@@@ move to base class
         /** The route for which this entry gets allocated. */
-        private HostConfiguration plannedRoute;
+        private HttpRoute plannedRoute;
 
         /** The connection manager. */
         private ThreadSafeClientConnManager manager;

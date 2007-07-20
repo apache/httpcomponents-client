@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-618] eliminate class HostConfiguration
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-672] re-sync with API changes in core alpha6-SNAPSHOT
   Contributed by Roland Weber <rolandw at apache.org>
 

@@ -50,7 +50,7 @@ public class TestParams extends TestCase {
     public final static
         HttpHost TARGET1 = new HttpHost("target1.test.invalid");
     public final static
-        HostConfiguration HOSTCFG1 = new HostConfiguration(TARGET1,null,null);
+        HttpRoute ROUTE1 = new HttpRoute(TARGET1);
 
 
     public TestParams(String testName) {
@@ -82,7 +82,7 @@ public class TestParams extends TestCase {
 
         try {
             HttpConnectionManagerParams.
-                setMaxConnectionsPerHost(null, HOSTCFG1, 3);
+                setMaxConnectionsPerHost(null, ROUTE1, 3);
             fail();
         } catch (IllegalArgumentException iax) {
             // expected
@@ -90,7 +90,7 @@ public class TestParams extends TestCase {
 
         try {
             HttpConnectionManagerParams.
-                setMaxConnectionsPerHost(params, HOSTCFG1, 0);
+                setMaxConnectionsPerHost(params, ROUTE1, 0);
             fail();
         } catch (IllegalArgumentException iax) {
             // expected
@@ -108,7 +108,7 @@ public class TestParams extends TestCase {
 
         try {
             HttpConnectionManagerParams.
-                getMaxConnectionsPerHost(null, HOSTCFG1);
+                getMaxConnectionsPerHost(null, ROUTE1);
             fail();
         } catch (IllegalArgumentException iax) {
             // expected
@@ -151,7 +151,7 @@ public class TestParams extends TestCase {
             getDefaultMaxConnectionsPerHost(params);
 
         int fmcph = HttpConnectionManagerParams.
-            getMaxConnectionsPerHost(params, HOSTCFG1);
+            getMaxConnectionsPerHost(params, ROUTE1);
 
         assertEquals(fdmcph, fmcph);
 
@@ -164,7 +164,7 @@ public class TestParams extends TestCase {
 
 
         int mcph = HttpConnectionManagerParams.
-            getMaxConnectionsPerHost(params, HOSTCFG1);
+            getMaxConnectionsPerHost(params, ROUTE1);
         assertEquals(ndmcph, mcph);
     }
 

@@ -356,28 +356,6 @@ public final class RouteTracker implements Cloneable {
 
 
     /**
-     * Obtains the tracked route.
-     * <br/><b>Note:</b>
-     * Currently, {@link HostConfiguration HostConfiguration} is used to
-     * represent the route. It does not cover all tracked attributes.
-     * In particular, it can not represent intermediate steps in establishing
-     * a route.
-     *
-     * @deprecated use {@link #toRoute toRoute} instead. Kept temporarily
-     *  until {@link HttpRoute} takes over from {@link HostConfiguration}.
-     *
-     * @return  a representation of the route tracked so far
-     */
-    public final HostConfiguration toHostConfig() {
-        if ((this.proxyChain != null) && (this.proxyChain.length > 1)) {
-            throw new IllegalStateException("Cannot convert proxy chain.");
-        }
-        return new HostConfiguration
-            (this.targetHost, getProxyHost(), this.localAddress);
-    }
-
-
-    /**
      * Compares this tracked route to another.
      *
      * @param o         the object to compare with

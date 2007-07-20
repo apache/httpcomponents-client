@@ -37,7 +37,6 @@ import junit.framework.TestSuite;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.HostConfiguration;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
@@ -236,13 +235,8 @@ public class TestTSCCMNoServer extends TestCase {
         HttpParams params = createDefaultParams();
         HttpConnectionManagerParams.setMaxTotalConnections(params, 100);
         HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
-        //@@@ HostConfiguration is deprecated
-        //@@@ should it be mapped to HttpHost or HttpRoute here?
-        //@@@ provide setter in TSCCM, it is implementation specific
-        HttpConnectionManagerParams.setMaxConnectionsPerHost
-            (params, route2.toHostConfig(), 2);
-        HttpConnectionManagerParams.setMaxConnectionsPerHost
-            (params, route3.toHostConfig(), 3);
+        HttpConnectionManagerParams.setMaxConnectionsPerHost(params,route2, 2);
+        HttpConnectionManagerParams.setMaxConnectionsPerHost(params,route3, 3);
 
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
@@ -371,27 +365,26 @@ public class TestTSCCMNoServer extends TestCase {
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
-        HostConfiguration hcfg = route.toHostConfig(); //@@@ deprecated
 
         ManagedClientConnection conn = mgr.getConnection(route);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(hcfg), 1);
+                     mgr.getConnectionsInPool(route), 1);
         mgr.releaseConnection(conn);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(hcfg), 1);
+                     mgr.getConnectionsInPool(route), 1);
 
         mgr.closeIdleConnections(0L); // implicitly deletes them, too
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 0);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(hcfg), 0);
+                     mgr.getConnectionsInPool(route), 0);
 
         mgr.shutdown();
     }

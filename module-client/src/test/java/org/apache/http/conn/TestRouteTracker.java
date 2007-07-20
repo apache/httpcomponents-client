@@ -548,15 +548,6 @@ public class TestRouteTracker extends TestCase {
             rt = (RouteTracker) iter.next();
             final String rts = checkToString(rt);
             assertTrue("duplicate toString: " + rts, rtstrings.add(rts));
-
-            // it's scheduled for removal, but keep Clover happy...
-            try {
-                rt.toHostConfig();
-            } catch (IllegalStateException isx) {
-                if (rt.getHopCount() < 3)
-                    fail("could not get HostConfig for " + rt);
-                // else expected
-            }
         }
     }
 

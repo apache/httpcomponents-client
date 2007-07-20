@@ -581,21 +581,4 @@ public class TestHttpRoute extends TestCase {
     }
 
 
-    // for completeness, although it's deprecated
-    public void testHostConfig() {
-        // these tests are sloppy, the method is scheduled for removal anyway
-        HttpRoute route = new HttpRoute(TARGET1);
-        assertNotNull("no host config", route.toHostConfig());
-
-        route = new HttpRoute(TARGET2, null, new HttpHost[]{ PROXY1, PROXY2 },
-                              false, false, false);
-        try {
-            route.toHostConfig();
-            fail("proxy chain not detected");
-        } catch (IllegalStateException isx) {
-            // expected
-        }
-    }
-
-
 } // class TestHttpRoute

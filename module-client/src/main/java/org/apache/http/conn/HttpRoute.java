@@ -369,24 +369,6 @@ public final class HttpRoute implements Cloneable {
 
 
     /**
-     * Converts to the {@link HostConfiguration traditional} interface.
-     *
-     * @return  a host configuration matching this route as good as possible
-     *
-     * @deprecated No replacement.
-     *          This class will replace {@link HostConfiguration}
-     *          where routes need to be represented. No conversion necessary.
-     */
-    public final HostConfiguration toHostConfig() {
-        if ((this.proxyChain != null) && (this.proxyChain.length > 1)) {
-            throw new IllegalStateException("Cannot convert proxy chain.");
-        }
-        return new HostConfiguration
-            (this.targetHost, getProxyHost(), this.localAddress);
-    }
-
-
-    /**
      * Compares this route to another.
      *
      * @param o         the object to compare with
