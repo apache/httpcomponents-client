@@ -31,12 +31,8 @@
 package org.apache.http.mockup;
 
 import java.net.Socket;
-import java.net.InetAddress;
 
 import org.apache.http.conn.SecureSocketFactory;
-import org.apache.http.params.HttpParams;
-
-
 
 /**
  * {@link SecureSocketFactory} mockup implementation.

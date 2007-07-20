@@ -32,8 +32,6 @@ package org.apache.http.conn;
 
 
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.Iterator;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -199,7 +197,6 @@ public class TestRouteDirector extends TestCase {
         HttpHost[] chainA = { PROXY1 };
         HttpHost[] chainB = { PROXY1, PROXY2 };
         HttpHost[] chainC = { PROXY2, PROXY1 };
-        HttpHost[] chainD = { PROXY2 };
 
         RouteDirector rowdy = new RouteDirector();
         HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA,
@@ -210,7 +207,6 @@ public class TestRouteDirector extends TestCase {
                                             false, false, false);
         HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC,
                                             false, false, false);
-        HttpRoute route1c0  = new HttpRoute(TARGET1, null, false);
 
         int step = rowdy.nextStep(route1cA, null);
         assertEquals("wrong step to route1cA",

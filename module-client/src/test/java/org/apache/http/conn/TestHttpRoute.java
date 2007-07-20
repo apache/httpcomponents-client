@@ -245,7 +245,8 @@ public class TestHttpRoute extends TestCase {
         // for reference: this one should succeed
         HttpRoute route = new HttpRoute(TARGET1, null, chain1,
                                         false, true, false);
-
+        assertNotNull(route);
+        
         try {
             route = new HttpRoute(null, null, chain1,
                                   false, true, false);

@@ -55,7 +55,6 @@ public class TestAll extends TestCase {
         suite.addTest(TestAllConn.suite());
         suite.addTest(TestAllConnImpl.suite());
         suite.addTest(TestAllSSL.suite());        
-        suite.addTest(TestHttpState.suite());        
         return suite;
     }
 

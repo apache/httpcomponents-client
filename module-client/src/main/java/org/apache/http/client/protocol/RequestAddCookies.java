@@ -58,7 +58,7 @@ import org.apache.http.protocol.ExecutionContext;
 
 /**
  * Request interceptor that matches cookies available in the current
- * {@link HttpState} to the request being executed and generates 
+ * {@link CookieStore} to the request being executed and generates 
  * corresponding cookierequest headers.
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>

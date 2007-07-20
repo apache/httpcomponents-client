@@ -26,7 +26,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.client;
+package org.apache.http.impl.client;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -36,7 +36,7 @@ import junit.framework.*;
 
 /**
  * 
- * Simple tests for {@link HttpState}.
+ * Simple tests for {@link BasicCredentialsProvider}.
  *
  * @author Rodney Waldhoff
  * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
@@ -46,7 +46,7 @@ import junit.framework.*;
  * @version $Id$
  * 
  */
-public class TestHttpState extends TestCase {
+public class TestBasicCredentialsProvider extends TestCase {
 
     public final static Credentials CREDS1 = 
         new UsernamePasswordCredentials("user1", "pass1");
@@ -64,40 +64,40 @@ public class TestHttpState extends TestCase {
 
 
     // ------------------------------------------------------------ Constructor
-    public TestHttpState(String testName) {
+    public TestBasicCredentialsProvider(String testName) {
         super(testName);
     }
 
     // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestHttpState.class.getName() };
+        String[] testCaseName = { TestBasicCredentialsProvider.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
     // ------------------------------------------------------- TestCase Methods
 
     public static Test suite() {
-        return new TestSuite(TestHttpState.class);
+        return new TestSuite(TestBasicCredentialsProvider.class);
     }
 
 
     // ----------------------------------------------------------- Test Methods
 
-    public void testHttpStateCredentials() {
-        HttpState state = new HttpState();
+    public void testBasicCredentialsProviderCredentials() {
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(SCOPE1, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
         assertEquals(CREDS1, state.getCredentials(SCOPE1));
         assertEquals(CREDS2, state.getCredentials(SCOPE2));
     }
 
-    public void testHttpStateNoCredentials() {
-        HttpState state = new HttpState();
+    public void testBasicCredentialsProviderNoCredentials() {
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         assertEquals(null, state.getCredentials(BOGUS));
     }
 
-    public void testHttpStateDefaultCredentials() {
-        HttpState state = new HttpState();
+    public void testBasicCredentialsProviderDefaultCredentials() {
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
 	    state.setCredentials(AuthScope.ANY, CREDS1);
 	    state.setCredentials(SCOPE2, CREDS2);
         assertEquals(CREDS1, state.getCredentials(BOGUS));
@@ -106,7 +106,7 @@ public class TestHttpState extends TestCase {
     // --------------------------------- Test Methods for Selecting Credentials
     
     public void testDefaultCredentials() throws Exception {
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(AuthScope.ANY, expected);
         Credentials got = state.getCredentials(DEFSCOPE);
@@ -114,7 +114,7 @@ public class TestHttpState extends TestCase {
     }
     
     public void testRealmCredentials() throws Exception {
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(DEFSCOPE, expected);
         Credentials got = state.getCredentials(DEFSCOPE);
@@ -122,7 +122,7 @@ public class TestHttpState extends TestCase {
     }
     
     public void testHostCredentials() throws Exception {
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, AuthScope.ANY_REALM), expected);
@@ -131,7 +131,7 @@ public class TestHttpState extends TestCase {
     }
     
     public void testWrongHostCredentials() throws Exception {
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(
             new AuthScope("host1", AuthScope.ANY_PORT, "realm"), expected);
@@ -141,7 +141,7 @@ public class TestHttpState extends TestCase {
     }
     
     public void testWrongRealmCredentials() throws Exception {
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials cred = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, "realm1"), cred);
@@ -196,7 +196,7 @@ public class TestHttpState extends TestCase {
         AuthScope scope2 = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm");
         AuthScope scope3 = new AuthScope("somehost", AuthScope.ANY_PORT, AuthScope.ANY_REALM);
         
-        HttpState state = new HttpState();
+        BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(scope1, creds1);
         state.setCredentials(scope2, creds2);
         state.setCredentials(scope3, creds3);

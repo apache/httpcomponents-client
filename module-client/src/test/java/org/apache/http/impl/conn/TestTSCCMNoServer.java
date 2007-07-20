@@ -197,7 +197,9 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route2 = new HttpRoute(target2, null, false);
 
         ManagedClientConnection conn1 = mgr.getConnection(route1);
+        assertNotNull(conn1);
         ManagedClientConnection conn2 = mgr.getConnection(route2);
+        assertNotNull(conn2);
 
         try {
             // this should fail quickly, connection has not been released
@@ -242,8 +244,11 @@ public class TestTSCCMNoServer extends TestCase {
 
         // route 3, limit 3
         ManagedClientConnection conn1 = mgr.getConnection(route3, 10L);
+        assertNotNull(conn1);
         ManagedClientConnection conn2 = mgr.getConnection(route3, 10L);
+        assertNotNull(conn2);
         ManagedClientConnection conn3 = mgr.getConnection(route3, 10L);
+        assertNotNull(conn3);
         try {
             // should fail quickly, connection has not been released
             mgr.getConnection(route3, 10L);
