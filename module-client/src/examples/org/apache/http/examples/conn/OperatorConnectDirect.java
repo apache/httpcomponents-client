@@ -49,7 +49,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpExecutionContext;
+import org.apache.http.protocol.BasicHttpContext;
 
 
 
@@ -188,7 +188,7 @@ public class OperatorConnectDirect {
      * @return  a new, empty context
      */
     private final static HttpContext createContext() {
-        return new HttpExecutionContext(null);
+        return new BasicHttpContext(null);
     }
 
 } // class OperatorConnectDirect

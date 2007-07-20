@@ -35,7 +35,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
@@ -48,6 +47,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -110,7 +110,7 @@ public class ClientMultiThreadedExecution {
         
         public GetThread(HttpClient httpClient, HttpGet httpget, int id) {
             this.httpClient = httpClient;
-            this.context = new HttpClientContext(httpClient.getDefaultContext());
+            this.context = new BasicHttpContext(httpClient.getDefaultContext());
             this.httpget = httpget;
             this.id = id;
         }

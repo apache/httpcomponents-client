@@ -36,10 +36,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpState;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
+
 
 /**
  * This example demonstrates the use of a local HTTP context populated with 
@@ -57,9 +59,9 @@ public class ClientCustomContext {
         // Obtain default HTTP context
         HttpContext defaultContext = httpclient.getDefaultContext();
         // Create local HTTP context
-        HttpContext localContext = new HttpClientContext(defaultContext);
+        HttpContext localContext = new BasicHttpContext(defaultContext);
         // Bind custom HTTP state to the local context
-        localContext.setAttribute(HttpClientContext.HTTP_STATE, localState);
+        localContext.setAttribute(ClientContext.HTTP_STATE, localState);
         
         HttpGet httpget = new HttpGet("http://www.google.com/"); 
 

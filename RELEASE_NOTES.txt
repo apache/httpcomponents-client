@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCORE-100] revised HttpContext hierarchy
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-618] eliminate class HostConfiguration
   Contributed by Roland Weber <rolandw at apache.org>
 
