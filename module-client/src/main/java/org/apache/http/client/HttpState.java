@@ -60,7 +60,7 @@ import org.apache.http.cookie.CookieIdentityComparator;
  * @version $Revision$ $Date$
  * 
  */
-public class HttpState implements CookieStore {
+public class HttpState implements CookieStore, CredentialsProvider {
 
     // ----------------------------------------------------- Instance Variables
 
