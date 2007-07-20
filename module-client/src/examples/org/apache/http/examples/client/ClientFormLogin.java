@@ -64,7 +64,7 @@ public class ClientFormLogin {
             entity.consumeContent();
         }
         System.out.println("Initial set of cookies:");    
-        Cookie[] cookies = httpclient.getState().getCookies();
+        Cookie[] cookies = httpclient.getCookieStore().getCookies();
         if (cookies.length == 0) {
             System.out.println("None");    
         } else {
@@ -94,7 +94,7 @@ public class ClientFormLogin {
         }
         
         System.out.println("Post logon cookies:");    
-        cookies = httpclient.getState().getCookies();
+        cookies = httpclient.getCookieStore().getCookies();
         if (cookies.length == 0) {
             System.out.println("None");    
         } else {

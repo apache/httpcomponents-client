@@ -48,7 +48,7 @@ public class ClientProxyAuthentication {
         
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
-        httpclient.getState().setCredentials(
+        httpclient.getCredentialsProvider().setCredentials(
                 new AuthScope("localhost", 8080), 
                 new UsernamePasswordCredentials("username", "password"));
 

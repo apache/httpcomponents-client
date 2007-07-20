@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-666] Replaced HttpState with CredentialsProvier and CookieStore interfaces 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCORE-100] revised HttpContext hierarchy
   Contributed by Roland Weber <rolandw at apache.org>
 

@@ -38,8 +38,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.VersionInfo;
@@ -238,8 +239,13 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
 
-    protected HttpState createHttpState() {
-        return new HttpState();
+    protected CookieStore createCookieStore() {
+        return new BasicCookieStore();
+    }
+
+
+    protected CredentialsProvider createCredentialsProvider() {
+        return new BasicCredentialsProvider();
     }
 
 
@@ -252,10 +258,10 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 getCookieSpecs());
         context.setAttribute(
                 ClientContext.COOKIE_STORE, 
-                getState());
+                getCookieStore());
         context.setAttribute(
                 ClientContext.CREDS_PROVIDER, 
-                getState());
+                getCredentialsProvider());
     }
 
 

@@ -41,9 +41,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-
 
 
 /**

@@ -45,9 +45,10 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.HttpState;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -107,8 +108,11 @@ public abstract class AbstractHttpClient
     /** The authentication handler. */
     private AuthenticationHandler authHandler;
 
-    /** The default HTTP state. */
-    private HttpState defaultState;
+    /** The cookie store. */
+    private CookieStore cookieStore;
+
+    /** The credentials provider. */
+    private CredentialsProvider credsProvider;
 
     /**
      * Creates a new HTTP client.
@@ -154,7 +158,10 @@ public abstract class AbstractHttpClient
     protected abstract AuthenticationHandler createAuthenticationHandler();
 
     
-    protected abstract HttpState createHttpState();
+    protected abstract CookieStore createCookieStore();
+    
+    
+    protected abstract CredentialsProvider createCredentialsProvider();
     
     
     protected abstract void populateContext(HttpContext context);
@@ -271,16 +278,29 @@ public abstract class AbstractHttpClient
     }
 
 
-    public synchronized final HttpState getState() {
-        if (defaultState == null) {
-            defaultState = createHttpState();
+    public synchronized final CookieStore getCookieStore() {
+        if (cookieStore == null) {
+            cookieStore = createCookieStore();
         }
-        return defaultState;
+        return cookieStore;
     }
 
 
-    public synchronized void setState(final HttpState state) {
-        defaultState = state;
+    public synchronized void setCookieStore(final CookieStore cookieStore) {
+        this.cookieStore = cookieStore;
+    }
+
+
+    public synchronized final CredentialsProvider getCredentialsProvider() {
+        if (credsProvider == null) {
+            credsProvider = createCredentialsProvider();
+        }
+        return credsProvider;
+    }
+
+
+    public synchronized void setState(final CredentialsProvider credsProvider) {
+        this.credsProvider = credsProvider;
     }
 
 

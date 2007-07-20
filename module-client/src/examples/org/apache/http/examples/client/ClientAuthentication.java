@@ -47,7 +47,7 @@ public class ClientAuthentication {
     public static void main(String[] args) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
-        httpclient.getState().setCredentials(
+        httpclient.getCredentialsProvider().setCredentials(
                 new AuthScope("localhost", 443), 
                 new UsernamePasswordCredentials("username", "password"));
         
