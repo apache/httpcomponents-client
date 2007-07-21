@@ -212,9 +212,7 @@ public class ThreadSafeClientConnManager
         
         synchronized (connectionPool) {
 
-            // we used to clone the hostconfig here, but it is now immutable:
-            //route = new HttpRoute(route);
-            RouteConnPool routePool = connectionPool.getHostPool(route);
+            RouteConnPool routePool = connectionPool.getRoutePool(route);
             WaitingThread waitingThread = null;
 
             boolean useTimeout = (timeout > 0);
@@ -241,7 +239,7 @@ public class ThreadSafeClientConnManager
 
                     entry = createPoolEntry(route);
 
-                // have room to add host connection, and there is at least one
+                // have room to add a connection, and there is at least one
                 // free connection that can be liberated to make overall room
                 //
                 } else if ((routePool.numConnections < maxHostConnections) 
@@ -594,17 +592,18 @@ public class ThreadSafeClientConnManager
     }
 
     /**
-     * Gets the total number of pooled connections for the given host configuration.  This 
-     * is the total number of connections that have been created and are still in use 
-     * by this connection manager for the host configuration.  This value will
-     * not exceed the maximum number of connections per host.
+     * Gets the total number of pooled connections for the given route.
+     * This is the total number of connections that have been created and
+     * are still in use by this connection manager for the route.
+     * This value will not exceed the maximum number of connections per host.
      * 
-     * @param route The host configuration
-     * @return The total number of pooled connections
+     * @param route     the route in question
+     *
+     * @return  the total number of pooled connections for that route
      */
     public int getConnectionsInPool(HttpRoute route) {
         synchronized (connectionPool) {
-            RouteConnPool routePool = connectionPool.getHostPool(route);
+            RouteConnPool routePool = connectionPool.getRoutePool(route);
             return routePool.numConnections;
         }
     }
@@ -681,7 +680,7 @@ public class ThreadSafeClientConnManager
          * Map where keys are {@link HttpRoute}s and values are
          * {@link RouteConnPool}s
          */
-        private final Map mapHosts = new HashMap();
+        private final Map mapRoutes = new HashMap();
 
         private IdleConnectionHandler idleConnectionHandler = new IdleConnectionHandler();        
         
@@ -713,8 +712,7 @@ public class ThreadSafeClientConnManager
                 waiter.thread.interrupt();
             }
             
-            // clear out map hosts
-            mapHosts.clear();
+            mapRoutes.clear();
             
             // remove all references to connections
             idleConnectionHandler.removeAll();
@@ -735,7 +733,7 @@ public class ThreadSafeClientConnManager
             TrackingPoolEntry createEntry(HttpRoute route,
                                           OperatedClientConnection conn) {
 
-            RouteConnPool routePool = getHostPool(route);
+            RouteConnPool routePool = getRoutePool(route);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Allocating new connection, route=" + route);
             }
@@ -756,18 +754,18 @@ public class ThreadSafeClientConnManager
          * Decrements any connection counts and notifies waiting threads,
          * if appropriate.
          * 
-         * @param config the host configuration of the connection that was lost
+         * @param config        the route of the connection that was lost
          */
         public synchronized
-            void handleLostConnection(HttpRoute config) {
+            void handleLostConnection(HttpRoute route) {
 
-            RouteConnPool routePool = getHostPool(config);
+            RouteConnPool routePool = getRoutePool(route);
             routePool.numConnections--;
             if (routePool.numConnections < 1)
-                mapHosts.remove(config);
+                mapRoutes.remove(route);
 
             numConnections--;
-            notifyWaitingThread(config);
+            notifyWaitingThread(route);
         }
 
         /**
@@ -777,16 +775,16 @@ public class ThreadSafeClientConnManager
          * @return a pool (list) of connections available for the given route
          */
         public synchronized
-            RouteConnPool getHostPool(HttpRoute route) {
+            RouteConnPool getRoutePool(HttpRoute route) {
 
             // Look for a list of connections for the given config
             RouteConnPool listConnections =
-                (RouteConnPool) mapHosts.get(route);
+                (RouteConnPool) mapRoutes.get(route);
             if (listConnections == null) {
                 // First time for this config
                 listConnections = new RouteConnPool();
                 listConnections.route = route;
-                mapHosts.put(route, listConnections);
+                mapRoutes.put(route, listConnections);
             }
 
             return listConnections;
@@ -794,20 +792,23 @@ public class ThreadSafeClientConnManager
 
 
         /**
-         * If available, get a free connection for this host
+         * If available, get a free connection for a route.
          *
-         * @param route the configuraton for the connection pool
-         * @return an available connection for the given config
+         * @param route         the planned route
+         *
+         * @return an available connection for the given route
          */
         public synchronized TrackingPoolEntry getFreeConnection(HttpRoute route) {
 
             TrackingPoolEntry entry = null;
 
-            RouteConnPool routePool = getHostPool(route);
+            RouteConnPool routePool = getRoutePool(route);
 
             if (routePool.freeConnections.size() > 0) {
-                entry = (TrackingPoolEntry) routePool.freeConnections.removeLast();
+                entry = (TrackingPoolEntry)
+                    routePool.freeConnections.removeLast();
                 freeConnections.remove(entry);
+
                 // store a reference to this entry so that it can be cleaned up
                 // in the event it is not correctly released
                 storeReferenceToConnection(entry, route, this);
@@ -870,13 +871,13 @@ public class ThreadSafeClientConnManager
 
             closeConnection(entry.connection);
 
-            RouteConnPool routePool = getHostPool(route);
+            RouteConnPool routePool = getRoutePool(route);
             
             routePool.freeConnections.remove(entry);
             routePool.numConnections--;
             numConnections--;
             if (routePool.numConnections < 1)
-                mapHosts.remove(route);
+                mapRoutes.remove(route);
 
             // remove the connection from the timeout handler
             idleConnectionHandler.remove(entry.connection);
@@ -898,39 +899,44 @@ public class ThreadSafeClientConnManager
         }
 
         /**
-         * Notifies a waiting thread that a connection for the given configuration is 
-         * available.
-         * @param configuration the host config to use for notifying
+         * Notifies a waiting thread that a connection is available, by route.
+         *
+         * @param route         the route for which to notify
+         *
          * @see #notifyWaitingThread(RouteConnPool)
          */
-        public synchronized void notifyWaitingThread(HttpRoute configuration) {
-            notifyWaitingThread(getHostPool(configuration));
+        public synchronized void notifyWaitingThread(HttpRoute route) {
+            notifyWaitingThread(getRoutePool(route));
         }
 
+
         /**
-         * Notifies a waiting thread that a connection for the given configuration is 
-         * available.  This will wake a thread waiting in this host pool or if there is not
-         * one a thread in the connection pool will be notified.
+         * Notifies a waiting thread that a connection is available.
+         * This will wake a thread waiting in the specific route pool,
+         * if there is one.
+         * Otherwise, a thread in the connection pool will be notified.
          * 
-         * @param routePool the host pool to use for notifying
+         * @param routePool     the pool in which to notify
          */
         public synchronized void notifyWaitingThread(RouteConnPool routePool) {
 
-            // find the thread we are going to notify, we want to ensure that each
-            // waiting thread is only interrupted once so we will remove it from 
-            // all wait queues before interrupting it
+            //@@@ while this strategy provides for best connection re-use,
+            //@@@ is it fair? only do this if the connection is open?
+            // Find the thread we are going to notify. We want to ensure that
+            // each waiting thread is only interrupted once, so we will remove
+            // it from all wait queues before interrupting.
             WaitingThread waitingThread = null;
-                
+
             if (routePool.waitingThreads.size() > 0) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Notifying thread waiting on host pool, route=" 
+                    LOG.debug("Notifying thread waiting on pool. " 
                         + routePool.route);
                 }
                 waitingThread = (WaitingThread) routePool.waitingThreads.removeFirst();
                 waitingThreads.remove(waitingThread);
             } else if (waitingThreads.size() > 0) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("No-one waiting on host pool, notifying next waiting thread.");
+                    LOG.debug("No-one waiting on route pool, notifying next waiting thread.");
                 }
                 waitingThread = (WaitingThread) waitingThreads.removeFirst();
                 waitingThread.pool.waitingThreads.remove(waitingThread);
@@ -966,15 +972,14 @@ public class ThreadSafeClientConnManager
                     return;
                 }
                 
-                RouteConnPool routePool = getHostPool(route);
+                RouteConnPool routePool = getRoutePool(route);
 
                 // Put the connection back in the available list
                 // and notify a waiter
                 routePool.freeConnections.add(entry);
                 if (routePool.numConnections == 0) {
-                    // for some reason this connection pool didn't already exist
-                    LOG.error("Host connection pool not found, route=" 
-                              + route);
+                    // for some reason this pool didn't already exist
+                    LOG.error("Route connection pool not found. " + route);
                     routePool.numConnections = 1;
                 }
 
@@ -984,9 +989,8 @@ public class ThreadSafeClientConnManager
                 // manager can be GCed.
                 removeReferenceToConnection(entry);
                 if (numConnections == 0) {
-                    // for some reason this connection pool didn't already exist
-                    LOG.error("Host connection pool not found, route=" 
-                              + route);
+                    // for some reason this pool didn't already exist
+                    LOG.error("Route connection pool not found. " + route);
                     numConnections = 1;
                 }
 
@@ -1016,7 +1020,7 @@ public class ThreadSafeClientConnManager
         /** The connection pool that created the connection */
         public ConnectionPool connectionPool;
 
-        /** The connection's host configuration */
+        /** The connection's planned route. */
         public HttpRoute route;
     }
     
@@ -1032,7 +1036,7 @@ public class ThreadSafeClientConnManager
         /** The list of free connections */
         public LinkedList freeConnections = new LinkedList();
         
-        /** The list of WaitingThreads for this host */
+        /** The list of WaitingThreads for this pool. */
         public LinkedList waitingThreads = new LinkedList();
 
         /** The number of created connections */
