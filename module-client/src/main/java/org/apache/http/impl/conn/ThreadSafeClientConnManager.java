@@ -73,8 +73,8 @@ import org.apache.http.params.HttpParams;
 public class ThreadSafeClientConnManager
     implements ClientConnectionManager {
 
-
-    private static final Log LOG =
+    //@@@ LOG must be static for now, it's used in static methods
+    private final static Log LOG =
         LogFactory.getLog(ThreadSafeClientConnManager.class);
 
     /**
@@ -264,7 +264,7 @@ public class ThreadSafeClientConnManager
                         }
                         
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Unable to get a connection, waiting..., hostConfig=" + route);
+                            LOG.debug("Unable to get a connection, waiting..., route=" + route);
                         }
                         
                         if (waitingThread == null) {
@@ -481,20 +481,20 @@ public class ThreadSafeClientConnManager
      * keeps a strong reference.
      * 
      * @param connection        the pool entry to store a reference for
-     * @param hostConfiguration the connection's route
+     * @param route             the connection's planned route
      * @param connectionPool    the connection pool that created the entry
      * 
      * @see #removeReferenceToConnection
      */
     private static void storeReferenceToConnection(
         TrackingPoolEntry connection,
-        HttpRoute hostConfiguration,
+        HttpRoute route,
         ConnectionPool connectionPool
     ) {
 
         ConnectionSource source = new ConnectionSource();
         source.connectionPool = connectionPool;
-        source.hostConfiguration = hostConfiguration;
+        source.route = route;
 
         synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
 
@@ -599,12 +599,12 @@ public class ThreadSafeClientConnManager
      * by this connection manager for the host configuration.  This value will
      * not exceed the maximum number of connections per host.
      * 
-     * @param hostConfiguration The host configuration
+     * @param route The host configuration
      * @return The total number of pooled connections
      */
-    public int getConnectionsInPool(HttpRoute hostConfiguration) {
+    public int getConnectionsInPool(HttpRoute route) {
         synchronized (connectionPool) {
-            HostConnectionPool hostPool = connectionPool.getHostPool(hostConfiguration);
+            HostConnectionPool hostPool = connectionPool.getHostPool(route);
             return hostPool.numConnections;
         }
     }
@@ -737,7 +737,7 @@ public class ThreadSafeClientConnManager
 
             HostConnectionPool hostPool = getHostPool(route);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Allocating new connection, hostConfiguration=" + route);
+                LOG.debug("Allocating new connection, route=" + route);
             }
             TrackingPoolEntry entry = new TrackingPoolEntry(conn);
             entry.plannedRoute = route;
@@ -785,7 +785,7 @@ public class ThreadSafeClientConnManager
             if (listConnections == null) {
                 // First time for this config
                 listConnections = new HostConnectionPool();
-                listConnections.hostConfiguration = route;
+                listConnections.route = route;
                 mapHosts.put(route, listConnections);
             }
 
@@ -796,30 +796,30 @@ public class ThreadSafeClientConnManager
         /**
          * If available, get a free connection for this host
          *
-         * @param hostConfiguration the configuraton for the connection pool
+         * @param route the configuraton for the connection pool
          * @return an available connection for the given config
          */
-        public synchronized TrackingPoolEntry getFreeConnection(HttpRoute hostConfiguration) {
+        public synchronized TrackingPoolEntry getFreeConnection(HttpRoute route) {
 
             TrackingPoolEntry entry = null;
 
-            HostConnectionPool hostPool = getHostPool(hostConfiguration);
+            HostConnectionPool hostPool = getHostPool(route);
 
             if (hostPool.freeConnections.size() > 0) {
                 entry = (TrackingPoolEntry) hostPool.freeConnections.removeLast();
                 freeConnections.remove(entry);
                 // store a reference to this entry so that it can be cleaned up
                 // in the event it is not correctly released
-                storeReferenceToConnection(entry, hostConfiguration, this);
+                storeReferenceToConnection(entry, route, this);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Getting free connection, hostConfig=" + hostConfiguration);
+                    LOG.debug("Getting free connection, route=" + route);
                 }
 
                 // remove the connection from the timeout handler
                 idleConnectionHandler.remove(entry.connection);
             } else if (LOG.isDebugEnabled()) {
-                LOG.debug("There were no free connections to get, hostConfig=" 
-                    + hostConfiguration);
+                LOG.debug("There were no free connections to get, route=" 
+                    + route);
             }
             return entry;
         }
@@ -865,7 +865,7 @@ public class ThreadSafeClientConnManager
             HttpRoute route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Reclaiming connection, hostConfig=" + route);
+                LOG.debug("Reclaiming connection, route=" + route);
             }
 
             closeConnection(entry.connection);
@@ -923,8 +923,8 @@ public class ThreadSafeClientConnManager
                 
             if (hostPool.waitingThreads.size() > 0) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Notifying thread waiting on host pool, hostConfig=" 
-                        + hostPool.hostConfiguration);
+                    LOG.debug("Notifying thread waiting on host pool, route=" 
+                        + hostPool.route);
                 }
                 waitingThread = (WaitingThread) hostPool.waitingThreads.removeFirst();
                 waitingThreads.remove(waitingThread);
@@ -954,7 +954,7 @@ public class ThreadSafeClientConnManager
             HttpRoute route = entry.plannedRoute;
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Freeing connection, hostConfig=" + route);
+                LOG.debug("Freeing connection, route=" + route);
             }
 
             synchronized (this) {
@@ -973,7 +973,7 @@ public class ThreadSafeClientConnManager
                 hostPool.freeConnections.add(entry);
                 if (hostPool.numConnections == 0) {
                     // for some reason this connection pool didn't already exist
-                    LOG.error("Host connection pool not found, hostConfig=" 
+                    LOG.error("Host connection pool not found, route=" 
                               + route);
                     hostPool.numConnections = 1;
                 }
@@ -985,7 +985,7 @@ public class ThreadSafeClientConnManager
                 removeReferenceToConnection(entry);
                 if (numConnections == 0) {
                     // for some reason this connection pool didn't already exist
-                    LOG.error("Host connection pool not found, hostConfig=" 
+                    LOG.error("Host connection pool not found, route=" 
                               + route);
                     numConnections = 1;
                 }
@@ -1017,7 +1017,7 @@ public class ThreadSafeClientConnManager
         public ConnectionPool connectionPool;
 
         /** The connection's host configuration */
-        public HttpRoute hostConfiguration;
+        public HttpRoute route;
     }
     
     /**
@@ -1025,8 +1025,9 @@ public class ThreadSafeClientConnManager
      * of created connections.
      */
     private static class HostConnectionPool {
-        /** The hostConfig this pool is for */
-        public HttpRoute hostConfiguration;
+
+        /** The route this pool is for */
+        public HttpRoute route;
         
         /** The list of free connections */
         public LinkedList freeConnections = new LinkedList();
@@ -1098,11 +1099,11 @@ public class ThreadSafeClientConnManager
             if (source != null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(
-                        "Connection reclaimed by garbage collector, hostConfig=" 
-                        + source.hostConfiguration);
+                        "Connection reclaimed by garbage collector, route=" 
+                        + source.route);
                 }
                 
-                source.connectionPool.handleLostConnection(source.hostConfiguration);
+                source.connectionPool.handleLostConnection(source.route);
             }
         }
 
