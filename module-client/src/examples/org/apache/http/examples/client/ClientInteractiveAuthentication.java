@@ -82,7 +82,8 @@ public class ClientInteractiveAuthentication {
             if (sc == HttpStatus.SC_UNAUTHORIZED) {
                 // Target host authentication required
                 authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
-            } if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+            } 
+            if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
                 // Proxy authentication required
                 authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
             }
