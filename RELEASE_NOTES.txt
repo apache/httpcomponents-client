@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-674] use org.apache.http.util.VersionInfo instead of a local one
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-666] Replaced HttpState with CredentialsProvier and CookieStore interfaces 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

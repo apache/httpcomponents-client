@@ -43,7 +43,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
-import org.apache.http.client.VersionInfo;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
@@ -79,6 +78,7 @@ import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.protocol.SyncBasicHttpContext;
+import org.apache.http.util.VersionInfo;
 
 
 
@@ -127,10 +127,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, 
                 HTTP.DEFAULT_CONTENT_CHARSET);
-        HttpProtocolParams.setUserAgent(params, 
-                "Apache-HttpClient/" + VersionInfo.getReleaseVersion() + " (java 1.4)");
         HttpProtocolParams.setUseExpectContinue(params, 
                 true);
+
+        // determine the release version from packaged version info
+        final VersionInfo vi = VersionInfo.loadVersionInfo
+            ("org.apache.http.client", getClass().getClassLoader());
+        final String release = (vi != null) ?
+            vi.getRelease() : VersionInfo.UNAVAILABLE;
+        HttpProtocolParams.setUserAgent(params, 
+                "Apache-HttpClient/" + release + " (java 1.4)");
+
         return params;
     }
 
