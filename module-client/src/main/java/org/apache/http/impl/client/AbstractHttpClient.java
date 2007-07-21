@@ -299,7 +299,7 @@ public abstract class AbstractHttpClient
     }
 
 
-    public synchronized void setState(final CredentialsProvider credsProvider) {
+    public synchronized void setCredentialsProvider(final CredentialsProvider credsProvider) {
         this.credsProvider = credsProvider;
     }
 
