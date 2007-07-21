@@ -346,18 +346,13 @@ public class SingleClientConnManager implements ClientConnectionManager {
      */
     protected class PoolEntry extends AbstractPoolEntry {
 
-        //@@@ move to base class when TSCCM is cleaned up
-        /** The route for which this entry gets allocated. */
-        protected HttpRoute plannedRoute;
-
-            
         /**
          * Creates a new pool entry.
          *
          * @param occ   the underlying connection for this entry
          */
         protected PoolEntry(OperatedClientConnection occ) {
-            super(occ);
+            super(occ, null);
         }
 
 

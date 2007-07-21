@@ -71,9 +71,11 @@ public abstract class AbstractPoolEntry {
     /** The underlying connection being pooled or used. */
     protected OperatedClientConnection connection;
 
-    //@@@ keep the planned route as HttpRoute when TSHCM is restructured
-    //@@@ /* * The route for which this entry gets allocated. */
-    //@@@ private HostConfiguration plannedRoute;
+    /** The route for which this entry gets allocated. */
+    //@@@ currently accessed from connection manager(s) as attribute
+    //@@@ avoid that, derived classes should decide whether update is allowed
+    //@@@ SCCM: yes, TSCCM: no
+    protected HttpRoute plannedRoute;
 
     /** The tracked route, or <code>null</code> before tracking starts. */
     protected RouteTracker tracker;
@@ -82,10 +84,14 @@ public abstract class AbstractPoolEntry {
     /**
      * Creates a new pool entry.
      *
-     * @param occ   the underlying connection for this entry
+     * @param occ     the underlying connection for this entry
+     * @param route   the planned route for the connection,
+     *                or <code>null</code>
      */
-    protected AbstractPoolEntry(OperatedClientConnection occ) {
+    protected AbstractPoolEntry(OperatedClientConnection occ,
+                                HttpRoute route) {
         this.connection = occ;
+        this.plannedRoute = route;
         this.tracker = null;
     }
 
