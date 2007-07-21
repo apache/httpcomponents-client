@@ -1184,6 +1184,9 @@ public class ThreadSafeClientConnManager
      * can be {@link #detach detach}ed to prevent further use on release.
      */
     private class HttpConnectionAdapter extends AbstractPooledConnAdapter {
+        //@@@ HTTPCLIENT-653
+        //@@@ this adapter being a nested class prevents proper detaching of
+        //@@@ the adapter from the manager, and therefore GC of the manager
 
         /**
          * Creates a new adapter.
