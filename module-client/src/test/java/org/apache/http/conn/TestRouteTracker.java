@@ -308,7 +308,7 @@ public class TestRouteTracker extends TestCase {
 
     public void testDirectRoutes() {
 
-        final RouteDirector rd = new RouteDirector();
+        final HttpRouteDirector rd = new BasicRouteDirector();
         HttpRoute r = new HttpRoute(TARGET1, LOCAL41, false);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 2);
@@ -323,7 +323,7 @@ public class TestRouteTracker extends TestCase {
 
     public void testProxyRoutes() {
 
-        final RouteDirector rd = new RouteDirector();
+        final HttpRouteDirector rd = new BasicRouteDirector();
         HttpRoute r = new HttpRoute(TARGET2, null, PROXY1, false);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 2);
@@ -351,7 +351,7 @@ public class TestRouteTracker extends TestCase {
 
     public void testProxyChainRoutes() {
 
-        final RouteDirector rd = new RouteDirector();
+        final HttpRouteDirector rd = new BasicRouteDirector();
         HttpHost[] proxies = { PROXY1, PROXY2 };
         HttpRoute r = new HttpRoute(TARGET2, LOCAL42, proxies,
                                     false, false, false);
@@ -566,7 +566,7 @@ public class TestRouteTracker extends TestCase {
 
     /**
      * Helper to check tracking of a route.
-     * This uses a {@link RouteDirector} to fake establishing the route,
+     * This uses a {@link HttpRouteDirector} to fake establishing the route,
      * checking the intermediate steps.
      *
      * @param rt        the tracker to check with
@@ -577,7 +577,7 @@ public class TestRouteTracker extends TestCase {
      * @return  <code>true</code> iff the route is complete
      */
     public final static boolean checkVia(RouteTracker rt, HttpRoute r,
-                                         RouteDirector rd, int steps) {
+                                         HttpRouteDirector rd, int steps) {
 
         final String msg = r.toString() + " @ " + rt.toString();
 
@@ -587,12 +587,12 @@ public class TestRouteTracker extends TestCase {
             int action = rd.nextStep(r, rt.toRoute());
             switch (action) {
 
-            case RouteDirector.COMPLETE:
+            case HttpRouteDirector.COMPLETE:
                 complete = true;
                 assertEquals(r, rt.toRoute());
                 break;
 
-            case RouteDirector.CONNECT_TARGET: {
+            case HttpRouteDirector.CONNECT_TARGET: {
                 final boolean sec = r.isSecure();
                 rt.connectTarget(sec);
                 checkCTLS(rt, true, false, false, sec);
@@ -602,7 +602,7 @@ public class TestRouteTracker extends TestCase {
                              r.getTargetHost(), rt.getHopTarget(0));
             } break;
 
-            case RouteDirector.CONNECT_PROXY: {
+            case HttpRouteDirector.CONNECT_PROXY: {
                 // we assume an insecure proxy connection
                 final boolean sec = false;
                 rt.connectProxy(r.getProxyHost(), sec);
@@ -615,7 +615,7 @@ public class TestRouteTracker extends TestCase {
                              r.getTargetHost(), rt.getHopTarget(1));
             } break;
 
-            case RouteDirector.TUNNEL_TARGET: {
+            case HttpRouteDirector.TUNNEL_TARGET: {
                 final int hops = rt.getHopCount();
                 // we assume an insecure tunnel
                 final boolean sec = false;
@@ -629,7 +629,7 @@ public class TestRouteTracker extends TestCase {
                              r.getTargetHost(), rt.getHopTarget(hops-1));
             } break;
 
-            case RouteDirector.TUNNEL_PROXY: {
+            case HttpRouteDirector.TUNNEL_PROXY: {
                 final int hops = rt.getHopCount(); // before tunnelling
                 // we assume an insecure tunnel
                 final boolean  sec = false;
@@ -648,7 +648,7 @@ public class TestRouteTracker extends TestCase {
                              r.getTargetHost(), rt.getHopTarget(hops));
             } break;
 
-            case RouteDirector.LAYER_PROTOCOL: {
+            case HttpRouteDirector.LAYER_PROTOCOL: {
                 final int    hops = rt.getHopCount();
                 final boolean tun = rt.isTunnelled();
                 final boolean sec = r.isSecure();

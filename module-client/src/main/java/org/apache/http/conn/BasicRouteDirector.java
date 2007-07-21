@@ -34,9 +34,8 @@ package org.apache.http.conn;
 
 
 /**
- * Provides directions on establishing a route.
- * Instances of this class compare a planned route with a tracked route
- * and indicate the next step required.
+ * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.
+ * This implementation is stateless and therefore thread-safe.
  * 
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
@@ -46,29 +45,7 @@ package org.apache.http.conn;
  *
  * @since 4.0
  */
-public class RouteDirector {
-
-    /** Indicates that the route can not be established at all. */
-    public final static int UNREACHABLE = -1;
-
-    /** Indicates that the route is complete. */
-    public final static int COMPLETE = 0;
-
-    /** Step: open connection to target. */
-    public final static int CONNECT_TARGET = 1;
-
-    /** Step: open connection to proxy. */
-    public final static int CONNECT_PROXY = 2;
-
-    /** Step: tunnel through proxy to target. */
-    public final static int TUNNEL_TARGET = 3;
-
-    /** Step: tunnel through proxy to other proxy. */
-    public final static int TUNNEL_PROXY = 4;
-
-    /** Step: layer protocol (over tunnel). */
-    public final static int LAYER_PROTOCOL = 5;
-
+public class BasicRouteDirector implements HttpRouteDirector {
 
     // public default constructor
 
@@ -201,4 +178,4 @@ public class RouteDirector {
     }
 
 
-} // class RouteDirector
+} // class BasicRouteDirector

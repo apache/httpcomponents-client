@@ -73,7 +73,8 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.RouteDirector;
+import org.apache.http.conn.HttpRouteDirector;
+import org.apache.http.conn.BasicRouteDirector;
 import org.apache.http.conn.Scheme;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
@@ -467,7 +468,7 @@ public class DefaultClientRequestDirector
         //@@@ probably not, because the parent is replaced
         //@@@ just make sure we don't link parameters to themselves
 
-        RouteDirector rowdy = new RouteDirector();
+        HttpRouteDirector rowdy = new BasicRouteDirector();
         int step;
         do {
             HttpRoute fact = managedConn.getRoute();
@@ -475,32 +476,32 @@ public class DefaultClientRequestDirector
 
             switch (step) {
 
-            case RouteDirector.CONNECT_TARGET:
-            case RouteDirector.CONNECT_PROXY:
+            case HttpRouteDirector.CONNECT_TARGET:
+            case HttpRouteDirector.CONNECT_PROXY:
                 managedConn.open(route, context, this.params);
                 break;
 
-            case RouteDirector.TUNNEL_TARGET:
+            case HttpRouteDirector.TUNNEL_TARGET:
                 boolean secure = createTunnel(route, context);
                 LOG.debug("Tunnel created");
                 managedConn.tunnelCreated(secure, this.params);
                 break;
 
-            case RouteDirector.TUNNEL_PROXY:
+            case HttpRouteDirector.TUNNEL_PROXY:
                 throw new UnsupportedOperationException
                     ("Proxy chains are not supported.");
 
-            case RouteDirector.LAYER_PROTOCOL:
+            case HttpRouteDirector.LAYER_PROTOCOL:
                 managedConn.layerProtocol(context, this.params);
                 break;
 
-            case RouteDirector.UNREACHABLE:
+            case HttpRouteDirector.UNREACHABLE:
                 throw new IllegalStateException
                     ("Unable to establish route." +
                      "\nplanned = " + route +
                      "\ncurrent = " + fact);
 
-            case RouteDirector.COMPLETE:
+            case HttpRouteDirector.COMPLETE:
                 // do nothing
                 break;
 
@@ -509,7 +510,7 @@ public class DefaultClientRequestDirector
                     ("Unknown step indicator "+step+" from RouteDirector.");
             } // switch
 
-        } while (step > RouteDirector.COMPLETE);
+        } while (step > HttpRouteDirector.COMPLETE);
 
     } // establishConnection
 
