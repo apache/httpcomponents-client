@@ -29,34 +29,67 @@
  *
  */
 
-package org.apache.http.cookie;
+package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
+import org.apache.http.cookie.Cookie;
+import org.apache.http.util.CharArrayBuffer;
+
 /**
+ * <p>
  * HTTP "magic-cookie" represents a piece of state information
  * that the HTTP agent and the target server can exchange to maintain 
  * a session.
+ * </p>
  * 
+ * @author B.C. Holmes
+ * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
+ * @author <a href="mailto:dsale@us.britannica.com">Doug Sale</a>
+ * @author Rod Waldhoff
+ * @author dIon Gillard
+ * @author Sean C. Sullivan
+ * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
+ * @author Marc A. Saegesser
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
- * @since 4.0
+ * @version $Revision$
  */
-public interface Cookie {
+public class BasicCookie implements Cookie {
+
+    /**
+     * Default Constructor taking a name and a value. The value may be null.
+     * 
+     * @param name The name.
+     * @param value The value.
+     */
+    public BasicCookie(final String name, final String value) {
+        super();
+        if (name == null) {
+            throw new IllegalArgumentException("Name may not be null");
+        }
+        this.name = name;
+        this.value = value;
+    }
 
     /**
      * Returns the name.
      *
      * @return String name The name
      */
-    String getName();
+    public String getName() {
+        return this.name;
+    }
 
     /**
      * Returns the value.
      *
      * @return String value The current value.
      */
-    String getValue();
+    public String getValue() {
+        return this.value;
+    }
 
     /**
      * Returns the comment describing the purpose of this cookie, or
@@ -66,7 +99,9 @@ public interface Cookie {
      *
      * @see #setComment(String)
      */
-    String getComment();
+    public String getComment() {
+        return cookieComment;
+    }
 
     /**
      * If a user agent (web browser) presents this cookie to a user, the
@@ -76,7 +111,9 @@ public interface Cookie {
      *  
      * @see #getComment()
      */
-    void setComment(String comment);
+    public void setComment(String comment) {
+        cookieComment = comment;
+    }
 
     /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
@@ -89,7 +126,9 @@ public interface Cookie {
      * @see #setExpiryDate(java.util.Date)
      *
      */
-    Date getExpiryDate();
+    public Date getExpiryDate() {
+        return cookieExpiryDate;
+    }
 
     /**
      * Sets expiration date.
@@ -102,7 +141,9 @@ public interface Cookie {
      * @see #getExpiryDate
      *
      */
-    void setExpiryDate (Date expiryDate);
+    public void setExpiryDate (Date expiryDate) {
+        cookieExpiryDate = expiryDate;
+    }
 
 
     /**
@@ -112,7 +153,9 @@ public interface Cookie {
      * @return <tt>false</tt> if the cookie should be discarded at the end
      *         of the "session"; <tt>true</tt> otherwise
      */
-    boolean isPersistent();
+    public boolean isPersistent() {
+        return (null != cookieExpiryDate);
+    }
 
 
     /**
@@ -122,7 +165,9 @@ public interface Cookie {
      *
      * @see #setDomain(java.lang.String)
      */
-    String getDomain();
+    public String getDomain() {
+        return cookieDomain;
+    }
 
     /**
      * Sets the domain attribute.
@@ -131,7 +176,13 @@ public interface Cookie {
      *
      * @see #getDomain
      */
-    void setDomain(String domain);
+    public void setDomain(String domain) {
+        if (domain != null) {
+            cookieDomain = domain.toLowerCase();
+        } else {
+            cookieDomain = null;
+        }
+    }
 
 
     /**
@@ -141,7 +192,9 @@ public interface Cookie {
      * 
      * @see #setPath(java.lang.String)
      */
-    String getPath();
+    public String getPath() {
+        return cookiePath;
+    }
 
     /**
      * Sets the path attribute.
@@ -151,13 +204,17 @@ public interface Cookie {
      * @see #getPath
      *
      */
-    void setPath(String path);
+    public void setPath(String path) {
+        cookiePath = path;
+    }
 
     /**
      * @return <code>true</code> if this cookie should only be sent over secure connections.
      * @see #setSecure(boolean)
      */
-    boolean isSecure();
+    public boolean isSecure() {
+        return isSecure;
+    }
 
     /**
      * Sets the secure attribute of the cookie.
@@ -171,7 +228,9 @@ public interface Cookie {
      * 
      * @see #isSecure()
      */
-    void setSecure (boolean secure);
+    public void setSecure (boolean secure) {
+        isSecure = secure;
+    }
 
     /**
      * Returns the version of the cookie specification to which this
@@ -182,7 +241,9 @@ public interface Cookie {
      * @see #setVersion(int)
      *
      */
-    int getVersion();
+    public int getVersion() {
+        return cookieVersion;
+    }
 
     /**
      * Sets the version of the cookie specification to which this
@@ -192,7 +253,9 @@ public interface Cookie {
      * 
      * @see #getVersion
      */
-    void setVersion(int version);
+    public void setVersion(int version) {
+        cookieVersion = version;
+    }
 
     /**
      * Returns true if this cookie has expired.
@@ -200,7 +263,13 @@ public interface Cookie {
      * 
      * @return <tt>true</tt> if the cookie has expired.
      */
-    boolean isExpired(final Date date);
+    public boolean isExpired(final Date date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date may not be null");
+        }
+        return (cookieExpiryDate != null  
+            && cookieExpiryDate.getTime() <= date.getTime());
+    }
 
     /**
      * Indicates whether the cookie had a path specified in a 
@@ -215,7 +284,9 @@ public interface Cookie {
      * 
      * @see #isPathAttributeSpecified
      */
-    public void setPathAttributeSpecified(boolean value);
+    public void setPathAttributeSpecified(boolean value) {
+        hasPathAttribute = value;
+    }
 
     /**
      * Returns <tt>true</tt> if cookie's path was set via a path attribute
@@ -226,7 +297,9 @@ public interface Cookie {
      * 
      * @see #setPathAttributeSpecified
      */
-    boolean isPathAttributeSpecified();
+    public boolean isPathAttributeSpecified() {
+        return hasPathAttribute;
+    }
 
     /**
      * Indicates whether the cookie had a domain specified in a 
@@ -241,7 +314,9 @@ public interface Cookie {
      *
      * @see #isDomainAttributeSpecified
      */
-    void setDomainAttributeSpecified(boolean value);
+    public void setDomainAttributeSpecified(boolean value) {
+        hasDomainAttribute = value;
+    }
 
     /**
      * Returns <tt>true</tt> if cookie's domain was set via a domain 
@@ -252,7 +327,69 @@ public interface Cookie {
      *
      * @see #setDomainAttributeSpecified
      */
-    boolean isDomainAttributeSpecified();
+    public boolean isDomainAttributeSpecified() {
+        return hasDomainAttribute;
+    }
+
+    public String toString() {
+        CharArrayBuffer buffer = new CharArrayBuffer(64);
+        buffer.append("[version: ");
+        buffer.append(Integer.toString(this.cookieVersion));
+        buffer.append("]");
+        buffer.append("[name: ");
+        buffer.append(this.name);
+        buffer.append("]");
+        buffer.append("[name: ");
+        buffer.append(this.value);
+        buffer.append("]");
+        buffer.append("[domain: ");
+        buffer.append(this.cookieDomain);
+        buffer.append("]");
+        buffer.append("[path: ");
+        buffer.append(this.cookiePath);
+        buffer.append("]");
+        buffer.append("[expiry: ");
+        buffer.append(this.cookieExpiryDate);
+        buffer.append("]");
+        return buffer.toString();
+    }
+    
+    
+   // ----------------------------------------------------- Instance Variables
+
+
+    private final String name;
+    private final String value;
+
+   /** Comment attribute. */
+   private String  cookieComment;
+
+   /** Domain attribute. */
+   private String  cookieDomain;
+
+   /** Expiration {@link Date}. */
+   private Date    cookieExpiryDate;
+
+   /** Path attribute. */
+   private String  cookiePath;
+
+   /** My secure flag. */
+   private boolean isSecure;
+
+   /**
+    * Specifies if the set-cookie header included a Path attribute for this
+    * cookie
+    */
+   private boolean hasPathAttribute = false;
+
+   /**
+    * Specifies if the set-cookie header included a Domain attribute for this
+    * cookie
+    */
+   private boolean hasDomainAttribute = false;
+
+   /** The version of the cookie specification I was created from. */
+   private int     cookieVersion = 0;
 
 }
 

@@ -32,6 +32,8 @@ package org.apache.http.cookie;
 
 import java.util.Comparator;
 
+import org.apache.http.impl.cookie.BasicCookie;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -55,9 +57,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testUnequality1() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath("/a/b/");
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/a/");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) < 0);
@@ -65,9 +67,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testUnequality2() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath("/a/b");
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/a");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) < 0);
@@ -75,9 +77,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testEquality1() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath("/a");
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/a");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
@@ -85,9 +87,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testEquality2() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath("/a/");
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/a");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
@@ -95,9 +97,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testEquality3() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath(null);
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
@@ -105,9 +107,9 @@ public class TestCookiePathComparator extends TestCase {
     }
 
     public void testEquality4() {
-        Cookie cookie1 = new Cookie("name1", "value");
+        Cookie cookie1 = new BasicCookie("name1", "value");
         cookie1.setPath("/this");
-        Cookie cookie2 = new Cookie("name1", "value");
+        Cookie cookie2 = new BasicCookie("name1", "value");
         cookie2.setPath("/that");
         Comparator comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
