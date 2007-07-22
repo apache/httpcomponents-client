@@ -34,6 +34,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 
 public class BasicPathHandler implements CookieAttributeHandler {
 
@@ -41,7 +42,7 @@ public class BasicPathHandler implements CookieAttributeHandler {
         super();
     }
     
-    public void parse(final Cookie cookie, String value) 
+    public void parse(final SetCookie cookie, String value) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");

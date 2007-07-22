@@ -34,7 +34,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -56,7 +55,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
 
     public void testNetscapeDomainValidate1() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
         
@@ -73,7 +72,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
 
     public void testNetscapeDomainValidate2() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
         
@@ -97,7 +96,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
 
     public void testNetscapeDomainValidate3() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
         
@@ -114,7 +113,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
 
     public void testNetscapeDomainValidate4() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
         
@@ -131,7 +130,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
     
     public void testNetscapeDomainMatch1() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
 
@@ -143,7 +142,7 @@ public class TestNetscapeCookieAttribHandlers extends TestCase {
     }
 
     public void testNetscapeDomainMatch2() throws Exception {
-        Cookie cookie = new BasicCookie("name", "value"); 
+        BasicCookie cookie = new BasicCookie("name", "value"); 
         CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false); 
         CookieAttributeHandler h = new NetscapeDomainHandler();
 

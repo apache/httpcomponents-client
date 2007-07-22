@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 
 public class BasicSecureHandler extends AbstractCookieAttributeHandler {
 
@@ -40,7 +41,7 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
         super();
     }
     
-    public void parse(final Cookie cookie, final String value) 
+    public void parse(final SetCookie cookie, final String value) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");

@@ -33,7 +33,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
-import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -56,7 +56,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @version $Revision$
  */
-public class BasicCookie implements Cookie {
+public class BasicCookie implements SetCookie {
 
     /**
      * Default Constructor taking a name and a value. The value may be null.

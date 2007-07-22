@@ -39,6 +39,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 
 /**
  * Cookie management functions shared by all specification.
@@ -78,7 +79,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
             
-            Cookie cookie = new BasicCookie(name, value);
+            SetCookie cookie = new BasicCookie(name, value);
             cookie.setPath(getDefaultPath(origin));
             cookie.setDomain(getDefaultDomain(origin));
             

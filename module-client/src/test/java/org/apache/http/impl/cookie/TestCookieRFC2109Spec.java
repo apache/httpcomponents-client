@@ -169,7 +169,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * browser compatibility mode.
      */
     public void testSecondDomainLevelCookie() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setPath("/");
         cookie.setDomainAttributeSpecified(true);
@@ -186,7 +186,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }    
 
     public void testSecondDomainLevelCookieMatch() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setPath("/");
         cookie.setDomainAttributeSpecified(true);
@@ -361,7 +361,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if null cookie values are handled correctly.
      */
     public void testNullCookieValueFormatting() {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
         cookie.setDomainAttributeSpecified(true);
@@ -383,7 +383,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
 
     public void testCookieNullDomainNullPathFormatting() {
-        Cookie cookie = new BasicCookie("name", null); 
+        BasicCookie cookie = new BasicCookie("name", null); 
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
         cookie.setPathAttributeSpecified(true);
@@ -403,16 +403,16 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
 
     public void testCookieOrderingByPath() {
-        Cookie c1 = new BasicCookie("name1", "value1");
+        BasicCookie c1 = new BasicCookie("name1", "value1");
         c1.setPath("/a/b/c");
         c1.setPathAttributeSpecified(true);
-        Cookie c2 = new BasicCookie("name2", "value2");
+        BasicCookie c2 = new BasicCookie("name2", "value2");
         c2.setPath("/a/b");
         c2.setPathAttributeSpecified(true);
-        Cookie c3 = new BasicCookie("name3", "value3");
+        BasicCookie c3 = new BasicCookie("name3", "value3");
         c3.setPath("/a");
         c3.setPathAttributeSpecified(true);
-        Cookie c4 = new BasicCookie("name4", "value4");
+        BasicCookie c4 = new BasicCookie("name4", "value4");
         c4.setPath("/");
         c4.setPathAttributeSpecified(true);
 

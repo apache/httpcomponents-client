@@ -32,8 +32,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
-import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 
 public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
 
@@ -41,7 +41,7 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
         super();
     }
     
-    public void parse(final Cookie cookie, final String value) 
+    public void parse(final SetCookie cookie, final String value) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");

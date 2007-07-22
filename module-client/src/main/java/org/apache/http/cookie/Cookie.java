@@ -69,16 +69,6 @@ public interface Cookie {
     String getComment();
 
     /**
-     * If a user agent (web browser) presents this cookie to a user, the
-     * cookie's purpose will be described using this comment.
-     * 
-     * @param comment
-     *  
-     * @see #getComment()
-     */
-    void setComment(String comment);
-
-    /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
      * if none exists.
      * <p><strong>Note:</strong> the object returned by this method is 
@@ -92,20 +82,6 @@ public interface Cookie {
     Date getExpiryDate();
 
     /**
-     * Sets expiration date.
-     * <p><strong>Note:</strong> the object returned by this method is considered
-     * immutable. Changing it (e.g. using setTime()) could result in undefined 
-     * behaviour. Do so at your peril.</p>
-     *
-     * @param expiryDate the {@link Date} after which this cookie is no longer valid.
-     *
-     * @see #getExpiryDate
-     *
-     */
-    void setExpiryDate (Date expiryDate);
-
-
-    /**
      * Returns <tt>false</tt> if the cookie should be discarded at the end
      * of the "session"; <tt>true</tt> otherwise.
      *
@@ -113,7 +89,6 @@ public interface Cookie {
      *         of the "session"; <tt>true</tt> otherwise
      */
     boolean isPersistent();
-
 
     /**
      * Returns domain attribute of the cookie.
@@ -125,16 +100,6 @@ public interface Cookie {
     String getDomain();
 
     /**
-     * Sets the domain attribute.
-     * 
-     * @param domain The value of the domain attribute
-     *
-     * @see #getDomain
-     */
-    void setDomain(String domain);
-
-
-    /**
      * Returns the path attribute of the cookie
      * 
      * @return The value of the path attribute.
@@ -144,34 +109,10 @@ public interface Cookie {
     String getPath();
 
     /**
-     * Sets the path attribute.
-     *
-     * @param path The value of the path attribute
-     *
-     * @see #getPath
-     *
-     */
-    void setPath(String path);
-
-    /**
      * @return <code>true</code> if this cookie should only be sent over secure connections.
      * @see #setSecure(boolean)
      */
     boolean isSecure();
-
-    /**
-     * Sets the secure attribute of the cookie.
-     * <p>
-     * When <tt>true</tt> the cookie should only be sent
-     * using a secure protocol (https).  This should only be set when
-     * the cookie's originating server used a secure protocol to set the
-     * cookie's value.
-     *
-     * @param secure The value of the secure attribute
-     * 
-     * @see #isSecure()
-     */
-    void setSecure (boolean secure);
 
     /**
      * Returns the version of the cookie specification to which this
@@ -185,37 +126,12 @@ public interface Cookie {
     int getVersion();
 
     /**
-     * Sets the version of the cookie specification to which this
-     * cookie conforms. 
-     *
-     * @param version the version of the cookie.
-     * 
-     * @see #getVersion
-     */
-    void setVersion(int version);
-
-    /**
      * Returns true if this cookie has expired.
      * @param date Current time
      * 
      * @return <tt>true</tt> if the cookie has expired.
      */
     boolean isExpired(final Date date);
-
-    /**
-     * Indicates whether the cookie had a path specified in a 
-     * path attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a path attribute if the cookie's path 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     * 
-     * @see #isPathAttributeSpecified
-     */
-    public void setPathAttributeSpecified(boolean value);
 
     /**
      * Returns <tt>true</tt> if cookie's path was set via a path attribute
@@ -227,21 +143,6 @@ public interface Cookie {
      * @see #setPathAttributeSpecified
      */
     boolean isPathAttributeSpecified();
-
-    /**
-     * Indicates whether the cookie had a domain specified in a 
-     * domain attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a domain attribute if the cookie's domain 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     *
-     * @see #isDomainAttributeSpecified
-     */
-    void setDomainAttributeSpecified(boolean value);
 
     /**
      * Returns <tt>true</tt> if cookie's domain was set via a domain 

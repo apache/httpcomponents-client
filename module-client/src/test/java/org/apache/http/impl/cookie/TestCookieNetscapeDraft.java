@@ -209,7 +209,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
  
     public void testFormatCookies() throws Exception {
-        Cookie c1 = new BasicCookie("name1", "value1");
+        BasicCookie c1 = new BasicCookie("name1", "value1");
         c1.setDomain(".whatever.com");
         c1.setDomainAttributeSpecified(true);
         c1.setPath("/");

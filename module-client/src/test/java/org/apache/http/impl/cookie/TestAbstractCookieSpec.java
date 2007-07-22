@@ -42,6 +42,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 
 public class TestAbstractCookieSpec extends TestCase {
 
@@ -84,7 +85,7 @@ public class TestAbstractCookieSpec extends TestCase {
             return true;
         }
 
-        public void parse(Cookie cookie, String value) throws MalformedCookieException {
+        public void parse(SetCookie cookie, String value) throws MalformedCookieException {
         }
 
         public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {

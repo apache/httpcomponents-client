@@ -52,7 +52,7 @@ public interface CookieAttributeHandler {
    * @param cookie {@link org.apache.http.cookie.Cookie} to be updated
    * @param value cookie attribute value from the cookie response header
    */
-  void parse(Cookie cookie, String value)
+  void parse(SetCookie cookie, String value)
           throws MalformedCookieException;
 
   /**

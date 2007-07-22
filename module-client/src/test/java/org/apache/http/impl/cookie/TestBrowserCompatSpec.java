@@ -658,7 +658,7 @@ public class TestBrowserCompatSpec extends TestCase {
      * browser compatibility mode.
      */
     public void testSecondDomainLevelCookie() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -670,7 +670,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
 
     public void testSecondDomainLevelCookieMatch1() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -682,7 +682,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
 
     public void testSecondDomainLevelCookieMatch2() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain("sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -694,7 +694,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
 
     public void testSecondDomainLevelCookieMatch3() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -706,7 +706,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
          
     public void testInvalidSecondDomainLevelCookieMatch1() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -718,7 +718,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
 
     public void testInvalidSecondDomainLevelCookieMatch2() throws Exception {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain("sourceforge.net");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -731,7 +731,7 @@ public class TestBrowserCompatSpec extends TestCase {
 
     public void testMatchBlankPath() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "  ", false);
@@ -740,7 +740,7 @@ public class TestBrowserCompatSpec extends TestCase {
 
     public void testMatchNullCookieDomain() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
         assertFalse(cookiespec.match(cookie, origin));
@@ -748,7 +748,7 @@ public class TestBrowserCompatSpec extends TestCase {
 
     public void testMatchNullCookiePath() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
         assertTrue(cookiespec.match(cookie, origin));
@@ -756,7 +756,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMatch1() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
@@ -765,7 +765,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMatch2() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".whatever.com", 80, "/", false);
@@ -774,7 +774,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMatch3() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".really.whatever.com", 80, "/", false);
@@ -783,7 +783,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMatch4() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
@@ -792,7 +792,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMismatch1() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host1");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host2", 80, "/", false);
@@ -801,7 +801,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMismatch2() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain(".aaaaaaaaa.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".bbbbbbbb.com", 80, "/", false);
@@ -810,7 +810,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMismatch3() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foo", false);
@@ -819,7 +819,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMismatch4() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
@@ -828,7 +828,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMatch5() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar/r");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
@@ -837,7 +837,7 @@ public class TestBrowserCompatSpec extends TestCase {
     
     public void testCookieMismatch6() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
-        Cookie cookie = new BasicCookie("name", "value");
+        BasicCookie cookie = new BasicCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         cookie.setSecure(true);
@@ -846,7 +846,7 @@ public class TestBrowserCompatSpec extends TestCase {
     }
     
     public void testInvalidMatchDomain() throws Exception {
-        Cookie cookie = new BasicCookie("name", null); 
+        BasicCookie cookie = new BasicCookie("name", null); 
         cookie.setDomain("beta.gamma.com");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
@@ -878,7 +878,7 @@ public class TestBrowserCompatSpec extends TestCase {
      * Tests if null cookie values are handled correctly.
      */
     public void testNullCookieValueFormatting() {
-        Cookie cookie = new BasicCookie("name", null);
+        BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".whatever.com");
         cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
