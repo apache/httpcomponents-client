@@ -573,12 +573,11 @@ public class ThreadSafeClientConnManager
     // ------------------------------------------------------- Instance Methods
 
     /**
-     * Shuts down the connection manager and releases all resources.  All connections associated 
-     * with this class will be closed and released. 
-     * 
-     * <p>The connection manager can no longer be used once shutdown.  
-     * 
-     * <p>Calling this method more than once will have no effect.
+     * Shuts down the connection manager and releases all resources.
+     * All connections associated with this manager will be closed
+     * and released. 
+     * The connection manager can no longer be used once shut down.
+     * Calling this method more than once will have no effect.
      */
     public synchronized void shutdown() {
         synchronized (connectionPool) {
@@ -686,6 +685,10 @@ public class ThreadSafeClientConnManager
         //@@@ this should be a pool-specific reference queue
         private ReferenceQueue refQueue = REFERENCE_QUEUE; //@@@
 
+        /** A worker (thread) to track loss of pool entries to GC. */
+        private LostConnWorker refWorker;
+
+
         /**
          * Map of route-specific pools.
          * Keys are of class {@link HttpRoute}, and
@@ -693,10 +696,29 @@ public class ThreadSafeClientConnManager
          */
         private final Map mapRoutes = new HashMap();
 
-        private IdleConnectionHandler idleConnectionHandler = new IdleConnectionHandler();        
+        private IdleConnectionHandler idleConnectionHandler =
+            new IdleConnectionHandler();        
         
         /** The number of created connections */
         private int numConnections = 0;
+
+
+        /**
+         * Creates a new connection pool.
+         */
+        private ConnectionPool() {
+            //@@@ currently must be false, otherwise the TSCCM
+            //@@@ will not be garbage collected in the unit test...
+            boolean conngc = false; //@@@ check parameters to decide
+            if (conngc) {
+                refQueue = new ReferenceQueue();
+                refWorker = new LostConnWorker(this);
+                Thread t = new Thread(refWorker); //@@@ use a thread factory
+                t.setDaemon(true);
+                t.setName("LostConnWorker/"+ThreadSafeClientConnManager.this);
+                t.start();
+            }
+        }
 
         /**
          * Cleans up all connection pool resources.
@@ -710,7 +732,9 @@ public class ThreadSafeClientConnManager
                 iter.remove();
                 closeConnection(entry.connection);
             }
-            
+
+            if (refWorker != null)
+                refWorker.shutdown();
             // close all connections that have been checked out
             iter = issuedConnections.iterator();
             while (iter.hasNext()) {
@@ -771,6 +795,30 @@ public class ThreadSafeClientConnManager
             return entry;
         }
 
+        
+        /**
+         * Handles cleaning up for the given connection reference.
+         * Invoked by the worker listening for lost connections.
+         * 
+         * @param ref the reference to clean up
+         */
+        protected synchronized void handleReference(PoolEntryRef ref) {
+
+            // check if the GCed pool entry was still in use
+            //@@@ find a way to detect this without lookup
+            //@@@ flag in the PoolEntryRef, to be reset when freed?
+            final boolean lost = issuedConnections.remove(ref);
+            if (lost) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                        "Connection reclaimed by garbage collector. "
+                        + ref.route);
+                }
+
+                handleLostConnection(ref.route);
+            }
+        }
+
 
         /**
          * Handles cleaning up for a lost connection with the given config.
@@ -779,7 +827,7 @@ public class ThreadSafeClientConnManager
          * 
          * @param config        the route of the connection that was lost
          */
-        public synchronized
+        private synchronized
             void handleLostConnection(HttpRoute route) {
 
             RouteConnPool routePool = getRoutePool(route);
@@ -1152,6 +1200,69 @@ public class ThreadSafeClientConnManager
                     }
                 } catch (InterruptedException e) {
                     LOG.debug("ReferenceQueueThread interrupted", e);
+                }
+            }
+        }
+
+    } // class ReferenceQueueThread
+
+
+    /**
+     * Tracker for GCed connections.
+     * Can be started in a background thread.
+     * The worker will listen on a {@link ReferenceQueue ReferenceQueue}
+     * for {@link PoolEntryRef PoolEntryRef} objects being queued.
+     */
+    private static class LostConnWorker implements Runnable {
+
+        private volatile Thread workerThread;
+
+        private final ConnectionPool connPool;
+
+
+        /**
+         * Instantiates a new worker to listen for lost connections.
+         *
+         * @param pool  the connection pool for which to work,
+         *              and in which to reclaim the lost connections
+         */
+        public LostConnWorker(ConnectionPool pool) {
+            this.connPool = pool;
+        }
+
+
+        /**
+         * Shuts down this worker.
+         */
+        public void shutdown() {
+            Thread wt = this.workerThread;
+            if (wt != null) {
+                this.workerThread = null; // indicate shutdown
+                wt.interrupt();
+            }
+        }
+
+
+        /**
+         * The main loop of this worker.
+         * If initialization succeeds, this method will only return
+         * after {@link #shutdown shutdown()}. Only one thread can
+         * execute the main loop at any time.
+         */
+        public void run() {
+            if (this.workerThread == null) {
+                this.workerThread = Thread.currentThread();
+            }
+
+            while (this.workerThread == Thread.currentThread()) {
+                try {
+                    // remove the next reference and process it
+                    Reference ref = connPool.refQueue.remove();
+                    if (ref instanceof PoolEntryRef) {
+                        connPool.handleReference((PoolEntryRef) ref);
+                    }
+                } catch (InterruptedException e) {
+                    LOG.debug("LostConnWorker interrupted", e);
                 }
             }
         }
