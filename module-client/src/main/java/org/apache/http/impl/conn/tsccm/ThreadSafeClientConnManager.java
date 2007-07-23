@@ -92,7 +92,8 @@ public class ThreadSafeClientConnManager
     private ConnectionPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    private ClientConnectionOperator connOperator;
+    //@@@ temporarily visible to BasicPoolEntry
+    /*private*/ ClientConnectionOperator connOperator;
 
     /** Indicates whether this connection manager is shut down. */
     private volatile boolean isShutDown;
@@ -162,7 +163,7 @@ public class ThreadSafeClientConnManager
                 + route + ", timeout = " + timeout);
         }
 
-        final TrackingPoolEntry entry = doGetConnection(route, timeout);
+        final BasicPoolEntry entry = doGetConnection(route, timeout);
 
         return new TSCCMConnAdapter(this, entry);
     }
@@ -178,11 +179,11 @@ public class ThreadSafeClientConnManager
      *
      * @throws ConnectionPoolTimeoutException   if the timeout expired
      */
-    private TrackingPoolEntry doGetConnection(HttpRoute route,
+    private BasicPoolEntry doGetConnection(HttpRoute route,
                                               long timeout)
         throws ConnectionPoolTimeoutException {
 
-        TrackingPoolEntry entry = null;
+        BasicPoolEntry entry = null;
 
         int maxHostConnections = HttpConnectionManagerParams
             .getMaxConnectionsPerHost(this.params, route);
@@ -303,7 +304,7 @@ public class ThreadSafeClientConnManager
      *
      * @return  the pool entry for the new connection
      */
-    private TrackingPoolEntry createPoolEntry(HttpRoute route) {
+    private BasicPoolEntry createPoolEntry(HttpRoute route) {
 
         OperatedClientConnection occ = connOperator.createConnection();
         return connectionPool.createEntry(route, occ);
@@ -372,7 +373,7 @@ public class ThreadSafeClientConnManager
                 LOG.debug("Exception shutting down released connection.",
                           iox);
         } finally {
-            TrackingPoolEntry entry = (TrackingPoolEntry) hca.getPoolEntry();
+            BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             hca.detach();
             releasePoolEntry(entry);
         }
@@ -386,7 +387,7 @@ public class ThreadSafeClientConnManager
      *                  or <code>null</code>
      */
     //@@@ temporary default visibility, for BadStaticMaps
-    void /*default*/ releasePoolEntry(TrackingPoolEntry entry) {
+    void /*default*/ releasePoolEntry(BasicPoolEntry entry) {
 
         if (entry == null)
             return;
@@ -510,7 +511,7 @@ public class ThreadSafeClientConnManager
 
         /**
          * References to issued connections.
-         * Objects in this set are of class {@link PoolEntryRef PoolEntryRef},
+         * Objects in this set are of class {@link BasicPoolEntryRef BasicPoolEntryRef},
          * and point to the pool entry for the issued connection.
          * GCed connections are detected by the missing pool entries.
          */
@@ -563,7 +564,7 @@ public class ThreadSafeClientConnManager
             // close all free connections
             Iterator iter = freeConnections.iterator();
             while (iter.hasNext()) {
-                TrackingPoolEntry entry = (TrackingPoolEntry) iter.next();
+                BasicPoolEntry entry = (BasicPoolEntry) iter.next();
                 iter.remove();
                 closeConnection(entry.getConnection());
             }
@@ -573,9 +574,9 @@ public class ThreadSafeClientConnManager
             // close all connections that have been checked out
             iter = issuedConnections.iterator();
             while (iter.hasNext()) {
-                PoolEntryRef per = (PoolEntryRef) iter.next();
+                BasicPoolEntryRef per = (BasicPoolEntryRef) iter.next();
                 iter.remove();
-                TrackingPoolEntry entry = (TrackingPoolEntry) per.get();
+                BasicPoolEntry entry = (BasicPoolEntry) per.get();
                 if (entry != null) {
                     closeConnection(entry.getConnection());
                 }
@@ -610,14 +611,14 @@ public class ThreadSafeClientConnManager
          * @return the new pool entry
          */
         protected synchronized
-            TrackingPoolEntry createEntry(HttpRoute route,
+            BasicPoolEntry createEntry(HttpRoute route,
                                           OperatedClientConnection conn) {
 
             RouteConnPool routePool = getRoutePool(route);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Allocating new connection, route=" + route);
             }
-            TrackingPoolEntry entry = new TrackingPoolEntry
+            BasicPoolEntry entry = new BasicPoolEntry
                 (ThreadSafeClientConnManager.this, conn, route, refQueue);
             numConnections++;
             routePool.numConnections++;
@@ -625,7 +626,7 @@ public class ThreadSafeClientConnManager
             // store a reference to this entry so that it can be cleaned up
             // in the event it is not correctly released
             BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
-            issuedConnections.add(entry.reference);
+            issuedConnections.add(entry.getWeakRef());
 
             return entry;
         }
@@ -634,13 +635,14 @@ public class ThreadSafeClientConnManager
         // non-javadoc, see interface RefQueueHandler
         public synchronized void handleReference(Reference ref) {
 
-            if (ref instanceof PoolEntryRef) {
+            if (ref instanceof BasicPoolEntryRef) {
                 // check if the GCed pool entry was still in use
                 //@@@ find a way to detect this without lookup
-                //@@@ flag in the PoolEntryRef, to be reset when freed?
+                //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
                 final boolean lost = issuedConnections.remove(ref);
                 if (lost) {
-                    final HttpRoute route = ((PoolEntryRef)ref).route;
+                    final HttpRoute route =
+                        ((BasicPoolEntryRef)ref).getRoute();
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(
@@ -704,21 +706,21 @@ public class ThreadSafeClientConnManager
          *
          * @return an available connection for the given route
          */
-        public synchronized TrackingPoolEntry getFreeConnection(HttpRoute route) {
+        public synchronized BasicPoolEntry getFreeConnection(HttpRoute route) {
 
-            TrackingPoolEntry entry = null;
+            BasicPoolEntry entry = null;
 
             RouteConnPool routePool = getRoutePool(route);
 
             if (routePool.freeConnections.size() > 0) {
-                entry = (TrackingPoolEntry)
+                entry = (BasicPoolEntry)
                     routePool.freeConnections.removeLast();
                 freeConnections.remove(entry);
 
                 // store a reference to this entry so that it can be cleaned up
                 // in the event it is not correctly released
                 BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
-                issuedConnections.add(entry.reference);
+                issuedConnections.add(entry.getWeakRef());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Getting free connection, route=" + route);
                 }
@@ -740,8 +742,8 @@ public class ThreadSafeClientConnManager
             Iterator iter = freeConnections.iterator();
             
             while (iter.hasNext()) {
-                TrackingPoolEntry entry =
-                    (TrackingPoolEntry) iter.next();
+                BasicPoolEntry entry =
+                    (BasicPoolEntry) iter.next();
                 if (!entry.getConnection().isOpen()) {
                     iter.remove();
                     deleteConnection(entry);
@@ -768,7 +770,7 @@ public class ThreadSafeClientConnManager
          * 
          * @param entry         the pool entry for the connection to delete
          */
-        private synchronized void deleteConnection(TrackingPoolEntry entry) {
+        private synchronized void deleteConnection(BasicPoolEntry entry) {
 
             HttpRoute route = entry.getPlannedRoute();
 
@@ -795,8 +797,8 @@ public class ThreadSafeClientConnManager
          */
         public synchronized void deleteLeastUsedConnection() {
 
-            TrackingPoolEntry entry =
-                (TrackingPoolEntry) freeConnections.removeFirst();
+            BasicPoolEntry entry =
+                (BasicPoolEntry) freeConnections.removeFirst();
 
             if (entry != null) {
                 deleteConnection(entry);
@@ -860,7 +862,7 @@ public class ThreadSafeClientConnManager
          *
          * @param entry         the pool entry for the connection
          */
-        private void freeConnection(TrackingPoolEntry entry) {
+        private void freeConnection(BasicPoolEntry entry) {
 
             HttpRoute route = entry.getPlannedRoute();
 
@@ -893,7 +895,7 @@ public class ThreadSafeClientConnManager
                 // control over it again. This also ensures that the connection
                 // manager can be GCed.
                 BadStaticMaps.removeReferenceToConnection(entry); //@@@
-                issuedConnections.remove(entry.reference); //@@@ move above
+                issuedConnections.remove(entry.getWeakRef()); //@@@ move above
                 if (numConnections == 0) {
                     // for some reason this pool didn't already exist
                     LOG.error("Master connection pool not found. " + route);
@@ -959,135 +961,6 @@ public class ThreadSafeClientConnManager
          */
         public boolean interruptedByConnectionPool = false;
     }
-
-
-    /**
-     * A weak reference to a pool entry.
-     * Needed for connection GC.
-     * Instances of this class can be kept as static references.
-     * If an issued connection is lost to garbage collection,
-     * it's pool entry is GC'd and the reference becomes invalid.
-     */
-    private static class PoolEntryRef extends WeakReference {
-
-        /** The planned route of the entry. */
-        private final HttpRoute route;
-
-
-        /**
-         * Creates a new reference to a pool entry.
-         *
-         * @param entry   the pool entry, must not be <code>null</code>
-         * @param queue   the reference queue, or <code>null</code>
-         */
-        public PoolEntryRef(AbstractPoolEntry entry, ReferenceQueue queue) {
-            super(entry, queue);
-            if (entry == null) {
-                throw new IllegalArgumentException
-                    ("Pool entry must not be null.");
-            }
-            route = ((TrackingPoolEntry)entry).getPlannedRoute();
-        }
-
-
-        /**
-         * Indicates whether this reference is still valid.
-         *
-         * @return <code>true</code> if the pool entry is still referenced,
-         *         <code>false</code> otherwise
-         */
-        public final boolean isValid() {
-            //@@@ method currently not used
-            //@@@ better sematics: allow explicit invalidation
-            return (super.get() != null);
-        }
-
-
-        /**
-         * Obtain the planned route for the referenced entry.
-         * The planned route is still available, even if the entry is gone.
-         *
-         * @return      the planned route
-         */
-        public final HttpRoute getRoute() {
-            return this.route;
-        }
-        
-    } // class PoolEntryRef
-
-    
-    /**
-     * A pool entry representing a connection that tracks it's route.
-     * For historical reasons, these entries are sometimes referred to
-     * as <i>connections</i> throughout the code.
-     */
-    //@@@ temporary default visibility, it's needed in BadStaticMaps
-    static /*default*/ class TrackingPoolEntry extends AbstractPoolEntry {
-
-        /** The connection manager. */
-        private ThreadSafeClientConnManager manager;
-
-
-        /**
-         * A weak reference to <code>this</code> used to detect GC of entries.
-         * Of course, pool entries can only be GCed when they are allocated
-         * and therefore not referenced with a hard link in the manager.
-         */
-        private PoolEntryRef reference;
-
-            
-        /**
-         * Creates a new pool entry.
-         *
-         * @param tsccm   the connection manager
-         * @param occ     the underlying connection for this entry
-         * @param route   the planned route for the connection
-         * @param queue   the reference queue for tracking GC of this entry,
-         *                or <code>null</code>
-         */
-        private TrackingPoolEntry(ThreadSafeClientConnManager tsccm,
-                                  OperatedClientConnection occ,
-                                  HttpRoute route,
-                                  ReferenceQueue queue) {
-            super(occ, route);
-            if (tsccm == null) {
-                throw new IllegalArgumentException
-                    ("Connection manager must not be null.");
-            }
-            if (route == null) {
-                throw new IllegalArgumentException
-                    ("Planned route must not be null.");
-            }
-            this.manager = tsccm;
-            this.reference = new PoolEntryRef(this, queue);
-        }
-
-
-        // non-javadoc, see base AbstractPoolEntry
-        protected ClientConnectionOperator getOperator() {
-            //@@@ if the operator is passed explicitly to the constructor,
-            //@@@ this class can be factored out
-            return manager.connOperator;
-        }
-
-
-        protected final OperatedClientConnection getConnection() {
-            return super.connection;
-        }
-
-        protected final HttpRoute getPlannedRoute() {
-            return super.plannedRoute;
-        }
-
-        protected final WeakReference getWeakRef() {
-            return this.reference;
-        }
-
-        protected final ThreadSafeClientConnManager getManager() {
-            return this.manager;
-        }
-
-    } // class TrackingPoolEntry
 
 
 } // class ThreadSafeClientConnManager

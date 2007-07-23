@@ -143,7 +143,7 @@ final /*default*/ class BadStaticMaps {
      * @see #removeReferenceToConnection
      */
     static /*default*/ void storeReferenceToConnection(
-        ThreadSafeClientConnManager.TrackingPoolEntry entry,
+        BasicPoolEntry entry,
         HttpRoute route,
         ThreadSafeClientConnManager.ConnectionPool connectionPool
     ) {
@@ -173,7 +173,7 @@ final /*default*/ class BadStaticMaps {
      * 
      * @see #storeReferenceToConnection
      */
-    static /*default*/ void removeReferenceToConnection(ThreadSafeClientConnManager.TrackingPoolEntry entry) {
+    static /*default*/ void removeReferenceToConnection(BasicPoolEntry entry) {
         
         synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
             REFERENCE_TO_CONNECTION_SOURCE.remove(entry.getWeakRef());
@@ -201,7 +201,7 @@ final /*default*/ class BadStaticMaps {
                     (ConnectionSource) REFERENCE_TO_CONNECTION_SOURCE.get(ref);
                 if (source.connectionPool == connectionPool) {
                     referenceIter.remove();
-                    Object entry = ref.get(); // TrackingPoolEntry
+                    Object entry = ref.get(); // BasicPoolEntry
                     if (entry != null) {
                         connectionsToClose.add(entry);
                     }
@@ -212,8 +212,8 @@ final /*default*/ class BadStaticMaps {
         // close and release the connections outside of the synchronized block
         // to avoid holding the lock for too long
         for (Iterator i = connectionsToClose.iterator(); i.hasNext();) {
-            ThreadSafeClientConnManager.TrackingPoolEntry entry =
-                (ThreadSafeClientConnManager.TrackingPoolEntry) i.next();
+            BasicPoolEntry entry =
+                (BasicPoolEntry) i.next();
             ThreadSafeClientConnManager.closeConnection(entry.getConnection());
             entry.getManager().releasePoolEntry(entry);
         }
