@@ -507,7 +507,7 @@ public class ThreadSafeClientConnManager
      * as well as per-route lists.
      */
     //@@@ temporary package visibility, for BadStaticMaps
-    class /*default*/ ConnectionPool {
+    class /*default*/ ConnectionPool implements RefQueueHandler {
         
         /** The list of free connections */
         private LinkedList freeConnections = new LinkedList();
@@ -528,7 +528,7 @@ public class ThreadSafeClientConnManager
         private ReferenceQueue refQueue = BadStaticMaps.REFERENCE_QUEUE; //@@@
 
         /** A worker (thread) to track loss of pool entries to GC. */
-        private LostConnWorker refWorker;
+        private RefQueueWorker refWorker;
 
 
         /**
@@ -554,10 +554,10 @@ public class ThreadSafeClientConnManager
             boolean conngc = false; //@@@ check parameters to decide
             if (conngc) {
                 refQueue = new ReferenceQueue();
-                refWorker = new LostConnWorker(this);
+                refWorker = new RefQueueWorker(refQueue, this);
                 Thread t = new Thread(refWorker); //@@@ use a thread factory
                 t.setDaemon(true);
-                t.setName("LostConnWorker/"+ThreadSafeClientConnManager.this);
+                t.setName("RefQueueWorker@"+ThreadSafeClientConnManager.this);
                 t.start();
             }
         }
@@ -638,27 +638,26 @@ public class ThreadSafeClientConnManager
         }
 
         
-        /**
-         * Handles cleaning up for the given connection reference.
-         * Invoked by the worker listening for lost connections.
-         * 
-         * @param ref the reference to clean up
-         */
-        protected synchronized void handleReference(PoolEntryRef ref) {
+        // non-javadoc, see interface RefQueueHandler
+        public synchronized void handleReference(Reference ref) {
 
-            // check if the GCed pool entry was still in use
-            //@@@ find a way to detect this without lookup
-            //@@@ flag in the PoolEntryRef, to be reset when freed?
-            final boolean lost = issuedConnections.remove(ref);
-            if (lost) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                        "Connection reclaimed by garbage collector. "
-                        + ref.route);
+            if (ref instanceof PoolEntryRef) {
+                // check if the GCed pool entry was still in use
+                //@@@ find a way to detect this without lookup
+                //@@@ flag in the PoolEntryRef, to be reset when freed?
+                final boolean lost = issuedConnections.remove(ref);
+                if (lost) {
+                    final HttpRoute route = ((PoolEntryRef)ref).route;
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(
+                            "Connection garbage collected. " + route);
+                    }
+
+                    handleLostConnection(route);
                 }
-
-                handleLostConnection(ref.route);
             }
+            //@@@ check if the connection manager was GCed
         }
 
 
@@ -969,69 +968,6 @@ public class ThreadSafeClientConnManager
          */
         public boolean interruptedByConnectionPool = false;
     }
-
-
-    /**
-     * Tracker for GCed connections.
-     * Can be started in a background thread.
-     * The worker will listen on a {@link ReferenceQueue ReferenceQueue}
-     * for {@link PoolEntryRef PoolEntryRef} objects being queued.
-     */
-    private static class LostConnWorker implements Runnable {
-
-        private volatile Thread workerThread;
-
-        private final ConnectionPool connPool;
-
-
-        /**
-         * Instantiates a new worker to listen for lost connections.
-         *
-         * @param pool  the connection pool for which to work,
-         *              and in which to reclaim the lost connections
-         */
-        public LostConnWorker(ConnectionPool pool) {
-            this.connPool = pool;
-        }
-
-
-        /**
-         * Shuts down this worker.
-         */
-        public void shutdown() {
-            Thread wt = this.workerThread;
-            if (wt != null) {
-                this.workerThread = null; // indicate shutdown
-                wt.interrupt();
-            }
-        }
-
-
-        /**
-         * The main loop of this worker.
-         * If initialization succeeds, this method will only return
-         * after {@link #shutdown shutdown()}. Only one thread can
-         * execute the main loop at any time.
-         */
-        public void run() {
-            if (this.workerThread == null) {
-                this.workerThread = Thread.currentThread();
-            }
-
-            while (this.workerThread == Thread.currentThread()) {
-                try {
-                    // remove the next reference and process it
-                    Reference ref = connPool.refQueue.remove();
-                    if (ref instanceof PoolEntryRef) {
-                        connPool.handleReference((PoolEntryRef) ref);
-                    }
-                } catch (InterruptedException e) {
-                    LOG.debug("LostConnWorker interrupted", e);
-                }
-            }
-        }
-
-    } // class ReferenceQueueThread
 
 
     /**
