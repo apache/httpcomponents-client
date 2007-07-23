@@ -80,30 +80,6 @@ public class ThreadSafeClientConnManager
     private final static Log LOG =
         LogFactory.getLog(ThreadSafeClientConnManager.class);
 
-    /**
-     * A mapping from Reference to ConnectionSource.
-     * Used to reclaim resources when connections are lost
-     * to the garbage collector.
-     */
-    private static final Map REFERENCE_TO_CONNECTION_SOURCE = new HashMap();
-    
-    /**
-     * The reference queue used to track when connections are lost to the
-     * garbage collector
-     */
-    private static final ReferenceQueue REFERENCE_QUEUE = new ReferenceQueue();    
-
-    /**
-     * The thread responsible for handling lost connections.
-     */
-    private static ReferenceQueueThread REFERENCE_QUEUE_THREAD;
-
-    
-    /**
-     * Holds references to all active instances of this class.
-     */    
-    private static WeakHashMap ALL_CONNECTION_MANAGERS = new WeakHashMap();
-
 
     /** The schemes supported by this connection manager. */
     protected SchemeRegistry schemeRegistry; 
@@ -142,8 +118,8 @@ public class ThreadSafeClientConnManager
         this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
 
-        synchronized(ALL_CONNECTION_MANAGERS) {
-            ALL_CONNECTION_MANAGERS.put(this, null);
+        synchronized(BadStaticMaps.ALL_CONNECTION_MANAGERS) {
+            BadStaticMaps.ALL_CONNECTION_MANAGERS.put(this, null);
         }
     } // <constructor>
 
@@ -409,7 +385,8 @@ public class ThreadSafeClientConnManager
      * @param entry     the pool entry for the connection to release,
      *                  or <code>null</code>
      */
-    private void releasePoolEntry(TrackingPoolEntry entry) {
+    //@@@ temporary default visibility, for BadStaticMaps
+    void /*default*/ releasePoolEntry(TrackingPoolEntry entry) {
 
         if (entry == null)
             return;
@@ -419,157 +396,22 @@ public class ThreadSafeClientConnManager
 
 
 
+    /**
+     * Shuts down all instances of this class.
+     *
+     * @deprecated no replacement
+     */
+    public static void shutdownAll() {
+        BadStaticMaps.shutdownAll();
+    }
+
+
     // ######################################################################
     // ######################################################################
     // ##########               old code below                     ##########
     // ######################################################################
     // ######################################################################
 
-
-    /**
-     * Shuts down and cleans up resources used by all instances of 
-     * ThreadSafeClientConnManager. All static resources are released, all threads are 
-     * stopped, and {@link #shutdown()} is called on all live instances of 
-     * ThreadSafeClientConnManager.
-     *
-     * @see #shutdown()
-     */
-    public static void shutdownAll() {
-
-        synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
-            // shutdown all connection managers
-            synchronized (ALL_CONNECTION_MANAGERS) {
-                // Don't use an iterator here. Iterators on WeakHashMap can
-                // get ConcurrentModificationException on garbage collection.
-                ThreadSafeClientConnManager[]
-                    connManagers = (ThreadSafeClientConnManager[])
-                    ALL_CONNECTION_MANAGERS.keySet().toArray(
-                        new ThreadSafeClientConnManager
-                            [ALL_CONNECTION_MANAGERS.size()]
-                        );
-
-                // The map may shrink after size() is called, or some entry
-                // may get GCed while the array is built, so expect null.
-                for (int i=0; i<connManagers.length; i++) {
-                    if (connManagers[i] != null)
-                        connManagers[i].shutdown();
-                }
-            }
-            
-            // shutdown static resources
-            if (REFERENCE_QUEUE_THREAD != null) {
-                REFERENCE_QUEUE_THREAD.shutdown();
-                REFERENCE_QUEUE_THREAD = null;
-            }
-            REFERENCE_TO_CONNECTION_SOURCE.clear();
-        }        
-    }
-
-
-    /**
-     * Stores a weak reference to the given pool entry.
-     * Along with the reference, the route and connection pool are stored.
-     * These values will be used to reclaim resources if the connection
-     * is lost to the garbage collector.  This method should be called
-     * before a connection is handed out by the connection manager.
-     * <br/>
-     * A static reference to the connection manager will also be stored.
-     * To ensure that the connection manager can be GCed,
-     * {@link #removeReferenceToConnection removeReferenceToConnection}
-     * should be called for all pool entry to which the manager
-     * keeps a strong reference.
-     * 
-     * @param connection        the pool entry to store a reference for
-     * @param route             the connection's planned route
-     * @param connectionPool    the connection pool that created the entry
-     * 
-     * @see #removeReferenceToConnection
-     */
-    private static void storeReferenceToConnection(
-        TrackingPoolEntry connection,
-        HttpRoute route,
-        ConnectionPool connectionPool
-    ) {
-
-        ConnectionSource source = new ConnectionSource();
-        source.connectionPool = connectionPool;
-        source.route = route;
-
-        synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
-
-            // start the reference queue thread if needed
-            if (REFERENCE_QUEUE_THREAD == null) {
-                REFERENCE_QUEUE_THREAD = new ReferenceQueueThread();
-                REFERENCE_QUEUE_THREAD.start();
-            }
-            
-            REFERENCE_TO_CONNECTION_SOURCE.put(
-                connection.reference,
-                source
-            );
-        }
-    }
-
-    /**
-     * Removes the reference being stored for the given connection.
-     * This method should be called when the manager again has a
-     * direct reference to the pool entry.
-     * 
-     * @param entry     the pool entry for which to remove the reference
-     * 
-     * @see #storeReferenceToConnection
-     */
-    private static void removeReferenceToConnection(TrackingPoolEntry entry) {
-        
-        synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
-            REFERENCE_TO_CONNECTION_SOURCE.remove(entry.reference);
-        }
-    }    
-
-
-    /**
-     * Closes and releases all connections currently checked out of the
-     * given connection pool.
-     * @param connectionPool the pool for which to shutdown the connections
-     */
-    private static
-    void shutdownCheckedOutConnections(ConnectionPool connectionPool) {
-
-        // keep a list of the connections to be closed
-        ArrayList connectionsToClose = new ArrayList();
-
-        synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
-            
-            Iterator referenceIter = REFERENCE_TO_CONNECTION_SOURCE.keySet().iterator();
-            while (referenceIter.hasNext()) {
-                Reference ref = (Reference) referenceIter.next();
-                ConnectionSource source = 
-                    (ConnectionSource) REFERENCE_TO_CONNECTION_SOURCE.get(ref);
-                if (source.connectionPool == connectionPool) {
-                    referenceIter.remove();
-                    Object entry = ref.get(); // TrackingPoolEntry
-                    if (entry != null) {
-                        connectionsToClose.add(entry);
-                    }
-                }
-            }
-        }
-
-        // close and release the connections outside of the synchronized block
-        // to avoid holding the lock for too long
-        for (Iterator i = connectionsToClose.iterator(); i.hasNext();) {
-            TrackingPoolEntry entry = (TrackingPoolEntry) i.next();
-            closeConnection(entry.getConnection());
-            entry.manager.releasePoolEntry(entry);
-        }
-    }
-
-
-    
-
-
-
-    // ------------------------------------------------------- Instance Methods
 
     /**
      * Shuts down the connection manager and releases all resources.
@@ -664,7 +506,8 @@ public class ThreadSafeClientConnManager
      * This class keeps track of all connections, using overall lists
      * as well as per-route lists.
      */
-    private class ConnectionPool {
+    //@@@ temporary package visibility, for BadStaticMaps
+    class /*default*/ ConnectionPool {
         
         /** The list of free connections */
         private LinkedList freeConnections = new LinkedList();
@@ -682,7 +525,7 @@ public class ThreadSafeClientConnManager
 
         /** A reference queue to track loss of pool entries to GC. */
         //@@@ this should be a pool-specific reference queue
-        private ReferenceQueue refQueue = REFERENCE_QUEUE; //@@@
+        private ReferenceQueue refQueue = BadStaticMaps.REFERENCE_QUEUE; //@@@
 
         /** A worker (thread) to track loss of pool entries to GC. */
         private LostConnWorker refWorker;
@@ -745,7 +588,7 @@ public class ThreadSafeClientConnManager
                 }
             }
             //@@@ while the static map exists, call there to clean it up
-            shutdownCheckedOutConnections(this); //@@@
+            BadStaticMaps.shutdownCheckedOutConnections(this); //@@@
             
             // interrupt all waiting threads
             iter = waitingThreads.iterator();
@@ -788,7 +631,7 @@ public class ThreadSafeClientConnManager
     
             // store a reference to this entry so that it can be cleaned up
             // in the event it is not correctly released
-            storeReferenceToConnection(entry, route, this); //@@@
+            BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
             issuedConnections.add(entry.reference);
 
             return entry;
@@ -826,7 +669,8 @@ public class ThreadSafeClientConnManager
          * 
          * @param config        the route of the connection that was lost
          */
-        private synchronized
+        //@@@ temporary default visibility, for BadStaticMaps
+        synchronized /*default*/
             void handleLostConnection(HttpRoute route) {
 
             RouteConnPool routePool = getRoutePool(route);
@@ -881,7 +725,7 @@ public class ThreadSafeClientConnManager
 
                 // store a reference to this entry so that it can be cleaned up
                 // in the event it is not correctly released
-                storeReferenceToConnection(entry, route, this); //@@@
+                BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
                 issuedConnections.add(entry.reference);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Getting free connection, route=" + route);
@@ -1058,8 +902,8 @@ public class ThreadSafeClientConnManager
                 // We can remove the reference to this connection as we have
                 // control over it again. This also ensures that the connection
                 // manager can be GCed.
-                removeReferenceToConnection(entry); //@@@
-                issuedConnections.remove(entry.reference); //@@@ move up
+                BadStaticMaps.removeReferenceToConnection(entry); //@@@
+                issuedConnections.remove(entry.reference); //@@@ move above
                 if (numConnections == 0) {
                     // for some reason this pool didn't already exist
                     LOG.error("Master connection pool not found. " + route);
@@ -1075,7 +919,7 @@ public class ThreadSafeClientConnManager
     } // class ConnectionPool
 
 
-    private static void closeConnection(final OperatedClientConnection conn) {
+    static /*default*/ void closeConnection(final OperatedClientConnection conn) {
         if (conn != null) {
             try {
                 conn.close();
@@ -1083,19 +927,6 @@ public class ThreadSafeClientConnManager
                 LOG.debug("I/O error closing connection", ex);
             }
         }
-    }
-
-    /**
-     * A simple struct-like class to combine the objects needed to release
-     * a connection's resources when claimed by the garbage collector.
-     */
-    private static class ConnectionSource {
-
-        /** The connection pool that created the connection */
-        public ConnectionPool connectionPool;
-
-        /** The connection's planned route. */
-        public HttpRoute route;
     }
 
     /**
@@ -1138,72 +969,6 @@ public class ThreadSafeClientConnManager
          */
         public boolean interruptedByConnectionPool = false;
     }
-
-
-    /**
-     * A thread for listening for HttpConnections reclaimed by the garbage
-     * collector.
-     */
-    private static class ReferenceQueueThread extends Thread {
-
-        private volatile boolean isShutDown = false;
-        
-        /**
-         * Create an instance and make this a daemon thread.
-         */
-        public ReferenceQueueThread() {
-            setDaemon(true);
-            setName("ThreadSafeClientConnManager cleanup");
-        }
-
-        public void shutdown() {
-            this.isShutDown = true;
-            this.interrupt();
-        }
-        
-        /**
-         * Handles cleaning up for the given connection reference.
-         * 
-         * @param ref the reference to clean up
-         */
-        private void handleReference(Reference ref) {
-            
-            ConnectionSource source = null;
-            
-            synchronized (REFERENCE_TO_CONNECTION_SOURCE) {
-                source = (ConnectionSource) REFERENCE_TO_CONNECTION_SOURCE.remove(ref);
-            }
-            // only clean up for this reference if it is still associated with 
-            // a ConnectionSource
-            if (source != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                        "Connection reclaimed by garbage collector, route=" 
-                        + source.route);
-                }
-                
-                source.connectionPool.handleLostConnection(source.route);
-            }
-        }
-
-        /**
-         * Start execution.
-         */
-        public void run() {
-            while (!isShutDown) {
-                try {
-                    // remove the next reference and process it
-                    Reference ref = REFERENCE_QUEUE.remove();
-                    if (ref != null) {
-                        handleReference(ref);
-                    }
-                } catch (InterruptedException e) {
-                    LOG.debug("ReferenceQueueThread interrupted", e);
-                }
-            }
-        }
-
-    } // class ReferenceQueueThread
 
 
     /**
@@ -1329,7 +1094,8 @@ public class ThreadSafeClientConnManager
      * For historical reasons, these entries are sometimes referred to
      * as <i>connections</i> throughout the code.
      */
-    private static class TrackingPoolEntry extends AbstractPoolEntry {
+    //@@@ temporary default visibility, it's needed in BadStaticMaps
+    static /*default*/ class TrackingPoolEntry extends AbstractPoolEntry {
 
         /** The connection manager. */
         private ThreadSafeClientConnManager manager;
@@ -1378,12 +1144,20 @@ public class ThreadSafeClientConnManager
         }
 
 
-        private final OperatedClientConnection getConnection() {
+        protected final OperatedClientConnection getConnection() {
             return super.connection;
         }
 
-        private final HttpRoute getPlannedRoute() {
+        protected final HttpRoute getPlannedRoute() {
             return super.plannedRoute;
+        }
+
+        protected final WeakReference getWeakRef() {
+            return this.reference;
+        }
+
+        protected final ThreadSafeClientConnManager getManager() {
+            return this.manager;
         }
 
     } // class TrackingPoolEntry
