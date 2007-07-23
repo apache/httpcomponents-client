@@ -52,6 +52,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 
 
 /**

@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.impl.conn;
+package org.apache.http.impl.conn.tsccm;
 
 import java.io.IOException;
 import java.lang.ref.Reference;
@@ -54,6 +54,7 @@ import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.impl.conn.*; //@@@ specify
 
 
 /**
@@ -187,7 +188,7 @@ public class ThreadSafeClientConnManager
 
         final TrackingPoolEntry entry = doGetConnection(route, timeout);
 
-        return new HttpConnectionAdapter(entry);
+        return new TSCCMConnAdapter(this, entry);
     }
 
 
@@ -361,15 +362,13 @@ public class ThreadSafeClientConnManager
      */
     public void releaseConnection(ManagedClientConnection conn) {
 
-        if (!(conn instanceof HttpConnectionAdapter)) {
+        if (!(conn instanceof TSCCMConnAdapter)) {
             throw new IllegalArgumentException
                 ("Connection class mismatch, " +
                  "connection not obtained from this manager.");
         }
-        HttpConnectionAdapter hca = (HttpConnectionAdapter) conn;
-        if ((hca.poolEntry != null) &&
-            //@@@ (hca.poolEntry.manager != this) &&
-            (hca.connManager != this)) {
+        TSCCMConnAdapter hca = (TSCCMConnAdapter) conn;
+        if ((hca.getPoolEntry() != null) && (hca.getManager() != this)) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
@@ -397,7 +396,7 @@ public class ThreadSafeClientConnManager
                 LOG.debug("Exception shutting down released connection.",
                           iox);
         } finally {
-            TrackingPoolEntry entry = (TrackingPoolEntry) hca.poolEntry;
+            TrackingPoolEntry entry = (TrackingPoolEntry) hca.getPoolEntry();
             hca.detach();
             releasePoolEntry(entry);
         }
@@ -560,7 +559,7 @@ public class ThreadSafeClientConnManager
         // to avoid holding the lock for too long
         for (Iterator i = connectionsToClose.iterator(); i.hasNext();) {
             TrackingPoolEntry entry = (TrackingPoolEntry) i.next();
-            closeConnection(entry.connection);
+            closeConnection(entry.getConnection());
             entry.manager.releasePoolEntry(entry);
         }
     }
@@ -730,7 +729,7 @@ public class ThreadSafeClientConnManager
             while (iter.hasNext()) {
                 TrackingPoolEntry entry = (TrackingPoolEntry) iter.next();
                 iter.remove();
-                closeConnection(entry.connection);
+                closeConnection(entry.getConnection());
             }
 
             if (refWorker != null)
@@ -742,7 +741,7 @@ public class ThreadSafeClientConnManager
                 iter.remove();
                 TrackingPoolEntry entry = (TrackingPoolEntry) per.get();
                 if (entry != null) {
-                    closeConnection(entry.connection);
+                    closeConnection(entry.getConnection());
                 }
             }
             //@@@ while the static map exists, call there to clean it up
@@ -889,7 +888,7 @@ public class ThreadSafeClientConnManager
                 }
 
                 // remove the connection from the timeout handler
-                idleConnectionHandler.remove(entry.connection);
+                idleConnectionHandler.remove(entry.getConnection());
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("There were no free connections to get, route=" 
                     + route);
@@ -907,7 +906,7 @@ public class ThreadSafeClientConnManager
             while (iter.hasNext()) {
                 TrackingPoolEntry entry =
                     (TrackingPoolEntry) iter.next();
-                if (!entry.connection.isOpen()) {
+                if (!entry.getConnection().isOpen()) {
                     iter.remove();
                     deleteConnection(entry);
                 }
@@ -935,13 +934,13 @@ public class ThreadSafeClientConnManager
          */
         private synchronized void deleteConnection(TrackingPoolEntry entry) {
 
-            HttpRoute route = entry.plannedRoute;
+            HttpRoute route = entry.getPlannedRoute();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Reclaiming connection, route=" + route);
             }
 
-            closeConnection(entry.connection);
+            closeConnection(entry.getConnection());
 
             RouteConnPool routePool = getRoutePool(route);
             
@@ -952,7 +951,7 @@ public class ThreadSafeClientConnManager
                 mapRoutes.remove(route);
 
             // remove the connection from the timeout handler
-            idleConnectionHandler.remove(entry.connection);
+            idleConnectionHandler.remove(entry.getConnection());
         }
 
         /**
@@ -1029,7 +1028,7 @@ public class ThreadSafeClientConnManager
          */
         private void freeConnection(TrackingPoolEntry entry) {
 
-            HttpRoute route = entry.plannedRoute;
+            HttpRoute route = entry.getPlannedRoute();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freeing connection, route=" + route);
@@ -1040,7 +1039,7 @@ public class ThreadSafeClientConnManager
                 if (isShutDown) {
                     // the connection manager has been shutdown, release the
                     // connection's resources and get out of here
-                    closeConnection(entry.connection);
+                    closeConnection(entry.getConnection());
                     return;
                 }
                 
@@ -1068,7 +1067,7 @@ public class ThreadSafeClientConnManager
                 }
 
                 // register the connection with the timeout handler
-                idleConnectionHandler.add(entry.connection);
+                idleConnectionHandler.add(entry.getConnection());
 
                 notifyWaitingThread(routePool);
             }
@@ -1295,7 +1294,7 @@ public class ThreadSafeClientConnManager
                 throw new IllegalArgumentException
                     ("Pool entry must not be null.");
             }
-            route = entry.plannedRoute;
+            route = ((TrackingPoolEntry)entry).getPlannedRoute();
         }
 
 
@@ -1306,6 +1305,8 @@ public class ThreadSafeClientConnManager
          *         <code>false</code> otherwise
          */
         public final boolean isValid() {
+            //@@@ method currently not used
+            //@@@ better sematics: allow explicit invalidation
             return (super.get() != null);
         }
 
@@ -1377,29 +1378,39 @@ public class ThreadSafeClientConnManager
         }
 
 
+        private final OperatedClientConnection getConnection() {
+            return super.connection;
+        }
+
+        private final HttpRoute getPlannedRoute() {
+            return super.plannedRoute;
+        }
+
     } // class TrackingPoolEntry
 
     
-    /**
+    /* *
+     * @@@ replace by separate class TSCCMConnAdapter
      * A connection wrapper and callback handler.
      * All connections given out by the manager are wrappers which
      * can be {@link #detach detach}ed to prevent further use on release.
-     */
+     * /
     private class HttpConnectionAdapter extends AbstractPooledConnAdapter {
         //@@@ HTTPCLIENT-653
         //@@@ this adapter being a nested class prevents proper detaching of
         //@@@ the adapter from the manager, and therefore GC of the manager
 
-        /**
+        / * *
          * Creates a new adapter.
          *
          * @param entry   the pool entry for the connection being wrapped
-         */
+         * /
         protected HttpConnectionAdapter(TrackingPoolEntry entry) {
             super(ThreadSafeClientConnManager.this, entry);
             super.markedReusable = true;
         }
     }
+    */
 
 } // class ThreadSafeClientConnManager
 
