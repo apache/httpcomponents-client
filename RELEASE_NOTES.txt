@@ -1,5 +1,9 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-653] detached connection wrapper no longer prevents
+  garbage collection of ThreadSafeClientConnManager
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-674] use org.apache.http.util.VersionInfo instead of a local one
   Contributed by Roland Weber <rolandw at apache.org>
 

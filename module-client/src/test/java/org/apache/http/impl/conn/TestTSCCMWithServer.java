@@ -348,20 +348,16 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.markReusable();
         mgr.releaseConnection(conn);
 
-        // We now have a manager with an open connection. We drop all
-        // potential hard reference to it and check whether it is GCed.
-        // Note that the connection keeps a reference even if detached.
-        // Internal references might prevent that if set up incorrectly.
-
+        // We now have a manager with an open connection in it's pool.
+        // We drop all potential hard reference to the manager and check
+        // whether it is GCed. Internal references might prevent that
+        // if set up incorrectly.
+        // Note that we still keep references to the connection wrapper
+        // we got from the manager, directly as well as in the request
+        // and in the context. The manager will be GCed only if the
+        // connection wrapper is truly detached.
         WeakReference wref = new WeakReference(mgr);
-
-        request = null;
-        response = null;
         mgr = null;
-
-        //@@@ the connection currently prevents the manager from being GCed
-        conn = null;
-        httpContext = null; // holds the connection and request
 
         // Java does not guarantee that this will trigger the GC, but
         // it does in the test environment. GC is asynchronous, so we
