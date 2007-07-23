@@ -406,13 +406,6 @@ public class ThreadSafeClientConnManager
     }
 
 
-    // ######################################################################
-    // ######################################################################
-    // ##########               old code below                     ##########
-    // ######################################################################
-    // ######################################################################
-
-
     /**
      * Shuts down the connection manager and releases all resources.
      * All connections associated with this manager will be closed
@@ -666,7 +659,7 @@ public class ThreadSafeClientConnManager
          * Decrements any connection counts and notifies waiting threads,
          * if appropriate.
          * 
-         * @param config        the route of the connection that was lost
+         * @param route        the route of the connection that was lost
          */
         //@@@ temporary default visibility, for BadStaticMaps
         synchronized /*default*/
@@ -816,8 +809,6 @@ public class ThreadSafeClientConnManager
          * Notifies a waiting thread that a connection is available, by route.
          *
          * @param route         the route for which to notify
-         *
-         * @see #notifyWaitingThread(RouteConnPool)
          */
         public synchronized void notifyWaitingThread(HttpRoute route) {
             notifyWaitingThread(getRoutePool(route));
@@ -1098,29 +1089,6 @@ public class ThreadSafeClientConnManager
 
     } // class TrackingPoolEntry
 
-    
-    /* *
-     * @@@ replace by separate class TSCCMConnAdapter
-     * A connection wrapper and callback handler.
-     * All connections given out by the manager are wrappers which
-     * can be {@link #detach detach}ed to prevent further use on release.
-     * /
-    private class HttpConnectionAdapter extends AbstractPooledConnAdapter {
-        //@@@ HTTPCLIENT-653
-        //@@@ this adapter being a nested class prevents proper detaching of
-        //@@@ the adapter from the manager, and therefore GC of the manager
-
-        / * *
-         * Creates a new adapter.
-         *
-         * @param entry   the pool entry for the connection being wrapped
-         * /
-        protected HttpConnectionAdapter(TrackingPoolEntry entry) {
-            super(ThreadSafeClientConnManager.this, entry);
-            super.markedReusable = true;
-        }
-    }
-    */
 
 } // class ThreadSafeClientConnManager
 

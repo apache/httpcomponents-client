@@ -88,10 +88,8 @@ final /*default*/ class BadStaticMaps {
     /**
      * Shuts down and cleans up resources used by all instances of 
      * ThreadSafeClientConnManager. All static resources are released, all threads are 
-     * stopped, and {@link #shutdown()} is called on all live instances of 
+     * stopped, and {@link ThreadSafeClientConnManager#shutdown()} is called on all live instances of 
      * ThreadSafeClientConnManager.
-     *
-     * @see #shutdown()
      */
     static /*default*/ void shutdownAll() {
 

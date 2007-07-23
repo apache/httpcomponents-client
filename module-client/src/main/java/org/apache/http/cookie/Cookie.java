@@ -63,8 +63,6 @@ public interface Cookie {
      * <tt>null</tt> if no such comment has been defined.
      * 
      * @return comment 
-     *
-     * @see #setComment(String)
      */
     String getComment();
 
@@ -75,9 +73,6 @@ public interface Cookie {
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
      * @return Expiration {@link Date}, or <tt>null</tt>.
-     *
-     * @see #setExpiryDate(java.util.Date)
-     *
      */
     Date getExpiryDate();
 
@@ -94,8 +89,6 @@ public interface Cookie {
      * Returns domain attribute of the cookie.
      * 
      * @return the value of the domain attribute
-     *
-     * @see #setDomain(java.lang.String)
      */
     String getDomain();
 
@@ -103,14 +96,14 @@ public interface Cookie {
      * Returns the path attribute of the cookie
      * 
      * @return The value of the path attribute.
-     * 
-     * @see #setPath(java.lang.String)
      */
     String getPath();
 
     /**
-     * @return <code>true</code> if this cookie should only be sent over secure connections.
-     * @see #setSecure(boolean)
+     * Indicates whether this cookie requires a secure connection.
+     *
+     * @return  <code>true</code> if this cookie should only be sent
+     *          over secure connections, <code>false</code> otherwise.
      */
     boolean isSecure();
 
@@ -119,9 +112,6 @@ public interface Cookie {
      * cookie conforms.
      *
      * @return the version of the cookie.
-     * 
-     * @see #setVersion(int)
-     *
      */
     int getVersion();
 
@@ -139,8 +129,6 @@ public interface Cookie {
      *
      * @return value <tt>true</tt> if the cookie's path was explicitly 
      * set, <tt>false</tt> otherwise.
-     * 
-     * @see #setPathAttributeSpecified
      */
     boolean isPathAttributeSpecified();
 
@@ -150,8 +138,6 @@ public interface Cookie {
      *
      * @return value <tt>true</tt> if the cookie's domain was explicitly 
      * set, <tt>false</tt> otherwise.
-     *
-     * @see #setDomainAttributeSpecified
      */
     boolean isDomainAttributeSpecified();
 

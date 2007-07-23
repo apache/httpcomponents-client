@@ -40,7 +40,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * A worker thread for processing queued references.
- * {@link References Reference}s can be
+ * {@link Reference Reference}s can be
  * {@link ReferenceQueue queued}
  * automatically by the garbage collector.
  * If that feature is used, a daemon thread should be executing
