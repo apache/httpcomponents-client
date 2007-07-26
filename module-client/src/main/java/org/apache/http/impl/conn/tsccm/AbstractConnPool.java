@@ -33,28 +33,19 @@ package org.apache.http.impl.conn.tsccm;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.impl.conn.*; //@@@ specify
+import org.apache.http.impl.conn.IdleConnectionHandler;
+
 
 
 /**
