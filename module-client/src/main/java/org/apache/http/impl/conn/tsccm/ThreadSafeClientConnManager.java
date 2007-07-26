@@ -89,7 +89,8 @@ public class ThreadSafeClientConnManager
 
 
     /** The pool of connections being managed. */
-    private ConnectionPool connectionPool;
+    //@@@ private ConnectionPool connectionPool;
+    private AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
     //@@@ temporarily visible to BasicPoolEntry
@@ -115,7 +116,8 @@ public class ThreadSafeClientConnManager
         }
         this.params = params;
         this.schemeRegistry  = schreg;
-        this.connectionPool = new ConnectionPool();
+        //@@@ this.connectionPool = new ConnectionPool();
+        this.connectionPool = new ConnPoolByRoute(this);
         this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
 
@@ -163,13 +165,15 @@ public class ThreadSafeClientConnManager
                 + route + ", timeout = " + timeout);
         }
 
-        final BasicPoolEntry entry = doGetConnection(route, timeout);
+        //@@@ final BasicPoolEntry entry = doGetConnection(route, timeout);
+        final BasicPoolEntry entry =
+            connectionPool.getEntry(route, timeout, connOperator);
 
         return new TSCCMConnAdapter(this, entry);
     }
 
 
-    /**
+    /* *
      * Obtains a connection within the given timeout.
      *
      * @param route     the route for which to get the connection
@@ -178,7 +182,7 @@ public class ThreadSafeClientConnManager
      * @return  the pool entry for the connection
      *
      * @throws ConnectionPoolTimeoutException   if the timeout expired
-     */
+     * /
     private BasicPoolEntry doGetConnection(HttpRoute route,
                                               long timeout)
         throws ConnectionPoolTimeoutException {
@@ -295,20 +299,21 @@ public class ThreadSafeClientConnManager
         return entry;
 
     } // doGetConnection
+    */
 
-
-    /**
+    /* *
      * Creates a connection to be managed, along with a pool entry.
      *
      * @param route     the route for which to create the connection
      *
      * @return  the pool entry for the new connection
-     */
+     * /
     private BasicPoolEntry createPoolEntry(HttpRoute route) {
 
         OperatedClientConnection occ = connOperator.createConnection();
         return connectionPool.createEntry(route, occ);
     }
+    */
 
 
     /**
@@ -392,7 +397,8 @@ public class ThreadSafeClientConnManager
         if (entry == null)
             return;
 
-        connectionPool.freeConnection(entry);
+        //@@@ connectionPool.freeConnection(entry);
+        connectionPool.freeEntry(entry);
     }
 
 
@@ -434,10 +440,13 @@ public class ThreadSafeClientConnManager
      * @return  the total number of pooled connections for that route
      */
     public int getConnectionsInPool(HttpRoute route) {
+        return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(route);
+/*
         synchronized (connectionPool) {
             RouteConnPool routePool = connectionPool.getRoutePool(route);
             return routePool.numConnections;
         }
+*/
     }
 
     /**
@@ -501,7 +510,7 @@ public class ThreadSafeClientConnManager
      * as well as per-route lists.
      */
     //@@@ temporary package visibility, for BadStaticMaps
-    class /*default*/ ConnectionPool implements RefQueueHandler {
+    /*default*/ class ConnectionPool implements RefQueueHandler {
         
         /** The list of free connections */
         private LinkedList freeConnections = new LinkedList();
@@ -582,7 +591,7 @@ public class ThreadSafeClientConnManager
                 }
             }
             //@@@ while the static map exists, call there to clean it up
-            BadStaticMaps.shutdownCheckedOutConnections(this); //@@@
+            //BadStaticMaps.shutdownCheckedOutConnections(this); //@@@
             
             // interrupt all waiting threads
             iter = waitingThreads.iterator();
@@ -625,7 +634,7 @@ public class ThreadSafeClientConnManager
     
             // store a reference to this entry so that it can be cleaned up
             // in the event it is not correctly released
-            BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
+            //BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
             issuedConnections.add(entry.getWeakRef());
 
             return entry;
@@ -719,7 +728,7 @@ public class ThreadSafeClientConnManager
 
                 // store a reference to this entry so that it can be cleaned up
                 // in the event it is not correctly released
-                BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
+                //BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
                 issuedConnections.add(entry.getWeakRef());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Getting free connection, route=" + route);
@@ -911,6 +920,7 @@ public class ThreadSafeClientConnManager
     } // class ConnectionPool
 
 
+    //@@@ move to pool?
     static /*default*/ void closeConnection(final OperatedClientConnection conn) {
         if (conn != null) {
             try {

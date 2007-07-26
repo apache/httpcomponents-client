@@ -145,7 +145,7 @@ final /*default*/ class BadStaticMaps {
     static /*default*/ void storeReferenceToConnection(
         BasicPoolEntry entry,
         HttpRoute route,
-        ThreadSafeClientConnManager.ConnectionPool connectionPool
+        AbstractConnPool connectionPool
     ) {
 
         ConnectionSource source = new ConnectionSource();
@@ -187,7 +187,7 @@ final /*default*/ class BadStaticMaps {
      * @param connectionPool the pool for which to shutdown the connections
      */
     static /*default*/
-    void shutdownCheckedOutConnections(ThreadSafeClientConnManager.ConnectionPool connectionPool) {
+    void shutdownCheckedOutConnections(AbstractConnPool connectionPool) {
 
         // keep a list of the connections to be closed
         ArrayList connectionsToClose = new ArrayList();
@@ -227,7 +227,7 @@ final /*default*/ class BadStaticMaps {
     private static class ConnectionSource {
 
         /** The connection pool that created the connection */
-        public ThreadSafeClientConnManager.ConnectionPool connectionPool;
+        public AbstractConnPool connectionPool;
 
         /** The connection's planned route. */
         public HttpRoute route;
@@ -276,7 +276,7 @@ final /*default*/ class BadStaticMaps {
                         + source.route);
                 }
                 
-                source.connectionPool.handleLostConnection(source.route);
+                source.connectionPool.handleLostEntry(source.route);
             }
         }
 
