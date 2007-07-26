@@ -89,11 +89,9 @@ public class ThreadSafeClientConnManager
 
 
     /** The pool of connections being managed. */
-    //@@@ private ConnectionPool connectionPool;
     private AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    //@@@ temporarily visible to BasicPoolEntry
     /*private*/ ClientConnectionOperator connOperator;
 
     /** Indicates whether this connection manager is shut down. */
@@ -116,7 +114,6 @@ public class ThreadSafeClientConnManager
         }
         this.params = params;
         this.schemeRegistry  = schreg;
-        //@@@ this.connectionPool = new ConnectionPool();
         this.connectionPool = new ConnPoolByRoute(this);
         this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
@@ -165,155 +162,11 @@ public class ThreadSafeClientConnManager
                 + route + ", timeout = " + timeout);
         }
 
-        //@@@ final BasicPoolEntry entry = doGetConnection(route, timeout);
         final BasicPoolEntry entry =
             connectionPool.getEntry(route, timeout, connOperator);
 
         return new TSCCMConnAdapter(this, entry);
     }
-
-
-    /* *
-     * Obtains a connection within the given timeout.
-     *
-     * @param route     the route for which to get the connection
-     * @param timeout   the timeout, or 0 for no timeout
-     *
-     * @return  the pool entry for the connection
-     *
-     * @throws ConnectionPoolTimeoutException   if the timeout expired
-     * /
-    private BasicPoolEntry doGetConnection(HttpRoute route,
-                                              long timeout)
-        throws ConnectionPoolTimeoutException {
-
-        BasicPoolEntry entry = null;
-
-        int maxHostConnections = HttpConnectionManagerParams
-            .getMaxConnectionsPerHost(this.params, route);
-        int maxTotalConnections = HttpConnectionManagerParams
-            .getMaxTotalConnections(this.params);
-        
-        synchronized (connectionPool) {
-
-            RouteConnPool routePool = connectionPool.getRoutePool(route);
-            WaitingThread waitingThread = null;
-
-            boolean useTimeout = (timeout > 0);
-            long timeToWait = timeout;
-            long startWait = 0;
-            long endWait = 0;
-
-            while (entry == null) {
-
-                if (isShutDown) {
-                    throw new IllegalStateException
-                        ("Connection manager has been shut down.");
-                }
-                
-                // happen to have a free connection with the right specs
-                //
-                if (routePool.freeConnections.size() > 0) {
-                    entry = connectionPool.getFreeConnection(route);
-
-                // have room to make more
-                //
-                } else if ((routePool.numConnections < maxHostConnections) 
-                    && (connectionPool.numConnections < maxTotalConnections)) {
-
-                    entry = createPoolEntry(route);
-
-                // have room to add a connection, and there is at least one
-                // free connection that can be liberated to make overall room
-                //
-                } else if ((routePool.numConnections < maxHostConnections) 
-                    && (connectionPool.freeConnections.size() > 0)) {
-
-                    connectionPool.deleteLeastUsedConnection();
-                    entry = createPoolEntry(route);
-
-                // otherwise, we have to wait for one of the above conditions
-                // to become true
-                //
-                } else {
-                    // TODO: keep track of which routes have waiting
-                    // threads, so they avoid being sacrificed before necessary
-
-                    try {
-                        
-                        if (useTimeout && timeToWait <= 0) {
-                            throw new ConnectionPoolTimeoutException("Timeout waiting for connection");
-                        }
-                        
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Unable to get a connection, waiting..., route=" + route);
-                        }
-                        
-                        if (waitingThread == null) {
-                            waitingThread = new WaitingThread();
-                            waitingThread.pool = routePool;
-                            waitingThread.thread = Thread.currentThread();
-                        } else {
-                            waitingThread.interruptedByConnectionPool = false;
-                        }
-                                    
-                        if (useTimeout) {
-                            startWait = System.currentTimeMillis();
-                        }
-                        
-                        routePool.waitingThreads.addLast(waitingThread);
-                        connectionPool.waitingThreads.addLast(waitingThread);
-                        connectionPool.wait(timeToWait);
-                        
-                    } catch (InterruptedException e) {
-                        if (!waitingThread.interruptedByConnectionPool) {
-                            LOG.debug("Interrupted while waiting for connection", e);
-                            throw new IllegalThreadStateException(
-                                "Interrupted while waiting in ThreadSafeClientConnManager");
-                        }
-                        // Else, do nothing, we were interrupted by the
-                        // connection pool and should now have a connection
-                        // waiting for us. Continue in the loop and get it.
-                        // Or else we are shutting down, which is also
-                        // detected in the loop.
-                    } finally {
-                        if (!waitingThread.interruptedByConnectionPool) {
-                            // Either we timed out, experienced a
-                            // "spurious wakeup", or were interrupted by an
-                            // external thread.  Regardless we need to 
-                            // cleanup for ourselves in the wait queue.
-                            routePool.waitingThreads.remove(waitingThread);
-                            connectionPool.waitingThreads.remove(waitingThread);
-                        }
-                        
-                        if (useTimeout) {
-                            endWait = System.currentTimeMillis();
-                            timeToWait -= (endWait - startWait);
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return entry;
-
-    } // doGetConnection
-    */
-
-    /* *
-     * Creates a connection to be managed, along with a pool entry.
-     *
-     * @param route     the route for which to create the connection
-     *
-     * @return  the pool entry for the new connection
-     * /
-    private BasicPoolEntry createPoolEntry(HttpRoute route) {
-
-        OperatedClientConnection occ = connOperator.createConnection();
-        return connectionPool.createEntry(route, occ);
-    }
-    */
 
 
     /**
@@ -397,7 +250,6 @@ public class ThreadSafeClientConnManager
         if (entry == null)
             return;
 
-        //@@@ connectionPool.freeConnection(entry);
         connectionPool.freeEntry(entry);
     }
 
@@ -441,12 +293,6 @@ public class ThreadSafeClientConnManager
      */
     public int getConnectionsInPool(HttpRoute route) {
         return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(route);
-/*
-        synchronized (connectionPool) {
-            RouteConnPool routePool = connectionPool.getRoutePool(route);
-            return routePool.numConnections;
-        }
-*/
     }
 
     /**
@@ -459,7 +305,7 @@ public class ThreadSafeClientConnManager
      */
     public int getConnectionsInPool() {
         synchronized (connectionPool) {
-            return connectionPool.numConnections;
+            return connectionPool.numConnections; //@@@
         }
     }
 
@@ -503,424 +349,9 @@ public class ThreadSafeClientConnManager
         }
         this.params = params;
     }
-    
-    /**
-     * A structured pool of connections.
-     * This class keeps track of all connections, using overall lists
-     * as well as per-route lists.
-     */
-    //@@@ temporary package visibility, for BadStaticMaps
-    /*default*/ class ConnectionPool implements RefQueueHandler {
-        
-        /** The list of free connections */
-        private LinkedList freeConnections = new LinkedList();
-
-        /** The list of WaitingThreads waiting for a connection */
-        private LinkedList waitingThreads = new LinkedList();
-
-        /**
-         * References to issued connections.
-         * Objects in this set are of class {@link BasicPoolEntryRef BasicPoolEntryRef},
-         * and point to the pool entry for the issued connection.
-         * GCed connections are detected by the missing pool entries.
-         */
-        private Set issuedConnections = new HashSet();
-
-        /** A reference queue to track loss of pool entries to GC. */
-        //@@@ this should be a pool-specific reference queue
-        private ReferenceQueue refQueue = BadStaticMaps.REFERENCE_QUEUE; //@@@
-
-        /** A worker (thread) to track loss of pool entries to GC. */
-        private RefQueueWorker refWorker;
 
 
-        /**
-         * Map of route-specific pools.
-         * Keys are of class {@link HttpRoute}, and
-         * values are of class {@link RouteConnPool}.
-         */
-        private final Map mapRoutes = new HashMap();
-
-        private IdleConnectionHandler idleConnectionHandler =
-            new IdleConnectionHandler();        
-        
-        /** The number of created connections */
-        private int numConnections = 0;
-
-
-        /**
-         * Creates a new connection pool.
-         */
-        private ConnectionPool() {
-            //@@@ currently must be false, otherwise the TSCCM
-            //@@@ will not be garbage collected in the unit test...
-            boolean conngc = false; //@@@ check parameters to decide
-            if (conngc) {
-                refQueue = new ReferenceQueue();
-                refWorker = new RefQueueWorker(refQueue, this);
-                Thread t = new Thread(refWorker); //@@@ use a thread factory
-                t.setDaemon(true);
-                t.setName("RefQueueWorker@"+ThreadSafeClientConnManager.this);
-                t.start();
-            }
-        }
-
-        /**
-         * Cleans up all connection pool resources.
-         */
-        public synchronized void shutdown() {
-            
-            // close all free connections
-            Iterator iter = freeConnections.iterator();
-            while (iter.hasNext()) {
-                BasicPoolEntry entry = (BasicPoolEntry) iter.next();
-                iter.remove();
-                closeConnection(entry.getConnection());
-            }
-
-            if (refWorker != null)
-                refWorker.shutdown();
-            // close all connections that have been checked out
-            iter = issuedConnections.iterator();
-            while (iter.hasNext()) {
-                BasicPoolEntryRef per = (BasicPoolEntryRef) iter.next();
-                iter.remove();
-                BasicPoolEntry entry = (BasicPoolEntry) per.get();
-                if (entry != null) {
-                    closeConnection(entry.getConnection());
-                }
-            }
-            //@@@ while the static map exists, call there to clean it up
-            //BadStaticMaps.shutdownCheckedOutConnections(this); //@@@
-            
-            // interrupt all waiting threads
-            iter = waitingThreads.iterator();
-            while (iter.hasNext()) {
-                WaitingThread waiter = (WaitingThread) iter.next();
-                iter.remove();
-                waiter.interruptedByConnectionPool = true;
-                waiter.thread.interrupt();
-            }
-            
-            mapRoutes.clear();
-            
-            // remove all references to connections
-            idleConnectionHandler.removeAll();
-        }
-
-
-        /**
-         * Creates a new pool entry for an operated connection.
-         * This method assumes that the new connection will be handed
-         * out immediately.
-         *
-         * @param route   the route associated with the new entry
-         * @param conn    the underlying connection for the new entry
-         *
-         * @return the new pool entry
-         */
-        protected synchronized
-            BasicPoolEntry createEntry(HttpRoute route,
-                                          OperatedClientConnection conn) {
-
-            RouteConnPool routePool = getRoutePool(route);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Allocating new connection, route=" + route);
-            }
-            BasicPoolEntry entry = new BasicPoolEntry
-                (ThreadSafeClientConnManager.this, conn, route, refQueue);
-            numConnections++;
-            routePool.numConnections++;
-    
-            // store a reference to this entry so that it can be cleaned up
-            // in the event it is not correctly released
-            //BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
-            issuedConnections.add(entry.getWeakRef());
-
-            return entry;
-        }
-
-        
-        // non-javadoc, see interface RefQueueHandler
-        public synchronized void handleReference(Reference ref) {
-
-            if (ref instanceof BasicPoolEntryRef) {
-                // check if the GCed pool entry was still in use
-                //@@@ find a way to detect this without lookup
-                //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
-                final boolean lost = issuedConnections.remove(ref);
-                if (lost) {
-                    final HttpRoute route =
-                        ((BasicPoolEntryRef)ref).getRoute();
-
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(
-                            "Connection garbage collected. " + route);
-                    }
-
-                    handleLostConnection(route);
-                }
-            }
-            //@@@ check if the connection manager was GCed
-        }
-
-
-        /**
-         * Handles cleaning up for a lost connection with the given config.
-         * Decrements any connection counts and notifies waiting threads,
-         * if appropriate.
-         * 
-         * @param route        the route of the connection that was lost
-         */
-        //@@@ temporary default visibility, for BadStaticMaps
-        synchronized /*default*/
-            void handleLostConnection(HttpRoute route) {
-
-            RouteConnPool routePool = getRoutePool(route);
-            routePool.numConnections--;
-            if (routePool.numConnections < 1)
-                mapRoutes.remove(route);
-
-            numConnections--;
-            notifyWaitingThread(route);
-        }
-
-        /**
-         * Get the pool (list) of connections available for the given route.
-         *
-         * @param route   the configuraton for the connection pool
-         * @return a pool (list) of connections available for the given route
-         */
-        public synchronized
-            RouteConnPool getRoutePool(HttpRoute route) {
-
-            // Look for a list of connections for the given config
-            RouteConnPool listConnections =
-                (RouteConnPool) mapRoutes.get(route);
-            if (listConnections == null) {
-                // First time for this config
-                listConnections = new RouteConnPool();
-                listConnections.route = route;
-                mapRoutes.put(route, listConnections);
-            }
-
-            return listConnections;
-        }
-
-
-        /**
-         * If available, get a free connection for a route.
-         *
-         * @param route         the planned route
-         *
-         * @return an available connection for the given route
-         */
-        public synchronized BasicPoolEntry getFreeConnection(HttpRoute route) {
-
-            BasicPoolEntry entry = null;
-
-            RouteConnPool routePool = getRoutePool(route);
-
-            if (routePool.freeConnections.size() > 0) {
-                entry = (BasicPoolEntry)
-                    routePool.freeConnections.removeLast();
-                freeConnections.remove(entry);
-
-                // store a reference to this entry so that it can be cleaned up
-                // in the event it is not correctly released
-                //BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
-                issuedConnections.add(entry.getWeakRef());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Getting free connection, route=" + route);
-                }
-
-                // remove the connection from the timeout handler
-                idleConnectionHandler.remove(entry.getConnection());
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("There were no free connections to get, route=" 
-                    + route);
-            }
-            return entry;
-        }
-        
-        /**
-         * Deletes all closed connections.
-         */        
-        public synchronized void deleteClosedConnections() {
-            
-            Iterator iter = freeConnections.iterator();
-            
-            while (iter.hasNext()) {
-                BasicPoolEntry entry =
-                    (BasicPoolEntry) iter.next();
-                if (!entry.getConnection().isOpen()) {
-                    iter.remove();
-                    deleteConnection(entry);
-                }
-            }
-        }
-
-        /**
-         * Closes idle connections.
-         * @param idleTimeout
-         */
-        public synchronized void closeIdleConnections(long idleTimeout) {
-            idleConnectionHandler.closeIdleConnections(idleTimeout);
-        }
-        
-        /**
-         * Deletes the given connection.
-         * This will remove all reference to the connection
-         * so that it can be GCed.
-         * 
-         * <p><b>Note:</b> Does not remove the connection from the
-         * freeConnections list.  It
-         * is assumed that the caller has already handled this step.</p>
-         * 
-         * @param entry         the pool entry for the connection to delete
-         */
-        private synchronized void deleteConnection(BasicPoolEntry entry) {
-
-            HttpRoute route = entry.getPlannedRoute();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Reclaiming connection, route=" + route);
-            }
-
-            closeConnection(entry.getConnection());
-
-            RouteConnPool routePool = getRoutePool(route);
-            
-            routePool.freeConnections.remove(entry);
-            routePool.numConnections--;
-            numConnections--;
-            if (routePool.numConnections < 1)
-                mapRoutes.remove(route);
-
-            // remove the connection from the timeout handler
-            idleConnectionHandler.remove(entry.getConnection());
-        }
-
-        /**
-         * Close and delete an old, unused connection to make room for a new one.
-         */
-        public synchronized void deleteLeastUsedConnection() {
-
-            BasicPoolEntry entry =
-                (BasicPoolEntry) freeConnections.removeFirst();
-
-            if (entry != null) {
-                deleteConnection(entry);
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Attempted to reclaim an unused connection but there were none.");
-            }
-        }
-
-        /**
-         * Notifies a waiting thread that a connection is available, by route.
-         *
-         * @param route         the route for which to notify
-         */
-        public synchronized void notifyWaitingThread(HttpRoute route) {
-            notifyWaitingThread(getRoutePool(route));
-        }
-
-
-        /**
-         * Notifies a waiting thread that a connection is available.
-         * This will wake a thread waiting in the specific route pool,
-         * if there is one.
-         * Otherwise, a thread in the connection pool will be notified.
-         * 
-         * @param routePool     the pool in which to notify
-         */
-        public synchronized void notifyWaitingThread(RouteConnPool routePool) {
-
-            //@@@ while this strategy provides for best connection re-use,
-            //@@@ is it fair? only do this if the connection is open?
-            // Find the thread we are going to notify. We want to ensure that
-            // each waiting thread is only interrupted once, so we will remove
-            // it from all wait queues before interrupting.
-            WaitingThread waitingThread = null;
-
-            if (routePool.waitingThreads.size() > 0) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Notifying thread waiting on pool. " 
-                        + routePool.route);
-                }
-                waitingThread = (WaitingThread) routePool.waitingThreads.removeFirst();
-                waitingThreads.remove(waitingThread);
-            } else if (waitingThreads.size() > 0) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No-one waiting on route pool, notifying next waiting thread.");
-                }
-                waitingThread = (WaitingThread) waitingThreads.removeFirst();
-                waitingThread.pool.waitingThreads.remove(waitingThread);
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Notifying no-one, there are no waiting threads");
-            }
-                
-            if (waitingThread != null) {
-                waitingThread.interruptedByConnectionPool = true;
-                waitingThread.thread.interrupt();
-            }
-        }
-
-        /**
-         * Marks the given connection as free.
-         *
-         * @param entry         the pool entry for the connection
-         */
-        private void freeConnection(BasicPoolEntry entry) {
-
-            HttpRoute route = entry.getPlannedRoute();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Freeing connection, route=" + route);
-            }
-
-            synchronized (this) {
-
-                if (isShutDown) {
-                    // the connection manager has been shutdown, release the
-                    // connection's resources and get out of here
-                    closeConnection(entry.getConnection());
-                    return;
-                }
-                
-                RouteConnPool routePool = getRoutePool(route);
-
-                // Put the connection back in the available list
-                // and notify a waiter
-                routePool.freeConnections.add(entry);
-                if (routePool.numConnections == 0) {
-                    // for some reason the route pool didn't already exist
-                    LOG.error("Route connection pool not found. " + route);
-                    routePool.numConnections = 1;
-                }
-
-                freeConnections.add(entry);
-                // We can remove the reference to this connection as we have
-                // control over it again. This also ensures that the connection
-                // manager can be GCed.
-                BadStaticMaps.removeReferenceToConnection(entry); //@@@
-                issuedConnections.remove(entry.getWeakRef()); //@@@ move above
-                if (numConnections == 0) {
-                    // for some reason this pool didn't already exist
-                    LOG.error("Master connection pool not found. " + route);
-                    numConnections = 1;
-                }
-
-                // register the connection with the timeout handler
-                idleConnectionHandler.add(entry.getConnection());
-
-                notifyWaitingThread(routePool);
-            }
-        }
-    } // class ConnectionPool
-
-
-    //@@@ move to pool?
+    //@@@ still needed?
     static /*default*/ void closeConnection(final OperatedClientConnection conn) {
         if (conn != null) {
             try {
@@ -929,47 +360,6 @@ public class ThreadSafeClientConnManager
                 LOG.debug("I/O error closing connection", ex);
             }
         }
-    }
-
-    /**
-     * A simple struct-like class to combine the connection list and the count
-     * of created connections.
-     */
-    private static class RouteConnPool {
-
-        /** The route this pool is for. */
-        public HttpRoute route;
-
-        /** The list of free connections. */
-        public LinkedList freeConnections = new LinkedList();
-
-        /** The list of WaitingThreads for this pool. */
-        public LinkedList waitingThreads = new LinkedList();
-
-        /** The number of created connections. */
-        public int numConnections = 0;
-    }
-
-
-    /**
-     * A thread and the pool in which it is waiting.
-     */
-    private static class WaitingThread {
-        /** The thread that is waiting for a connection */
-        public Thread thread;
-        
-        /** The connection pool the thread is waiting for */
-        public RouteConnPool pool;
-        
-        /**
-         * Indicates the source of an interruption.
-         * Set to <code>true</code> inside
-         * {@link ConnectionPool#notifyWaitingThread(RouteConnPool)}
-         * and {@link ThreadSafeClientConnManager#shutdown shutdown()}
-         * before the thread is interrupted.
-         * If not set, the thread was interrupted from the outside.
-         */
-        public boolean interruptedByConnectionPool = false;
     }
 
 
