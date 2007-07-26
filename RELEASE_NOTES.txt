@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-669] new HttpRoutePlanner interface and implementation
+  Contributed by Andrea Selva <selva.andre at gmail.com>
+
 * [HTTPCLIENT-653] detached connection wrapper no longer prevents
   garbage collection of ThreadSafeClientConnManager
   Contributed by Roland Weber <rolandw at apache.org>

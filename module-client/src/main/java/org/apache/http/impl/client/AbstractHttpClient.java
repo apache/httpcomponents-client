@@ -53,6 +53,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -113,6 +114,10 @@ public abstract class AbstractHttpClient
 
     /** The credentials provider. */
     private CredentialsProvider credsProvider;
+    
+    /** The HttpRoutePlanner object. */
+    private HttpRoutePlanner routePlanner;
+
 
     /**
      * Creates a new HTTP client.
@@ -126,7 +131,6 @@ public abstract class AbstractHttpClient
         defaultParams        = params;
         connManager          = conman;
     } // constructor
-
 
     protected abstract HttpParams createHttpParams();
 
@@ -165,7 +169,23 @@ public abstract class AbstractHttpClient
     
     
     protected abstract void populateContext(HttpContext context);
+    
+    
+    protected abstract HttpRoutePlanner createHttpRoutePlanner();
 
+    
+    public synchronized final HttpRoutePlanner getRoutePlanner() {
+        if (this.routePlanner == null) {
+            this.routePlanner = createHttpRoutePlanner();
+        }
+        return this.routePlanner;
+    }
+
+
+    public synchronized void setRoutePlanner(final HttpRoutePlanner routePlanner) {
+        this.routePlanner = routePlanner;
+    }
+    
     
     // non-javadoc, see interface HttpClient
     public synchronized final HttpParams getParams() {

@@ -54,6 +54,7 @@ import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
@@ -62,6 +63,7 @@ import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
+import org.apache.http.impl.client.DefaultHttpRoutePlanner; //@@@ move to conn
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
@@ -109,8 +111,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
             final HttpParams params) {
         super(conman, params);
     }
-
     
+       
     public DefaultHttpClient(final HttpParams params) {
         super(null, params);
     }
@@ -280,30 +282,23 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
         if (target == null) {
             target = (HttpHost) request.getParams().getParameter(
-                    HttpClientParams.DEFAULT_HOST);
+                HttpClientParams.DEFAULT_HOST);
         }
         if (target == null) {
             throw new IllegalStateException
-                ("Target host must not be null.");
+                ("Target host must not be null, or set in parameters.");
         }
 
-        HttpHost proxy = (HttpHost) request.getParams().getParameter(
-                HttpClientParams.DEFAULT_PROXY);
+        HttpRoute route = getRoutePlanner()
+            .determineRoute(target, request, context);
 
-        Scheme schm = getConnectionManager().getSchemeRegistry().
-            getScheme(target.getSchemeName());
-        // as it is typically used for TLS/SSL, we assume that
-        // a layered scheme implies a secure connection
-        boolean secure = schm.isLayered();
-        
-        HttpRoute route;
-        if (proxy == null) {
-            route = new HttpRoute(target, null, secure);
-        } else {
-            route = new HttpRoute(target, null, proxy, secure);
-        }
         return new RoutedRequest.Impl(request, route);
     }
-
-
+    
+    
+    //non-javadoc, see base class AbstractHttpClient
+    protected HttpRoutePlanner createHttpRoutePlanner() {
+        return new DefaultHttpRoutePlanner(getConnectionManager());
+    }
+    
 } // class DefaultHttpClient
