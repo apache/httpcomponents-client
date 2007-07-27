@@ -44,8 +44,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
-import org.apache.http.io.HttpDataReceiver;
-import org.apache.http.io.HttpDataTransmitter;
+import org.apache.http.io.SessionInputBuffer;
+import org.apache.http.io.SessionOutputBuffer;
 
 import org.apache.http.conn.OperatedClientConnection;
 
@@ -136,33 +136,33 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    protected HttpDataReceiver createHttpDataReceiver(
+    protected SessionInputBuffer createHttpDataReceiver(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
-        HttpDataReceiver receiver = super.createHttpDataReceiver(
+        SessionInputBuffer inbuffer = super.createSessionInputBuffer(
                 socket, 
                 buffersize,
                 params);
         if (WIRE_LOG.isDebugEnabled()) {
-            receiver = new LoggingHttpDataReceiverDecorator(receiver, new Wire(WIRE_LOG));
+            inbuffer = new LoggingSessionInputBuffer(inbuffer, new Wire(WIRE_LOG));
         }
-        return receiver;
+        return inbuffer;
     }
 
     
-    protected HttpDataTransmitter createHttpDataTransmitter(
+    protected SessionOutputBuffer createHttpDataTransmitter(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
-        HttpDataTransmitter transmitter = super.createHttpDataTransmitter(
+        SessionOutputBuffer outbuffer = super.createSessionOutputBuffer(
                 socket,
                 buffersize,
                 params);
         if (WIRE_LOG.isDebugEnabled()) {
-            transmitter = new LoggingHttpDataTransmitterDecorator(transmitter, new Wire(WIRE_LOG));
+            outbuffer = new LoggingSessionOutputBuffer(outbuffer, new Wire(WIRE_LOG));
         }
-        return transmitter;
+        return outbuffer;
     }
 
     

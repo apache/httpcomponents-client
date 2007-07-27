@@ -32,8 +32,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
-import org.apache.http.io.HttpDataTransmitter;
 import org.apache.http.io.HttpTransportMetrics;
+import org.apache.http.io.SessionOutputBuffer;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -43,20 +43,20 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0
  */
-class LoggingHttpDataTransmitterDecorator implements HttpDataTransmitter {
+class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 
     /** Original data transmitter. */
-    private final HttpDataTransmitter out;
+    private final SessionOutputBuffer out;
     
     /** The wire log to use. */
     private final Wire wire;
 
     /**
-     * Create an instance that wraps the specified output stream.
-     * @param out The output stream.
+     * Create an instance that wraps the specified session output buffer.
+     * @param out The session output buffer.
      * @param wire The Wire log to use.
      */
-    public LoggingHttpDataTransmitterDecorator(final HttpDataTransmitter out, final Wire wire) {
+    public LoggingSessionOutputBuffer(final SessionOutputBuffer out, final Wire wire) {
         super();
         this.out = out;
         this.wire = wire;

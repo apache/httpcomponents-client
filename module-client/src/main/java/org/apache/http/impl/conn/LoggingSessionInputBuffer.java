@@ -32,8 +32,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
-import org.apache.http.io.HttpDataReceiver;
 import org.apache.http.io.HttpTransportMetrics;
+import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -45,20 +45,20 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0
  */
-class LoggingHttpDataReceiverDecorator implements HttpDataReceiver {
+class LoggingSessionInputBuffer implements SessionInputBuffer {
      
-    /** Original data receiver. */
-    private final HttpDataReceiver in;
+    /** Original session input buffer. */
+    private final SessionInputBuffer in;
 
     /** The wire log to use for writing. */
     private final Wire wire;
     
     /**
-     * Create an instance that wraps the specified HTTP data receiver.
-     * @param in The input stream.
+     * Create an instance that wraps the specified session input buffer.
+     * @param in The session input buffer.
      * @param wire The wire log to use.
      */
-    public LoggingHttpDataReceiverDecorator(final HttpDataReceiver in, final Wire wire) {
+    public LoggingSessionInputBuffer(final SessionInputBuffer in, final Wire wire) {
         super();
         this.in = in;
         this.wire = wire;
