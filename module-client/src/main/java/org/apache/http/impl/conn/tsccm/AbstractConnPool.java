@@ -33,6 +33,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.OperatedClientConnection;
@@ -78,15 +80,17 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected HttpParams params;
 
 
-    /** The connection manager. */
-    //@@@ replace with a weak reference to allow for GC
-    //@@@ is it necessary to have the manager in the pool entry?
-    protected ThreadSafeClientConnManager connManager;
+    /**
+     * The connection manager.
+     * This weak reference is used only to detect garbage collection
+     * of the manager. The connection pool MUST NOT keep a hard reference
+     * to the manager, or else the manager might never be GCed.
+     */
+    protected ConnMgrRef connManager;
 
 
     /** A reference queue to track loss of pool entries to GC. */
-    //@@@ this should be a pool-specific reference queue
-    protected ReferenceQueue refQueue = BadStaticMaps.REFERENCE_QUEUE; //@@@
+    protected ReferenceQueue refQueue;
 
     /** A worker (thread) to track loss of pool entries to GC. */
     private RefQueueWorker refWorker;
@@ -96,6 +100,23 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected volatile boolean isShutDown;
 
 
+    /**
+     * A weak reference to the connection manager, to detect GC.
+     */
+    private static class ConnMgrRef extends WeakReference {
+
+        /**
+         * Creates a new reference.
+         *
+         * @param ccmgr   the connection manager
+         * @param queue   the reference queue, or <code>null</code>
+         */
+        public ConnMgrRef(ClientConnectionManager ccmgr,
+                          ReferenceQueue queue) {
+            super(ccmgr, queue);
+        }
+    }
+
 
     /**
      * Creates a new connection pool.
@@ -104,7 +125,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     protected AbstractConnPool(ThreadSafeClientConnManager tsccm) {
 
-        connManager = tsccm;
         params = tsccm.getParams();
 
         issuedConnections = new HashSet();
@@ -112,7 +132,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
         //@@@ currently must be false, otherwise the TSCCM
         //@@@ will not be garbage collected in the unit test...
-        boolean conngc = false; //@@@ check parameters to decide
+        boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
             refQueue = new ReferenceQueue();
             refWorker = new RefQueueWorker(refQueue, this);
@@ -121,6 +141,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             t.setName("RefQueueWorker@" + this);
             t.start();
         }
+
+        connManager = new ConnMgrRef(tsccm, refQueue);
     }
 
 
@@ -172,8 +194,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 }
                 handleLostEntry(route);
             }
+        } else if (ref instanceof ConnMgrRef) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Connection manager garbage collected. ");
+            }
+            shutdown();
         }
-        //@@@ else check if the connection manager was GCed
     }
 
 
@@ -213,7 +239,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     public synchronized void shutdown() {
 
-        isShutDown = true;
+        if (isShutDown)
+            return;
 
         // no point in monitoring GC anymore
         if (refWorker != null)
@@ -229,12 +256,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 closeConnection(entry.getConnection());
             }
         }
-        //@@@ while the static map exists, call there to clean it up
-        BadStaticMaps.shutdownCheckedOutConnections(this); //@@@
 
         // remove all references to connections
         //@@@ use this for shutting them down instead?
         idleConnHandler.removeAll();
+
+        isShutDown = true;
     }
 
 

@@ -79,7 +79,8 @@ public class ThreadSafeClientConnManager
 
 
     /** The pool of connections being managed. */
-    private AbstractConnPool connectionPool;
+    //@@@ temporarily, used in BasicPoolEntry
+    /*private*/ AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
     /*private*/ ClientConnectionOperator connOperator;
@@ -108,9 +109,9 @@ public class ThreadSafeClientConnManager
         this.connOperator = createConnectionOperator(schreg);
         this.isShutDown = false;
 
-        synchronized(BadStaticMaps.ALL_CONNECTION_MANAGERS) {
-            BadStaticMaps.ALL_CONNECTION_MANAGERS.put(this, null);
-        }
+        //@@@ synchronized(BadStaticMaps.ALL_CONNECTION_MANAGERS) {
+        //@@@    BadStaticMaps.ALL_CONNECTION_MANAGERS.put(this, null);
+        //@@@}
     } // <constructor>
 
 
@@ -234,8 +235,7 @@ public class ThreadSafeClientConnManager
      * @param entry     the pool entry for the connection to release,
      *                  or <code>null</code>
      */
-    //@@@ temporary default visibility, for BadStaticMaps
-    void /*default*/ releasePoolEntry(BasicPoolEntry entry) {
+    private void releasePoolEntry(BasicPoolEntry entry) {
 
         if (entry == null)
             return;
@@ -245,14 +245,15 @@ public class ThreadSafeClientConnManager
 
 
 
-    /**
+    /* *
      * Shuts down all instances of this class.
      *
      * @deprecated no replacement
-     */
+     * /
     public static void shutdownAll() {
-        BadStaticMaps.shutdownAll();
+        //@@@ BadStaticMaps.shutdownAll();
     }
+    */
 
 
     /**

@@ -41,7 +41,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 
 
@@ -192,8 +191,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    //@@@ can we keep the operator out of here and simply return a
-    //@@@ pool entry without a connection, to be filled in by the manager?
     public synchronized
         BasicPoolEntry getEntry(HttpRoute route, long timeout,
                                 ClientConnectionOperator operator)
@@ -323,10 +320,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
             return;
         }
 
+        // no longer issued, we keep a hard reference now
+        issuedConnections.remove(entry.getWeakRef());
+
         RouteConnPool routePool = getRoutePool(route);
 
-        // Put the connection back in the available list
-        // and notify a waiter
+        // put the connection back in the available list and notify a waiter
         routePool.freeConnections.add(entry);
         if (routePool.numConnections == 0) {
             // for some reason the route pool didn't already exist
@@ -335,11 +334,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
         freeConnections.add(entry);
 
-        // We can remove the reference to this connection as we have
-        // control over it again. This also ensures that the connection
-        // manager can be GCed.
-        BadStaticMaps.removeReferenceToConnection(entry); //@@@
-        issuedConnections.remove(entry.getWeakRef()); //@@@ move above
         if (numConnections == 0) {
             // for some reason this pool didn't already exist
             LOG.error("Master connection pool not found. " + route);
@@ -369,17 +363,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
         RouteConnPool routePool = getRoutePool(route);
 
         if (routePool.freeConnections.size() > 0) {
-            entry = (BasicPoolEntry) routePool.freeConnections.removeLast();
-            freeConnections.remove(entry);
-
-            // store a reference to this entry so that it can be cleaned up
-            // in the event it is not correctly released
-            BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
-            issuedConnections.add(entry.getWeakRef());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Getting free connection. " + route);
             }
+            entry = (BasicPoolEntry) routePool.freeConnections.removeLast();
+            freeConnections.remove(entry);
             idleConnHandler.remove(entry.getConnection()); // no longer idle
+
+            issuedConnections.add(entry.getWeakRef());
 
         } else {
             if (LOG.isDebugEnabled()) {
@@ -409,15 +400,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Creating new connection. " + route);
         }
 
-        OperatedClientConnection conn = op.createConnection();
-        BasicPoolEntry entry = new BasicPoolEntry
-            (connManager, conn, route, refQueue);
+        // the entry will create the connection when needed
+        BasicPoolEntry entry = new BasicPoolEntry(this, op, route, refQueue);
         numConnections++;
         routePool.numConnections++;
     
-        // store a reference to this entry so that it can be cleaned up
-        // in the event it is not correctly released
-        BadStaticMaps.storeReferenceToConnection(entry, route, this); //@@@
         issuedConnections.add(entry.getWeakRef());
 
         return entry;

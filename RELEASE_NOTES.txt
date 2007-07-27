@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-636] refactor ThreadSafeClientConnManager in separate package
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-669] new HttpRoutePlanner interface and implementation
   Contributed by Andrea Selva <selva.andre at gmail.com>
 
