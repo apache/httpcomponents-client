@@ -136,7 +136,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    protected SessionInputBuffer createHttpDataReceiver(
+    protected SessionInputBuffer createSessionInputBuffer(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
@@ -151,7 +151,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     
-    protected SessionOutputBuffer createHttpDataTransmitter(
+    protected SessionOutputBuffer createSessionOutputBuffer(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
