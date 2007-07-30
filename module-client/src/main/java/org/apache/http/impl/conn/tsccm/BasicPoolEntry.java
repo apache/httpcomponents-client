@@ -46,9 +46,6 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
  */
 public class BasicPoolEntry extends AbstractPoolEntry {
 
-    /** The connection pool. */
-    private AbstractConnPool connPool;
-
     /** The connection operator. */
     //@@@ move to base class, drop getOperator()?
     private ClientConnectionOperator connOperator;
@@ -65,28 +62,21 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     /**
      * Creates a new pool entry.
      *
-     * @param pool    the connection pool
      * @param op      the connection operator
      * @param route   the planned route for the connection
      * @param queue   the reference queue for tracking GC of this entry,
      *                or <code>null</code>
      */
-    public BasicPoolEntry(AbstractConnPool pool,
-                          ClientConnectionOperator op,
+    public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route,
                           ReferenceQueue queue) {
         //@@@ create connection in base? or delay creation until needed?
         super(op.createConnection(), route);
-        if (pool == null) {
-            throw new IllegalArgumentException
-                ("Connection pool must not be null.");
-        }
         if (route == null) {
             throw new IllegalArgumentException
                 ("Planned route must not be null.");
         }
 
-        this.connPool = pool;
         this.connOperator = op;
         this.reference = new BasicPoolEntryRef(this, queue);
     }
@@ -108,10 +98,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
 
     protected final WeakReference getWeakRef() {
         return this.reference;
-    }
-
-    protected final AbstractConnPool getConnPool() {
-        return this.connPool;
     }
 
 

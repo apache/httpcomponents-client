@@ -394,8 +394,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Creating new connection. " + rcp.route);
         }
         // the entry will create the connection when needed
-        BasicPoolEntry entry =
-            new BasicPoolEntry(this, op, rcp.route, refQueue);
+        BasicPoolEntry entry = new BasicPoolEntry(op, rcp.route, refQueue);
         numConnections++;
         rcp.numConnections++;
     
