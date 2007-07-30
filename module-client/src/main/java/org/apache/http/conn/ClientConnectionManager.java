@@ -32,6 +32,9 @@
 package org.apache.http.conn;
 
 
+import org.apache.http.params.HttpParams;
+
+
 
 /**
  * Management interface for {@link ManagedClientConnection client connections}.
@@ -49,7 +52,23 @@ package org.apache.http.conn;
  */
 public interface ClientConnectionManager {
 
-    SchemeRegistry getSchemeRegistry();
+    /**
+     * Obtains the parameters of this manager.
+     *
+     * @return  the parameters, never <code>null</code>
+     */
+    HttpParams getParams()
+        ;
+
+
+    /**
+     * Obtains the scheme registry used by this manager.
+     *
+     * @return  the scheme registry, never <code>null</code>
+     */
+    SchemeRegistry getSchemeRegistry()
+        ;
+
     
     /**
      * Obtains a connection.

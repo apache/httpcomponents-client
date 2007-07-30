@@ -121,17 +121,15 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     /**
      * Creates a new connection pool.
      *
-     * @param tsccm     the connection manager
+     * @param mgr   the connection manager
      */
-    protected AbstractConnPool(ThreadSafeClientConnManager tsccm) {
+    protected AbstractConnPool(ClientConnectionManager mgr) {
 
-        params = tsccm.getParams();
+        params = mgr.getParams();
 
         issuedConnections = new HashSet();
         idleConnHandler = new IdleConnectionHandler();
 
-        //@@@ currently must be false, otherwise the TSCCM
-        //@@@ will not be garbage collected in the unit test...
         boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
             refQueue = new ReferenceQueue();
@@ -142,7 +140,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             t.start();
         }
 
-        connManager = new ConnMgrRef(tsccm, refQueue);
+        connManager = new ConnMgrRef(mgr, refQueue);
     }
 
 

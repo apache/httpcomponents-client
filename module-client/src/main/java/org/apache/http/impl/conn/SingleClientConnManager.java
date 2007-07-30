@@ -114,10 +114,12 @@ public class SingleClientConnManager implements ClientConnectionManager {
                                    SchemeRegistry schreg) {
 
         if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
+            throw new IllegalArgumentException
+                ("Parameters must not be null.");
         }
         if (schreg == null) {
-            throw new IllegalArgumentException("Scheme registry must not be null.");
+            throw new IllegalArgumentException
+                ("Scheme registry must not be null.");
         }
         this.params          = params;
         this.schemeRegistry  = schreg;
@@ -131,6 +133,12 @@ public class SingleClientConnManager implements ClientConnectionManager {
     } // <constructor>
 
 
+    // non-javadoc, see interface ClientConnectionManager
+    public HttpParams getParams() {
+        return this.params;
+    }
+
+    // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }

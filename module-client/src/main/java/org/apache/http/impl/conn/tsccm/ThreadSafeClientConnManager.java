@@ -66,8 +66,7 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 public class ThreadSafeClientConnManager
     implements ClientConnectionManager {
 
-    //@@@ LOG must be static for now, it's used in static methods
-    private final static Log LOG =
+    private final Log LOG =
         LogFactory.getLog(ThreadSafeClientConnManager.class);
 
 
@@ -75,18 +74,13 @@ public class ThreadSafeClientConnManager
     protected SchemeRegistry schemeRegistry; 
     
     /** The parameters of this connection manager. */
-    private HttpParams params;
-
+    protected HttpParams params;
 
     /** The pool of connections being managed. */
-    //@@@ temporarily, used in BasicPoolEntry
-    /*private*/ AbstractConnPool connectionPool;
+    protected final AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    /*private*/ ClientConnectionOperator connOperator;
-
-    /** Indicates whether this connection manager is shut down. */
-    private volatile boolean isShutDown;
+    protected ClientConnectionOperator connOperator;
     
 
 
@@ -103,18 +97,45 @@ public class ThreadSafeClientConnManager
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
-        this.params = params;
-        this.schemeRegistry  = schreg;
-        this.connectionPool = new ConnPoolByRoute(this);
-        this.connOperator = createConnectionOperator(schreg);
-        this.isShutDown = false;
+        this.params         = params;
+        this.schemeRegistry = schreg;
+        this.connectionPool = createConnectionPool();
+        this.connOperator   = createConnectionOperator(schreg);
 
-        //@@@ synchronized(BadStaticMaps.ALL_CONNECTION_MANAGERS) {
-        //@@@    BadStaticMaps.ALL_CONNECTION_MANAGERS.put(this, null);
-        //@@@}
     } // <constructor>
 
 
+    /**
+     * Hook for creating the connection pool.
+     *
+     * @return  the connection pool to use
+     */
+    protected AbstractConnPool createConnectionPool() {
+
+        return new ConnPoolByRoute(this);
+    }
+
+
+    /**
+     * Hook for creating the connection operator.
+     * It is called by the constructor.
+     * Derived classes can override this method to change the
+     * instantiation of the operator.
+     * The default implementation here instantiates
+     * {@link DefaultClientConnectionOperator DefaultClientConnectionOperator}.
+     *
+     * @param schreg    the scheme registry to use, or <code>null</code>
+     *
+     * @return  the connection operator to use
+     */
+    protected ClientConnectionOperator
+        createConnectionOperator(SchemeRegistry schreg) {
+
+        return new DefaultClientConnectionOperator(schreg);
+    }
+
+
+    // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
@@ -127,13 +148,13 @@ public class ThreadSafeClientConnManager
             try {
                 return getConnection(route, 0);
             } catch (ConnectionPoolTimeoutException e) {
-                // we'll go ahead and log this, but it should never happen.
+                // We'll go ahead and log this, but it should never happen.
                 // Exceptions are only thrown when the timeout occurs and
                 // since we have no timeout, it doesn't happen.
                 LOG.debug(
                     "Unexpected exception while waiting for connection",
                     e
-                );
+                    );
             }
         }
     }
@@ -159,33 +180,8 @@ public class ThreadSafeClientConnManager
         return new TSCCMConnAdapter(this, entry);
     }
 
-
-    /**
-     * Hook for creating the connection operator.
-     * It is called by the constructor.
-     * Derived classes can override this method to change the
-     * instantiation of the operator.
-     * The default implementation here instantiates
-     * {@link DefaultClientConnectionOperator DefaultClientConnectionOperator}.
-     *
-     * @param schreg    the scheme registry to use, or <code>null</code>
-     *
-     * @return  the connection operator to use
-     */
-    protected ClientConnectionOperator
-        createConnectionOperator(SchemeRegistry schreg) {
-
-        return new DefaultClientConnectionOperator(schreg);
-    }
-
     
-    /**
-     * Releases an allocated connection.
-     * If another thread is blocked in getConnection() that could use this
-     * connection, it will be woken up.
-     *
-     * @param conn the connection to make available.
-     */
+    // non-javadoc, see interface ClientConnectionManager
     public void releaseConnection(ManagedClientConnection conn) {
 
         if (!(conn instanceof TSCCMConnAdapter)) {
@@ -206,7 +202,7 @@ public class ThreadSafeClientConnManager
                     LOG.debug
                         ("Released connection open but not marked reusable.");
                 }
-                // In MTHCM, method releasePoolEntry below would call
+                // In MTHCM, there would be a call to
                 // SimpleHttpConnectionManager.finishLastResponse(conn);
                 // Consuming the response is handled outside in 4.0.
 
@@ -224,53 +220,17 @@ public class ThreadSafeClientConnManager
         } finally {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             hca.detach();
-            releasePoolEntry(entry);
+            if (entry != null) // is it worth to bother with this check? @@@
+                connectionPool.freeEntry(entry);
         }
     }
 
 
-    /**
-     * Releases an allocated connection by the pool entry.
-     *
-     * @param entry     the pool entry for the connection to release,
-     *                  or <code>null</code>
-     */
-    private void releasePoolEntry(BasicPoolEntry entry) {
-
-        if (entry == null)
-            return;
-
-        connectionPool.freeEntry(entry);
+    // non-javadoc, see interface ClientConnectionManager
+    public void shutdown() {
+        connectionPool.shutdown();
     }
 
-
-
-    /* *
-     * Shuts down all instances of this class.
-     *
-     * @deprecated no replacement
-     * /
-    public static void shutdownAll() {
-        //@@@ BadStaticMaps.shutdownAll();
-    }
-    */
-
-
-    /**
-     * Shuts down the connection manager and releases all resources.
-     * All connections associated with this manager will be closed
-     * and released. 
-     * The connection manager can no longer be used once shut down.
-     * Calling this method more than once will have no effect.
-     */
-    public synchronized void shutdown() {
-        synchronized (connectionPool) {
-            if (!isShutDown) {
-                isShutDown = true;
-                connectionPool.shutdown();
-            }
-        }
-    }
 
     /**
      * Gets the total number of pooled connections for the given route.
@@ -285,6 +245,7 @@ public class ThreadSafeClientConnManager
     public int getConnectionsInPool(HttpRoute route) {
         return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(route);
     }
+
 
     /**
      * Gets the total number of pooled connections.  This is the total number of 
@@ -301,57 +262,32 @@ public class ThreadSafeClientConnManager
     }
 
 
-    /**
-     * Deletes all free connections that are closed.
-     * Only connections currently owned by the connection
-     * manager are processed.
-     */
-    private void deleteClosedConnections() {
+    // non-javadoc, see interface ClientConnectionManager
+    public void closeIdleConnections(long idleTimeout) {
+        // combine these two in a single call?
+        connectionPool.closeIdleConnections(idleTimeout);
         connectionPool.deleteClosedConnections();
     }
 
 
-    /**
-     * Deletes all free connections that are idle or closed.
-     */
-    public void closeIdleConnections(long idleTimeout) {
-        connectionPool.closeIdleConnections(idleTimeout);
-        deleteClosedConnections();
-    }
-
-
-    /**
-     * Returns {@link HttpParams parameters} associated 
-     * with this connection manager.
-     */
+    // non-javadoc, see interface ClientConnectionManager
     public HttpParams getParams() {
         return this.params;
     }
 
-    /**
+
+    /* *
      * Assigns {@link HttpParams parameters} for this 
      * connection manager.
-     * 
-     * @see HttpConnectionManagerParams
-     */
+     * /
+    //@@@ this is basically a no-op unless we pass the params to the pool
     public void setParams(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters may not be null");
         }
         this.params = params;
     }
-
-
-    //@@@ still needed?
-    static /*default*/ void closeConnection(final OperatedClientConnection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (IOException ex) {
-                LOG.debug("I/O error closing connection", ex);
-            }
-        }
-    }
+    */
 
 
 } // class ThreadSafeClientConnManager

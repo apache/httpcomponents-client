@@ -37,7 +37,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-//import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
@@ -138,10 +138,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
     /**
      * Creates a new connection pool, managed by route.
      *
-     * @param tsccm     the connection manager
+     * @param mgr   the connection manager
      */
-    public ConnPoolByRoute(ThreadSafeClientConnManager tsccm) {
-        super(tsccm);
+    public ConnPoolByRoute(ClientConnectionManager mgr) {
+        super(mgr);
 
         freeConnections = new LinkedList();
         waitingThreads = new LinkedList();
