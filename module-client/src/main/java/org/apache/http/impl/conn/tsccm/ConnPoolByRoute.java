@@ -225,25 +225,22 @@ public class ConnPoolByRoute extends AbstractConnPool {
             // - need to wait for one of the things above to come true
 
             if (routePool.freeConnections.size() > 0) {
-                //@@@ why pass the route, we already have the pool?
-                entry = getFreeEntry(route);
+                entry = getFreeEntry(routePool);
 
             } else if ((routePool.numConnections < maxHostConnections) &&
                        (numConnections < maxTotalConnections)) {
 
-                //@@@ why pass the route, we already have the pool?
-                entry = createEntry(route, operator);
+                entry = createEntry(routePool, operator);
 
             } else if ((routePool.numConnections < maxHostConnections) &&
                        (freeConnections.size() > 0)) {
 
                 deleteLeastUsedEntry();
-                //@@@ why pass the route, we already have the pool?
-                entry = createEntry(route, operator);
+                entry = createEntry(routePool, operator);
 
             } else {
-                // TODO: keep track of which routes have waiting
-                // threads, so they avoid being sacrificed before necessary
+                // TODO: keep track of which routes have waiting threads,
+                // so they avoid being sacrificed before necessary
 
                 try {
                     if (useTimeout && timeToWait <= 0) {
@@ -352,21 +349,19 @@ public class ConnPoolByRoute extends AbstractConnPool {
     /**
      * If available, get a free pool entry for a route.
      *
-     * @param route         the planned route
+     * @param rcp       the route-specific pool from which to get an entry
      *
      * @return an available pool entry for the given route
      */
-    protected synchronized BasicPoolEntry getFreeEntry(HttpRoute route) {
+    protected synchronized BasicPoolEntry getFreeEntry(RouteConnPool rcp) {
 
         BasicPoolEntry entry = null;
 
-        RouteConnPool routePool = getRoutePool(route);
-
-        if (routePool.freeConnections.size() > 0) {
+        if (rcp.freeConnections.size() > 0) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Getting free connection. " + route);
+                LOG.debug("Getting free connection. " + rcp.route);
             }
-            entry = (BasicPoolEntry) routePool.freeConnections.removeLast();
+            entry = (BasicPoolEntry) rcp.freeConnections.removeLast();
             freeConnections.remove(entry);
             idleConnHandler.remove(entry.getConnection()); // no longer idle
 
@@ -374,7 +369,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("No free connections. " + route);
+                LOG.debug("No free connections. " + rcp.route);
             }
         }
         return entry;
@@ -386,24 +381,23 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * This method assumes that the new connection will be handed
      * out immediately.
      *
-     * @param route     the route associated with the new entry
+     * @param rcp       the route-specific pool for which to create the entry
      * @param op        the operator for creating a connection
      *
-     * @return  the new pool entry, holding a new connection
+     * @return  the new pool entry for a new connection
      */
     protected synchronized
-        BasicPoolEntry createEntry(HttpRoute route,
+        BasicPoolEntry createEntry(RouteConnPool rcp,
                                    ClientConnectionOperator op) {
 
-        RouteConnPool routePool = getRoutePool(route);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Creating new connection. " + route);
+            LOG.debug("Creating new connection. " + rcp.route);
         }
-
         // the entry will create the connection when needed
-        BasicPoolEntry entry = new BasicPoolEntry(this, op, route, refQueue);
+        BasicPoolEntry entry =
+            new BasicPoolEntry(this, op, rcp.route, refQueue);
         numConnections++;
-        routePool.numConnections++;
+        rcp.numConnections++;
     
         issuedConnections.add(entry.getWeakRef());
 
