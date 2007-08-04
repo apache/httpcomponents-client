@@ -42,8 +42,10 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
+import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.io.SessionOutputBuffer;
 
@@ -166,6 +168,14 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     
+    protected HttpMessageParser createResponseParser(
+            final SessionInputBuffer buffer,
+            final HttpResponseFactory responseFactory, 
+            final HttpParams params) {
+        return new DefaultResponseParser(buffer, responseFactory, params);
+    }
+
+
     // non-javadoc, see interface OperatedClientConnection
     public void open(Socket sock, HttpHost target,
                      boolean secure, HttpParams params)
