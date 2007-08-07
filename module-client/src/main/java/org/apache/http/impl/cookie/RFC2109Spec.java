@@ -40,6 +40,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
+import org.apache.http.cookie.SetCookie;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -208,13 +209,17 @@ public class RFC2109Spec extends CookieSpecBase {
     private void formatCookieAsVer(final CharArrayBuffer buffer, 
             final Cookie cookie, int version) {
         formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
-        if (cookie.getPath() != null && cookie.isPathAttributeSpecified()) {
-            buffer.append("; ");
-            formatParamAsVer(buffer, "$Path", cookie.getPath(), version);
+        if (cookie.getPath() != null) {
+            if (cookie instanceof SetCookie && ((SetCookie) cookie).isPathAttributeSpecified()) {
+                buffer.append("; ");
+                formatParamAsVer(buffer, "$Path", cookie.getPath(), version);
+            }
         }
-        if (cookie.getDomain() != null && cookie.isDomainAttributeSpecified()) {
-            buffer.append("; ");
-            formatParamAsVer(buffer, "$Domain", cookie.getDomain(), version);
+        if (cookie.getDomain() != null) {
+            if (cookie instanceof SetCookie && ((SetCookie) cookie).isDomainAttributeSpecified()) {
+                buffer.append("; ");
+                formatParamAsVer(buffer, "$Domain", cookie.getDomain(), version);
+            }
         }
     }
     

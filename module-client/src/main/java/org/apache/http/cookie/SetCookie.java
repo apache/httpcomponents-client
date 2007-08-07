@@ -110,6 +110,15 @@ public interface SetCookie extends Cookie {
     void setVersion(int version);
 
     /**
+     * Returns <tt>true</tt> if cookie's path was set via a path attribute
+     * in the <tt>Set-Cookie</tt> header.
+     *
+     * @return value <tt>true</tt> if the cookie's path was explicitly 
+     * set, <tt>false</tt> otherwise.
+     */
+    boolean isPathAttributeSpecified();
+
+    /**
      * Indicates whether the cookie had a path specified in a 
      * path attribute of the <tt>Set-Cookie</tt> header. This value
      * is important for generating the <tt>Cookie</tt> header because 
@@ -123,6 +132,15 @@ public interface SetCookie extends Cookie {
      * @see #isPathAttributeSpecified
      */
     public void setPathAttributeSpecified(boolean value);
+
+    /**
+     * Returns <tt>true</tt> if cookie's domain was set via a domain 
+     * attribute in the <tt>Set-Cookie</tt> header.
+     *
+     * @return value <tt>true</tt> if the cookie's domain was explicitly 
+     * set, <tt>false</tt> otherwise.
+     */
+    boolean isDomainAttributeSpecified();
 
     /**
      * Indicates whether the cookie had a domain specified in a 

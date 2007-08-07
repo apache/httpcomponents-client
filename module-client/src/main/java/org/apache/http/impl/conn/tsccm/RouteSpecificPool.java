@@ -30,15 +30,9 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.HttpRoute;
-//@@@ create entry w/o operator, set operator afterwards
-import org.apache.http.conn.ClientConnectionOperator; //@@@
-
 
 /**
  * A connection sub-pool for a specific route, used by {@link ConnPoolByRoute}.

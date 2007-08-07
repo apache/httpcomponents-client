@@ -123,23 +123,5 @@ public interface Cookie {
      */
     boolean isExpired(final Date date);
 
-    /**
-     * Returns <tt>true</tt> if cookie's path was set via a path attribute
-     * in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     */
-    boolean isPathAttributeSpecified();
-
-    /**
-     * Returns <tt>true</tt> if cookie's domain was set via a domain 
-     * attribute in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     */
-    boolean isDomainAttributeSpecified();
-
 }
 
