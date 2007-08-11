@@ -95,7 +95,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         /**
          * Indicates the source of an interruption.
          * Set to <code>true</code> inside
-         * {@link #notifyWaitingThread(RouteConnPool)}
+         * {@link #notifyWaitingThread(RouteSpecificPool)}
          * and {@link #shutdown shutdown()}
          * before the thread is interrupted.
          * If not set, the thread was interrupted from the outside.

@@ -149,8 +149,6 @@ public class RouteSpecificPool {
      * be passed to {@link #freeEntry freeEntry}.
      *
      * @param entry     the entry that was created for this pool
-     *
-     * @return  the new pool entry for a new entry
      */
     public void createdEntry(BasicPoolEntry entry) {
 
