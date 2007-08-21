@@ -36,6 +36,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
+import org.apache.http.message.LineParser;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
@@ -69,6 +70,12 @@ public class DefaultClientConnectionOperator
     /** The scheme registry for looking up socket factories. */
     protected SchemeRegistry schemeRegistry;
 
+    /**
+     * The line parser to use for created connections.
+     * <code>null</code> indicates the default parser.
+     */
+    protected LineParser lineParser;
+
 
     /**
      * Creates a new client connection operator for the given scheme registry.
@@ -84,9 +91,31 @@ public class DefaultClientConnectionOperator
     }
 
 
+    /**
+     * Obtains the line parser to be used by the connections.
+     *
+     * @return  the line parser, or <code>null</code> for the default
+     */
+    public LineParser getParser() {
+        return lineParser;
+    }
+
+
+    /**
+     * Specifies the line parser to be used by the connections.
+     *
+     * @param parser    the line parser, or <code>null</code> for the default
+     */
+    public void setParser(LineParser parser) {
+        lineParser = parser;
+    }
+
+
     // non-javadoc, see interface ClientConnectionOperator
     public OperatedClientConnection createConnection() {
-        return new DefaultClientConnection();
+        DefaultClientConnection dcc = new DefaultClientConnection();
+        dcc.setParser(lineParser);
+        return dcc;
     }
 
 

@@ -42,7 +42,8 @@ import org.apache.http.StatusLine;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.http.message.LineParser;
+//@@@ import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
@@ -55,11 +56,13 @@ public class DefaultResponseParser extends AbstractMessageParser {
     
     public DefaultResponseParser(
             final SessionInputBuffer buffer,
+            final LineParser parser,
             final HttpResponseFactory responseFactory,
             final HttpParams params) {
-        super(buffer, params);
+        super(buffer, parser, params);
         if (responseFactory == null) {
-            throw new IllegalArgumentException("Response factory may not be null");
+            throw new IllegalArgumentException
+                ("Response factory may not be null");
         }
         this.responseFactory = responseFactory;
         this.lineBuf = new CharArrayBuffer(128);
@@ -111,7 +114,7 @@ public class DefaultResponseParser extends AbstractMessageParser {
             count++;
         } while(true);
         //create the status line from the status string
-        StatusLine statusline = BasicStatusLine.parse(this.lineBuf, 0, this.lineBuf.length());
+        StatusLine statusline = lineParser.parseStatusLine(this.lineBuf, 0, this.lineBuf.length());
         return this.responseFactory.newHttpResponse(statusline, null);
     }
 
