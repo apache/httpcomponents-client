@@ -37,7 +37,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
-import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -105,7 +105,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         String headervalue = header.getValue();
-        return parse(new HeaderElement[] { BasicHeaderElement.parse(headervalue) }, origin);
+        return parse(new HeaderElement[] { BasicHeaderValueParser.parseHeaderElement(headervalue, null) }, origin);
     }
 
     public Header[] formatCookies(final Cookie[] cookies) {

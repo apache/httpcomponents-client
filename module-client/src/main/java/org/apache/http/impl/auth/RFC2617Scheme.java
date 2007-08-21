@@ -38,7 +38,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
@@ -120,7 +120,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
         if (!s.equalsIgnoreCase(getSchemeName())) {
             throw new MalformedChallengeException("Invalid scheme identifier: " + s);
         }
-        HeaderElement[] elements = BasicHeaderElement.parseAll(buffer, pos, buffer.length());
+        HeaderElement[] elements = BasicHeaderValueParser.DEFAULT.parseElements(buffer, pos, buffer.length());
         if (elements.length == 0) {
             throw new MalformedChallengeException("Authentication challenge is empty");
         }

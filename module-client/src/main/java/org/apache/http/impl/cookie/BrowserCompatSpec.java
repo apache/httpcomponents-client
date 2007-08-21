@@ -37,7 +37,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
-import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -120,7 +120,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         }
         HeaderElement[] elems = null;
         if (isNetscapeCookie) {
-            elems = new HeaderElement[] { BasicHeaderElement.parse(headervalue) };
+            elems = new HeaderElement[] { BasicHeaderValueParser.parseHeaderElement(headervalue, null) };
         } else {
             elems = header.getElements();
         }

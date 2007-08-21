@@ -45,7 +45,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BasicHttpRequest;
 
 /**
@@ -305,7 +305,7 @@ public class TestDigestScheme extends TestCase {
         if (!s.startsWith("Digest ")) {
             return null;
         }
-        HeaderElement[] elements = BasicHeaderElement.parseAll(s.substring(7));
+        HeaderElement[] elements = BasicHeaderValueParser.parseElements(s.substring(7), null);
         Map map = new HashMap(elements.length);
         for (int i = 0; i < elements.length; i++) {
             HeaderElement element = elements[i];
