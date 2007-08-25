@@ -40,6 +40,7 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 
 /**
  * HTTP OPTIONS method.
@@ -82,7 +83,9 @@ public class HttpOptions extends HttpRequestBase {
         return METHOD_NAME;
     }
     
-    public Set getAllowedMethods(final HttpResponse response) {
+    public Set getAllowedMethods(final HttpResponse response)
+        throws ParseException {
+
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
