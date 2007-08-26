@@ -35,11 +35,11 @@ import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.FormattedHeader;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueParser;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -96,9 +96,9 @@ public abstract class RFC2617Scheme implements AuthScheme {
 
         CharArrayBuffer buffer;
         int pos;
-        if (header instanceof BufferedHeader) {
-            buffer = ((BufferedHeader) header).getBuffer();
-            pos = ((BufferedHeader) header).getValuePos();
+        if (header instanceof FormattedHeader) {
+            buffer = ((FormattedHeader) header).getBuffer();
+            pos = ((FormattedHeader) header).getValuePos();
         } else {
             String s = header.getValue();
             if (s == null) {

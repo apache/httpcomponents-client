@@ -41,6 +41,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.FormattedHeader;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
@@ -51,7 +52,6 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -101,9 +101,9 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
             Header header = headers[i];
             CharArrayBuffer buffer;
             int pos;
-            if (header instanceof BufferedHeader) {
-                buffer = ((BufferedHeader) header).getBuffer();
-                pos = ((BufferedHeader) header).getValuePos();
+            if (header instanceof FormattedHeader) {
+                buffer = ((FormattedHeader) header).getBuffer();
+                pos = ((FormattedHeader) header).getValuePos();
             } else {
                 String s = header.getValue();
                 if (s == null) {
