@@ -43,6 +43,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
@@ -399,7 +400,8 @@ public class DigestScheme extends RFC2617Scheme {
             }
             boolean noQuotes = "nc".equals(param.getName()) ||
                                "qop".equals(param.getName());
-            BasicNameValuePair.format(buffer, param, !noQuotes);
+            BasicHeaderValueFormatter.DEFAULT
+                .formatNameValuePair(buffer, param, !noQuotes);
         }
         return new BufferedHeader(buffer);
     }
