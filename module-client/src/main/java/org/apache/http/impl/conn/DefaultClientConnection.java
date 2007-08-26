@@ -43,7 +43,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
-import org.apache.http.message.LineParser;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
@@ -80,9 +79,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /** Whether this connection is secure. */
     private boolean connSecure;
-
-    /** The line parser to use, or <code>null</code> for the default parser. */
-    private LineParser lineParser;
 
 
     // public default constructor
@@ -134,26 +130,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     } // shutdown
 
-
-    /**
-     * Obtains the line parser to be used for receiving messages.
-     *
-     * @return  the line parser, or <code>null</code> for the default
-     */
-    public LineParser getParser() {
-        return lineParser;
-    }
-
-    /**
-     * Specifies the line parser to use when receiving messages.
-     *
-     * @param parser    the line parser to use, or
-     *                  <code>null</code> for the default
-     */
-    public final void setParser(LineParser parser) {
-        lineParser = parser;
-    }
-
     
     public void close() throws IOException {
         LOG.debug("Connection closed");
@@ -196,7 +172,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             final HttpResponseFactory responseFactory, 
             final HttpParams params) {
         return new DefaultResponseParser
-            (buffer, lineParser, responseFactory, params);
+            (buffer, getLineParser(), responseFactory, params);
     }
 
 

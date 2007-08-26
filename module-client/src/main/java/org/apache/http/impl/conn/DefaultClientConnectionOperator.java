@@ -96,7 +96,7 @@ public class DefaultClientConnectionOperator
      *
      * @return  the line parser, or <code>null</code> for the default
      */
-    public LineParser getParser() {
+    public LineParser getLineParser() {
         return lineParser;
     }
 
@@ -106,7 +106,7 @@ public class DefaultClientConnectionOperator
      *
      * @param parser    the line parser, or <code>null</code> for the default
      */
-    public void setParser(LineParser parser) {
+    public void setLineParser(LineParser parser) {
         lineParser = parser;
     }
 
@@ -114,7 +114,7 @@ public class DefaultClientConnectionOperator
     // non-javadoc, see interface ClientConnectionOperator
     public OperatedClientConnection createConnection() {
         DefaultClientConnection dcc = new DefaultClientConnection();
-        dcc.setParser(lineParser);
+        dcc.setLineParser(lineParser);
         return dcc;
     }
 
