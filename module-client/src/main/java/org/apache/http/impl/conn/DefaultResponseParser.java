@@ -43,7 +43,6 @@ import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.LineParser;
-//@@@ import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
@@ -70,27 +69,7 @@ public class DefaultResponseParser extends AbstractMessageParser {
                 HttpConnectionManagerParams.MAX_STATUS_LINE_GARBAGE, Integer.MAX_VALUE);
     }
 
-    /**
-     * Tests if the string starts with 'HTTP' signature.
-     * @param buffer buffer to test
-     * @return <tt>true</tt> if the line starts with 'HTTP' 
-     *   signature, <tt>false</tt> otherwise.
-     */
-    protected static boolean startsWithHTTP(final CharArrayBuffer buffer) {
-        try {
-            int i = 0;
-            while (HTTP.isWhitespace(buffer.charAt(i))) {
-                ++i;
-            }
-            return buffer.charAt(i) == 'H' 
-                && buffer.charAt(i + 1) == 'T'
-                && buffer.charAt(i + 2) == 'T'
-                && buffer.charAt(i + 3) == 'P';
-        } catch (IndexOutOfBoundsException e) {
-            return false;
-        }
-    }
-    
+
     protected HttpMessage parseHead(
             final SessionInputBuffer sessionBuffer) throws IOException, HttpException {
         // clear the buffer
@@ -103,7 +82,7 @@ public class DefaultResponseParser extends AbstractMessageParser {
                 // The server just dropped connection on us
                 throw new NoHttpResponseException("The target server failed to respond");
             }
-            if (startsWithHTTP(this.lineBuf)) {
+            if (lineParser.hasProtocolVersion(this.lineBuf, 0)) {
                 // Got one
                 break;
             } else if (i == -1 || count >= this.maxGarbageLines) {
