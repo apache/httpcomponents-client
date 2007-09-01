@@ -162,15 +162,6 @@ public class HttpClientParams {
      * </p>
      */
     public static final String DEFAULT_HOST = "http.default-host";
-    
-    /**
-     * Defines the default proxy. The default value will be used if the proxy
-     * information is not explicitly specified in the request route. 
-     * <p>
-     * This parameter expects a value of type {@link org.apache.http.HttpHost}.
-     * </p>
-     */
-    public static final String DEFAULT_PROXY = "http.default-proxy";
 
     private HttpClientParams() {
         super();

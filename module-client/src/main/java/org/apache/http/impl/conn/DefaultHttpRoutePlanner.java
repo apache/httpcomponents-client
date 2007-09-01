@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.conn;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -41,8 +41,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.Scheme;
 
-//@@@ move this class to conn when this dependency is gone:
-import org.apache.http.client.params.HttpClientParams; //@@@
+import org.apache.http.conn.params.HttpConnParams;
 
 
 /**
@@ -83,7 +82,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
 
         HttpHost proxy = (HttpHost)
-            request.getParams().getParameter(HttpClientParams.DEFAULT_PROXY);
+            request.getParams().getParameter(HttpConnParams.DEFAULT_PROXY);
 
         Scheme schm = this.connectionManager.getSchemeRegistry().
             getScheme(target.getSchemeName());

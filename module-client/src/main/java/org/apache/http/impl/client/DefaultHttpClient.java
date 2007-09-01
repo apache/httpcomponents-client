@@ -63,7 +63,7 @@ import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.impl.client.DefaultHttpRoutePlanner; //@@@ move to conn
+import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
@@ -294,9 +294,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
         return new RoutedRequest.Impl(request, route);
     }
-    
-    
-    //non-javadoc, see base class AbstractHttpClient
+
+
+    // non-javadoc, see base class AbstractHttpClient
     protected HttpRoutePlanner createHttpRoutePlanner() {
         return new DefaultHttpRoutePlanner(getConnectionManager());
     }
