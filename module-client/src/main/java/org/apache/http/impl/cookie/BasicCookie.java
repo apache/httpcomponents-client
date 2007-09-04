@@ -32,16 +32,17 @@
 package org.apache.http.impl.cookie;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * <p>
  * HTTP "magic-cookie" represents a piece of state information
  * that the HTTP agent and the target server can exchange to maintain 
  * a session.
- * </p>
  * 
  * @author B.C. Holmes
  * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
@@ -56,7 +57,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @version $Revision$
  */
-public class BasicCookie implements SetCookie {
+public class BasicCookie implements SetCookie, ClientCookie {
 
     /**
      * Default Constructor taking a name and a value. The value may be null.
@@ -70,6 +71,7 @@ public class BasicCookie implements SetCookie {
             throw new IllegalArgumentException("Name may not be null");
         }
         this.name = name;
+        this.attribs = new HashMap();
         this.value = value;
     }
 
@@ -89,6 +91,15 @@ public class BasicCookie implements SetCookie {
      */
     public String getValue() {
         return this.value;
+    }
+
+    /**
+     * Sets the value
+     * 
+     * @param value
+     */
+    public void setValue(final String value) {
+        this.value = value;
     }
 
     /**
@@ -271,64 +282,16 @@ public class BasicCookie implements SetCookie {
             && cookieExpiryDate.getTime() <= date.getTime());
     }
 
-    /**
-     * Indicates whether the cookie had a path specified in a 
-     * path attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a path attribute if the cookie's path 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     * 
-     * @see #isPathAttributeSpecified
-     */
-    public void setPathAttributeSpecified(boolean value) {
-        hasPathAttribute = value;
+    public void setAttribute(final String name, final String value) {
+        this.attribs.put(name, value);
+    }
+    
+    public String getAttribute(final String name) {
+        return (String) this.attribs.get(name);
     }
 
-    /**
-     * Returns <tt>true</tt> if cookie's path was set via a path attribute
-     * in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     * 
-     * @see #setPathAttributeSpecified
-     */
-    public boolean isPathAttributeSpecified() {
-        return hasPathAttribute;
-    }
-
-    /**
-     * Indicates whether the cookie had a domain specified in a 
-     * domain attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a domain attribute if the cookie's domain 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     *
-     * @see #isDomainAttributeSpecified
-     */
-    public void setDomainAttributeSpecified(boolean value) {
-        hasDomainAttribute = value;
-    }
-
-    /**
-     * Returns <tt>true</tt> if cookie's domain was set via a domain 
-     * attribute in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     *
-     * @see #setDomainAttributeSpecified
-     */
-    public boolean isDomainAttributeSpecified() {
-        return hasDomainAttribute;
+    public boolean containsAttribute(final String name) {
+        return this.attribs.get(name) != null;
     }
 
     public String toString() {
@@ -354,42 +317,34 @@ public class BasicCookie implements SetCookie {
         return buffer.toString();
     }
     
-    
    // ----------------------------------------------------- Instance Variables
 
-
+    /** Cookie name */
     private final String name;
-    private final String value;
 
-   /** Comment attribute. */
-   private String  cookieComment;
+    /** Cookie attributes as specified by the origin server */
+    private final Map attribs;
+   
+    /** Cookie value */
+    private String value;
 
-   /** Domain attribute. */
-   private String  cookieDomain;
+    /** Comment attribute. */
+    private String  cookieComment;
 
-   /** Expiration {@link Date}. */
-   private Date    cookieExpiryDate;
+    /** Domain attribute. */
+    private String  cookieDomain;
 
-   /** Path attribute. */
-   private String  cookiePath;
+    /** Expiration {@link Date}. */
+    private Date cookieExpiryDate;
 
-   /** My secure flag. */
-   private boolean isSecure;
+    /** Path attribute. */
+    private String cookiePath;
 
-   /**
-    * Specifies if the set-cookie header included a Path attribute for this
-    * cookie
-    */
-   private boolean hasPathAttribute = false;
+    /** My secure flag. */
+    private boolean isSecure;
 
-   /**
-    * Specifies if the set-cookie header included a Domain attribute for this
-    * cookie
-    */
-   private boolean hasDomainAttribute = false;
-
-   /** The version of the cookie specification I was created from. */
-   private int     cookieVersion = 0;
+    /** The version of the cookie specification I was created from. */
+    private int cookieVersion = 0;
 
 }
 

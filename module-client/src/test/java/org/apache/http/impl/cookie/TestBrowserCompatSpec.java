@@ -37,6 +37,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.Header;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -660,9 +661,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testSecondDomainLevelCookie() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
@@ -672,9 +673,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testSecondDomainLevelCookieMatch1() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
@@ -684,9 +685,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testSecondDomainLevelCookieMatch2() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain("sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
@@ -696,9 +697,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testSecondDomainLevelCookieMatch3() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
          CookieSpec cookiespec = new BrowserCompatSpec();
          CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
@@ -708,9 +709,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testInvalidSecondDomainLevelCookieMatch1() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
@@ -720,9 +721,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testInvalidSecondDomainLevelCookieMatch2() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain("sourceforge.net");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
@@ -848,9 +849,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testInvalidMatchDomain() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null); 
         cookie.setDomain("beta.gamma.com");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("alpha.beta.gamma.com", 80, "/", false); 
@@ -880,9 +881,9 @@ public class TestBrowserCompatSpec extends TestCase {
     public void testNullCookieValueFormatting() {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".whatever.com");
-        cookie.setDomainAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         Header[] headers = cookiespec.formatCookies(new Cookie[]{ cookie });

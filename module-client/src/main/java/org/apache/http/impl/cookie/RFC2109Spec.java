@@ -35,15 +35,14 @@ import java.util.Arrays;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
-import org.apache.http.cookie.SetCookie;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
-
 
 /**
  * RFC 2109 compliant cookie policy
@@ -84,13 +83,14 @@ public class RFC2109Spec extends CookieSpecBase {
             this.datepatterns = DATE_PATTERNS;
         }
         this.oneHeader = oneHeader;
-        registerAttribHandler("version", new RFC2109VersionHandler());
-        registerAttribHandler("path", new BasicPathHandler());
-        registerAttribHandler("domain", new RFC2109DomainHandler());
-        registerAttribHandler("max-age", new BasicMaxAgeHandler());
-        registerAttribHandler("secure", new BasicSecureHandler());
-        registerAttribHandler("comment", new BasicCommentHandler());
-        registerAttribHandler("expires", new BasicExpiresHandler(this.datepatterns));
+        registerAttribHandler(ClientCookie.VERSION_ATTR, new RFC2109VersionHandler());
+        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
+        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new RFC2109DomainHandler());
+        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
+        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
+        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
+        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
+                this.datepatterns));
     }
 
     /** Default constructor */
@@ -142,7 +142,7 @@ public class RFC2109Spec extends CookieSpecBase {
 
     private Header[] doFormatOneHeader(final Cookie[] cookies) {
         int version = Integer.MAX_VALUE;
-        // Pick the lowerest common denominator
+        // Pick the lowest common denominator
         for (int i = 0; i < cookies.length; i++) {
             Cookie cookie = cookies[i];
             if (cookie.getVersion() < version) {
@@ -152,7 +152,8 @@ public class RFC2109Spec extends CookieSpecBase {
         CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.length);
         buffer.append(SM.COOKIE);
         buffer.append(": ");
-        formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
+        buffer.append("$Version=");
+        buffer.append(Integer.toString(version));
         for (int i = 0; i < cookies.length; i++) {
             buffer.append("; ");
             Cookie cookie = cookies[i];
@@ -168,7 +169,8 @@ public class RFC2109Spec extends CookieSpecBase {
             int version = cookie.getVersion();
             CharArrayBuffer buffer = new CharArrayBuffer(40);
             buffer.append("Cookie: ");
-            formatParamAsVer(buffer, "$Version", Integer.toString(version), version);
+            buffer.append("$Version=");
+            buffer.append(Integer.toString(version));
             buffer.append("; ");
             formatCookieAsVer(buffer, cookies[i], version);
             headers[i] = new BufferedHeader(buffer);
@@ -210,13 +212,15 @@ public class RFC2109Spec extends CookieSpecBase {
             final Cookie cookie, int version) {
         formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
         if (cookie.getPath() != null) {
-            if (cookie instanceof SetCookie && ((SetCookie) cookie).isPathAttributeSpecified()) {
+            if (cookie instanceof ClientCookie 
+                    && ((ClientCookie) cookie).containsAttribute(ClientCookie.PATH_ATTR)) {
                 buffer.append("; ");
                 formatParamAsVer(buffer, "$Path", cookie.getPath(), version);
             }
         }
         if (cookie.getDomain() != null) {
-            if (cookie instanceof SetCookie && ((SetCookie) cookie).isDomainAttributeSpecified()) {
+            if (cookie instanceof ClientCookie 
+                    && ((ClientCookie) cookie).containsAttribute(ClientCookie.DOMAIN_ATTR)) {
                 buffer.append("; ");
                 formatParamAsVer(buffer, "$Domain", cookie.getDomain(), version);
             }

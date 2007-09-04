@@ -30,9 +30,7 @@
 
 package org.apache.http.conn.params;
 
-import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
-
 
 /**
  * An adaptor for accessing HTTP connection parameters in {@link HttpParams}.

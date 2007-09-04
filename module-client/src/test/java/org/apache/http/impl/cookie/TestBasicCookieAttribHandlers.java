@@ -43,7 +43,6 @@ import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
-
 public class TestBasicCookieAttribHandlers extends TestCase {
 
     public TestBasicCookieAttribHandlers(String testName) {
@@ -65,7 +64,6 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         CookieAttributeHandler h = new BasicDomainHandler();
         h.parse(cookie, "www.somedomain.com");
         assertEquals("www.somedomain.com", cookie.getDomain());
-        assertTrue(cookie.isDomainAttributeSpecified());
     }
 
     public void testBasicDomainParseInvalid() throws Exception {
@@ -215,13 +213,10 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         CookieAttributeHandler h = new BasicPathHandler();
         h.parse(cookie, "stuff");
         assertEquals("stuff", cookie.getPath());
-        assertTrue(cookie.isPathAttributeSpecified());
         h.parse(cookie, "");
         assertEquals("/", cookie.getPath());
-        assertTrue(cookie.isPathAttributeSpecified());
         h.parse(cookie, null);
         assertEquals("/", cookie.getPath());
-        assertTrue(cookie.isPathAttributeSpecified());
     }
 
     public void testBasicPathMatch1() throws Exception {

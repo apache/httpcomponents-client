@@ -54,7 +54,6 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
             throw new MalformedCookieException("Blank value for domain attribute");
         }
         cookie.setDomain(value);
-        cookie.setDomainAttributeSpecified(true);
     }
 
     public void validate(final Cookie cookie, final CookieOrigin origin) 

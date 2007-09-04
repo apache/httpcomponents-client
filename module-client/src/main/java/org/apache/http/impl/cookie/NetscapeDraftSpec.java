@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -62,12 +63,12 @@ public class NetscapeDraftSpec extends CookieSpecBase {
     /** Default constructor */
     public NetscapeDraftSpec() {
         super();
-        registerAttribHandler("path", new BasicPathHandler());
-        registerAttribHandler("domain", new NetscapeDomainHandler());
-        registerAttribHandler("max-age", new BasicMaxAgeHandler());
-        registerAttribHandler("secure", new BasicSecureHandler());
-        registerAttribHandler("comment", new BasicCommentHandler());
-        registerAttribHandler("expires", new BasicExpiresHandler(
+        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
+        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new NetscapeDomainHandler());
+        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
+        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
+        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
+        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
                 new String[] {"EEE, dd-MMM-yyyy HH:mm:ss z"}));
     }
 

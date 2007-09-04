@@ -35,6 +35,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.Header;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -171,9 +172,9 @@ public class TestCookieRFC2109Spec extends TestCase {
     public void testSecondDomainLevelCookie() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setDomainAttributeSpecified(true);
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
@@ -188,9 +189,9 @@ public class TestCookieRFC2109Spec extends TestCase {
     public void testSecondDomainLevelCookieMatch() throws Exception {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".sourceforge.net");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setDomainAttributeSpecified(true);
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
@@ -300,14 +301,14 @@ public class TestCookieRFC2109Spec extends TestCase {
     public void testRFC2109CookieFormatting() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec(null, false);
         Header header = new BasicHeader("Set-Cookie", 
-            "name=\"value\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
+            "name=\"value\"; version=1; path=\"/\"; domain=\".mydomain.com\"");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         Cookie[] cookies  = cookiespec.parse(header, origin);
         cookiespec.validate(cookies[0], origin);
         Header[] headers = cookiespec.formatCookies(cookies);
         assertNotNull(headers);
         assertEquals(1, headers.length);
-        assertEquals("$Version=\"1\"; name=\"value\"; $Path=\"/\"; $Domain=\".mydomain.com\"", 
+        assertEquals("$Version=1; name=\"value\"; $Path=\"/\"; $Domain=\".mydomain.com\"", 
                 headers[0].getValue());
 
         header = new BasicHeader( "Set-Cookie", 
@@ -352,7 +353,7 @@ public class TestCookieRFC2109Spec extends TestCase {
         assertEquals(2, cookies.length);
         headers = cookiespec.formatCookies(cookies);
         assertEquals( 
-            "$Version=\"1\"; name1=\"value1\"; $Path=\"/\"; $Domain=\".mydomain.com\"; " + 
+            "$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".mydomain.com\"; " + 
             "name2=\"value2\"; $Path=\"/\"; $Domain=\".mydomain.com\"",
             headers[0].getValue());
     }
@@ -363,9 +364,9 @@ public class TestCookieRFC2109Spec extends TestCase {
     public void testNullCookieValueFormatting() {
         BasicCookie cookie = new BasicCookie("name", null);
         cookie.setDomain(".whatever.com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
-        cookie.setDomainAttributeSpecified(true);
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new RFC2109Spec();
         Header[] headers = cookiespec.formatCookies(new Cookie[] { cookie });
@@ -378,15 +379,14 @@ public class TestCookieRFC2109Spec extends TestCase {
         headers = cookiespec.formatCookies(new Cookie[] { cookie });
         assertNotNull(headers);
         assertEquals(1, headers.length);
-        assertEquals("$Version=\"1\"; name=; $Path=\"/\"; $Domain=\".whatever.com\"", 
+        assertEquals("$Version=1; name=; $Path=\"/\"; $Domain=\".whatever.com\"", 
                 headers[0].getValue());
     }
 
     public void testCookieNullDomainNullPathFormatting() {
         BasicCookie cookie = new BasicCookie("name", null); 
-        cookie.setDomainAttributeSpecified(true);
         cookie.setPath("/");
-        cookie.setPathAttributeSpecified(true);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         CookieSpec cookiespec = new RFC2109Spec();
         Header[] headers = cookiespec.formatCookies(new Cookie[] { cookie });
@@ -394,8 +394,8 @@ public class TestCookieRFC2109Spec extends TestCase {
         assertEquals(1, headers.length);
         assertEquals("$Version=0; name=; $Path=/", headers[0].getValue());
 
-        cookie.setDomainAttributeSpecified(false);
-        cookie.setPathAttributeSpecified(false);
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, null);
+        cookie.setAttribute(ClientCookie.PATH_ATTR, null);
         headers = cookiespec.formatCookies(new Cookie[] { cookie });
         assertNotNull(headers);
         assertEquals(1, headers.length);
@@ -405,16 +405,16 @@ public class TestCookieRFC2109Spec extends TestCase {
     public void testCookieOrderingByPath() {
         BasicCookie c1 = new BasicCookie("name1", "value1");
         c1.setPath("/a/b/c");
-        c1.setPathAttributeSpecified(true);
+        c1.setAttribute(ClientCookie.PATH_ATTR, c1.getPath());
         BasicCookie c2 = new BasicCookie("name2", "value2");
         c2.setPath("/a/b");
-        c2.setPathAttributeSpecified(true);
+        c2.setAttribute(ClientCookie.PATH_ATTR, c2.getPath());
         BasicCookie c3 = new BasicCookie("name3", "value3");
         c3.setPath("/a");
-        c3.setPathAttributeSpecified(true);
+        c3.setAttribute(ClientCookie.PATH_ATTR, c3.getPath());
         BasicCookie c4 = new BasicCookie("name4", "value4");
         c4.setPath("/");
-        c4.setPathAttributeSpecified(true);
+        c4.setAttribute(ClientCookie.PATH_ATTR, c4.getPath());
 
         CookieSpec cookiespec = new RFC2109Spec(null, true);
         Header[] headers = cookiespec.formatCookies(new Cookie[] { c2, c4, c1, c3 });

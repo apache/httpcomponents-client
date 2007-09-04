@@ -51,7 +51,6 @@ public class BasicPathHandler implements CookieAttributeHandler {
             value = "/";
         }
         cookie.setPath(value);
-        cookie.setPathAttributeSpecified(true);
     }
 
     public void validate(final Cookie cookie, final CookieOrigin origin) 

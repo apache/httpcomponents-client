@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -41,9 +42,8 @@ import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
-
 /**
- * Cookie specification that stives to closely mimic (mis)behavior of 
+ * Cookie specification that strives to closely mimic (mis)behavior of 
  * common web browser applications such as Microsoft Internet Explorer
  * and Mozilla FireFox.
  *
@@ -81,12 +81,13 @@ public class BrowserCompatSpec extends CookieSpecBase {
         } else {
             this.datepatterns = DATE_PATTERNS;
         }
-        registerAttribHandler("path", new BasicPathHandler());
-        registerAttribHandler("domain", new BasicDomainHandler());
-        registerAttribHandler("max-age", new BasicMaxAgeHandler());
-        registerAttribHandler("secure", new BasicSecureHandler());
-        registerAttribHandler("comment", new BasicCommentHandler());
-        registerAttribHandler("expires", new BasicExpiresHandler(this.datepatterns));
+        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
+        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new BasicDomainHandler());
+        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
+        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
+        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
+        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
+                this.datepatterns));
     }
 
     /** Default constructor */

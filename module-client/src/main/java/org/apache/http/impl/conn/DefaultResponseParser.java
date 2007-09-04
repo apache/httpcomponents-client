@@ -44,7 +44,6 @@ import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.LineParser;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 public class DefaultResponseParser extends AbstractMessageParser {

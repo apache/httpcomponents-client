@@ -35,6 +35,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.Header;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -211,9 +212,9 @@ public class TestCookieNetscapeDraft extends TestCase {
     public void testFormatCookies() throws Exception {
         BasicCookie c1 = new BasicCookie("name1", "value1");
         c1.setDomain(".whatever.com");
-        c1.setDomainAttributeSpecified(true);
+        c1.setAttribute(ClientCookie.DOMAIN_ATTR, c1.getDomain());
         c1.setPath("/");
-        c1.setPathAttributeSpecified(true);
+        c1.setAttribute(ClientCookie.PATH_ATTR, c1.getPath());
 
         Cookie c2 = new BasicCookie("name2", "value2");
         Cookie c3 = new BasicCookie("name3", null);

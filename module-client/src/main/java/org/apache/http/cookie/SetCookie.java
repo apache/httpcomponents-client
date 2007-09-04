@@ -43,6 +43,8 @@ import java.util.Date;
  */
 public interface SetCookie extends Cookie {
 
+    void setValue(String value);
+    
     /**
      * If a user agent (web browser) presents this cookie to a user, the
      * cookie's purpose will be described using this comment.
@@ -108,54 +110,6 @@ public interface SetCookie extends Cookie {
      * @see #getVersion
      */
     void setVersion(int version);
-
-    /**
-     * Returns <tt>true</tt> if cookie's path was set via a path attribute
-     * in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     */
-    boolean isPathAttributeSpecified();
-
-    /**
-     * Indicates whether the cookie had a path specified in a 
-     * path attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a path attribute if the cookie's path 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's path was explicitly 
-     * set, <tt>false</tt> otherwise.
-     * 
-     * @see #isPathAttributeSpecified
-     */
-    public void setPathAttributeSpecified(boolean value);
-
-    /**
-     * Returns <tt>true</tt> if cookie's domain was set via a domain 
-     * attribute in the <tt>Set-Cookie</tt> header.
-     *
-     * @return value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     */
-    boolean isDomainAttributeSpecified();
-
-    /**
-     * Indicates whether the cookie had a domain specified in a 
-     * domain attribute of the <tt>Set-Cookie</tt> header. This value
-     * is important for generating the <tt>Cookie</tt> header because 
-     * some cookie specifications require that the <tt>Cookie</tt> header 
-     * should only include a domain attribute if the cookie's domain 
-     * was specified in the <tt>Set-Cookie</tt> header.
-     *
-     * @param value <tt>true</tt> if the cookie's domain was explicitly 
-     * set, <tt>false</tt> otherwise.
-     *
-     * @see #isDomainAttributeSpecified
-     */
-    void setDomainAttributeSpecified(boolean value);
 
 }
 
