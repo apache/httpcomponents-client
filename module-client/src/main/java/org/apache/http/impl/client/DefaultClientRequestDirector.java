@@ -49,7 +49,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -728,7 +728,7 @@ public class DefaultClientRequestDirector
         buffer.append(Integer.toString(port));
         
         String authority = buffer.toString();
-        HttpVersion ver = HttpProtocolParams.getVersion(params);
+        ProtocolVersion ver = HttpProtocolParams.getVersion(params);
         HttpRequest req = new BasicHttpRequest
             ("CONNECT", authority, ver);
 

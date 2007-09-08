@@ -35,7 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.AbstractHttpMessage;
@@ -62,7 +62,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private URI uri;
     private String method;
-    private HttpVersion version;
+    private ProtocolVersion version;
     
     public RequestWrapper(final HttpRequest request) throws URISyntaxException {
         super();
@@ -82,7 +82,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
             RequestLine requestLine = request.getRequestLine();
             this.uri = new URI(requestLine.getUri());
             this.method = requestLine.getMethod();
-            this.version = request.getHttpVersion();
+            this.version = request.getProtocolVersion();
         }
     }
 
@@ -97,7 +97,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         this.method = method;
     }
 
-    public HttpVersion getHttpVersion() {
+    public ProtocolVersion getProtocolVersion() {
         if (this.version != null) {
             return this.version;
         } else {
@@ -105,9 +105,10 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         }
     }
 
-    public void setVersion(final HttpVersion version) {
+    public void setProtocolVersion(final ProtocolVersion version) {
         this.version = version;
     }
+
 
     public URI getURI() {
         return this.uri;
@@ -119,7 +120,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     public RequestLine getRequestLine() {
         String method = getMethod();
-        HttpVersion ver = getHttpVersion();
+        ProtocolVersion ver = getProtocolVersion();
         URI uri = getURI();
         String uritext;
         if (uri != null) {

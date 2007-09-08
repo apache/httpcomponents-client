@@ -34,7 +34,7 @@ package org.apache.http.client.methods;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
@@ -62,7 +62,7 @@ abstract class HttpRequestBase extends AbstractHttpMessage
 
     public abstract String getMethod();
 
-    public HttpVersion getHttpVersion() {
+    public ProtocolVersion getProtocolVersion() {
         return HttpProtocolParams.getVersion(getParams());
     }
 
@@ -72,7 +72,7 @@ abstract class HttpRequestBase extends AbstractHttpMessage
     
     public RequestLine getRequestLine() {
         String method = getMethod();
-        HttpVersion ver = getHttpVersion();
+        ProtocolVersion ver = getProtocolVersion();
         URI uri = getURI();
         String uritext;
         if (uri != null) {

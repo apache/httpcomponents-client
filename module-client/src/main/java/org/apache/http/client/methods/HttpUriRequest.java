@@ -34,7 +34,6 @@ package org.apache.http.client.methods;
 import java.net.URI;
 
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
 
 /**
  * Extended version of the {@link HttpRequest} interface that provides 
@@ -51,8 +50,6 @@ import org.apache.http.HttpVersion;
 public interface HttpUriRequest extends HttpRequest {
     
     String getMethod();
-    
-    HttpVersion getHttpVersion();
 
     URI getURI();
     
