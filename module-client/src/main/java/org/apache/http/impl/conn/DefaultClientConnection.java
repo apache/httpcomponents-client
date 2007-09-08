@@ -171,8 +171,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             final SessionInputBuffer buffer,
             final HttpResponseFactory responseFactory, 
             final HttpParams params) {
+        // override in derived class to specify a line parser
         return new DefaultResponseParser
-            (buffer, getLineParser(), responseFactory, params);
+            (buffer, null, responseFactory, params);
     }
 
 
