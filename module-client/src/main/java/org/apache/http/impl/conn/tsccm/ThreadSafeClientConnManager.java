@@ -176,19 +176,19 @@ public class ThreadSafeClientConnManager
         final BasicPoolEntry entry =
             connectionPool.getEntry(route, timeout, connOperator);
 
-        return new TSCCMConnAdapter(this, entry);
+        return new BasicPooledConnAdapter(this, entry);
     }
 
     
     // non-javadoc, see interface ClientConnectionManager
     public void releaseConnection(ManagedClientConnection conn) {
 
-        if (!(conn instanceof TSCCMConnAdapter)) {
+        if (!(conn instanceof BasicPooledConnAdapter)) {
             throw new IllegalArgumentException
                 ("Connection class mismatch, " +
                  "connection not obtained from this manager.");
         }
-        TSCCMConnAdapter hca = (TSCCMConnAdapter) conn;
+        BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
         if ((hca.getPoolEntry() != null) && (hca.getManager() != this)) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");

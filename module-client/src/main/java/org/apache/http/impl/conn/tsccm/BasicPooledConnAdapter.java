@@ -42,7 +42,7 @@ import org.apache.http.impl.conn.AbstractPooledConnAdapter;
  * All connections given out by the manager are wrappers which
  * can be {@link #detach detach}ed to prevent further use on release.
  */
-public class TSCCMConnAdapter extends AbstractPooledConnAdapter {
+public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
 
     /**
      * Creates a new adapter.
@@ -50,7 +50,7 @@ public class TSCCMConnAdapter extends AbstractPooledConnAdapter {
      * @param tsccm   the connection manager
      * @param entry   the pool entry for the connection being wrapped
      */
-    protected TSCCMConnAdapter(ThreadSafeClientConnManager tsccm,
+    protected BasicPooledConnAdapter(ThreadSafeClientConnManager tsccm,
                                AbstractPoolEntry entry) {
         super(tsccm, entry);
         super.markedReusable = true;
