@@ -33,6 +33,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
+import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.HttpRoute;
@@ -122,11 +123,20 @@ public abstract class AbstractPooledConnAdapter
 
 
     // non-javadoc, see interface ManagedHttpConnection
-    public void tunnelCreated(boolean secure, HttpParams params)
+    public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
 
         assertAttached();
-        poolEntry.tunnelCreated(secure, params);
+        poolEntry.tunnelTarget(secure, params);
+    }
+
+
+    // non-javadoc, see interface ManagedHttpConnection
+    public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
+        throws IOException {
+
+        assertAttached();
+        poolEntry.tunnelProxy(next, secure, params);
     }
 
 

@@ -161,9 +161,9 @@ public abstract class AbstractPoolEntry {
 
 
     /**
-     * Tracks tunnelling of the connection.
+     * Tracks tunnelling of the connection to the target.
      * The tunnel has to be established outside by sending a CONNECT
-     * request to the proxy.
+     * request to the (last) proxy.
      *
      * @param secure    <code>true</code> if the tunnel should be
      *                  considered secure, <code>false</code> otherwise
@@ -171,7 +171,7 @@ public abstract class AbstractPoolEntry {
      *
      * @throws IOException  in case of a problem
      */
-    public void tunnelCreated(boolean secure, HttpParams params)
+    public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
 
         if (params == null) {
@@ -194,7 +194,47 @@ public abstract class AbstractPoolEntry {
                                secure, params);
         this.tracker.tunnelTarget(secure);
 
-    } // tunnelCreated
+    } // tunnelTarget
+
+
+    /**
+     * Tracks tunnelling of the connection to a chained proxy.
+     * The tunnel has to be established outside by sending a CONNECT
+     * request to the previous proxy.
+     *
+     * @param next      the proxy to which the tunnel was established.
+     *  See {@link org.apache.http.conn.ManagedClientConnection#tunnelProxy
+     *                                  ManagedClientConnection.tunnelProxy}
+     *                  for details.
+     * @param secure    <code>true</code> if the tunnel should be
+     *                  considered secure, <code>false</code> otherwise
+     * @param params    the parameters for tunnelling the connection
+     *
+     * @throws IOException  in case of a problem
+     */
+    public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
+        throws IOException {
+
+        if (next == null) {
+            throw new IllegalArgumentException
+                ("Next proxy must not be null.");
+        }
+        if (params == null) {
+            throw new IllegalArgumentException
+                ("Parameters must not be null.");
+        }
+
+        //@@@ check for proxy in planned route?
+        if ((this.tracker == null) || !this.tracker.isConnected()) {
+            throw new IllegalStateException("Connection not open.");
+        }
+
+        // LOG.debug?
+
+        this.connection.update(null, next, secure, params);
+        this.tracker.tunnelProxy(next, secure);
+
+    } // tunnelProxy
 
 
     /**

@@ -30,6 +30,7 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -64,7 +65,11 @@ public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
         throw new UnsupportedOperationException("just a mockup");
     }
 
-    public void tunnelCreated(boolean secure, HttpParams params) {
+    public void tunnelTarget(boolean secure, HttpParams params) {
+        throw new UnsupportedOperationException("just a mockup");
+    }
+
+    public void tunnelProxy(HttpHost next, boolean secure, HttpParams params) {
         throw new UnsupportedOperationException("just a mockup");
     }
 

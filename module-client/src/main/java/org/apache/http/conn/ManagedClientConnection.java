@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpInetConnection;
+import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -80,8 +81,8 @@ public interface ManagedClientConnection extends
     /**
      * Opens this connection according to the given route.
      *
-     * @param route     the route along which to open. It will be opened
-     *                  to the proxy if present, or directly to the target.
+     * @param route     the route along which to open. It will be opened to
+     *                  the first proxy if present, or directly to the target.
      * @param context   the context for opening this connection
      * @param params    the parameters for opening this connection
      *
@@ -93,7 +94,7 @@ public interface ManagedClientConnection extends
 
 
     /**
-     * Indicates that a tunnel has been established.
+     * Indicates that a tunnel to the target has been established.
      * The route is the one previously passed to {@link #open open}.
      * Subsequently, {@link #layerProtocol layerProtocol} can be called
      * to layer the TLS/SSL protocol on top of the tunnelled connection.
@@ -109,7 +110,32 @@ public interface ManagedClientConnection extends
      *
      * @throws IOException  in case of a problem
      */
-    void tunnelCreated(boolean secure, HttpParams params)
+    void tunnelTarget(boolean secure, HttpParams params)
+        throws IOException
+        ;
+
+
+    /**
+     * Indicates that a tunnel to an intermediate proxy has been established.
+     * This is used exclusively for so-called <i>proxy chains</i>, where
+     * a request has to pass through multiple proxies before reaching the
+     * target. In that case, all proxies but the last need to be tunnelled
+     * when establishing the connection. Tunnelling of the last proxy to the
+     * target is optional and would be indicated via {@link #tunnelTarget}.
+     *
+     * @param next      the proxy to which the tunnel was established.
+     *                  This is <i>not</i> the proxy <i>through</i> which
+     *                  the tunnel was established, but the new end point
+     *                  of the tunnel. The tunnel does <i>not</i> yet
+     *                  reach to the target, use {@link #tunnelTarget}
+     *                  to indicate an end-to-end tunnel.
+     * @param secure    <code>true</code> if the connection should be
+     *                  considered secure, <code>false</code> otherwise
+     * @param params    the parameters for tunnelling this connection
+     *
+     * @throws IOException  in case of a problem
+     */
+    void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
         throws IOException
         ;
 

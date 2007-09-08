@@ -439,7 +439,8 @@ public class DefaultClientRequestDirector
      *
      * @throws HttpException    in case of a problem
      */
-    protected ManagedClientConnection allocateConnection(HttpRoute route, long timeout)
+    protected ManagedClientConnection allocateConnection(HttpRoute route,
+                                                         long timeout)
         throws HttpException, ConnectionPoolTimeoutException {
 
         return connManager.getConnection(route, timeout);
@@ -481,15 +482,24 @@ public class DefaultClientRequestDirector
                 managedConn.open(route, context, this.params);
                 break;
 
-            case HttpRouteDirector.TUNNEL_TARGET:
-                boolean secure = createTunnel(route, context);
-                LOG.debug("Tunnel created");
-                managedConn.tunnelCreated(secure, this.params);
-                break;
+            case HttpRouteDirector.TUNNEL_TARGET: {
+                boolean secure = createTunnelToTarget(route, context);
+                LOG.debug("Tunnel to target created.");
+                managedConn.tunnelTarget(secure, this.params);
+            }   break;
 
-            case HttpRouteDirector.TUNNEL_PROXY:
-                throw new UnsupportedOperationException
-                    ("Proxy chains are not supported.");
+            case HttpRouteDirector.TUNNEL_PROXY: {
+                // The most simple example for this case is a proxy chain
+                // of two proxies, where P1 must be tunnelled to P2.
+                // route: Source -> P1 -> P2 -> Target (3 hops)
+                // fact:  Source -> P1 -> Target       (2 hops)
+                final int hop = fact.getHopCount()-1; // the hop to establish
+                boolean secure = createTunnelToProxy(route, hop, context);
+                LOG.debug("Tunnel to proxy created.");
+                managedConn.tunnelProxy(route.getHopTarget(hop),
+                                        secure, this.params);
+            }   break;
+
 
             case HttpRouteDirector.LAYER_PROTOCOL:
                 managedConn.layerProtocol(context, this.params);
@@ -516,8 +526,8 @@ public class DefaultClientRequestDirector
 
 
     /**
-     * Creates a tunnel.
-     * The connection must be established to the proxy.
+     * Creates a tunnel to the target server.
+     * The connection must be established to the (last) proxy.
      * A CONNECT request for tunnelling through the proxy will
      * be created and sent, the response received and checked.
      * This method does <i>not</i> update the connection with
@@ -534,7 +544,8 @@ public class DefaultClientRequestDirector
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected boolean createTunnel(HttpRoute route, HttpContext context)
+    protected boolean createTunnelToTarget(HttpRoute route,
+                                           HttpContext context)
         throws HttpException, IOException {
 
         HttpHost proxy = route.getProxyHost();
@@ -645,7 +656,45 @@ public class DefaultClientRequestDirector
         // Even if that is secure, the hop to the target may be insecure.
         // Leave it to derived classes, consider insecure by default here.
         return false;
+
+    } // createTunnelToTarget
+
+
+
+    /**
+     * Creates a tunnel to an intermediate proxy.
+     * This method is <i>not</i> implemented in this class.
+     * It just throws an exception here.
+     *
+     * @param route     the route to establish
+     * @param hop       the hop in the route to establish now.
+     *                  <code>route.getHopTarget(hop)</code>
+     *                  will return the proxy to tunnel to.
+     * @param context   the context for request execution
+     *
+     * @return  <code>true</code> if the partially tunnelled connection
+     *          is secure, <code>false</code> otherwise.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     */
+    protected boolean createTunnelToProxy(HttpRoute route, int hop,
+                                          HttpContext context)
+        throws HttpException, IOException {
+
+        // Have a look at createTunnelToTarget and replicate the parts
+        // you need in a custom derived class. If your proxies don't require
+        // authentication, it is not too hard. But for the stock version of
+        // HttpClient, we cannot make such simplifying assumptions and would
+        // have to include proxy authentication code. The HttpComponents team
+        // is currently not in a position to support rarely used code of this
+        // complexity. Feel free to submit patches that refactor the code in
+        // createTunnelToTarget to facilitate re-use for proxy tunnelling.
+
+        throw new UnsupportedOperationException
+            ("Proxy chains are not supported.");
     }
+
 
 
     /**
