@@ -136,7 +136,7 @@ public class ManagerConnectProxy {
             System.out.println("receiving response body (ignored)");
             conn.receiveResponseEntity(connected);
 
-            conn.tunnelCreated(false, getParams());
+            conn.tunnelTarget(false, getParams());
 
             System.out.println("layering secure connection");
             conn.layerProtocol(ctx, getParams());
