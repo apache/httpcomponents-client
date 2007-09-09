@@ -699,7 +699,7 @@ public class DefaultClientRequestDirector
 
     /**
      * Creates the CONNECT request for tunnelling.
-     * Called by {@link #createTunnel createTunnel}.
+     * Called by {@link #createTunnelToTarget createTunnelToTarget}.
      *
      * @param route     the route to establish
      * @param context   the context for request execution

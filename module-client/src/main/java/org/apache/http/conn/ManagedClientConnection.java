@@ -141,7 +141,7 @@ public interface ManagedClientConnection extends
 
 
     /**
-     * Layers a new protocol on top of a {@link #tunnelCreated tunnelled}
+     * Layers a new protocol on top of a {@link #tunnelTarget tunnelled}
      * connection. This is typically used to create a TLS/SSL connection
      * through a proxy.
      * The route is the one previously passed to {@link #open open}.
