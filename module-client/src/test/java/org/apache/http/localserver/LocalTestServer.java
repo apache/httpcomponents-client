@@ -48,7 +48,7 @@ import org.apache.http.impl.DefaultHttpServerConnection;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
@@ -156,7 +156,7 @@ public class LocalTestServer {
                                  false)
             .setBooleanParameter(HttpConnectionParams.TCP_NODELAY,
                                  true)
-            .setParameter(HttpProtocolParams.ORIGIN_SERVER,
+            .setParameter(CoreProtocolPNames.ORIGIN_SERVER,
                           "Jakarta-HttpComponents-LocalTestServer/1.1");
         return params;
     }
