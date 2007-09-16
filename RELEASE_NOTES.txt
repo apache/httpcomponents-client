@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCORE-116] moved parameter names to interfaces
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-649] support for proxy chains in HttpConn
   Contributed by Roland Weber <rolandw at apache.org>
 
