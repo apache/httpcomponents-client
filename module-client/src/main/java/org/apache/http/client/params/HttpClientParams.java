@@ -51,7 +51,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Long}.
      * </p>
      */ 
-    public static final String CONNECTION_MANAGER_TIMEOUT = "http.connection-manager.timeout"; 
+    public static final String xxxCONNECTION_MANAGER_TIMEOUT = "http.connection-manager.timeout"; 
 
     /**
      * Defines the class name of the default {@link org.apache.http.conn.ClientConnectionManager}
@@ -59,7 +59,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link String}.
      * </p>
      */ 
-    public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory"; 
+    public static final String xxxCONNECTION_MANAGER_FACTORY = "http.connection-manager.factory"; 
 
     /** 
      * Defines whether redirects should be handled automatically
@@ -67,7 +67,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String HANDLE_REDIRECTS = "http.protocol.handle-redirects";
+    public static final String xxxHANDLE_REDIRECTS = "http.protocol.handle-redirects";
 
     /**
      * Defines whether relative redirects should be rejected.
@@ -75,7 +75,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String REJECT_RELATIVE_REDIRECT = "http.protocol.reject-relative-redirect"; 
+    public static final String xxxREJECT_RELATIVE_REDIRECT = "http.protocol.reject-relative-redirect"; 
 
     /** 
      * Defines the maximum number of redirects to be followed. 
@@ -84,7 +84,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Integer}.
      * </p>
      */
-    public static final String MAX_REDIRECTS = "http.protocol.max-redirects";
+    public static final String xxxMAX_REDIRECTS = "http.protocol.max-redirects";
 
     /** 
      * Defines whether circular redirects (redirects to the same location) should be allowed. 
@@ -94,7 +94,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String ALLOW_CIRCULAR_REDIRECTS = "http.protocol.allow-circular-redirects";
+    public static final String xxxALLOW_CIRCULAR_REDIRECTS = "http.protocol.allow-circular-redirects";
 
     /**
      * Defines whether authentication should be handled automatically.
@@ -102,7 +102,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String HANDLE_AUTHENTICATION = "http.protocol.handle-authentication";
+    public static final String xxxHANDLE_AUTHENTICATION = "http.protocol.handle-authentication";
 
     /**
      * Defines whether authentication should be attempted preemptively.
@@ -110,7 +110,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String PREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
+    public static final String xxxPREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
 
     /**
      * The key used to look up the list of IDs of supported
@@ -127,7 +127,7 @@ public class HttpClientParams {
      * the ID of the least preferred one.
      * </p>
      */
-    public static final String AUTH_SCHEME_PRIORITY = "http.protocol-auth-scheme-priority";
+    public static final String xxxAUTH_SCHEME_PRIORITY = "http.protocol-auth-scheme-priority";
 
     /**
      * Defines the name of the cookie specification to be used for HTTP state management.
@@ -135,7 +135,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link String}.
      * </p>
      */
-    public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
+    public static final String xxxCOOKIE_POLICY = "http.protocol.cookie-policy";
     
     /**
      * Defines the virtual host name.
@@ -143,7 +143,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link org.apache.http.HttpHost}. 
      * </p>
      */
-    public static final String VIRTUAL_HOST = "http.virtual-host"; 
+    public static final String xxxVIRTUAL_HOST = "http.virtual-host"; 
 
     /**
      * Defines the request headers to be sent per default with each request.
@@ -152,7 +152,7 @@ public class HttpClientParams {
      * collection is expected to contain {@link org.apache.http.Header}s. 
      * </p>
      */
-    public static final String DEFAULT_HEADERS = "http.default-headers"; 
+    public static final String xxxDEFAULT_HEADERS = "http.default-headers"; 
     
     /**
      * Defines the default host. The default value will be used if the target host is
@@ -161,7 +161,7 @@ public class HttpClientParams {
      * This parameter expects a value of type {@link org.apache.http.HttpHost}.
      * </p>
      */
-    public static final String DEFAULT_HOST = "http.default-host";
+    public static final String xxxDEFAULT_HOST = "http.default-host";
 
     private HttpClientParams() {
         super();
@@ -178,7 +178,8 @@ public class HttpClientParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        return params.getLongParameter(CONNECTION_MANAGER_TIMEOUT, 0);
+        return params.getLongParameter
+            (ClientPNames.CONNECTION_MANAGER_TIMEOUT, 0);
     }
 
     /**
@@ -192,35 +193,40 @@ public class HttpClientParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setLongParameter(CONNECTION_MANAGER_TIMEOUT, timeout);
+        params.setLongParameter
+            (ClientPNames.CONNECTION_MANAGER_TIMEOUT, timeout);
     }
 
     public static boolean isRedirecting(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        return params.getBooleanParameter(HANDLE_REDIRECTS, true); 
+        return params.getBooleanParameter
+            (ClientPNames.HANDLE_REDIRECTS, true); 
     }
 
     public static void setRedirecting(final HttpParams params, boolean value) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setBooleanParameter(HANDLE_REDIRECTS, value); 
+        params.setBooleanParameter
+            (ClientPNames.HANDLE_REDIRECTS, value); 
     }
     
     public static boolean isAuthenticating(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        return params.getBooleanParameter(HANDLE_AUTHENTICATION, true); 
+        return params.getBooleanParameter
+            (ClientPNames.HANDLE_AUTHENTICATION, true); 
     }
 
     public static void setAuthenticating(final HttpParams params, boolean value) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setBooleanParameter(HANDLE_AUTHENTICATION, value); 
+        params.setBooleanParameter
+            (ClientPNames.HANDLE_AUTHENTICATION, value); 
     }
     
     /**
@@ -234,7 +240,8 @@ public class HttpClientParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        return params.getBooleanParameter(PREEMPTIVE_AUTHENTICATION, false); 
+        return params.getBooleanParameter
+            (ClientPNames.PREEMPTIVE_AUTHENTICATION, false); 
     }
 
     /**
@@ -247,14 +254,16 @@ public class HttpClientParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setBooleanParameter(PREEMPTIVE_AUTHENTICATION, value); 
+        params.setBooleanParameter
+            (ClientPNames.PREEMPTIVE_AUTHENTICATION, value); 
     }
     
     public static String getCookiePolicy(final HttpParams params) { 
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        String cookiePolicy = (String) params.getParameter(COOKIE_POLICY);
+        String cookiePolicy = (String)
+            params.getParameter(ClientPNames.COOKIE_POLICY);
         if (cookiePolicy == null) {
             return CookiePolicy.BROWSER_COMPATIBILITY;
         }
@@ -265,7 +274,7 @@ public class HttpClientParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setParameter(COOKIE_POLICY, cookiePolicy);
+        params.setParameter(ClientPNames.COOKIE_POLICY, cookiePolicy);
     }
 
 }

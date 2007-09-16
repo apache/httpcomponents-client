@@ -29,29 +29,43 @@
  *
  */
 
-package org.apache.http.impl.cookie;
+package org.apache.http.cookie.params;
 
-import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
-import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.params.HttpParams;
 
+
 /**
+ * Parameter names for cookie specifications in HttpCookie.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- *
+ * 
+ * @version $Revision$
+ * 
  * @since 4.0
  */
-public class RFC2109SpecFactory implements CookieSpecFactory {    
+public interface CookieSpecPNames {
 
-    public CookieSpec newInstance(final HttpParams params) {
-        if (params != null) {
-            return new RFC2109Spec(
-                    (String []) params.getParameter(CookieSpecPNames.DATE_PATTERNS), 
-                    params.getBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER, false));
-        } else {
-            return new RFC2109Spec();
-        }
-    }
+    /**
+     * Parameter for the date patterns used for parsing.
+     * <p>
+     * This parameter expects a value of type {@link java.util.Collection}.
+     * The collection elements are of type {@link String}
+     * and must be compatible with the syntax of
+     * {@link java.text.SimpleDateFormat}.
+     * </p>
+     */
+    public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
+    
+    /**
+     * Parameter for Cookie header formatting.
+     * Defines whether {@link org.apache.http.cookie.Cookie cookies}
+     * should be put on 
+     * a single {@link org.apache.http.Header request header}.
+     * If not, each cookie is formatted in a seperate Cookie header.
+     * <p>
+     * This parameter expects a value of type {@link Boolean}.
+     * </p>
+     */
+    public static final String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header"; 
 
 }

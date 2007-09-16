@@ -66,6 +66,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.BasicManagedEntity;
@@ -184,7 +185,7 @@ public class DefaultClientRequestDirector
         this.managedConn   = null;
         
         this.redirectCount = 0;
-        this.maxRedirects = this.params.getIntParameter(HttpClientParams.MAX_REDIRECTS, 100);
+        this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
         this.targetAuthState = new AuthState();
         this.proxyAuthState = new AuthState();
     } // constructor
@@ -260,7 +261,7 @@ public class DefaultClientRequestDirector
 
         // Add default headers
         Collection defHeaders = (Collection) orig.getParams().getParameter(
-                HttpClientParams.DEFAULT_HEADERS);
+                ClientPNames.DEFAULT_HEADERS);
         if (defHeaders != null) {
             for (Iterator it = defHeaders.iterator(); it.hasNext(); ) {
                 orig.addHeader((Header) it.next());
@@ -315,7 +316,7 @@ public class DefaultClientRequestDirector
                 
                 // Use virtual host if set
                 HttpHost target = (HttpHost) request.getParams().getParameter(
-                        HttpClientParams.VIRTUAL_HOST);
+                        ClientPNames.VIRTUAL_HOST);
                 
                 if (target == null) {
                     target = route.getTargetHost();

@@ -29,39 +29,32 @@
  *
  */
 
-package org.apache.http.cookie.params;
+package org.apache.http.auth.params;
 
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
+
 
 /**
- * This class implements an adaptor around the {@link HttpParams} interface
- * to simplify manipulation of cookie management specific parameters.
- * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * Parameter names for HttpAuth.
  * 
  * @version $Revision$
  * 
  * @since 4.0
  */
-public final class CookieSpecParams {
+public interface AuthPNames {
 
     /**
-     * The key used to look up the date patterns used for parsing. The String patterns are stored
-     * in a {@link java.util.Collection} and must be compatible with 
-     * {@link java.text.SimpleDateFormat}.
+     * Defines the charset to be used when encoding 
+     * {@link org.apache.http.auth.Credentials}.
      * <p>
-     * This parameter expects a value of type {@link java.util.Collection}.
+     * This parameter expects a value of type {@link String}.
+     * If not defined, then
+     * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
+     *        HttpProtocolParams.HTTP_ELEMENT_CHARSET}
+     * should be used.
      * </p>
      */
-    public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
-    
-    /**
-     * Defines whether {@link org.apache.http.cookie.Cookie cookies} should be put on 
-     * a single {@link org.apache.http.Header request header}.
-     * <p>
-     * This parameter expects a value of type {@link Boolean}.
-     * </p>
-     */
-    public static final String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header"; 
+    public static final String CREDENTIAL_CHARSET = "http.auth.credential-charset"; 
 
 }

@@ -47,6 +47,8 @@ import org.apache.http.params.HttpParams;
  * @version $Revision$
  * 
  * @since 4.0
+ *
+ * @see ConnManagerPNames
  */
 public final class HttpConnectionManagerParams {
 
@@ -60,54 +62,13 @@ public final class HttpConnectionManagerParams {
     private static final String ROUTE_DEFAULT = "*Route*Default*";
 
 
-    /** 
-     * Defines the maximum number of connections allowed per host configuration. 
-     * These values only apply to the number of connections from a particular instance 
-     * of HttpConnectionManager.
-     * <p>
-     * This parameter expects a value of type {@link java.util.Map}.  The value
-     * should map instances of {@link HttpRoute}
-     * to {@link Integer integers}.
-     * The default value is mapped to a special, private key.
-     * </p>
-     */
-    public static final String MAX_HOST_CONNECTIONS = "http.connection-manager.max-per-host";
-
-    /** 
-     * Defines the maximum number of connections allowed overall. This value only applies
-     * to the number of connections from a particular instance of HttpConnectionManager.
-     * <p>
-     * This parameter expects a value of type {@link Integer}.
-     * </p>
-     */
-    public static final String MAX_TOTAL_CONNECTIONS = "http.connection-manager.max-total";
-
-    /**
-     * Defines the maximum number of ignorable lines before we expect
-     * a HTTP response's status code.
-     * <p>
-     * With HTTP/1.1 persistent connections, the problem arises that
-     * broken scripts could return a wrong Content-Length
-     * (there are more bytes sent than specified).<br />
-     * Unfortunately, in some cases, this is not possible after the bad response,
-     * but only before the next one. <br />
-     * So, HttpClient must be able to skip those surplus lines this way.
-     * </p>
-     * <p>
-     * Set this to 0 to disallow any garbage/empty lines before the status line.<br />
-     * To specify no limit, use {@link java.lang.Integer#MAX_VALUE} (default in lenient mode).
-     * </p>
-     *  
-     * This parameter expects a value of type {@link Integer}.
-     */
-    public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
 
     /**
      * Sets the default maximum number of connections allowed for routes.
      *
      * @param max The default maximum.
      * 
-     * @see #MAX_HOST_CONNECTIONS
+     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
      */
     public static void setDefaultMaxConnectionsPerHost(final HttpParams params,
                                                        final int max) {
@@ -121,7 +82,7 @@ public final class HttpConnectionManagerParams {
      * @param max       the maximum number of connections,
      *                  must be greater than 0
      * 
-     * @see #MAX_HOST_CONNECTIONS
+     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
      */
     public static void setMaxConnectionsPerHost(final HttpParams params,
                                                 final HttpRoute route,
@@ -153,7 +114,8 @@ public final class HttpConnectionManagerParams {
                 ("The maximum must be greater than 0.");
         }
         
-        Map currentValues = (Map) params.getParameter(MAX_HOST_CONNECTIONS);
+        Map currentValues = (Map) params.getParameter
+            (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         // param values are meant to be immutable so we'll make a copy
         // to modify
         Map newValues = null;
@@ -163,7 +125,7 @@ public final class HttpConnectionManagerParams {
             newValues = new HashMap(currentValues);
         }
         newValues.put(key, new Integer(max));
-        params.setParameter(MAX_HOST_CONNECTIONS, newValues);
+        params.setParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS, newValues);
     }
 
     
@@ -173,7 +135,7 @@ public final class HttpConnectionManagerParams {
      *
      * @return The default maximum.
      * 
-     * @see #MAX_HOST_CONNECTIONS
+     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
      */
     public static int getDefaultMaxConnectionsPerHost(
         final HttpParams params) {
@@ -189,7 +151,7 @@ public final class HttpConnectionManagerParams {
      *
      * @return The maximum number of connections allowed for the given route.
      * 
-     * @see #MAX_HOST_CONNECTIONS
+     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
      */
     public static int getMaxConnectionsPerHost(final HttpParams params,
                                                final HttpRoute route) {
@@ -221,7 +183,8 @@ public final class HttpConnectionManagerParams {
         // if neither a specific nor a default maximum is configured...
         int result = DEFAULT_MAX_HOST_CONNECTIONS;
 
-        Map m = (Map) params.getParameter(MAX_HOST_CONNECTIONS);
+        Map m = (Map) params.getParameter
+            (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         if (m != null) {
             Integer max = (Integer) m.get(key);
             if ((max == null) && (key != ROUTE_DEFAULT)) {
@@ -242,7 +205,7 @@ public final class HttpConnectionManagerParams {
      *
      * @param maxTotalConnections The maximum number of connections allowed.
      * 
-     * @see #MAX_TOTAL_CONNECTIONS
+     * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
     public static void setMaxTotalConnections(
             final HttpParams params,
@@ -252,7 +215,7 @@ public final class HttpConnectionManagerParams {
                 ("HTTP parameters must not be null.");
         }
         params.setIntParameter(
-            HttpConnectionManagerParams.MAX_TOTAL_CONNECTIONS,
+            ConnManagerPNames.MAX_TOTAL_CONNECTIONS,
             maxTotalConnections);
     }
 
@@ -261,7 +224,7 @@ public final class HttpConnectionManagerParams {
      *
      * @return The maximum number of connections allowed.
      * 
-     * @see #MAX_TOTAL_CONNECTIONS
+     * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
     public static int getMaxTotalConnections(
             final HttpParams params) {
@@ -270,7 +233,7 @@ public final class HttpConnectionManagerParams {
                 ("HTTP parameters must not be null.");
         }
         return params.getIntParameter(
-            HttpConnectionManagerParams.MAX_TOTAL_CONNECTIONS,
+            ConnManagerPNames.MAX_TOTAL_CONNECTIONS,
             DEFAULT_MAX_TOTAL_CONNECTIONS);
     }
 

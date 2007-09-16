@@ -45,15 +45,17 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
-import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
+
 
 /**
  * Default implementation of a redirect handler.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version $Revision$
@@ -118,7 +120,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
         if (!uri.isAbsolute()) {
-            if (params.isParameterTrue(HttpClientParams.REJECT_RELATIVE_REDIRECT)) {
+            if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
                 throw new ProtocolException("Relative redirect location '" 
                         + uri + "' not allowed");
             }
@@ -143,7 +145,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             }
         }
         
-        if (params.isParameterFalse(HttpClientParams.ALLOW_CIRCULAR_REDIRECTS)) {
+        if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
             
             Set redirectLocations = (Set) context.getAttribute(REDIRECT_LOCATIONS);
             

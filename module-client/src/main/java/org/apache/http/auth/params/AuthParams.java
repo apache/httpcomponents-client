@@ -43,49 +43,44 @@ import org.apache.http.protocol.HTTP;
  * @version $Revision$
  * 
  * @since 4.0
+ *
+ * @see AuthPNames
  */
 public final class AuthParams {
 
-    /**
-     * Defines the charset to be used when encoding 
-     * {@link org.apache.http.auth.Credentials}.
-     * If not defined then the 
-     * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
-     *        HttpProtocolParams.HTTP_ELEMENT_CHARSET}
-     * should be used.
-     * <p>
-     * This parameter expects a value of type {@link String}.
-     * </p>
-     */
-    public static final String CREDENTIAL_CHARSET = "http.protocol.credential-charset"; 
-    
-    
     private AuthParams() {
         super();
     }
 
     /**
-     * Defines the charset to be used when encoding
+     * Obtains the charset for encoding
      * {@link org.apache.http.auth.Credentials}.
      * If not configured,
      * {@link HTTP#DEFAULT_PROTOCOL_CHARSET HTTP.DEFAULT_PROTOCOL_CHARSET}
      * is used instead.
      * 
      * @return The charset
+     *
+     * @see AuthPNames#CREDENTIAL_CHARSET
      */
     public static String getCredentialCharset(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        String charset = (String) params.getParameter(CREDENTIAL_CHARSET);
+        String charset = (String) params.getParameter
+            (AuthPNames.CREDENTIAL_CHARSET);
+        //@@@ TODO: inconsistent with JavaDoc in AuthPNames,
+        //@@@ TODO: check HTTP_ELEMENT_CHARSET first, or fix JavaDocs
         if (charset == null) {
             charset = HTTP.DEFAULT_PROTOCOL_CHARSET;
         }
         return charset;
     }
-    
+
+
     /**
-     * Sets the charset to be used when encoding {@link org.apache.http.auth.Credentials}.
+     * Sets the charset to be used when encoding
+     * {@link org.apache.http.auth.Credentials}.
      * 
      * @param charset The charset
      */
@@ -93,7 +88,7 @@ public final class AuthParams {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        params.setParameter(CREDENTIAL_CHARSET, charset);
+        params.setParameter(AuthPNames.CREDENTIAL_CHARSET, charset);
     }
 
 }

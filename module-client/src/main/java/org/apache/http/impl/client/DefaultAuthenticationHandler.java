@@ -50,7 +50,7 @@ import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
@@ -160,7 +160,7 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
         
         HttpParams params = response.getParams();
         Collection authPrefs = (Collection) params.getParameter(
-                HttpClientParams.AUTH_SCHEME_PRIORITY);
+                ClientPNames.AUTH_SCHEME_PRIORITY);
         if (authPrefs == null || authPrefs.isEmpty()) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;    
         }

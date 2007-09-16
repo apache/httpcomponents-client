@@ -45,7 +45,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
@@ -155,7 +155,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         
         HttpParams params = getParams();
         String className = (String) params.getParameter(
-                HttpClientParams.CONNECTION_MANAGER_FACTORY);
+                ClientPNames.CONNECTION_MANAGER_FACTORY);
         
         if (className != null) {
             try {
@@ -282,7 +282,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
         if (target == null) {
             target = (HttpHost) request.getParams().getParameter(
-                HttpClientParams.DEFAULT_HOST);
+                ClientPNames.DEFAULT_HOST);
         }
         if (target == null) {
             throw new IllegalStateException

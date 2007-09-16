@@ -58,7 +58,8 @@ import org.apache.http.util.EncodingUtils;
  * </p>
  * <p>
  * Credential charset is configured via the 
- * {@link AuthParams#CREDENTIAL_CHARSET credential charset} parameter.
+ * {@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET
+ *        credential charset} parameter.
  * Since the digest username is included as clear text in the generated 
  * Authentication header, the charset of the username must be compatible
  * with the 
