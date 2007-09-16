@@ -50,7 +50,7 @@ public interface AuthPNames {
      * <p>
      * This parameter expects a value of type {@link String}.
      * If not defined, then
-     * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
+     * {@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET
      *        HttpProtocolParams.HTTP_ELEMENT_CHARSET}
      * should be used.
      * </p>

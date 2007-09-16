@@ -63,7 +63,7 @@ import org.apache.http.util.EncodingUtils;
  * Since the digest username is included as clear text in the generated 
  * Authentication header, the charset of the username must be compatible
  * with the 
- * {@link org.apache.http.params.HttpProtocolParams#HTTP_ELEMENT_CHARSET
+ * {@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET
  *        http element charset}.
  * </p>
  * 
