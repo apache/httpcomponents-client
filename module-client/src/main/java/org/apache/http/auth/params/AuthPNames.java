@@ -31,10 +31,6 @@
 
 package org.apache.http.auth.params;
 
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
-
-
 /**
  * Parameter names for HttpAuth.
  * 

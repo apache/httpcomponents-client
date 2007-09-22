@@ -126,6 +126,15 @@ public class BasicCookie implements SetCookie, ClientCookie {
         cookieComment = comment;
     }
 
+    
+    /**
+     * Returns null. Cookies prior to RFC2965 do not set this attribute
+     */
+    public String getCommentURL() {
+        return null;
+    }
+
+    
     /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
      * if none exists.
@@ -243,6 +252,15 @@ public class BasicCookie implements SetCookie, ClientCookie {
         isSecure = secure;
     }
 
+
+    /**
+     * Returns null. Cookies prior to RFC2965 do not set this attribute
+     */
+    public int[] getPorts() {
+        return null;
+    }
+
+    
     /**
      * Returns the version of the cookie specification to which this
      * cookie conforms.

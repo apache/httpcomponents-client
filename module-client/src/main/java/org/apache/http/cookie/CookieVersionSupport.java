@@ -28,27 +28,21 @@
  *
  */
 
-package org.apache.http.conn.params;
+package org.apache.http.cookie;
+
+import org.apache.http.Header;
 
 /**
- * Parameter names for routing in HttpConn.
+ * Defines cookie specification specific capabilities
  * 
- * @version $Revision$
- * 
- * @since 4.0
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 3.1
  */
-public interface ConnRoutePNames {
-     
-    /**
-     * Parameter for the default proxy.
-     * The default value will be used by some
-     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
-     * implementations, in particular the default implementation.
-     * <p>
-     * This parameter expects a value of type {@link org.apache.http.HttpHost}.
-     * </p>
-     */
-    public static final String DEFAULT_PROXY = "http.default-proxy";
+public interface CookieVersionSupport {    
+
+    int getVersion();
+    
+    Header getVersionHeader();
 
 }
-

@@ -67,6 +67,12 @@ public interface Cookie {
     String getComment();
 
     /**
+     * If a user agent (web browser) presents this cookie to a user, the
+     * cookie's purpose will be described by the information at this URL.
+     */
+    String getCommentURL();    
+    
+    /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
      * if none exists.
      * <p><strong>Note:</strong> the object returned by this method is 
@@ -98,6 +104,12 @@ public interface Cookie {
      * @return The value of the path attribute.
      */
     String getPath();
+
+    /**
+     * Get the Port attribute. It restricts the ports to which a cookie
+     * may be returned in a Cookie request header.
+     */
+    int[] getPorts();
 
     /**
      * Indicates whether this cookie requires a secure connection.

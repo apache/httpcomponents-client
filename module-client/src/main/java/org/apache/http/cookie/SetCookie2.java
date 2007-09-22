@@ -29,40 +29,29 @@
  *
  */
 
-package org.apache.http.cookie.params;
+package org.apache.http.cookie;
 
 /**
- * Parameter names for cookie specifications in HttpCookie.
+ * This interface represents a <code>SetCookie2</code> response header sent by the 
+ * origin server to the HTTP agent in order to maintain a conversational state.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @version $Revision$
- * 
  * @since 4.0
  */
-public interface CookieSpecPNames {
+public interface SetCookie2 extends Cookie {
 
     /**
-     * Parameter for the date patterns used for parsing.
-     * <p>
-     * This parameter expects a value of type {@link java.util.Collection}.
-     * The collection elements are of type {@link String}
-     * and must be compatible with the syntax of
-     * {@link java.text.SimpleDateFormat}.
-     * </p>
+     * If a user agent (web browser) presents this cookie to a user, the
+     * cookie's purpose will be described by the information at this URL.
      */
-    public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
+    void setCommentURL(String commentURL);
     
     /**
-     * Parameter for Cookie header formatting.
-     * Defines whether {@link org.apache.http.cookie.Cookie cookies}
-     * should be put on 
-     * a single {@link org.apache.http.Header request header}.
-     * If not, each cookie is formatted in a seperate Cookie header.
-     * <p>
-     * This parameter expects a value of type {@link Boolean}.
-     * </p>
+     * Sets the Port attribute. It restricts the ports to which a cookie
+     * may be returned in a Cookie request header.
      */
-    public static final String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header"; 
-
+    void setPorts(int[] ports);
+    
 }
+
