@@ -15,9 +15,6 @@ import org.apache.http.cookie.SetCookie2;
  */
 public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
 
-    /**
-     * @param spec
-     */
     public RFC2965PortAttributeHandler() {
         super();
     }
