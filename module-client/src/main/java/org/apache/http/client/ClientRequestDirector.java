@@ -84,11 +84,12 @@ public interface ClientRequestDirector {
      * @return  the final response to the request.
      *          This is never an intermediate response with status code 1xx.
      *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
+     * @throws HttpException            in case of a problem
+     * @throws IOException              in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
      */
     HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException
+        throws HttpException, IOException, InterruptedException
         ;
 
 

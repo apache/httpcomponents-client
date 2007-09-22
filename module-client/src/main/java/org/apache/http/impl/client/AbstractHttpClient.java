@@ -406,21 +406,10 @@ public abstract class AbstractHttpClient
     }
 
 
-    /**
-     * Maps to {@link #execute(HttpUriRequest,HttpContext)
-     *                 execute(request, context)}.
-     * The route is computed by {@link #determineRoute determineRoute}.
-     * This method uses {@link #getDefaultContext() default context}.
-     *
-     * @param request   the request to execute
-     *
-     * @return  the response to the request
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     */
+
+    // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpUriRequest request)
-        throws HttpException, IOException {
+        throws HttpException, IOException, InterruptedException {
 
         return execute(request, null);
     }
@@ -437,7 +426,7 @@ public abstract class AbstractHttpClient
      */
     public final HttpResponse execute(HttpUriRequest request,
                                       HttpContext context)
-        throws HttpException, IOException {
+        throws HttpException, IOException, InterruptedException {
 
         if (request == null) {
             throw new IllegalArgumentException
@@ -468,14 +457,15 @@ public abstract class AbstractHttpClient
 
     
     public HttpResponse execute(RoutedRequest roureq) 
-        throws HttpException, IOException {
+        throws HttpException, IOException, InterruptedException {
         return execute(roureq, null);
     }
 
 
     // non-javadoc, see interface HttpClient
-    public final HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException {
+    public final HttpResponse execute(RoutedRequest roureq,
+                                      HttpContext context)
+        throws HttpException, IOException, InterruptedException {
 
         if (roureq == null) {
             throw new IllegalArgumentException

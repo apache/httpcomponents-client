@@ -79,8 +79,12 @@ public interface ClientConnectionManager {
      *
      * @return  a connection that can be used to communicate
      *          along the given route
+     *
+     * @throws InterruptedException
+     *         if the calling thread is interrupted while waiting
      */
     ManagedClientConnection getConnection(HttpRoute route)
+        throws InterruptedException
         ;
 
 
@@ -97,11 +101,13 @@ public interface ClientConnectionManager {
      *          along the given route
      *
      * @throws ConnectionPoolTimeoutException
-     *          in case of a timeout
+     *         in case of a timeout
+     * @throws InterruptedException
+     *         if the calling thread is interrupted while waiting
      */
     ManagedClientConnection getConnection(HttpRoute route,
                                           long timeout)
-        throws ConnectionPoolTimeoutException
+        throws ConnectionPoolTimeoutException, InterruptedException
         ;
 
 

@@ -254,7 +254,7 @@ public class DefaultClientRequestDirector
     
     // non-javadoc, see interface ClientRequestDirector
     public HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException {
+        throws HttpException, IOException, InterruptedException {
 
         HttpRequest orig = roureq.getRequest();
         HttpParamsLinker.link(orig, this.params);
@@ -426,6 +426,9 @@ public class DefaultClientRequestDirector
         } catch (IOException ex) {
             abortConnection();
             throw ex;
+        } catch (InterruptedException ex) {
+            abortConnection();
+            throw ex;
         } catch (RuntimeException ex) {
             abortConnection();
             throw ex;
@@ -438,11 +441,14 @@ public class DefaultClientRequestDirector
      *
      * @param route     the route for which to allocate a connection
      *
-     * @throws HttpException    in case of a problem
+     * @throws HttpException    in case of a (protocol) problem
+     * @throws ConnectionPoolTimeoutException   in case of a timeout
+     * @throws InterruptedException     in case of an interrupt
      */
     protected ManagedClientConnection allocateConnection(HttpRoute route,
                                                          long timeout)
-        throws HttpException, ConnectionPoolTimeoutException {
+        throws HttpException, ConnectionPoolTimeoutException,
+               InterruptedException {
 
         return connManager.getConnection(route, timeout);
 

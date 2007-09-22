@@ -91,20 +91,21 @@ public interface HttpClient {
         ;
 
     /**
-     * Executes a request using the {@link #getDefaultContext() default context}.
-     *              
-     * see there for details.
+     * Executes a request using the
+     * {@link #getDefaultContext() default context}.
+     * See there for details.
      *
      * @param request   the request to execute
      *
      * @return  the response to the request
      *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
+     * @throws HttpException            in case of a problem
+     * @throws IOException              in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
      * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpUriRequest request)
-        throws HttpException, IOException
+        throws HttpException, IOException, InterruptedException
         ;
 
 
@@ -125,10 +126,11 @@ public interface HttpClient {
      *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
      * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpUriRequest request, HttpContext context)
-        throws HttpException, IOException
+        throws HttpException, IOException, InterruptedException
         ;
 
 
@@ -146,10 +148,11 @@ public interface HttpClient {
      *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
      * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException
+        throws HttpException, IOException, InterruptedException
         ;
 
     /**
@@ -164,10 +167,11 @@ public interface HttpClient {
      *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
      * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(RoutedRequest roureq)
-        throws HttpException, IOException
+        throws HttpException, IOException, InterruptedException
         ;
 
 } // interface HttpClient
