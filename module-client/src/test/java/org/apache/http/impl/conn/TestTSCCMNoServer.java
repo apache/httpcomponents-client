@@ -157,7 +157,7 @@ public class TestTSCCMNoServer extends TestCase {
     } // testConstructor
 
 
-    public void testGetConnection() {
+    public void testGetConnection() throws InterruptedException {
         ThreadSafeClientConnManager mgr = createTSCCM(null, null);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
@@ -184,7 +184,7 @@ public class TestTSCCMNoServer extends TestCase {
     // several other tests here rely on timeout behavior
 
 
-    public void testMaxConnTotal() {
+    public void testMaxConnTotal() throws InterruptedException {
 
         HttpParams params = createDefaultParams();
         HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
@@ -365,7 +365,7 @@ public class TestTSCCMNoServer extends TestCase {
     }
 
 
-    public void testDeleteClosedConnections() {
+    public void testDeleteClosedConnections() throws InterruptedException {
         
         ThreadSafeClientConnManager mgr = createTSCCM(null, null);
 
@@ -469,7 +469,7 @@ public class TestTSCCMNoServer extends TestCase {
         assertNotNull("thread should have gotten an exception",
                       gct.getException());
         assertSame("thread got wrong exception",
-                   IllegalThreadStateException.class,
+                   InterruptedException.class,
                    gct.getException().getClass());
 
         // make sure the manager is still working
@@ -530,7 +530,5 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.shutdown();
     }
 
-    // 3.x TestHttpConnectionManager.testShutdownAll is not ported
-    // the shutdownAll() method is scheduled for removal
 
 } // class TestTSCCMNoServer
