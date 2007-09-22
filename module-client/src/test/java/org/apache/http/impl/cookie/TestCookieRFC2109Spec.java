@@ -170,7 +170,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * browser compatibility mode.
      */
     public void testSecondDomainLevelCookie() throws Exception {
-        BasicCookie cookie = new BasicCookie("name", null);
+        BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
@@ -187,7 +187,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }    
 
     public void testSecondDomainLevelCookieMatch() throws Exception {
-        BasicCookie cookie = new BasicCookie("name", null);
+        BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
@@ -362,7 +362,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if null cookie values are handled correctly.
      */
     public void testNullCookieValueFormatting() {
-        BasicCookie cookie = new BasicCookie("name", null);
+        BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".whatever.com");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
@@ -384,7 +384,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
 
     public void testCookieNullDomainNullPathFormatting() {
-        BasicCookie cookie = new BasicCookie("name", null); 
+        BasicClientCookie cookie = new BasicClientCookie("name", null); 
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
@@ -403,16 +403,16 @@ public class TestCookieRFC2109Spec extends TestCase {
     }
 
     public void testCookieOrderingByPath() {
-        BasicCookie c1 = new BasicCookie("name1", "value1");
+        BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
         c1.setPath("/a/b/c");
         c1.setAttribute(ClientCookie.PATH_ATTR, c1.getPath());
-        BasicCookie c2 = new BasicCookie("name2", "value2");
+        BasicClientCookie c2 = new BasicClientCookie("name2", "value2");
         c2.setPath("/a/b");
         c2.setAttribute(ClientCookie.PATH_ATTR, c2.getPath());
-        BasicCookie c3 = new BasicCookie("name3", "value3");
+        BasicClientCookie c3 = new BasicClientCookie("name3", "value3");
         c3.setPath("/a");
         c3.setAttribute(ClientCookie.PATH_ATTR, c3.getPath());
-        BasicCookie c4 = new BasicCookie("name4", "value4");
+        BasicClientCookie c4 = new BasicClientCookie("name4", "value4");
         c4.setPath("/");
         c4.setAttribute(ClientCookie.PATH_ATTR, c4.getPath());
 
@@ -453,7 +453,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             // expected
         }
         try {
-            cookiespec.formatCookies(new BasicCookie[] {});
+            cookiespec.formatCookies(new BasicClientCookie[] {});
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

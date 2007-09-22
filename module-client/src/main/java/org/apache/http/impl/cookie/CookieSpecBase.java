@@ -78,7 +78,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
             
-            BasicCookie cookie = new BasicCookie(name, value);
+            BasicClientCookie cookie = new BasicClientCookie(name, value);
             cookie.setPath(getDefaultPath(origin));
             cookie.setDomain(getDefaultDomain(origin));
             

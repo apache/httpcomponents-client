@@ -210,14 +210,14 @@ public class TestCookieNetscapeDraft extends TestCase {
     }
  
     public void testFormatCookies() throws Exception {
-        BasicCookie c1 = new BasicCookie("name1", "value1");
+        BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
         c1.setDomain(".whatever.com");
         c1.setAttribute(ClientCookie.DOMAIN_ATTR, c1.getDomain());
         c1.setPath("/");
         c1.setAttribute(ClientCookie.PATH_ATTR, c1.getPath());
 
-        Cookie c2 = new BasicCookie("name2", "value2");
-        Cookie c3 = new BasicCookie("name3", null);
+        Cookie c2 = new BasicClientCookie("name2", "value2");
+        Cookie c3 = new BasicClientCookie("name3", null);
         
         CookieSpec cookiespec = new NetscapeDraftSpec();
         Header[] headers = cookiespec.formatCookies(new Cookie[] {c1, c2, c3});
@@ -247,7 +247,7 @@ public class TestCookieNetscapeDraft extends TestCase {
             // expected
         }
         try {
-            cookiespec.formatCookies(new BasicCookie[] {});
+            cookiespec.formatCookies(new BasicClientCookie[] {});
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

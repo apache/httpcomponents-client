@@ -57,7 +57,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @version $Revision$
  */
-public class BasicCookie implements SetCookie, ClientCookie {
+public class BasicClientCookie implements SetCookie, ClientCookie {
 
     /**
      * Default Constructor taking a name and a value. The value may be null.
@@ -65,7 +65,7 @@ public class BasicCookie implements SetCookie, ClientCookie {
      * @param name The name.
      * @param value The value.
      */
-    public BasicCookie(final String name, final String value) {
+    public BasicClientCookie(final String name, final String value) {
         super();
         if (name == null) {
             throw new IllegalArgumentException("Name may not be null");
