@@ -499,10 +499,9 @@ public abstract class AbstractHttpClient
                     getParams());
         }
 
-        HttpResponse  response = director.execute(roureq, context);
+        HttpResponse response = director.execute(roureq, context);
         // If the response depends on the connection, the director
         // will have set up an auto-release input stream.
-        //@@@ or move that logic here into the client?
 
         //@@@ "finalize" response, to allow for buffering of entities?
         //@@@ here or in director?

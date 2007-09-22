@@ -257,7 +257,13 @@ public class DefaultClientRequestDirector
         throws HttpException, IOException, InterruptedException {
 
         HttpRequest orig = roureq.getRequest();
-        HttpParamsLinker.link(orig, this.params);
+
+        //@@@ build the parameter stack in the client?
+        //@@@ that's the place to keep application and override params
+        final HttpParams stackedparams = new ClientParamsStack
+            (null, this.params, orig.getParams(), null);
+        orig.setParams(stackedparams);
+        // was: HttpParamsLinker.link(orig, this.params);
 
         // Add default headers
         Collection defHeaders = (Collection) orig.getParams().getParameter(
@@ -369,7 +375,8 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                HttpParamsLinker.link(request, this.params);
+                // no need to link parameters, stack is copied to the wrapper:
+                // HttpParamsLinker.link(request, this.params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
