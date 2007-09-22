@@ -156,11 +156,13 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      *
      * @throws ConnectionPoolTimeoutException
      *         if the timeout expired
+     * @throws InterruptedException
+     *         if the calling thread was interrupted
      */
     public abstract
         BasicPoolEntry getEntry(HttpRoute route, long timeout,
                                 ClientConnectionOperator operator)
-        throws ConnectionPoolTimeoutException
+        throws ConnectionPoolTimeoutException, InterruptedException
         ;
 
 

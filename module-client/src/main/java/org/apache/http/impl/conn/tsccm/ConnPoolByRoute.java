@@ -167,7 +167,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public synchronized
         BasicPoolEntry getEntry(HttpRoute route, long timeout,
                                 ClientConnectionOperator operator)
-        throws ConnectionPoolTimeoutException {
+        throws ConnectionPoolTimeoutException, InterruptedException {
 
         BasicPoolEntry entry = null;
 
@@ -245,8 +245,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 } catch (InterruptedException e) {
                     if (!waitingThread.interruptedByConnectionPool) {
                         LOG.debug("Interrupted while waiting for connection.", e);
-                        throw new IllegalThreadStateException(
-                            "Interrupted while waiting in " + this);
+                        throw e;
                     }
                     // Else, do nothing, we were interrupted by the
                     // connection pool and should now have a connection

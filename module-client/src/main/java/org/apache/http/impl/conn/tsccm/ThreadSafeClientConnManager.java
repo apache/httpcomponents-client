@@ -141,19 +141,19 @@ public class ThreadSafeClientConnManager
 
     
     // non-javadoc, see interface ClientConnectionManager
-    public ManagedClientConnection getConnection(HttpRoute route) {
+    public ManagedClientConnection getConnection(HttpRoute route)
+        throws InterruptedException {
 
         while (true) {
             try {
                 return getConnection(route, 0);
             } catch (ConnectionPoolTimeoutException e) {
                 // We'll go ahead and log this, but it should never happen.
-                // Exceptions are only thrown when the timeout occurs and
-                // since we have no timeout, it doesn't happen.
-                LOG.debug(
-                    "Unexpected exception while waiting for connection",
-                    e
-                    );
+                // These exceptions are only thrown when the timeout occurs
+                // and since we have no timeout, it doesn't happen.
+                LOG.debug
+                    ("Unexpected exception while waiting for connection", e);
+                //@@@ throw RuntimeException or Error to indicate the problem?
             }
         }
     }
@@ -162,7 +162,7 @@ public class ThreadSafeClientConnManager
     // non-javadoc, see interface ClientConnectionManager
     public ManagedClientConnection getConnection(HttpRoute route,
                                                  long timeout)
-        throws ConnectionPoolTimeoutException {
+        throws ConnectionPoolTimeoutException, InterruptedException {
 
         if (route == null) {
             throw new IllegalArgumentException("Route may not be null.");
