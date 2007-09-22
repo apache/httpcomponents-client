@@ -39,7 +39,7 @@ package org.apache.http.cookie;
  * 
  * @since 4.0
  */
-public interface SetCookie2 extends Cookie {
+public interface SetCookie2 extends SetCookie {
 
     /**
      * If a user agent (web browser) presents this cookie to a user, the
@@ -52,6 +52,15 @@ public interface SetCookie2 extends Cookie {
      * may be returned in a Cookie request header.
      */
     void setPorts(int[] ports);
+    
+    /**
+     * Set the Discard attribute.
+     *
+     * Note: <tt>Discard</tt> attribute overrides <tt>Max-age</tt>.
+     *
+     * @see #isPersistent()
+     */
+    void setDiscard(boolean discard);
     
 }
 

@@ -44,6 +44,7 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
 
     private String commentURL;
     private int[] ports;
+    private boolean discard;
     
     /**
      * Default Constructor taking a name and a value. The value may be null.
@@ -69,6 +70,14 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
 
     public void setCommentURL(final String commentURL) {
         this.commentURL = commentURL;
+    }
+
+    public void setDiscard(boolean discard) {
+        this.discard = discard;
+    }
+
+    public boolean isPersistent() {
+        return !this.discard && super.isPersistent();
     }
 
 }
