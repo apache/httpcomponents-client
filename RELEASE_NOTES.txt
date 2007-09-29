@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-690] ManagedClientConnection provides access to SSLSession
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-692] ClientConnectionManager throws InterruptedException
   Contributed by Roland Weber <rolandw at apache.org>
 

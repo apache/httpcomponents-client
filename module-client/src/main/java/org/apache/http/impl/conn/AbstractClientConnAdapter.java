@@ -33,6 +33,9 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -244,6 +247,19 @@ public abstract class AbstractClientConnAdapter
     public boolean isSecure() {
         assertWrappedConn();
         return wrappedConnection.isSecure();
+    }
+
+    // non-javadoc, see interface ManagedClientConnection
+    public SSLSession getSSLSession() {
+        if (!isOpen())
+            return null;
+
+        SSLSession result = null;
+        Socket    sock    = wrappedConnection.getSocket();
+        if (sock instanceof SSLSocket) {
+            result = ((SSLSocket)sock).getSession();
+        }
+        return result;
     }
 
     // non-javadoc, see interface ManagedClientConnection

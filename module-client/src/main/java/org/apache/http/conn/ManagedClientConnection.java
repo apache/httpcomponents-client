@@ -32,6 +32,7 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
+import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpInetConnection;
@@ -75,6 +76,26 @@ public interface ManagedClientConnection extends
      *          <code>null</code> if not connected
      */
     HttpRoute getRoute()
+        ;
+
+
+    /**
+     * Obtains the SSL session of the underlying connection, if any.
+     * If this connection is open, and the underlying socket is an
+     * {@link javax.net.ssl.SSLSocket SSLSocket}, the SSL session of
+     * that socket is obtained. This is a potentially blocking operation.
+     * <br/>
+     * <b>Note:</b> Whether the underlying socket is an SSL socket
+     * can not necessarily be determined via {@link #isSecure}.
+     * Plain sockets may be considered secure, for example if they are
+     * connected to a known host in the same network segment.
+     * On the other hand, SSL sockets may be considered insecure,
+     * for example depending on the chosen cipher suite.
+     *
+     * @return  the underlying SSL session if available,
+     *          <code>null</code> otherwise
+     */
+    SSLSession getSSLSession()
         ;
 
 
