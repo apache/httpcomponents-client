@@ -32,16 +32,16 @@ package org.apache.http.mockup;
 
 import java.net.Socket;
 
-import org.apache.http.conn.SecureSocketFactory;
+import org.apache.http.conn.LayeredSocketFactory;
 
 /**
  * {@link SecureSocketFactory} mockup implementation.
  */
 public class SecureSocketFactoryMockup extends SocketFactoryMockup
-    implements SecureSocketFactory {
+    implements LayeredSocketFactory {
 
     /* A default instance of this mockup. */
-    public final static SecureSocketFactory INSTANCE =
+    public final static LayeredSocketFactory INSTANCE =
         new SecureSocketFactoryMockup("INSTANCE");
 
 

@@ -36,14 +36,14 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 /**
- * A {@link SocketFactory SocketFactory} for secure sockets (SSL/TLS).
+ * A {@link SocketFactory SocketFactory} for layered sockets (SSL/TLS).
  * See there for things to consider when implementing a socket factory.
  * 
  * @author Michael Becke
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * @since 4.0
  */
-public interface SecureSocketFactory extends SocketFactory {
+public interface LayeredSocketFactory extends SocketFactory {
 
     /**
      * Returns a socket connected to the given host that is layered over an

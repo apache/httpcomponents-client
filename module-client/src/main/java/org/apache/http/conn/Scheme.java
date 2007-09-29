@@ -103,7 +103,7 @@ public final class Scheme {
         this.name = name.toLowerCase();
         this.socketFactory = factory;
         this.defaultPort = port;
-        this.layered = (factory instanceof SecureSocketFactory);
+        this.layered = (factory instanceof LayeredSocketFactory);
     }
 
 
@@ -120,7 +120,7 @@ public final class Scheme {
     /**
      * Obtains the socket factory.
      * If this scheme is {@link #isLayered layered}, the factory implements
-     * {@link SecureSocketFactory SecureSocketFactory}.
+     * {@link LayeredSocketFactory LayeredSocketFactory}.
      *
      * @return  the socket factory for this scheme
      */

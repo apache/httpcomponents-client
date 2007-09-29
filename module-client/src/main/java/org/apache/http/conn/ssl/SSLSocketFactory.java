@@ -31,7 +31,7 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.conn.SecureSocketFactory;
+import org.apache.http.conn.LayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -55,20 +55,20 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
 /**
- * Secure socket factory based on JSSE
+ * Layered socket factory for TLS/SSL connections, based on JSSE.
  *.
  * <p>
- * SSLProtocolSocketFactory can be used to validate the identity of the HTTPS 
- * server against a list of trusted certificates and to authenticate to the HTTPS 
- * server using a private key. 
+ * SSLSocketFactory can be used to validate the identity of the HTTPS 
+ * server against a list of trusted certificates and to authenticate to
+ * the HTTPS server using a private key. 
  * </p>
  * 
  * <p>
- * SSLProtocolSocketFactory will enable server authentication when supplied with
- * a {@link KeyStore truststore} file containg one or several trusted certificates. 
- * The client secure socket will reject the connection during the SSL session handshake 
- * if the target HTTPS server attempts to authenticate itself with a non-trusted 
- * certificate.
+ * SSLSocketFactory will enable server authentication when supplied with
+ * a {@link KeyStore truststore} file containg one or several trusted
+ * certificates. The client secure socket will reject the connection during
+ * the SSL session handshake if the target HTTPS server attempts to
+ * authenticate itself with a non-trusted certificate.
  * </p>
  * 
  * <p>
@@ -79,12 +79,13 @@ import java.security.UnrecoverableKeyException;
  * </p>
  * 
  * <p>
- * SSLProtocolSocketFactory will enable client authentication when supplied with
- * a {@link KeyStore keystore} file containg a private key/public certificate pair. 
- * The client secure socket will use the private key to authenticate itself to the target 
- * HTTPS server during the SSL session handshake if requested to do so by the server. 
- * The target HTTPS server will in its turn verify the certificate presented by the client
- * in order to establish client's authenticity
+ * SSLSocketFactory will enable client authentication when supplied with
+ * a {@link KeyStore keystore} file containg a private key/public certificate
+ * pair. The client secure socket will use the private key to authenticate
+ * itself to the target HTTPS server during the SSL session handshake if
+ * requested to do so by the server.
+ * The target HTTPS server will in its turn verify the certificate presented
+ * by the client in order to establish client's authenticity
  * </p>
  * 
  * <p>
@@ -134,7 +135,7 @@ import java.security.UnrecoverableKeyException;
  * @author Julius Davies
  */
 
-public class SSLSocketFactory implements SecureSocketFactory {
+public class SSLSocketFactory implements LayeredSocketFactory {
 
     public static final String TLS   = "TLS";
     public static final String SSL   = "SSL";
@@ -339,9 +340,7 @@ public class SSLSocketFactory implements SecureSocketFactory {
     } // isSecure
 
 
-    /**
-     * @see SecureSocketFactory#createSocket(java.net.Socket,java.lang.String,int,boolean)
-     */
+    // non-javadoc, see interface LayeredSocketFactory
     public Socket createSocket(
         final Socket socket,
         final String host,

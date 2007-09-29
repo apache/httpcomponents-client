@@ -43,7 +43,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.SecureSocketFactory;
+import org.apache.http.conn.LayeredSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 
@@ -174,14 +174,14 @@ public class DefaultClientConnectionOperator
                 ("Unknown scheme '" + target.getSchemeName() +
                  "' in target host.");
         }
-        if (!(schm.getSocketFactory() instanceof SecureSocketFactory)) {
+        if (!(schm.getSocketFactory() instanceof LayeredSocketFactory)) {
             throw new IllegalArgumentException
                 ("Target scheme (" + schm.getName() +
-                 ") must have secure socket factory.");
+                 ") must have layered socket factory.");
         }
 
-        final SecureSocketFactory ssf =
-            (SecureSocketFactory)schm.getSocketFactory();
+        final LayeredSocketFactory ssf =
+            (LayeredSocketFactory)schm.getSocketFactory();
         final Socket sock = ssf.createSocket
             (conn.getSocket(), target.getHostName(), target.getPort(), true);
         prepareSocket(sock, context, params);
