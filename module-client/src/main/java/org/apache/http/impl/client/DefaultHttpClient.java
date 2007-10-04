@@ -68,6 +68,7 @@ import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
+import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -210,6 +211,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         registry.register(
                 CookiePolicy.RFC_2109, 
                 new RFC2109SpecFactory());
+        registry.register(
+                CookiePolicy.RFC_2965, 
+                new RFC2965SpecFactory());
         return registry;
     }
 
