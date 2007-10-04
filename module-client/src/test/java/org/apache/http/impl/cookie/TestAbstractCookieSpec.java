@@ -111,6 +111,8 @@ public class TestAbstractCookieSpec extends TestCase {
         Iterator it = cookiespec.getAttribHandlerIterator();
         assertNotNull(it.next());
         assertNotNull(it.next());
+        assertNotNull(it.next());
+        assertNotNull(it.next());
         assertFalse(it.hasNext());
     }
 

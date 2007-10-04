@@ -31,60 +31,27 @@
 
 package org.apache.http.impl.cookie;
 
-import java.util.Date;
-
-import org.apache.http.cookie.SetCookie2;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.params.CookieSpecPNames;
+import org.apache.http.params.HttpParams;
 
 /**
- * HTTP "magic-cookie" represents a piece of state information
- * that the HTTP agent and the target server can exchange to maintain 
- * a session as specified by RFC2965.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ *
+ * @since 4.0
  */
-public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 {
+public class RFC2965SpecFactory implements CookieSpecFactory {    
 
-    private String commentURL;
-    private int[] ports;
-    private boolean discard;
-    
-    /**
-     * Default Constructor taking a name and a value. The value may be null.
-     * 
-     * @param name The name.
-     * @param value The value.
-     */
-    public BasicClientCookie2(final String name, final String value) {
-        super(name, value);
+    public CookieSpec newInstance(final HttpParams params) {
+        if (params != null) {
+            return new RFC2965Spec(
+                    (String []) params.getParameter(CookieSpecPNames.DATE_PATTERNS), 
+                    params.getBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER, false));
+        } else {
+            return new RFC2965Spec();
+        }
     }
 
-    public int[] getPorts() {
-        return this.ports;
-    }
-
-    public void setPorts(final int[] ports) {
-        this.ports = ports;
-    }
-    
-    public String getCommentURL() {
-        return this.commentURL;
-    }
-
-    public void setCommentURL(final String commentURL) {
-        this.commentURL = commentURL;
-    }
-
-    public void setDiscard(boolean discard) {
-        this.discard = discard;
-    }
-
-    public boolean isPersistent() {
-        return !this.discard && super.isPersistent();
-    }
-
-    public boolean isExpired(final Date date) {
-        return this.discard || super.isExpired(date);
-    }
-    
 }
-

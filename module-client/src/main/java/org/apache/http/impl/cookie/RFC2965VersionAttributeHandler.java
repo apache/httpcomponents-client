@@ -50,7 +50,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
         }
         if (cookie instanceof ClientCookie) {
             if (cookie instanceof ClientCookie 
-                    && ((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {
+                    && !((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {
                 throw new MalformedCookieException(
                         "Violates RFC 2965. Version attribute is required.");
             }

@@ -81,7 +81,6 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpParamsLinker;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;

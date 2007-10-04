@@ -186,7 +186,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param param The parameter.
      * @param version The cookie version 
      */
-    private void formatParamAsVer(final CharArrayBuffer buffer, 
+    protected void formatParamAsVer(final CharArrayBuffer buffer, 
             final String name, final String value, int version) {
         buffer.append(name);
         buffer.append("=");
@@ -208,7 +208,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param cookie The {@link Cookie} to be formatted as string
      * @param version The version to use.
      */
-    private void formatCookieAsVer(final CharArrayBuffer buffer, 
+    protected void formatCookieAsVer(final CharArrayBuffer buffer, 
             final Cookie cookie, int version) {
         formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
         if (cookie.getPath() != null) {
