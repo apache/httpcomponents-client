@@ -36,6 +36,7 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
@@ -95,17 +96,25 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             LOG.info("CookieOrigin not available in HTTP context");
             return;
         }
-        Header[] headers = response.getHeaders(SM.SET_COOKIE);
-        processCookies(headers, cookieSpec, cookieOrigin, cookieStore);
+        HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
+        processCookies(it, cookieSpec, cookieOrigin, cookieStore);
+        
+        // see if the cookie spec supports cookie versioning.
+        if (cookieSpec.getVersion() > 0) {
+            // process set-cookie2 headers.
+            // Cookie2 will replace equivalent Cookie instances
+            it = response.headerIterator(SM.SET_COOKIE2);
+            processCookies(it, cookieSpec, cookieOrigin, cookieStore);
+        }
     }
      
     private static void processCookies(
-            final Header[] headers, 
+            final HeaderIterator iterator, 
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
             final CookieStore cookieStore) {
-        for (int i = 0; i < headers.length; i++) {
-            Header header = headers[i];
+        while (iterator.hasNext()) {
+            Header header = iterator.nextHeader();
             try {
                 Cookie[] cookies = cookieSpec.parse(header, cookieOrigin);
                 for (int c = 0; c < cookies.length; c++) {

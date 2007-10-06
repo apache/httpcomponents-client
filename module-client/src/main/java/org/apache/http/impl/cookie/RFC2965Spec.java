@@ -41,7 +41,6 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.CookieVersionSupport;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
@@ -55,7 +54,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 3.1
  */
-public class RFC2965Spec extends RFC2109Spec implements CookieVersionSupport {
+public class RFC2965Spec extends RFC2109Spec {
 
     /** 
      * Default constructor 

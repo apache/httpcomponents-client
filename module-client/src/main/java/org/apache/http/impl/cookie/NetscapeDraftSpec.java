@@ -134,4 +134,12 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         return new Header[] { new BufferedHeader(buffer) };
     }
 
+    public int getVersion() {
+        return 0;
+    }
+
+    public Header getVersionHeader() {
+        return null;
+    }
+    
 }

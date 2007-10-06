@@ -77,6 +77,14 @@ public class TestAbstractCookieSpec extends TestCase {
         public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
         }
         
+        public int getVersion() {
+            return 0;
+        }
+
+        public Header getVersionHeader() {
+            return null;
+        }
+        
     }
     
     private static class DummyCookieAttribHandler implements CookieAttributeHandler {

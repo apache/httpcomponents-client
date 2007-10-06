@@ -51,6 +51,14 @@ import org.apache.http.Header;
 public interface CookieSpec {    
 
     /**
+     * Returns version of the state management this cookie specification
+     * conforms to.
+     * 
+     * @return version of the state management specification
+     */
+    int getVersion();
+    
+    /**
       * Parse the <tt>"Set-Cookie"</tt> Header into an array of Cookies.
       *
       * <p>This method will not perform the validation of the resultant
@@ -95,4 +103,11 @@ public interface CookieSpec {
      */
     Header[] formatCookies(Cookie[] cookies);
 
+    /**
+     * Returns a request header identifying what version of the state management 
+     * specification is understood. May be <code>null</code> if the cookie 
+     * specification does not support <tt>Cookie2</tt> header.
+     */
+    Header getVersionHeader();
+    
 }

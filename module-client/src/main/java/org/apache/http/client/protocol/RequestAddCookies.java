@@ -167,6 +167,24 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             }
         }
         
+        int ver = cookieSpec.getVersion();
+        if (ver > 0) {
+            boolean needVersionHeader = false;
+            for (int i = 0; i < cookies.length; i++) {
+                if (ver != cookies[i].getVersion()) {
+                    needVersionHeader = true;
+                }
+            }
+
+            if (needVersionHeader) {
+                Header header = cookieSpec.getVersionHeader();
+                if (header != null) {
+                    // Advertise cookie version support
+                    request.addHeader(header);
+                }
+            }
+        }
+        
         // Stick the CookieSpec and CookieOrigin instances to the HTTP context
         // so they could be obtained by the response interceptor
         context.setAttribute(ClientContext.COOKIE_SPEC, cookieSpec);

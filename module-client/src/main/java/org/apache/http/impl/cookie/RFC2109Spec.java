@@ -226,5 +226,13 @@ public class RFC2109Spec extends CookieSpecBase {
             }
         }
     }
+
+    public int getVersion() {
+        return 1;
+    }
+
+    public Header getVersionHeader() {
+        return null;
+    }
     
 }
