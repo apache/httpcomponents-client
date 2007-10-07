@@ -30,6 +30,8 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -55,6 +57,7 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
@@ -577,6 +580,41 @@ public class TestRedirects extends ServerTestBase {
 
         Header[] headers = reqWrapper.getHeaders(SM.COOKIE);
         assertEquals("There can only be one (cookie)", 1, headers.length);            
+    }
+
+    public void testDefaultHeadersRedirect() throws Exception {
+        String host = "localhost";
+        int port = this.localServer.getServicePort();
+
+        this.localServer.register("*", 
+                new BasicRedirectService(host, port));
+
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        HttpContext context = client.getDefaultContext();
+
+        List defaultHeaders = new ArrayList(1);
+        defaultHeaders.add(new BasicHeader(HTTP.USER_AGENT, "my-test-client"));
+        
+        client.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, defaultHeaders);
+        
+        HttpGet httpget = new HttpGet("/oldlocation/");
+
+        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
+        
+        HttpResponse response = client.execute(request, context);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+        
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+
+        Header header = reqWrapper.getFirstHeader(HTTP.USER_AGENT);
+        assertEquals("my-test-client", header.getValue());            
     }
 
 }

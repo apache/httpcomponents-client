@@ -259,8 +259,6 @@ public class DefaultClientRequestDirector
         //@@@ that's the place to keep application and override params
         final HttpParams stackedparams = new ClientParamsStack
             (null, this.params, orig.getParams(), null);
-        orig.setParams(stackedparams);
-        // was: HttpParamsLinker.link(orig, this.params);
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
@@ -304,6 +302,7 @@ public class DefaultClientRequestDirector
 
                 // Wrap the original request
                 RequestWrapper request = wrapRequest(roureq.getRequest());
+                request.setParams(stackedparams);
                 
                 // Re-write request URI if needed
                 rewriteRequestURI(request, route);
