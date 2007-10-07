@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -263,15 +261,6 @@ public class DefaultClientRequestDirector
             (null, this.params, orig.getParams(), null);
         orig.setParams(stackedparams);
         // was: HttpParamsLinker.link(orig, this.params);
-
-        // Add default headers
-        Collection defHeaders = (Collection) orig.getParams().getParameter(
-                ClientPNames.DEFAULT_HEADERS);
-        if (defHeaders != null) {
-            for (Iterator it = defHeaders.iterator(); it.hasNext(); ) {
-                orig.addHeader((Header) it.next());
-            }
-        }
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
