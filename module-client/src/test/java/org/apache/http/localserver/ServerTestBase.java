@@ -36,6 +36,7 @@ import junit.framework.TestCase;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
+import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
@@ -175,6 +176,15 @@ public abstract class ServerTestBase extends TestCase {
                             "http");
     }
 
+    /**
+     * Obtains the default route to the local test server.
+     *
+     * @return the default route to the local test server
+     */
+    protected HttpRoute getDefaultRoute() {
+        return new HttpRoute(new HttpHost("localhost", localServer.getServicePort())); 
+    }
+    
 
     /**
      * Opens a connection to the given target using

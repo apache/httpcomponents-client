@@ -6,6 +6,7 @@ import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.cookie.SetCookie2;
 
 /**
  * <tt>"Version"</tt> cookie attribute handler for RFC 2965 cookie spec.
@@ -48,7 +49,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (cookie instanceof ClientCookie) {
+        if (cookie instanceof SetCookie2) {
             if (cookie instanceof ClientCookie 
                     && !((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {
                 throw new MalformedCookieException(

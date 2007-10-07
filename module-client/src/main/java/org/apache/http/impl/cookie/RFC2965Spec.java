@@ -73,6 +73,23 @@ public class RFC2965Spec extends RFC2109Spec {
         registerAttribHandler(ClientCookie.VERSION_ATTR, new RFC2965VersionAttributeHandler());
     }
     
+    private BasicClientCookie createCookie(
+            final String name, final String value, final CookieOrigin origin) {
+        BasicClientCookie cookie = new BasicClientCookie(name, value);
+        cookie.setPath(getDefaultPath(origin));
+        cookie.setDomain(getDefaultDomain(origin));
+        return cookie;
+    }
+    
+    private BasicClientCookie createCookie2(
+            final String name, final String value, final CookieOrigin origin) {
+        BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
+        cookie.setPath(getDefaultPath(origin));
+        cookie.setDomain(getDefaultDomain(origin));
+        cookie.setPorts(new int [] { origin.getPort() });
+        return cookie;
+    }
+    
     public Cookie[] parse(
             final Header header, 
             CookieOrigin origin) throws MalformedCookieException {
@@ -96,11 +113,13 @@ public class RFC2965Spec extends RFC2109Spec {
             if (name == null || name.equals("")) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
-            
-            BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
-            cookie.setPath(getDefaultPath(origin));
-            cookie.setDomain(getDefaultDomain(origin));
-            cookie.setPorts(new int [] { origin.getPort() });
+
+            BasicClientCookie cookie;
+            if (header.getName().equals(SM.SET_COOKIE2)) {
+                cookie = createCookie2(name, value, origin);
+            } else {
+                cookie = createCookie(name, value, origin);
+            }
             
             // cycle through the parameters
             NameValuePair[] attribs = headerelement.getParameters();
@@ -212,7 +231,7 @@ public class RFC2965Spec extends RFC2109Spec {
 
     public Header getVersionHeader() {
         CharArrayBuffer buffer = new CharArrayBuffer(40);
-        buffer.append(SM.COOKIE_2);
+        buffer.append(SM.COOKIE2);
         buffer.append(": ");
         buffer.append("$Version=");
         buffer.append(Integer.toString(getVersion()));
