@@ -28,40 +28,28 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.client.protocol;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.client.protocol.TestAllProtocol;
-import org.apache.http.conn.TestAllConn;
-import org.apache.http.conn.ssl.TestAllSSL;
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.impl.client.TestAllHttpClientImpl;
-import org.apache.http.impl.conn.TestAllConnImpl;
-import org.apache.http.impl.cookie.TestAllCookieImpl;
+public class TestAllProtocol extends TestCase {
 
-public class TestAll extends TestCase {
-
-    public TestAll(String testName) {
+    public TestAllProtocol(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(TestAllCookie.suite());
-        suite.addTest(TestAllCookieImpl.suite());
-        suite.addTest(TestAllHttpClientImpl.suite());
-        suite.addTest(TestAllConn.suite());
-        suite.addTest(TestAllConnImpl.suite());
-        suite.addTest(TestAllSSL.suite());        
-        suite.addTest(TestAllProtocol.suite());        
+
+        suite.addTest(TestCookie2Support.suite());
+
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
+        String[] testCaseName = { TestAllProtocol.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
