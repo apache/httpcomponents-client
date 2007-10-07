@@ -363,8 +363,7 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                // no need to link parameters, stack is copied to the wrapper:
-                // HttpParamsLinker.link(request, this.params);
+                response.setParams(stackedparams);
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
