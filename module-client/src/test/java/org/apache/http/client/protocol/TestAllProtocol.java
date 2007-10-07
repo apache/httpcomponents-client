@@ -42,9 +42,8 @@ public class TestAllProtocol extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-
         suite.addTest(TestCookie2Support.suite());
-
+        suite.addTest(TestRedirects.suite());
         return suite;
     }
 

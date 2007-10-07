@@ -774,15 +774,7 @@ public class DefaultClientRequestDirector
             }
             redirectCount++;
             
-            URI uri;
-            try {
-                uri = this.redirectHandler.getLocationURI(response, context);
-            } catch (ProtocolException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn(ex.getMessage());
-                }
-                return null;
-            }
+            URI uri = this.redirectHandler.getLocationURI(response, context);
 
             HttpHost newTarget = new HttpHost(
                     uri.getHost(), 
