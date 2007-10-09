@@ -36,7 +36,6 @@ import junit.framework.TestSuite;
 
 import org.apache.http.client.protocol.TestAllProtocol;
 import org.apache.http.conn.TestAllConn;
-import org.apache.http.conn.ssl.TestAllSSL;
 import org.apache.http.cookie.TestAllCookie;
 import org.apache.http.impl.client.TestAllHttpClientImpl;
 import org.apache.http.impl.conn.TestAllConnImpl;
@@ -55,7 +54,6 @@ public class TestAll extends TestCase {
         suite.addTest(TestAllHttpClientImpl.suite());
         suite.addTest(TestAllConn.suite());
         suite.addTest(TestAllConnImpl.suite());
-        suite.addTest(TestAllSSL.suite());        
         suite.addTest(TestAllProtocol.suite());        
         return suite;
     }

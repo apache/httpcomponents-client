@@ -2,6 +2,7 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ * 
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,39 +29,38 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.util;
 
-import org.apache.http.conn.ssl.TestAllSSL;
-import org.apache.http.conn.util.TestAllUtil;
+import java.util.regex.Pattern;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+public class InetAddressUtils {
 
-public class TestAllConn extends TestCase {
+    private static final Pattern IPV4_PATTERN = 
+        Pattern.compile(
+                "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
 
-    public TestAllConn(String testName) {
-        super(testName);
+    private static final Pattern IPV6_STD_PATTERN = 
+        Pattern.compile(
+                "^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
+
+    private static final Pattern IPV6_HEX_COMPRESSED_PATTERN = 
+        Pattern.compile(
+                "^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
+
+    public static boolean isIPv4Address(final String input) {
+        return IPV4_PATTERN.matcher(input).matches();
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-
-        suite.addTest(TestHttpRoute.suite());
-        suite.addTest(TestRouteDirector.suite());
-        suite.addTest(TestRouteTracker.suite());
-        suite.addTest(TestScheme.suite());
-        suite.addTest(TestParams.suite());
-        suite.addTest(TestExceptions.suite());
-        suite.addTest(TestAllSSL.suite());
-        suite.addTest(TestAllUtil.suite());
-
-        return suite;
+    public static boolean isIPv6StdAddress(final String input) {
+        return IPV6_STD_PATTERN.matcher(input).matches();
     }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAllConn.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
+    
+    public static boolean isIPv6HexCompressedAddress(final String input) {
+        return IPV6_HEX_COMPRESSED_PATTERN.matcher(input).matches();
+    }
+    
+    public static boolean isIPv6Address(final String input) {
+        return isIPv6StdAddress(input) || isIPv6HexCompressedAddress(input); 
     }
 
 }
