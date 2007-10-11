@@ -212,11 +212,22 @@ public class RFC2965Spec extends RFC2109Spec {
      * @return
      */
     private static CookieOrigin adjustEffectiveHost(final CookieOrigin origin) {
-        String effectiveHost = origin.getHost();
-        if (effectiveHost.indexOf('.') < 0) {
-            effectiveHost += ".local";
+        String host = origin.getHost();
+        
+        // Test if the host name appears to be a fully qualified DNS name, 
+        // IPv4 address or IPv6 address
+        boolean isLocalHost = true;
+        for (int i = 0; i < host.length(); i++) {
+            char ch = host.charAt(i);
+            if (ch == '.' || ch == ':') {
+                isLocalHost = false;
+                break;
+            }
+        }
+        if (isLocalHost) {
+            host += ".local";
             return new CookieOrigin(
-                    effectiveHost, 
+                    host, 
                     origin.getPort(), 
                     origin.getPath(), 
                     origin.isSecure());
