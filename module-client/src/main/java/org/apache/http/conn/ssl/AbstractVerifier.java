@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.ssl;
 
+import org.apache.http.conn.util.InetAddressUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
@@ -195,7 +197,8 @@ public abstract class AbstractVerifier implements HostnameVerifier {
             // [*.org.uk], etc...
             boolean doWildcard = cn.startsWith("*.") &&
                                  cn.lastIndexOf('.') >= 0 &&
-                                 acceptableCountryWildcard(cn);
+                                 acceptableCountryWildcard(cn) &&
+                                 !InetAddressUtils.isIPv4Address(host);
 
             if(doWildcard) {
                 match = hostName.endsWith(cn.substring(1));
