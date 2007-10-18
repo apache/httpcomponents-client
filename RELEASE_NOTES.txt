@@ -1,5 +1,9 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-477] Use distinct instances of the authentication handler 
+  interface for authentication with target and proxy hosts
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-690] ManagedClientConnection provides access to SSLSession
   Contributed by Roland Weber <rolandw at apache.org>
 

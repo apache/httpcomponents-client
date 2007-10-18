@@ -249,8 +249,13 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
 
-    protected AuthenticationHandler createAuthenticationHandler() {
-        return new DefaultAuthenticationHandler();
+    protected AuthenticationHandler createTargetAuthenticationHandler() {
+        return new DefaultTargetAuthenticationHandler();
+    }
+
+
+    protected AuthenticationHandler createProxyAuthenticationHandler() {
+        return new DefaultProxyAuthenticationHandler();
     }
 
 

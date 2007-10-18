@@ -29,27 +29,44 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.impl.client;
 
 import java.util.Map;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthenticationException;
+import org.apache.http.HttpStatus;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
 
 /**
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public interface AuthenticationHandler {
+public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 
-    boolean isAuthenticationRequested(HttpResponse response, HttpContext context);
+    public DefaultProxyAuthenticationHandler() {
+        super();
+    }
     
-    Map getChallenges(HttpResponse response, HttpContext context) 
-        throws MalformedChallengeException;
-    
-    AuthScheme selectScheme(Map challenges, HttpResponse response, HttpContext context) 
-        throws AuthenticationException;
-    
+    public boolean isAuthenticationRequested(
+            final HttpResponse response, 
+            final HttpContext context) {
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        int status = response.getStatusLine().getStatusCode();
+        return status == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED;
+    }
+
+    public Map getChallenges(
+            final HttpResponse response, 
+            final HttpContext context) throws MalformedChallengeException {
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        Header[] headers = response.getHeaders(AUTH.PROXY_AUTH);
+        return parseChallenges(headers);
+    }
+
 }

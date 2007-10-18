@@ -32,7 +32,6 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,19 +39,15 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
 import org.apache.http.FormattedHeader;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
@@ -60,39 +55,19 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class DefaultAuthenticationHandler implements AuthenticationHandler {
+public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
-    private static final Log LOG = LogFactory.getLog(DefaultAuthenticationHandler.class);
+    private static final Log LOG = LogFactory.getLog(AbstractAuthenticationHandler.class);
     
     private static List DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
             "digest",
             "basic"
     });
     
-    public DefaultAuthenticationHandler() {
+    public AbstractAuthenticationHandler() {
         super();
     }
     
-    public boolean isTargetAuthenticationRequested(
-            final HttpResponse response, 
-            final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        int status = response.getStatusLine().getStatusCode();
-        return status == HttpStatus.SC_UNAUTHORIZED;
-    }
-
-    public boolean isProxyAuthenticationRequested(
-            final HttpResponse response, 
-            final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        int status = response.getStatusLine().getStatusCode();
-        return status == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED;
-    }
-
     protected Map parseChallenges(
             final Header[] headers) throws MalformedChallengeException {
         
@@ -127,26 +102,10 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
         return map;
     }
     
-    public Map getTargetChallenges(
-            final HttpResponse response, 
-            final HttpContext context) throws MalformedChallengeException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        Header[] headers = response.getHeaders(AUTH.WWW_AUTH);
-        return parseChallenges(headers);
+    protected List getAuthPreferences() {
+        return DEFAULT_SCHEME_PRIORITY;
     }
-
-    public Map getProxyChallenges(
-            final HttpResponse response, 
-            final HttpContext context) throws MalformedChallengeException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        Header[] headers = response.getHeaders(AUTH.PROXY_AUTH);
-        return parseChallenges(headers);
-    }
-
+    
     public AuthScheme selectScheme(
             final Map challenges, 
             final HttpResponse response,
@@ -158,12 +117,7 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
         
-        HttpParams params = response.getParams();
-        Collection authPrefs = (Collection) params.getParameter(
-                ClientPNames.AUTH_SCHEME_PRIORITY);
-        if (authPrefs == null || authPrefs.isEmpty()) {
-            authPrefs = DEFAULT_SCHEME_PRIORITY;    
-        }
+        List authPrefs = getAuthPreferences();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Supported authentication schemes in the order of preference: " 
                 + authPrefs);
@@ -178,7 +132,7 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
                     LOG.debug(id + " authentication scheme selected");
                 }
                 try {
-                    authScheme = registry.getAuthScheme(id, params);
+                    authScheme = registry.getAuthScheme(id, response.getParams());
                 } catch (IllegalStateException e) {
                     throw new AuthenticationException(e.getMessage());
                 }

@@ -106,8 +106,11 @@ public abstract class AbstractHttpClient
     /** The redirect handler. */
     private RedirectHandler redirectHandler;
 
-    /** The authentication handler. */
-    private AuthenticationHandler authHandler;
+    /** The target authentication handler. */
+    private AuthenticationHandler targetAuthHandler;
+
+    /** The proxy authentication handler. */
+    private AuthenticationHandler proxyAuthHandler;
 
     /** The cookie store. */
     private CookieStore cookieStore;
@@ -159,7 +162,10 @@ public abstract class AbstractHttpClient
     protected abstract RedirectHandler createRedirectHandler();
 
     
-    protected abstract AuthenticationHandler createAuthenticationHandler();
+    protected abstract AuthenticationHandler createTargetAuthenticationHandler();
+
+    
+    protected abstract AuthenticationHandler createProxyAuthenticationHandler();
 
     
     protected abstract CookieStore createCookieStore();
@@ -285,16 +291,31 @@ public abstract class AbstractHttpClient
     }
 
 
-    public synchronized final AuthenticationHandler getAuthenticationHandler() {
-        if (authHandler == null) {
-            authHandler = createAuthenticationHandler();
+    public synchronized final AuthenticationHandler getTargetAuthenticationHandler() {
+        if (targetAuthHandler == null) {
+            targetAuthHandler = createTargetAuthenticationHandler();
         }
-        return authHandler;
+        return targetAuthHandler;
     }
 
 
-    public synchronized void setAuthenticationHandler(final AuthenticationHandler authHandler) {
-        this.authHandler = authHandler;
+    public synchronized void setTargetAuthenticationHandler(
+            final AuthenticationHandler targetAuthHandler) {
+        this.targetAuthHandler = targetAuthHandler;
+    }
+
+
+    public synchronized final AuthenticationHandler getProxyAuthenticationHandler() {
+        if (proxyAuthHandler == null) {
+            proxyAuthHandler = createProxyAuthenticationHandler();
+        }
+        return proxyAuthHandler;
+    }
+
+
+    public synchronized void setProxyAuthenticationHandler(
+            final AuthenticationHandler proxyAuthHandler) {
+        this.proxyAuthHandler = proxyAuthHandler;
     }
 
 
@@ -495,7 +516,8 @@ public abstract class AbstractHttpClient
                     getHttpProcessor().copy(),
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
-                    getAuthenticationHandler(),
+                    getTargetAuthenticationHandler(),
+                    getProxyAuthenticationHandler(),
                     getParams());
         }
 

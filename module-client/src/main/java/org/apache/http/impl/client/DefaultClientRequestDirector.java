@@ -123,8 +123,11 @@ public class DefaultClientRequestDirector
     /** The redirect handler. */
     protected final RedirectHandler redirectHandler;
     
-    /** The authentication handler. */
-    private final AuthenticationHandler authHandler;
+    /** The target authentication handler. */
+    private final AuthenticationHandler targetAuthHandler;
+    
+    /** The proxy authentication handler. */
+    private final AuthenticationHandler proxyAuthHandler;
     
     /** The HTTP parameters. */
     protected final HttpParams params;
@@ -146,7 +149,8 @@ public class DefaultClientRequestDirector
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
             final RedirectHandler redirectHandler,
-            final AuthenticationHandler authHandler,
+            final AuthenticationHandler targetAuthHandler,
+            final AuthenticationHandler proxyAuthHandler,
             final HttpParams params) {
 
         if (conman == null) {
@@ -164,22 +168,26 @@ public class DefaultClientRequestDirector
         if (redirectHandler == null) {
             throw new IllegalArgumentException("Redirect handler may not be null");
         }
-        if (authHandler == null) {
-            throw new IllegalArgumentException("Authentication handler may not be null");
+        if (targetAuthHandler == null) {
+            throw new IllegalArgumentException("Target authentication handler may not be null");
+        }
+        if (proxyAuthHandler == null) {
+            throw new IllegalArgumentException("Proxy authentication handler may not be null");
         }
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        this.connManager   = conman;
-        this.reuseStrategy = reustrat;
-        this.httpProcessor = httpProcessor;
-        this.retryHandler  = retryHandler;
-        this.redirectHandler = redirectHandler;
-        this.authHandler   = authHandler;
-        this.params        = params;
-        this.requestExec   = new HttpRequestExecutor();
+        this.connManager       = conman;
+        this.reuseStrategy     = reustrat;
+        this.httpProcessor     = httpProcessor;
+        this.retryHandler      = retryHandler;
+        this.redirectHandler   = redirectHandler;
+        this.targetAuthHandler = targetAuthHandler;
+        this.proxyAuthHandler  = proxyAuthHandler;
+        this.params            = params;
+        this.requestExec       = new HttpRequestExecutor();
 
-        this.managedConn   = null;
+        this.managedConn       = null;
         
         this.redirectCount = 0;
         this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
@@ -596,12 +604,14 @@ public class DefaultClientRequestDirector
                 context.getAttribute(ClientContext.CREDS_PROVIDER);
             
             if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
-                if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
+                if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
                     LOG.debug("Proxy requested authentication");
-                    Map challenges = this.authHandler.getProxyChallenges(response, context);
+                    Map challenges = this.proxyAuthHandler.getChallenges(response, context);
                     try {
-                        processChallenges(challenges, this.proxyAuthState, response, context);
+                        processChallenges(
+                                challenges, this.proxyAuthState, this.proxyAuthHandler, 
+                                response, context);
                     } catch (AuthenticationException ex) {
                         if (LOG.isWarnEnabled()) {
                             LOG.warn("Authentication error: " +  ex.getMessage());
@@ -805,7 +815,7 @@ public class DefaultClientRequestDirector
     
         if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
 
-            if (this.authHandler.isTargetAuthenticationRequested(response, context)) {
+            if (this.targetAuthHandler.isAuthenticationRequested(response, context)) {
 
                 target = (HttpHost)
                     context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
@@ -814,9 +824,11 @@ public class DefaultClientRequestDirector
                 }
                 
                 LOG.debug("Target requested authentication");
-                Map challenges = this.authHandler.getTargetChallenges(response, context); 
+                Map challenges = this.targetAuthHandler.getChallenges(response, context); 
                 try {
-                    processChallenges(challenges, this.targetAuthState, response, context);
+                    processChallenges(challenges, 
+                            this.targetAuthState, this.targetAuthHandler,
+                            response, context);
                 } catch (AuthenticationException ex) {
                     if (LOG.isWarnEnabled()) {
                         LOG.warn("Authentication error: " +  ex.getMessage());
@@ -836,12 +848,14 @@ public class DefaultClientRequestDirector
                 this.targetAuthState.setAuthScope(null);
             }
             
-            if (this.authHandler.isProxyAuthenticationRequested(response, context)) {
+            if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
                 LOG.debug("Proxy requested authentication");
-                Map challenges = this.authHandler.getProxyChallenges(response, context);
+                Map challenges = this.proxyAuthHandler.getChallenges(response, context);
                 try {
-                    processChallenges(challenges, this.proxyAuthState, response, context);
+                    processChallenges(challenges, 
+                            this.proxyAuthState, this.proxyAuthHandler, 
+                            response, context);
                 } catch (AuthenticationException ex) {
                     if (LOG.isWarnEnabled()) {
                         LOG.warn("Authentication error: " +  ex.getMessage());
@@ -895,6 +909,7 @@ public class DefaultClientRequestDirector
     private void processChallenges(
             final Map challenges, 
             final AuthState authState,
+            final AuthenticationHandler authHandler,
             final HttpResponse response, 
             final HttpContext context) 
                 throws MalformedChallengeException, AuthenticationException {
@@ -902,18 +917,17 @@ public class DefaultClientRequestDirector
         AuthScheme authScheme = authState.getAuthScheme();
         if (authScheme == null) {
             // Authentication not attempted before
-            authScheme = this.authHandler.selectScheme(challenges, response, context);
+            authScheme = authHandler.selectScheme(challenges, response, context);
             authState.setAuthScheme(authScheme);
         }
-        AuthScheme authscheme = authState.getAuthScheme();
-        String id = authscheme.getSchemeName();
+        String id = authScheme.getSchemeName();
 
         Header challenge = (Header) challenges.get(id.toLowerCase());
         if (challenge == null) {
             throw new AuthenticationException(id + 
                 " authorization challenge expected, but not found");
         }
-        authscheme.processChallenge(challenge);
+        authScheme.processChallenge(challenge);
         LOG.debug("Authorization challenge processed");
     }
     
