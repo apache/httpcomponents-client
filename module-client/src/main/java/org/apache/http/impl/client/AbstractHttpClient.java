@@ -518,7 +518,7 @@ public abstract class AbstractHttpClient
                     getRedirectHandler(),
                     getTargetAuthenticationHandler(),
                     getProxyAuthenticationHandler(),
-                    getParams());
+                    determineParams(roureq.getRequest()));
         }
 
         HttpResponse response = director.execute(roureq, context);
@@ -531,6 +531,27 @@ public abstract class AbstractHttpClient
         return response;
 
     } // execute
+
+
+    /**
+     * Obtains parameters for executing a request.
+     * The default implementation in this class creates a new
+     * {@link ClientParamsStack} from the request parameters
+     * and the client parameters.
+     * <br/>
+     * This method is called by the default implementation of
+     * {@link #execute(RoutedRequest,HttpContext)}
+     * to obtain the parameters for the
+     * {@link DefaultClientRequestDirector}.
+     *
+     * @param req    the request that will be executed
+     *
+     * @return  the parameters to use
+     */
+    protected HttpParams determineParams(HttpRequest req) {
+        return new ClientParamsStack
+            (null, getParams(), req.getParams(), null);
+    }
 
 
     /**

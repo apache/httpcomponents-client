@@ -263,11 +263,6 @@ public class DefaultClientRequestDirector
 
         HttpRequest orig = roureq.getRequest();
 
-        //@@@ build the parameter stack in the client?
-        //@@@ that's the place to keep application and override params
-        final HttpParams stackedparams = new ClientParamsStack
-            (null, this.params, orig.getParams(), null);
-
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
         int execCount = 0;
@@ -310,7 +305,7 @@ public class DefaultClientRequestDirector
 
                 // Wrap the original request
                 RequestWrapper request = wrapRequest(roureq.getRequest());
-                request.setParams(stackedparams);
+                request.setParams(this.params);
                 
                 // Re-write request URI if needed
                 rewriteRequestURI(request, route);
@@ -370,7 +365,7 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                response.setParams(stackedparams);
+                response.setParams(this.params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
