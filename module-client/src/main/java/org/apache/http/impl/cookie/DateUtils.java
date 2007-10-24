@@ -31,11 +31,14 @@
 
 package org.apache.http.impl.cookie;
 
+import java.lang.ref.SoftReference;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -149,15 +152,10 @@ public final class DateUtils {
             dateValue = dateValue.substring (1, dateValue.length() - 1);
         }
         
-        SimpleDateFormat dateParser = null;        
         for (int i = 0; i < dateFormats.length; i++) {
-            if (dateParser == null) {
-                dateParser = new SimpleDateFormat(dateFormats[i], Locale.US);
-                dateParser.setTimeZone(TimeZone.getTimeZone("GMT"));
-                dateParser.set2DigitYearStart(startDate);
-            } else {
-                dateParser.applyPattern(dateFormats[i]);                    
-            }
+        	SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormats[i]);
+        	dateParser.set2DigitYearStart(startDate);
+
             try {
                 return dateParser.parse(dateValue);
             } catch (ParseException pe) {
@@ -198,13 +196,61 @@ public final class DateUtils {
         if (date == null) throw new IllegalArgumentException("date is null");
         if (pattern == null) throw new IllegalArgumentException("pattern is null");
         
-        SimpleDateFormat formatter = new SimpleDateFormat(pattern, Locale.US);
-        formatter.setTimeZone(GMT);
+        SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
         return formatter.format(date);
     }
     
     /** This class should not be instantiated. */    
     private DateUtils() { 
+    }
+    
+    /**
+     * A factory for {@link SimpleDateFormat}s. The instances are stored in a
+     * threadlocal way because SimpleDateFormat is not threadsafe as noted in
+     * {@link SimpleDateFormat its javadoc}.
+     * 
+     * @author Daniel Mueller
+     */
+    final static class DateFormatHolder {
+
+        private static final ThreadLocal THREADLOCAL_FORMATS = new ThreadLocal() {
+
+            protected Object initialValue() {
+                return new SoftReference(new HashMap());
+            }
+            
+        };
+
+        /**
+         * creates a {@link SimpleDateFormat} for the requested format string.
+         * 
+         * @param dateformat
+         *            a non-<code>null</code> format String according to
+         *            {@link SimpleDateFormat}. The format is not checked against
+         *            <code>null</code> since all paths go through
+         *            {@link DateUtils}.
+         * @return the requested format. This simple dateformat should not be used
+         *         to {@link SimpleDateFormat#applyPattern(String) apply} to a
+         *         different pattern.
+         */
+        public static SimpleDateFormat formatFor(String pattern) {
+            SoftReference ref = (SoftReference) THREADLOCAL_FORMATS.get();
+            Map formats = (Map) ref.get();
+            if (formats == null) {
+                formats = new HashMap();
+                THREADLOCAL_FORMATS.set(new SoftReference(formats));    
+            }
+
+            SimpleDateFormat format = (SimpleDateFormat) formats.get(pattern);
+            if (format == null) {
+                format = new SimpleDateFormat(pattern, Locale.US);
+                format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                formats.put(pattern, format);
+            }
+
+            return format;
+        }
+        
     }
     
 }

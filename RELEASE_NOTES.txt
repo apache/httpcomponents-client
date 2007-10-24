@@ -1,5 +1,8 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-689] Caching of SimpleDateFormat in DateUtils
+  Contributed by Daniel Müller <strider at digitalstrider.com>
+
 * [HTTPCLIENT-689] stackable parameters in AbstractHttpClient
   Contributed by Roland Weber <rolandw at apache.org>
 
