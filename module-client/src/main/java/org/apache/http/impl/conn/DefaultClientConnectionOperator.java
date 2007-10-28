@@ -32,6 +32,7 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.InetAddress;
 
@@ -40,6 +41,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
@@ -128,9 +130,13 @@ public class DefaultClientConnectionOperator
         Socket sock = sf.createSocket();
         conn.announce(sock);
 
-        sock = sf.connectSocket(sock, target.getHostName(),
-                                schm.resolvePort(target.getPort()),
-                                local, 0, params);
+        try {
+            sock = sf.connectSocket(sock, target.getHostName(),
+                    schm.resolvePort(target.getPort()),
+                    local, 0, params);
+        } catch (ConnectException ex) {
+            throw new HttpHostConnectException(target, ex);
+        }
         prepareSocket(sock, context, params);
 
         final boolean secure = sf.isSecure(sock);
@@ -180,15 +186,16 @@ public class DefaultClientConnectionOperator
                  ") must have layered socket factory.");
         }
 
-        final LayeredSocketFactory ssf =
-            (LayeredSocketFactory)schm.getSocketFactory();
-        final Socket sock = ssf.createSocket
-            (conn.getSocket(), target.getHostName(), target.getPort(), true);
+        final LayeredSocketFactory lsf = (LayeredSocketFactory) schm.getSocketFactory();
+        final Socket sock; 
+        try {
+            sock = lsf.createSocket
+                (conn.getSocket(), target.getHostName(), target.getPort(), true);
+        } catch (ConnectException ex) {
+            throw new HttpHostConnectException(target, ex);
+        }
         prepareSocket(sock, context, params);
-
-        final boolean secure = ssf.isSecure(sock);
-
-        conn.update(sock, target, secure, params);
+        conn.update(sock, target, lsf.isSecure(sock), params);
         //@@@ error handling: close the layered socket in case of exception?
 
     } // updateSecureConnection

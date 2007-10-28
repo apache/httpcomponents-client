@@ -1,5 +1,9 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-697] Throw a more intelligible exception when connection
+  to a remote host cannot be established.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-689] Caching of SimpleDateFormat in DateUtils
   Contributed by Daniel Müller <strider at digitalstrider.com>
 
