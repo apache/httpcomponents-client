@@ -158,28 +158,53 @@ public class TestRedirects extends ServerTestBase {
 
     private class RelativeRedirectService implements HttpRequestHandler {
         
-            public RelativeRedirectService() {
-                super();
-            }
+        public RelativeRedirectService() {
+            super();
+        }
 
-            public void handle(
-                    final HttpRequest request, 
-                    final HttpResponse response, 
-                    final HttpContext context) throws HttpException, IOException {
-                ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
-                String uri = request.getRequestLine().getUri();
-                if (uri.equals("/oldlocation/")) {
-                    response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
-                    response.addHeader(new BasicHeader("Location", "/relativelocation/"));
-                } else if (uri.equals("/relativelocation/")) {
-                    response.setStatusLine(ver, HttpStatus.SC_OK);
-                    StringEntity entity = new StringEntity("Successful redirect");
-                    response.setEntity(entity);
-                } else {
-                    response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
-                }
+        public void handle(
+                final HttpRequest request, 
+                final HttpResponse response, 
+                final HttpContext context) throws HttpException, IOException {
+            ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
+            String uri = request.getRequestLine().getUri();
+            if (uri.equals("/oldlocation/")) {
+                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.addHeader(new BasicHeader("Location", "/relativelocation/"));
+            } else if (uri.equals("/relativelocation/")) {
+                response.setStatusLine(ver, HttpStatus.SC_OK);
+                StringEntity entity = new StringEntity("Successful redirect");
+                response.setEntity(entity);
+            } else {
+                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
             }
         }
+    }
+
+    private class RelativeRedirectService2 implements HttpRequestHandler {
+        
+        public RelativeRedirectService2() {
+            super();
+        }
+
+        public void handle(
+                final HttpRequest request, 
+                final HttpResponse response, 
+                final HttpContext context) throws HttpException, IOException {
+            ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
+            String uri = request.getRequestLine().getUri();
+            if (uri.equals("/test/oldlocation")) {
+                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.addHeader(new BasicHeader("Location", "relativelocation"));
+            } else if (uri.equals("/test/relativelocation")) {
+                response.setStatusLine(ver, HttpStatus.SC_OK);
+                StringEntity entity = new StringEntity("Successful redirect");
+                response.setEntity(entity);
+            } else {
+                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+            }
+        }
+    }
 
     private class BogusRedirectService implements HttpRequestHandler {
         private String url;
@@ -486,6 +511,36 @@ public class TestRedirects extends ServerTestBase {
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertEquals("/relativelocation/", reqWrapper.getRequestLine().getUri());
+        assertEquals(host, targetHost.getHostName());
+        assertEquals(port, targetHost.getPort());
+    }
+
+    public void testRelativeRedirect2() throws Exception {
+        int port = this.localServer.getServicePort();
+        String host = "localhost";
+        this.localServer.register("*", new RelativeRedirectService2());
+
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        HttpContext context = client.getDefaultContext();
+
+        client.getParams().setBooleanParameter(
+                ClientPNames.REJECT_RELATIVE_REDIRECT, false);
+        HttpGet httpget = new HttpGet("/test/oldlocation");
+
+        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
+        HttpResponse response = client.execute(request, context);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+        
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+        HttpHost targetHost = (HttpHost) context.getAttribute(
+                ExecutionContext.HTTP_TARGET_HOST);
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals("/test/relativelocation", reqWrapper.getRequestLine().getUri());
         assertEquals(host, targetHost.getHostName());
         assertEquals(port, targetHost.getPort());
     }

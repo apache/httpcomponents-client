@@ -40,6 +40,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
@@ -131,15 +132,21 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 throw new IllegalStateException("Target host not available " +
                         "in the HTTP context");
             }
+            
+            HttpRequest request = (HttpRequest) context.getAttribute(
+                    ExecutionContext.HTTP_REQUEST);
+            
             try {
-                uri = new URI(
+                URI requestURI = new URI(request.getRequestLine().getUri());
+                URI absoluteRequestURI = new URI(
                         target.getSchemeName(),
                         null,
                         target.getHostName(),
                         target.getPort(),
-                        uri.getPath(),
-                        uri.getQuery(),
-                        uri.getFragment());
+                        requestURI.getPath(),
+                        requestURI.getQuery(),
+                        requestURI.getFragment());
+                uri = absoluteRequestURI.resolve(uri); 
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }

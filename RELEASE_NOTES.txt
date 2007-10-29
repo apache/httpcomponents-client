@@ -1,5 +1,9 @@
 Changes since release 4.0 Alpha 1
 
+* [HTTPCLIENT-698] Resolve non-absolute redirect URIs relative to 
+  the request URI
+  Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
+
 * [HTTPCLIENT-697] Throw a more intelligible exception when connection
   to a remote host cannot be established.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
