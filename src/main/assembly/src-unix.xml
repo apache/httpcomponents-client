@@ -42,6 +42,7 @@
             <include>LICENSE.txt</include>
             <include>NOTICE.txt</include>
             <include>RELEASE_NOTES.txt</include>
+            <include>BUILDING.txt</include>
           </includes>
           <lineEnding>lf</lineEnding>
         </fileSet>
