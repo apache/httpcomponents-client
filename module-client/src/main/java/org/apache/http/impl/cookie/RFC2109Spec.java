@@ -183,7 +183,8 @@ public class RFC2109Spec extends CookieSpecBase {
      * header as defined in RFC 2109 for backward compatibility with cookie
      * version 0
      * @param buffer The char array buffer to use for output
-     * @param param The parameter.
+     * @param name The cookie name
+     * @param value The cookie value
      * @param version The cookie version 
      */
     protected void formatParamAsVer(final CharArrayBuffer buffer, 
