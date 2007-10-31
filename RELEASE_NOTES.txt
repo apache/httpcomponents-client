@@ -15,6 +15,11 @@ HttpClient 3.x features that have NOT yet been ported
 * Support for multipart MIME coded entities  
 -------------------
 
+-------------------
+
+Changelog
+-------------------
+
 * [HTTPCLIENT-698] Resolve non-absolute redirect URIs relative to 
   the request URI
   Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
@@ -702,6 +707,10 @@ HttpClient 3.x features that have NOT yet been ported
 * Support for multipart MIME coded entities  
 
 -------------------
+
+Changelog
+-------------------
+
 The following is a list of contributions tracked in JIRA.
 Note that this is not a complete list of contributions or changes.
 Since the API was redesigned completely, tracking everything outside

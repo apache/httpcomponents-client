@@ -30,19 +30,15 @@ Features
     
     * Supports encryption with HTTPS (HTTP over SSL) protocol.
 
-    * Granular non-standards configuration and tracking.
-
     * Transparent connections through HTTP proxies.
 
     * Tunneled HTTPS connections through HTTP proxies, via the CONNECT method.
 
-    * Authentication using Basic, Digest and the encrypting NTLM (NT Lan Manager) methods.
+    * Basic, Digest authentication schemes. Please note NTLM is currently not supported.
 
-    * Plug-in mechanism for custom authentication methods.
+    * Plug-in mechanism for custom authentication schemes.
 
-    * Multi-Part form POST for uploading large files.
-
-    * Pluggable secure sockets implementations, making it easier to use third party solutions
+    * Pluggable secure socket factories, making it easier to use third party solutions
 
     * Connection management support for use in multi-threaded applications. Supports setting the 
       maximum total connections as well as the maximum connections per host. Detects and closes 
@@ -65,7 +61,7 @@ Features
 
     * The ability to set connection timeouts.
 
-    * Source code is freely available under the Apache Software License.
+    * Source code is freely available under the Apache License.
 
 Modules
 
@@ -75,8 +71,8 @@ Modules
 
 * HttpClient module
 
-    The {{{httpclient/index.html}HttpClient}} is a full-featured, standards compliant HTTP client 
-    built on top of {{{/httpcomponents/httpcomponents-core/index.html}HttpCore}}.
+    The {{{httpclient/index.html}HttpClient}} module is a full-featured, standards compliant HTTP 
+    client built on top of {{{/httpcomponents/httpcomponents-core/index.html}HttpCore}}.
 
 Standards Compliance
 
