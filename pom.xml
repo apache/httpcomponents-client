@@ -38,7 +38,7 @@
   <groupId>org.apache.httpcomponents</groupId>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
-  <version>4.0-alpha2-SNAPSHOT</version>
+  <version>4.0-alpha2</version>
   <description>Components to build client side HTTP services</description>
   <url>http://jakarta.apache.org/httpcomponents/httpclient</url>
   <inceptionYear>2000</inceptionYear>
@@ -63,9 +63,9 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</connection>
-    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</developerConnection>
-    <url>http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</url>
+    <connection>scm:svn:https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2</developerConnection>
+    <url>https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2</url>
   </scm>
 
   <modules>
