@@ -34,7 +34,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.0-alpha2</version>
+    <version>4.0-alpha3-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient</artifactId>
   <name>HttpClient (base module)</name>
@@ -54,9 +54,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2/module-client</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2/module-client</developerConnection>
-    <url>https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/4.0-alpha2/module-client</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</connection>
+    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</developerConnection>
+    <url>http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</url>
   </scm>
 
   <dependencies>
