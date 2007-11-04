@@ -224,7 +224,7 @@ public final class DateUtils {
         /**
          * creates a {@link SimpleDateFormat} for the requested format string.
          * 
-         * @param dateformat
+         * @param pattern
          *            a non-<code>null</code> format String according to
          *            {@link SimpleDateFormat}. The format is not checked against
          *            <code>null</code> since all paths go through
