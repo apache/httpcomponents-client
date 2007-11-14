@@ -33,14 +33,13 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
 
 /**
  * HTTP OPTIONS method.
@@ -83,20 +82,19 @@ public class HttpOptions extends HttpRequestBase {
         return METHOD_NAME;
     }
     
-    public Set getAllowedMethods(final HttpResponse response)
-        throws ParseException {
-
+    public Set getAllowedMethods(final HttpResponse response) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
-        Header header = response.getFirstHeader("Allow");
-        if (header == null) {
-            return Collections.EMPTY_SET;
-        }
-        HeaderElement[] elements = header.getElements();
-        Set methods = new HashSet(elements.length);
-        for (int i = 0; i < elements.length; i++) {
-            methods.add(elements[i].getName());
+        
+        HeaderIterator it = response.headerIterator("Allow");
+        Set methods = new HashSet();
+        while (it.hasNext()) {
+            Header header = it.nextHeader();
+            HeaderElement[] elements = header.getElements();
+            for (int i = 0; i < elements.length; i++) {
+                methods.add(elements[i].getName());
+            }
         }
         return methods;
     }

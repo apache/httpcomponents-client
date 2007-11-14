@@ -1,3 +1,11 @@
+Changes since 4.0 Alpha 2
+-------------------
+
+* [HTTPCLIENT-688] HttpOptions#getAllowedMethods can now handle multiple 
+  Allow headers
+  Contributed by Andrea Selva <selva.andre at gmail.com>
+
+
 Release 4.0 Alpha 2
 -------------------
 

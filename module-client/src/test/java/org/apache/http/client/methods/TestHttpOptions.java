@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,41 +28,50 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.client.methods;
+
+import java.io.IOException;
+import java.util.Set;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.client.methods.TestAllMethods;
-import org.apache.http.client.protocol.TestAllProtocol;
-import org.apache.http.conn.TestAllConn;
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.impl.client.TestAllHttpClientImpl;
-import org.apache.http.impl.conn.TestAllConnImpl;
-import org.apache.http.impl.cookie.TestAllCookieImpl;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 
-public class TestAll extends TestCase {
+public class TestHttpOptions extends TestCase {
 
-    public TestAll(String testName) {
+    // ------------------------------------------------------------ Constructor
+    public TestHttpOptions(final String testName) throws IOException {
         super(testName);
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestAllCookie.suite());
-        suite.addTest(TestAllCookieImpl.suite());
-        suite.addTest(TestAllHttpClientImpl.suite());
-        suite.addTest(TestAllConn.suite());
-        suite.addTest(TestAllConnImpl.suite());
-        suite.addTest(TestAllProtocol.suite());        
-        suite.addTest(TestAllMethods.suite());        
-        return suite;
-    }
-
+    // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
+        String[] testCaseName = { TestHttpOptions.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
+    // ------------------------------------------------------- TestCase Methods
+
+    public static Test suite() {
+        return new TestSuite(TestHttpOptions.class);
+    }
+
+    public void testMultipleAllows() {
+        ProtocolVersion proto = new ProtocolVersion("HTTP", 1, 1);
+        BasicStatusLine line = new BasicStatusLine(proto, 200, "test reason"); 
+        BasicHttpResponse resp = new BasicHttpResponse(line);
+        resp.addHeader("Allow", "POST");
+        resp.addHeader("Allow", "GET");
+
+        HttpOptions opt = new HttpOptions();
+        Set methodsName = opt.getAllowedMethods(resp);
+        
+        assertTrue(methodsName.contains("POST"));
+        assertTrue(methodsName.contains("GET"));
+    }
+    
 }

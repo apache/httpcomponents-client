@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,40 +28,26 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.client.methods;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.client.methods.TestAllMethods;
-import org.apache.http.client.protocol.TestAllProtocol;
-import org.apache.http.conn.TestAllConn;
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.impl.client.TestAllHttpClientImpl;
-import org.apache.http.impl.conn.TestAllConnImpl;
-import org.apache.http.impl.cookie.TestAllCookieImpl;
+public class TestAllMethods extends TestCase {
 
-public class TestAll extends TestCase {
-
-    public TestAll(String testName) {
+    public TestAllMethods(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(TestAllCookie.suite());
-        suite.addTest(TestAllCookieImpl.suite());
-        suite.addTest(TestAllHttpClientImpl.suite());
-        suite.addTest(TestAllConn.suite());
-        suite.addTest(TestAllConnImpl.suite());
-        suite.addTest(TestAllProtocol.suite());        
-        suite.addTest(TestAllMethods.suite());        
+        suite.addTest(TestHttpOptions.suite());
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
+        String[] testCaseName = { TestAllMethods.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
