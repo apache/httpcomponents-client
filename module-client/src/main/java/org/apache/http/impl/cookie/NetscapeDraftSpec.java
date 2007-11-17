@@ -31,6 +31,7 @@
 
 package org.apache.http.impl.cookie;
 
+import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.cookie.ClientCookie;
@@ -38,8 +39,8 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
-import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -105,8 +106,24 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        String headervalue = header.getValue();
-        return parse(new HeaderElement[] { BasicHeaderValueParser.parseHeaderElement(headervalue, null) }, origin);
+        NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+        CharArrayBuffer buffer;
+        ParserCursor cursor;
+        if (header instanceof FormattedHeader) {
+            buffer = ((FormattedHeader) header).getBuffer();
+            cursor = new ParserCursor(
+                    ((FormattedHeader) header).getValuePos(), 
+                    buffer.length());
+        } else {
+            String s = header.getValue();
+            if (s == null) {
+                throw new MalformedCookieException("Header value is null");
+            }
+            buffer = new CharArrayBuffer(s.length());
+            buffer.append(s);
+            cursor = new ParserCursor(0, buffer.length());
+        }
+        return parse(new HeaderElement[] { parser.parseHeader(buffer, cursor) }, origin);
     }
 
     public Header[] formatCookies(final Cookie[] cookies) {
