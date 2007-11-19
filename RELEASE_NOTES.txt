@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-705] Fixed incorrect handling of URIs with null path component
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-688] HttpOptions#getAllowedMethods can now handle multiple 
   Allow headers
   Contributed by Andrea Selva <selva.andre at gmail.com>

@@ -1,0 +1,142 @@
+/*
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
+ * ====================================================================
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+
+package org.apache.http.impl.client;
+
+import java.io.IOException;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.RoutedRequest;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestHandler;
+
+/**
+ *  Simple tests for {@link RequestWrapper}.
+ * 
+ * @version $Revision:$
+ */
+public class TestRequestWrapper extends ServerTestBase {
+
+    // ------------------------------------------------------------ Constructor
+    public TestRequestWrapper(final String testName) throws IOException {
+        super(testName);
+    }
+
+    // ------------------------------------------------------------------- Main
+    public static void main(String args[]) {
+        String[] testCaseName = { TestRequestWrapper.class.getName() };
+        junit.textui.TestRunner.main(testCaseName);
+    }
+
+    // ------------------------------------------------------- TestCase Methods
+
+    public static Test suite() {
+        return new TestSuite(TestRequestWrapper.class);
+    }
+
+    private class SimpleService implements HttpRequestHandler {
+        
+        public SimpleService() {
+            super();
+        }
+
+        public void handle(
+                final HttpRequest request, 
+                final HttpResponse response, 
+                final HttpContext context) throws HttpException, IOException {
+            response.setStatusCode(HttpStatus.SC_OK);
+            StringEntity entity = new StringEntity("Whatever");
+            response.setEntity(entity);
+        }
+    }
+
+    public void testRequestURIRewriting() throws Exception {
+        int port = this.localServer.getServicePort();
+        this.localServer.register("*", new SimpleService());
+        
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        HttpContext context = client.getDefaultContext();
+
+        String s = "http://localhost:" + port + "/path";
+        HttpGet httpget = new HttpGet(s);
+
+        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
+        HttpResponse response = client.execute(request, context);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+        
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        assertTrue(reqWrapper instanceof RequestWrapper);
+        assertEquals("/path", reqWrapper.getRequestLine().getUri());
+    }
+
+    public void testRequestURIRewritingEmptyPath() throws Exception {
+        int port = this.localServer.getServicePort();
+        this.localServer.register("*", new SimpleService());
+        
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        HttpContext context = client.getDefaultContext();
+
+        String s = "http://localhost:" + port;
+        HttpGet httpget = new HttpGet(s);
+
+        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
+        HttpResponse response = client.execute(request, context);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+        
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        assertTrue(reqWrapper instanceof RequestWrapper);
+        assertEquals("/", reqWrapper.getRequestLine().getUri());
+    }
+
+}

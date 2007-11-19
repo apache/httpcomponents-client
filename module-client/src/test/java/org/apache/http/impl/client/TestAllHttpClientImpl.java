@@ -43,6 +43,7 @@ public class TestAllHttpClientImpl extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTest(TestBasicCredentialsProvider.suite());
+        suite.addTest(TestRequestWrapper.suite());
         return suite;
     }
 

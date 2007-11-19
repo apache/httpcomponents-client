@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,31 +28,48 @@
  *
  */
 
-package org.apache.http.conn.ssl;
+package org.apache.http.client.methods;
+
+import java.io.IOException;
+
+import org.apache.http.HttpVersion;
+import org.apache.http.params.HttpProtocolParams;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-public class TestAllSSL extends TestCase {
+public class TestHttpRequestBase extends TestCase {
 
-    public TestAllSSL(String testName) {
+    // ------------------------------------------------------------ Constructor
+    public TestHttpRequestBase(final String testName) throws IOException {
         super(testName);
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestHostnameVerifier.suite());
-        // Once of a sudden, completely unexpectedly,
-        // this test case started locking up.
-        // Disabled until further investigation
-        //suite.addTest(TestSSLSocketFactory.suite());
-        return suite;
-    }
-
+    // ------------------------------------------------------------------- Main
     public static void main(String args[]) {
-        String[] testCaseName = { TestAllSSL.class.getName() };
+        String[] testCaseName = { TestHttpRequestBase.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
+    // ------------------------------------------------------- TestCase Methods
+
+    public static Test suite() {
+        return new TestSuite(TestHttpRequestBase.class);
+    }
+
+    public void testBasicProperties() throws Exception {
+        HttpGet httpget = new HttpGet("http://host/path");
+        httpget.getParams().setParameter(
+                HttpProtocolParams.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
+        assertEquals("GET", httpget.getRequestLine().getMethod());
+        assertEquals("http://host/path", httpget.getRequestLine().getUri());
+        assertEquals(HttpVersion.HTTP_1_0, httpget.getRequestLine().getProtocolVersion());
+    }
+    
+    public void testEmptyURI() throws Exception {
+        HttpGet httpget = new HttpGet("");
+        assertEquals("/", httpget.getRequestLine().getUri());
+    }
+    
 }

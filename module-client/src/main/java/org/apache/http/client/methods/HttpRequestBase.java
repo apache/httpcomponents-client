@@ -74,10 +74,11 @@ abstract class HttpRequestBase extends AbstractHttpMessage
         String method = getMethod();
         ProtocolVersion ver = getProtocolVersion();
         URI uri = getURI();
-        String uritext;
+        String uritext = null;
         if (uri != null) {
             uritext = uri.toASCIIString();
-        } else {
+        }
+        if (uritext == null || uritext.length() == 0) {
             uritext = "/";
         }
         return new BasicRequestLine(method, uritext, ver);
