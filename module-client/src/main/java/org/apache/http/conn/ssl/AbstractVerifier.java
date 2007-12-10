@@ -156,7 +156,7 @@ public abstract class AbstractVerifier implements HostnameVerifier {
         // STRICT implementations of the HostnameVerifier only use the
         // first CN provided.  All other CNs are ignored.
         // (Firefox, wget, curl, Sun Java 1.4, 5, 6 all work this way).
-        LinkedList names = new LinkedList();
+        LinkedList<String> names = new LinkedList<String>();
         if(cns != null && cns.length > 0 && cns[0] != null) {
             names.add(cns[0]);
         }
@@ -180,9 +180,9 @@ public abstract class AbstractVerifier implements HostnameVerifier {
         // establish the socket to the hostname in the certificate.
         String hostName = host.trim().toLowerCase();
         boolean match = false;
-        for(Iterator it = names.iterator(); it.hasNext();) {
+        for(Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
-            String cn = (String) it.next();
+            String cn = it.next();
             cn = cn.toLowerCase();
             // Store CN in StringBuffer in case we need to report an error.
             buf.append(" <");
@@ -235,7 +235,7 @@ public abstract class AbstractVerifier implements HostnameVerifier {
     }
 
     public static String[] getCNs(X509Certificate cert) {
-        LinkedList cnList = new LinkedList();
+        LinkedList<String> cnList = new LinkedList<String>();
         /*
           Sebastian Hauer's original StrictSSLProtocolSocketFactory used
           getName() and had the following comment:
@@ -292,8 +292,8 @@ public abstract class AbstractVerifier implements HostnameVerifier {
      * @return Array of SubjectALT DNS names stored in the certificate.
      */
     public static String[] getDNSSubjectAlts(X509Certificate cert) {
-        LinkedList subjectAltList = new LinkedList();
-        Collection c = null;
+        LinkedList<String> subjectAltList = new LinkedList<String>();
+        Collection<List<?>> c = null;
         try {
             c = cert.getSubjectAlternativeNames();
         }
@@ -302,9 +302,9 @@ public abstract class AbstractVerifier implements HostnameVerifier {
             cpe.printStackTrace();
         }
         if(c != null) {
-            Iterator it = c.iterator();
+            Iterator<List<?>> it = c.iterator();
             while(it.hasNext()) {
-                List list = (List) it.next();
+                List<?> list = it.next();
                 int type = ((Integer) list.get(0)).intValue();
                 // If type is 2, then we've got a dNSName
                 if(type == 2) {

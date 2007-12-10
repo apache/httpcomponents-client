@@ -48,10 +48,10 @@ public class RouteSpecificPool {
     private final HttpRoute route;
 
     /** The list of free entries. */
-    private LinkedList freeEntries;
+    private LinkedList<BasicPoolEntry> freeEntries;
 
     /** The list of threads waiting for this pool. */
-    /*private@@@ currently still default*/ LinkedList waitingThreads;
+    /*private@@@ currently still default*/ LinkedList<Object> waitingThreads;
 
     /** The number of created entries. */
     private int numEntries;
@@ -64,8 +64,8 @@ public class RouteSpecificPool {
          */
     public RouteSpecificPool(HttpRoute r) {
         this.route = r;
-        this.freeEntries = new LinkedList();
-        this.waitingThreads = new LinkedList();
+        this.freeEntries = new LinkedList<BasicPoolEntry>();
+        this.waitingThreads = new LinkedList<Object>();
         this.numEntries = 0;
     }
 
@@ -115,7 +115,7 @@ public class RouteSpecificPool {
         BasicPoolEntry entry = null;
 
         if (!freeEntries.isEmpty()) {
-            entry = (BasicPoolEntry) freeEntries.removeLast();
+            entry = freeEntries.removeLast();
         }
 
         return entry;

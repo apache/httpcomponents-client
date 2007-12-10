@@ -49,17 +49,16 @@ import org.apache.http.HttpConnection;
  * @since 4.0
  */
 public class IdleConnectionHandler {
-    
-    private static final Log LOG = LogFactory.getLog(IdleConnectionHandler.class);
+
+    private final Log LOG = LogFactory.getLog(IdleConnectionHandler.class);
     
     /** Holds connections and the time they were added. */
-    private Map connectionToAdded = new HashMap();
+    private Map<HttpConnection,Long> connectionToAdded;
     
-    /**
-     * 
-     */
+
     public IdleConnectionHandler() {
         super();
+        connectionToAdded = new HashMap<HttpConnection,Long>();
     }
     
     /**
@@ -110,11 +109,12 @@ public class IdleConnectionHandler {
             LOG.debug("Checking for connections, idleTimeout: "  + idleTimeout);
         }
         
-        Iterator connectionIter = connectionToAdded.keySet().iterator();
+        Iterator<HttpConnection> connectionIter =
+            connectionToAdded.keySet().iterator();
         
         while (connectionIter.hasNext()) {
-            HttpConnection conn = (HttpConnection) connectionIter.next();
-            Long connectionTime = (Long) connectionToAdded.get(conn);
+            HttpConnection conn = connectionIter.next();
+            Long connectionTime = connectionToAdded.get(conn);
             if (connectionTime.longValue() <= idleTimeout) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Closing connection, connection time: "  + connectionTime);

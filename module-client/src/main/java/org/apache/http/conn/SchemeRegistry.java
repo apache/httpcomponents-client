@@ -53,7 +53,7 @@ import org.apache.http.HttpHost;
 public final class SchemeRegistry {
 
     /** The available schemes in this registry. */
-    private final Map registeredSchemes;
+    private final Map<String,Scheme> registeredSchemes;
 
 
     /**
@@ -61,7 +61,7 @@ public final class SchemeRegistry {
      */
     public SchemeRegistry() {
         super();
-        registeredSchemes = new LinkedHashMap();
+        registeredSchemes = new LinkedHashMap<String,Scheme>();
     }
 
 
@@ -167,7 +167,7 @@ public final class SchemeRegistry {
      * @return  List containing registered scheme names.
      */
     public synchronized final List getSchemeNames() {
-        return new ArrayList(registeredSchemes.keySet());
+        return new ArrayList<String>(registeredSchemes.keySet());
     }
 
 

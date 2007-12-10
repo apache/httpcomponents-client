@@ -66,17 +66,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     /** The list of free connections */
-    private LinkedList freeConnections;
+    private LinkedList<BasicPoolEntry> freeConnections;
 
     /** The list of WaitingThreads waiting for a connection */
-    private LinkedList waitingThreads;
+    private LinkedList<WaitingThread> waitingThreads;
 
     /**
      * A map of route-specific pools.
      * Keys are of class {@link HttpRoute},
      * values of class {@link RouteSpecificPool}.
      */
-    private final Map routeToPool;
+    private final Map<HttpRoute,RouteSpecificPool> routeToPool;
 
 
 
@@ -113,9 +113,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(ClientConnectionManager mgr) {
         super(mgr);
 
-        freeConnections = new LinkedList();
-        waitingThreads = new LinkedList();
-        routeToPool = new HashMap();
+        freeConnections = new LinkedList<BasicPoolEntry>();
+        waitingThreads = new LinkedList<WaitingThread>();
+        routeToPool = new HashMap<HttpRoute,RouteSpecificPool>();
     }
 
 
@@ -131,7 +131,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected synchronized RouteSpecificPool getRoutePool(HttpRoute route,
                                                           boolean create) {
 
-        RouteSpecificPool rospl = (RouteSpecificPool) routeToPool.get(route);
+        RouteSpecificPool rospl = routeToPool.get(route);
         if ((rospl == null) && create) {
             // no pool for this route yet (or anymore)
             rospl = newRouteSpecificPool(route);
@@ -458,15 +458,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 LOG.debug("Notifying thread waiting on pool. "
                           + rospl.getRoute());
             }
-            waitingThread = (WaitingThread)
-                rospl.waitingThreads.removeFirst();
+            waitingThread = (WaitingThread) rospl.waitingThreads.removeFirst();
             waitingThreads.remove(waitingThread);
 
         } else if (!waitingThreads.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Notifying thread waiting on any pool.");
             }
-            waitingThread = (WaitingThread) waitingThreads.removeFirst();
+            waitingThread = waitingThreads.removeFirst();
             waitingThread.pool.waitingThreads.remove(waitingThread);
 
         } else if (LOG.isDebugEnabled()) {
@@ -503,19 +502,19 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         // close all free connections
         //@@@ move this to base class?
-        Iterator iter = freeConnections.iterator();
-        while (iter.hasNext()) {
-            BasicPoolEntry entry = (BasicPoolEntry) iter.next();
-            iter.remove();
+        Iterator<BasicPoolEntry> ibpe = freeConnections.iterator();
+        while (ibpe.hasNext()) {
+            BasicPoolEntry entry = ibpe.next();
+            ibpe.remove();
             closeConnection(entry.getConnection());
         }
 
             
         // interrupt all waiting threads
-        iter = waitingThreads.iterator();
-        while (iter.hasNext()) {
-            WaitingThread waiter = (WaitingThread) iter.next();
-            iter.remove();
+        Iterator<WaitingThread> iwth = waitingThreads.iterator();
+        while (iwth.hasNext()) {
+            WaitingThread waiter = iwth.next();
+            iwth.remove();
             waiter.interruptedByConnectionPool = true;
             waiter.thread.interrupt();
         }

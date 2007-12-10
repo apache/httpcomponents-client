@@ -69,7 +69,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      */
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route,
-                          ReferenceQueue queue) {
+                          ReferenceQueue<Object> queue) {
         //@@@ create connection in base? or delay creation until needed?
         super(op.createConnection(), route);
         if (route == null) {
@@ -96,7 +96,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         return super.plannedRoute;
     }
 
-    protected final WeakReference getWeakRef() {
+    protected final BasicPoolEntryRef getWeakRef() {
         return this.reference;
     }
 

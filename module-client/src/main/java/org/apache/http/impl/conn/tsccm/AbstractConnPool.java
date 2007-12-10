@@ -66,7 +66,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * and point to the pool entry for the issued connection.
      * GCed connections are detected by the missing pool entries.
      */
-    protected Set issuedConnections;
+    protected Set<BasicPoolEntryRef> issuedConnections;
 
     /** The handler for idle connections. */
     protected IdleConnectionHandler idleConnHandler;
@@ -89,8 +89,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected ConnMgrRef connManager;
 
 
-    /** A reference queue to track loss of pool entries to GC. */
-    protected ReferenceQueue refQueue;
+    /**
+     * A reference queue to track loss of pool entries to GC.
+     * The same queue is used to track loss of the connection manager,
+     * so we cannot specialize the type.
+     */
+    protected ReferenceQueue<Object> refQueue;
 
     /** A worker (thread) to track loss of pool entries to GC. */
     private RefQueueWorker refWorker;
@@ -103,7 +107,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     /**
      * A weak reference to the connection manager, to detect GC.
      */
-    private static class ConnMgrRef extends WeakReference {
+    private static class ConnMgrRef
+        extends WeakReference<ClientConnectionManager> {
 
         /**
          * Creates a new reference.
@@ -112,7 +117,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
          * @param queue   the reference queue, or <code>null</code>
          */
         public ConnMgrRef(ClientConnectionManager ccmgr,
-                          ReferenceQueue queue) {
+                          ReferenceQueue<Object> queue) {
             super(ccmgr, queue);
         }
     }
@@ -127,12 +132,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
         params = mgr.getParams();
 
-        issuedConnections = new HashSet();
+        issuedConnections = new HashSet<BasicPoolEntryRef>();
         idleConnHandler = new IdleConnectionHandler();
 
         boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
-            refQueue = new ReferenceQueue();
+            refQueue = new ReferenceQueue<Object>();
             refWorker = new RefQueueWorker(refQueue, this);
             Thread t = new Thread(refWorker); //@@@ use a thread factory
             t.setDaemon(true);
@@ -247,9 +252,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             refWorker.shutdown();
 
         // close all connections that are issued to an application
-        Iterator iter = issuedConnections.iterator();
+        Iterator<BasicPoolEntryRef> iter = issuedConnections.iterator();
         while (iter.hasNext()) {
-            BasicPoolEntryRef per = (BasicPoolEntryRef) iter.next();
+            BasicPoolEntryRef per = iter.next();
             iter.remove();
             BasicPoolEntry entry = (BasicPoolEntry) per.get();
             if (entry != null) {

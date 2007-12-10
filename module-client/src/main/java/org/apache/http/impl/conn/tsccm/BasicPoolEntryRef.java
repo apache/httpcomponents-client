@@ -43,7 +43,7 @@ import org.apache.http.conn.HttpRoute;
  * This reference explicitly keeps the planned route, so the connection
  * can be reclaimed if it is lost to garbage collection.
  */
-public class BasicPoolEntryRef extends WeakReference {
+public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */
     private final HttpRoute route;
@@ -55,7 +55,8 @@ public class BasicPoolEntryRef extends WeakReference {
      * @param entry   the pool entry, must not be <code>null</code>
      * @param queue   the reference queue, or <code>null</code>
      */
-    public BasicPoolEntryRef(BasicPoolEntry entry, ReferenceQueue queue) {
+    public BasicPoolEntryRef(BasicPoolEntry entry,
+                             ReferenceQueue<Object> queue) {
         super(entry, queue);
         if (entry == null) {
             throw new IllegalArgumentException
