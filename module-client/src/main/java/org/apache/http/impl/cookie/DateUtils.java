@@ -32,7 +32,6 @@
 package org.apache.http.impl.cookie;
 
 import java.lang.ref.SoftReference;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -214,12 +213,12 @@ public final class DateUtils {
      */
     final static class DateFormatHolder {
 
-        private static final ThreadLocal<SoftReference<Map<String, DateFormat>>> 
-            THREADLOCAL_FORMATS = new ThreadLocal<SoftReference<Map<String, DateFormat>>>() {
+        private static final ThreadLocal<SoftReference<Map<String, SimpleDateFormat>>> 
+            THREADLOCAL_FORMATS = new ThreadLocal<SoftReference<Map<String, SimpleDateFormat>>>() {
 
-            protected SoftReference<Map<String, DateFormat>> initialValue() {
-                return new SoftReference<Map<String, DateFormat>>(
-                        new HashMap<String, DateFormat>());
+            protected SoftReference<Map<String, SimpleDateFormat>> initialValue() {
+                return new SoftReference<Map<String, SimpleDateFormat>>(
+                        new HashMap<String, SimpleDateFormat>());
             }
             
         };
@@ -237,14 +236,15 @@ public final class DateUtils {
          *         different pattern.
          */
         public static SimpleDateFormat formatFor(String pattern) {
-            SoftReference<Map<String, DateFormat>> ref = THREADLOCAL_FORMATS.get();
-            Map<String, DateFormat> formats = ref.get();
+            SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
+            Map<String, SimpleDateFormat> formats = ref.get();
             if (formats == null) {
-                formats = new HashMap<String, DateFormat>();
-                THREADLOCAL_FORMATS.set(new SoftReference<Map<String, DateFormat>>(formats));    
+                formats = new HashMap<String, SimpleDateFormat>();
+                THREADLOCAL_FORMATS.set(
+                        new SoftReference<Map<String, SimpleDateFormat>>(formats));    
             }
 
-            SimpleDateFormat format = (SimpleDateFormat) formats.get(pattern);
+            SimpleDateFormat format = formats.get(pattern);
             if (format == null) {
                 format = new SimpleDateFormat(pattern, Locale.US);
                 format.setTimeZone(TimeZone.getTimeZone("GMT"));
