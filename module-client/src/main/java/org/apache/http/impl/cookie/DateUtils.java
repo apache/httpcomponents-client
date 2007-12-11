@@ -32,6 +32,7 @@
 package org.apache.http.impl.cookie;
 
 import java.lang.ref.SoftReference;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -213,10 +214,12 @@ public final class DateUtils {
      */
     final static class DateFormatHolder {
 
-        private static final ThreadLocal THREADLOCAL_FORMATS = new ThreadLocal() {
+        private static final ThreadLocal<SoftReference<Map<String, DateFormat>>> 
+            THREADLOCAL_FORMATS = new ThreadLocal<SoftReference<Map<String, DateFormat>>>() {
 
-            protected Object initialValue() {
-                return new SoftReference(new HashMap());
+            protected SoftReference<Map<String, DateFormat>> initialValue() {
+                return new SoftReference<Map<String, DateFormat>>(
+                        new HashMap<String, DateFormat>());
             }
             
         };
@@ -234,11 +237,11 @@ public final class DateUtils {
          *         different pattern.
          */
         public static SimpleDateFormat formatFor(String pattern) {
-            SoftReference ref = (SoftReference) THREADLOCAL_FORMATS.get();
-            Map formats = (Map) ref.get();
+            SoftReference<Map<String, DateFormat>> ref = THREADLOCAL_FORMATS.get();
+            Map<String, DateFormat> formats = ref.get();
             if (formats == null) {
-                formats = new HashMap();
-                THREADLOCAL_FORMATS.set(new SoftReference(formats));    
+                formats = new HashMap<String, DateFormat>();
+                THREADLOCAL_FORMATS.set(new SoftReference<Map<String, DateFormat>>(formats));    
             }
 
             SimpleDateFormat format = (SimpleDateFormat) formats.get(pattern);
