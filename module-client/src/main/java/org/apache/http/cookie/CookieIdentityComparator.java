@@ -43,11 +43,9 @@ import java.util.Comparator;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class CookieIdentityComparator implements Comparator {
+public class CookieIdentityComparator implements Comparator<Cookie> {
 
-    public int compare(final Object o1, final Object o2) {
-        Cookie c1 = (Cookie) o1;
-        Cookie c2 = (Cookie) o2;
+    public int compare(final Cookie c1, final Cookie c2) {
         int res = c1.getName().compareTo(c2.getName());
         if (res == 0) {
             // do not differentiate empty and null domains 

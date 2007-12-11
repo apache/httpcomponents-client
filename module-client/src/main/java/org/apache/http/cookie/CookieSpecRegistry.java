@@ -138,7 +138,7 @@ public final class CookieSpecRegistry {
      * 
      * @return list of registered cookie spec names
      */
-    public synchronized List getSpecNames(){
+    public synchronized List<String> getSpecNames(){
         return new ArrayList<String>(registeredSpecs.keySet()); 
     }
     

@@ -47,7 +47,7 @@ import java.util.Comparator;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class CookiePathComparator implements Comparator {
+public class CookiePathComparator implements Comparator<Cookie> {
 
     private String normalizePath(final Cookie cookie) {
         String path = cookie.getPath();
@@ -60,9 +60,7 @@ public class CookiePathComparator implements Comparator {
         return path;
     }
     
-    public int compare(final Object o1, final Object o2) {
-        Cookie c1 = (Cookie) o1;
-        Cookie c2 = (Cookie) o2;
+    public int compare(final Cookie c1, final Cookie c2) {
         String path1 = normalizePath(c1);
         String path2 = normalizePath(c2);
         if (path1.equals(path2)) {

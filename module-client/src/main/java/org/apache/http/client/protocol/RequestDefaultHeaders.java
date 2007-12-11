@@ -63,10 +63,10 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
         // Add default headers
-        Collection defHeaders = (Collection) request.getParams().getParameter(
+        Collection<?> defHeaders = (Collection<?>) request.getParams().getParameter(
                 ClientPNames.DEFAULT_HEADERS);
         if (defHeaders != null) {
-            for (Iterator it = defHeaders.iterator(); it.hasNext(); ) {
+            for (Iterator<?> it = defHeaders.iterator(); it.hasNext(); ) {
                 request.addHeader((Header) it.next());
             }
         }

@@ -59,7 +59,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
     private static final Log LOG = LogFactory.getLog(AbstractAuthenticationHandler.class);
     
-    private static List DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
+    private static List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
             "digest",
             "basic"
     });
@@ -68,10 +68,10 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         super();
     }
     
-    protected Map parseChallenges(
+    protected Map<String, Header> parseChallenges(
             final Header[] headers) throws MalformedChallengeException {
         
-        Map map = new HashMap(headers.length);
+        Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (int i = 0; i < headers.length; i++) {
             Header header = headers[i];
             CharArrayBuffer buffer;
@@ -102,12 +102,12 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         return map;
     }
     
-    protected List getAuthPreferences() {
+    protected List<String> getAuthPreferences() {
         return DEFAULT_SCHEME_PRIORITY;
     }
     
     public AuthScheme selectScheme(
-            final Map challenges, 
+            final Map<String, Header> challenges, 
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
         
@@ -117,15 +117,15 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
         
-        List authPrefs = getAuthPreferences();
+        List<String> authPrefs = getAuthPreferences();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Supported authentication schemes in the order of preference: " 
                 + authPrefs);
         }
 
         AuthScheme authScheme = null;
-        for (Iterator it = authPrefs.iterator(); it.hasNext(); ) {
-            String id = (String) it.next();
+        for (Iterator<String> it = authPrefs.iterator(); it.hasNext(); ) {
+            String id = it.next();
             Header challenge = (Header) challenges.get(id.toLowerCase()); 
             if (challenge != null) {
                 if (LOG.isDebugEnabled()) {

@@ -82,13 +82,13 @@ public class HttpOptions extends HttpRequestBase {
         return METHOD_NAME;
     }
     
-    public Set getAllowedMethods(final HttpResponse response) {
+    public Set<String> getAllowedMethods(final HttpResponse response) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
         
         HeaderIterator it = response.headerIterator("Allow");
-        Set methods = new HashSet();
+        Set<String> methods = new HashSet<String>();
         while (it.hasNext()) {
             Header header = it.nextHeader();
             HeaderElement[] elements = header.getElements();

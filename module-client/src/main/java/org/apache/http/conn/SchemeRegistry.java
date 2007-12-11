@@ -166,7 +166,7 @@ public final class SchemeRegistry {
      *
      * @return  List containing registered scheme names.
      */
-    public synchronized final List getSchemeNames() {
+    public synchronized final List<String> getSchemeNames() {
         return new ArrayList<String>(registeredSchemes.keySet());
     }
 

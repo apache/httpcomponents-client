@@ -49,8 +49,12 @@ import org.apache.http.params.HttpParams;
  */
 public final class AuthSchemeRegistry {
 
-    private final Map<String,AuthSchemeFactory> registeredSchemes =
-        new LinkedHashMap<String,AuthSchemeFactory>();
+    private final Map<String,AuthSchemeFactory> registeredSchemes;
+    
+    public AuthSchemeRegistry() {
+        super();
+        this.registeredSchemes = new LinkedHashMap<String,AuthSchemeFactory>();
+    }
     
     /**
      * Registers a {@link AuthSchemeFactory} with  the given identifier. If a factory with the 
