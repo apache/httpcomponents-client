@@ -50,11 +50,11 @@ import org.apache.http.params.HttpParams;
  */
 public final class CookieSpecRegistry {
 
-    private final Map registeredSpecs;
+    private final Map<String,CookieSpecFactory> registeredSpecs;
     
     public CookieSpecRegistry() {
         super();
-        this.registeredSpecs = new LinkedHashMap();
+        this.registeredSpecs = new LinkedHashMap<String,CookieSpecFactory>();
     }
     
     /**
@@ -107,7 +107,7 @@ public final class CookieSpecRegistry {
         if (name == null) {
             throw new IllegalArgumentException("Name may not be null");
         }
-        CookieSpecFactory factory = (CookieSpecFactory) registeredSpecs.get(name.toLowerCase());
+        CookieSpecFactory factory = registeredSpecs.get(name.toLowerCase());
         if (factory != null) {
             return factory.newInstance(params);
         } else {
@@ -139,7 +139,7 @@ public final class CookieSpecRegistry {
      * @return list of registered cookie spec names
      */
     public synchronized List getSpecNames(){
-        return new ArrayList(registeredSpecs.keySet()); 
+        return new ArrayList<String>(registeredSpecs.keySet()); 
     }
     
 }

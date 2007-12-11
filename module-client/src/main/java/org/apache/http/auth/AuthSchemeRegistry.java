@@ -49,7 +49,8 @@ import org.apache.http.params.HttpParams;
  */
 public final class AuthSchemeRegistry {
 
-    private final Map registeredSchemes = new LinkedHashMap();
+    private final Map<String,AuthSchemeFactory> registeredSchemes =
+        new LinkedHashMap<String,AuthSchemeFactory>();
     
     /**
      * Registers a {@link AuthSchemeFactory} with  the given identifier. If a factory with the 
@@ -108,7 +109,7 @@ public final class AuthSchemeRegistry {
         if (name == null) {
             throw new IllegalArgumentException("Name may not be null");
         }
-        AuthSchemeFactory factory = (AuthSchemeFactory) registeredSchemes.get(name.toLowerCase());
+        AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase());
         if (factory != null) {
             return factory.newInstance(params);
         } else {
@@ -122,8 +123,8 @@ public final class AuthSchemeRegistry {
      * 
      * @return list of registered scheme names
      */
-    public synchronized List getSchemeNames() {
-        return new ArrayList(registeredSchemes.keySet()); 
+    public synchronized List<String> getSchemeNames() {
+        return new ArrayList<String>(registeredSchemes.keySet()); 
     } 
     
 }
