@@ -159,11 +159,10 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             }
         }
         // Generate Cookie request headers
-        cookies = matchedCookies.toArray(new Cookie[matchedCookies.size()]);
         if (cookies.length > 0) {
-            Header[] headers = cookieSpec.formatCookies(cookies);
-            for (int i = 0; i < headers.length; i++) {
-                request.addHeader(headers[i]);
+            List<Header> headers = cookieSpec.formatCookies(matchedCookies);
+            for (int i = 0; i < headers.size(); i++) {
+                request.addHeader(headers.get(i));
             }
         }
         

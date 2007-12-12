@@ -30,8 +30,9 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.Header;
@@ -90,7 +91,7 @@ public class RFC2965Spec extends RFC2109Spec {
         return cookie;
     }
     
-    public Cookie[] parse(
+    public List<Cookie> parse(
             final Header header, 
             CookieOrigin origin) throws MalformedCookieException {
         if (header == null) {
@@ -104,7 +105,7 @@ public class RFC2965Spec extends RFC2109Spec {
         
         HeaderElement[] elems = header.getElements();
 
-        Cookie[] cookies = new Cookie[elems.length];
+        List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
         for (int i = 0; i < elems.length; i++) {
             HeaderElement headerelement = elems[i];
 
@@ -126,14 +127,14 @@ public class RFC2965Spec extends RFC2109Spec {
             
             // Eliminate duplicate attributes. The first occurrence takes precedence
             // See RFC2965: 3.2  Origin Server Role
-            Map attribmap = new HashMap(attribs.length); 
+            Map<String, NameValuePair> attribmap = 
+                new HashMap<String, NameValuePair>(attribs.length); 
             for (int j = attribs.length - 1; j >= 0; j--) {
                 NameValuePair param = attribs[j];
                 attribmap.put(param.getName().toLowerCase(), param);
             }
-            for (Iterator it = attribmap.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                NameValuePair attrib = (NameValuePair) entry.getValue();
+            for (Map.Entry<String, NameValuePair> entry: attribmap.entrySet()) {
+                NameValuePair attrib = entry.getValue();
                 String s = attrib.getName().toLowerCase();
                 
                 cookie.setAttribute(s, attrib.getValue());
@@ -143,7 +144,7 @@ public class RFC2965Spec extends RFC2109Spec {
                     handler.parse(cookie, attrib.getValue());
                 }
             }
-            cookies[i] = cookie;
+            cookies.add(cookie);
         }
         return cookies;
     }

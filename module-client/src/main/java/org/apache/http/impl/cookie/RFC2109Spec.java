@@ -31,7 +31,9 @@
 
 package org.apache.http.impl.cookie;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -98,7 +100,7 @@ public class RFC2109Spec extends CookieSpecBase {
         this(null, false);
     }
     
-    public Cookie[] parse(final Header header, final CookieOrigin origin) 
+    public List<Cookie> parse(final Header header, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -125,14 +127,14 @@ public class RFC2109Spec extends CookieSpecBase {
         super.validate(cookie, origin);
     }
 
-    public Header[] formatCookies(final Cookie[] cookies) {
+    public List<Header> formatCookies(final List<Cookie> cookies) {
         if (cookies == null) {
-            throw new IllegalArgumentException("Cookie array may not be null");
+            throw new IllegalArgumentException("List of cookies may not be null");
         }
-        if (cookies.length == 0) {
-            throw new IllegalArgumentException("Cookie array may not be empty");
+        if (cookies.isEmpty()) {
+            throw new IllegalArgumentException("List of cookies may not be empty");
         }
-        Arrays.sort(cookies, PATH_COMPARATOR);
+        Collections.sort(cookies, PATH_COMPARATOR);
         if (this.oneHeader) {
             return doFormatOneHeader(cookies);
         } else {
@@ -140,40 +142,42 @@ public class RFC2109Spec extends CookieSpecBase {
         }
     }
 
-    private Header[] doFormatOneHeader(final Cookie[] cookies) {
+    private List<Header> doFormatOneHeader(final List<Cookie> cookies) {
         int version = Integer.MAX_VALUE;
         // Pick the lowest common denominator
-        for (int i = 0; i < cookies.length; i++) {
-            Cookie cookie = cookies[i];
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
             if (cookie.getVersion() < version) {
                 version = cookie.getVersion();
             }
         }
-        CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.length);
+        CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.size());
         buffer.append(SM.COOKIE);
         buffer.append(": ");
         buffer.append("$Version=");
         buffer.append(Integer.toString(version));
-        for (int i = 0; i < cookies.length; i++) {
+        for (int i = 0; i < cookies.size(); i++) {
             buffer.append("; ");
-            Cookie cookie = cookies[i];
+            Cookie cookie = cookies.get(i);
             formatCookieAsVer(buffer, cookie, version);
         }
-        return new Header[] { new BufferedHeader(buffer) };
+        List<Header> headers = new ArrayList<Header>(1);
+        headers.add(new BufferedHeader(buffer));
+        return headers;
     }
 
-    private Header[] doFormatManyHeaders(final Cookie[] cookies) {
-        Header[] headers = new Header[cookies.length]; 
-        for (int i = 0; i < cookies.length; i++) {
-            Cookie cookie = cookies[i];
+    private List<Header> doFormatManyHeaders(final List<Cookie> cookies) {
+        List<Header> headers = new ArrayList<Header>(cookies.size()); 
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
             int version = cookie.getVersion();
             CharArrayBuffer buffer = new CharArrayBuffer(40);
             buffer.append("Cookie: ");
             buffer.append("$Version=");
             buffer.append(Integer.toString(version));
             buffer.append("; ");
-            formatCookieAsVer(buffer, cookies[i], version);
-            headers[i] = new BufferedHeader(buffer);
+            formatCookieAsVer(buffer, cookie, version);
+            headers.add(new BufferedHeader(buffer));
         }
         return headers;
     }

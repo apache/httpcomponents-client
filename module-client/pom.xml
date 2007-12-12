@@ -84,8 +84,8 @@
   </dependencies>
 
   <properties>
-    <maven.compile.source>1.4</maven.compile.source>
-    <maven.compile.target>1.4</maven.compile.target>
+    <maven.compile.source>1.5</maven.compile.source>
+    <maven.compile.target>1.5</maven.compile.target>
     <maven.compile.optimize>true</maven.compile.optimize>
     <maven.compile.deprecation>true</maven.compile.deprecation>
   </properties>

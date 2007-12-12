@@ -65,14 +65,14 @@ public class NetscapeDraftHeaderParser {
             throw new IllegalArgumentException("Parser cursor may not be null");
         }
         NameValuePair nvp = this.nvpParser.parseNameValuePair(buffer, cursor, DELIMITERS);
-        List params = new ArrayList(); 
+        List<NameValuePair> params = new ArrayList<NameValuePair>(); 
         while (!cursor.atEnd()) {
             NameValuePair param = this.nvpParser.parseNameValuePair(buffer, cursor, DELIMITERS);
             params.add(param);
         }
         return new BasicHeaderElement(
                 nvp.getName(), 
-                nvp.getValue(), (NameValuePair[]) params.toArray(new NameValuePair[params.size()]));
+                nvp.getValue(), params.toArray(new NameValuePair[params.size()]));
     }
 
 }

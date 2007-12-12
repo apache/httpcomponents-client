@@ -32,6 +32,7 @@ package org.apache.http.impl.cookie;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -62,7 +63,7 @@ public class TestAbstractCookieSpec extends TestCase {
 
     private static class DummyCookieSpec extends AbstractCookieSpec {
 
-        public Header[] formatCookies(Cookie[] cookies) {
+        public List<Header> formatCookies(List<Cookie> cookies) {
             return null;
         }
 
@@ -70,7 +71,7 @@ public class TestAbstractCookieSpec extends TestCase {
             return true;
         }
 
-        public Cookie[] parse(Header header, CookieOrigin origin) throws MalformedCookieException {
+        public List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException {
             return null;
         }
 
@@ -116,7 +117,7 @@ public class TestAbstractCookieSpec extends TestCase {
         assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
         assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
         
-        Iterator it = cookiespec.getAttribHandlerIterator();
+        Iterator<CookieAttributeHandler> it = cookiespec.getAttribHandlers().iterator();
         assertNotNull(it.next());
         assertNotNull(it.next());
         assertNotNull(it.next());

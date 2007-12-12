@@ -71,7 +71,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
             throw new IllegalArgumentException("Name may not be null");
         }
         this.name = name;
-        this.attribs = new HashMap();
+        this.attribs = new HashMap<String, String>();
         this.value = value;
     }
 
@@ -305,7 +305,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     }
     
     public String getAttribute(final String name) {
-        return (String) this.attribs.get(name);
+        return this.attribs.get(name);
     }
 
     public boolean containsAttribute(final String name) {
@@ -341,7 +341,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     private final String name;
 
     /** Cookie attributes as specified by the origin server */
-    private final Map attribs;
+    private final Map<String, String> attribs;
    
     /** Cookie value */
     private String value;

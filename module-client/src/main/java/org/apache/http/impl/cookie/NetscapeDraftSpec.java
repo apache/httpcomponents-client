@@ -31,6 +31,9 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -98,7 +101,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing
       */
-    public Cookie[] parse(final Header header, final CookieOrigin origin) 
+    public List<Cookie> parse(final Header header, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -126,18 +129,18 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         return parse(new HeaderElement[] { parser.parseHeader(buffer, cursor) }, origin);
     }
 
-    public Header[] formatCookies(final Cookie[] cookies) {
+    public List<Header> formatCookies(final List<Cookie> cookies) {
         if (cookies == null) {
-            throw new IllegalArgumentException("Cookie array may not be null");
+            throw new IllegalArgumentException("List of cookies may not be null");
         }
-        if (cookies.length == 0) {
-            throw new IllegalArgumentException("Cookie array may not be empty");
+        if (cookies.isEmpty()) {
+            throw new IllegalArgumentException("List of cookies may not be empty");
         }
-        CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.length);
+        CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
         buffer.append(SM.COOKIE);
         buffer.append(": ");
-        for (int i = 0; i < cookies.length; i++) {
-            Cookie cookie = cookies[i];
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
             if (i > 0) {
                 buffer.append("; ");
             }
@@ -148,7 +151,9 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                 buffer.append(s);
             }
         }
-        return new Header[] { new BufferedHeader(buffer) };
+        List<Header> headers = new ArrayList<Header>(1);
+        headers.add(new BufferedHeader(buffer));
+        return headers;
     }
 
     public int getVersion() {

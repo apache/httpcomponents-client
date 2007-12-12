@@ -31,8 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -52,14 +52,14 @@ public abstract class AbstractCookieSpec implements CookieSpec {
     /**
     * Stores attribute name -> attribute handler mappings
     */
-    private final Map attribHandlerMap;
+    private final Map<String, CookieAttributeHandler> attribHandlerMap;
 
     /** 
      * Default constructor 
      * */
     public AbstractCookieSpec() {
         super();
-        this.attribHandlerMap = new HashMap(10);        
+        this.attribHandlerMap = new HashMap<String, CookieAttributeHandler>(10);        
     }
 
     public void registerAttribHandler(
@@ -103,8 +103,8 @@ public abstract class AbstractCookieSpec implements CookieSpec {
         }
     }
 
-    protected Iterator getAttribHandlerIterator() {
-        return this.attribHandlerMap.values().iterator();
+    protected Collection<CookieAttributeHandler> getAttribHandlers() {
+        return this.attribHandlerMap.values();
     }
     
 }

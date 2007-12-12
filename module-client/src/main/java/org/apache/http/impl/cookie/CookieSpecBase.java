@@ -31,7 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
@@ -66,9 +67,9 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         return origin.getHost();
     }
     
-    protected Cookie[] parse(final HeaderElement[] elems, final CookieOrigin origin)
+    protected List<Cookie> parse(final HeaderElement[] elems, final CookieOrigin origin)
                 throws MalformedCookieException {
-        Cookie[] cookies = new Cookie[elems.length];
+        List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
         for (int i = 0; i < elems.length; i++) {
             HeaderElement headerelement = elems[i];
 
@@ -95,7 +96,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
                     handler.parse(cookie, attrib.getValue());
                 }
             }
-            cookies[i] = cookie;
+            cookies.add(cookie);
         }
         return cookies;
     }
@@ -108,8 +109,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        for (Iterator i = getAttribHandlerIterator(); i.hasNext();) {
-            CookieAttributeHandler handler = (CookieAttributeHandler) i.next();
+        for (CookieAttributeHandler handler: getAttribHandlers()) {
             handler.validate(cookie, origin);
         }
     }
@@ -121,8 +121,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        for (Iterator i = getAttribHandlerIterator(); i.hasNext();) {
-            CookieAttributeHandler handler = (CookieAttributeHandler) i.next();
+        for (CookieAttributeHandler handler: getAttribHandlers()) {
             if (!handler.match(cookie, origin)) {
                 return false;
             }

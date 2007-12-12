@@ -32,6 +32,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -116,9 +117,9 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         while (iterator.hasNext()) {
             Header header = iterator.nextHeader();
             try {
-                Cookie[] cookies = cookieSpec.parse(header, cookieOrigin);
-                for (int c = 0; c < cookies.length; c++) {
-                    Cookie cookie = cookies[c];
+                List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
+                for (int c = 0; c < cookies.size(); c++) {
+                    Cookie cookie = cookies.get(c);
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
                         cookieStore.addCookie(cookie);

@@ -30,6 +30,9 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -68,15 +71,15 @@ public class TestCookieNetscapeDraft extends TestCase {
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Cookie[] parsed = cookiespec.parse(header, origin);
-        for (int i = 0; i < parsed.length; i++) {
-            cookiespec.validate(parsed[i], origin);
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookies.",1,parsed.length);
-        assertEquals("Name","name1",parsed[0].getName());
-        assertEquals("Value","value1",parsed[0].getValue());
-        assertEquals("Domain","host",parsed[0].getDomain());
-        assertEquals("Path","/path/",parsed[0].getPath());
+        assertEquals("Found 1 cookies.",1,cookies.size());
+        assertEquals("Name","name1",cookies.get(0).getName());
+        assertEquals("Value","value1",cookies.get(0).getValue());
+        assertEquals("Domain","host",cookies.get(0).getDomain());
+        assertEquals("Path","/path/",cookies.get(0).getPath());
     }
 
     public void testParseAbsPath2() throws Exception {
@@ -84,15 +87,15 @@ public class TestCookieNetscapeDraft extends TestCase {
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "/", true);
-        Cookie[] parsed = cookiespec.parse(header, origin);
-        for (int i = 0; i < parsed.length; i++) {
-            cookiespec.validate(parsed[i], origin);
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookies.",1,parsed.length);
-        assertEquals("Name","name1",parsed[0].getName());
-        assertEquals("Value","value1",parsed[0].getValue());
-        assertEquals("Domain","host",parsed[0].getDomain());
-        assertEquals("Path","/",parsed[0].getPath());
+        assertEquals("Found 1 cookies.",1,cookies.size());
+        assertEquals("Name","name1",cookies.get(0).getName());
+        assertEquals("Value","value1",cookies.get(0).getValue());
+        assertEquals("Domain","host",cookies.get(0).getDomain());
+        assertEquals("Path","/",cookies.get(0).getPath());
     }
 
     public void testParseRelativePath() throws Exception {
@@ -100,15 +103,15 @@ public class TestCookieNetscapeDraft extends TestCase {
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("host", 80, "whatever", true);
-        Cookie[] parsed = cookiespec.parse(header, origin);
-        for (int i = 0; i < parsed.length; i++) {
-            cookiespec.validate(parsed[i], origin);
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookies.",1,parsed.length);
-        assertEquals("Name","name1",parsed[0].getName());
-        assertEquals("Value","value1",parsed[0].getValue());
-        assertEquals("Domain","host",parsed[0].getDomain());
-        assertEquals("Path","whatever",parsed[0].getPath());
+        assertEquals("Found 1 cookies.",1,cookies.size());
+        assertEquals("Name","name1",cookies.get(0).getName());
+        assertEquals("Value","value1",cookies.get(0).getValue());
+        assertEquals("Domain","host",cookies.get(0).getDomain());
+        assertEquals("Path","whatever",cookies.get(0).getPath());
     }
 
     public void testParseWithIllegalNetscapeDomain1() throws Exception {
@@ -117,9 +120,9 @@ public class TestCookieNetscapeDraft extends TestCase {
         CookieSpec cookiespec = new NetscapeDraftSpec();
         try {
             CookieOrigin origin = new CookieOrigin("a.com", 80, "/", false);
-            Cookie[] parsed = cookiespec.parse(header, origin);
-            for (int i = 0; i < parsed.length; i++) {
-                cookiespec.validate(parsed[i], origin);
+            List<Cookie> cookies = cookiespec.parse(header, origin);
+            for (int i = 0; i < cookies.size(); i++) {
+                cookiespec.validate(cookies.get(i), origin);
             }
             fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
@@ -133,9 +136,9 @@ public class TestCookieNetscapeDraft extends TestCase {
         CookieSpec cookiespec = new NetscapeDraftSpec();
         try {
             CookieOrigin origin = new CookieOrigin("x.y.z", 80, "/", false);
-            Cookie[] parsed = cookiespec.parse(header, origin);
-            for (int i = 0; i < parsed.length; i++) {
-                cookiespec.validate(parsed[i], origin);
+            List<Cookie> cookies = cookiespec.parse(header, origin);
+            for (int i = 0; i < cookies.size(); i++) {
+                cookiespec.validate(cookies.get(i), origin);
             }
             fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
@@ -151,11 +154,11 @@ public class TestCookieNetscapeDraft extends TestCase {
           "Set-Cookie", "name=value; path=/; domain=.mydomain.com");
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        Cookie[] cookies = cookiespec.parse(header, origin);
-        cookiespec.validate(cookies[0], origin);
-        Header[] headers = cookiespec.formatCookies(cookies);
-        assertEquals(1, headers.length);
-        assertEquals("name=value", headers[0].getValue());
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        cookiespec.validate(cookies.get(0), origin);
+        List<Header> headers = cookiespec.formatCookies(cookies);
+        assertEquals(1, headers.size());
+        assertEquals("name=value", headers.get(0).getValue());
     }
     
     /**
@@ -166,13 +169,13 @@ public class TestCookieNetscapeDraft extends TestCase {
         Header header = new BasicHeader("Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        Cookie[] cookies = cookiespec.parse(header, origin);
-        cookiespec.validate(cookies[0], origin);
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        cookiespec.validate(cookies.get(0), origin);
         header = new BasicHeader("Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com; expires=Thu 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         try {
             cookies = cookiespec.parse(header, origin);
-            cookiespec.validate(cookies[0], origin);
+            cookiespec.validate(cookies.get(0), origin);
             fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
@@ -203,10 +206,10 @@ public class TestCookieNetscapeDraft extends TestCase {
 
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
-        Cookie[] cookies = cookiespec.parse(header, origin);
-        assertEquals("number of cookies", 1, cookies.length);
-        assertEquals("a", cookies[0].getName());
-        assertEquals("b,c", cookies[0].getValue());
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        assertEquals("number of cookies", 1, cookies.size());
+        assertEquals("a", cookies.get(0).getName());
+        assertEquals("b,c", cookies.get(0).getValue());
     }
  
     public void testFormatCookies() throws Exception {
@@ -220,10 +223,14 @@ public class TestCookieNetscapeDraft extends TestCase {
         Cookie c3 = new BasicClientCookie("name3", null);
         
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header[] headers = cookiespec.formatCookies(new Cookie[] {c1, c2, c3});
+        List<Cookie> cookies = new ArrayList<Cookie>();
+        cookies.add(c1);
+        cookies.add(c2);
+        cookies.add(c3);
+        List<Header> headers = cookiespec.formatCookies(cookies);
         assertNotNull(headers);
-        assertEquals(1, headers.length);
-        assertEquals("name1=value1; name2=value2; name3", headers[0].getValue());
+        assertEquals(1, headers.size());
+        assertEquals("name1=value1; name2=value2; name3", headers.get(0).getValue());
     }    
 
     public void testInvalidInput() throws Exception {
@@ -247,7 +254,8 @@ public class TestCookieNetscapeDraft extends TestCase {
             // expected
         }
         try {
-            cookiespec.formatCookies(new BasicClientCookie[] {});
+            List<Cookie> cookies = new ArrayList<Cookie>();
+            cookiespec.formatCookies(cookies);
             fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected

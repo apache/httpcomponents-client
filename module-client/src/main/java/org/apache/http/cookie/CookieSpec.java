@@ -31,6 +31,8 @@
 
 package org.apache.http.cookie;
 
+import java.util.List;
+
 import org.apache.http.Header;
 
 /**
@@ -71,7 +73,7 @@ public interface CookieSpec {
       * @return an array of <tt>Cookie</tt>s parsed from the header
       * @throws MalformedCookieException if an exception occurs during parsing
       */
-    Cookie[] parse(Header header, CookieOrigin origin) throws MalformedCookieException;
+    List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException;
 
     /**
       * Validate the cookie according to validation rules defined by the 
@@ -101,7 +103,7 @@ public interface CookieSpec {
      * @return a Header for the given Cookies.
      * @throws IllegalArgumentException if an input parameter is illegal
      */
-    Header[] formatCookies(Cookie[] cookies);
+    List<Header> formatCookies(List<Cookie> cookies);
 
     /**
      * Returns a request header identifying what version of the state management 
