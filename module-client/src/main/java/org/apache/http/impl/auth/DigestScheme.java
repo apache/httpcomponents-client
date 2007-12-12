@@ -375,7 +375,7 @@ public class DigestScheme extends RFC2617Scheme {
         String response = digest;
         String algorithm = getParameter("algorithm");
 
-        List params = new ArrayList(20);
+        List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
         params.add(new BasicNameValuePair("username", credentials.getPrincipalName()));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
@@ -395,7 +395,7 @@ public class DigestScheme extends RFC2617Scheme {
         }
 
         for (int i = 0; i < params.size(); i++) {
-            BasicNameValuePair param = (BasicNameValuePair) params.get(i);
+            BasicNameValuePair param = params.get(i);
             if (i > 0) {
                 buffer.append(", ");
             }

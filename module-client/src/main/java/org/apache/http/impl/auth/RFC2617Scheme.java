@@ -59,7 +59,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
     /**
      * Authentication parameter map.
      */
-    private Map params = null;
+    private Map<String, String> params = null;
 
     /**
      * Flag whether authenticating against a proxy.
@@ -129,7 +129,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
             throw new MalformedChallengeException("Authentication challenge is empty");
         }
         
-        this.params = new HashMap(elements.length);
+        this.params = new HashMap<String, String>(elements.length);
         for (int i = 0; i < elements.length; i++) {
             HeaderElement element = elements[i];
             this.params.put(element.getName(), element.getValue());
@@ -141,7 +141,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
      * 
      * @return the map of authentication parameters
      */
-    protected Map getParameters() {
+    protected Map<String, String> getParameters() {
         return this.params;
     }
 

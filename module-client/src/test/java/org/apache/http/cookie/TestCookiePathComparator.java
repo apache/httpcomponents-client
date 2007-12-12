@@ -61,7 +61,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath("/a/b/");
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a/");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) < 0);
         assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
@@ -71,7 +71,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath("/a/b");
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) < 0);
         assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
@@ -81,7 +81,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath("/a");
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
         assertTrue(comparator.compare(cookie2, cookie1) == 0);
     }
@@ -91,7 +91,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath("/a/");
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
         assertTrue(comparator.compare(cookie2, cookie1) == 0);
     }
@@ -101,7 +101,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath(null);
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
         assertTrue(comparator.compare(cookie2, cookie1) == 0);
     }
@@ -111,7 +111,7 @@ public class TestCookiePathComparator extends TestCase {
         cookie1.setPath("/this");
         BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/that");
-        Comparator comparator = new CookiePathComparator();
+        Comparator<Cookie> comparator = new CookiePathComparator();
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
         assertTrue(comparator.compare(cookie2, cookie1) == 0);
     }

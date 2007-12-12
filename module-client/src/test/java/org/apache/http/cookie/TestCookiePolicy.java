@@ -67,7 +67,7 @@ public class TestCookiePolicy extends TestCase {
     
     public void testRegisterUnregisterCookieSpecFactory() {
         CookieSpecRegistry registry  = new CookieSpecRegistry(); 
-        List names = registry.getSpecNames();
+        List<String> names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(0, names.size());
         

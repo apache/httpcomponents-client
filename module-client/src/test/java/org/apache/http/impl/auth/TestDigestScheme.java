@@ -105,7 +105,7 @@ public class TestDigestScheme extends TestCase {
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals("username", table.get("username"));
         assertEquals("realm1", table.get("realm"));
         assertEquals("/", table.get("uri"));
@@ -122,7 +122,7 @@ public class TestDigestScheme extends TestCase {
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals("username", table.get("username"));
         assertEquals("realm1", table.get("realm"));
         assertEquals("/", table.get("uri"));
@@ -139,7 +139,7 @@ public class TestDigestScheme extends TestCase {
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals("username", table.get("username"));
         assertEquals("realm1", table.get("realm"));
         assertEquals("/?param=value", table.get("uri"));
@@ -159,7 +159,7 @@ public class TestDigestScheme extends TestCase {
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals("username", table.get("username"));
         assertEquals("realm1", table.get("realm"));
         assertEquals("/", table.get("uri"));
@@ -210,7 +210,7 @@ public class TestDigestScheme extends TestCase {
         assertTrue(response.indexOf("nc=00000001") > 0); // test for quotes
         assertTrue(response.indexOf("qop=auth") > 0); // test for quotes
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals(username, table.get("username"));
         assertEquals(realm, table.get("realm"));
         assertEquals("MD5-sess", table.get("algorithm"));
@@ -251,7 +251,7 @@ public class TestDigestScheme extends TestCase {
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
-        Map table = parseAuthResponse(authResponse);
+        Map<String, String> table = parseAuthResponse(authResponse);
         assertEquals(username, table.get("username"));
         assertEquals(realm, table.get("realm"));
         assertEquals("MD5-sess", table.get("algorithm"));
@@ -300,13 +300,13 @@ public class TestDigestScheme extends TestCase {
         assertFalse(authscheme.isComplete());
     }
 
-    private static Map parseAuthResponse(final Header authResponse) {
+    private static Map<String, String> parseAuthResponse(final Header authResponse) {
         String s = authResponse.getValue();
         if (!s.startsWith("Digest ")) {
             return null;
         }
         HeaderElement[] elements = BasicHeaderValueParser.parseElements(s.substring(7), null);
-        Map map = new HashMap(elements.length);
+        Map<String, String> map = new HashMap<String, String>(elements.length);
         for (int i = 0; i < elements.length; i++) {
             HeaderElement element = elements[i];
             map.put(element.getName(), element.getValue());
