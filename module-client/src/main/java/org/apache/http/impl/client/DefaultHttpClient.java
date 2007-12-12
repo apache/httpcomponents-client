@@ -161,7 +161,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         
         if (className != null) {
             try {
-                Class clazz = Class.forName(className);
+                Class<?> clazz = Class.forName(className);
                 ClientConnectionManagerFactory factory = 
                     (ClientConnectionManagerFactory) clazz.newInstance();
                 connManager = factory.newInstance(params, registry);

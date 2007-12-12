@@ -33,8 +33,6 @@ package org.apache.http.impl.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -154,10 +152,11 @@ public class DefaultRedirectHandler implements RedirectHandler {
         
         if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
             
-            Set redirectLocations = (Set) context.getAttribute(REDIRECT_LOCATIONS);
+            RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
+                    REDIRECT_LOCATIONS);
             
             if (redirectLocations == null) {
-                redirectLocations = new HashSet();
+                redirectLocations = new RedirectLocations();
                 context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
             }
             

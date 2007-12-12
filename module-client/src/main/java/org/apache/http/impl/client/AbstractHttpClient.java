@@ -33,7 +33,6 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
@@ -59,10 +58,6 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpRequestInterceptorList;
-import org.apache.http.protocol.HttpResponseInterceptorList;
-
-
 
 /**
  * Convenience base class for HTTP client implementations.
@@ -75,9 +70,7 @@ import org.apache.http.protocol.HttpResponseInterceptorList;
  *
  * @since 4.0
  */
-public abstract class AbstractHttpClient
-    implements HttpClient, HttpRequestInterceptorList, HttpResponseInterceptorList {
-
+public abstract class AbstractHttpClient implements HttpClient {
 
     /** The default context. */
     private HttpContext defaultContext;
@@ -387,7 +380,7 @@ public abstract class AbstractHttpClient
     }
 
 
-    public void removeResponseInterceptorByClass(Class clazz) {
+    public void removeResponseInterceptorByClass(Class<HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
     }
 
@@ -417,15 +410,9 @@ public abstract class AbstractHttpClient
     }
 
 
-    public void removeRequestInterceptorByClass(Class clazz) {
+    public void removeRequestInterceptorByClass(Class<HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
     }
-
-
-    public synchronized void setInterceptors(final List itcps) {
-        getHttpProcessor().setInterceptors(itcps);
-    }
-
 
 
     // non-javadoc, see interface HttpClient

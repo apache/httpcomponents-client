@@ -31,7 +31,6 @@
 package org.apache.http.impl.client;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -53,14 +52,14 @@ import org.apache.http.client.CredentialsProvider;
  */
 public class BasicCredentialsProvider implements CredentialsProvider {
 
-    private final HashMap credMap;
+    private final HashMap<AuthScope, Credentials> credMap;
 
     /**
      * Default constructor.
      */
     public BasicCredentialsProvider() {
         super();
-        this.credMap = new HashMap();
+        this.credMap = new HashMap<AuthScope, Credentials>();
     }
 
     /** 
@@ -73,7 +72,9 @@ public class BasicCredentialsProvider implements CredentialsProvider {
      * 
      * @see #getCredentials(AuthScope)
      */
-    public synchronized void setCredentials(final AuthScope authscope, final Credentials credentials) {
+    public synchronized void setCredentials(
+            final AuthScope authscope, 
+            final Credentials credentials) {
         if (authscope == null) {
             throw new IllegalArgumentException("Authentication scope may not be null");
         }
@@ -88,7 +89,9 @@ public class BasicCredentialsProvider implements CredentialsProvider {
      * @return the credentials 
      * 
      */
-    private static Credentials matchCredentials(final HashMap map, final AuthScope authscope) {
+    private static Credentials matchCredentials(
+            final HashMap<AuthScope, Credentials> map, 
+            final AuthScope authscope) {
         // see if we get a direct hit
         Credentials creds = (Credentials)map.get(authscope);
         if (creds == null) {
@@ -96,9 +99,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
             // Do a full scan
             int bestMatchFactor  = -1;
             AuthScope bestMatch  = null;
-            Iterator items = map.keySet().iterator();
-            while (items.hasNext()) {
-                AuthScope current = (AuthScope)items.next();
+            for (AuthScope current: map.keySet()) {
                 int factor = authscope.match(current);
                 if (factor > bestMatchFactor) {
                     bestMatchFactor = factor;

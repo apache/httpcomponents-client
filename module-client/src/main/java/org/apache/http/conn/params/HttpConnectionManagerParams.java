@@ -114,7 +114,7 @@ public final class HttpConnectionManagerParams {
                 ("The maximum must be greater than 0.");
         }
         
-        Map<?,?> currentValues = (Map) params.getParameter
+        Map<?,?> currentValues = (Map<?,?>) params.getParameter
             (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         // param values are meant to be immutable so we'll make a copy
         // to modify
@@ -183,7 +183,7 @@ public final class HttpConnectionManagerParams {
         // if neither a specific nor a default maximum is configured...
         int result = DEFAULT_MAX_HOST_CONNECTIONS;
 
-        Map<?,?> m = (Map) params.getParameter
+        Map<?,?> m = (Map<?,?>) params.getParameter
             (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         if (m != null) {
             Integer max = (Integer) m.get(key);

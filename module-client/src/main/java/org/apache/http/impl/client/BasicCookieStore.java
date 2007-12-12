@@ -55,9 +55,9 @@ import org.apache.http.cookie.CookieIdentityComparator;
  */
 public class BasicCookieStore implements CookieStore {
 
-    private final ArrayList cookies;
+    private final ArrayList<Cookie> cookies;
 
-    private final Comparator cookieComparator;
+    private final Comparator<Cookie> cookieComparator;
     
     // -------------------------------------------------------- Class Variables
 
@@ -66,7 +66,7 @@ public class BasicCookieStore implements CookieStore {
      */
     public BasicCookieStore() {
         super();
-        this.cookies = new ArrayList();
+        this.cookies = new ArrayList<Cookie>();
         this.cookieComparator = new CookieIdentityComparator();
     }
 
@@ -83,9 +83,8 @@ public class BasicCookieStore implements CookieStore {
     public synchronized void addCookie(Cookie cookie) {
         if (cookie != null) {
             // first remove any old cookie that is equivalent
-            for (Iterator it = cookies.iterator(); it.hasNext();) {
-                Cookie tmp = (Cookie) it.next();
-                if (cookieComparator.compare(cookie, tmp) == 0) {
+            for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
+                if (cookieComparator.compare(cookie, it.next()) == 0) {
                     it.remove();
                     break;
                 }
@@ -137,9 +136,8 @@ public class BasicCookieStore implements CookieStore {
             return false;
         }
         boolean removed = false;
-        Iterator it = cookies.iterator();
-        while (it.hasNext()) {
-            if (((Cookie) (it.next())).isExpired(date)) {
+        for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
+            if (it.next().isExpired(date)) {
                 it.remove();
                 removed = true;
             }

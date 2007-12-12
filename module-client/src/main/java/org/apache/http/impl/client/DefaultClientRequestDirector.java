@@ -602,7 +602,8 @@ public class DefaultClientRequestDirector
                 if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
                     LOG.debug("Proxy requested authentication");
-                    Map challenges = this.proxyAuthHandler.getChallenges(response, context);
+                    Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
+                            response, context);
                     try {
                         processChallenges(
                                 challenges, this.proxyAuthState, this.proxyAuthHandler, 
@@ -819,7 +820,8 @@ public class DefaultClientRequestDirector
                 }
                 
                 LOG.debug("Target requested authentication");
-                Map challenges = this.targetAuthHandler.getChallenges(response, context); 
+                Map<String, Header> challenges = this.targetAuthHandler.getChallenges(
+                        response, context); 
                 try {
                     processChallenges(challenges, 
                             this.targetAuthState, this.targetAuthHandler,
@@ -846,7 +848,8 @@ public class DefaultClientRequestDirector
             if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
                 LOG.debug("Proxy requested authentication");
-                Map challenges = this.proxyAuthHandler.getChallenges(response, context);
+                Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
+                        response, context);
                 try {
                     processChallenges(challenges, 
                             this.proxyAuthState, this.proxyAuthHandler, 
@@ -902,7 +905,7 @@ public class DefaultClientRequestDirector
 
 
     private void processChallenges(
-            final Map challenges, 
+            final Map<String, Header> challenges, 
             final AuthState authState,
             final AuthenticationHandler authHandler,
             final HttpResponse response, 

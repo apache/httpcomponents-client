@@ -31,42 +31,29 @@
 
 package org.apache.http.impl.client;
 
-import java.util.Map;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
-import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.protocol.HttpContext;
+public class RedirectLocations {
 
-/**
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- */
-public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHandler {
-
-    public DefaultTargetAuthenticationHandler() {
+    private final Set<URI> uris;
+    
+    public RedirectLocations() {
         super();
+        this.uris = new HashSet<URI>();
     }
     
-    public boolean isAuthenticationRequested(
-            final HttpResponse response, 
-            final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        int status = response.getStatusLine().getStatusCode();
-        return status == HttpStatus.SC_UNAUTHORIZED;
+    public boolean contains(final URI uri) {
+        return this.uris.contains(uri);
+    }
+    
+    public void add(final URI uri) {
+        this.uris.add(uri);
     }
 
-    public Map<String, Header> getChallenges(
-            final HttpResponse response, 
-            final HttpContext context) throws MalformedChallengeException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        Header[] headers = response.getHeaders(AUTH.WWW_AUTH);
-        return parseChallenges(headers);
+    public boolean remove(final URI uri) {
+        return this.uris.remove(uri);
     }
 
 }
