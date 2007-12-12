@@ -114,15 +114,15 @@ public final class HttpConnectionManagerParams {
                 ("The maximum must be greater than 0.");
         }
         
-        Map<Object,Integer> currentValues = (Map<Object,Integer>)
-            params.getParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS);
+        Map<?,?> currentValues = (Map) params.getParameter
+            (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         // param values are meant to be immutable so we'll make a copy
         // to modify
-        Map<Object,Integer> newValues = null;
+        Map<Object,Object> newValues = null;
         if (currentValues == null) {
-            newValues = new HashMap<Object,Integer>();
+            newValues = new HashMap<Object,Object>();
         } else {
-            newValues = new HashMap<Object,Integer>(currentValues);
+            newValues = new HashMap<Object,Object>(currentValues);
         }
         newValues.put(key, new Integer(max));
         params.setParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS, newValues);
@@ -183,10 +183,10 @@ public final class HttpConnectionManagerParams {
         // if neither a specific nor a default maximum is configured...
         int result = DEFAULT_MAX_HOST_CONNECTIONS;
 
-        Map<Object,Integer> m = (Map<Object,Integer>)
-            params.getParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS);
+        Map<?,?> m = (Map) params.getParameter
+            (ConnManagerPNames.MAX_HOST_CONNECTIONS);
         if (m != null) {
-            Integer max = m.get(key);
+            Integer max = (Integer) m.get(key);
             if ((max == null) && (key != ROUTE_DEFAULT)) {
                 // no specific maximum, get the configured default
                 max = (Integer) m.get(ROUTE_DEFAULT);
