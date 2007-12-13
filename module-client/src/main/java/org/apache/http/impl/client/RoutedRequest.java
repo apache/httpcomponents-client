@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.impl.client;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.conn.HttpRoute;

@@ -61,7 +61,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;

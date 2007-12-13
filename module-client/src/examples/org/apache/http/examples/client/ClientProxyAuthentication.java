@@ -33,7 +33,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.params.ConnRoutePNames;
