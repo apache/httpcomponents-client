@@ -456,17 +456,12 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(target, request, context);
     }
 
-    //@@@ to be removed with HTTPCLIENT-715
-    public HttpResponse execute(RoutedRequest roureq) 
-        throws HttpException, IOException, InterruptedException {
-        return execute(roureq, null);
-    }
-
 
     //@@@ to be removed with HTTPCLIENT-715
     public final HttpResponse execute(RoutedRequest roureq,
                                       HttpContext context)
         throws HttpException, IOException, InterruptedException {
+        //throw new UnsupportedOperationException("@@@ execute(roureq,context)");
 
         if (roureq == null) {
             throw new IllegalArgumentException
@@ -489,7 +484,14 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     // non-javadoc, see interface HttpClient
-    //@@@ currently not in interface, will be changed with HTTPCLIENT-715
+    public final HttpResponse execute(HttpHost target, HttpRequest request)
+        throws HttpException, IOException, InterruptedException {
+
+        return execute(target, request, null);
+    }
+
+
+    // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
         throws HttpException, IOException, InterruptedException {

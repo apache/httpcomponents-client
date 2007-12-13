@@ -435,7 +435,7 @@ public class TestRedirects extends ServerTestBase {
 
         RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request);
+            client.execute(request, null);
             fail("RedirectException exception should have been thrown");
         } catch (RedirectException e) {
             // expected
@@ -452,7 +452,7 @@ public class TestRedirects extends ServerTestBase {
 
         RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request);
+            client.execute(request, null);
             fail("CircularRedirectException exception should have been thrown");
         } catch (CircularRedirectException e) {
             // expected
@@ -556,7 +556,7 @@ public class TestRedirects extends ServerTestBase {
 
         RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request);
+            client.execute(request, null);
             fail("ProtocolException exception should have been thrown");
         } catch (ProtocolException e) {
             // expected
@@ -572,7 +572,7 @@ public class TestRedirects extends ServerTestBase {
 
         RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request);
+            client.execute(request, null);
             fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException e) {
             // expected
@@ -591,7 +591,7 @@ public class TestRedirects extends ServerTestBase {
 
         RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request);
+            client.execute(request, null);
             fail("ProtocolException should have been thrown");
         } catch (ProtocolException e) {
             // expected

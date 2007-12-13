@@ -33,6 +33,8 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.params.HttpParams;
@@ -135,6 +137,66 @@ public interface HttpClient {
 
 
     /**
+     * Executes a request to the target using the
+     * {@link #getDefaultContext() default context}.
+     * See there for details.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param context   the context to use for the execution, or
+     *                  <code>null</code> to use the
+     *                  {@link #getDefaultContext default context}
+     *
+     * @return  the response to the request. This is always a final response,
+     *          never an intermediate response with an 1xx status code.
+     *          Whether redirects or authentication challenges will be returned
+     *          or handled automatically depends on the implementation and
+     *          configuration of this client.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
+     * <br/><i @@@>timeout exceptions?</i>
+     */
+    HttpResponse execute(HttpHost target, HttpRequest request)
+        throws HttpException, IOException, InterruptedException
+        ;
+
+
+    /**
+     * Executes a request to the target with the given context.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param context   the context to use for the execution, or
+     *                  <code>null</code> to use the
+     *                  {@link #getDefaultContext default context}
+     *
+     * @return  the response to the request. This is always a final response,
+     *          never an intermediate response with an 1xx status code.
+     *          Whether redirects or authentication challenges will be returned
+     *          or handled automatically depends on the implementation and
+     *          configuration of this client.
+     *
+     * @throws HttpException    in case of a problem
+     * @throws IOException      in case of an IO problem
+     * @throws InterruptedException     in case of an interrupt
+     * <br/><i @@@>timeout exceptions?</i>
+     */
+    HttpResponse execute(HttpHost target, HttpRequest request,
+                         HttpContext context)
+        throws HttpException, IOException, InterruptedException
+        ;
+
+
+
+    /**
      * Executes a request along the given route.
      *
      * @param roureq    the request to execute along with the route
@@ -146,6 +208,8 @@ public interface HttpClient {
      *          {@link #execute(HttpUriRequest,HttpContext)}
      *          for details.
      *
+     * @deprecated pass just the target instead of a route
+     *
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      * @throws InterruptedException     in case of an interrupt
@@ -155,23 +219,5 @@ public interface HttpClient {
         throws HttpException, IOException, InterruptedException
         ;
 
-    /**
-     * Executes a request along the given route using the 
-     * {@link #getDefaultContext() default context}.
-
-     * @param roureq    the request to execute along with the route
-     *
-     * @return  the response to the request. See
-     *          {@link #execute(HttpUriRequest,HttpContext)}
-     *          for details.
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     * @throws InterruptedException     in case of an interrupt
-     * <br/><i @@@>timeout exceptions?</i>
-     */
-    HttpResponse execute(RoutedRequest roureq)
-        throws HttpException, IOException, InterruptedException
-        ;
 
 } // interface HttpClient
