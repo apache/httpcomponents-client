@@ -41,7 +41,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
@@ -110,8 +109,7 @@ public class TestCookie2Support extends ServerTestBase {
         
         HttpGet httpget = new HttpGet("/test/");
         
-        RoutedRequest request1 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response1 = client.execute(request1, context);
+        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
@@ -121,8 +119,7 @@ public class TestCookie2Support extends ServerTestBase {
         assertNotNull(cookies);
         assertEquals(1, cookies.length);
 
-        RoutedRequest request2 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response2 = client.execute(request2, context);
+        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         if (e2 != null) {
             e2.consumeContent();
@@ -163,8 +160,7 @@ public class TestCookie2Support extends ServerTestBase {
         
         HttpGet httpget = new HttpGet("/test/");
         
-        RoutedRequest request1 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response1 = client.execute(request1, context);
+        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
@@ -174,8 +170,7 @@ public class TestCookie2Support extends ServerTestBase {
         assertNotNull(cookies);
         assertEquals(2, cookies.length);
 
-        RoutedRequest request2 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response2 = client.execute(request2, context);
+        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         if (e2 != null) {
             e2.consumeContent();
@@ -214,8 +209,7 @@ public class TestCookie2Support extends ServerTestBase {
         
         HttpGet httpget = new HttpGet("/test/");
         
-        RoutedRequest request1 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response1 = client.execute(request1, context);
+        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
@@ -225,8 +219,7 @@ public class TestCookie2Support extends ServerTestBase {
         assertNotNull(cookies);
         assertEquals(1, cookies.length);
 
-        RoutedRequest request2 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response2 = client.execute(request2, context);
+        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         if (e2 != null) {
             e2.consumeContent();
@@ -267,8 +260,7 @@ public class TestCookie2Support extends ServerTestBase {
         
         HttpGet httpget = new HttpGet("/test/");
         
-        RoutedRequest request1 = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response1 = client.execute(request1, context);
+        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();

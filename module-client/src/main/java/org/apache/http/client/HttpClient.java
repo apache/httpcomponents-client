@@ -195,28 +195,4 @@ public interface HttpClient {
         ;
 
 
-
-    /**
-     * Executes a request along the given route.
-     *
-     * @param roureq    the request to execute along with the route
-     * @param context   the context to use for the execution, or
-     *                  <code>null</code> to use the
-     *                  {@link #getDefaultContext default context}
-     *
-     * @return  the response to the request. See
-     *          {@link #execute(HttpUriRequest,HttpContext)}
-     *          for details.
-     *
-     * @deprecated pass just the target instead of a route
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     * @throws InterruptedException     in case of an interrupt
-     * <br/><i @@@>timeout exceptions?</i>
-     */
-    HttpResponse execute(RoutedRequest roureq, HttpContext context)
-        throws HttpException, IOException, InterruptedException
-        ;
-
 } // interface HttpClient

@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -39,7 +39,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.ServerTestBase;
@@ -50,7 +49,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  *  Simple tests for {@link RequestWrapper}.
  * 
- * @version $Revision:$
+ * @version $Revision$
  */
 public class TestRequestWrapper extends ServerTestBase {
 
@@ -97,8 +96,7 @@ public class TestRequestWrapper extends ServerTestBase {
         String s = "http://localhost:" + port + "/path";
         HttpGet httpget = new HttpGet(s);
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -123,8 +121,7 @@ public class TestRequestWrapper extends ServerTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();

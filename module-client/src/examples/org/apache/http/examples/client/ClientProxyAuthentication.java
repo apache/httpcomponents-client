@@ -36,6 +36,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
@@ -54,16 +55,17 @@ public class ClientProxyAuthentication {
 
         HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https"); 
         HttpHost proxy = new HttpHost("localhost", 8080); 
-        HttpRoute route = new HttpRoute(targetHost, null, proxy, true);
+
+        httpclient.getParams().setParameter
+            (ConnRoutePNames.DEFAULT_PROXY, proxy);
 
         HttpGet httpget = new HttpGet("/");
         
-        RoutedRequest routedReq = new RoutedRequest.Impl(httpget, route); 
-
         System.out.println("executing request: " + httpget.getRequestLine());
-        System.out.println("using route: " + route);
+        System.out.println("via proxy: " + proxy);
+        System.out.println("to target: " + targetHost);
         
-        HttpResponse response = httpclient.execute(routedReq, null);
+        HttpResponse response = httpclient.execute(targetHost, httpget, null);
         HttpEntity entity = response.getEntity();
 
         System.out.println("----------------------------------------");

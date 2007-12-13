@@ -39,13 +39,12 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -101,17 +100,14 @@ public class ClientExecuteProxy {
 
         HttpClient client = createHttpClient();
 
+        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
         HttpRequest req = createRequest();
 
-        final HttpRoute route = new HttpRoute
-            (target, null, proxy,
-             supportedSchemes.getScheme(target).isLayered());
-        final RoutedRequest roureq = new RoutedRequest.Impl(req, route);
-        
         System.out.println("executing request to " + target + " via " + proxy);
         HttpEntity entity = null;
         try {
-            HttpResponse rsp = client.execute(roureq, null);
+            HttpResponse rsp = client.execute(target, req, null);
             entity = rsp.getEntity();
 
             System.out.println("----------------------------------------");

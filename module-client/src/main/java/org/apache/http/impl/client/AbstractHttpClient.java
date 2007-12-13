@@ -49,7 +49,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoutePlanner;
@@ -457,32 +456,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    //@@@ to be removed with HTTPCLIENT-715
-    public final HttpResponse execute(RoutedRequest roureq,
-                                      HttpContext context)
-        throws HttpException, IOException, InterruptedException {
-        //throw new UnsupportedOperationException("@@@ execute(roureq,context)");
-
-        if (roureq == null) {
-            throw new IllegalArgumentException
-                ("Routed request must not be null.");
-        }
-        if (roureq.getRequest() == null) {
-            throw new IllegalArgumentException
-                ("Request must not be null.");
-        }
-        if (roureq.getRoute() == null) {
-            throw new IllegalArgumentException
-                ("Route must not be null.");
-        }
-
-        //@@@ this is a temporary violation of the API
-        //@@@ this method will be removed with HTTPCLIENT-715
-        return execute(roureq.getRoute().getTargetHost(),
-                       roureq.getRequest(), context);
-    }
-
-
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
         throws HttpException, IOException, InterruptedException {
@@ -543,7 +516,7 @@ public abstract class AbstractHttpClient implements HttpClient {
      * and the client parameters.
      * <br/>
      * This method is called by the default implementation of
-     * {@link #execute(RoutedRequest,HttpContext)}
+     * {@link #execute(HttpHost,HttpRequest,HttpContext)}
      * to obtain the parameters for the
      * {@link DefaultClientRequestDirector}.
      *
