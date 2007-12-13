@@ -508,7 +508,8 @@ public abstract class AbstractHttpClient implements HttpClient {
                     determineParams(roureq.getRequest()));
         }
 
-        HttpResponse response = director.execute(roureq, context);
+        HttpResponse response = director.execute(roureq.getRequest(),
+                                                 roureq.getRoute(), context);
         // If the response depends on the connection, the director
         // will have set up an auto-release input stream.
 

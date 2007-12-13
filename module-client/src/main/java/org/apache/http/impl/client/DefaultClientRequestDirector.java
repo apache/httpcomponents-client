@@ -258,10 +258,13 @@ public class DefaultClientRequestDirector
     
     
     // non-javadoc, see interface ClientRequestDirector
-    public HttpResponse execute(RoutedRequest roureq, HttpContext context)
+    public HttpResponse execute(HttpRequest request, HttpRoute route,
+                                HttpContext context)
         throws HttpException, IOException, InterruptedException {
 
-        HttpRequest orig = roureq.getRequest();
+        RoutedRequest roureq = new RoutedRequest.Impl(request, route);
+
+        final HttpRequest orig = request;
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
@@ -271,8 +274,12 @@ public class DefaultClientRequestDirector
         boolean done = false;
         try {
             while (!done) {
+                // In this loop, the RoutedRequest may be replaced by a
+                // followup request and route. The request and route passed
+                // in the method arguments will be replaced. The original
+                // request is still available in 'orig'.
 
-                HttpRoute route = roureq.getRoute();
+                route = roureq.getRoute();
 
                 // Allocate connection if needed
                 if (managedConn == null) {
@@ -303,15 +310,15 @@ public class DefaultClientRequestDirector
                     }
                 }
 
-                // Wrap the original request
-                RequestWrapper request = wrapRequest(roureq.getRequest());
-                request.setParams(this.params);
+                // Wrap the request to be sent, original or followup.
+                RequestWrapper reqwrap = wrapRequest(roureq.getRequest());
+                reqwrap.setParams(this.params);
                 
                 // Re-write request URI if needed
-                rewriteRequestURI(request, route);
+                rewriteRequestURI(reqwrap, route);
                 
                 // Use virtual host if set
-                HttpHost target = (HttpHost) request.getParams().getParameter(
+                HttpHost target = (HttpHost) reqwrap.getParams().getParameter(
                         ClientPNames.VIRTUAL_HOST);
                 
                 if (target == null) {
@@ -331,21 +338,21 @@ public class DefaultClientRequestDirector
                         targetAuthState);
                 context.setAttribute(ClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                requestExec.preProcess(request, httpProcessor, context);
+                requestExec.preProcess(reqwrap, httpProcessor, context);
                 
                 if (orig instanceof AbortableHttpRequest) {
                     ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
                 }
 
                 context.setAttribute(ExecutionContext.HTTP_REQUEST,
-                        request);
+                        reqwrap);
 
                 execCount++;
                 try {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Attempt " + execCount + " to execute request");
                     }
-                    response = requestExec.execute(request, managedConn, context);
+                    response = requestExec.execute(reqwrap, managedConn, context);
                     
                 } catch (IOException ex) {
                     LOG.debug("Closing the connection.");
@@ -369,7 +376,7 @@ public class DefaultClientRequestDirector
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
-                    handleResponse(roureq, request, response, context);
+                    handleResponse(roureq, reqwrap, response, context);
                 if (followup == null) {
                     done = true;
                 } else {
