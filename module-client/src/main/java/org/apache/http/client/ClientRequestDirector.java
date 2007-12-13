@@ -33,11 +33,11 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.conn.HttpRoute; //@@@ replace by HttpTarget
 import org.apache.http.conn.ManagedClientConnection;
 
 
@@ -80,8 +80,11 @@ public interface ClientRequestDirector {
      * This is the same behavior as for <code>HttpMethodDirector</code>
      * in HttpClient 3.
      *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
      * @param request   the request to execute
-     * @param route     the route to the target of the request
      * @param context   the context for executing the request
      *
      * @return  the final response to the request.
@@ -91,7 +94,7 @@ public interface ClientRequestDirector {
      * @throws IOException              in case of an IO problem
      * @throws InterruptedException     in case of an interrupt
      */
-    HttpResponse execute(HttpRequest request, HttpRoute route,
+    HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)
         throws HttpException, IOException, InterruptedException
         ;

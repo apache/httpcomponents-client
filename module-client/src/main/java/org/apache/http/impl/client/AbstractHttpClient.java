@@ -424,9 +424,9 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     /**
-     * Maps to {@link HttpClient#execute(RoutedRequest,HttpContext)
-     *                           execute(roureq, context)}.
-     * The route is computed by {@link #determineRoute determineRoute}.
+     * Maps to {@link HttpClient#execute(HttpHost,HttpRequest,HttpContext)
+     *                           execute(target, request, context)}.
+     * The target is determined from the URI of the request.
      *
      * @param request   the request to execute
      * @param context   the request-specific execution context,
@@ -442,7 +442,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
 
         // A null target may be acceptable if there is a default target.
-        // Otherwise, the null target is detected in determineRoute().
+        // Otherwise, the null target is detected in the director.
         HttpHost target = null;
         
         URI requestURI = request.getURI();
@@ -453,24 +453,17 @@ public abstract class AbstractHttpClient implements HttpClient {
                     requestURI.getScheme());
         }
         
-        synchronized (this) {
-            if (context == null) {
-                context = new BasicHttpContext(getDefaultContext());
-            }
-        }
-        
-        RoutedRequest roureq = determineRoute(target, request, context);
-        return execute(roureq, context);
+        return execute(target, request, context);
     }
 
-    
+    //@@@ to be removed with HTTPCLIENT-715
     public HttpResponse execute(RoutedRequest roureq) 
         throws HttpException, IOException, InterruptedException {
         return execute(roureq, null);
     }
 
 
-    // non-javadoc, see interface HttpClient
+    //@@@ to be removed with HTTPCLIENT-715
     public final HttpResponse execute(RoutedRequest roureq,
                                       HttpContext context)
         throws HttpException, IOException, InterruptedException {
@@ -488,6 +481,26 @@ public abstract class AbstractHttpClient implements HttpClient {
                 ("Route must not be null.");
         }
 
+        //@@@ this is a temporary violation of the API
+        //@@@ this method will be removed with HTTPCLIENT-715
+        return execute(roureq.getRoute().getTargetHost(),
+                       roureq.getRequest(), context);
+    }
+
+
+    // non-javadoc, see interface HttpClient
+    //@@@ currently not in interface, will be changed with HTTPCLIENT-715
+    public final HttpResponse execute(HttpHost target, HttpRequest request,
+                                      HttpContext context)
+        throws HttpException, IOException, InterruptedException {
+
+        if (request == null) {
+            throw new IllegalArgumentException
+                ("Request must not be null.");
+        }
+        // a null target may be acceptable, this depends on the route planner
+        // a null context is acceptable, default context created below
+
         ClientRequestDirector director = null;
         
         // Initialize the request execution context making copies of 
@@ -500,16 +513,16 @@ public abstract class AbstractHttpClient implements HttpClient {
             director = new DefaultClientRequestDirector(
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
+                    getRoutePlanner(),
                     getHttpProcessor().copy(),
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
                     getTargetAuthenticationHandler(),
                     getProxyAuthenticationHandler(),
-                    determineParams(roureq.getRequest()));
+                    determineParams(request));
         }
 
-        HttpResponse response = director.execute(roureq.getRequest(),
-                                                 roureq.getRoute(), context);
+        HttpResponse response = director.execute(target, request, context);
         // If the response depends on the connection, the director
         // will have set up an auto-release input stream.
 
@@ -540,32 +553,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         return new ClientParamsStack
             (null, getParams(), req.getParams(), null);
     }
-
-
-    /**
-     * Determines the route for a request.
-     * Called by {@link #execute(HttpUriRequest,HttpContext)
-     *                   execute(urirequest, context)}
-     * to map to {@link HttpClient#execute(RoutedRequest,HttpContext)
-     *                             execute(roureq, context)}.
-     *
-     * @param target    the target host for the request.
-     *                  Implementations may accept <code>null</code>
-     *                  if they can still determine a route, for example
-     *                  to a default target or by inspecting the request.
-     * @param request   the request to execute
-     * @param context   the context to use for the execution,
-     *                  never <code>null</code>
-     *
-     * @return  the request along with the route it should take
-     *
-     * @throws HttpException    in case of a problem
-     */
-    protected abstract RoutedRequest determineRoute(HttpHost target,
-                                                    HttpRequest request,
-                                                    HttpContext context)
-        throws HttpException
-        ;
 
 
 } // class AbstractHttpClient

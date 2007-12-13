@@ -71,6 +71,7 @@ import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.HttpRouteDirector;
 import org.apache.http.conn.BasicRouteDirector;
@@ -107,6 +108,9 @@ public class DefaultClientRequestDirector
     
     /** The connection manager. */
     protected final ClientConnectionManager connManager;
+
+    /** The route planner. */
+    protected final HttpRoutePlanner routePlanner;
 
     /** The connection re-use strategy. */
     protected final ConnectionReuseStrategy reuseStrategy;
@@ -146,6 +150,7 @@ public class DefaultClientRequestDirector
     public DefaultClientRequestDirector(
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
+            final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
             final RedirectHandler redirectHandler,
@@ -154,31 +159,44 @@ public class DefaultClientRequestDirector
             final HttpParams params) {
 
         if (conman == null) {
-            throw new IllegalArgumentException("Client connection manager may not be null");
+            throw new IllegalArgumentException
+                ("Client connection manager may not be null.");
         }
         if (reustrat == null) {
-            throw new IllegalArgumentException("Connection reuse strategy may not be null");
+            throw new IllegalArgumentException
+                ("Connection reuse strategy may not be null.");
+        }
+        if (rouplan == null) {
+            throw new IllegalArgumentException
+                ("Route planner may not be null.");
         }
         if (httpProcessor == null) {
-            throw new IllegalArgumentException("HTTP protocol processor may not be null");
+            throw new IllegalArgumentException
+                ("HTTP protocol processor may not be null.");
         }
         if (retryHandler == null) {
-            throw new IllegalArgumentException("HTTP request retry handler may not be null");
+            throw new IllegalArgumentException
+                ("HTTP request retry handler may not be null.");
         }
         if (redirectHandler == null) {
-            throw new IllegalArgumentException("Redirect handler may not be null");
+            throw new IllegalArgumentException
+                ("Redirect handler may not be null.");
         }
         if (targetAuthHandler == null) {
-            throw new IllegalArgumentException("Target authentication handler may not be null");
+            throw new IllegalArgumentException
+                ("Target authentication handler may not be null.");
         }
         if (proxyAuthHandler == null) {
-            throw new IllegalArgumentException("Proxy authentication handler may not be null");
+            throw new IllegalArgumentException
+                ("Proxy authentication handler may not be null.");
         }
         if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
+            throw new IllegalArgumentException
+                ("HTTP parameters may not be null");
         }
         this.connManager       = conman;
         this.reuseStrategy     = reustrat;
+        this.routePlanner      = rouplan;
         this.httpProcessor     = httpProcessor;
         this.retryHandler      = retryHandler;
         this.redirectHandler   = redirectHandler;
@@ -258,11 +276,11 @@ public class DefaultClientRequestDirector
     
     
     // non-javadoc, see interface ClientRequestDirector
-    public HttpResponse execute(HttpRequest request, HttpRoute route,
+    public HttpResponse execute(HttpHost target, HttpRequest request,
                                 HttpContext context)
         throws HttpException, IOException, InterruptedException {
 
-        RoutedRequest roureq = new RoutedRequest.Impl(request, route);
+        RoutedRequest roureq = determineRoute(target, request, context);
 
         final HttpRequest orig = request;
 
@@ -279,7 +297,7 @@ public class DefaultClientRequestDirector
                 // in the method arguments will be replaced. The original
                 // request is still available in 'orig'.
 
-                route = roureq.getRoute();
+                HttpRoute route = roureq.getRoute();
 
                 // Allocate connection if needed
                 if (managedConn == null) {
@@ -316,17 +334,17 @@ public class DefaultClientRequestDirector
                 
                 // Re-write request URI if needed
                 rewriteRequestURI(reqwrap, route);
-                
+
                 // Use virtual host if set
-                HttpHost target = (HttpHost) reqwrap.getParams().getParameter(
+                target = (HttpHost) reqwrap.getParams().getParameter(
                         ClientPNames.VIRTUAL_HOST);
-                
+
                 if (target == null) {
                     target = route.getTargetHost();
                 }
 
                 HttpHost proxy = route.getProxyHost();
-                
+
                 // Populate the execution context
                 context.setAttribute(ExecutionContext.HTTP_TARGET_HOST,
                         target);
@@ -441,6 +459,44 @@ public class DefaultClientRequestDirector
             throw ex;
         }
     } // execute
+
+
+    /**
+     * Determines the route for a request.
+     * Called by {@link #execute}
+     * to determine the route for either the original or a followup request.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param context   the context to use for the execution,
+     *                  never <code>null</code>
+     *
+     * @return  the request along with the route it should take
+     *
+     * @throws HttpException    in case of a problem
+     */
+    protected RoutedRequest determineRoute(HttpHost    target,
+                                           HttpRequest request,
+                                           HttpContext context)
+        throws HttpException {
+
+        if (target == null) {
+            target = (HttpHost) request.getParams().getParameter(
+                ClientPNames.DEFAULT_HOST);
+        }
+        if (target == null) {
+            throw new IllegalStateException
+                ("Target host must not be null, or set in parameters.");
+        }
+
+        final HttpRoute route =
+            this.routePlanner.determineRoute(target, request, context);
+
+        return new RoutedRequest.Impl(request, route);
+    }
 
 
     /**

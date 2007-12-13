@@ -286,28 +286,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     // non-javadoc, see base class AbstractHttpClient
-    protected RoutedRequest determineRoute(HttpHost target,
-                                           HttpRequest request,
-                                           HttpContext context)
-        throws HttpException {
-
-        if (target == null) {
-            target = (HttpHost) request.getParams().getParameter(
-                ClientPNames.DEFAULT_HOST);
-        }
-        if (target == null) {
-            throw new IllegalStateException
-                ("Target host must not be null, or set in parameters.");
-        }
-
-        HttpRoute route = getRoutePlanner()
-            .determineRoute(target, request, context);
-
-        return new RoutedRequest.Impl(request, route);
-    }
-
-
-    // non-javadoc, see base class AbstractHttpClient
     protected HttpRoutePlanner createHttpRoutePlanner() {
         return new DefaultHttpRoutePlanner(getConnectionManager());
     }
