@@ -53,7 +53,7 @@ public class RefQueueWorker implements Runnable {
 
 
     /** The reference queue to monitor. */
-    protected final ReferenceQueue refQueue;
+    protected final ReferenceQueue<?> refQueue;
 
     /** The handler for the references found. */
     protected final RefQueueHandler refHandler;
@@ -72,7 +72,7 @@ public class RefQueueWorker implements Runnable {
      * @param queue     the queue on which to wait for references
      * @param handler   the handler to pass the references to
      */
-    public RefQueueWorker(ReferenceQueue queue, RefQueueHandler handler) {
+    public RefQueueWorker(ReferenceQueue<?> queue, RefQueueHandler handler) {
         if (queue == null) {
             throw new IllegalArgumentException("Queue must not be null.");
         }
@@ -100,7 +100,7 @@ public class RefQueueWorker implements Runnable {
         while (this.workerThread == Thread.currentThread()) {
             try {
                 // remove the next reference and process it
-                Reference ref = refQueue.remove();
+                Reference<?> ref = refQueue.remove();
                 refHandler.handleReference(ref);
             } catch (InterruptedException e) {
                 //@@@ is logging really necessary? this here is the

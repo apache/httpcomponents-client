@@ -302,7 +302,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // We now drop the hard references to the connection and trigger GC.
-        WeakReference wref = new WeakReference(conn);
+        WeakReference<ManagedClientConnection> wref = 
+            new WeakReference<ManagedClientConnection>(conn);
         conn = null;
         httpContext = null; // holds a reference to the connection
 
@@ -356,7 +357,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // we got from the manager, directly as well as in the request
         // and in the context. The manager will be GCed only if the
         // connection wrapper is truly detached.
-        WeakReference wref = new WeakReference(mgr);
+        WeakReference<ThreadSafeClientConnManager> wref = 
+            new WeakReference<ThreadSafeClientConnManager>(mgr);
         mgr = null;
 
         // Java does not guarantee that this will trigger the GC, but

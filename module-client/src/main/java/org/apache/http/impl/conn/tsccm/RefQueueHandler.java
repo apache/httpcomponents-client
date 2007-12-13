@@ -43,6 +43,6 @@ public interface RefQueueHandler {
      *
      * @param ref       the reference to handle
      */
-    public void handleReference(Reference ref)
+    public void handleReference(Reference<?> ref)
         ;
 }

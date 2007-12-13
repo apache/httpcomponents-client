@@ -185,7 +185,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
 
     // non-javadoc, see interface RefQueueHandler
-    public synchronized void handleReference(Reference ref) {
+    public synchronized void handleReference(Reference<?> ref) {
 
         if (ref instanceof BasicPoolEntryRef) {
             // check if the GCed pool entry was still in use

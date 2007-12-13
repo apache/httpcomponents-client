@@ -484,7 +484,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     // non-javadoc, see base class AbstractConnPool
     public synchronized void deleteClosedConnections() {
 
-        Iterator iter = freeConnections.iterator();
+        Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
         while (iter.hasNext()) {
             BasicPoolEntry entry = (BasicPoolEntry) iter.next();
             if (!entry.getConnection().isOpen()) {
