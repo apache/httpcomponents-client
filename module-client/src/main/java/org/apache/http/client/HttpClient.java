@@ -219,5 +219,4 @@ public interface HttpClient {
         throws HttpException, IOException, InterruptedException
         ;
 
-
 } // interface HttpClient

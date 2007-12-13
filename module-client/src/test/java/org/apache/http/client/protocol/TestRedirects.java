@@ -45,7 +45,6 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.RedirectException;
-import org.apache.http.client.RoutedRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
@@ -244,8 +243,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -269,8 +267,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -298,8 +295,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -327,8 +323,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -356,8 +351,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -381,8 +375,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -406,8 +399,7 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -433,9 +425,8 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request, null);
+            client.execute(getServerHttp(), httpget);
             fail("RedirectException exception should have been thrown");
         } catch (RedirectException e) {
             // expected
@@ -450,9 +441,8 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request, null);
+            client.execute(getServerHttp(), httpget);
             fail("CircularRedirectException exception should have been thrown");
         } catch (CircularRedirectException e) {
             // expected
@@ -470,8 +460,7 @@ public class TestRedirects extends ServerTestBase {
         HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
 
-        RoutedRequest request = new RoutedRequest.Impl(httppost, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httppost, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -497,8 +486,7 @@ public class TestRedirects extends ServerTestBase {
                 ClientPNames.REJECT_RELATIVE_REDIRECT, false);
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -527,8 +515,7 @@ public class TestRedirects extends ServerTestBase {
                 ClientPNames.REJECT_RELATIVE_REDIRECT, false);
         HttpGet httpget = new HttpGet("/test/oldlocation");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute()); 
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -554,9 +541,8 @@ public class TestRedirects extends ServerTestBase {
                 ClientPNames.REJECT_RELATIVE_REDIRECT, true);
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request, null);
+            client.execute(getServerHttp(), httpget);
             fail("ProtocolException exception should have been thrown");
         } catch (ProtocolException e) {
             // expected
@@ -570,9 +556,8 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request, null);
+            client.execute(getServerHttp(), httpget);
             fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException e) {
             // expected
@@ -589,9 +574,8 @@ public class TestRedirects extends ServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         try {
-            client.execute(request, null);
+            client.execute(getServerHttp(), httpget);
             fail("ProtocolException should have been thrown");
         } catch (ProtocolException e) {
             // expected
@@ -619,9 +603,8 @@ public class TestRedirects extends ServerTestBase {
         HttpContext context = client.getDefaultContext();
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
@@ -654,9 +637,8 @@ public class TestRedirects extends ServerTestBase {
         
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        RoutedRequest request = new RoutedRequest.Impl(httpget, getDefaultRoute());
         
-        HttpResponse response = client.execute(request, context);
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();

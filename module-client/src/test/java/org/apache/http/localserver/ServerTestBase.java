@@ -176,13 +176,14 @@ public abstract class ServerTestBase extends TestCase {
                             "http");
     }
 
+
     /**
      * Obtains the default route to the local test server.
      *
      * @return the default route to the local test server
      */
     protected HttpRoute getDefaultRoute() {
-        return new HttpRoute(new HttpHost("localhost", localServer.getServicePort())); 
+        return new HttpRoute(getServerHttp());
     }
     
 
