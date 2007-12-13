@@ -373,13 +373,17 @@ public class DefaultClientRequestDirector
                 if (followup == null) {
                     done = true;
                 } else {
-                    if (this.reuseStrategy.keepAlive(response, context)) {
+                    boolean reuse = reuseStrategy.keepAlive(response, context);
+                    if (reuse) {
                         LOG.debug("Connection kept alive");
                         // Make sure the response body is fully consumed, if present
                         HttpEntity entity = response.getEntity();
                         if (entity != null) {
                             entity.consumeContent();
                         }
+                        // entity consumed above is not an auto-release entity,
+                        // need to mark the connection re-usable explicitly
+                        managedConn.markReusable();
                     } else {
                         managedConn.close();
                     }
