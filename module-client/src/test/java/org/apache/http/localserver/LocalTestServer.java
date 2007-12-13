@@ -285,8 +285,8 @@ public class LocalTestServer {
     public class RequestListener implements Runnable {
 
         /** The workers launched from here. */
-        private Set workerThreads =
-            Collections.synchronizedSet(new HashSet());
+        private Set<Thread> workerThreads =
+            Collections.synchronizedSet(new HashSet<Thread>());
 
 
         public void run() {

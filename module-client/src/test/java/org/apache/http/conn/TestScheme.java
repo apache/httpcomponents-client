@@ -150,7 +150,7 @@ public class TestScheme extends TestCase {
     public void testIterator() {
         SchemeRegistry schmreg = new SchemeRegistry();
 
-        List names = schmreg.getSchemeNames();
+        List<String> names = schmreg.getSchemeNames();
         assertNotNull(names);
         assertTrue(names.isEmpty());
 

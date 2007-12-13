@@ -647,7 +647,7 @@ public class TestRedirects extends ServerTestBase {
         DefaultHttpClient client = new DefaultHttpClient(); 
         HttpContext context = client.getDefaultContext();
 
-        List defaultHeaders = new ArrayList(1);
+        List<Header> defaultHeaders = new ArrayList<Header>(1);
         defaultHeaders.add(new BasicHeader(HTTP.USER_AGENT, "my-test-client"));
         
         client.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, defaultHeaders);

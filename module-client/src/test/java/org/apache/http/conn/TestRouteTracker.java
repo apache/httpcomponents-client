@@ -33,7 +33,7 @@ package org.apache.http.conn;
 
 import java.net.InetAddress;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Set;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -414,14 +414,14 @@ public class TestRouteTracker extends TestCase {
         // rt0 -> direct connection
         // rt1 -> via single proxy
         // rt2 -> via proxy chain
-        HashSet hs = new HashSet();
+        Set<RouteTracker> hs = new HashSet<RouteTracker>();
 
         // we also collect hashcodes for the different paths
         // since we can't guarantee what influence the HttpHost hashcodes have,
         // we keep separate sets here
-        HashSet hc0 = new HashSet();
-        HashSet hc4 = new HashSet();
-        HashSet hc6 = new HashSet();
+        Set<Integer> hc0 = new HashSet<Integer>();
+        Set<Integer> hc4 = new HashSet<Integer>();
+        Set<Integer> hc6 = new HashSet<Integer>();
 
         RouteTracker rt = null;
 
@@ -447,106 +447,104 @@ public class TestRouteTracker extends TestCase {
         // proxy (insecure) -> tunnel (insecure) -> layer (secure)
         rt = (RouteTracker) rt4.clone();
         rt.connectProxy(PROXY1, false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
         rt.tunnelTarget(false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
         rt.layerProtocol(true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
 
         // proxy (secure) -> tunnel (secure) -> layer (insecure)
         rt = (RouteTracker) rt4.clone();
         rt.connectProxy(PROXY1, true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
         rt.tunnelTarget(true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
         rt.layerProtocol(false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc4.add(new Integer(rt.hashCode())));
 
 
         // PROXY1/i -> PROXY2/i -> tunnel/i -> layer/s
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY1, false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelProxy(PROXY2, false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelTarget(false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.layerProtocol(true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
 
         // PROXY1/s -> PROXY2/s -> tunnel/s -> layer/i
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY1, true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelProxy(PROXY2, true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelTarget(true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.layerProtocol(false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
 
         // PROXY2/i -> PROXY1/i -> tunnel/i -> layer/s
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY2, false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
         assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelProxy(PROXY1, false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
         // assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.tunnelTarget(false);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
         // assertTrue(hc6.add(new Integer(rt.hashCode())));
 
         rt.layerProtocol(true);
-        assertTrue(hs.add(rt.clone()));
+        assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
         // assertTrue(hc6.add(new Integer(rt.hashCode())));
 
 
         // check that all toString are OK and different
-        HashSet rtstrings = new HashSet();
-        Iterator iter = hs.iterator();
-        while (iter.hasNext()) {
-            rt = (RouteTracker) iter.next();
-            final String rts = checkToString(rt);
+        Set<String> rtstrings = new HashSet<String>();
+        for (RouteTracker current: hs) {
+            final String rts = checkToString(current);
             assertTrue("duplicate toString: " + rts, rtstrings.add(rts));
         }
     }

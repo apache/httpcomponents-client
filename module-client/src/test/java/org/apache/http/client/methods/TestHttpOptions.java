@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -68,7 +68,7 @@ public class TestHttpOptions extends TestCase {
         resp.addHeader("Allow", "GET");
 
         HttpOptions opt = new HttpOptions();
-        Set methodsName = opt.getAllowedMethods(resp);
+        Set<String> methodsName = opt.getAllowedMethods(resp);
         
         assertTrue(methodsName.contains("POST"));
         assertTrue(methodsName.contains("GET"));
