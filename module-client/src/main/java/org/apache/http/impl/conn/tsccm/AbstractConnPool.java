@@ -256,7 +256,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         while (iter.hasNext()) {
             BasicPoolEntryRef per = iter.next();
             iter.remove();
-            BasicPoolEntry entry = (BasicPoolEntry) per.get();
+            BasicPoolEntry entry = per.get();
             if (entry != null) {
                 closeConnection(entry.getConnection());
             }

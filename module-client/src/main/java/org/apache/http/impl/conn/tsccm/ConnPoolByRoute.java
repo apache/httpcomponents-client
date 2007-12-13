@@ -486,7 +486,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
         while (iter.hasNext()) {
-            BasicPoolEntry entry = (BasicPoolEntry) iter.next();
+            BasicPoolEntry entry = iter.next();
             if (!entry.getConnection().isOpen()) {
                 iter.remove();
                 deleteEntry(entry);

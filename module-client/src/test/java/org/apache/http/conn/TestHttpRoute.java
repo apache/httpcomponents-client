@@ -34,6 +34,7 @@ package org.apache.http.conn;
 import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -198,7 +199,7 @@ public class TestHttpRoute extends TestCase {
         assertTrue ("routettt.layer" , routettt.isLayered());
 
 
-        HashSet<HttpRoute> routes = new HashSet<HttpRoute>();
+        Set<HttpRoute> routes = new HashSet<HttpRoute>();
         routes.add(routefff);
         routes.add(routefft);
         routes.add(routeftf);
@@ -211,7 +212,7 @@ public class TestHttpRoute extends TestCase {
 
         // we can't test hashCode in general due to it's dependency
         // on InetAddress and HttpHost, but we can check for the flags
-        HashSet<Integer> routecodes = new HashSet<Integer>();
+        Set<Integer> routecodes = new HashSet<Integer>();
         routecodes.add(new Integer(routefff.hashCode()));
         routecodes.add(new Integer(routefft.hashCode()));
         routecodes.add(new Integer(routeftf.hashCode()));
@@ -223,7 +224,7 @@ public class TestHttpRoute extends TestCase {
         assertEquals("some flagged routes have same hashCode",
                      8, routecodes.size());
 
-        HashSet<String> routestrings = new HashSet<String>();
+        Set<String> routestrings = new HashSet<String>();
         routestrings.add(routefff.toString());
         routestrings.add(routefft.toString());
         routestrings.add(routeftf.toString());
@@ -390,7 +391,7 @@ public class TestHttpRoute extends TestCase {
 
         // now check that all of the routes are different from eachother
         // except for those that aren't :-)
-        HashSet<HttpRoute> routes = new HashSet<HttpRoute>();
+        Set<HttpRoute> routes = new HashSet<HttpRoute>();
         routes.add(route1a);
         routes.add(route2a);
         routes.add(route2b);
@@ -415,7 +416,7 @@ public class TestHttpRoute extends TestCase {
         }
 
         // and don't forget toString
-        HashSet<String> routestrings = new HashSet<String>();
+        Set<String> routestrings = new HashSet<String>();
         routestrings.add(route1a.toString());
         routestrings.add(route2a.toString());
         routestrings.add(route2b.toString());
