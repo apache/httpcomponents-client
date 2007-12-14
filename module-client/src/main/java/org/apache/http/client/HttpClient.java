@@ -146,9 +146,6 @@ public interface HttpClient {
      *                  if they can still determine a route, for example
      *                  to a default target or by inspecting the request.
      * @param request   the request to execute
-     * @param context   the context to use for the execution, or
-     *                  <code>null</code> to use the
-     *                  {@link #getDefaultContext default context}
      *
      * @return  the response to the request. This is always a final response,
      *          never an intermediate response with an 1xx status code.
