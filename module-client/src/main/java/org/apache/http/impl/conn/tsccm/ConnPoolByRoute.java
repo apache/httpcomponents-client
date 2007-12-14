@@ -240,7 +240,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         startWait = System.currentTimeMillis();
                     }
 
-                    rospl.waitingThreads.addLast(waitingThread);
+                    rospl.queueThread(waitingThread);
                     waitingThreads.add(waitingThread);
                     wait(timeToWait);
 
@@ -259,8 +259,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         // Either we timed out, experienced a
                         // "spurious wakeup", or were interrupted by an
                         // external thread.  Regardless we need to 
-                            // cleanup for ourselves in the wait queue.
-                        rospl.waitingThreads.remove(waitingThread);
+                        // cleanup for ourselves in the wait queue.
+                        rospl.removeThread(waitingThread);
                         waitingThreads.remove(waitingThread);
                     }
 
@@ -455,12 +455,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
         // it from all wait queues before interrupting.
         WaitingThread waitingThread = null;
 
-        if ((rospl != null) && !rospl.waitingThreads.isEmpty()) {
+        if ((rospl != null) && rospl.hasThread()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Notifying thread waiting on pool. "
                           + rospl.getRoute());
             }
-            waitingThread = (WaitingThread) rospl.waitingThreads.removeFirst();
+            waitingThread = rospl.dequeueThread();
             waitingThreads.remove(waitingThread);
 
         } else if (!waitingThreads.isEmpty()) {
@@ -468,7 +468,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 LOG.debug("Notifying thread waiting on any pool.");
             }
             waitingThread = waitingThreads.remove();
-            waitingThread.pool.waitingThreads.remove(waitingThread);
+            waitingThread.pool.removeThread(waitingThread);
 
         } else if (LOG.isDebugEnabled()) {
             LOG.debug("Notifying no-one, there are no waiting threads");

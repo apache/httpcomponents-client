@@ -30,6 +30,7 @@
 
 package org.apache.http.impl.conn.tsccm;
 
+import java.util.Queue;
 import java.util.LinkedList;
 
 import org.apache.http.conn.HttpRoute;
@@ -41,31 +42,32 @@ import org.apache.http.conn.HttpRoute;
  */
 public class RouteSpecificPool {
 
-    //@@@ change attribute visibility to protected once it is ensured
-    //@@@ that there is no direct attribute access within this package
-
     /** The route this pool is for. */
-    private final HttpRoute route;
+    protected final HttpRoute route;
 
-    /** The list of free entries. */
-    private LinkedList<BasicPoolEntry> freeEntries;
+    /**
+     * The list of free entries.
+     * This list is managed LIFO, to increase idle times and
+     * allow for closing connections that are not really needed.
+     */
+    protected LinkedList<BasicPoolEntry> freeEntries;
 
     /** The list of threads waiting for this pool. */
-    /*private@@@ currently still default*/ LinkedList<Object> waitingThreads;
+    protected Queue<ConnPoolByRoute.WaitingThread> waitingThreads;
 
     /** The number of created entries. */
-    private int numEntries;
+    protected int numEntries;
 
 
     /**
      * Creates a new route-specific pool.
      *
      * @param r     the route for which to pool
-         */
+     */
     public RouteSpecificPool(HttpRoute r) {
         this.route = r;
         this.freeEntries = new LinkedList<BasicPoolEntry>();
-        this.waitingThreads = new LinkedList<Object>();
+        this.waitingThreads = new LinkedList<ConnPoolByRoute.WaitingThread>();
         this.numEntries = 0;
     }
 
@@ -194,6 +196,57 @@ public class RouteSpecificPool {
                 ("There is no entry that could be dropped.");
         }
         numEntries--;
+    }
+
+
+    /**
+     * Adds a waiting thread.
+     * This pool makes no attempt to match waiting threads with pool entries.
+     * It is the caller's responsibility to check that there is no entry
+     * before adding a waiting thread.
+     *
+     * @param wt        the waiting thread
+     */
+    public void queueThread(ConnPoolByRoute.WaitingThread wt) {
+        if (wt == null) {
+            throw new IllegalArgumentException
+                ("Waiting thread must not be null.");
+        }
+        this.waitingThreads.add(wt);
+    }
+
+
+    /**
+     * Checks whether there is a waiting thread in this pool.
+     *
+     * @return  <code>true</code> if there is a waiting thread,
+     *          <code>false</code> otherwise
+     */
+    public boolean hasThread() {
+        return !this.waitingThreads.isEmpty();
+    }
+
+
+    /**
+     * Obtains and removes a waiting thread.
+     *
+     * @return  a waiting thread, or <code>null</code> if there is none
+     */
+    public ConnPoolByRoute.WaitingThread dequeueThread() {
+        return this.waitingThreads.poll();
+    }
+
+
+    /**
+     * Removes a waiting thread, if it is queued.
+     *
+     * @param wt        the waiting thread
+     */
+    public void removeThread(ConnPoolByRoute.WaitingThread wt) {
+        if (wt == null)
+            return;
+
+        this.waitingThreads.remove(wt);
     }
 
 
