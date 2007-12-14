@@ -32,6 +32,7 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -66,10 +67,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     /** The list of free connections */
-    private LinkedList<BasicPoolEntry> freeConnections;
+    private Queue<BasicPoolEntry> freeConnections;
 
     /** The list of WaitingThreads waiting for a connection */
-    private LinkedList<WaitingThread> waitingThreads;
+    private Queue<WaitingThread> waitingThreads;
 
     /**
      * A map of route-specific pools.
@@ -113,6 +114,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(ClientConnectionManager mgr) {
         super(mgr);
 
+        //@@@ use factory method, at least for waitingThreads
         freeConnections = new LinkedList<BasicPoolEntry>();
         waitingThreads = new LinkedList<WaitingThread>();
         routeToPool = new HashMap<HttpRoute,RouteSpecificPool>();
@@ -239,7 +241,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     }
 
                     rospl.waitingThreads.addLast(waitingThread);
-                    waitingThreads.addLast(waitingThread);
+                    waitingThreads.add(waitingThread);
                     wait(timeToWait);
 
                 } catch (InterruptedException e) {
@@ -412,7 +414,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         //@@@ with get() instead of remove, we could
         //@@@ leave the removing to deleteEntry()
-        BasicPoolEntry entry = (BasicPoolEntry) freeConnections.removeFirst();
+        BasicPoolEntry entry = freeConnections.remove();
 
         if (entry != null) {
             deleteEntry(entry);
@@ -465,7 +467,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Notifying thread waiting on any pool.");
             }
-            waitingThread = waitingThreads.removeFirst();
+            waitingThread = waitingThreads.remove();
             waitingThread.pool.waitingThreads.remove(waitingThread);
 
         } else if (LOG.isDebugEnabled()) {
