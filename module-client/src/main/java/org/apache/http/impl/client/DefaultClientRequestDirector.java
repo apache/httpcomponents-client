@@ -32,7 +32,6 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -833,7 +832,6 @@ public class DefaultClientRequestDirector
         HttpRoute route = roureq.getRoute();
         HttpHost target = route.getTargetHost();
         HttpHost proxy = route.getProxyHost();
-        InetAddress localAddress = route.getLocalAddress();
         
         HttpParams params = request.getParams();
         if (HttpClientParams.isRedirecting(params) && 
@@ -852,24 +850,15 @@ public class DefaultClientRequestDirector
                     uri.getPort(),
                     uri.getScheme());
             
-            Scheme schm = connManager.getSchemeRegistry().
-                getScheme(newTarget.getSchemeName());
-            
-            HttpRoute newRoute = new HttpRoute(
-                    newTarget,
-                    localAddress,
-                    proxy,
-                    schm.isLayered(),
-                    (proxy != null),
-                    (proxy != null));
-
             HttpGet redirect = new HttpGet(uri);
+            redirect.setParams(params);
+            RoutedRequest newRequest = determineRoute(newTarget, redirect, context);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Redirecting to '" + uri + "' via " + newRoute);
+                LOG.debug("Redirecting to '" + uri + "' via " + newRequest.getRoute());
             }
             
-            return new RoutedRequest.Impl(redirect, newRoute);
+            return newRequest;
         }
 
         CredentialsProvider credsProvider = (CredentialsProvider)

@@ -32,9 +32,6 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
@@ -43,8 +40,8 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
@@ -53,7 +50,6 @@ import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
-import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
