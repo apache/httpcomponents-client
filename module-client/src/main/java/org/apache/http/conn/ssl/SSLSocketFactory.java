@@ -289,9 +289,11 @@ public class SSLSocketFactory implements LayeredSocketFactory {
             sslock.bind(isa);
         }
 
-        int timeout = HttpConnectionParams.getConnectionTimeout(params);
-        sslock.connect(target, timeout);
+        int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
+        int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
+        sslock.connect(target, connTimeout);
+        sslock.setSoTimeout(soTimeout);
         try {
             hostnameVerifier.verify(host, sslock);
             // verifyHostName() didn't blowup - good!
