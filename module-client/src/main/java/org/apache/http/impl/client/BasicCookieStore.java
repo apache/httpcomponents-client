@@ -31,9 +31,11 @@
 package org.apache.http.impl.client;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
@@ -114,13 +116,13 @@ public class BasicCookieStore implements CookieStore {
     }
 
     /**
-     * Returns an array of {@link Cookie cookies} that this HTTP
+     * Returns an immutable array of {@link Cookie cookies} that this HTTP
      * state currently contains.
      * 
      * @return an array of {@link Cookie cookies}.
      */
-    public synchronized Cookie[] getCookies() {
-        return (Cookie[]) (cookies.toArray(new Cookie[cookies.size()]));
+    public synchronized List<Cookie> getCookies() {
+        return Collections.unmodifiableList(this.cookies);
     }
 
     /**

@@ -146,11 +146,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get an instance of the selected cookie policy
         CookieSpec cookieSpec = registry.getCookieSpec(policy, request.getParams());
         // Get all cookies available in the HTTP state
-        Cookie[] cookies = cookieStore.getCookies();
+        List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
-        List<Cookie> matchedCookies = new ArrayList<Cookie>(cookies.length);
-        for (int i = 0; i < cookies.length; i++) {
-            Cookie cookie = cookies[i];
+        List<Cookie> matchedCookies = new ArrayList<Cookie>();
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
             if (cookieSpec.match(cookie, cookieOrigin)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Cookie " + cookie + " match " + cookieOrigin);
@@ -169,8 +169,9 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         int ver = cookieSpec.getVersion();
         if (ver > 0) {
             boolean needVersionHeader = false;
-            for (int i = 0; i < cookies.length; i++) {
-                if (ver != cookies[i].getVersion()) {
+            for (int i = 0; i < matchedCookies.size(); i++) {
+                Cookie cookie = matchedCookies.get(i);
+                if (ver != cookie.getVersion()) {
                     needVersionHeader = true;
                 }
             }

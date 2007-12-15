@@ -29,6 +29,8 @@
 
 package org.apache.http.examples.client;
 
+import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -64,12 +66,12 @@ public class ClientFormLogin {
             entity.consumeContent();
         }
         System.out.println("Initial set of cookies:");    
-        Cookie[] cookies = httpclient.getCookieStore().getCookies();
-        if (cookies.length == 0) {
+        List<Cookie> cookies = httpclient.getCookieStore().getCookies();
+        if (cookies.isEmpty()) {
             System.out.println("None");    
         } else {
-            for (int i = 0; i < cookies.length; i++) {
-                System.out.println("- " + cookies[i].toString());    
+            for (int i = 0; i < cookies.size(); i++) {
+                System.out.println("- " + cookies.get(i).toString());    
             }
         }
         
@@ -95,11 +97,11 @@ public class ClientFormLogin {
         
         System.out.println("Post logon cookies:");    
         cookies = httpclient.getCookieStore().getCookies();
-        if (cookies.length == 0) {
+        if (cookies.isEmpty()) {
             System.out.println("None");    
         } else {
-            for (int i = 0; i < cookies.length; i++) {
-                System.out.println("- " + cookies[i].toString());    
+            for (int i = 0; i < cookies.size(); i++) {
+                System.out.println("- " + cookies.get(i).toString());    
             }
         }
     }

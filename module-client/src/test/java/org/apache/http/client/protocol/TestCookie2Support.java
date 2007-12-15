@@ -29,6 +29,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -115,9 +116,9 @@ public class TestCookie2Support extends ServerTestBase {
             e1.consumeContent();
         }
         
-        Cookie[] cookies = cookieStore.getCookies();
+        List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
-        assertEquals(1, cookies.length);
+        assertEquals(1, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -166,9 +167,9 @@ public class TestCookie2Support extends ServerTestBase {
             e1.consumeContent();
         }
         
-        Cookie[] cookies = cookieStore.getCookies();
+        List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
-        assertEquals(2, cookies.length);
+        assertEquals(2, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -215,9 +216,9 @@ public class TestCookie2Support extends ServerTestBase {
             e1.consumeContent();
         }
         
-        Cookie[] cookies = cookieStore.getCookies();
+        List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
-        assertEquals(1, cookies.length);
+        assertEquals(1, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -266,11 +267,11 @@ public class TestCookie2Support extends ServerTestBase {
             e1.consumeContent();
         }
         
-        Cookie[] cookies = cookieStore.getCookies();
+        List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
-        assertEquals(1, cookies.length);
-        assertEquals("right", cookies[0].getValue());
-        assertTrue(cookies[0] instanceof SetCookie2);
+        assertEquals(1, cookies.size());
+        assertEquals("right", cookies.get(0).getValue());
+        assertTrue(cookies.get(0) instanceof SetCookie2);
     }
 
 }

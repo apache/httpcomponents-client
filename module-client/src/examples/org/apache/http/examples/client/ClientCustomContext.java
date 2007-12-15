@@ -31,6 +31,8 @@
 
 package org.apache.http.examples.client;
 
+import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
@@ -78,9 +80,9 @@ public class ClientCustomContext {
             System.out.println("Response content length: " + entity.getContentLength());
             System.out.println("Chunked?: " + entity.isChunked());
         }
-        Cookie[] cookies = cookieStore.getCookies();
-        for (int i = 0; i < cookies.length; i++) {
-            System.out.println("Local cookie: " + cookies[i]);
+        List<Cookie> cookies = cookieStore.getCookies();
+        for (int i = 0; i < cookies.size(); i++) {
+            System.out.println("Local cookie: " + cookies.get(i));
         }
         
         // Consume response content

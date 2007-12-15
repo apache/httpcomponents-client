@@ -31,6 +31,7 @@
 package org.apache.http.client;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.cookie.Cookie;
 
@@ -57,7 +58,7 @@ public interface CookieStore {
      * 
      * @return all cookies
      */
-    Cookie[] getCookies();
+    List<Cookie> getCookies();
 
     /**
      * Removes all of {@link Cookie cookies} in this store that have expired by 
