@@ -4,6 +4,9 @@ Changes since 4.0 Alpha 2
 * [HTTPCLIENT-711] Bad route computed for redirected requests
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
+* [HTTPCLIENT-715] Remove RoutedRequest from API
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-705] Fixed incorrect handling of URIs with null path component
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
