@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="HttpClient">
   <bannerLeft>
-    <name>Jakarta</name>
-    <src>http://jakarta.apache.org/images/logos/jakarta-logo.png</src>
-    <href>http://jakarta.apache.org/</href>
+    <name>Apache</name>
+    <src>http://www.apache.org/images/asf_logo_wide.gif</src>
+    <href>http://www.apache.org/</href>
   </bannerLeft>
 
   <bannerRight>
