@@ -8,8 +8,8 @@
 
   <bannerRight>
     <name>HttpComponents</name>
-    <src>http://jakarta.apache.org/httpcomponents/images/logos/httpcomponents.png</src>
-    <href>http://jakarta.apache.org/httpcomponents/</href>
+    <src>http://hc.apache.org/images/logos/httpcomponents.png</src>
+    <href>http://hc.apache.org/</href>
   </bannerRight>
 
   <body>
