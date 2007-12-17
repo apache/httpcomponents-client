@@ -31,22 +31,21 @@
 
 <project name="HttpComponents Client">
   <bannerLeft>
-    <name>Jakarta</name>
-    <src>http://jakarta.apache.org/images/logos/jakarta-logo.png</src>
-    <href>http://jakarta.apache.org/</href>
+    <name>Apache</name>
+    <src>http://www.apache.org/images/asf_logo_wide.gif</src>
+    <href>http://www.apache.org/</href>
   </bannerLeft>
 
   <bannerRight>
     <name>HttpComponents</name>
-    <src>http://jakarta.apache.org/httpcomponents/images/logos/httpcomponents.png</src>
-    <href>http://jakarta.apache.org/httpcomponents/</href>
+    <src>../images/logos/httpcomponents.png</src>
+    <href>http://hc.apache.org/</href>
   </bannerRight>
 
   <body>
     <links>
       <item name="Apache" href="http://www.apache.org/" />
-      <item name="Jakarta" href="http://jakarta.apache.org/"/>
-      <item name="HttpComponents" href=".."/>
+      <item name="HttpComponents" href="http://hc.apache.org/"/>
     </links>
 
     <menu name="HttpComponents">
