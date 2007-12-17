@@ -40,7 +40,7 @@
   <name>HttpComponents Client</name>
   <version>4.0-alpha3-SNAPSHOT</version>
   <description>Components to build client side HTTP services</description>
-  <url>http://jakarta.apache.org/httpcomponents/httpclient</url>
+  <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>2000</inceptionYear>
   <packaging>pom</packaging>
 
@@ -63,9 +63,9 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</connection>
-    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</developerConnection>
-    <url>http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</connection>
+    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</developerConnection>
+    <url>http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</url>
   </scm>
 
   <modules>
@@ -83,7 +83,7 @@
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
-          <tagBase>https://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/tags/</tagBase>
+          <tagBase>https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/</tagBase>
         </configuration>
       </plugin>
       <plugin>

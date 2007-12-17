@@ -42,7 +42,7 @@
   <description>
    HttpComponents Client (base module)
   </description>
-  <url>http://jakarta.apache.org/httpcomponents/httpclient</url>
+  <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>  
 
   <licenses>
@@ -54,9 +54,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</connection>
-    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</developerConnection>
-    <url>http://svn.apache.org/repos/asf/jakarta/httpcomponents/httpclient/trunk/module-client</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</connection>
+    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</developerConnection>
+    <url>http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</url>
   </scm>
 
   <dependencies>
