@@ -35,6 +35,8 @@ import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.conn.HttpRoute.TunnelType;
+import org.apache.http.conn.HttpRoute.LayerType;
 
 
 /**
@@ -69,10 +71,10 @@ public final class RouteTracker implements Cloneable {
     private HttpHost[] proxyChain;
 
     /** Whether the the route is tunnelled end-to-end through proxies. */
-    private boolean tunnelled;
+    private TunnelType tunnelled;
 
     /** Whether the route is layered over a tunnel. */
-    private boolean layered;
+    private LayerType layered;
 
     /** Whether the route is secure. */
     private boolean secure;
@@ -90,8 +92,10 @@ public final class RouteTracker implements Cloneable {
         if (target == null) {
             throw new IllegalArgumentException("Target host may not be null.");
         }
-        this.targetHost = target;
+        this.targetHost   = target;
         this.localAddress = local;
+        this.tunnelled    = TunnelType.PLAIN;
+        this.layered      = LayerType.PLAIN;
     }
 
 
@@ -155,7 +159,7 @@ public final class RouteTracker implements Cloneable {
         if (this.proxyChain == null) {
             throw new IllegalStateException("No tunnel without proxy.");
         }
-        this.tunnelled = true;
+        this.tunnelled = TunnelType.TUNNELLED;
         this.secure    = secure;
     }
 
@@ -204,7 +208,7 @@ public final class RouteTracker implements Cloneable {
             throw new IllegalStateException
                 ("No layered protocol unless connected.");
         }
-        this.layered = true;
+        this.layered = LayerType.LAYERED;
         this.secure  = secure;
     }
 
@@ -307,24 +311,51 @@ public final class RouteTracker implements Cloneable {
 
 
     /**
-     * Checks whether this route is tunnelled through a proxy.
+     * Obtains the tunnel type of this route.
+     * If there is a proxy chain, only end-to-end tunnels are considered.
      *
-     * @return  <code>true</code> if tunnelled,
-     *          <code>false</code> otherwise
+     * @return  the tunnelling type
      */
-    public final boolean isTunnelled() {
+    public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
 
     /**
+     * Checks whether this route is tunnelled through a proxy.
+     * If there is a proxy chain, only end-to-end tunnels are considered.
+     *
+     * @return  <code>true</code> if tunnelled end-to-end through at least
+     *          one proxy,
+     *          <code>false</code> otherwise
+     */
+    public final boolean isTunnelled() {
+        return (this.tunnelled == TunnelType.TUNNELLED);
+    }
+
+
+    /**
+     * Obtains the layering type of this route.
+     * In the presence of proxies, only layering over an end-to-end tunnel
+     * is considered.
+     *
+     * @return  the layering type
+     */
+    public final LayerType getLayerType() {
+        return this.layered;
+    }
+
+
+    /**
      * Checks whether this route includes a layered protocol.
+     * In the presence of proxies, only layering over an end-to-end tunnel
+     * is considered.
      *
      * @return  <code>true</code> if layered,
      *          <code>false</code> otherwise
      */
     public final boolean isLayered() {
-        return this.layered;
+        return (this.layered == LayerType.LAYERED);
     }
 
 
@@ -421,10 +452,9 @@ public final class RouteTracker implements Cloneable {
             hc ^= 0x11111111;
         if (this.secure)
             hc ^= 0x22222222;
-        if (this.tunnelled)
-            hc ^= 0x44444444;
-        if (this.layered)
-            hc ^= 0x88888888;
+
+        hc ^= this.tunnelled.hashCode();
+        hc ^= this.layered.hashCode();
 
         return hc;
     }
@@ -446,9 +476,9 @@ public final class RouteTracker implements Cloneable {
         cab.append('{');
         if (this.connected)
             cab.append('c');
-        if (this.tunnelled)
+        if (this.tunnelled == TunnelType.TUNNELLED)
             cab.append('t');
-        if (this.layered)
+        if (this.layered == LayerType.LAYERED)
             cab.append('l');
         if (this.secure)
             cab.append('s');

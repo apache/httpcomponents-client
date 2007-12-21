@@ -115,8 +115,10 @@ public final class HttpRoute implements Cloneable {
      *                  <code>null</code> for a direct route
      * @param secure    <code>true</code> if the route is (to be) secure,
      *                  <code>false</code> otherwise
-     * @param tunnelled the tunnel type of this route
-     * @param layered   the layering type of this route
+     * @param tunnelled the tunnel type of this route, or
+     *                  <code>null</code> for PLAIN
+     * @param layered   the layering type of this route, or
+     *                  <code>null</code> for PLAIN
      */
     private HttpRoute(InetAddress local,
                       HttpHost target, HttpHost[] proxies,
@@ -130,6 +132,12 @@ public final class HttpRoute implements Cloneable {
             throw new IllegalArgumentException
                 ("Proxy required if tunnelled.");
         }
+
+        // tunnelled is already checked above, that is in line with the default
+        if (tunnelled == null)
+            tunnelled = TunnelType.PLAIN;
+        if (layered == null)
+            layered = LayerType.PLAIN;
 
         this.targetHost   = target;
         this.localAddress = local;
@@ -156,33 +164,6 @@ public final class HttpRoute implements Cloneable {
     public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
                      boolean secure, TunnelType tunnelled, LayerType layered) {
         this(local, target, toChain(proxies), secure, tunnelled, layered);
-    }
-
-
-    /**
-     * Creates a new route with all attributes specified explicitly.
-     *
-     * @param target    the host to which to route
-     * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
-     * @param proxies   the proxy chain to use, or
-     *                  <code>null</code> for a direct route
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
-     * @param tunnelled <code>true</code> if the route is (to be) tunnelled
-     *                  end-to-end via the proxy chain,
-     *                  <code>false</code> otherwise
-     * @param layered   <code>true</code> if the route includes a
-     *                  layered protocol,
-     *                  <code>false</code> otherwise
-     *
-     * @deprecated use enums instead of boolean for 'tunnelled' and 'layered'
-     */
-    public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
-                     boolean secure, boolean tunnelled, boolean layered) {
-        this(local, target, toChain(proxies), secure,
-             tunnelled ? TunnelType.TUNNELLED : TunnelType.PLAIN,
-             layered   ? LayerType.LAYERED    : LayerType.PLAIN);
     }
 
 

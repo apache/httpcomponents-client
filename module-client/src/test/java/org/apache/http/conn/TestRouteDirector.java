@@ -38,6 +38,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
+import org.apache.http.conn.HttpRoute.TunnelType;
+import org.apache.http.conn.HttpRoute.LayerType;
 
 
 /**
@@ -199,14 +201,14 @@ public class TestRouteDirector extends TestCase {
         HttpHost[] chainC = { PROXY2, PROXY1 };
 
         HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA,
-                                            false, false, false);
-        HttpRoute route1cB  = new HttpRoute(TARGET1, null, chainB,
-                                            false, false, false);
-        HttpRoute route1cC  = new HttpRoute(TARGET1, null, chainC,
-                                            false, false, false);
-        HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC,
-                                            false, false, false);
+        HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA, false,
+                                            TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1cB  = new HttpRoute(TARGET1, null, chainB, false,
+                                            TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1cC  = new HttpRoute(TARGET1, null, chainC, false,
+                                            TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC, false,
+                                            TunnelType.PLAIN, LayerType.PLAIN);
 
         int step = rowdy.nextStep(route1cA, null);
         assertEquals("wrong step to route1cA",

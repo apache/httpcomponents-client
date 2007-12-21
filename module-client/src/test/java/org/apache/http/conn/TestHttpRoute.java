@@ -41,6 +41,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
+import org.apache.http.conn.HttpRoute.TunnelType;
+import org.apache.http.conn.HttpRoute.LayerType;
 
 
 /**
@@ -106,8 +108,8 @@ public class TestHttpRoute extends TestCase {
         // create a route with all arguments and check the details
         HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
-        HttpRoute route = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                        false, false, false);
+        HttpRoute route = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+                                        TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("wrong target",
                      TARGET1, route.getTargetHost());
         assertEquals("wrong local address",
@@ -149,22 +151,30 @@ public class TestHttpRoute extends TestCase {
 
         HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
-        HttpRoute routefff = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, false, false);
-        HttpRoute routefft = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, false, true);
-        HttpRoute routeftf = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, true, false);
-        HttpRoute routeftt = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           false, true, true);
-        HttpRoute routetff = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, false, false);
-        HttpRoute routetft = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, false, true);
-        HttpRoute routettf = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, true, false);
-        HttpRoute routettt = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                           true, true, true);
+        HttpRoute routefff = new HttpRoute
+            (TARGET1, LOCAL41, chain3, false,
+             TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute routefft = new HttpRoute
+            (TARGET1, LOCAL41, chain3, false,
+             TunnelType.PLAIN, LayerType.LAYERED);
+        HttpRoute routeftf = new HttpRoute
+            (TARGET1, LOCAL41, chain3, false,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
+        HttpRoute routeftt = new HttpRoute
+            (TARGET1, LOCAL41, chain3, false,
+             TunnelType.TUNNELLED, LayerType.LAYERED);
+        HttpRoute routetff = new HttpRoute
+            (TARGET1, LOCAL41, chain3, true,
+             TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute routetft = new HttpRoute
+            (TARGET1, LOCAL41, chain3, true,
+             TunnelType.PLAIN, LayerType.LAYERED);
+        HttpRoute routettf = new HttpRoute
+            (TARGET1, LOCAL41, chain3, true,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
+        HttpRoute routettt = new HttpRoute
+            (TARGET1, LOCAL41, chain3, true,
+             TunnelType.TUNNELLED, LayerType.LAYERED);
 
         assertFalse("routefff.secure", routefff.isSecure());
         assertFalse("routefff.tunnel", routefff.isTunnelled());
@@ -244,21 +254,21 @@ public class TestHttpRoute extends TestCase {
         HttpHost[] chain4 = { PROXY1, PROXY2, null, PROXY3 };
 
         // for reference: this one should succeed
-        HttpRoute route = new HttpRoute(TARGET1, null, chain1,
-                                        false, true, false);
+        HttpRoute route = new HttpRoute(TARGET1, null, chain1, false,
+                                        TunnelType.TUNNELLED, LayerType.PLAIN);
         assertNotNull(route);
         
         try {
-            route = new HttpRoute(null, null, chain1,
-                                  false, true, false);
+            route = new HttpRoute(null, null, chain1, false,
+                                  TunnelType.TUNNELLED, LayerType.PLAIN);
             fail("missing target not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            route = new HttpRoute(TARGET1, null, (HttpHost[]) null,
-                                  false, true, false);
+            route = new HttpRoute(TARGET1, null, (HttpHost[]) null, false,
+                                  TunnelType.TUNNELLED, LayerType.PLAIN);
             fail("missing proxy for tunnel not detected");
         } catch (IllegalArgumentException iax) {
             // expected
@@ -266,20 +276,36 @@ public class TestHttpRoute extends TestCase {
 
         // for the next two, we don't indicate a tunnel anymore
         try {
-            route = new HttpRoute(TARGET1, null, chain0,
-                                  false, false, false);
+            route = new HttpRoute(TARGET1, null, chain0, false,
+                                  TunnelType.PLAIN, LayerType.PLAIN);
             fail("invalid proxy chain (0) not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            route = new HttpRoute(TARGET1, null, chain4,
-                                  false, false, false);
+            route = new HttpRoute(TARGET1, null, chain4, false,
+                                  TunnelType.PLAIN, LayerType.PLAIN);
             fail("invalid proxy chain (4) not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
+    }
+
+
+    public void testNullEnums() {
+
+        // tests the default values for the enum parameters
+        // also covers the accessors for the enum attributes
+
+        HttpRoute route = new HttpRoute(TARGET1, null, PROXY1, false,
+                                        null, null); // here are defaults
+
+        assertFalse("default tunnelling", route.isTunnelled());
+        assertEquals("untunnelled", TunnelType.PLAIN, route.getTunnelType());
+
+        assertFalse("default layering", route.isLayered());
+        assertEquals("unlayered", LayerType.PLAIN, route.getLayerType());
     }
 
 
@@ -290,10 +316,10 @@ public class TestHttpRoute extends TestCase {
         HttpHost[] chain4 = { PROXY1, PROXY3, PROXY2 };
 
         // create some identical routes
-        HttpRoute route1a = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, false);
-        HttpRoute route1b = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, false);
+        HttpRoute route1a = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1b = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
         HttpRoute route1c = (HttpRoute) route1a.clone();
 
         assertEquals("1a 1a", route1a, route1a);
@@ -309,28 +335,29 @@ public class TestHttpRoute extends TestCase {
         assertEquals("toString 1c", route1a.toString(), route1c.toString());
 
         // now create some differing routes
-        HttpRoute route2a = new HttpRoute(TARGET2, LOCAL41, chain3,
-                                          false, false, false);
-        HttpRoute route2b = new HttpRoute(TARGET1, LOCAL42, chain3,
-                                          false, false, false);
-        HttpRoute route2c = new HttpRoute(TARGET1, LOCAL61, chain3,
-                                          false, false, false);
-        HttpRoute route2d = new HttpRoute(TARGET1, null, chain3,
-                                          false, false, false);
+        HttpRoute route2a = new HttpRoute(TARGET2, LOCAL41, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2b = new HttpRoute(TARGET1, LOCAL42, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2c = new HttpRoute(TARGET1, LOCAL61, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2d = new HttpRoute(TARGET1, null, chain3, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
         HttpRoute route2e = new HttpRoute(TARGET1, LOCAL41, (HttpHost[]) null,
-                                          false, false, false);
-        HttpRoute route2f = new HttpRoute(TARGET1, LOCAL41, chain0,
-                                          false, false, false);
-        HttpRoute route2g = new HttpRoute(TARGET1, LOCAL41, chain1,
-                                          false, false, false);
-        HttpRoute route2h = new HttpRoute(TARGET1, LOCAL41, chain4,
-                                          false, false, false);
-        HttpRoute route2i = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          true, false, false);
-        HttpRoute route2j = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, true, false);
-        HttpRoute route2k = new HttpRoute(TARGET1, LOCAL41, chain3,
-                                          false, false, true);
+                                          false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2f = new HttpRoute(TARGET1, LOCAL41, chain0, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2g = new HttpRoute(TARGET1, LOCAL41, chain1, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2h = new HttpRoute(TARGET1, LOCAL41, chain4, false,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2i = new HttpRoute(TARGET1, LOCAL41, chain3, true,
+                                          TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route2j = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+                                        TunnelType.TUNNELLED, LayerType.PLAIN);
+        HttpRoute route2k = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+                                          TunnelType.PLAIN, LayerType.LAYERED);
 
         // check a special case first: 2f should be the same as 2e
         assertEquals("2e 2f", route2e, route2f);
@@ -441,8 +468,8 @@ public class TestHttpRoute extends TestCase {
     public void testHopping() {
         // test getHopCount() and getHopTarget() with different proxy chains
         HttpHost[] proxies = null;
-        HttpRoute  route   = new HttpRoute(TARGET1, null, proxies,
-                                           true, false, false);
+        HttpRoute  route   = new HttpRoute(TARGET1, null, proxies, true,
+                                           TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("A: hop count", 1, route.getHopCount());
         assertEquals("A: hop 0", TARGET1, route.getHopTarget(0));
         try {
@@ -460,8 +487,8 @@ public class TestHttpRoute extends TestCase {
 
 
         proxies = new HttpHost[]{ PROXY3 };
-        route   = new HttpRoute(TARGET1, LOCAL62, proxies,
-                                false, true, false);
+        route   = new HttpRoute(TARGET1, LOCAL62, proxies, false,
+                                TunnelType.TUNNELLED, LayerType.PLAIN);
         assertEquals("B: hop count", 2, route.getHopCount());
         assertEquals("B: hop 0", PROXY3, route.getHopTarget(0));
         assertEquals("B: hop 1", TARGET1, route.getHopTarget(1));
@@ -480,8 +507,8 @@ public class TestHttpRoute extends TestCase {
 
 
         proxies = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
-        route   = new HttpRoute(TARGET1, LOCAL42, proxies,
-                                false, false, true);
+        route   = new HttpRoute(TARGET1, LOCAL42, proxies, false,
+                                TunnelType.PLAIN, LayerType.LAYERED);
         assertEquals("C: hop count", 4, route.getHopCount());
         assertEquals("C: hop 0", PROXY3 , route.getHopTarget(0));
         assertEquals("C: hop 1", PROXY1 , route.getHopTarget(1));
@@ -504,8 +531,9 @@ public class TestHttpRoute extends TestCase {
 
     public void testCstr1() {
         HttpRoute route = new HttpRoute(TARGET2);
-        HttpRoute should = new HttpRoute(TARGET2, null, (HttpHost[]) null,
-                                         false, false, false);
+        HttpRoute should = new HttpRoute
+            (TARGET2, null, (HttpHost[]) null, false,
+             TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("bad convenience route", route, should);
     }
 
@@ -513,13 +541,14 @@ public class TestHttpRoute extends TestCase {
     public void testCstr3() {
         // test convenience constructor with 3 arguments
         HttpRoute route = new HttpRoute(TARGET2, LOCAL61, false);
-        HttpRoute should = new HttpRoute(TARGET2, LOCAL61, (HttpHost[]) null,
-                                         false, false, false);
+        HttpRoute should = new HttpRoute
+            (TARGET2, LOCAL61, (HttpHost[]) null, false,
+             TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("bad convenience route 3/insecure", route, should);
 
         route = new HttpRoute(TARGET2, null, true);
-        should = new HttpRoute(TARGET2, null, (HttpHost[]) null,
-                               true, false, false);
+        should = new HttpRoute(TARGET2, null, (HttpHost[]) null, true,
+                               TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("bad convenience route 3/secure", route, should);
     }
 
@@ -528,12 +557,14 @@ public class TestHttpRoute extends TestCase {
         // test convenience constructor with 4 arguments
         HttpRoute route = new HttpRoute(TARGET2, null, PROXY2, false);
         HttpRoute should = new HttpRoute
-            (TARGET2, null, new HttpHost[]{ PROXY2 }, false, false, false);
+            (TARGET2, null, new HttpHost[]{ PROXY2 }, false,
+             TunnelType.PLAIN, LayerType.PLAIN);
         assertEquals("bad convenience route 4/insecure", route, should);
 
         route = new HttpRoute(TARGET2, LOCAL42, PROXY1, true);
         should = new HttpRoute
-            (TARGET2, LOCAL42, new HttpHost[]{ PROXY1 }, true, true, true);
+            (TARGET2, LOCAL42, new HttpHost[]{ PROXY1 }, true,
+             TunnelType.TUNNELLED, LayerType.LAYERED);
         assertEquals("bad convenience route 4/secure", route, should);
 
         // this constructor REQUIRES a proxy to be specified
@@ -549,15 +580,19 @@ public class TestHttpRoute extends TestCase {
     public void testCstr6() {
         // test convenience constructor with 6 arguments
         HttpRoute route = new HttpRoute
-            (TARGET2, null, PROXY2, true, true, false);
+            (TARGET2, null, PROXY2, true,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
         HttpRoute should = new HttpRoute
-            (TARGET2, null, new HttpHost[]{ PROXY2 }, true, true, false);
+            (TARGET2, null, new HttpHost[]{ PROXY2 }, true,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
         assertEquals("bad convenience route 6/proxied", route, should);
 
         route = new HttpRoute
-            (TARGET2, null, (HttpHost) null, true, false, true);
+            (TARGET2, null, (HttpHost) null, true,
+             TunnelType.PLAIN, LayerType.LAYERED);
         should = new HttpRoute
-            (TARGET2, null, (HttpHost[]) null, true, false, true);
+            (TARGET2, null, (HttpHost[]) null, true,
+             TunnelType.PLAIN, LayerType.LAYERED);
         assertEquals("bad convenience route 6/direct", route, should);
 
         // handling of null vs. empty chain is checked in the equals tests
@@ -567,12 +602,12 @@ public class TestHttpRoute extends TestCase {
     public void testImmutable() throws CloneNotSupportedException {
 
         HttpHost[] proxies = new HttpHost[]{ PROXY1, PROXY2, PROXY3 };
-        HttpRoute route1 = new HttpRoute(TARGET1, null, proxies,
-                                         false, false, false);
+        HttpRoute route1 = new HttpRoute(TARGET1, null, proxies, false,
+                                         TunnelType.PLAIN, LayerType.PLAIN);
         HttpRoute route2 = (HttpRoute) route1.clone();
         HttpRoute route3 = new HttpRoute(TARGET1, null,
-                                         (HttpHost[]) proxies.clone(),
-                                         false, false, false);
+                                         (HttpHost[]) proxies.clone(), false,
+                                         TunnelType.PLAIN, LayerType.PLAIN);
 
         // modify the array that was passed to the constructor of route1
         proxies[1] = PROXY3;

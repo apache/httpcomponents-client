@@ -40,6 +40,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
+import org.apache.http.conn.HttpRoute.TunnelType;
+import org.apache.http.conn.HttpRoute.LayerType;
 
 
 /**
@@ -330,13 +332,15 @@ public class TestRouteTracker extends TestCase {
         assertTrue("incomplete route 1", complete);
 
         // tunnelled, but neither secure nor layered
-        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false, true, false);
+        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false,
+                          TunnelType.TUNNELLED, LayerType.PLAIN);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 3);
         assertTrue("incomplete route 2", complete);
 
         // tunnelled, layered, but not secure
-        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false, true, true);
+        r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false,
+                          TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 4);
         assertTrue("incomplete route 3", complete);
@@ -353,29 +357,32 @@ public class TestRouteTracker extends TestCase {
 
         final HttpRouteDirector rd = new BasicRouteDirector();
         HttpHost[] proxies = { PROXY1, PROXY2 };
-        HttpRoute r = new HttpRoute(TARGET2, LOCAL42, proxies,
-                                    false, false, false);
+        HttpRoute r = new HttpRoute(TARGET2, LOCAL42, proxies, false,
+                                    TunnelType.PLAIN, LayerType.PLAIN);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 3);
         assertTrue("incomplete route 1", complete);
 
         // tunnelled, but neither secure nor layered
         proxies = new HttpHost[]{ PROXY3, PROXY2 };
-        r = new HttpRoute(TARGET1, null, proxies, false, true, false);
+        r = new HttpRoute(TARGET1, null, proxies, false,
+                          TunnelType.TUNNELLED, LayerType.PLAIN);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 4);
         assertTrue("incomplete route 2", complete);
 
         // tunnelled, layered, but not secure
         proxies = new HttpHost[]{ PROXY3, PROXY2, PROXY1 };
-        r = new HttpRoute(TARGET2, LOCAL61, proxies, false, true, true);
+        r = new HttpRoute(TARGET2, LOCAL61, proxies, false,
+                          TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 6);
         assertTrue("incomplete route 3", complete);
 
         // tunnelled, layered, secure
         proxies = new HttpHost[]{ PROXY1, PROXY3 };
-        r = new HttpRoute(TARGET1, LOCAL61, proxies, true, true, true);
+        r = new HttpRoute(TARGET1, LOCAL61, proxies, true,
+                          TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 5);
         assertTrue("incomplete route 4", complete);
