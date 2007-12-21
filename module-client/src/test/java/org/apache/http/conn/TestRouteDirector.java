@@ -359,18 +359,24 @@ public class TestRouteDirector extends TestCase {
     public void testProxyTLS() {
 
         HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1    = new HttpRoute(TARGET1, null, PROXY1,
-                                            false, false, false);
-        HttpRoute route1t   = new HttpRoute(TARGET1, null, PROXY1,
-                                            false, true, false);
-        HttpRoute route1tl  = new HttpRoute(TARGET1, null, PROXY1,
-                                            false, true, true);
-        HttpRoute route1s   = new HttpRoute(TARGET1, null, PROXY1,
-                                            true, false, false);
-        HttpRoute route1ts  = new HttpRoute(TARGET1, null, PROXY1,
-                                            true, true, false);
-        HttpRoute route1tls = new HttpRoute(TARGET1, null, PROXY1,
-                                            true, true, true);
+        HttpRoute route1    = new HttpRoute
+            (TARGET1, null, PROXY1, false,
+             TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1t   = new HttpRoute
+            (TARGET1, null, PROXY1, false,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
+        HttpRoute route1tl  = new HttpRoute
+            (TARGET1, null, PROXY1, false,
+             TunnelType.TUNNELLED, LayerType.LAYERED);
+        HttpRoute route1s   = new HttpRoute
+            (TARGET1, null, PROXY1, true,
+             TunnelType.PLAIN, LayerType.PLAIN);
+        HttpRoute route1ts  = new HttpRoute
+            (TARGET1, null, PROXY1, true,
+             TunnelType.TUNNELLED, LayerType.PLAIN);
+        HttpRoute route1tls = new HttpRoute
+            (TARGET1, null, PROXY1, true,
+             TunnelType.TUNNELLED, LayerType.LAYERED);
 
         // we don't consider a route that is layered but not tunnelled
 

@@ -191,29 +191,6 @@ public final class HttpRoute implements Cloneable {
 
 
     /**
-     * Creates a new route with at most one proxy.
-     *
-     * @param target    the host to which to route
-     * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
-     * @param proxy     the proxy to use, or
-     *                  <code>null</code> for a direct route
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
-     * @param tunnelled the tunnel type of this route
-     * @param layered   the layering type of this route
-     *
-     * @deprecated use enums instead of boolean for 'tunnelled' and 'layered'
-     */
-    public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
-                     boolean secure, boolean tunnelled, boolean layered) {
-        this(local, target, toChain(proxy), secure,
-             tunnelled ? TunnelType.TUNNELLED : TunnelType.PLAIN,
-             layered   ? LayerType.LAYERED    : LayerType.PLAIN);
-    }
-
-
-    /**
      * Creates a new direct route.
      * That is a route without a proxy.
      *
