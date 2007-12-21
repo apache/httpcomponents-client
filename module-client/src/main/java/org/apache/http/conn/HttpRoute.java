@@ -52,6 +52,32 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public final class HttpRoute implements Cloneable {
 
+    /**
+     * The tunnelling type of a route.
+     * Plain routes are established by connecting to the target or
+     * the first proxy.
+     * Tunnelled routes are established by connecting to the first proxy
+     * and tunnelling through all proxies to the target.
+     * Routes without a proxy cannot be tunnelled.
+     */
+    public enum TunnelType { PLAIN, TUNNELLED };
+
+    /**
+     * The layering type of a route.
+     * Plain routes are established by connecting or tunnelling.
+     * Layered routes are established by layering a protocol such as TLS/SSL
+     * over an existing connection.
+     * Protocols can only be layered over a tunnel to the target, or
+     * or over a direct connection without proxies.
+     * <br/>
+     * Layering a protocol
+     * over a direct connection makes little sense, since the connection
+     * could be established with the new protocol in the first place.
+     * But we don't want to exclude that use case.
+     */
+    public enum LayerType  { PLAIN, LAYERED };
+
+
     /** The target host to connect to. */
     private final HttpHost targetHost;
 
@@ -65,10 +91,10 @@ public final class HttpRoute implements Cloneable {
     private final HttpHost[] proxyChain;
 
     /** Whether the the route is tunnelled through the proxy. */
-    private final boolean tunnelled;
+    private final TunnelType tunnelled;
 
     /** Whether the route is layered. */
-    private final boolean layered;
+    private final LayerType layered;
 
     /** Whether the route is (supposed to be) secure. */
     private final boolean secure;
@@ -89,20 +115,18 @@ public final class HttpRoute implements Cloneable {
      *                  <code>null</code> for a direct route
      * @param secure    <code>true</code> if the route is (to be) secure,
      *                  <code>false</code> otherwise
-     * @param tunnelled <code>true</code> if the route is (to be) tunnelled
-     *                  end-to-end via the proxy chain,
-     *                  <code>false</code> otherwise
-     * @param layered   <code>true</code> if the route includes a
-     *                  layered protocol,
-     *                  <code>false</code> otherwise
+     * @param tunnelled the tunnel type of this route
+     * @param layered   the layering type of this route
      */
-    private HttpRoute(InetAddress local, HttpHost target, HttpHost[] proxies,
-                      boolean secure, boolean tunnelled, boolean layered) {
+    private HttpRoute(InetAddress local,
+                      HttpHost target, HttpHost[] proxies,
+                      boolean secure,
+                      TunnelType tunnelled, LayerType layered) {
         if (target == null) {
             throw new IllegalArgumentException
                 ("Target host may not be null.");
         }
-        if (tunnelled && (proxies == null)) {
+        if ((tunnelled == TunnelType.TUNNELLED) && (proxies == null)) {
             throw new IllegalArgumentException
                 ("Proxy required if tunnelled.");
         }
@@ -126,16 +150,39 @@ public final class HttpRoute implements Cloneable {
      *                  <code>null</code> for a direct route
      * @param secure    <code>true</code> if the route is (to be) secure,
      *                  <code>false</code> otherwise
+     * @param tunnelled the tunnel type of this route
+     * @param layered   the layering type of this route
+     */
+    public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
+                     boolean secure, TunnelType tunnelled, LayerType layered) {
+        this(local, target, toChain(proxies), secure, tunnelled, layered);
+    }
+
+
+    /**
+     * Creates a new route with all attributes specified explicitly.
+     *
+     * @param target    the host to which to route
+     * @param local     the local address to route from, or
+     *                  <code>null</code> for the default
+     * @param proxies   the proxy chain to use, or
+     *                  <code>null</code> for a direct route
+     * @param secure    <code>true</code> if the route is (to be) secure,
+     *                  <code>false</code> otherwise
      * @param tunnelled <code>true</code> if the route is (to be) tunnelled
      *                  end-to-end via the proxy chain,
      *                  <code>false</code> otherwise
      * @param layered   <code>true</code> if the route includes a
      *                  layered protocol,
      *                  <code>false</code> otherwise
+     *
+     * @deprecated use enums instead of boolean for 'tunnelled' and 'layered'
      */
     public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
                      boolean secure, boolean tunnelled, boolean layered) {
-        this(local, target, toChain(proxies), secure, tunnelled, layered);
+        this(local, target, toChain(proxies), secure,
+             tunnelled ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+             layered   ? LayerType.LAYERED    : LayerType.PLAIN);
     }
 
 
@@ -157,8 +204,31 @@ public final class HttpRoute implements Cloneable {
      *                  <code>false</code> otherwise
      */
     public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
-                     boolean secure, boolean tunnelled, boolean layered) {
+                     boolean secure, TunnelType tunnelled, LayerType layered) {
         this(local, target, toChain(proxy), secure, tunnelled, layered);
+    }
+
+
+    /**
+     * Creates a new route with at most one proxy.
+     *
+     * @param target    the host to which to route
+     * @param local     the local address to route from, or
+     *                  <code>null</code> for the default
+     * @param proxy     the proxy to use, or
+     *                  <code>null</code> for a direct route
+     * @param secure    <code>true</code> if the route is (to be) secure,
+     *                  <code>false</code> otherwise
+     * @param tunnelled the tunnel type of this route
+     * @param layered   the layering type of this route
+     *
+     * @deprecated use enums instead of boolean for 'tunnelled' and 'layered'
+     */
+    public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
+                     boolean secure, boolean tunnelled, boolean layered) {
+        this(local, target, toChain(proxy), secure,
+             tunnelled ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+             layered   ? LayerType.LAYERED    : LayerType.PLAIN);
     }
 
 
@@ -173,7 +243,7 @@ public final class HttpRoute implements Cloneable {
      *                  <code>false</code> otherwise
      */
     public HttpRoute(HttpHost target, InetAddress local, boolean secure) {
-        this(local, target, null, secure, false, false);
+        this(local, target, null, secure, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
 
@@ -183,7 +253,7 @@ public final class HttpRoute implements Cloneable {
      * @param target    the host to which to route
      */
     public HttpRoute(HttpHost target) {
-        this(null, target, null, false, false, false);
+        this(null, target, null, false, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
 
@@ -202,7 +272,9 @@ public final class HttpRoute implements Cloneable {
      */
     public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
                      boolean secure) {
-        this(local, target, toChain(proxy), secure, secure, secure);
+        this(local, target, toChain(proxy), secure,
+             secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+             secure ? LayerType.LAYERED    : LayerType.PLAIN);
         if (proxy == null) {
             throw new IllegalArgumentException
                 ("Proxy host may not be null.");
@@ -332,6 +404,17 @@ public final class HttpRoute implements Cloneable {
 
 
     /**
+     * Obtains the tunnel type of this route.
+     * If there is a proxy chain, only end-to-end tunnels are considered.
+     *
+     * @return  the tunnelling type
+     */
+    public final TunnelType getTunnelType() {
+        return this.tunnelled;
+    }
+
+
+    /**
      * Checks whether this route is tunnelled through a proxy.
      * If there is a proxy chain, only end-to-end tunnels are considered.
      *
@@ -340,7 +423,19 @@ public final class HttpRoute implements Cloneable {
      *          <code>false</code> otherwise
      */
     public final boolean isTunnelled() {
-        return this.tunnelled;
+        return (this.tunnelled == TunnelType.TUNNELLED);
+    }
+
+
+    /**
+     * Obtains the layering type of this route.
+     * In the presence of proxies, only layering over an end-to-end tunnel
+     * is considered.
+     *
+     * @return  the layering type
+     */
+    public final LayerType getLayerType() {
+        return this.layered;
     }
 
 
@@ -353,7 +448,7 @@ public final class HttpRoute implements Cloneable {
      *          <code>false</code> otherwise
      */
     public final boolean isLayered() {
-        return this.layered;
+        return (this.layered == LayerType.LAYERED);
     }
 
 
@@ -428,10 +523,9 @@ public final class HttpRoute implements Cloneable {
 
         if (this.secure)
             hc ^= 0x11111111;
-        if (this.tunnelled)
-            hc ^= 0x22222222;
-        if (this.layered)
-            hc ^= 0x44444444;
+
+        hc ^= this.tunnelled.hashCode();
+        hc ^= this.layered.hashCode();
 
         return hc;
     }
@@ -451,9 +545,9 @@ public final class HttpRoute implements Cloneable {
             cab.append("->");
         }
         cab.append('{');
-        if (this.tunnelled)
+        if (this.tunnelled == TunnelType.TUNNELLED)
             cab.append('t');
-        if (this.layered)
+        if (this.layered == LayerType.LAYERED)
             cab.append('l');
         if (this.secure)
             cab.append('s');
