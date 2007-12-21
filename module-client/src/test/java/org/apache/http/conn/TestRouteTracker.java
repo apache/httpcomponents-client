@@ -564,7 +564,13 @@ public class TestRouteTracker extends TestCase {
         String rts = rt.toString();
         assertEquals("wrong flag connected: " + rts, c, rt.isConnected());
         assertEquals("wrong flag tunnelled: " + rts, t, rt.isTunnelled());
+        assertEquals("wrong enum tunnelled: " + rts,
+                     t ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+                     rt.getTunnelType());
         assertEquals("wrong flag layered: "   + rts, l, rt.isLayered());
+        assertEquals("wrong enum layered: "   + rts,
+                     l ? LayerType.LAYERED : LayerType.PLAIN,
+                     rt.getLayerType());
         assertEquals("wrong flag secure: "    + rts, s, rt.isSecure());
     }
 
