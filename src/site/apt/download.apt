@@ -8,8 +8,8 @@ HttpClient Downloads
 
     The latest release available for download:
 
-    {{{http://jakarta.apache.org/site/downloads/downloads_httpcomponents-httpclient.cgi}4.0-alpha2}} - 
-    {{{http://www.apache.org/dist/jakarta/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
+    {{{http://hc.apache.org/downloads.cgi}4.0-alpha2}} - 
+    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
     {{{http://www.apache.org/dist/java-repository/httpcomponents-httpclient/licenses/LICENSE.txt}License}}
 
 Dependency management with Maven
