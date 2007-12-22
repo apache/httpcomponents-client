@@ -31,6 +31,9 @@
 
 package org.apache.http.impl.conn;
 
+
+import java.net.InetAddress;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -46,7 +49,7 @@ import org.apache.http.conn.params.ConnRoutePNames;
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}.
- * This implementation is based on parameters.
+ * This implementation is based on {@link ConnRoutePNames parameters}.
  * It will not make use of any Java system properties.
  */
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
@@ -72,29 +75,49 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
                                     HttpContext context)
         throws HttpException {
 
-        if (target == null) {
-            throw new IllegalStateException
-                ("Target host must not be null.");
-        }
         if (request == null) {
             throw new IllegalStateException
                 ("Request must not be null.");
         }
 
-        HttpHost proxy = (HttpHost)
+        // If we have a forced route, we can do without a target.
+        // Check the context first, it might have been set by a retry handler.
+        HttpRoute route = null;
+        if (context != null) {
+            route = (HttpRoute)
+                context.getAttribute(ConnRoutePNames.FORCED_ROUTE);
+        }
+        if (route == null) {
+            route = (HttpRoute)
+                request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
+        }
+
+        if (route != null)
+            return route;
+
+        // If we get here, there is no forced route.
+        // So we need a target to compute a route.
+
+        if (target == null) {
+            throw new IllegalStateException
+                ("Target host must not be null.");
+        }
+
+        final InetAddress local = (InetAddress)
+            request.getParams().getParameter(ConnRoutePNames.LOCAL_ADDRESS);
+        final HttpHost proxy = (HttpHost)
             request.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
 
-        Scheme schm = this.connectionManager.getSchemeRegistry().
+        final Scheme schm = this.connectionManager.getSchemeRegistry().
             getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
-        boolean secure = schm.isLayered();
+        final boolean secure = schm.isLayered();
 
-        HttpRoute route = null;
         if (proxy == null) {
-            route = new HttpRoute(target, null, secure);
+            route = new HttpRoute(target, local, secure);
         } else {
-            route = new HttpRoute(target, null, proxy, secure);
+            route = new HttpRoute(target, local, proxy, secure);
         }
         return route;
     }

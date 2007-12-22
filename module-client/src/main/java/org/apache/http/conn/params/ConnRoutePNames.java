@@ -38,7 +38,7 @@ package org.apache.http.conn.params;
  * @since 4.0
  */
 public interface ConnRoutePNames {
-     
+
     /**
      * Parameter for the default proxy.
      * The default value will be used by some
@@ -48,7 +48,40 @@ public interface ConnRoutePNames {
      * This parameter expects a value of type {@link org.apache.http.HttpHost}.
      * </p>
      */
-    public static final String DEFAULT_PROXY = "http.default-proxy";
+    public static final String DEFAULT_PROXY = "http.route.default-proxy";
+
+
+    /**
+     * Parameter for the local address.
+     * On machines with multiple network interfaces, this parameter
+     * can be used to select the network interface from which the
+     * connection originates.
+     * It will be interpreted by the standard
+     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
+     * implementations, in particular the default implementation.
+     * <p>
+     * This parameter expects a value of type {@link java.net.INetAddress}.
+     * </p>
+     */
+    public static final String LOCAL_ADDRESS = "http.route.local-address";
+
+
+    /**
+     * Parameter for an forced route.
+     * The forced route can be set as a parameter or a context attribute.
+     * If both are present, the context attribute takes precedence.
+     * The forced route will be interpreted by the standard
+     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
+     * implementations.
+     * Instead of computing a route, the given forced route will be
+     * returned, even if it points to the wrong target host.
+     * <p>
+     * This parameter or context attribute should be used with care.
+     * It expects a value of type
+     * {@link org.apache.http.conn.HttpRoute HttpRoute}.
+     * </p>
+     */
+    public static final String FORCED_ROUTE = "http.route.forced-route";
 
 }
 

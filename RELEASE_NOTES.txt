@@ -1,6 +1,12 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-716] Allow application-defined routes.
+  Contributed by Roland Weber <rolandw at apache.org>
+
+* [HTTPCLIENT-712] Improve HttpRoute API
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-711] Bad route computed for redirected requests
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
