@@ -90,17 +90,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         }
 
         // If we have a forced route, we can do without a target.
-        // Check the context first, it might have been set by a retry handler.
-        HttpRoute route = null;
-        if (context != null) {
-            route = (HttpRoute)
-                context.getAttribute(ConnRoutePNames.FORCED_ROUTE);
-        }
-        if (route == null) {
-            route = (HttpRoute)
-                request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
-        }
-
+        HttpRoute route = (HttpRoute)
+            request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
         if (route != null)
             return route;
 

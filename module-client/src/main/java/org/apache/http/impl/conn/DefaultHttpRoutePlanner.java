@@ -50,7 +50,8 @@ import org.apache.http.conn.params.ConnRoutePNames;
 /**
  * Default implementation of an {@link HttpRoutePlanner}.
  * This implementation is based on {@link ConnRoutePNames parameters}.
- * It will not make use of any Java system properties.
+ * It will not make use of any Java system properties,
+ * nor of system or browser proxy settings.
  */
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
     
@@ -81,17 +82,8 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
 
         // If we have a forced route, we can do without a target.
-        // Check the context first, it might have been set by a retry handler.
-        HttpRoute route = null;
-        if (context != null) {
-            route = (HttpRoute)
-                context.getAttribute(ConnRoutePNames.FORCED_ROUTE);
-        }
-        if (route == null) {
-            route = (HttpRoute)
-                request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
-        }
-
+        HttpRoute route = (HttpRoute)
+            request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
         if (route != null)
             return route;
 

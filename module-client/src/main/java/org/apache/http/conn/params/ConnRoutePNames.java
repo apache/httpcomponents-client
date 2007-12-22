@@ -68,16 +68,13 @@ public interface ConnRoutePNames {
 
     /**
      * Parameter for an forced route.
-     * The forced route can be set as a parameter or a context attribute.
-     * If both are present, the context attribute takes precedence.
      * The forced route will be interpreted by the standard
      * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
      * implementations.
      * Instead of computing a route, the given forced route will be
      * returned, even if it points to the wrong target host.
      * <p>
-     * This parameter or context attribute should be used with care.
-     * It expects a value of type
+     * This parameter expects a value of type
      * {@link org.apache.http.conn.HttpRoute HttpRoute}.
      * </p>
      */
