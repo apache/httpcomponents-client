@@ -42,17 +42,9 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 public class HttpConnParams {
-     
-    /**
-     * Defines the default proxy. The default value will be used
-     * by some {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
-     * implementations, in particular the default implementation.
-     * <p>
-     * This parameter expects a value of type {@link org.apache.http.HttpHost}.
-     * </p>
-     */
-    public static final String DEFAULT_PROXY = "http.default-proxy";
 
+    // since the parameter names have been moved to interfaces,
+    // this class currently is a dummy
 
     /** Disabled default constructor. */
     private HttpConnParams() {

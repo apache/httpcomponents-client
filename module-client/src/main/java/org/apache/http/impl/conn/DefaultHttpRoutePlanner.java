@@ -41,7 +41,7 @@ import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.Scheme;
 
-import org.apache.http.conn.params.HttpConnParams;
+import org.apache.http.conn.params.ConnRoutePNames;
 
 
 /**
@@ -82,7 +82,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
 
         HttpHost proxy = (HttpHost)
-            request.getParams().getParameter(HttpConnParams.DEFAULT_PROXY);
+            request.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
 
         Scheme schm = this.connectionManager.getSchemeRegistry().
             getScheme(target.getSchemeName());
