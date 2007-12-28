@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-677] Thread safe client connection manager no longer uses
+  Thread.interrupt() when a connection becomes available.
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-716] Allow application-defined routes.
   Contributed by Roland Weber <rolandw at apache.org>
 

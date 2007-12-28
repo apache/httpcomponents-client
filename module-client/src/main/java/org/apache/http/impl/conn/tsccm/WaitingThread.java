@@ -61,18 +61,6 @@ public class WaitingThread {
 
 
     /**
-     * Indicates the source of an interruption.
-     * Set to <code>true</code> inside
-     * {@link #notifyWaitingThread(RouteSpecificPool)}
-     * and {@link #shutdown shutdown()}
-     * before the thread is interrupted.
-     * If not set, the thread was interrupted from the outside.
-     */
-    //@@@ to be removed in HTTPCLIENT-677
-    /*default@@@*/ boolean interruptedByConnectionPool;
-
-
-    /**
      * Creates a new entry for a waiting thread.
      *
      * @param cond      the condition for which to wait
@@ -99,9 +87,17 @@ public class WaitingThread {
      *
      * @param timeout   the timeout in milliseconds, or 0 for no timeout
      *
+     * @return  <code>true</code> if the condition was satisfied,
+     *          <code>false</code> in case of a timeout.
+     *          Typically, a call to {@link #wakeup} is used to indicate
+     *          that the condition was satisfied. Since the condition can
+     *          be accessed from outside, this cannot be guaranteed though.
+     *
+     * @throws InterruptedException     if the waiting thread was interrupted
+     *
      * @see #wakeup
      */
-    public void await(long timeout)
+    public boolean await(long timeout)
         throws InterruptedException {
 
         //@@@ check timeout for negative, or assume overflow?
@@ -118,11 +114,14 @@ public class WaitingThread {
 
         this.waiter = Thread.currentThread();
 
+        boolean success = false;
         try {
-            this.cond.await(timeout, TimeUnit.MILLISECONDS);
+            success = this.cond.await(timeout, TimeUnit.MILLISECONDS);
         } finally {
             this.waiter = null;
         }
+        return success;
+
     } // await
 
 

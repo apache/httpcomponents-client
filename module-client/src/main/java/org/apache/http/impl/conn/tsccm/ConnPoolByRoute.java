@@ -71,10 +71,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
     private final Log LOG = LogFactory.getLog(ConnPoolByRoute.class);
 
 
-    /** Temporary hack: @@@ a global condition that goes with the lock. */
-    protected final Condition poolCondition;
-
-
     /** The list of free connections */
     private Queue<BasicPoolEntry> freeConnections;
 
@@ -97,8 +93,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     public ConnPoolByRoute(ClientConnectionManager mgr) {
         super(mgr);
-
-        poolCondition = poolLock.newCondition(); //@@@ temporary hack
 
         //@@@ use factory method, at least for waitingThreads
         freeConnections = new LinkedList<BasicPoolEntry>();
@@ -222,6 +216,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     // TODO: keep track of which routes have waiting threads,
                     // so they avoid being sacrificed before necessary
 
+                    boolean success = false;
                     try {
                         if (useTimeout && timeToWait <= 0) {
                             throw new ConnectionPoolTimeoutException
@@ -233,12 +228,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         }
    
                         if (waitingThread == null) {
+                            //@@@ use factory method?
                             waitingThread = new WaitingThread
                                 (poolLock.newCondition(), rospl);
-                            //@@@waitingThread.pool = rospl;
-                            //@@@waitingThread.thread = Thread.currentThread();
-                        } else {
-                            waitingThread.interruptedByConnectionPool = false;//@@@
                         }
 
                         if (useTimeout) {
@@ -247,21 +239,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
                         rospl.queueThread(waitingThread);
                         waitingThreads.add(waitingThread);
-                        //@@@ poolCondition.await(timeToWait, TimeUnit.MILLISECONDS);
-                        waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS);
+                        success = waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS);
+                        //@@@ The 'success' flag is somewhat different from the
+                        //@@@ previous technique using interrupts. If the CM is
+                        //@@@ shutting down, we now get an InterruptedException
+                        //@@@ and have no check for that special case. What we
+                        //@@@ want to do is to let the exception fly through.
+                        //@@@ Actually, we may want to have a special exception
+                        //@@@ for the shutdown case, but that is goldplating.
 
-                    } catch (InterruptedException e) {
-                        if (!waitingThread.interruptedByConnectionPool) {
-                            LOG.debug("Interrupted while waiting for connection.", e);
-                            throw e;
-                        }
-                        // Else, do nothing, we were interrupted by the
-                        // connection pool and should now have a connection
-                        // waiting for us. Continue in the loop and get it.
-                        // Or else we are shutting down, which is also
-                        // detected in the loop.
                     } finally {
-                        if (!waitingThread.interruptedByConnectionPool) {
+                        if (!success) {
                             // Either we timed out, experienced a
                             // "spurious wakeup", or were interrupted by an
                             // external thread.  Regardless we need to 
@@ -269,6 +257,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                             rospl.removeThread(waitingThread);
                             waitingThreads.remove(waitingThread);
                         }
+                        // In case of 'success', we were woken up by the
+                        // connection pool and should now have a connection
+                        // waiting for us. Continue in the loop and get it.
 
                         if (useTimeout) {
                             endWait = System.currentTimeMillis();
@@ -531,8 +522,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             }
 
             if (waitingThread != null) {
-                waitingThread.interruptedByConnectionPool = true;
-                waitingThread.getThread().interrupt(); //@@@ HTTPCLIENT-677
+                waitingThread.wakeup();
             }
 
         } finally {
@@ -586,8 +576,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             while (iwth.hasNext()) {
                 WaitingThread waiter = iwth.next();
                 iwth.remove();
-                waiter.interruptedByConnectionPool = true;
-                waiter.getThread().interrupt(); //@@@ HTTPCLIENT-677
+                waiter.getThread().interrupt();
             }
 
             routeToPool.clear();
