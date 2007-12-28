@@ -53,7 +53,7 @@ public class RouteSpecificPool {
     protected LinkedList<BasicPoolEntry> freeEntries;
 
     /** The list of threads waiting for this pool. */
-    protected Queue<ConnPoolByRoute.WaitingThread> waitingThreads;
+    protected Queue<WaitingThread> waitingThreads;
 
     /** The number of created entries. */
     protected int numEntries;
@@ -67,7 +67,7 @@ public class RouteSpecificPool {
     public RouteSpecificPool(HttpRoute r) {
         this.route = r;
         this.freeEntries = new LinkedList<BasicPoolEntry>();
-        this.waitingThreads = new LinkedList<ConnPoolByRoute.WaitingThread>();
+        this.waitingThreads = new LinkedList<WaitingThread>();
         this.numEntries = 0;
     }
 
@@ -207,7 +207,7 @@ public class RouteSpecificPool {
      *
      * @param wt        the waiting thread
      */
-    public void queueThread(ConnPoolByRoute.WaitingThread wt) {
+    public void queueThread(WaitingThread wt) {
         if (wt == null) {
             throw new IllegalArgumentException
                 ("Waiting thread must not be null.");
@@ -232,7 +232,7 @@ public class RouteSpecificPool {
      *
      * @return  a waiting thread, or <code>null</code> if there is none
      */
-    public ConnPoolByRoute.WaitingThread dequeueThread() {
+    public WaitingThread dequeueThread() {
         return this.waitingThreads.poll();
     }
 
@@ -242,7 +242,7 @@ public class RouteSpecificPool {
      *
      * @param wt        the waiting thread
      */
-    public void removeThread(ConnPoolByRoute.WaitingThread wt) {
+    public void removeThread(WaitingThread wt) {
         if (wt == null)
             return;
 

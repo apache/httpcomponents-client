@@ -68,7 +68,8 @@ public class WaitingThread {
      * before the thread is interrupted.
      * If not set, the thread was interrupted from the outside.
      */
-    private boolean interruptedByConnectionPool;
+    //@@@ to be removed in HTTPCLIENT-677
+    /*default@@@*/ boolean interruptedByConnectionPool;
 
 
     /**
@@ -100,10 +101,11 @@ public class WaitingThread {
      *
      * @see #wakeup
      */
-    public void await(int timeout)
+    public void await(long timeout)
         throws InterruptedException {
 
         //@@@ check timeout for negative, or assume overflow?
+        //@@@ for now, leave the check to the condition
 
         // This is only a sanity check. We cannot not synchronize here,
         // the lock would not be released on calling cond.await() below.
@@ -117,8 +119,6 @@ public class WaitingThread {
         this.waiter = Thread.currentThread();
 
         try {
-            //@@@ how to convert the int timeout to the long argument?
-            //@@@ (timeout & 0xffffffffL)? or check for negative above?
             this.cond.await(timeout, TimeUnit.MILLISECONDS);
         } finally {
             this.waiter = null;

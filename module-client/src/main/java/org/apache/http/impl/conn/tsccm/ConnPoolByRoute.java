@@ -91,31 +91,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     /**
-     * A thread and the pool in which it is waiting.
-     * <!-- @@@ will be revised for HTTPCLIENT-677 -->
-     */
-    protected static class WaitingThread {
-
-        /** The thread that is waiting for an entry. */
-        public Thread thread;
-
-        /** The route specific pool the thread is waiting for. */
-        public RouteSpecificPool pool;
-
-        /**
-         * Indicates the source of an interruption.
-         * Set to <code>true</code> inside
-         * {@link #notifyWaitingThread(RouteSpecificPool)}
-         * and {@link #shutdown shutdown()}
-         * before the thread is interrupted.
-         * If not set, the thread was interrupted from the outside.
-         */
-        public boolean interruptedByConnectionPool = false;
-    }
-
-
-
-    /**
      * Creates a new connection pool, managed by route.
      *
      * @param mgr   the connection manager
@@ -258,11 +233,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         }
    
                         if (waitingThread == null) {
-                            waitingThread = new WaitingThread();
-                            waitingThread.pool = rospl;
-                            waitingThread.thread = Thread.currentThread();
+                            waitingThread = new WaitingThread
+                                (poolLock.newCondition(), rospl);
+                            //@@@waitingThread.pool = rospl;
+                            //@@@waitingThread.thread = Thread.currentThread();
                         } else {
-                            waitingThread.interruptedByConnectionPool = false;
+                            waitingThread.interruptedByConnectionPool = false;//@@@
                         }
 
                         if (useTimeout) {
@@ -271,7 +247,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
                         rospl.queueThread(waitingThread);
                         waitingThreads.add(waitingThread);
-                        poolCondition.await(timeToWait, TimeUnit.MILLISECONDS);
+                        //@@@ poolCondition.await(timeToWait, TimeUnit.MILLISECONDS);
+                        waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS);
 
                     } catch (InterruptedException e) {
                         if (!waitingThread.interruptedByConnectionPool) {
@@ -547,7 +524,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     LOG.debug("Notifying thread waiting on any pool.");
                 }
                 waitingThread = waitingThreads.remove();
-                waitingThread.pool.removeThread(waitingThread);
+                waitingThread.getPool().removeThread(waitingThread);
 
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("Notifying no-one, there are no waiting threads");
@@ -555,7 +532,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             if (waitingThread != null) {
                 waitingThread.interruptedByConnectionPool = true;
-                waitingThread.thread.interrupt();
+                waitingThread.getThread().interrupt(); //@@@ HTTPCLIENT-677
             }
 
         } finally {
@@ -610,7 +587,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 WaitingThread waiter = iwth.next();
                 iwth.remove();
                 waiter.interruptedByConnectionPool = true;
-                waiter.thread.interrupt();
+                waiter.getThread().interrupt(); //@@@ HTTPCLIENT-677
             }
 
             routeToPool.clear();
