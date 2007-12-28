@@ -37,6 +37,8 @@ import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,11 +55,20 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
 /**
  * An abstract connection pool.
  * It is used by the {@link ThreadSafeClientConnManager}.
+ * The abstract pool includes a {@link #poolLock}, which is used to
+ * synchronize access to the internal pool datastructures.
+ * Don't use <code>synchronized</code> for that purpose!
  */
 public abstract class AbstractConnPool implements RefQueueHandler {
 
     //@@@ protected, obtain with getClass()?
     private final Log LOG = LogFactory.getLog(AbstractConnPool.class);
+
+    /**
+     * The global lock for this pool.
+     */
+    protected final Lock poolLock;
+
 
     /**
      * References to issued connections.
@@ -135,6 +146,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         issuedConnections = new HashSet<BasicPoolEntryRef>();
         idleConnHandler = new IdleConnectionHandler();
 
+        boolean fair = false; //@@@ check parameters to decide
+        poolLock = new ReentrantLock(fair);
+
         boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
             refQueue = new ReferenceQueue<Object>();
@@ -185,25 +199,33 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
 
     // non-javadoc, see interface RefQueueHandler
-    public synchronized void handleReference(Reference<?> ref) {
+    public void handleReference(Reference<?> ref) {
 
-        if (ref instanceof BasicPoolEntryRef) {
-            // check if the GCed pool entry was still in use
-            //@@@ find a way to detect this without lookup
-            //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
-            final boolean lost = issuedConnections.remove(ref);
-            if (lost) {
-                final HttpRoute route = ((BasicPoolEntryRef)ref).getRoute();
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Connection garbage collected. " + route);
+        try {
+            poolLock.lock();
+
+            if (ref instanceof BasicPoolEntryRef) {
+                // check if the GCed pool entry was still in use
+                //@@@ find a way to detect this without lookup
+                //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
+                final boolean lost = issuedConnections.remove(ref);
+                if (lost) {
+                    final HttpRoute route =
+                        ((BasicPoolEntryRef)ref).getRoute();
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Connection garbage collected. " + route);
+                    }
+                    handleLostEntry(route);
                 }
-                handleLostEntry(route);
+            } else if (ref instanceof ConnMgrRef) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Connection manager garbage collected.");
+                }
+                shutdown();
             }
-        } else if (ref instanceof ConnMgrRef) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Connection manager garbage collected. ");
-            }
-            shutdown();
+
+        } finally {
+            poolLock.unlock();
         }
     }
 
@@ -225,8 +247,14 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
      */
-    public synchronized void closeIdleConnections(long idletime) {
-        idleConnHandler.closeIdleConnections(idletime);
+    public void closeIdleConnections(long idletime) {
+
+        try {
+            poolLock.lock();
+            idleConnHandler.closeIdleConnections(idletime);
+        } finally {
+            poolLock.unlock();
+        }
     }
         
     //@@@ revise this cleanup stuff (closeIdle+deleteClosed), it's not good
@@ -242,31 +270,38 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * Shuts down this pool and all associated resources.
      * Overriding methods MUST call the implementation here!
      */
-    public synchronized void shutdown() {
+    public void shutdown() {
 
-        if (isShutDown)
-            return;
+        try {
+            poolLock.lock();
 
-        // no point in monitoring GC anymore
-        if (refWorker != null)
-            refWorker.shutdown();
+            if (isShutDown)
+                return;
 
-        // close all connections that are issued to an application
-        Iterator<BasicPoolEntryRef> iter = issuedConnections.iterator();
-        while (iter.hasNext()) {
-            BasicPoolEntryRef per = iter.next();
-            iter.remove();
-            BasicPoolEntry entry = per.get();
-            if (entry != null) {
-                closeConnection(entry.getConnection());
+            // no point in monitoring GC anymore
+            if (refWorker != null)
+                refWorker.shutdown();
+
+            // close all connections that are issued to an application
+            Iterator<BasicPoolEntryRef> iter = issuedConnections.iterator();
+            while (iter.hasNext()) {
+                BasicPoolEntryRef per = iter.next();
+                iter.remove();
+                BasicPoolEntry entry = per.get();
+                if (entry != null) {
+                    closeConnection(entry.getConnection());
+                }
             }
+
+            // remove all references to connections
+            //@@@ use this for shutting them down instead?
+            idleConnHandler.removeAll();
+
+            isShutDown = true;
+
+        } finally {
+            poolLock.unlock();
         }
-
-        // remove all references to connections
-        //@@@ use this for shutting them down instead?
-        idleConnHandler.removeAll();
-
-        isShutDown = true;
     }
 
 

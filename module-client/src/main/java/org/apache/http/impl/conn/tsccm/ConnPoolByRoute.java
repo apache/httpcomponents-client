@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +57,9 @@ import org.apache.http.conn.params.HttpConnectionManagerParams;
  * <li>connections are re-used only for the exact same route</li>
  * <li>connection limits are enforced per route rather than per host</li>
  * </ul>
+ * Note that access to the pool datastructures is synchronized via the
+ * {@link AbstractConnPool#poolLock poolLock} in the base class,
+ * not via <code>synchronized</code> methods.
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
@@ -64,6 +69,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
         
     //@@@ use a protected LOG in the base class?
     private final Log LOG = LogFactory.getLog(ConnPoolByRoute.class);
+
+
+    /** Temporary hack: @@@ a global condition that goes with the lock. */
+    protected final Condition poolCondition;
 
 
     /** The list of free connections */
@@ -114,6 +123,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(ClientConnectionManager mgr) {
         super(mgr);
 
+        poolCondition = poolLock.newCondition(); //@@@ temporary hack
+
         //@@@ use factory method, at least for waitingThreads
         freeConnections = new LinkedList<BasicPoolEntry>();
         waitingThreads = new LinkedList<WaitingThread>();
@@ -130,14 +141,22 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the pool for the argument route,
      *     never <code>null</code> if <code>create</code> is <code>true</code>
      */
-    protected synchronized RouteSpecificPool getRoutePool(HttpRoute route,
-                                                          boolean create) {
+    protected RouteSpecificPool getRoutePool(HttpRoute route,
+                                             boolean create) {
+        RouteSpecificPool rospl = null;
 
-        RouteSpecificPool rospl = routeToPool.get(route);
-        if ((rospl == null) && create) {
-            // no pool for this route yet (or anymore)
-            rospl = newRouteSpecificPool(route);
-            routeToPool.put(route, rospl);
+        try {
+            poolLock.lock();
+
+            rospl = routeToPool.get(route);
+            if ((rospl == null) && create) {
+                // no pool for this route yet (or anymore)
+                rospl = newRouteSpecificPool(route);
+                routeToPool.put(route, rospl);
+            }
+
+        } finally {
+            poolLock.unlock();
         }
 
         return rospl;
@@ -158,119 +177,133 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     //@@@ consider alternatives for gathering statistics
-    public synchronized int getConnectionsInPool(HttpRoute route) {
-        //@@@ don't allow a pool to be created here!
-        RouteSpecificPool rospl = getRoutePool(route, false);
-        return (rospl != null) ? rospl.getEntryCount() : 0;
+    public int getConnectionsInPool(HttpRoute route) {
+
+        try {
+            poolLock.lock();
+
+            // don't allow a pool to be created here!
+            RouteSpecificPool rospl = getRoutePool(route, false);
+            return (rospl != null) ? rospl.getEntryCount() : 0;
+
+        } finally {
+            poolLock.unlock();
+        }
     }
 
 
     // non-javadoc, see base class AbstractConnPool
-    public synchronized
-        BasicPoolEntry getEntry(HttpRoute route, long timeout,
-                                ClientConnectionOperator operator)
+    public BasicPoolEntry getEntry(HttpRoute route, long timeout,
+                                   ClientConnectionOperator operator)
         throws ConnectionPoolTimeoutException, InterruptedException {
-
-        BasicPoolEntry entry = null;
 
         int maxHostConnections = HttpConnectionManagerParams
             .getMaxConnectionsPerHost(this.params, route);
         int maxTotalConnections = HttpConnectionManagerParams
             .getMaxTotalConnections(this.params);
         
-        RouteSpecificPool rospl = getRoutePool(route, true);
-        WaitingThread waitingThread = null;
+        BasicPoolEntry entry = null;
 
-        boolean useTimeout = (timeout > 0);
-        long timeToWait = timeout;
-        long startWait = 0;
-        long endWait = 0;
+        try {
+            poolLock.lock();
 
-        while (entry == null) {
+            RouteSpecificPool rospl = getRoutePool(route, true);
+            WaitingThread waitingThread = null;
 
-            if (isShutDown) {
-                throw new IllegalStateException
-                    ("Connection pool shut down.");
-            }
+            boolean useTimeout = (timeout > 0);
+            long timeToWait = timeout;
+            long startWait = 0;
+            long endWait = 0;
 
-            // the cases to check for:
-            // - have a free connection for that route
-            // - allowed to create a free connection for that route
-            // - can delete and replace a free connection for another route
-            // - need to wait for one of the things above to come true
+            while (entry == null) {
 
-            entry = getFreeEntry(rospl);
-            if (entry != null) {
-                // we're fine
-                //@@@ yeah this is ugly, but historical... will be revised
-            } else if ((rospl.getEntryCount() < maxHostConnections) &&
-                       (numConnections < maxTotalConnections)) {
+                if (isShutDown) {
+                    throw new IllegalStateException
+                        ("Connection pool shut down.");
+                }
 
-                entry = createEntry(rospl, operator);
+                // the cases to check for:
+                // - have a free connection for that route
+                // - allowed to create a free connection for that route
+                // - can delete and replace a free connection for another route
+                // - need to wait for one of the things above to come true
 
-            } else if ((rospl.getEntryCount() < maxHostConnections) &&
-                       (freeConnections.size() > 0)) {
+                entry = getFreeEntry(rospl);
+                if (entry != null) {
+                    // we're fine
+                    //@@@ yeah this is ugly, but historical... will be revised
+                } else if ((rospl.getEntryCount() < maxHostConnections) &&
+                           (numConnections < maxTotalConnections)) {
 
-                deleteLeastUsedEntry();
-                entry = createEntry(rospl, operator);
+                    entry = createEntry(rospl, operator);
 
-            } else {
-                // TODO: keep track of which routes have waiting threads,
-                // so they avoid being sacrificed before necessary
+                } else if ((rospl.getEntryCount() < maxHostConnections) &&
+                           (freeConnections.size() > 0)) {
 
-                try {
-                    if (useTimeout && timeToWait <= 0) {
-                        throw new ConnectionPoolTimeoutException
-                            ("Timeout waiting for connection");
-                    }
+                    deleteLeastUsedEntry();
+                    entry = createEntry(rospl, operator);
+
+                } else {
+                    // TODO: keep track of which routes have waiting threads,
+                    // so they avoid being sacrificed before necessary
+
+                    try {
+                        if (useTimeout && timeToWait <= 0) {
+                            throw new ConnectionPoolTimeoutException
+                                ("Timeout waiting for connection");
+                        }
    
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Need to wait for connection. " + route);
-                    }
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Need to wait for connection. " + route);
+                        }
    
-                    if (waitingThread == null) {
-                        waitingThread = new WaitingThread();
-                        waitingThread.pool = rospl;
-                        waitingThread.thread = Thread.currentThread();
-                    } else {
-                        waitingThread.interruptedByConnectionPool = false;
-                    }
+                        if (waitingThread == null) {
+                            waitingThread = new WaitingThread();
+                            waitingThread.pool = rospl;
+                            waitingThread.thread = Thread.currentThread();
+                        } else {
+                            waitingThread.interruptedByConnectionPool = false;
+                        }
 
-                    if (useTimeout) {
-                        startWait = System.currentTimeMillis();
-                    }
+                        if (useTimeout) {
+                            startWait = System.currentTimeMillis();
+                        }
 
-                    rospl.queueThread(waitingThread);
-                    waitingThreads.add(waitingThread);
-                    wait(timeToWait);
+                        rospl.queueThread(waitingThread);
+                        waitingThreads.add(waitingThread);
+                        poolCondition.await(timeToWait, TimeUnit.MILLISECONDS);
 
-                } catch (InterruptedException e) {
-                    if (!waitingThread.interruptedByConnectionPool) {
-                        LOG.debug("Interrupted while waiting for connection.", e);
-                        throw e;
-                    }
-                    // Else, do nothing, we were interrupted by the
-                    // connection pool and should now have a connection
-                    // waiting for us. Continue in the loop and get it.
-                    // Or else we are shutting down, which is also
-                    // detected in the loop.
-                } finally {
-                    if (!waitingThread.interruptedByConnectionPool) {
-                        // Either we timed out, experienced a
-                        // "spurious wakeup", or were interrupted by an
-                        // external thread.  Regardless we need to 
-                        // cleanup for ourselves in the wait queue.
-                        rospl.removeThread(waitingThread);
-                        waitingThreads.remove(waitingThread);
-                    }
+                    } catch (InterruptedException e) {
+                        if (!waitingThread.interruptedByConnectionPool) {
+                            LOG.debug("Interrupted while waiting for connection.", e);
+                            throw e;
+                        }
+                        // Else, do nothing, we were interrupted by the
+                        // connection pool and should now have a connection
+                        // waiting for us. Continue in the loop and get it.
+                        // Or else we are shutting down, which is also
+                        // detected in the loop.
+                    } finally {
+                        if (!waitingThread.interruptedByConnectionPool) {
+                            // Either we timed out, experienced a
+                            // "spurious wakeup", or were interrupted by an
+                            // external thread.  Regardless we need to 
+                            // cleanup for ourselves in the wait queue.
+                            rospl.removeThread(waitingThread);
+                            waitingThreads.remove(waitingThread);
+                        }
 
-                    if (useTimeout) {
-                        endWait = System.currentTimeMillis();
-                        timeToWait -= (endWait - startWait);
+                        if (useTimeout) {
+                            endWait = System.currentTimeMillis();
+                            timeToWait -= (endWait - startWait);
+                        }
                     }
                 }
-            }
-        } // while no entry
+            } // while no entry
+
+        } finally {
+            poolLock.unlock();
+        }
 
         return entry;
 
@@ -278,37 +311,44 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    public synchronized void freeEntry(BasicPoolEntry entry) {
+    public void freeEntry(BasicPoolEntry entry) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Freeing connection. " + route);
         }
 
-        if (isShutDown) {
-            // the pool is shut down, release the
-            // connection's resources and get out of here
-            closeConnection(entry.getConnection());
-            return;
+        try {
+            poolLock.lock();
+
+            if (isShutDown) {
+                // the pool is shut down, release the
+                // connection's resources and get out of here
+                closeConnection(entry.getConnection());
+                return;
+            }
+
+            // no longer issued, we keep a hard reference now
+            issuedConnections.remove(entry.getWeakRef());
+
+            RouteSpecificPool rospl = getRoutePool(route, true);
+
+            rospl.freeEntry(entry);
+            freeConnections.add(entry);
+
+            if (numConnections == 0) {
+                // for some reason this pool didn't already exist
+                LOG.error("Master connection pool not found. " + route);
+                numConnections = 1;
+            }
+
+            idleConnHandler.add(entry.getConnection());
+
+            notifyWaitingThread(rospl);
+
+        } finally {
+            poolLock.unlock();
         }
-
-        // no longer issued, we keep a hard reference now
-        issuedConnections.remove(entry.getWeakRef());
-
-        RouteSpecificPool rospl = getRoutePool(route, true); //@@@ true???
-
-        rospl.freeEntry(entry);
-        freeConnections.add(entry);
-
-        if (numConnections == 0) {
-            // for some reason this pool didn't already exist
-            LOG.error("Master connection pool not found. " + route);
-            numConnections = 1;
-        }
-
-        idleConnHandler.add(entry.getConnection());
-
-        notifyWaitingThread(rospl);
 
     } // freeEntry
 
@@ -322,25 +362,33 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  an available pool entry for the given route, or
      *          <code>null</code> if none is available
      */
-    protected synchronized
-        BasicPoolEntry getFreeEntry(RouteSpecificPool rospl) {
+    protected BasicPoolEntry getFreeEntry(RouteSpecificPool rospl) {
 
-        BasicPoolEntry entry = rospl.allocEntry();
+        BasicPoolEntry entry = null;
+        try {
+            poolLock.lock();
 
-        if (entry != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Getting free connection. " + rospl.getRoute());
+            entry = rospl.allocEntry();
+
+            if (entry != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Getting free connection. " + rospl.getRoute());
+                }
+                freeConnections.remove(entry);
+                idleConnHandler.remove(entry.getConnection());// no longer idle
+
+                issuedConnections.add(entry.getWeakRef());
+
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No free connections. " + rospl.getRoute());
+                }
             }
-            freeConnections.remove(entry);
-            idleConnHandler.remove(entry.getConnection()); // no longer idle
 
-            issuedConnections.add(entry.getWeakRef());
-
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No free connections. " + rospl.getRoute());
-            }
+        } finally {
+            poolLock.unlock();
         }
+
         return entry;
     }
 
@@ -355,20 +403,27 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  the new pool entry for a new connection
      */
-    protected synchronized
-        BasicPoolEntry createEntry(RouteSpecificPool rospl,
-                                   ClientConnectionOperator op) {
+    protected BasicPoolEntry createEntry(RouteSpecificPool rospl,
+                                         ClientConnectionOperator op) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Creating new connection. " + rospl.getRoute());
         }
-        // the entry will create the connection when needed
-        BasicPoolEntry entry =
-            new BasicPoolEntry(op, rospl.getRoute(), refQueue);
-        rospl.createdEntry(entry);
-        numConnections++;
+
+        BasicPoolEntry entry = null;
+        try {
+            poolLock.lock();
+
+            // the entry will create the connection when needed
+            entry = new BasicPoolEntry(op, rospl.getRoute(), refQueue);
+            rospl.createdEntry(entry);
+            numConnections++;
     
-        issuedConnections.add(entry.getWeakRef());
+            issuedConnections.add(entry.getWeakRef());
+
+        } finally {
+            poolLock.unlock();
+        }
 
         return entry;
     }
@@ -385,7 +440,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * 
      * @param entry         the pool entry for the connection to delete
      */
-    protected synchronized void deleteEntry(BasicPoolEntry entry) {
+    protected void deleteEntry(BasicPoolEntry entry) {
 
         HttpRoute route = entry.getPlannedRoute();
 
@@ -393,16 +448,23 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Deleting connection. " + route);
         }
 
-        closeConnection(entry.getConnection());
+        try {
+            poolLock.lock();
 
-        RouteSpecificPool rospl = getRoutePool(route, true); //@@@ true???
-        rospl.deleteEntry(entry);
-        numConnections--;
-        if (rospl.isUnused()) {
-            routeToPool.remove(route);
+            closeConnection(entry.getConnection());
+
+            RouteSpecificPool rospl = getRoutePool(route, true);
+            rospl.deleteEntry(entry);
+            numConnections--;
+            if (rospl.isUnused()) {
+                routeToPool.remove(route);
+            }
+
+            idleConnHandler.remove(entry.getConnection());// not idle, but dead
+
+        } finally {
+            poolLock.unlock();
         }
-
-        idleConnHandler.remove(entry.getConnection()); // not idle, but dead
     }
 
 
@@ -410,31 +472,45 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * Delete an old, free pool entry to make room for a new one.
      * Used to replace pool entries with ones for a different route.
      */
-    protected synchronized void deleteLeastUsedEntry() {
+    protected void deleteLeastUsedEntry() {
 
-        //@@@ with get() instead of remove, we could
-        //@@@ leave the removing to deleteEntry()
-        BasicPoolEntry entry = freeConnections.remove();
+        try {
+            poolLock.lock();
 
-        if (entry != null) {
-            deleteEntry(entry);
-        } else if (LOG.isDebugEnabled()) {
-            LOG.debug("No free connection to delete.");
+            //@@@ with get() instead of remove, we could
+            //@@@ leave the removing to deleteEntry()
+            BasicPoolEntry entry = freeConnections.remove();
+
+            if (entry != null) {
+                deleteEntry(entry);
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("No free connection to delete.");
+            }
+
+        } finally {
+            poolLock.unlock();
         }
     }
 
 
     // non-javadoc, see base class AbstractConnPool
-    protected synchronized void handleLostEntry(HttpRoute route) {
+    protected void handleLostEntry(HttpRoute route) {
 
-        RouteSpecificPool rospl = getRoutePool(route, true); //@@@ true???
-        rospl.dropEntry();
-        if (rospl.isUnused()) {
-            routeToPool.remove(route);
+        try {
+            poolLock.lock();
+
+            RouteSpecificPool rospl = getRoutePool(route, true);
+            rospl.dropEntry();
+            if (rospl.isUnused()) {
+                routeToPool.remove(route);
+            }
+
+            numConnections--;
+            notifyWaitingThread(rospl);
+
+        } finally {
+            poolLock.unlock();
         }
-
-        numConnections--;
-        notifyWaitingThread(rospl);
     }
 
 
@@ -446,7 +522,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * 
      * @param rospl     the pool in which to notify, or <code>null</code>
      */
-    protected synchronized void notifyWaitingThread(RouteSpecificPool rospl) {
+    protected void notifyWaitingThread(RouteSpecificPool rospl) {
 
         //@@@ while this strategy provides for best connection re-use,
         //@@@ is it fair? only do this if the connection is open?
@@ -455,28 +531,35 @@ public class ConnPoolByRoute extends AbstractConnPool {
         // it from all wait queues before interrupting.
         WaitingThread waitingThread = null;
 
-        if ((rospl != null) && rospl.hasThread()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Notifying thread waiting on pool. "
-                          + rospl.getRoute());
+        try {
+            poolLock.lock();
+
+            if ((rospl != null) && rospl.hasThread()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Notifying thread waiting on pool. "
+                              + rospl.getRoute());
+                }
+                waitingThread = rospl.dequeueThread();
+                waitingThreads.remove(waitingThread);
+
+            } else if (!waitingThreads.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Notifying thread waiting on any pool.");
+                }
+                waitingThread = waitingThreads.remove();
+                waitingThread.pool.removeThread(waitingThread);
+
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Notifying no-one, there are no waiting threads");
             }
-            waitingThread = rospl.dequeueThread();
-            waitingThreads.remove(waitingThread);
 
-        } else if (!waitingThreads.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Notifying thread waiting on any pool.");
+            if (waitingThread != null) {
+                waitingThread.interruptedByConnectionPool = true;
+                waitingThread.thread.interrupt();
             }
-            waitingThread = waitingThreads.remove();
-            waitingThread.pool.removeThread(waitingThread);
 
-        } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Notifying no-one, there are no waiting threads");
-        }
-
-        if (waitingThread != null) {
-            waitingThread.interruptedByConnectionPool = true;
-            waitingThread.thread.interrupt();
+        } finally {
+            poolLock.unlock();
         }
     }
 
@@ -484,44 +567,57 @@ public class ConnPoolByRoute extends AbstractConnPool {
     //@@@ revise this cleanup stuff
     //@@@ move method to base class when deleteEntry() is fixed
     // non-javadoc, see base class AbstractConnPool
-    public synchronized void deleteClosedConnections() {
+    public void deleteClosedConnections() {
 
-        Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
-        while (iter.hasNext()) {
-            BasicPoolEntry entry = iter.next();
-            if (!entry.getConnection().isOpen()) {
-                iter.remove();
-                deleteEntry(entry);
+        try {
+            poolLock.lock();
+
+            Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
+            while (iter.hasNext()) {
+                BasicPoolEntry entry = iter.next();
+                if (!entry.getConnection().isOpen()) {
+                    iter.remove();
+                    deleteEntry(entry);
+                }
             }
+
+        } finally {
+            poolLock.unlock();
         }
     }
 
 
     // non-javadoc, see base class AbstractConnPool
-    public synchronized void shutdown() {
+    public void shutdown() {
 
-        super.shutdown();
+        try {
+            poolLock.lock();
 
-        // close all free connections
-        //@@@ move this to base class?
-        Iterator<BasicPoolEntry> ibpe = freeConnections.iterator();
-        while (ibpe.hasNext()) {
-            BasicPoolEntry entry = ibpe.next();
-            ibpe.remove();
-            closeConnection(entry.getConnection());
+            super.shutdown();
+
+            // close all free connections
+            //@@@ move this to base class?
+            Iterator<BasicPoolEntry> ibpe = freeConnections.iterator();
+            while (ibpe.hasNext()) {
+                BasicPoolEntry entry = ibpe.next();
+                ibpe.remove();
+                closeConnection(entry.getConnection());
+            }
+
+            // interrupt all waiting threads
+            Iterator<WaitingThread> iwth = waitingThreads.iterator();
+            while (iwth.hasNext()) {
+                WaitingThread waiter = iwth.next();
+                iwth.remove();
+                waiter.interruptedByConnectionPool = true;
+                waiter.thread.interrupt();
+            }
+
+            routeToPool.clear();
+
+        } finally {
+            poolLock.unlock();
         }
-
-            
-        // interrupt all waiting threads
-        Iterator<WaitingThread> iwth = waitingThreads.iterator();
-        while (iwth.hasNext()) {
-            WaitingThread waiter = iwth.next();
-            iwth.remove();
-            waiter.interruptedByConnectionPool = true;
-            waiter.thread.interrupt();
-        }
-
-        routeToPool.clear();
     }
 
 
