@@ -60,7 +60,7 @@ public interface ConnRoutePNames {
      * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
      * implementations, in particular the default implementation.
      * <p>
-     * This parameter expects a value of type {@link java.net.INetAddress}.
+     * This parameter expects a value of type {@link java.net.InetAddress}.
      * </p>
      */
     public static final String LOCAL_ADDRESS = "http.route.local-address";
