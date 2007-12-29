@@ -73,17 +73,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     /** The list of free connections */
-    private Queue<BasicPoolEntry> freeConnections;
+    protected Queue<BasicPoolEntry> freeConnections;
 
     /** The list of WaitingThreads waiting for a connection */
-    private Queue<WaitingThread> waitingThreads;
+    protected Queue<WaitingThread> waitingThreads;
 
     /**
      * A map of route-specific pools.
      * Keys are of class {@link HttpRoute},
      * values of class {@link RouteSpecificPool}.
      */
-    private final Map<HttpRoute,RouteSpecificPool> routeToPool;
+    protected final Map<HttpRoute,RouteSpecificPool> routeToPool;
 
 
 
@@ -95,10 +95,68 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(ClientConnectionManager mgr) {
         super(mgr);
 
-        //@@@ use factory method, at least for waitingThreads
-        freeConnections = new LinkedList<BasicPoolEntry>();
-        waitingThreads = new LinkedList<WaitingThread>();
-        routeToPool = new HashMap<HttpRoute,RouteSpecificPool>();
+        freeConnections = createFreeConnQueue();
+        waitingThreads  = createWaitingThreadQueue();
+        routeToPool     = createRouteToPoolMap();
+    }
+
+
+    /**
+     * Creates the queue for {@link #freeConnections}.
+     * Called once by the constructor.
+     *
+     * @return  a queue
+     */
+    protected Queue<BasicPoolEntry> createFreeConnQueue() {
+        return new LinkedList<BasicPoolEntry>();
+    }
+
+    /**
+     * Creates the queue for {@link #waitingThreads}.
+     * Called once by the constructor.
+     *
+     * @return  a queue
+     */
+    protected Queue<WaitingThread> createWaitingThreadQueue() {
+        return new LinkedList<WaitingThread>();
+    }
+
+    /**
+     * Creates the map for {@link #routeToPool}.
+     * Called once by the constructor.
+     *
+     * @return  a map
+     */
+    protected Map<HttpRoute,RouteSpecificPool> createRouteToPoolMap() {
+        return new HashMap<HttpRoute,RouteSpecificPool>();
+    }
+
+
+    /**
+     * Creates a new route-specific pool.
+     * Called by {@link #getRoutePool} when necessary.
+     *
+     * @param route     the route
+     *
+     * @return  the new pool
+     */
+    protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
+        return new RouteSpecificPool(route);
+    }
+
+
+    /**
+     * Creates a new waiting thread.
+     * Called by {@link #getRoutePool} when necessary.
+     *
+     * @param cond      the condition to wait for
+     * @param rospl     the route specific pool, or <code>null</code>
+     *
+     * @return  a waiting thread representation
+     */
+    protected WaitingThread newWaitingThread(Condition cond,
+                                             RouteSpecificPool rospl) {
+        return new WaitingThread(cond, rospl);
     }
 
 
@@ -130,19 +188,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
 
         return rospl;
-    }
-
-
-    /**
-     * Creates a new route-specific pool.
-     * Called by {@link #getRoutePool getRoutePool}, if necessary.
-     *
-     * @param route     the route
-     *
-     * @return  the new pool
-     */
-    protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
-        return new RouteSpecificPool(route);
     }
 
 
@@ -219,9 +264,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     }
 
                     if (waitingThread == null) {
-                        //@@@ use factory method?
-                        waitingThread = new WaitingThread
-                            (poolLock.newCondition(), rospl);
+                        waitingThread =
+                            newWaitingThread(poolLock.newCondition(), rospl);
                     }
 
                     boolean success = false;
@@ -363,15 +407,16 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Creating new connection. " + rospl.getRoute());
         }
 
-        BasicPoolEntry entry = null;
+        // the entry will create the connection when needed
+        BasicPoolEntry entry =
+            new BasicPoolEntry(op, rospl.getRoute(), refQueue);
+
         try {
             poolLock.lock();
 
-            // the entry will create the connection when needed
-            entry = new BasicPoolEntry(op, rospl.getRoute(), refQueue);
             rospl.createdEntry(entry);
             numConnections++;
-    
+
             issuedConnections.add(entry.getWeakRef());
 
         } finally {
