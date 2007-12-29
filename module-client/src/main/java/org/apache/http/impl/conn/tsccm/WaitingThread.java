@@ -31,6 +31,7 @@
 package org.apache.http.impl.conn.tsccm;
 
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 
@@ -79,73 +80,6 @@ public class WaitingThread {
 
 
     /**
-     * Blocks the calling thread.
-     * This method returns when the thread is notified or interrupted,
-     * if a timeout occurrs, or if there is a spurious wakeup.
-     * <br/>
-     * This method assumes external synchronization.
-     *
-     * @param timeout   the timeout in milliseconds, or 0 for no timeout
-     *
-     * @return  <code>true</code> if the condition was satisfied,
-     *          <code>false</code> in case of a timeout.
-     *          Typically, a call to {@link #wakeup} is used to indicate
-     *          that the condition was satisfied. Since the condition can
-     *          be accessed from outside, this cannot be guaranteed though.
-     *
-     * @throws InterruptedException     if the waiting thread was interrupted
-     *
-     * @see #wakeup
-     */
-    public boolean await(long timeout)
-        throws InterruptedException {
-
-        //@@@ check timeout for negative, or assume overflow?
-        //@@@ for now, leave the check to the condition
-
-        // This is only a sanity check. We cannot not synchronize here,
-        // the lock would not be released on calling cond.await() below.
-        if (this.waiter != null) {
-            throw new IllegalStateException
-                ("A thread is already waiting on this object." +
-                 "\ncaller: " + Thread.currentThread() +
-                 "\nwaiter: " + this.waiter);
-        }
-
-        this.waiter = Thread.currentThread();
-
-        boolean success = false;
-        try {
-            success = this.cond.await(timeout, TimeUnit.MILLISECONDS);
-        } finally {
-            this.waiter = null;
-        }
-        return success;
-
-    } // await
-
-
-    /**
-     * Wakes up the waiting thread.
-     * <br/>
-     * This method assumes external synchronization.
-     */
-    public void wakeup() {
-
-        // If external synchronization and pooling works properly,
-        // this cannot happen. Just a sanity check.
-        if (this.waiter == null) {
-            throw new IllegalStateException
-                ("Nobody waiting on this object.");
-        }
-
-        // One condition might be shared by several WaitingThread instances.
-        // It probably isn't, but just in case: wake all, not just one.
-        this.cond.signalAll();
-    }
-
-
-    /**
      * Obtains the condition.
      *
      * @return  the condition on which to wait, never <code>null</code>
@@ -176,6 +110,75 @@ public class WaitingThread {
     public final Thread getThread() {
         // not synchronized
         return this.waiter;
+    }
+
+
+    /**
+     * Blocks the calling thread.
+     * This method returns when the thread is notified or interrupted,
+     * if a timeout occurrs, or if there is a spurious wakeup.
+     * <br/>
+     * This method assumes external synchronization.
+     *
+     * @param deadline  when to time out, or <code>null</code> for no timeout
+     *
+     * @return  <code>true</code> if the condition was satisfied,
+     *          <code>false</code> in case of a timeout.
+     *          Typically, a call to {@link #wakeup} is used to indicate
+     *          that the condition was satisfied. Since the condition is
+     *          accessible outside, this cannot be guaranteed though.
+     *
+     * @throws InterruptedException     if the waiting thread was interrupted
+     *
+     * @see #wakeup
+     */
+    public boolean await(Date deadline)
+        throws InterruptedException {
+
+        // This is only a sanity check. We cannot synchronize here,
+        // the lock would not be released on calling cond.await() below.
+        if (this.waiter != null) {
+            throw new IllegalStateException
+                ("A thread is already waiting on this object." +
+                 "\ncaller: " + Thread.currentThread() +
+                 "\nwaiter: " + this.waiter);
+        }
+
+        this.waiter = Thread.currentThread();
+
+        boolean success = false;
+        try {
+            if (deadline != null) {
+                success = this.cond.awaitUntil(deadline);
+            } else {
+                this.cond.await();
+                success = true;
+            }
+        } finally {
+            this.waiter = null;
+        }
+        return success;
+
+    } // await
+
+
+    /**
+     * Wakes up the waiting thread.
+     * <br/>
+     * This method assumes external synchronization.
+     */
+    public void wakeup() {
+
+        // If external synchronization and pooling works properly,
+        // this cannot happen. Just a sanity check.
+        if (this.waiter == null) {
+            throw new IllegalStateException
+                ("Nobody waiting on this object.");
+        }
+
+        // One condition might be shared by several WaitingThread instances.
+        // It probably isn't, but just in case: wake all, not just one.
+        this.cond.signalAll();
     }
 
 

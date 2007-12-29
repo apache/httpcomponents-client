@@ -30,6 +30,7 @@
 
 package org.apache.http.impl.conn.tsccm;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Queue;
@@ -171,18 +172,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
         int maxTotalConnections = HttpConnectionManagerParams
             .getMaxTotalConnections(this.params);
         
-        BasicPoolEntry entry = null;
+        Date deadline = null;
+        if (timeout > 0) {
+            deadline = new Date(System.currentTimeMillis() + timeout);
+        }
 
+        BasicPoolEntry entry = null;
         try {
             poolLock.lock();
 
             RouteSpecificPool rospl = getRoutePool(route, true);
             WaitingThread waitingThread = null;
-
-            boolean useTimeout = (timeout > 0);
-            long timeToWait = timeout;
-            long startWait = 0;
-            long endWait = 0;
 
             while (entry == null) {
 
@@ -213,34 +213,28 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     entry = createEntry(rospl, operator);
 
                 } else {
-                    // TODO: keep track of which routes have waiting threads,
-                    // so they avoid being sacrificed before necessary
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Need to wait for connection. " + route);
+                    }
+
+                    if (waitingThread == null) {
+                        //@@@ use factory method?
+                        waitingThread = new WaitingThread
+                            (poolLock.newCondition(), rospl);
+                    }
 
                     boolean success = false;
                     try {
-                        if (useTimeout && timeToWait <= 0) {
-                            throw new ConnectionPoolTimeoutException
-                                ("Timeout waiting for connection");
-                        }
-   
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Need to wait for connection. " + route);
-                        }
-   
-                        if (waitingThread == null) {
-                            //@@@ use factory method?
-                            waitingThread = new WaitingThread
-                                (poolLock.newCondition(), rospl);
-                        }
-
-                        if (useTimeout) {
-                            startWait = System.currentTimeMillis();
-                        }
-
                         rospl.queueThread(waitingThread);
                         waitingThreads.add(waitingThread);
-                        success = waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS); or deadline
+                        success = waitingThread.await(deadline);
+
                     } finally {
+                        // In case of 'success', we were woken up by the
+                        // connection pool and should now have a connection
+                        // waiting for us, or else we're shutting down.
+                        // Just continue in the loop, both cases are checked.
                         if (!success) {
                             // Either we timed out, experienced a
                             // "spurious wakeup", or were interrupted by
@@ -249,15 +243,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
                             rospl.removeThread(waitingThread);
                             waitingThreads.remove(waitingThread);
                         }
-                        // In case of 'success', we were woken up by the
-                        // connection pool and should now have a connection
-                        // waiting for us, or else we're shutting down.
-                        // Just continue in the loop, both cases are checked.
+                    }
 
-                        if (useTimeout) {
-                            endWait = System.currentTimeMillis();
-                            timeToWait -= (endWait - startWait);
-                        }
+                    // check for spurious wakeup vs. timeout
+                    if (!success && (deadline != null) &&
+                        (deadline.getTime() <= System.currentTimeMillis())) {
+                        throw new ConnectionPoolTimeoutException
+                            ("Timeout waiting for connection");
                     }
                 }
             } // while no entry
