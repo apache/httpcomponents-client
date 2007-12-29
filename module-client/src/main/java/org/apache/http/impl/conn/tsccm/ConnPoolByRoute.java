@@ -239,27 +239,20 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
                         rospl.queueThread(waitingThread);
                         waitingThreads.add(waitingThread);
-                        success = waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS);
-                        //@@@ The 'success' flag is somewhat different from the
-                        //@@@ previous technique using interrupts. If the CM is
-                        //@@@ shutting down, we now get an InterruptedException
-                        //@@@ and have no check for that special case. What we
-                        //@@@ want to do is to let the exception fly through.
-                        //@@@ Actually, we may want to have a special exception
-                        //@@@ for the shutdown case, but that is goldplating.
-
+                        success = waitingThread.await(timeToWait); //@@@, TimeUnit.MILLISECONDS); or deadline
                     } finally {
                         if (!success) {
                             // Either we timed out, experienced a
-                            // "spurious wakeup", or were interrupted by an
-                            // external thread.  Regardless we need to 
+                            // "spurious wakeup", or were interrupted by
+                            // an external thread. Regardless, we need to 
                             // cleanup for ourselves in the wait queue.
                             rospl.removeThread(waitingThread);
                             waitingThreads.remove(waitingThread);
                         }
                         // In case of 'success', we were woken up by the
                         // connection pool and should now have a connection
-                        // waiting for us. Continue in the loop and get it.
+                        // waiting for us, or else we're shutting down.
+                        // Just continue in the loop, both cases are checked.
 
                         if (useTimeout) {
                             endWait = System.currentTimeMillis();
@@ -571,12 +564,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 closeConnection(entry.getConnection());
             }
 
-            // interrupt all waiting threads
+            // wake up all waiting threads
             Iterator<WaitingThread> iwth = waitingThreads.iterator();
             while (iwth.hasNext()) {
                 WaitingThread waiter = iwth.next();
                 iwth.remove();
-                waiter.getThread().interrupt();
+                waiter.wakeup();
             }
 
             routeToPool.clear();
