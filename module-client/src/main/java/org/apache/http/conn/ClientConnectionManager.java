@@ -131,12 +131,14 @@ public interface ClientConnectionManager {
     /**
      * Closes idle connections in the pool.
      * Open connections in the pool that have not been used for the
-     * timespan given by the timeout argument will be closed.
+     * timespan given by the argument will be closed.
      * Currently allocated connections are not subject to this method.
+     * Times will be checked with milliseconds precision
      * 
-     * @param idletime       the idle time in milliseconds
+     * @param idletime  the idle time of connections to be closed
+     * @param tunit     the unit for the <code>idletime</code>
      */
-    void closeIdleConnections(long idletime)
+    void closeIdleConnections(long idletime, TimeUnit tunit)
         ;
 
 

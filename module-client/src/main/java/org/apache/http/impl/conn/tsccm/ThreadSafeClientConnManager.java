@@ -264,9 +264,9 @@ public class ThreadSafeClientConnManager
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public void closeIdleConnections(long idleTimeout) {
+    public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         // combine these two in a single call?
-        connectionPool.closeIdleConnections(idleTimeout);
+        connectionPool.closeIdleConnections(idleTimeout, tunit);
         connectionPool.deleteClosedConnections();
     }
 

@@ -393,7 +393,8 @@ public class TestTSCCMNoServer extends TestCase {
         assertEquals("connectionsInPool(host)",
                      mgr.getConnectionsInPool(route), 1);
 
-        mgr.closeIdleConnections(0L); // implicitly deletes them, too
+        // this implicitly deletes them
+        mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 0);

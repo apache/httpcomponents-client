@@ -249,12 +249,18 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      *
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
+     * @param tunit     the unit for the <code>idletime</code>
      */
-    public void closeIdleConnections(long idletime) {
+    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+
+        // idletime can be 0 or negative, no problem there
+        if (tunit == null) {
+            throw new IllegalArgumentException("Time unit must not be null.");
+        }
 
         try {
             poolLock.lock();
-            idleConnHandler.closeIdleConnections(idletime);
+            idleConnHandler.closeIdleConnections(tunit.toMillis(idletime));
         } finally {
             poolLock.unlock();
         }

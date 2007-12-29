@@ -100,6 +100,7 @@ public class IdleConnectionHandler {
      * 
      * @param idleTime the minimum idle time, in milliseconds, for connections to be closed
      */
+    //@@@ add TimeUnit argument here?
     public void closeIdleConnections(long idleTime) {
         
         // the latest time for which connections will be closed

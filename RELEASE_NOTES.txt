@@ -1,7 +1,10 @@
 Changes since 4.0 Alpha 2
 -------------------
 
-* [HTTPCLIENT-677] Connection manager no longer uses Thread.interrupt()
+* [HTTPCLIENT-725] Use TimeUnit arguments for timeouts in connection manager.
+  Contributed by Roland Weber <rolandw at apache.org>
+
+* [HTTPCLIENT-677] Connection manager no longer uses Thread.interrupt().
   Contributed by Roland Weber <rolandw at apache.org>
 
 * [HTTPCLIENT-716] Allow application-defined routes.
@@ -16,11 +19,11 @@ Changes since 4.0 Alpha 2
 * [HTTPCLIENT-715] Remove RoutedRequest from API
   Contributed by Roland Weber <rolandw at apache.org>
 
-* [HTTPCLIENT-705] Fixed incorrect handling of URIs with null path component
+* [HTTPCLIENT-705] Fixed incorrect handling of URIs with null path component.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-688] HttpOptions#getAllowedMethods can now handle multiple 
-  Allow headers
+  Allow headers.
   Contributed by Andrea Selva <selva.andre at gmail.com>
 
 

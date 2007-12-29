@@ -289,11 +289,17 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public void closeIdleConnections(long idletime) {
+    public void closeIdleConnections(long idletime, TimeUnit tunit) {
         assertStillUp();
 
+        // idletime can be 0 or negative, no problem there
+        if (tunit == null) {
+            throw new IllegalArgumentException("Time unit must not be null.");
+        }
+
         if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
-            final long cutoff = System.currentTimeMillis() - idletime;
+            final long cutoff =
+                System.currentTimeMillis() - tunit.toMillis(idletime);
             if (lastReleaseTime <= cutoff) {
                 try {
                     uniquePoolEntry.close();
