@@ -32,6 +32,7 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -183,12 +184,14 @@ public class SingleClientConnManager implements ClientConnectionManager {
      *
      * @param route     where the connection should point to
      * @param timeout   ignored
+     * @param tunit     ignored
      *
      * @return  a connection that can be used to communicate
      *          along the given route
      */
     public final ManagedClientConnection getConnection(HttpRoute route,
-                                                       long timeout) {
+                                                       long timeout,
+                                                       TimeUnit tunit) {
         return getConnection(route);
     }
 

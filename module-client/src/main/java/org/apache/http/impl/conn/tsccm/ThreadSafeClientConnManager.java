@@ -31,6 +31,7 @@
 package org.apache.http.impl.conn.tsccm;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -146,13 +147,13 @@ public class ThreadSafeClientConnManager
 
         while (true) {
             try {
-                return getConnection(route, 0);
+                return getConnection(route, 0, null);
             } catch (ConnectionPoolTimeoutException e) {
                 // We'll go ahead and log this, but it should never happen.
                 // These exceptions are only thrown when the timeout occurs
                 // and since we have no timeout, it doesn't happen.
                 LOG.debug
-                    ("Unexpected exception while waiting for connection", e);
+                    ("Unexpected exception while waiting for connection.", e);
                 //@@@ throw RuntimeException or Error to indicate the problem?
             }
         }
@@ -161,7 +162,8 @@ public class ThreadSafeClientConnManager
 
     // non-javadoc, see interface ClientConnectionManager
     public ManagedClientConnection getConnection(HttpRoute route,
-                                                 long timeout)
+                                                 long timeout,
+                                                 TimeUnit tunit)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         if (route == null) {
@@ -174,7 +176,7 @@ public class ThreadSafeClientConnManager
         }
 
         final BasicPoolEntry entry =
-            connectionPool.getEntry(route, timeout, connOperator);
+            connectionPool.getEntry(route, timeout, tunit, connOperator);
 
         return new BasicPooledConnAdapter(this, entry);
     }

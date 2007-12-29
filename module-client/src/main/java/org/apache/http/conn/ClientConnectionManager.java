@@ -32,6 +32,8 @@
 package org.apache.http.conn;
 
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.http.params.HttpParams;
 
 
@@ -93,9 +95,12 @@ public interface ClientConnectionManager {
      * This method will block until a connection becomes available,
      * the timeout expires, or the connection manager is
      * {@link #shutdown shut down}.
+     * Timeouts are handled with millisecond precision
      *
      * @param route     where the connection should point to
-     * @param timeout   the timeout in milliseconds
+     * @param timeout   the timeout, 0 or negative for no timeout
+     * @param tunit     the unit for the <code>timeout</code>,
+     *                  may be <code>null</code> only if there is no timeout
      *
      * @return  a connection that can be used to communicate
      *          along the given route
@@ -106,7 +111,8 @@ public interface ClientConnectionManager {
      *         if the calling thread is interrupted while waiting
      */
     ManagedClientConnection getConnection(HttpRoute route,
-                                          long timeout)
+                                          long timeout,
+                                          TimeUnit tunit)
         throws ConnectionPoolTimeoutException, InterruptedException
         ;
 

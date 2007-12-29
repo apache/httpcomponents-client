@@ -37,6 +37,7 @@ import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -167,7 +168,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * Obtains a pool entry with a connection within the given timeout.
      *
      * @param route     the route for which to get the connection
-     * @param timeout   the timeout, or 0 for no timeout
+     * @param timeout   the timeout, 0 or negative for no timeout
+     * @param tunit     the unit for the <code>timeout</code>,
+     *                  may be <code>null</code> only if there is no timeout
      * @param operator  the connection operator, in case
      *                  a connection has to be created
      *
@@ -179,7 +182,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      *         if the calling thread was interrupted
      */
     public abstract
-        BasicPoolEntry getEntry(HttpRoute route, long timeout,
+        BasicPoolEntry getEntry(HttpRoute route, long timeout, TimeUnit tunit,
                                 ClientConnectionOperator operator)
         throws ConnectionPoolTimeoutException, InterruptedException
         ;

@@ -208,7 +208,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    public BasicPoolEntry getEntry(HttpRoute route, long timeout,
+    public BasicPoolEntry getEntry(HttpRoute route,
+                                   long timeout, TimeUnit tunit,
                                    ClientConnectionOperator operator)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
@@ -219,7 +220,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         
         Date deadline = null;
         if (timeout > 0) {
-            deadline = new Date(System.currentTimeMillis() + timeout);
+            deadline = new Date
+                (System.currentTimeMillis() + tunit.toMillis(timeout));
         }
 
         BasicPoolEntry entry = null;

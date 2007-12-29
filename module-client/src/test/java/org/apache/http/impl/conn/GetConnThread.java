@@ -30,6 +30,8 @@
 
 package org.apache.http.impl.conn;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
@@ -52,6 +54,7 @@ public class GetConnThread extends Thread {
     /**
      * Creates a new thread.
      * When this thread is started, it will try to obtain a connection.
+     * The timeout is in milliseconds.
      */
     public GetConnThread(ClientConnectionManager mgr,
                          HttpRoute route, long timeout) {
@@ -67,7 +70,8 @@ public class GetConnThread extends Thread {
      */
     public void run() {
         try {
-            connection = conn_manager.getConnection(conn_route, conn_timeout);
+            connection = conn_manager.getConnection
+                (conn_route, conn_timeout, TimeUnit.MILLISECONDS);
         } catch (Throwable dart) {
             exception = dart;
         }

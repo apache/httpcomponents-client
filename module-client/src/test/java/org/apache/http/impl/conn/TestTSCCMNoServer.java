@@ -30,6 +30,8 @@
 
 package org.apache.http.impl.conn;
 
+import java.util.concurrent.TimeUnit;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -204,7 +206,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         try {
             // this should fail quickly, connection has not been released
-            mgr.getConnection(route2, 100L);
+            mgr.getConnection(route2, 100L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -216,7 +218,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // there should be a connection available now
         try {
-            conn2 = mgr.getConnection(route2, 100L);
+            conn2 = mgr.getConnection(route2, 100L, TimeUnit.MILLISECONDS);
         } catch (ConnectionPoolTimeoutException cptx) {
             cptx.printStackTrace();
             fail("connection should have been available: " + cptx);
@@ -244,36 +246,39 @@ public class TestTSCCMNoServer extends TestCase {
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
         // route 3, limit 3
-        ManagedClientConnection conn1 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn1 =
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
         assertNotNull(conn1);
-        ManagedClientConnection conn2 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn2 =
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
         assertNotNull(conn2);
-        ManagedClientConnection conn3 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn3 =
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
         assertNotNull(conn3);
         try {
             // should fail quickly, connection has not been released
-            mgr.getConnection(route3, 10L);
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         
         // route 2, limit 2
-        conn1 = mgr.getConnection(route2, 10L);
-        conn2 = mgr.getConnection(route2, 10L);
+        conn1 = mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
+        conn2 = mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
         try {
             // should fail quickly, connection has not been released
-            mgr.getConnection(route2, 10L);
+            mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
 
         // route 1, should use default limit of 1
-        conn1 = mgr.getConnection(route1, 10L);
+        conn1 = mgr.getConnection(route1, 10L, TimeUnit.MILLISECONDS);
         try {
             // should fail quickly, connection has not been released
-            mgr.getConnection(route1, 10L);
+            mgr.getConnection(route1, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -314,9 +319,12 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route3 = new HttpRoute(target3, null, false);
 
         // the first three allocations should pass
-        ManagedClientConnection conn1 = mgr.getConnection(route1, 10L);
-        ManagedClientConnection conn2 = mgr.getConnection(route2, 10L);
-        ManagedClientConnection conn3 = mgr.getConnection(route3, 10L);
+        ManagedClientConnection conn1 =
+            mgr.getConnection(route1, 10L, TimeUnit.MILLISECONDS);
+        ManagedClientConnection conn2 =
+            mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
+        ManagedClientConnection conn3 =
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
         assertNotNull(conn1);
         assertNotNull(conn2);
         assertNotNull(conn3);
@@ -324,19 +332,19 @@ public class TestTSCCMNoServer extends TestCase {
         // obtaining another connection for either of the three should fail
         // this is somehow redundant with testMaxConnPerHost
         try {
-            mgr.getConnection(route1, 10L);
+            mgr.getConnection(route1, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         try {
-            mgr.getConnection(route2, 10L);
+            mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         try {
-            mgr.getConnection(route3, 10L);
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -346,16 +354,16 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.releaseConnection(conn2);
         conn2 = null;
         try {
-            mgr.getConnection(route1, 10L);
+            mgr.getConnection(route1, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         // this one succeeds
-        conn2 = mgr.getConnection(route2, 10L);
+        conn2 = mgr.getConnection(route2, 10L, TimeUnit.MILLISECONDS);
         assertNotNull(conn2);
         try {
-            mgr.getConnection(route3, 10L);
+            mgr.getConnection(route3, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -411,7 +419,8 @@ public class TestTSCCMNoServer extends TestCase {
         // get the only connection, then start an extra thread
         // on shutdown, the extra thread should get an exception
 
-        ManagedClientConnection conn = mgr.getConnection(route, 1L);
+        ManagedClientConnection conn =
+            mgr.getConnection(route, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
         gct.start();
         Thread.sleep(100); // give extra thread time to block
@@ -435,7 +444,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // the manager is down, we should not be able to get a connection
         try {
-            conn = mgr.getConnection(route, 1L);
+            conn = mgr.getConnection(route, 1L, TimeUnit.MILLISECONDS);
             fail("shut-down manager does not raise exception");
         } catch (IllegalStateException isx) {
             // expected
@@ -455,7 +464,8 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route = new HttpRoute(target, null, false);
 
         // get the only connection, then start an extra thread
-        ManagedClientConnection conn = mgr.getConnection(route, 1L);
+        ManagedClientConnection conn =
+            mgr.getConnection(route, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
         gct.start();
         Thread.sleep(100); // give extra thread time to block
@@ -474,14 +484,15 @@ public class TestTSCCMNoServer extends TestCase {
 
         // make sure the manager is still working
         try {
-            mgr.getConnection(route, 10L);
+            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
             fail("should have gotten a timeout");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
 
         mgr.releaseConnection(conn);
-        conn = mgr.getConnection(route, 10L); // this time, no exception
+        // this time: no exception
+        conn = mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
         assertNotNull("should have gotten a connection", conn);
 
         mgr.shutdown();
@@ -503,7 +514,8 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route2 = new HttpRoute(target2, null, false);
 
         // get the only connection, then start two extra threads
-        ManagedClientConnection conn = mgr.getConnection(route1, 1L);
+        ManagedClientConnection conn =
+            mgr.getConnection(route1, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct1 = new GetConnThread(mgr, route1, 1000L);
         GetConnThread gct2 = new GetConnThread(mgr, route2, 1000L);
 

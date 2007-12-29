@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -501,6 +502,8 @@ public class DefaultClientRequestDirector
      * Obtains a connection for the target route.
      *
      * @param route     the route for which to allocate a connection
+     * @param timeout   the timeout in milliseconds,
+     *                  0 or negative for no timeout
      *
      * @throws HttpException    in case of a (protocol) problem
      * @throws ConnectionPoolTimeoutException   in case of a timeout
@@ -511,7 +514,8 @@ public class DefaultClientRequestDirector
         throws HttpException, ConnectionPoolTimeoutException,
                InterruptedException {
 
-        return connManager.getConnection(route, timeout);
+        return connManager.getConnection
+            (route, timeout, TimeUnit.MILLISECONDS);
 
     } // allocateConnection
 

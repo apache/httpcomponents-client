@@ -32,6 +32,7 @@ package org.apache.http.impl.conn;
 
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -211,7 +212,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            mgr.getConnection(route, 10L);
+            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -295,7 +296,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // first check that we can't get another connection
         try {
             // this should fail quickly, connection has not been released
-            mgr.getConnection(route, 10L);
+            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -314,7 +315,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         Thread.sleep(1000);
 
         assertNull("connection not garbage collected", wref.get());
-        conn = mgr.getConnection(route, 10L);
+        conn = mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
         assertFalse("GCed connection not closed", conn.isOpen());
 
         mgr.shutdown();
