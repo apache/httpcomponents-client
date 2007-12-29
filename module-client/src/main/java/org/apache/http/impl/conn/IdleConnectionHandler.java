@@ -44,7 +44,7 @@ import org.apache.http.HttpConnection;
  * 
  * <p>This class is not synchronized.</p>
  * 
- * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections(long)
+ * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections
  * 
  * @since 4.0
  */
