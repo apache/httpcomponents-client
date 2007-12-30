@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl"?>
+<rdf:RDF xml:lang="en"
+         xmlns="http://usefulinc.com/ns/doap#" 
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns:asfext="http://projects.apache.org/ns/asfext#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<!--
+   $HeadURL$
+   $Revision$
+   $Date$
+
+   ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+   ====================================================================
+
+   This software consists of voluntary contributions made by many
+   individuals on behalf of the Apache Software Foundation.  For more
+   information on the Apache Software Foundation, please see
+   <http://www.apache.org />.
+-->
+
+  <Project rdf:about="http://hc.apache.org/httpcomponents-client/">
+    <created>2007-11-15</created>
+    <license rdf:resource="http://usefulinc.com/doap/licenses/asl20" />
+    <name>Apache HttpComponents Client</name>
+    <homepage rdf:resource="http://hc.apache.org/httpcomponents-client/" />
+    <asfext:pmc rdf:resource="http://httpcomponents.apache.org" />
+    <shortdesc>
+Java library implementing an HttpClient based on HttpCore.
+    </shortdesc>
+    <description>
+HttpClient is a library for client-side HTTP communication built on HttpCore.
+It provides connection management, cookie management, and authentication.
+This is the successor to the widely used Jakarta Commons HttpClient 3.1.
+    </description>
+    <bug-database rdf:resource="http://issues.apache.org/jira/browse/HTTPCLIENT" />
+    <mailing-list rdf:resource="http://httpcomponents.apache.org/mail-lists.html" />
+    <download-page rdf:resource="http://httpcomponents.apache.org/downloads.cgi" />
+    <programming-language>Java</programming-language>
+    <category rdf:resource="http://projects.apache.org/category/http" />
+    <category rdf:resource="http://projects.apache.org/category/library" />
+    <category rdf:resource="http://projects.apache.org/category/network-client" />
+
+    <!-- multiple releases can be listed, each in it's own section -->
+    <release>
+      <Version>
+        <name>httpcomponents-client-4.0-alpha2</name>
+        <created>2007-11-07</created>
+        <revision>4.0-alpha2</revision>
+      </Version>
+    </release>
+
+    <repository>
+      <SVNRepository>
+        <location rdf:resource="http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk"/>
+        <browse rdf:resource="http://svn.apache.org/viewvc/httpcomponents/httpclient/trunk"/>
+      </SVNRepository>
+    </repository>
+
+    <asfext:implements><asfext:Standard>
+      <asfext:title>Hypertext Transfer Protocol -- HTTP/1.1</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2616</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2616"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>Hypertext Transfer Protocol -- HTTP/1.0</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 1945</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc1945"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>Upgrading to TLS Within HTTP/1.1</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2817</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2817"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>HTTP Over TLS</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2818</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2818"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>HTTP Authentication: Basic and Digest Access Authentication</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2617</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2617"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>HTTP State Management Mechanism (Cookies)</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2109</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2109"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>HTTP State Management Mechanism (Cookie2)</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 2965</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2965"/>
+    </asfext:Standard></asfext:implements>
+
+  </Project>
+</rdf:RDF>
