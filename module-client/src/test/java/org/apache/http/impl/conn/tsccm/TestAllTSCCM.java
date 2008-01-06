@@ -28,42 +28,28 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.impl.conn.tsccm;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.client.methods.TestAllMethods;
-import org.apache.http.client.protocol.TestAllProtocol;
-import org.apache.http.conn.TestAllConn;
-import org.apache.http.cookie.TestAllCookie;
-import org.apache.http.impl.client.TestAllHttpClientImpl;
-import org.apache.http.impl.conn.TestAllConnImpl;
-import org.apache.http.impl.conn.tsccm.TestAllTSCCM;
-import org.apache.http.impl.cookie.TestAllCookieImpl;
+public class TestAllTSCCM extends TestCase {
 
-public class TestAll extends TestCase {
-
-    public TestAll(String testName) {
+    public TestAllTSCCM(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
-        suite.addTest(TestAllCookie.suite());
-        suite.addTest(TestAllCookieImpl.suite());
-        suite.addTest(TestAllHttpClientImpl.suite());
-        suite.addTest(TestAllConn.suite());
-        suite.addTest(TestAllConnImpl.suite());
-        suite.addTest(TestAllTSCCM.suite());
-        suite.addTest(TestAllProtocol.suite());        
-        suite.addTest(TestAllMethods.suite());        
+
+        suite.addTest(TestWaitingThread.suite());
+
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
+        String[] testCaseName = { TestAllTSCCM.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
