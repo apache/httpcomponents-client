@@ -271,6 +271,24 @@ public class ClientParamsStack extends AbstractHttpParams {
 
 
     /**
+     * Does <i>not</i> remove a parameter.
+     * Parameter stacks are read-only. It is possible, though discouraged,
+     * to access and modify specific stack entries.
+     * Derived classes may change this behavior.
+     *
+     * @param name      ignored
+     *
+     * @return  nothing
+     *
+     * @throws UnsupportedOperationException    always
+     */
+    public boolean removeParameter(String name) {
+        throw new UnsupportedOperationException
+        ("Removing parameters in a stack is not supported.");
+    }
+
+
+    /**
      * Does <i>not</i> copy parameters.
      * Parameter stacks are lightweight objects, expected to be instantiated
      * as needed and to be used only in a very specific context. On top of
