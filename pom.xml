@@ -33,6 +33,7 @@
     <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
     <version>4.0</version>
+    <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents</groupId>
