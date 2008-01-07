@@ -43,10 +43,12 @@ public class TestAllTSCCM extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
 
+        suite.addTest(TestDumbHelpers.suite());
         suite.addTest(TestWaitingThread.suite());
 
         return suite;
     }
+
 
     public static void main(String args[]) {
         String[] testCaseName = { TestAllTSCCM.class.getName() };
