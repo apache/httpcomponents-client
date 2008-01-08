@@ -32,6 +32,8 @@
 package org.apache.http.impl.client;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.AbstractHttpParams;
 
@@ -75,6 +77,8 @@ import org.apache.http.params.AbstractHttpParams;
  */
 public class ClientParamsStack extends AbstractHttpParams {
 
+    private static final Log LOG = LogFactory.getLog(ClientParamsStack.class);
+    
     /** The application parameter collection, or <code>null</code>. */
     protected final HttpParams applicationParams;
 
@@ -210,6 +214,9 @@ public class ClientParamsStack extends AbstractHttpParams {
         }
         if ((result == null) && (applicationParams != null)) {
             result = applicationParams.getParameter(name);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("'" + name + "': " + result);
         }
 
         return result;
