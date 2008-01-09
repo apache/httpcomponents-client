@@ -112,7 +112,7 @@ public abstract class ServerTestBase extends TestCase {
     protected void setUp() throws Exception {
 
         if (defaultParams == null) {
-            defaultParams = new BasicHttpParams(null);
+            defaultParams = new BasicHttpParams();
             HttpProtocolParams.setVersion
                 (defaultParams, HttpVersion.HTTP_1_1);
             HttpProtocolParams.setContentCharset

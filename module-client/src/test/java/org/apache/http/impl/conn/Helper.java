@@ -35,7 +35,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpParamsLinker;
+import org.apache.http.params.SimpleParamStack;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -69,10 +69,10 @@ public final class Helper {
         ctxt.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
         ctxt.setAttribute(ExecutionContext.HTTP_REQUEST, req);
 
-        HttpParamsLinker.link(req, params);
+        req.setParams(new SimpleParamStack(req.getParams(), params));
         exec.preProcess(req, proc, ctxt);
         HttpResponse rsp = exec.execute(req, conn, ctxt);
-        HttpParamsLinker.link(rsp, params);
+        rsp.setParams(new SimpleParamStack(rsp.getParams(), params));
         exec.postProcess(rsp, proc, ctxt);
 
         return rsp;

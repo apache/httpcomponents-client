@@ -42,7 +42,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.params.HttpParamsLinker;
+import org.apache.http.params.SimpleParamStack;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
 
@@ -87,12 +87,14 @@ public class TestLocalServer extends ServerTestBase {
         httpContext.setAttribute(
                 ExecutionContext.HTTP_REQUEST, request);
 
-        HttpParamsLinker.link(request, defaultParams);
+        request.setParams(
+                new SimpleParamStack(request.getParams(), defaultParams));
         httpExecutor.preProcess
             (request, httpProcessor, httpContext);
         HttpResponse response = httpExecutor.execute
             (request, conn, httpContext);
-        HttpParamsLinker.link(response, defaultParams);
+        response.setParams(
+                new SimpleParamStack(response.getParams(), defaultParams));
         httpExecutor.postProcess
             (response, httpProcessor, httpContext);
 
@@ -130,12 +132,14 @@ public class TestLocalServer extends ServerTestBase {
             httpContext.setAttribute(
                     ExecutionContext.HTTP_REQUEST, request);
 
-            HttpParamsLinker.link(request, defaultParams);
+            request.setParams(
+                    new SimpleParamStack(request.getParams(), defaultParams));
             httpExecutor.preProcess
                 (request, httpProcessor, httpContext);
             HttpResponse response = httpExecutor.execute
                 (request, conn, httpContext);
-            HttpParamsLinker.link(response, defaultParams);
+            response.setParams(
+                    new SimpleParamStack(response.getParams(), defaultParams));
             httpExecutor.postProcess
                 (response, httpProcessor, httpContext);
 

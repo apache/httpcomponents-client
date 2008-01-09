@@ -30,7 +30,6 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;

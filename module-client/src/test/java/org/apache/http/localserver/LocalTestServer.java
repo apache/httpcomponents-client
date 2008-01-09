@@ -146,7 +146,7 @@ public class LocalTestServer {
      * @return  default parameters
      */
     public static HttpParams newDefaultParams() {
-        HttpParams params = new BasicHttpParams(null);
+        HttpParams params = new BasicHttpParams();
         params
             .setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
                              5000)
