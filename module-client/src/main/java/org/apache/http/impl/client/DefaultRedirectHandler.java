@@ -143,7 +143,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
                         target.getPort(),
                         requestURI.getPath(),
                         requestURI.getQuery(),
-                        requestURI.getFragment());
+                        null);
                 uri = absoluteRequestURI.resolve(uri); 
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
@@ -169,7 +169,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
                             uri.getHost(),
                             uri.getPort(),
                             uri.getPath(),
-                            null,
+                            uri.getQuery(),
                             null);
                 } catch (URISyntaxException ex) {
                     throw new ProtocolException(ex.getMessage(), ex);

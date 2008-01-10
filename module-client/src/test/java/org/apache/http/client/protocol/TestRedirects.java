@@ -131,8 +131,6 @@ public class TestRedirects extends ServerTestBase {
 
     private class CircularRedirectService implements HttpRequestHandler {
 
-        private int invocations = 0;
-        
         public CircularRedirectService() {
             super();
         }
@@ -145,10 +143,10 @@ public class TestRedirects extends ServerTestBase {
             String uri = request.getRequestLine().getUri();
             if (uri.startsWith("/circular-oldlocation")) {
                 response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
-                response.addHeader(new BasicHeader("Location", "/circular-location2?invk=" + (++this.invocations)));
+                response.addHeader(new BasicHeader("Location", "/circular-location2"));
             } else if (uri.startsWith("/circular-location2")) {
                 response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
-                response.addHeader(new BasicHeader("Location", "/circular-oldlocation?invk=" + (++this.invocations)));
+                response.addHeader(new BasicHeader("Location", "/circular-oldlocation"));
             } else {
                 response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
             }
