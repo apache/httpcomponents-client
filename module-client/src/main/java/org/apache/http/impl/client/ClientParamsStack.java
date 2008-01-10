@@ -222,40 +222,6 @@ public class ClientParamsStack extends AbstractHttpParams {
         return result;
     }
 
-
-    /**
-     * Checks whether a parameter is set in this stack.
-     *
-     * @param name      the name of the parameter to check for
-     *
-     * @return  <code>true</code> if the parameter is set in this stack,
-     *          <code>false</code> otherwise
-     */
-    public boolean isParameterSet(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException
-                ("Parameter name must not be null.");
-        }
-
-        boolean found = false;
-
-        if (overrideParams != null) {
-            found = overrideParams.isParameterSet(name);
-        }
-        if (!found && (requestParams != null)) {
-            found = requestParams.isParameterSet(name);
-        }
-        if (!found && (clientParams != null)) {
-            found = clientParams.isParameterSet(name);
-        }
-        if (!found && (applicationParams != null)) {
-            found = applicationParams.isParameterSet(name);
-        }
-
-        return found;
-    }
-
-
     /**
      * Does <i>not</i> set a parameter.
      * Parameter stacks are read-only. It is possible, though discouraged,
