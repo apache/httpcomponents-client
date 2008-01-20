@@ -51,7 +51,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoutePlanner;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;

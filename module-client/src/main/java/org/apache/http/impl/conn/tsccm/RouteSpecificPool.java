@@ -33,7 +33,8 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Queue;
 import java.util.LinkedList;
 
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
+
 
 /**
  * A connection sub-pool for a specific route, used by {@link ConnPoolByRoute}.

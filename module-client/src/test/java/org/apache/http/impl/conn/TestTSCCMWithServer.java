@@ -43,7 +43,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.params.HttpConnectionManagerParams;

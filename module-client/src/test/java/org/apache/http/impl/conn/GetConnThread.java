@@ -33,7 +33,7 @@ package org.apache.http.impl.conn;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 
 

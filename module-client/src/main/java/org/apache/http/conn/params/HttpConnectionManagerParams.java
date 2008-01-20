@@ -33,7 +33,7 @@ package org.apache.http.conn.params;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 
 /**

@@ -50,7 +50,7 @@ import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
-import org.apache.http.conn.HttpRoutePlanner;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;

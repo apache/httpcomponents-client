@@ -34,7 +34,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 
 
 

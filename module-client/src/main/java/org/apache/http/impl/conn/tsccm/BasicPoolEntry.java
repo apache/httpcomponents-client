@@ -33,7 +33,7 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.impl.conn.AbstractPoolEntry;

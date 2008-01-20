@@ -39,10 +39,10 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoute;
-import org.apache.http.conn.HttpRoutePlanner;
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.ClientConnectionManager;
 
 import org.apache.http.conn.params.ConnRoutePNames;
 

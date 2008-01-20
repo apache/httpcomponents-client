@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.routing;
 
 
 import java.net.InetAddress;
@@ -41,8 +41,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.HttpRoute.TunnelType;
-import org.apache.http.conn.HttpRoute.LayerType;
+import org.apache.http.conn.routing.HttpRoute.TunnelType;
+import org.apache.http.conn.routing.HttpRoute.LayerType;
 
 
 /**

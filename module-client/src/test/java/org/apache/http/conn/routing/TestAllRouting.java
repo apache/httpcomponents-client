@@ -28,37 +28,30 @@
  *
  */
 
-package org.apache.http.conn;
-
-import org.apache.http.conn.routing.TestAllRouting;
-import org.apache.http.conn.ssl.TestAllSSL;
-import org.apache.http.conn.util.TestAllUtil;
+package org.apache.http.conn.routing;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-public class TestAllConn extends TestCase {
+public class TestAllRouting extends TestCase {
 
-    public TestAllConn(String testName) {
+    public TestAllRouting(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
 
-        suite.addTest(TestScheme.suite());
-        suite.addTest(TestParams.suite());
-        suite.addTest(TestExceptions.suite());
-        suite.addTest(TestAllRouting.suite());
-        suite.addTest(TestAllSSL.suite());
-        suite.addTest(TestAllUtil.suite());
+        suite.addTest(TestHttpRoute.suite());
+        suite.addTest(TestRouteDirector.suite());
+        suite.addTest(TestRouteTracker.suite());
 
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAllConn.class.getName() };
+        String[] testCaseName = { TestAllRouting.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 

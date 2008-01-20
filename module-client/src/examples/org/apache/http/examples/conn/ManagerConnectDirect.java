@@ -38,7 +38,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;

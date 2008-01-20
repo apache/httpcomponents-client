@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-729] Move HttpRoute and related classes to routing package.
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-725] Use TimeUnit arguments for timeouts in connection manager.
   Contributed by Roland Weber <rolandw at apache.org>
 

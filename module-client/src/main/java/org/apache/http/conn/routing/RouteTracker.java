@@ -29,14 +29,14 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
 import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.conn.HttpRoute.TunnelType;
-import org.apache.http.conn.HttpRoute.LayerType;
+import org.apache.http.conn.routing.HttpRoute.TunnelType;
+import org.apache.http.conn.routing.HttpRoute.LayerType;
 
 
 /**

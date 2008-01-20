@@ -43,7 +43,7 @@ import junit.framework.TestSuite;
 
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;

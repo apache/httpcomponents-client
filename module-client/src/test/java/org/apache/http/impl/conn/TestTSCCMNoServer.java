@@ -39,7 +39,7 @@ import junit.framework.TestSuite;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;

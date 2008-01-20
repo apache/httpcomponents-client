@@ -43,10 +43,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.HttpRoute;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.IdleConnectionHandler;

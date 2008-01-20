@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.routing;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;

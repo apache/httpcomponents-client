@@ -31,7 +31,7 @@
 package org.apache.http.impl.conn;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 

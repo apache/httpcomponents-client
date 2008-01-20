@@ -36,7 +36,7 @@ import junit.framework.TestCase;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
-import org.apache.http.conn.HttpRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
