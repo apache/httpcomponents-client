@@ -48,7 +48,8 @@ public interface ConnManagerPNames {
      * and applies to individual manager instances.
      * <p>
      * This parameter expects a value of type {@link java.util.Map}.
-     * The value should map instances of {@link org.apache.http.conn.HttpRoute}
+     * The value should map instances of
+     * {@link org.apache.http.conn.routing.HttpRoute}
      * to {@link Integer integers}.
      * The default value is mapped to a special, private key.
      * </p>

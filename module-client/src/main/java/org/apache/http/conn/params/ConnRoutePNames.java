@@ -42,7 +42,7 @@ public interface ConnRoutePNames {
     /**
      * Parameter for the default proxy.
      * The default value will be used by some
-     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
+     * {@link org.apache.http.conn.routing.HttpRoutePlanner HttpRoutePlanner}
      * implementations, in particular the default implementation.
      * <p>
      * This parameter expects a value of type {@link org.apache.http.HttpHost}.
@@ -57,7 +57,7 @@ public interface ConnRoutePNames {
      * can be used to select the network interface from which the
      * connection originates.
      * It will be interpreted by the standard
-     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
+     * {@link org.apache.http.conn.routing.HttpRoutePlanner HttpRoutePlanner}
      * implementations, in particular the default implementation.
      * <p>
      * This parameter expects a value of type {@link java.net.InetAddress}.
@@ -69,13 +69,13 @@ public interface ConnRoutePNames {
     /**
      * Parameter for an forced route.
      * The forced route will be interpreted by the standard
-     * {@link org.apache.http.conn.HttpRoutePlanner HttpRoutePlanner}
+     * {@link org.apache.http.conn.routing.HttpRoutePlanner HttpRoutePlanner}
      * implementations.
      * Instead of computing a route, the given forced route will be
      * returned, even if it points to the wrong target host.
      * <p>
      * This parameter expects a value of type
-     * {@link org.apache.http.conn.HttpRoute HttpRoute}.
+     * {@link org.apache.http.conn.routing.HttpRoute HttpRoute}.
      * </p>
      */
     public static final String FORCED_ROUTE = "http.route.forced-route";

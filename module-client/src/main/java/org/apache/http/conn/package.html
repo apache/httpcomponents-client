@@ -37,8 +37,7 @@
 The client-side connection management and handling API
 at the heart of what is referred to as <i>HttpConn</i>.
 This component provides interfaces and implementations for
-opening and managing connections as well as for handling
-routes from the client machine to a target HTTP server.
+opening and managing connections.
 
 <p>
 The lowest layer of connection handling is comprised of
@@ -65,7 +64,7 @@ internally manages operated connections, but hands out instances of
 {@link org.apache.http.conn.ManagedClientConnection ManagedClientConnection}.
 This interface abstracts from the underlying socket operations and
 provides convenient methods for opening and updating sockets in order
-to establish a {@link org.apache.http.conn.HttpRoute route}.
+to establish a {@link org.apache.http.conn.routing.HttpRoute route}.
 The operator is encapsulated by the connection manager and called
 automatically.
 
@@ -86,19 +85,6 @@ Connection managers will try to keep returned connections alive in
 order to re-use them for subsequent requests along the same route.
 The managed connection interface and all triggers for connection release
 provide methods to enable or disable this behavior.
-</p>
-
-<p>
-An {@link org.apache.http.conn.HttpRoute HttpRoute}
-is the path along which a request has to be sent to the server.
-The route starts at a local network address and may pass
-through a proxy before reaching the target. Routes through a
-proxy can be tunnelled, and a secure protocol (TLS/SSL)
-might be put on top of the tunnel.
-The {@link org.apache.http.conn.RouteTracker RouteTracker}
-helps in tracking the steps for establishing a route, while an
-{@link org.apache.http.conn.HttpRouteDirector HttpRouteDirector}
-determines the next step to take.
 </p>
 
 </body>
