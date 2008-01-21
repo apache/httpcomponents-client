@@ -104,7 +104,7 @@ public class BestMatchSpec implements CookieSpec {
             if (helem.getParameterByName("version") != null) {
                 versioned = true;
             }
-            if (helem.getParameterByName("expiry") != null) {
+            if (helem.getParameterByName("expires") != null) {
                netscape = true;
             }
         }
@@ -158,9 +158,9 @@ public class BestMatchSpec implements CookieSpec {
         if (cookies == null) {
             throw new IllegalArgumentException("List of cookie may not be null");
         }
-        int version = 0;
+        int version = Integer.MAX_VALUE;
         for (Cookie cookie: cookies) {
-            if (cookie.getVersion() > version) {
+            if (cookie.getVersion() < version) {
                 version = cookie.getVersion();
             }
         }

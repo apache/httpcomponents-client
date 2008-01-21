@@ -54,6 +54,11 @@ public final class CookiePolicy {
      */
     public static final String RFC_2965 = "rfc2965";
 
+    /**
+     * The default 'best match' policy.
+     */
+    public static final String BEST_MATCH = "best-match";
+
     private CookiePolicy() {
         super();
     }

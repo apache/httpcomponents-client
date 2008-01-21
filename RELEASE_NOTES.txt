@@ -1,6 +1,13 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-667] Added 'Meta' cookie specification that selects a cookie policy 
+  depending on the format of the cookie(s). It is no longer necessary to know 
+  beforehand what kind of HTTP cookie support the target host provides. 
+  HttpClient is now able to pick up either a lenient or a strict cookie policy
+  depending on the compliance level of the target server.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-729] Move HttpRoute and related classes to routing package.
   Contributed by Roland Weber <rolandw at apache.org>
 

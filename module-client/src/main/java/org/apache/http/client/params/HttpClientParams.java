@@ -145,7 +145,7 @@ public class HttpClientParams {
         String cookiePolicy = (String)
             params.getParameter(ClientPNames.COOKIE_POLICY);
         if (cookiePolicy == null) {
-            return CookiePolicy.BROWSER_COMPATIBILITY;
+            return CookiePolicy.BEST_MATCH;
         }
         return cookiePolicy;
     }

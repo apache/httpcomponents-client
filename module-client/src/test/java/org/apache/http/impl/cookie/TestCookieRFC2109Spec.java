@@ -92,7 +92,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Test domain equals host 
      */
-    public void testcookiesomainEqualsHost() throws Exception {
+    public void testCookiesomainEqualsHost() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=www.b.com; version=1");
 

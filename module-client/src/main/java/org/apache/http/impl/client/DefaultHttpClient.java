@@ -61,6 +61,7 @@ import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
@@ -198,6 +199,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     protected CookieSpecRegistry createCookieSpecRegistry() {
         CookieSpecRegistry registry = new CookieSpecRegistry();
+        registry.register(
+                CookiePolicy.BEST_MATCH, 
+                new BestMatchSpecFactory());
         registry.register(
                 CookiePolicy.BROWSER_COMPATIBILITY, 
                 new BrowserCompatSpecFactory());
