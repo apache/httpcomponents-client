@@ -30,8 +30,11 @@
 package org.apache.http.client.utils;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.commons.codec.net.URLCodec;
+import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -121,6 +124,75 @@ public class URLUtils {
             }
         }
         return buf.toString();
+    }
+    
+    public static URI createURI(
+            final String scheme,
+            final String host,
+            int port,
+            final String path,
+            final String query,
+            final String fragment) throws URISyntaxException {
+        
+        StringBuilder buffer = new StringBuilder();
+        if (host != null) {
+            if (scheme != null) {
+                buffer.append(scheme);
+                buffer.append("://");
+            }
+            buffer.append(host);
+            if (port > 0) {
+                buffer.append(":");
+                buffer.append(port);
+            }
+        }
+        if (path == null || !path.startsWith("/")) {
+            buffer.append("/");
+        }
+        if (path != null) {
+            buffer.append(path);
+        }
+        if (query != null) {
+            buffer.append("?");
+            buffer.append(query);
+        }
+        if (fragment != null) {
+            buffer.append("#");
+            buffer.append(fragment);
+        }
+        return new URI(buffer.toString());
+    }
+
+    public static URI rewriteURI(
+            final URI uri, 
+            final HttpHost target,
+            boolean dropFragment) throws URISyntaxException {
+        if (uri == null) {
+            throw new IllegalArgumentException("URI may nor be null");
+        }
+        if (target != null) {
+            return URLUtils.createURI(
+                    target.getSchemeName(), 
+                    target.getHostName(), 
+                    target.getPort(), 
+                    uri.getRawPath(), 
+                    uri.getRawQuery(), 
+                    dropFragment ? null : uri.getRawFragment());
+        } else {
+            return URLUtils.createURI(
+                    null, 
+                    null, 
+                    -1, 
+                    uri.getRawPath(), 
+                    uri.getRawQuery(), 
+                    dropFragment ? null : uri.getRawFragment());
+        }
+    }
+    
+    public static URI rewriteURI(
+            final URI uri, 
+            final HttpHost target) throws URISyntaxException {
+        return rewriteURI(uri, target, false);
     }
     
     /**

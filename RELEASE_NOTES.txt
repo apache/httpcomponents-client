@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-730] Fixed rewriting of URIs containing escaped characters
+  Contributed by Sam Berlin <sberlin at gmail.com> and 
+  Oleg Kalnichevski <olegk at apache.org>
+ 
 * [HTTPCLIENT-667] Added 'Meta' cookie specification that selects a cookie policy 
   depending on the format of the cookie(s). It is no longer necessary to know 
   beforehand what kind of HTTP cookie support the target host provides. 

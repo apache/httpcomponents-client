@@ -66,6 +66,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.utils.URLUtils;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -246,23 +247,13 @@ public class DefaultClientRequestDirector
                 // Make sure the request URI is absolute
                 if (!uri.isAbsolute()) {
                     HttpHost target = route.getTargetHost();
-                    uri = new URI(
-                            target.getSchemeName(), 
-                            null, 
-                            target.getHostName(), 
-                            target.getPort(), 
-                            uri.getPath(), 
-                            uri.getQuery(), 
-                            uri.getFragment());
+                    uri = URLUtils.rewriteURI(uri, target);
                     request.setURI(uri);
                 }
             } else {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
-                    uri = new URI(null, null, null, -1, 
-                            uri.getPath(), 
-                            uri.getQuery(), 
-                            uri.getFragment());
+                    uri = URLUtils.rewriteURI(uri, null);
                     request.setURI(uri);
                 }
             }

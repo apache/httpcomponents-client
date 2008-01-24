@@ -45,6 +45,7 @@ import org.apache.http.ProtocolException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.utils.URLUtils;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -136,14 +137,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             
             try {
                 URI requestURI = new URI(request.getRequestLine().getUri());
-                URI absoluteRequestURI = new URI(
-                        target.getSchemeName(),
-                        null,
-                        target.getHostName(),
-                        target.getPort(),
-                        requestURI.getPath(),
-                        requestURI.getQuery(),
-                        null);
+                URI absoluteRequestURI = URLUtils.rewriteURI(requestURI, target, true);
                 uri = absoluteRequestURI.resolve(uri); 
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
