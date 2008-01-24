@@ -157,14 +157,11 @@ public class DefaultRedirectHandler implements RedirectHandler {
             URI redirectURI;
             if (uri.getQuery() != null || uri.getFragment() != null) {
                 try {
-                    redirectURI = new URI(
-                            uri.getScheme(),
-                            null,
-                            uri.getHost(),
+                    HttpHost target = new HttpHost(
+                            uri.getHost(), 
                             uri.getPort(),
-                            uri.getPath(),
-                            uri.getQuery(),
-                            null);
+                            uri.getScheme());
+                    redirectURI = URLUtils.rewriteURI(uri, target, true);
                 } catch (URISyntaxException ex) {
                     throw new ProtocolException(ex.getMessage(), ex);
                 }
