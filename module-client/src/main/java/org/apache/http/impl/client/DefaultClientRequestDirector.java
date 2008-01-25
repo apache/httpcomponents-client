@@ -86,7 +86,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Default implementation of a client-side request director.
@@ -788,7 +787,7 @@ public class DefaultClientRequestDirector
             port = scheme.getDefaultPort();
         }
         
-        CharArrayBuffer buffer = new CharArrayBuffer(host.length() + 6);
+        StringBuilder buffer = new StringBuilder(host.length() + 6);
         buffer.append(host);
         buffer.append(":");
         buffer.append(Integer.toString(port));

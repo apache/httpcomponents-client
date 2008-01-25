@@ -34,7 +34,6 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.conn.routing.HttpRoute.TunnelType;
 import org.apache.http.conn.routing.HttpRoute.LayerType;
 
@@ -466,7 +465,7 @@ public final class RouteTracker implements Cloneable {
      * @return  a human-readable representation of the tracked route
      */
     public final String toString() {
-        CharArrayBuffer cab = new CharArrayBuffer(50 + getHopCount()*30);
+        StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
 
         cab.append("RouteTracker[");
         if (this.localAddress != null) {

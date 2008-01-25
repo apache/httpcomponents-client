@@ -33,7 +33,6 @@ package org.apache.http.client;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * This class provides detailed information about the state of the
@@ -134,7 +133,7 @@ public class AuthState {
 
      
     public String toString() {
-        CharArrayBuffer buffer = new CharArrayBuffer(64);
+        StringBuilder buffer = new StringBuilder();
         buffer.append("auth scope [");
         buffer.append(this.authScope);
         buffer.append("]; credentials set [");

@@ -36,7 +36,6 @@ import java.net.URISyntaxException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * The home for utility methods that handle various URL encoding tasks.
@@ -108,7 +107,7 @@ public class URLUtils {
      public static String formUrlEncode(
              final NameValuePair[] pairs, 
              final String charset) throws UnsupportedEncodingException {
-        CharArrayBuffer buf = new CharArrayBuffer(32);
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pairs.length; i++) {
             URLCodec codec = new URLCodec();
             NameValuePair pair = pairs[i];

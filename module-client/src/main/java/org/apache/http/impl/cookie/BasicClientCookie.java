@@ -37,7 +37,6 @@ import java.util.Map;
 
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * HTTP "magic-cookie" represents a piece of state information
@@ -313,7 +312,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     }
 
     public String toString() {
-        CharArrayBuffer buffer = new CharArrayBuffer(64);
+        StringBuilder buffer = new StringBuilder();
         buffer.append("[version: ");
         buffer.append(Integer.toString(this.cookieVersion));
         buffer.append("]");

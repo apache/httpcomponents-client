@@ -34,8 +34,6 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.util.CharArrayBuffer;
-
 
 /**
  * The route for a request.
@@ -495,7 +493,7 @@ public final class HttpRoute implements Cloneable {
      * @return  a human-readable representation of this route
      */
     public final String toString() {
-        CharArrayBuffer cab = new CharArrayBuffer(50 + getHopCount()*30);
+        StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
 
         cab.append("HttpRoute[");
         if (this.localAddress != null) {

@@ -30,7 +30,6 @@
  */
 package org.apache.http.conn;
 
-import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -171,7 +170,7 @@ public final class Scheme {
      */
     public final String toString() {
         if (stringRep == null) {
-            CharArrayBuffer buffer = new CharArrayBuffer(32);
+            StringBuilder buffer = new StringBuilder();
             buffer.append(this.name);
             buffer.append(':');
             buffer.append(Integer.toString(this.defaultPort));
