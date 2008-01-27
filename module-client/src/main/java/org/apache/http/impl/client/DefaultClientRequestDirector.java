@@ -292,6 +292,11 @@ public class DefaultClientRequestDirector
                 if (managedConn == null) {
                     managedConn = allocateConnection(route, timeout);
                 }
+
+                if (orig instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
+                }
+
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
                     managedConn.open(route, context, params);
@@ -347,10 +352,6 @@ public class DefaultClientRequestDirector
                         proxyAuthState);
                 requestExec.preProcess(reqwrap, httpProcessor, context);
                 
-                if (orig instanceof AbortableHttpRequest) {
-                    ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
-                }
-
                 context.setAttribute(ExecutionContext.HTTP_REQUEST,
                         reqwrap);
 
