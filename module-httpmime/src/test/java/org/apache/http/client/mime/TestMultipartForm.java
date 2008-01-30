@@ -32,13 +32,20 @@
 package org.apache.http.client.mime;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.apache.http.client.mime.content.FileBody;
+import org.apache.http.client.mime.content.InputStreamBody;
+import org.apache.http.client.mime.content.StringBody;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
@@ -162,6 +169,58 @@ public class TestMultipartForm extends TestCase {
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
+            "--foo--\r\n" +
+            "\r\n";
+        String s = out.toString("US-ASCII");
+        assertEquals(expected, s);
+    }
+
+    public void testMultipartFormBinaryParts() throws Exception {
+        Message message = new Message();
+        Header header = new Header();
+        header.addField(
+                Field.parse("Content-Type: multipart/form-data; boundary=foo"));
+        message.setHeader(header);
+
+        File tmpfile = File.createTempFile("tmp", ".bin");
+        Writer writer = new FileWriter(tmpfile);
+        try {
+            writer.append("some random whatever");
+        } finally {
+            writer.close();
+        }
+        
+        Multipart multipart = new HttpMultipart();
+        multipart.setParent(message);
+        FormBodyPart p1 = new FormBodyPart(
+                "field1",
+                new FileBody(tmpfile));
+        FormBodyPart p2 = new FormBodyPart(
+                "field2",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
+        
+        multipart.addBodyPart(p1);
+        multipart.addBodyPart(p2);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+        
+        String expected = "\r\n" + 
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field1\"; " +
+                "filename=\"" + tmpfile.getName() + "\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field2\"; " +
+                "filename=\"file.tmp\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
             "--foo--\r\n" +
             "\r\n";
         String s = out.toString("US-ASCII");

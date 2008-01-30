@@ -29,8 +29,9 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.client.mime.content;
 
+import org.apache.http.client.mime.ContentDescriptor;
 import org.apache.james.mime4j.message.Body;
 
 public interface ContentBody extends Body, ContentDescriptor {

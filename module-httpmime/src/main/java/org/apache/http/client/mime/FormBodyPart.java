@@ -31,6 +31,7 @@
 
 package org.apache.http.client.mime;
 
+import org.apache.http.client.mime.content.ContentBody;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
