@@ -76,7 +76,7 @@ public abstract class AbstractVerifier implements HostnameVerifier {
         Arrays.sort(BAD_COUNTRY_2LDS);
     }
 
-    AbstractVerifier() {
+    public AbstractVerifier() {
         super();
     }
 
