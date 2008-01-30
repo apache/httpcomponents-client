@@ -35,16 +35,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
+import org.apache.james.mime4j.message.BinaryBody;
 
-public class FileBody extends AbstractBody implements ContentBody {
+public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
 
     private final File file;
     
@@ -56,8 +55,8 @@ public class FileBody extends AbstractBody implements ContentBody {
         this.file = file;
     }
     
-    public Reader getReader() throws IOException {
-        return new InputStreamReader(new FileInputStream(this.file));
+    public InputStream getInputStream() throws IOException {
+        return new FileInputStream(this.file);
     }
 
     public void writeTo(final OutputStream out) throws IOException {

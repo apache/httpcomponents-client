@@ -42,8 +42,9 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
+import org.apache.james.mime4j.message.TextBody;
 
-public class StringBody extends AbstractBody implements ContentBody {
+public class StringBody extends AbstractBody implements TextBody, ContentBody {
 
     private final byte[] content;
     private final Charset charset;

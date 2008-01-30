@@ -183,6 +183,7 @@ public class TestMultipartForm extends TestCase {
         message.setHeader(header);
 
         File tmpfile = File.createTempFile("tmp", ".bin");
+        tmpfile.deleteOnExit();
         Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
@@ -225,6 +226,61 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
+        
+        tmpfile.delete();
+    }
+
+    public void testMultipartFormBrowserCompatible() throws Exception {
+        Message message = new Message();
+        Header header = new Header();
+        header.addField(
+                Field.parse("Content-Type: multipart/form-data; boundary=foo"));
+        message.setHeader(header);
+
+        File tmpfile = File.createTempFile("tmp", ".bin");
+        tmpfile.deleteOnExit();
+        Writer writer = new FileWriter(tmpfile);
+        try {
+            writer.append("some random whatever");
+        } finally {
+            writer.close();
+        }
+        
+        HttpMultipart multipart = new HttpMultipart();
+        multipart.setParent(message);
+        FormBodyPart p1 = new FormBodyPart(
+                "field1",
+                new FileBody(tmpfile));
+        FormBodyPart p2 = new FormBodyPart(
+                "field2",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
+        
+        multipart.addBodyPart(p1);
+        multipart.addBodyPart(p2);
+        
+        multipart.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+        
+        String expected = "\r\n" + 
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field1\"; " +
+                "filename=\"" + tmpfile.getName() + "\"\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field2\"; " +
+                "filename=\"file.tmp\"\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo--\r\n" +
+            "\r\n";
+        String s = out.toString("US-ASCII");
+        assertEquals(expected, s);
+        
+        tmpfile.delete();
     }
 
 }

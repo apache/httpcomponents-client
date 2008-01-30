@@ -50,7 +50,7 @@ public class FormBodyPart extends BodyPart {
         }
         this.name = name;
         
-        Header header = new Header();
+        Header header = new RFC822Header();
         setHeader(header);
         setBody(body);
 

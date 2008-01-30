@@ -33,16 +33,15 @@ package org.apache.http.client.mime.content;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
+import org.apache.james.mime4j.message.BinaryBody;
 
-public class InputStreamBody extends AbstractBody implements ContentBody {
+public class InputStreamBody extends AbstractBody implements BinaryBody, ContentBody {
 
     private final InputStream in;
     private final String filename;
@@ -56,8 +55,8 @@ public class InputStreamBody extends AbstractBody implements ContentBody {
         this.filename = filename;
     }
     
-    public Reader getReader() throws IOException {
-        return new InputStreamReader(this.in);
+    public InputStream getInputStream() throws IOException {
+        return this.in;
     }
 
     public void writeTo(final OutputStream out) throws IOException {

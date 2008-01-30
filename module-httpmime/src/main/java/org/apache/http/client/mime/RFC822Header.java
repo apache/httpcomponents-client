@@ -31,20 +31,26 @@
 
 package org.apache.http.client.mime;
 
-import java.nio.charset.Charset;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Iterator;
 
-import org.apache.james.mime4j.field.Field;
-import org.apache.james.mime4j.util.CharsetUtil;
+import org.apache.james.mime4j.message.Header;
 
-public final class MIME {
+class RFC822Header extends Header {
 
-    public static final String CONTENT_TYPE          = Field.CONTENT_TYPE;
-    public static final String CONTENT_TRANSFER_ENC  = Field.CONTENT_TRANSFER_ENCODING;
-    public static final String CONTENT_DISPOSITION   = "Content-Disposition";
- 
-    public static final String ENC_8BIT              = "8bit";
-    public static final String ENC_BINARY            = "binary";
+    @Override
+    public void writeTo(final OutputStream out) throws IOException {
+        BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(out, MIME.DEFAULT_CHARSET), 8192);
+        for (Iterator<?> it = getFields().iterator(); it.hasNext();) {
+            writer.write(it.next().toString());
+            writer.write("\r\n");
+        }
+        writer.write("\r\n");
+        writer.flush();
+    }
 
-    public static final Charset DEFAULT_CHARSET      = CharsetUtil.getCharset("US-ASCII");
-    
 }
