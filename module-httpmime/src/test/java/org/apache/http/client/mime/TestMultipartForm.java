@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,6 +33,7 @@ package org.apache.http.client.mime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -63,7 +64,7 @@ public class TestMultipartForm extends TestCase {
         return new TestSuite(TestMultipartForm.class);
     }
 
-    public void testMultipartFormContent() throws Exception {
+    public void testMultipartFormLowLevel() throws Exception {
         Message message = new Message();
         Header header = new Header();
         header.addField(
@@ -76,17 +77,17 @@ public class TestMultipartForm extends TestCase {
         Header h1 = new Header();
         h1.addField(Field.parse("Content-Type: text/plain"));
         p1.setHeader(h1);
-        p1.setBody(new StringPart("this stuff"));
+        p1.setBody(new StringBody("this stuff"));
         BodyPart p2 = new BodyPart();
         Header h2 = new Header();
         h2.addField(Field.parse("Content-Type: text/plain"));
         p2.setHeader(h2);
-        p2.setBody(new StringPart("that stuff"));
+        p2.setBody(new StringBody("that stuff"));
         BodyPart p3 = new BodyPart();
         Header h3 = new Header();
         h3.addField(Field.parse("Content-Type: text/plain"));
         p3.setHeader(h3);
-        p3.setBody(new StringPart("all kind of stuff"));
+        p3.setBody(new StringBody("all kind of stuff"));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
@@ -115,4 +116,56 @@ public class TestMultipartForm extends TestCase {
         assertEquals(expected, s);
     }
     
+    public void testMultipartFormStringParts() throws Exception {
+        Message message = new Message();
+        Header header = new Header();
+        header.addField(
+                Field.parse("Content-Type: multipart/form-data; boundary=foo"));
+        message.setHeader(header);
+        
+        Multipart multipart = new HttpMultipart();
+        multipart.setParent(message);
+        FormBodyPart p1 = new FormBodyPart(
+                "field1",
+                new StringBody("this stuff"));
+        FormBodyPart p2 = new FormBodyPart(
+                "field2",
+                new StringBody("that stuff", Charset.forName("US-ASCII")));
+        FormBodyPart p3 = new FormBodyPart(
+                "field3",
+                new StringBody("all kind of stuff"));
+        
+        multipart.addBodyPart(p1);
+        multipart.addBodyPart(p2);
+        multipart.addBodyPart(p3);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+        
+        String expected = "\r\n" + 
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field1\"\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Transfer-Encoding: 8bit\r\n" +
+            "\r\n" +
+            "this stuff\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field2\"\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "Content-Transfer-Encoding: 8bit\r\n" +
+            "\r\n" +
+            "that stuff\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field3\"\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Transfer-Encoding: 8bit\r\n" +
+            "\r\n" +
+            "all kind of stuff\r\n" +
+            "--foo--\r\n" +
+            "\r\n";
+        String s = out.toString("US-ASCII");
+        assertEquals(expected, s);
+    }
+
 }
