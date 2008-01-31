@@ -54,8 +54,10 @@ import org.apache.http.conn.params.ConnRoutePNames;
  * nor of system or browser proxy settings.
  */
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
-    
-    private ClientConnectionManager connectionManager;
+
+    /** The connection manager, to get at the scheme registry. */
+    protected ClientConnectionManager connectionManager;
+
     
     public DefaultHttpRoutePlanner(ClientConnectionManager aConnManager) {
         setConnectionManager(aConnManager);

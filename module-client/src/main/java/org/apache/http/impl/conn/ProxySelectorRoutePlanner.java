@@ -63,17 +63,43 @@ import org.apache.http.conn.params.ConnRoutePNames;
  */
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     
-    private ClientConnectionManager connectionManager;
+    /** The connection manager, to get at the scheme registry. */
+    protected ClientConnectionManager connectionManager;
+
+    /** The proxy selector to use, or <code>null</code> for system default. */
+    protected ProxySelector proxySelector;
+
     
     public ProxySelectorRoutePlanner(ClientConnectionManager aConnManager) {
         setConnectionManager(aConnManager);
     }
 
 
-    
     public void setConnectionManager(ClientConnectionManager aConnManager) {
         this.connectionManager = aConnManager;
     }
+
+
+    /**
+     * Obtains the proxy selector to use.
+     *
+     * @return the proxy selector, or <code>null</code> for the system default
+     */
+    public ProxySelector getProxySelector() {
+        return this.proxySelector;
+    }
+
+
+    /**
+     * Sets the proxy selector to use.
+     *
+     * @param psel      the proxy selector, or
+     *                  <code>null</code> to use the system default
+     */
+    public void setProxySelector(ProxySelector psel) {
+        this.proxySelector = psel;
+    }
+
 
 
     // non-javadoc, see interface HttpRoutePlanner
@@ -138,7 +164,9 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         throws HttpException {
 
         // the proxy selector can be 'unset', so we better deal with null here
-        final ProxySelector psel = ProxySelector.getDefault();
+        ProxySelector psel = this.proxySelector;
+        if (psel == null)
+            psel = ProxySelector.getDefault();
         if (psel == null)
             return null;
 
