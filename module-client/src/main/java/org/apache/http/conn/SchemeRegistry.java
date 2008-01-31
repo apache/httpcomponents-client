@@ -118,15 +118,15 @@ public final class SchemeRegistry {
 
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
-        Scheme found = (Scheme) registeredSchemes.get(name);
+        Scheme found = registeredSchemes.get(name);
         return found;
     }
 
 
     /**
      * Registers a scheme.
-     * The scheme can later be retrieved by it's name
-     * using {@link #getScheme getScheme} or {@link #get get}.
+     * The scheme can later be retrieved by its name
+     * using {@link #getScheme(String) getScheme} or {@link #get get}.
      *
      * @param sch       the scheme to register
      *
@@ -137,7 +137,7 @@ public final class SchemeRegistry {
         if (sch == null)
             throw new IllegalArgumentException("Scheme must not be null.");
 
-        Scheme old = (Scheme) registeredSchemes.put(sch.getName(), sch);
+        Scheme old = registeredSchemes.put(sch.getName(), sch);
         return old;
     }
 
@@ -156,7 +156,7 @@ public final class SchemeRegistry {
 
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
-        Scheme gone = (Scheme) registeredSchemes.remove(name);
+        Scheme gone = registeredSchemes.remove(name);
         return gone;
     }
 
