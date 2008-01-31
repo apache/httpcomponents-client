@@ -50,7 +50,6 @@ import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
 import org.apache.james.mime4j.message.Message;
-import org.apache.james.mime4j.message.Multipart;
 
 public class TestMultipartForm extends TestCase {
 
@@ -78,7 +77,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        Multipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart();
         multipart.setParent(message);
         BodyPart p1 = new BodyPart();
         Header h1 = new Header();
@@ -121,6 +120,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
+        assertEquals(s.length(), multipart.getTotalLength());
     }
     
     public void testMultipartFormStringParts() throws Exception {
@@ -130,7 +130,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        Multipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart();
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -173,6 +173,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
+        assertEquals(s.length(), multipart.getTotalLength());
     }
 
     public void testMultipartFormBinaryParts() throws Exception {
@@ -191,7 +192,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        Multipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart();
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -226,6 +227,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
+        assertEquals(-1, multipart.getTotalLength());
         
         tmpfile.delete();
     }
@@ -279,6 +281,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
+        assertEquals(-1, multipart.getTotalLength());
         
         tmpfile.delete();
     }
@@ -354,6 +357,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n";
         String s = out.toString("UTF-8");
         assertEquals(expected, s);
+        assertEquals(-1, multipart.getTotalLength());
         
         tmpfile.delete();
     }
@@ -368,7 +372,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        Multipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart();
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -387,11 +391,11 @@ public class TestMultipartForm extends TestCase {
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
 
         out2.write(("\r\n" + 
-                "--foo\r\n" +
-                "Content-Disposition: form-data; name=\"field1\"\r\n" +
-                "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
-                "Content-Transfer-Encoding: 8bit\r\n" +
-                "\r\n").getBytes("US-ASCII"));
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field1\"\r\n" +
+            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+            "Content-Transfer-Encoding: 8bit\r\n" +
+            "\r\n").getBytes("US-ASCII"));
         out2.write(s1.getBytes("ISO-8859-1"));
         out2.write(("\r\n" +
             "--foo\r\n" +
@@ -412,6 +416,7 @@ public class TestMultipartForm extends TestCase {
         for (int i = 0; i < actual.length; i++) {
             assertEquals(expected[i], actual[i]);
         }
+        assertEquals(expected.length, multipart.getTotalLength());
     }
 
 }

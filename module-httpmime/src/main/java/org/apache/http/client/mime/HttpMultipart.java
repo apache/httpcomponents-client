@@ -38,9 +38,12 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.http.client.mime.content.ContentBody;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.field.ContentTypeField;
 import org.apache.james.mime4j.field.Field;
+import org.apache.james.mime4j.message.Body;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Entity;
 import org.apache.james.mime4j.message.Multipart;
@@ -68,13 +71,10 @@ public class HttpMultipart extends Multipart {
         this.mode = mode;
     }
 
-    @Override
-    public void writeTo(OutputStream out) throws IOException {
+    protected Charset getCharset() {
         Entity e = getParent();
-        
         ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
                 Field.CONTENT_TYPE);
-        String boundary = cField.getBoundary();
         Charset charset = null;
         
         switch (this.mode) {
@@ -89,8 +89,21 @@ public class HttpMultipart extends Multipart {
             }
             break;
         }
+        return charset;
+    }
+    
+    protected String getBoundary() {
+        Entity e = getParent();
+        ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
+                Field.CONTENT_TYPE);
+        return cField.getBoundary();
+    }
+
+    private void writeTo(final OutputStream out, boolean writeContent) throws IOException {
         
         List<?> bodyParts = getBodyParts();
+        Charset charset = getCharset();
+        String boundary = getBoundary();
 
         BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(out, charset),
@@ -107,7 +120,10 @@ public class HttpMultipart extends Multipart {
                 writer.write("\r\n");
                 writer.flush();
                 BodyPart part = (BodyPart) bodyParts.get(i);
-                part.writeTo(out);
+                part.getHeader().writeTo(out);
+                if (writeContent) {
+                    part.getBody().writeTo(out);
+                }
                 writer.write("\r\n");
             }
 
@@ -138,7 +154,9 @@ public class HttpMultipart extends Multipart {
                 writer.write("\r\n");
                 writer.write("\r\n");
                 writer.flush();
-                part.getBody().writeTo(out);
+                if (writeContent) {
+                    part.getBody().writeTo(out);
+                }
                 
                 writer.write("\r\n");
             }
@@ -149,6 +167,41 @@ public class HttpMultipart extends Multipart {
             writer.write("\r\n");
             writer.flush();
             break;
+        }
+    }
+
+    @Override
+    public void writeTo(final OutputStream out) throws IOException {
+        writeTo(out, true);
+    }
+    
+    public long getTotalLength() {
+        List<?> bodyParts = getBodyParts();
+
+        long contentLen = 0;
+        for (int i = 0; i < bodyParts.size(); i++) {
+            BodyPart part = (BodyPart) bodyParts.get(i);
+            Body body = part.getBody();
+            if (body instanceof ContentBody) {
+                long len = ((ContentBody) body).getContentLength();
+                if (len >= 0) {
+                    contentLen += len;
+                } else {
+                    return -1;
+                }
+            } else {
+                return -1;
+            }
+        }
+            
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            writeTo(out, false);
+            byte[] extra = out.toByteArray();
+            return contentLen + extra.length;
+        } catch (IOException ex) {
+            // Should never happen
+            return -1;
         }
     }
     
