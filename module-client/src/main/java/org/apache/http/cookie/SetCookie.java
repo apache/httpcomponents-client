@@ -63,7 +63,7 @@ public interface SetCookie extends Cookie {
      *
      * @param expiryDate the {@link Date} after which this cookie is no longer valid.
      *
-     * @see #getExpiryDate
+     * @see Cookie#getExpiryDate
      *
      */
     void setExpiryDate (Date expiryDate);
@@ -73,7 +73,7 @@ public interface SetCookie extends Cookie {
      * 
      * @param domain The value of the domain attribute
      *
-     * @see #getDomain
+     * @see Cookie#getDomain
      */
     void setDomain(String domain);
 
@@ -82,7 +82,7 @@ public interface SetCookie extends Cookie {
      *
      * @param path The value of the path attribute
      *
-     * @see #getPath
+     * @see Cookie#getPath
      *
      */
     void setPath(String path);
@@ -107,7 +107,7 @@ public interface SetCookie extends Cookie {
      *
      * @param version the version of the cookie.
      * 
-     * @see #getVersion
+     * @see Cookie#getVersion
      */
     void setVersion(int version);
 
