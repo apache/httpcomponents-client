@@ -70,8 +70,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     }
 
 
-    // default constructor
-
     
     public void setConnectionManager(ClientConnectionManager aConnManager) {
         this.connectionManager = aConnManager;

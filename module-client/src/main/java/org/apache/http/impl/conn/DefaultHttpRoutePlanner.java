@@ -62,8 +62,6 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
     }
 
 
-    // default constructor
-
     
     public void setConnectionManager(ClientConnectionManager aConnManager) {
         this.connectionManager = aConnManager;
