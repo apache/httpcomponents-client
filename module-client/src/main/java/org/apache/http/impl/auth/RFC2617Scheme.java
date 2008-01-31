@@ -159,7 +159,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
         if (this.params == null) {
             return null;
         }
-        return (String) this.params.get(name.toLowerCase());
+        return this.params.get(name.toLowerCase());
     }
 
     /**

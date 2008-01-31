@@ -82,7 +82,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      * @return an attribute handler or <tt>null</tt>
      */
     protected CookieAttributeHandler findAttribHandler(final String name) {
-        return (CookieAttributeHandler) this.attribHandlerMap.get(name);
+        return this.attribHandlerMap.get(name);
     }
     
     /**

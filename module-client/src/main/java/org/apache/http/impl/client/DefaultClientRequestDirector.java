@@ -970,7 +970,7 @@ public class DefaultClientRequestDirector
         }
         String id = authScheme.getSchemeName();
 
-        Header challenge = (Header) challenges.get(id.toLowerCase());
+        Header challenge = challenges.get(id.toLowerCase());
         if (challenge == null) {
             throw new AuthenticationException(id + 
                 " authorization challenge expected, but not found");

@@ -81,7 +81,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
     public BrowserCompatSpec(final String[] datepatterns) {
         super();
         if (datepatterns != null) {
-            this.datepatterns = (String [])datepatterns.clone();
+            this.datepatterns = datepatterns.clone();
         } else {
             this.datepatterns = DATE_PATTERNS;
         }

@@ -93,7 +93,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
             final HashMap<AuthScope, Credentials> map, 
             final AuthScope authscope) {
         // see if we get a direct hit
-        Credentials creds = (Credentials)map.get(authscope);
+        Credentials creds = map.get(authscope);
         if (creds == null) {
             // Nope.
             // Do a full scan
@@ -107,7 +107,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
                 }
             }
             if (bestMatch != null) {
-                creds = (Credentials)map.get(bestMatch);
+                creds = map.get(bestMatch);
             }
         }
         return creds;

@@ -606,7 +606,7 @@ public class TestHttpRoute extends TestCase {
                                          TunnelType.PLAIN, LayerType.PLAIN);
         HttpRoute route2 = (HttpRoute) route1.clone();
         HttpRoute route3 = new HttpRoute(TARGET1, null,
-                                         (HttpHost[]) proxies.clone(), false,
+                                         proxies.clone(), false,
                                          TunnelType.PLAIN, LayerType.PLAIN);
 
         // modify the array that was passed to the constructor of route1

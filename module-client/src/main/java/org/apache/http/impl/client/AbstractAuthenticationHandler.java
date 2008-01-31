@@ -126,7 +126,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         AuthScheme authScheme = null;
         for (Iterator<String> it = authPrefs.iterator(); it.hasNext(); ) {
             String id = it.next();
-            Header challenge = (Header) challenges.get(id.toLowerCase()); 
+            Header challenge = challenges.get(id.toLowerCase()); 
             if (challenge != null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(id + " authentication scheme selected");

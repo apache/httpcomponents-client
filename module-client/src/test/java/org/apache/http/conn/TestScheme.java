@@ -169,7 +169,7 @@ public class TestScheme extends TestCase {
 
         boolean flaghttp  = false;
         boolean flaghttps = false;
-        String name = (String) names.get(0);
+        String name = names.get(0);
 
         if ("http".equals(name))
             flaghttp = true;
@@ -182,7 +182,7 @@ public class TestScheme extends TestCase {
         schmreg.unregister(name);
         assertNull(schmreg.get(name));
 
-        name = (String) names.get(1);
+        name = names.get(1);
 
         if ("http".equals(name)) {
             if (flaghttp) fail("name 'http' found twice");

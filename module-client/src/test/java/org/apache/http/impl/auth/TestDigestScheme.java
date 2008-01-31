@@ -216,7 +216,7 @@ public class TestDigestScheme extends TestCase {
         assertEquals("MD5-sess", table.get("algorithm"));
         assertEquals("/", table.get("uri"));
         assertEquals(nonce, table.get("nonce"));
-        assertEquals(1, Integer.parseInt((String) table.get("nc"),16));
+        assertEquals(1, Integer.parseInt(table.get("nc"),16));
         assertTrue(null != table.get("cnonce"));
         assertEquals("SomeString", table.get("opaque"));
         assertEquals("auth", table.get("qop"));

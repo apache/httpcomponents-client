@@ -339,7 +339,7 @@ public class LocalTestServer {
 
 
         protected void cleanup() {
-            Thread[] threads = (Thread[]) workerThreads.toArray(new Thread[0]);
+            Thread[] threads = workerThreads.toArray(new Thread[0]);
             for (int i=0; i<threads.length; i++) {
                 if (threads[i] != null)
                     threads[i].interrupt();

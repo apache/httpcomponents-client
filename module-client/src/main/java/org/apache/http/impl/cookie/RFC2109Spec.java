@@ -80,7 +80,7 @@ public class RFC2109Spec extends CookieSpecBase {
     public RFC2109Spec(final String[] datepatterns, boolean oneHeader) {
         super();
         if (datepatterns != null) {
-            this.datepatterns = (String [])datepatterns.clone();
+            this.datepatterns = datepatterns.clone();
         } else {
             this.datepatterns = DATE_PATTERNS;
         }
