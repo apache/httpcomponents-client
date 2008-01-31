@@ -109,7 +109,8 @@ public abstract class ServerTestBase extends TestCase {
      *
      * @throws Exception        in case of a problem
      */
-    protected void setUp() throws Exception {
+    @Override
+	protected void setUp() throws Exception {
 
         if (defaultParams == null) {
             defaultParams = new BasicHttpParams();
@@ -159,7 +160,8 @@ public abstract class ServerTestBase extends TestCase {
      *
      * @see #setUp setUp()
      */
-    protected void tearDown() throws Exception {
+    @Override
+	protected void tearDown() throws Exception {
         localServer.stop();
     }
 

@@ -68,7 +68,8 @@ public class GetConnThread extends Thread {
     /**
      * This method is executed when the thread is started.
      */
-    public void run() {
+    @Override
+	public void run() {
         try {
             connection = conn_manager.getConnection
                 (conn_route, conn_timeout, TimeUnit.MILLISECONDS);

@@ -42,7 +42,8 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
         super();
     }
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    @Override
+	public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
         super.validate(cookie, origin);
         // Perform Netscape Cookie draft specific validation
@@ -88,7 +89,8 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
        return false;
    }
 
-   public boolean match(Cookie cookie, CookieOrigin origin) {
+   @Override
+public boolean match(Cookie cookie, CookieOrigin origin) {
        if (cookie == null) {
            throw new IllegalArgumentException("Cookie may not be null");
        }

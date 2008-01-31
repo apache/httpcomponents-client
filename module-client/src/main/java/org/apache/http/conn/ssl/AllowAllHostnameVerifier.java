@@ -46,7 +46,8 @@ public class AllowAllHostnameVerifier extends AbstractVerifier {
         // Allow everything - so never blowup.
     }
 
-    public final String toString() { 
+    @Override
+	public final String toString() { 
         return "ALLOW_ALL"; 
     }
     

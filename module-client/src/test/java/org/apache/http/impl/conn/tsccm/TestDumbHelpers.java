@@ -81,7 +81,8 @@ public class TestDumbHelpers extends TestCase {
     }
 
 
-    protected void setUp() {
+    @Override
+	protected void setUp() {
         supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));

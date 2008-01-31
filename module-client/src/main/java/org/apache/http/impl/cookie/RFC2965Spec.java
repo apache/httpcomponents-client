@@ -91,7 +91,8 @@ public class RFC2965Spec extends RFC2109Spec {
         return cookie;
     }
     
-    public List<Cookie> parse(
+    @Override
+	public List<Cookie> parse(
             final Header header, 
             CookieOrigin origin) throws MalformedCookieException {
         if (header == null) {
@@ -149,7 +150,8 @@ public class RFC2965Spec extends RFC2109Spec {
         return cookies;
     }
 
-    public void validate(final Cookie cookie, CookieOrigin origin)
+    @Override
+	public void validate(final Cookie cookie, CookieOrigin origin)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -161,7 +163,8 @@ public class RFC2965Spec extends RFC2109Spec {
         super.validate(cookie, origin);
     }
 
-    public boolean match(final Cookie cookie, CookieOrigin origin) {
+    @Override
+	public boolean match(final Cookie cookie, CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
@@ -175,7 +178,8 @@ public class RFC2965Spec extends RFC2109Spec {
     /**
      * Adds valid Port attribute value, e.g. "8000,8001,8002"
      */
-    protected void formatCookieAsVer(final CharArrayBuffer buffer, 
+    @Override
+	protected void formatCookieAsVer(final CharArrayBuffer buffer, 
             final Cookie cookie, int version) {
         super.formatCookieAsVer(buffer, cookie, version);
         // format port attribute
@@ -237,11 +241,13 @@ public class RFC2965Spec extends RFC2109Spec {
         }
     }
 
-    public int getVersion() {
+    @Override
+	public int getVersion() {
         return 1;
     }
 
-    public Header getVersionHeader() {
+    @Override
+	public Header getVersionHeader() {
         CharArrayBuffer buffer = new CharArrayBuffer(40);
         buffer.append(SM.COOKIE2);
         buffer.append(": ");

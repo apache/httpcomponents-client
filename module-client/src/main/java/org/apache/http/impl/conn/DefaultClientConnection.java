@@ -97,7 +97,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
 
     // non-javadoc, see interface OperatedClientConnection
-    public final Socket getSocket() {
+    @Override
+	public final Socket getSocket() {
         return super.getSocket(); // base class attribute
     }
 
@@ -119,7 +120,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
      *
      * @throws IOException      in case of a problem
      */
-    public void shutdown() throws IOException {
+    @Override
+	public void shutdown() throws IOException {
         LOG.debug("Connection shut down");
         
         Socket sock = announcedSocket; // copy volatile attribute
@@ -131,13 +133,15 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     } // shutdown
 
     
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
         LOG.debug("Connection closed");
         super.close();
     }
 
 
-    protected SessionInputBuffer createSessionInputBuffer(
+    @Override
+	protected SessionInputBuffer createSessionInputBuffer(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
@@ -152,7 +156,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     
-    protected SessionOutputBuffer createSessionOutputBuffer(
+    @Override
+	protected SessionOutputBuffer createSessionOutputBuffer(
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
@@ -167,7 +172,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     
-    protected HttpMessageParser createResponseParser(
+    @Override
+	protected HttpMessageParser createResponseParser(
             final SessionInputBuffer buffer,
             final HttpResponseFactory responseFactory, 
             final HttpParams params) {
@@ -229,7 +235,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     } // update
 
 
-    public HttpResponse receiveResponseHeader() throws HttpException, IOException {
+    @Override
+	public HttpResponse receiveResponseHeader() throws HttpException, IOException {
         HttpResponse response = super.receiveResponseHeader();
         if (HEADERS_LOG.isDebugEnabled()) {
             HEADERS_LOG.debug("<< " + response.getStatusLine().toString());
@@ -242,7 +249,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
+    @Override
+	public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
         super.sendRequestHeader(request);
         if (HEADERS_LOG.isDebugEnabled()) {
             HEADERS_LOG.debug(">> " + request.getRequestLine().toString());

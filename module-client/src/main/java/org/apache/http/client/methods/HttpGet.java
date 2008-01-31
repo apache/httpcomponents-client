@@ -73,7 +73,8 @@ public class HttpGet extends HttpRequestBase {
         setURI(new URI(uri));
     }
 
-    public String getMethod() {
+    @Override
+	public String getMethod() {
         return METHOD_NAME;
     }
     

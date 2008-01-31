@@ -311,7 +311,8 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
         return this.attribs.get(name) != null;
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         StringBuilder buffer = new StringBuilder();
         buffer.append("[version: ");
         buffer.append(Integer.toString(this.cookieVersion));

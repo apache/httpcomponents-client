@@ -70,7 +70,8 @@ public class DefaultResponseParser extends AbstractMessageParser {
     }
 
 
-    protected HttpMessage parseHead(
+    @Override
+	protected HttpMessage parseHead(
             final SessionInputBuffer sessionBuffer) throws IOException, HttpException {
         // clear the buffer
         this.lineBuf.clear();

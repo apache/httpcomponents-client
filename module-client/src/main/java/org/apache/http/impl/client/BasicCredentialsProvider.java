@@ -128,7 +128,8 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return matchCredentials(this.credMap, authscope);
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         return credMap.toString();
     }
     

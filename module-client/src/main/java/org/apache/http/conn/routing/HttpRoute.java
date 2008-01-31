@@ -427,7 +427,8 @@ public final class HttpRoute implements Cloneable {
      * @return  <code>true</code> if the argument is the same route,
      *          <code>false</code>
      */
-    public final boolean equals(Object o) {
+    @Override
+	public final boolean equals(Object o) {
         if (o == this)
             return true;
         if (!(o instanceof HttpRoute))
@@ -465,7 +466,8 @@ public final class HttpRoute implements Cloneable {
      *
      * @return  the hash code
      */
-    public final int hashCode() {
+    @Override
+	public final int hashCode() {
 
         int hc = this.targetHost.hashCode();
 
@@ -492,7 +494,8 @@ public final class HttpRoute implements Cloneable {
      *
      * @return  a human-readable representation of this route
      */
-    public final String toString() {
+    @Override
+	public final String toString() {
         StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
 
         cab.append("HttpRoute[");
@@ -522,7 +525,8 @@ public final class HttpRoute implements Cloneable {
 
 
     // default implementation of clone() is sufficient
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+	public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
 

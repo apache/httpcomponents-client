@@ -89,7 +89,8 @@ public class ExecReqThread extends GetConnThread {
      * This method is invoked when the thread is started.
      * It invokes the base class implementation.
      */
-    public void run() {
+    @Override
+	public void run() {
         super.run();    // obtain connection
         if (connection == null)
             return;     // problem obtaining connection

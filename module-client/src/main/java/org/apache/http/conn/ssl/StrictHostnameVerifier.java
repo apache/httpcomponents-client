@@ -61,7 +61,8 @@ public class StrictHostnameVerifier extends AbstractVerifier {
         verify(host, cns, subjectAlts, true);
     }
 
-    public final String toString() { 
+    @Override
+	public final String toString() { 
         return "STRICT"; 
     }
     

@@ -208,7 +208,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    public BasicPoolEntry getEntry(HttpRoute route,
+    @Override
+	public BasicPoolEntry getEntry(HttpRoute route,
                                    long timeout, TimeUnit tunit,
                                    ClientConnectionOperator operator)
         throws ConnectionPoolTimeoutException, InterruptedException {
@@ -310,7 +311,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    public void freeEntry(BasicPoolEntry entry) {
+    @Override
+	public void freeEntry(BasicPoolEntry entry) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
@@ -494,7 +496,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    protected void handleLostEntry(HttpRoute route) {
+    @Override
+	protected void handleLostEntry(HttpRoute route) {
 
         try {
             poolLock.lock();
@@ -566,7 +569,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     //@@@ revise this cleanup stuff
     //@@@ move method to base class when deleteEntry() is fixed
     // non-javadoc, see base class AbstractConnPool
-    public void deleteClosedConnections() {
+    @Override
+	public void deleteClosedConnections() {
 
         try {
             poolLock.lock();
@@ -587,7 +591,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     // non-javadoc, see base class AbstractConnPool
-    public void shutdown() {
+    @Override
+	public void shutdown() {
 
         try {
             poolLock.lock();

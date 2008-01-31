@@ -57,7 +57,8 @@ public class SocketFactoryMockup implements SocketFactory {
 
     // don't implement equals and hashcode, all instances are different!
 
-    public String toString() {
+    @Override
+	public String toString() {
         return "SocketFactoryMockup." + mockup_name;
     }
 

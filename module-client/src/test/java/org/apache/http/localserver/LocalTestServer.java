@@ -252,7 +252,8 @@ public class LocalTestServer {
     }
 
 
-    public String toString() {
+    @Override
+	public String toString() {
         ServerSocket ssock = servicedSocket; // avoid synchronization
         StringBuffer sb = new StringBuffer(80);
         sb.append("LocalTestServer/");

@@ -120,7 +120,8 @@ public class DigestScheme extends RFC2617Scheme {
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
      */
-    public void processChallenge(
+    @Override
+	public void processChallenge(
             final Header header) throws MalformedChallengeException {
         super.processChallenge(header);
         

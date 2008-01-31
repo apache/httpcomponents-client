@@ -78,7 +78,8 @@ public class UrlEncodedFormEntity extends AbstractHttpEntity {
         return new ByteArrayInputStream(this.content);
     }
     
-    public Header getContentType() {
+    @Override
+	public Header getContentType() {
         return new BasicHeader(HTTP.CONTENT_TYPE, FORM_URL_ENCODED_CONTENT_TYPE);
     }
 

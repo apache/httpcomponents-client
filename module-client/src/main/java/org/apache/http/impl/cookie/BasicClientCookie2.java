@@ -58,7 +58,8 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
         super(name, value);
     }
 
-    public int[] getPorts() {
+    @Override
+	public int[] getPorts() {
         return this.ports;
     }
 
@@ -66,7 +67,8 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
         this.ports = ports;
     }
     
-    public String getCommentURL() {
+    @Override
+	public String getCommentURL() {
         return this.commentURL;
     }
 
@@ -78,11 +80,13 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
         this.discard = discard;
     }
 
-    public boolean isPersistent() {
+    @Override
+	public boolean isPersistent() {
         return !this.discard && super.isPersistent();
     }
 
-    public boolean isExpired(final Date date) {
+    @Override
+	public boolean isExpired(final Date date) {
         return this.discard || super.isExpired(date);
     }
     

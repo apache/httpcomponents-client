@@ -63,7 +63,8 @@ public class AwaitThread extends Thread {
     /**
      * This method is executed when the thread is started.
      */
-    public void run() {
+    @Override
+	public void run() {
         try {
             wait_lock.lock();
             waiting = true;

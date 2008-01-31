@@ -54,7 +54,8 @@ public class BrowserCompatHostnameVerifier extends AbstractVerifier {
         verify(host, cns, subjectAlts, false);
     }
 
-    public final String toString() { 
+    @Override
+	public final String toString() { 
         return "BROWSER_COMPATIBLE"; 
     }
     
