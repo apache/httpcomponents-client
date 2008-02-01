@@ -41,7 +41,7 @@ import org.apache.http.client.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * Example how to use unbuffered chunk-encoded POST request.
+ * Example how to use multipart/form encoded POST request.
  */
 public class ClientMultipartFormPost {
 
