@@ -129,7 +129,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
     }
 
     @Override
-	public String toString() {
+    public String toString() {
         return credMap.toString();
     }
     
