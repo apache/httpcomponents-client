@@ -101,7 +101,9 @@ public class EchoHandler
         }
 
         ByteArrayEntity bae = new ByteArrayEntity(data);
-        bae.setContentType(entity.getContentType());
+        if (entity != null) {
+            bae.setContentType(entity.getContentType());
+        }
         entity = bae;
 
         response.setStatusCode(HttpStatus.SC_OK);
