@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-736] route planners use SchemeRegistry instead of ConnManager
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-730] Fixed rewriting of URIs containing escaped characters
   Contributed by Sam Berlin <sberlin at gmail.com> and 
   Oleg Kalnichevski <olegk at apache.org>

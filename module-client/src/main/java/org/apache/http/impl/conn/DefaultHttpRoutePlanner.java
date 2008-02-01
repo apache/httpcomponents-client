@@ -40,9 +40,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.Scheme;
+import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.ClientConnectionManager;
 
 import org.apache.http.conn.params.ConnRoutePNames;
 
@@ -55,18 +55,21 @@ import org.apache.http.conn.params.ConnRoutePNames;
  */
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 
-    /** The connection manager, to get at the scheme registry. */
-    protected ClientConnectionManager connectionManager;
-
-    
-    public DefaultHttpRoutePlanner(ClientConnectionManager aConnManager) {
-        setConnectionManager(aConnManager);
-    }
+    /** The scheme registry. */
+    protected SchemeRegistry schemeRegistry;
 
 
-    
-    public void setConnectionManager(ClientConnectionManager aConnManager) {
-        this.connectionManager = aConnManager;
+    /**
+     * Creates a new default route planner.
+     *
+     * @param schreg    the scheme registry
+     */
+    public DefaultHttpRoutePlanner(SchemeRegistry schreg) {
+        if (schreg == null) {
+            throw new IllegalArgumentException
+                ("SchemeRegistry must not be null.");
+        }
+        schemeRegistry = schreg;
     }
 
 
@@ -100,8 +103,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         final HttpHost proxy = (HttpHost)
             request.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
 
-        final Scheme schm = this.connectionManager.getSchemeRegistry().
-            getScheme(target.getSchemeName());
+        final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
         final boolean secure = schm.isLayered();

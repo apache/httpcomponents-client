@@ -48,7 +48,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.Scheme;
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.SchemeRegistry;
 
 import org.apache.http.conn.params.ConnRoutePNames;
 
@@ -63,20 +63,29 @@ import org.apache.http.conn.params.ConnRoutePNames;
  */
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     
-    /** The connection manager, to get at the scheme registry. */
-    protected ClientConnectionManager connectionManager;
+    /** The scheme registry. */
+    protected SchemeRegistry schemeRegistry;
 
     /** The proxy selector to use, or <code>null</code> for system default. */
     protected ProxySelector proxySelector;
 
-    
-    public ProxySelectorRoutePlanner(ClientConnectionManager aConnManager) {
-        setConnectionManager(aConnManager);
-    }
 
+    /**
+     * Creates a new proxy selector route planner.
+     *
+     * @param schreg    the scheme registry
+     * @param prosel    the proxy selector, or
+     *                  <code>null</code> for the system default
+     */
+    public ProxySelectorRoutePlanner(SchemeRegistry schreg,
+                                     ProxySelector prosel) {
 
-    public void setConnectionManager(ClientConnectionManager aConnManager) {
-        this.connectionManager = aConnManager;
+        if (schreg == null) {
+            throw new IllegalArgumentException
+                ("SchemeRegistry must not be null.");
+        }
+        schemeRegistry = schreg;
+        proxySelector  = prosel;
     }
 
 
@@ -93,11 +102,11 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     /**
      * Sets the proxy selector to use.
      *
-     * @param psel      the proxy selector, or
+     * @param prosel    the proxy selector, or
      *                  <code>null</code> to use the system default
      */
-    public void setProxySelector(ProxySelector psel) {
-        this.proxySelector = psel;
+    public void setProxySelector(ProxySelector prosel) {
+        this.proxySelector = prosel;
     }
 
 
@@ -131,8 +140,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
             request.getParams().getParameter(ConnRoutePNames.LOCAL_ADDRESS);
         final HttpHost proxy = determineProxy(target, request, context);
 
-        final Scheme schm = this.connectionManager.getSchemeRegistry().
-            getScheme(target.getSchemeName());
+        final Scheme schm =
+            this.schemeRegistry.getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
         final boolean secure = schm.isLayered();

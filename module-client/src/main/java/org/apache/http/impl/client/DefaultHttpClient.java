@@ -301,7 +301,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
     // non-javadoc, see base class AbstractHttpClient
     @Override
 	protected HttpRoutePlanner createHttpRoutePlanner() {
-        return new DefaultHttpRoutePlanner(getConnectionManager());
+        return new DefaultHttpRoutePlanner
+            (getConnectionManager().getSchemeRegistry());
     }
     
 } // class DefaultHttpClient
