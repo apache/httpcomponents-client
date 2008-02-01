@@ -71,7 +71,7 @@ public class IdleConnectionHandler {
      */
     public void add(HttpConnection connection) {
         
-        Long timeAdded = new Long(System.currentTimeMillis());
+        Long timeAdded = Long.valueOf(System.currentTimeMillis());
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("Adding connection at: " + timeAdded);

@@ -124,7 +124,7 @@ public final class HttpConnectionManagerParams {
         } else {
             newValues = new HashMap<Object,Object>(currentValues);
         }
-        newValues.put(key, new Integer(max));
+        newValues.put(key, Integer.valueOf(max));
         params.setParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS, newValues);
     }
 
