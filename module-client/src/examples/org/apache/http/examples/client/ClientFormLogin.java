@@ -76,9 +76,9 @@ public class ClientFormLogin {
         }
         
         HttpPost httpost = new HttpPost("https://portal.sun.com/amserver/UI/Login?" +
-        		"org=self_registered_users&" +
-        		"goto=/portal/dt&" +
-        		"gotoOnFail=/portal/dt?error=true");
+                "org=self_registered_users&" +
+                "goto=/portal/dt&" +
+                "gotoOnFail=/portal/dt?error=true");
         
         NameValuePair[] nvps = new NameValuePair[] {
                 new BasicNameValuePair("IDToken1", "username"),

@@ -126,24 +126,24 @@ public class TestScheme extends TestCase {
         HttpHost host  = new HttpHost("www.test.invalid", -1, "http");
         HttpHost hosts = new HttpHost("www.test.invalid", -1, "https");
 
-    	assertNull(schmreg.register(myhttp));
-    	assertNull(schmreg.register(https));
-    	assertSame(myhttp, schmreg.register(http));
-    	assertSame(http, schmreg.getScheme("http"));
-    	assertSame(http, schmreg.getScheme(host));
-    	assertSame(https, schmreg.getScheme("https"));
-    	assertSame(https, schmreg.getScheme(hosts));
+        assertNull(schmreg.register(myhttp));
+        assertNull(schmreg.register(https));
+        assertSame(myhttp, schmreg.register(http));
+        assertSame(http, schmreg.getScheme("http"));
+        assertSame(http, schmreg.getScheme(host));
+        assertSame(https, schmreg.getScheme("https"));
+        assertSame(https, schmreg.getScheme(hosts));
 
-    	schmreg.unregister("http");
-    	schmreg.unregister("https");
+        schmreg.unregister("http");
+        schmreg.unregister("https");
 
         assertNull(schmreg.get("http")); // get() does not throw exception
-    	try {
+        try {
             schmreg.getScheme("http"); // getScheme() does throw exception
             fail("IllegalStateException should have been thrown");
-    	} catch (IllegalStateException ex) {
+        } catch (IllegalStateException ex) {
             // expected
-    	}
+        }
     }
 
 
@@ -160,8 +160,8 @@ public class TestScheme extends TestCase {
             ("https", SecureSocketFactoryMockup.INSTANCE, 443);
         //  ("https", SSLSocketFactory.getSocketFactory(), 443);
 
-    	schmreg.register(http);
-    	schmreg.register(https);
+        schmreg.register(http);
+        schmreg.register(https);
 
         names = schmreg.getSchemeNames();
         assertNotNull(names);
@@ -198,34 +198,34 @@ public class TestScheme extends TestCase {
     public void testIllegalRegisterUnregister() {
         SchemeRegistry schmreg = new SchemeRegistry();
         try {
-        	schmreg.register(null);
-        	fail("IllegalArgumentException should have been thrown");
+            schmreg.register(null);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	schmreg.unregister(null);
-        	fail("IllegalArgumentException should have been thrown");
+            schmreg.unregister(null);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	schmreg.get(null);
-        	fail("IllegalArgumentException should have been thrown");
+            schmreg.get(null);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	schmreg.getScheme((String)null);
-        	fail("IllegalArgumentException should have been thrown");
+            schmreg.getScheme((String)null);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	schmreg.getScheme((HttpHost)null);
-        	fail("IllegalArgumentException should have been thrown");
+            schmreg.getScheme((HttpHost)null);
+            fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
     }
     

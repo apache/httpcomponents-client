@@ -65,41 +65,41 @@ public class TestDateUtils extends TestCase {
         calendar.set(Calendar.MILLISECOND, 0);
         Date date1 = calendar.getTime(); 
         
-    	String[] formats = new String[] {
-    			DateUtils.PATTERN_RFC1123		
-    			};
-    	Date date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats, null);
-    	assertEquals(date1, date2);
-    	date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats);
-    	assertEquals(date1, date2);
-    	date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT");
-    	assertEquals(date1, date2);
+        String[] formats = new String[] {
+                DateUtils.PATTERN_RFC1123
+                };
+        Date date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats, null);
+        assertEquals(date1, date2);
+        date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats);
+        assertEquals(date1, date2);
+        date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT");
+        assertEquals(date1, date2);
     }
 
     public void testInvalidInput() throws Exception {
         try {
-        	DateUtils.parseDate(null, null, null);
+            DateUtils.parseDate(null, null, null);
             fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null);
+            DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null);
             fail("DateParseException should habe been thrown");
         } catch (DateParseException ex) {
-        	// expected
+            // expected
         }
         try {
-        	DateUtils.formatDate(null);
+            DateUtils.formatDate(null);
             fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
         try {
-        	DateUtils.formatDate(new Date(), null);
+            DateUtils.formatDate(new Date(), null);
             fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
-        	// expected
+            // expected
         }
     }
     
@@ -110,11 +110,11 @@ public class TestDateUtils extends TestCase {
         calendar.set(Calendar.MILLISECOND, 0);
         Date date1 = calendar.getTime(); 
         
-    	String[] formats = new String[] {
-    			DateUtils.PATTERN_RFC1036		
-    			};
-    	Date date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, null);
-    	assertEquals(date1, date2);
+        String[] formats = new String[] {
+                DateUtils.PATTERN_RFC1036
+                };
+        Date date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, null);
+        assertEquals(date1, date2);
 
         calendar.set(1900, Calendar.JANUARY, 0, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -123,9 +123,9 @@ public class TestDateUtils extends TestCase {
         calendar.set(1905, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         date1 = calendar.getTime(); 
-    	
-    	date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, startDate);
-    	assertEquals(date1, date2);
+        
+        date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, startDate);
+        assertEquals(date1, date2);
     }
 
     public void testParseQuotedDate() throws Exception {
@@ -135,11 +135,11 @@ public class TestDateUtils extends TestCase {
         calendar.set(Calendar.MILLISECOND, 0);
         Date date1 = calendar.getTime(); 
         
-    	String[] formats = new String[] {
-    			DateUtils.PATTERN_RFC1123		
-    			};
-    	Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
-    	assertEquals(date1, date2);
+        String[] formats = new String[] {
+                DateUtils.PATTERN_RFC1123
+                };
+        Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
+        assertEquals(date1, date2);
     }
 
     public void testBasicDateFormat() throws Exception {

@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -50,7 +50,7 @@ import org.apache.http.message.BasicHeader;
  *
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * 
- * @version $Revision:$
+ * @version $Revision$
  */
 public class TestCookieBestMatchSpec extends TestCase {
 
@@ -218,8 +218,8 @@ public class TestCookieBestMatchSpec extends TestCase {
         
         Header header = headers.get(0);
         assertEquals("$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".domain.com\"; " +
-        		"name2=\"value2\"; $Path=\"/\"; $Domain=\".domain.com\"", 
-        		header.getValue());
+                "name2=\"value2\"; $Path=\"/\"; $Domain=\".domain.com\"", 
+                header.getValue());
         
     }
 

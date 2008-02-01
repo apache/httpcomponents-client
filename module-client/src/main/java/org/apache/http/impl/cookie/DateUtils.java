@@ -68,9 +68,9 @@ public final class DateUtils {
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
     private static final String[] DEFAULT_PATTERNS = new String[] { 
-    	PATTERN_ASCTIME, 
-    	PATTERN_RFC1036, 
-    	PATTERN_RFC1123 };
+        PATTERN_ASCTIME, 
+        PATTERN_RFC1036, 
+        PATTERN_RFC1123 };
     
     private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
     
@@ -138,7 +138,7 @@ public final class DateUtils {
             throw new IllegalArgumentException("dateValue is null");
         }
         if (dateFormats == null) {
-        	dateFormats = DEFAULT_PATTERNS;
+            dateFormats = DEFAULT_PATTERNS;
         }
         if (startDate == null) {
             startDate = DEFAULT_TWO_DIGIT_YEAR_START;
@@ -153,8 +153,8 @@ public final class DateUtils {
         }
         
         for (int i = 0; i < dateFormats.length; i++) {
-        	SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormats[i]);
-        	dateParser.set2DigitYearStart(startDate);
+            SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormats[i]);
+            dateParser.set2DigitYearStart(startDate);
 
             try {
                 return dateParser.parse(dateValue);

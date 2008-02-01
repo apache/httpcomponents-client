@@ -44,7 +44,7 @@ import java.io.InterruptedIOException;
 public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;
-	
+
     /**
      * Creates a ConnectTimeoutException with a <tt>null</tt> detail message.
      */

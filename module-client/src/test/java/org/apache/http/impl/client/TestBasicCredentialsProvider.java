@@ -98,8 +98,8 @@ public class TestBasicCredentialsProvider extends TestCase {
 
     public void testBasicCredentialsProviderDefaultCredentials() {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
-	    state.setCredentials(AuthScope.ANY, CREDS1);
-	    state.setCredentials(SCOPE2, CREDS2);
+        state.setCredentials(AuthScope.ANY, CREDS1);
+        state.setCredentials(SCOPE2, CREDS2);
         assertEquals(CREDS1, state.getCredentials(BOGUS));
     }
 

@@ -91,8 +91,8 @@ public class TestRedirects extends ServerTestBase {
 
     private class BasicRedirectService implements HttpRequestHandler {
         
-		private int statuscode = HttpStatus.SC_MOVED_TEMPORARILY;
-		private String host = null;
+        private int statuscode = HttpStatus.SC_MOVED_TEMPORARILY;
+        private String host = null;
         private int port;
 
         public BasicRedirectService(final String host, int port, int statuscode) {
@@ -100,7 +100,7 @@ public class TestRedirects extends ServerTestBase {
             this.host = host;
             this.port = port;
             if (statuscode > 0) {
-            	this.statuscode = statuscode;
+                this.statuscode = statuscode;
             }
         }
 
@@ -117,7 +117,7 @@ public class TestRedirects extends ServerTestBase {
             if (uri.equals("/oldlocation/")) {
                 response.setStatusLine(ver, this.statuscode);
                 response.addHeader(new BasicHeader("Location", 
-                		"http://" + this.host + ":" + this.port + "/newlocation/"));
+                        "http://" + this.host + ":" + this.port + "/newlocation/"));
                 response.addHeader(new BasicHeader("Connection", "close"));
             } else if (uri.equals("/newlocation/")) {
                 response.setStatusLine(ver, HttpStatus.SC_OK);

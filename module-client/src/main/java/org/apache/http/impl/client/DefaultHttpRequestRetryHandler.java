@@ -50,7 +50,7 @@ import org.apache.http.protocol.ExecutionContext;
  */
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
-	/** the number of times a method will be retried */
+    /** the number of times a method will be retried */
     private int retryCount;
     
     /** Whether or not methods that have successfully sent their request will be retried */

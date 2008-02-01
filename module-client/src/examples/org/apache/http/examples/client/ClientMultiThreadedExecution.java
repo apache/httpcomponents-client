@@ -100,7 +100,7 @@ public class ClientMultiThreadedExecution {
     
     /**
      * A thread that performs a GET.
-	 */
+     */
     static class GetThread extends Thread {
         
         private HttpClient httpClient;
