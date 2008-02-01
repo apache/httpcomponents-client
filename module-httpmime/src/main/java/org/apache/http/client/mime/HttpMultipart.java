@@ -50,9 +50,11 @@ import org.apache.james.mime4j.message.Multipart;
 import org.apache.james.mime4j.util.CharsetUtil;
 
 /**
- * Extension of the mime4j standard class needed to work around 
- * some formatting issues in the {@link Multipart#writeTo(OutputStream)}
- * method until they have been addressed downstream.
+ * An extension of the mime4j standard {@link Multipart} class, which is
+ * capable of operating either in the strict (fully RFC 822, RFC 2045, 
+ * RFC 2046 compliant) or the browser compatible modes.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class HttpMultipart extends Multipart {
 
@@ -170,11 +172,31 @@ public class HttpMultipart extends Multipart {
         }
     }
 
+    /**
+     * Writes out the content in the multipart/form encoding. This method 
+     * produces slightly different formatting depending on its compatibility 
+     * mode.
+     * 
+     * @see #getMode()
+     */
     @Override
     public void writeTo(final OutputStream out) throws IOException {
         writeTo(out, true);
     }
-    
+
+    /**
+     * Determines the total length of the multipart content (content length of 
+     * individual parts plus that of extra elements required to delimit the parts 
+     * from one another). If any of the @{link BodyPart}s contained in this object 
+     * is of a streaming entity of unknown length the total length is also unknown.
+     * <p/>
+     * This method buffers only a small amount of data in order to determine the
+     * total length of the entire entity. The content of individual parts is not 
+     * buffered.  
+     * 
+     * @return total length of the multipart entity if known, <code>-1</code> 
+     *   otherwise.
+     */
     public long getTotalLength() {
         List<?> bodyParts = getBodyParts();
 

@@ -39,6 +39,10 @@ import java.util.Iterator;
 
 import org.apache.james.mime4j.message.Header;
 
+/**
+ * {@link Header} implementation with the stricter RDC 822 compliance.
+ * To be removed if resolved in mime4j.
+ */
 class RFC822Header extends Header {
 
     @Override

@@ -36,6 +36,13 @@ import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
 
+/**
+ * An extension of the mime4j standard {@link BodyPart} class that 
+ * automatically populates the header with standard fields based 
+ * on the content description of the enclosed body.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ */
 public class FormBodyPart extends BodyPart {
 
     private final String name;
