@@ -122,7 +122,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     
     @Override
-	protected HttpParams createHttpParams() {
+    protected HttpParams createHttpParams() {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, 
                 HttpVersion.HTTP_1_1);
@@ -144,7 +144,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     
     @Override
-	protected ClientConnectionManager createClientConnectionManager() {
+    protected ClientConnectionManager createClientConnectionManager() {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(
                 new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
@@ -178,19 +178,19 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-	protected HttpContext createHttpContext() {
+    protected HttpContext createHttpContext() {
         return new SyncBasicHttpContext(null);
     }
 
     
     @Override
-	protected ConnectionReuseStrategy createConnectionReuseStrategy() {
+    protected ConnectionReuseStrategy createConnectionReuseStrategy() {
         return new DefaultConnectionReuseStrategy();
     }
     
 
     @Override
-	protected AuthSchemeRegistry createAuthSchemeRegistry() {
+    protected AuthSchemeRegistry createAuthSchemeRegistry() {
         AuthSchemeRegistry registry = new AuthSchemeRegistry(); 
         registry.register(
                 AuthPolicy.BASIC, 
@@ -203,7 +203,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-	protected CookieSpecRegistry createCookieSpecRegistry() {
+    protected CookieSpecRegistry createCookieSpecRegistry() {
         CookieSpecRegistry registry = new CookieSpecRegistry();
         registry.register(
                 CookiePolicy.BEST_MATCH, 
@@ -225,7 +225,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-	protected BasicHttpProcessor createHttpProcessor() {
+    protected BasicHttpProcessor createHttpProcessor() {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new RequestDefaultHeaders());
         // Required protocol interceptors
@@ -246,43 +246,43 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-	protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
+    protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
         return new DefaultHttpRequestRetryHandler();
     }
 
 
     @Override
-	protected RedirectHandler createRedirectHandler() {
+    protected RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
     }
 
 
     @Override
-	protected AuthenticationHandler createTargetAuthenticationHandler() {
+    protected AuthenticationHandler createTargetAuthenticationHandler() {
         return new DefaultTargetAuthenticationHandler();
     }
 
 
     @Override
-	protected AuthenticationHandler createProxyAuthenticationHandler() {
+    protected AuthenticationHandler createProxyAuthenticationHandler() {
         return new DefaultProxyAuthenticationHandler();
     }
 
 
     @Override
-	protected CookieStore createCookieStore() {
+    protected CookieStore createCookieStore() {
         return new BasicCookieStore();
     }
 
 
     @Override
-	protected CredentialsProvider createCredentialsProvider() {
+    protected CredentialsProvider createCredentialsProvider() {
         return new BasicCredentialsProvider();
     }
 
 
     @Override
-	protected void populateContext(final HttpContext context) {
+    protected void populateContext(final HttpContext context) {
         context.setAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY, 
                 getAuthSchemes());
@@ -300,7 +300,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     // non-javadoc, see base class AbstractHttpClient
     @Override
-	protected HttpRoutePlanner createHttpRoutePlanner() {
+    protected HttpRoutePlanner createHttpRoutePlanner() {
         return new DefaultHttpRoutePlanner
             (getConnectionManager().getSchemeRegistry());
     }
