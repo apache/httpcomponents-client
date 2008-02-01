@@ -158,7 +158,7 @@ public final class PlainSocketFactory implements SocketFactory {
      * @return  iff the argument is this object
      */
     @Override
-	public boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         return (obj == this);
     }
 
@@ -168,7 +168,7 @@ public final class PlainSocketFactory implements SocketFactory {
      * There is only one instance of this class.
      */
     @Override
-	public int hashCode() {
+    public int hashCode() {
         return PlainSocketFactory.class.hashCode();
     }
 

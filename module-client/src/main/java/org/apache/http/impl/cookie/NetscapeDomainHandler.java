@@ -43,7 +43,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
     }
 
     @Override
-	public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
         super.validate(cookie, origin);
         // Perform Netscape Cookie draft specific validation

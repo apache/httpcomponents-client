@@ -132,7 +132,7 @@ public class RefQueueWorker implements Runnable {
      * @return  a descriptive string for this worker
      */
     @Override
-	public String toString() {
+    public String toString() {
         return "RefQueueWorker::" + this.workerThread;
     }
 

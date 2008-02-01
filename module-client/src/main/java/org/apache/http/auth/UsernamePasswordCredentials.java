@@ -131,7 +131,7 @@ public class UsernamePasswordCredentials implements Credentials {
      * @return the username:password formed string
      */
     @Override
-	public String toString() {
+    public String toString() {
         StringBuffer result = new StringBuffer();
         result.append(this.userName);
         result.append(":");
@@ -145,7 +145,7 @@ public class UsernamePasswordCredentials implements Credentials {
      * @return The hash code including user name and password.
      */
     @Override
-	public int hashCode() {
+    public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.userName);
         hash = LangUtils.hashCode(hash, this.password);
@@ -161,7 +161,7 @@ public class UsernamePasswordCredentials implements Credentials {
      * @return  <code>true</code> if the object is equivalent.
      */
     @Override
-	public boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (o == null) return false;
         if (this == o) return true;
         // note - to allow for sub-classing, this checks that class is the same

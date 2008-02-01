@@ -52,7 +52,7 @@ public class SecureSocketFactoryMockup extends SocketFactoryMockup
     // don't implement equals and hashcode, all instances are different!
 
     @Override
-	public String toString() {
+    public String toString() {
         return "SecureSocketFactoryMockup." + mockup_name;
     }
 

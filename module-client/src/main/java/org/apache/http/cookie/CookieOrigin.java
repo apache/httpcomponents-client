@@ -89,7 +89,7 @@ public final class CookieOrigin {
 	}
 
     @Override
-	public String toString() {
+    public String toString() {
         StringBuilder buffer = new StringBuilder();
         buffer.append("[");
         if (this.secure) {

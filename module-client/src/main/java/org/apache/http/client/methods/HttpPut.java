@@ -70,7 +70,7 @@ public class HttpPut extends HttpEntityEnclosingRequestBase {
     }
 
     @Override
-	public String getMethod() {
+    public String getMethod() {
         return METHOD_NAME;
     }
     

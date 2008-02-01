@@ -79,7 +79,7 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
 
     // non-javadoc, see base class
     @Override
-	protected void detach() {
+    protected void detach() {
         // override needed only to make method visible in this package
         super.detach();
     }

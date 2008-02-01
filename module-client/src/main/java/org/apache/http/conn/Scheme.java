@@ -169,7 +169,7 @@ public final class Scheme {
      * @return  a human-readable string description of this scheme
      */
     @Override
-	public final String toString() {
+    public final String toString() {
         if (stringRep == null) {
             StringBuilder buffer = new StringBuilder();
             buffer.append(this.name);
@@ -189,7 +189,7 @@ public final class Scheme {
      * @return  <code>true</code> iff the argument is equal to this scheme
      */
     @Override
-	public final boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (obj == null) return false;
         if (this == obj) return true;
         if (!(obj instanceof Scheme)) return false;
@@ -209,7 +209,7 @@ public final class Scheme {
      * @return  the hash code
      */
     @Override
-	public int hashCode() {
+    public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.defaultPort);
         hash = LangUtils.hashCode(hash, this.name);

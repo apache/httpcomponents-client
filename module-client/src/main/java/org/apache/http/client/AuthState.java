@@ -133,7 +133,7 @@ public class AuthState {
 
      
     @Override
-	public String toString() {
+    public String toString() {
         StringBuilder buffer = new StringBuilder();
         buffer.append("auth scope [");
         buffer.append(this.authScope);

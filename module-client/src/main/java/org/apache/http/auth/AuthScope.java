@@ -229,7 +229,7 @@ public class AuthScope {
      * @see java.lang.Object#equals(Object)
      */
     @Override
-	public boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (o == null) {
             return false;
         }
@@ -251,7 +251,7 @@ public class AuthScope {
      * @see java.lang.Object#toString()
      */
     @Override
-	public String toString() {
+    public String toString() {
         StringBuffer buffer = new StringBuffer();
         if (this.scheme != null) {
             buffer.append(this.scheme.toUpperCase());
@@ -279,7 +279,7 @@ public class AuthScope {
      * @see java.lang.Object#hashCode()
      */
     @Override
-	public int hashCode() {
+    public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.host);
         hash = LangUtils.hashCode(hash, this.port);

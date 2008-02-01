@@ -83,7 +83,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
 
     // non-javadoc, see base AbstractPoolEntry
     @Override
-	protected ClientConnectionOperator getOperator() {
+    protected ClientConnectionOperator getOperator() {
         return this.connOperator;
     }
 

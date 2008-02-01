@@ -50,7 +50,7 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
     }
     
     @Override
-	public boolean match(final Cookie cookie, final CookieOrigin origin) {
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }

@@ -87,14 +87,14 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
     // non-javadoc, see interface HttpEntity
     @Override
-	public boolean isRepeatable() {
+    public boolean isRepeatable() {
         return false;
     }
 
 
     // non-javadoc, see interface HttpEntity
     @Override
-	public InputStream getContent() throws IOException {
+    public InputStream getContent() throws IOException {
 
         return new EofSensorInputStream(wrappedEntity.getContent(), this);
     }
@@ -102,7 +102,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
     // non-javadoc, see interface HttpEntity
     @Override
-	public void consumeContent() throws IOException {
+    public void consumeContent() throws IOException {
 
         if (managedConn == null)
             return;

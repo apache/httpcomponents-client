@@ -74,7 +74,7 @@ public class HttpHead extends HttpRequestBase {
     }
 
     @Override
-	public String getMethod() {
+    public String getMethod() {
         return METHOD_NAME;
     }
     

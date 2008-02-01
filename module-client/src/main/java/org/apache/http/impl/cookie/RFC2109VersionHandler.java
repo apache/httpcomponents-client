@@ -61,7 +61,7 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
     }
 
     @Override
-	public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");

@@ -82,7 +82,7 @@ public class TestDumbHelpers extends TestCase {
 
 
     @Override
-	protected void setUp() {
+    protected void setUp() {
         supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));

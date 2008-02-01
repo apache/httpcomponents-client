@@ -375,7 +375,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
         // non-javadoc, see base AbstractPoolEntry
         @Override
-		protected ClientConnectionOperator getOperator() {
+        protected ClientConnectionOperator getOperator() {
             return SingleClientConnManager.this.connOperator;
         }
 

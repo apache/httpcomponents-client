@@ -90,7 +90,7 @@ public class BasicScheme extends RFC2617Scheme {
      * is malformed
      */
     @Override
-	public void processChallenge(
+    public void processChallenge(
             final Header header) throws MalformedChallengeException {
         super.processChallenge(header);
         this.complete = true;

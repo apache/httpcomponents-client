@@ -132,7 +132,7 @@ public class EofSensorInputStream extends InputStream
 
     // non-javadoc, see base class InputStream
     @Override
-	public int read() throws IOException {
+    public int read() throws IOException {
         int l = -1;
 
         if (isReadAllowed()) {
@@ -151,7 +151,7 @@ public class EofSensorInputStream extends InputStream
 
     // non-javadoc, see base class InputStream
     @Override
-	public int read(byte[] b, int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
         int l = -1;
 
         if (isReadAllowed()) {
@@ -170,7 +170,7 @@ public class EofSensorInputStream extends InputStream
 
     // non-javadoc, see base class InputStream
     @Override
-	public int read(byte[] b) throws IOException {
+    public int read(byte[] b) throws IOException {
         int l = -1;
 
         if (isReadAllowed()) {
@@ -188,7 +188,7 @@ public class EofSensorInputStream extends InputStream
 
     // non-javadoc, see base class InputStream
     @Override
-	public int available() throws IOException {
+    public int available() throws IOException {
         int a = 0; // not -1
 
         if (isReadAllowed()) {
@@ -207,7 +207,7 @@ public class EofSensorInputStream extends InputStream
 
     // non-javadoc, see base class InputStream
     @Override
-	public void close() throws IOException {
+    public void close() throws IOException {
         // tolerate multiple calls to close()
         selfClosed = true;
         checkClose();
