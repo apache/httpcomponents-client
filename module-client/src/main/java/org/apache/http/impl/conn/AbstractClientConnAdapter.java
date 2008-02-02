@@ -130,18 +130,13 @@ public abstract class AbstractClientConnAdapter
     }
     
     /**
-     * Asserts that there is a wrapped connection to delegate to.
+     * Asserts that the connection has not been aborted.
      *
-     * @throws IllegalStateException    if there is no wrapped connection
      * @throws InterruptedIOException   if the connection has been aborted
      */
-    protected final void assertIOState(
-            final OperatedClientConnection wrappedConn) throws InterruptedIOException {
+    protected final void assertNotAborted() throws InterruptedIOException {
         if (aborted) {
             throw new InterruptedIOException("Connection has been shut down");
-        }
-        if (wrappedConn == null) {
-            throw new IllegalStateException("No wrapped connection.");
         }
     }
 
@@ -151,11 +146,8 @@ public abstract class AbstractClientConnAdapter
      * @throws IllegalStateException    if there is no wrapped connection
      *                                  or connection has been aborted
      */
-    protected final void assertState(
+    protected final void assertValid(
             final OperatedClientConnection wrappedConn) {
-        if (aborted) {
-            throw new IllegalStateException("Connection has been shut down");
-        }
         if (wrappedConn == null) {
             throw new IllegalStateException("No wrapped connection.");
         }
@@ -184,7 +176,7 @@ public abstract class AbstractClientConnAdapter
     // non-javadoc, see interface HttpConnection
     public void setSocketTimeout(int timeout) {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         conn.setSocketTimeout(timeout);
     }
 
@@ -192,7 +184,7 @@ public abstract class AbstractClientConnAdapter
     // non-javadoc, see interface HttpConnection
     public int getSocketTimeout() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getSocketTimeout();
     }
 
@@ -200,7 +192,7 @@ public abstract class AbstractClientConnAdapter
     // non-javadoc, see interface HttpConnection
     public HttpConnectionMetrics getMetrics() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getMetrics();
     }
 
@@ -209,8 +201,10 @@ public abstract class AbstractClientConnAdapter
     public void flush()
         throws IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+
         conn.flush();
     }
 
@@ -219,8 +213,10 @@ public abstract class AbstractClientConnAdapter
     public boolean isResponseAvailable(int timeout)
         throws IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+
         return conn.isResponseAvailable(timeout);
     }
 
@@ -229,8 +225,10 @@ public abstract class AbstractClientConnAdapter
     public void receiveResponseEntity(HttpResponse response)
         throws HttpException, IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+
         unmarkReusable();
         conn.receiveResponseEntity(response);
     }
@@ -240,8 +238,10 @@ public abstract class AbstractClientConnAdapter
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+
         unmarkReusable();
         return conn.receiveResponseHeader();
     }
@@ -251,8 +251,10 @@ public abstract class AbstractClientConnAdapter
     public void sendRequestEntity(HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+
         unmarkReusable();
         conn.sendRequestEntity(request);
     }
@@ -262,8 +264,10 @@ public abstract class AbstractClientConnAdapter
     public void sendRequestHeader(HttpRequest request)
         throws HttpException, IOException {
 
+        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
-        assertIOState(conn);
+        assertValid(conn);
+        
         unmarkReusable();
         conn.sendRequestHeader(request);
     }
@@ -272,14 +276,14 @@ public abstract class AbstractClientConnAdapter
     // non-javadoc, see interface HttpInetConnection
     public InetAddress getLocalAddress() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getLocalAddress();
     }
 
     // non-javadoc, see interface HttpInetConnection
     public int getLocalPort() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getLocalPort();
     }
 
@@ -287,28 +291,28 @@ public abstract class AbstractClientConnAdapter
     // non-javadoc, see interface HttpInetConnection
     public InetAddress getRemoteAddress() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getRemoteAddress();
     }
 
     // non-javadoc, see interface HttpInetConnection
     public int getRemotePort() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.getRemotePort();
     }
 
     // non-javadoc, see interface ManagedClientConnection
     public boolean isSecure() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         return conn.isSecure();
     }
 
     // non-javadoc, see interface ManagedClientConnection
     public SSLSession getSSLSession() {
         OperatedClientConnection conn = getWrappedConnection();
-        assertState(conn);
+        assertValid(conn);
         if (!isOpen())
             return null;
 
@@ -343,11 +347,20 @@ public abstract class AbstractClientConnAdapter
 
     // non-javadoc, see interface ConnectionReleaseTrigger
     public void abortConnection() {
+        if (aborted) {
+            return;
+        }
         aborted = true;
         unmarkReusable();
 
-        if (connManager != null)
-            connManager.releaseConnection(this);
+        OperatedClientConnection conn = getWrappedConnection();
+        
+        if (conn != null) {
+            try {
+                conn.shutdown();
+            } catch (IOException ignore) {
+            }
+        }
     }
 
 } // class AbstractClientConnAdapter
