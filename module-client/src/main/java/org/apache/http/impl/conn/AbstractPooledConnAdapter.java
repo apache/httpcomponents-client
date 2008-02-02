@@ -37,8 +37,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.OperatedClientConnection;
 
 
 
@@ -60,9 +60,7 @@ import org.apache.http.conn.ClientConnectionManager;
  *
  * @since 4.0
  */
-public abstract class AbstractPooledConnAdapter
-    extends AbstractClientConnAdapter
-    implements ManagedClientConnection {
+public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapter {
 
     /** The wrapped pool entry. */
     protected AbstractPoolEntry poolEntry;
@@ -97,10 +95,10 @@ public abstract class AbstractPooledConnAdapter
      * Detaches this adapter from the wrapped connection.
      * This adapter becomes useless.
      */
+    @Override
     protected void detach() {
-        wrappedConnection = null;
+        super.detach();
         poolEntry = null;
-        connManager = null; // base class attribute
     }
 
 
@@ -155,8 +153,9 @@ public abstract class AbstractPooledConnAdapter
         if (poolEntry != null)
             poolEntry.closing();
 
-        if (wrappedConnection != null) {
-            wrappedConnection.close();
+        OperatedClientConnection conn = getWrappedConnection();
+        if (conn != null) {
+            conn.close();
         }
     }
 
@@ -165,8 +164,9 @@ public abstract class AbstractPooledConnAdapter
         if (poolEntry != null)
             poolEntry.closing();
 
-        if (wrappedConnection != null) {
-            wrappedConnection.shutdown();
+        OperatedClientConnection conn = getWrappedConnection();
+        if (conn != null) {
+            conn.shutdown();
         }
     }
 

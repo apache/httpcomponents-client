@@ -53,17 +53,13 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
     protected BasicPooledConnAdapter(ThreadSafeClientConnManager tsccm,
                                AbstractPoolEntry entry) {
         super(tsccm, entry);
-        super.markedReusable = true;
+        markReusable();
     }
 
 
-    /**
-     * Obtains the connection manager.
-     *
-     * @return  the connection manager, or <code>null</code> if detached
-     */
     protected ClientConnectionManager getManager() {
-        return super.connManager;
+        // override needed only to make method visible in this package
+        return super.getManager();
     }
 
 

@@ -253,7 +253,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                  "connection not obtained from this manager.");
         }
         ConnAdapter sca = (ConnAdapter) conn;
-        if (sca.connManager != this) {
+        if (sca.getManager() != this) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
@@ -420,7 +420,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
          */
         protected ConnAdapter(PoolEntry entry, HttpRoute plan) {
             super(SingleClientConnManager.this, entry);
-            super.markedReusable = true;
+            markReusable();
             entry.plannedRoute = plan;
         }
     }
