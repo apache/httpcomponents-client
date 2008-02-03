@@ -44,12 +44,13 @@ import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 
-import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.params.HttpRouteParams;
 
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}.
- * This implementation is based on {@link ConnRoutePNames parameters}.
+ * This implementation is based on
+ * {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
  * It will not make use of any Java system properties,
  * nor of system or browser proxy settings.
  */
@@ -85,8 +86,8 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
 
         // If we have a forced route, we can do without a target.
-        HttpRoute route = (HttpRoute)
-            request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
+        HttpRoute route =
+            HttpRouteParams.getForcedRoute(request.getParams());
         if (route != null)
             return route;
 
@@ -98,10 +99,10 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
                 ("Target host must not be null.");
         }
 
-        final InetAddress local = (InetAddress)
-            request.getParams().getParameter(ConnRoutePNames.LOCAL_ADDRESS);
-        final HttpHost proxy = (HttpHost)
-            request.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
+        final InetAddress local =
+            HttpRouteParams.getLocalAddress(request.getParams());
+        final HttpHost proxy =
+            HttpRouteParams.getDefaultProxy(request.getParams());
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
         // as it is typically used for TLS/SSL, we assume that

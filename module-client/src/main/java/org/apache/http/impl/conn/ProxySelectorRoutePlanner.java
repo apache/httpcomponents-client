@@ -50,7 +50,7 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 
-import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.params.HttpRouteParams;
 
 
 /**
@@ -58,7 +58,8 @@ import org.apache.http.conn.params.ConnRoutePNames;
  * This implementation is based on {@link java.net.ProxySelector}.
  * By default, it will pick up the proxy settings of the JVM, either
  * from system properties or from the browser running the application.
- * Additionally, it interprets some {@link ConnRoutePNames parameters},
+ * Additionally, it interprets some
+ * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
  * though not the {@link ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
  */
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
@@ -123,8 +124,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         }
 
         // If we have a forced route, we can do without a target.
-        HttpRoute route = (HttpRoute)
-            request.getParams().getParameter(ConnRoutePNames.FORCED_ROUTE);
+        HttpRoute route =
+            HttpRouteParams.getForcedRoute(request.getParams());
         if (route != null)
             return route;
 
@@ -136,8 +137,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
                 ("Target host must not be null.");
         }
 
-        final InetAddress local = (InetAddress)
-            request.getParams().getParameter(ConnRoutePNames.LOCAL_ADDRESS);
+        final InetAddress local =
+            HttpRouteParams.getLocalAddress(request.getParams());
         final HttpHost proxy = determineProxy(target, request, context);
 
         final Scheme schm =
