@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-740] don't start connection GC thread in pool constructor
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-736] route planners use SchemeRegistry instead of ConnManager
   Contributed by Roland Weber <rolandw at apache.org>
 

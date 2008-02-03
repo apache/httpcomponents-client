@@ -136,7 +136,7 @@ public abstract class AbstractClientConnAdapter
      */
     protected final void assertNotAborted() throws InterruptedIOException {
         if (aborted) {
-            throw new InterruptedIOException("Connection has been shut down");
+            throw new InterruptedIOException("Connection has been shut down.");
         }
     }
 
