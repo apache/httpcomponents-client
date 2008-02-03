@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.params;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

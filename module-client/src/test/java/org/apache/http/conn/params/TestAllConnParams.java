@@ -28,9 +28,8 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.conn.params;
 
-import org.apache.http.conn.params.TestAllConnParams;
 import org.apache.http.conn.routing.TestAllRouting;
 import org.apache.http.conn.ssl.TestAllSSL;
 import org.apache.http.conn.util.TestAllUtil;
@@ -39,27 +38,23 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-public class TestAllConn extends TestCase {
+public class TestAllConnParams extends TestCase {
 
-    public TestAllConn(String testName) {
+    public TestAllConnParams(String testName) {
         super(testName);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
 
-        suite.addTest(TestScheme.suite());
-        suite.addTest(TestExceptions.suite());
-        suite.addTest(TestAllConnParams.suite());
-        suite.addTest(TestAllRouting.suite());
-        suite.addTest(TestAllSSL.suite());
-        suite.addTest(TestAllUtil.suite());
+        suite.addTest(TestParams.suite());
+        suite.addTest(TestRouteParams.suite());
 
         return suite;
     }
 
     public static void main(String args[]) {
-        String[] testCaseName = { TestAllConn.class.getName() };
+        String[] testCaseName = { TestAllConnParams.class.getName() };
         junit.textui.TestRunner.main(testCaseName);
     }
 
