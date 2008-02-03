@@ -44,6 +44,7 @@ public class TestAllConnImpl extends TestCase {
         TestSuite suite = new TestSuite();
 
         suite.addTest(TestLocalServer.suite()); // doesn't really belong here
+        suite.addTest(TestProxySelRoutePlanner.suite());
         suite.addTest(TestTSCCMNoServer.suite());
         suite.addTest(TestTSCCMWithServer.suite());
 
