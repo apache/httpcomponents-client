@@ -150,17 +150,44 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         boolean fair = false; //@@@ check parameters to decide
         poolLock = new ReentrantLock(fair);
 
-        boolean conngc = true; //@@@ check parameters to decide
-        if (conngc) {
-            refQueue = new ReferenceQueue<Object>();
-            refWorker = new RefQueueWorker(refQueue, this);
-            Thread t = new Thread(refWorker); //@@@ use a thread factory
-            t.setDaemon(true);
-            t.setName("RefQueueWorker@" + this);
-            t.start();
+        connManager = new ConnMgrRef(mgr, null);
+    }
+
+
+    /**
+     * Enables connection garbage collection (GC).
+     * This method must be called immediately after creating the
+     * connection pool. It is not possible to enable connection GC
+     * after pool entries have been created. Neither is it possible
+     * to disable connection GC.
+     *
+     * @throws IllegalStateException
+     *         if connection GC is already enabled, or if it cannot be
+     *         enabled because there already are pool entries
+     */
+    public void enableConnectionGC()
+        throws IllegalStateException {
+
+        if (refQueue != null) {
+            throw new IllegalStateException("Connection GC already enabled.");
+        }
+        try {
+            poolLock.lock();
+            if (numConnections > 0) { //@@@ is this check sufficient?
+                throw new IllegalStateException("Pool already in use.");
+            }
+        } finally {
+            poolLock.unlock();
         }
 
-        connManager = new ConnMgrRef(mgr, refQueue);
+        refQueue  = new ReferenceQueue<Object>();
+        refWorker = new RefQueueWorker(refQueue, this);
+        Thread t = new Thread(refWorker); //@@@ use a thread factory
+        t.setDaemon(true);
+        t.setName("RefQueueWorker@" + this);
+        t.start();
+
+        connManager = new ConnMgrRef(connManager.get(), refQueue);
     }
 
 

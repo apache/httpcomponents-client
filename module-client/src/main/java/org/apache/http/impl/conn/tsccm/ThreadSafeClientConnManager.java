@@ -112,7 +112,12 @@ public class ThreadSafeClientConnManager
      */
     protected AbstractConnPool createConnectionPool() {
 
-        return new ConnPoolByRoute(this);
+        AbstractConnPool acp = new ConnPoolByRoute(this);
+        boolean conngc = true; //@@@ check parameters to decide
+        if (conngc) {
+            acp.enableConnectionGC();
+        }
+        return acp;
     }
 
 
