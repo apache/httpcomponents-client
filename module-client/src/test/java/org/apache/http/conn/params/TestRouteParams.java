@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.params;
 
+import java.net.InetAddress;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -52,6 +54,16 @@ public class TestRouteParams extends TestCase {
         HttpHost TARGET1 = new HttpHost("target1.test.invalid");
     public final static
         HttpRoute ROUTE1 = new HttpRoute(TARGET1);
+    public final static InetAddress LOCAL1;
+
+    // need static initializer to deal with exceptions
+    static {
+        try {
+            LOCAL1 = InetAddress.getByAddress(new byte[]{ 127, 0, 0, 1 });
+        } catch (Exception x) {
+            throw new ExceptionInInitializerError(x);
+        }
+    }
 
 
     public TestRouteParams(String testName) {
@@ -65,6 +77,53 @@ public class TestRouteParams extends TestCase {
 
     public static Test suite() {
         return new TestSuite(TestRouteParams.class);
+    }
+
+
+
+    public void testSetGet() {
+        HttpParams params = new BasicHttpParams();
+
+        assertNull("phantom proxy",
+                   HttpRouteParams.getDefaultProxy(params));
+        assertNull("phantom route",
+                   HttpRouteParams.getForcedRoute(params));
+        assertNull("phantom address",
+                   HttpRouteParams.getLocalAddress(params));
+
+        HttpRouteParams.setDefaultProxy(params, TARGET1);
+        assertSame("wrong proxy", TARGET1,
+                   HttpRouteParams.getDefaultProxy(params));
+        HttpRouteParams.setForcedRoute(params, ROUTE1);
+        assertSame("wrong route", ROUTE1,
+                   HttpRouteParams.getForcedRoute(params));
+        HttpRouteParams.setLocalAddress(params, LOCAL1);
+        assertSame("wrong address", LOCAL1,
+                   HttpRouteParams.getLocalAddress(params));
+    }
+
+
+    public void testSetNull() {
+        HttpParams params = new BasicHttpParams();
+
+        HttpRouteParams.setDefaultProxy(params, null);
+        HttpRouteParams.setForcedRoute(params, null);
+        HttpRouteParams.setLocalAddress(params, null);
+
+        assertNull("phantom proxy",
+                   HttpRouteParams.getDefaultProxy(params));
+        assertNull("phantom route",
+                   HttpRouteParams.getForcedRoute(params));
+        assertNull("phantom address",
+                   HttpRouteParams.getLocalAddress(params));
+
+        HttpRouteParams.setDefaultProxy(params, HttpRouteParams.NO_HOST);
+        assertNull("null proxy not detected",
+                   HttpRouteParams.getDefaultProxy(params));
+
+        HttpRouteParams.setForcedRoute(params, HttpRouteParams.NO_ROUTE);
+        assertNull("null route not detected",
+                   HttpRouteParams.getForcedRoute(params));
     }
 
 
