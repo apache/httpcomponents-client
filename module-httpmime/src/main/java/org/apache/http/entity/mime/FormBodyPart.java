@@ -29,9 +29,9 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
-import org.apache.http.client.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;

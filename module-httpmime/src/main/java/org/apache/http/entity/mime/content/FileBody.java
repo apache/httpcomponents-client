@@ -29,44 +29,45 @@
  *
  */
 
-package org.apache.http.client.mime.content;
+package org.apache.http.entity.mime.content;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.mime.MIME;
+import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
 import org.apache.james.mime4j.message.BinaryBody;
 
-public class InputStreamBody extends AbstractBody implements BinaryBody, ContentBody {
+public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
 
-    private final InputStream in;
-    private final String filename;
+    private final File file;
     
-    public InputStreamBody(final InputStream in, final String filename) {
+    public FileBody(final File file) {
         super();
-        if (in == null) {
-            throw new IllegalArgumentException("Input stream may not be null");
+        if (file == null) {
+            throw new IllegalArgumentException("File may not be null");
         }
-        this.in = in;
-        this.filename = filename;
+        this.file = file;
     }
     
     public InputStream getInputStream() throws IOException {
-        return this.in;
+        return new FileInputStream(this.file);
     }
 
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
+        InputStream in = new FileInputStream(this.file);
         try {
-            IOUtils.copy(this.in, out);
+            IOUtils.copy(in, out);
         } finally {
-            this.in.close();
+            in.close();
         }
     }
 
@@ -83,11 +84,15 @@ public class InputStreamBody extends AbstractBody implements BinaryBody, Content
     }
     
     public long getContentLength() {
-        return -1;
+        return this.file.length();
     }
     
     public String getFilename() {
-        return this.filename;
+        return this.file.getName();
+    }
+    
+    public File getFile() {
+        return this.file;
     }
     
 }

@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,8 +38,10 @@ import java.io.IOException;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.mime.content.InputStreamBody;
-import org.apache.http.client.mime.content.StringBody;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartFormHttpEntity;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.james.mime4j.util.CharsetUtil;
 
 import junit.framework.Test;

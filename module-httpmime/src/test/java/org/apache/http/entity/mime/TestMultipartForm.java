@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,9 +43,12 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.http.client.mime.content.FileBody;
-import org.apache.http.client.mime.content.InputStreamBody;
-import org.apache.http.client.mime.content.StringBody;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.HttpMultipart;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;

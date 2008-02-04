@@ -2,6 +2,7 @@
  * $HeadURL$
  * $Revision$
  * $Date$
+ *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,28 +29,11 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-public class TestAll extends TestCase {
-
-    public TestAll(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTest(TestMultipartForm.suite());
-        suite.addTest(TestMultipartFormHttpEntity.suite());
-        return suite;
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAll.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
+public enum HttpMultipartMode {
+    
+    STRICT,
+    BROWSER_COMPATIBLE
 
 }

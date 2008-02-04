@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -39,7 +39,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.http.client.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.field.ContentTypeField;
 import org.apache.james.mime4j.field.Field;

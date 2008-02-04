@@ -29,7 +29,7 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +41,7 @@ import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.field.Field;

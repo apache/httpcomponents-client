@@ -29,18 +29,22 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
 import java.nio.charset.Charset;
 
-public interface ContentDescriptor {
+import org.apache.james.mime4j.field.Field;
+import org.apache.james.mime4j.util.CharsetUtil;
 
-    String getTransferEncoding();
-    
-    String getMimeType();
-    
-    Charset getCharset();
+public final class MIME {
 
-    long getContentLength();
+    public static final String CONTENT_TYPE          = Field.CONTENT_TYPE;
+    public static final String CONTENT_TRANSFER_ENC  = Field.CONTENT_TRANSFER_ENCODING;
+    public static final String CONTENT_DISPOSITION   = "Content-Disposition";
+ 
+    public static final String ENC_8BIT              = "8bit";
+    public static final String ENC_BINARY            = "binary";
+
+    public static final Charset DEFAULT_CHARSET      = CharsetUtil.getCharset("US-ASCII");
     
 }

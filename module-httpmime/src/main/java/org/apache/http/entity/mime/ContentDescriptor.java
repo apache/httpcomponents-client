@@ -29,11 +29,18 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime;
 
-public enum HttpMultipartMode {
+import java.nio.charset.Charset;
+
+public interface ContentDescriptor {
+
+    String getTransferEncoding();
     
-    STRICT,
-    BROWSER_COMPATIBLE
+    String getMimeType();
+    
+    Charset getCharset();
 
+    long getContentLength();
+    
 }

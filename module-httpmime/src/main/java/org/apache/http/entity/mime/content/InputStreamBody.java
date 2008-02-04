@@ -29,73 +29,65 @@
  *
  */
 
-package org.apache.http.client.mime.content;
+package org.apache.http.entity.mime.content;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.mime.MIME;
+import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
-import org.apache.james.mime4j.message.TextBody;
+import org.apache.james.mime4j.message.BinaryBody;
 
-public class StringBody extends AbstractBody implements TextBody, ContentBody {
+public class InputStreamBody extends AbstractBody implements BinaryBody, ContentBody {
 
-    private final byte[] content;
-    private final Charset charset;
+    private final InputStream in;
+    private final String filename;
     
-    public StringBody(final String text, Charset charset) throws UnsupportedEncodingException {
+    public InputStreamBody(final InputStream in, final String filename) {
         super();
-        if (text == null) {
-            throw new IllegalArgumentException("Text may not be null");
+        if (in == null) {
+            throw new IllegalArgumentException("Input stream may not be null");
         }
-        if (charset == null) {
-            charset = Charset.defaultCharset();
-        }
-        this.content = text.getBytes(charset.name());
-        this.charset = charset;
+        this.in = in;
+        this.filename = filename;
     }
     
-    public StringBody(final String text) throws UnsupportedEncodingException {
-        this(text, null);
-    }
-    
-    public Reader getReader() throws IOException {
-        return new InputStreamReader(
-                new ByteArrayInputStream(this.content),
-                this.charset);
+    public InputStream getInputStream() throws IOException {
+        return this.in;
     }
 
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
-        IOUtils.copy(new ByteArrayInputStream(this.content), out);
+        try {
+            IOUtils.copy(this.in, out);
+        } finally {
+            this.in.close();
+        }
     }
 
     public String getTransferEncoding() {
-        return MIME.ENC_8BIT;
+        return MIME.ENC_BINARY;
     }
 
     public Charset getCharset() {
-        return this.charset;
+        return null;
     }
 
     public String getMimeType() {
-        return "text/plain";
+        return "application/octet-stream";
     }
     
     public long getContentLength() {
-        return this.content.length;
+        return -1;
     }
     
     public String getFilename() {
-        return null;
+        return this.filename;
     }
     
 }

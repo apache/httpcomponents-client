@@ -29,32 +29,13 @@
  *
  */
 
-package org.apache.http.client.mime;
+package org.apache.http.entity.mime.content;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.Iterator;
+import org.apache.http.entity.mime.ContentDescriptor;
+import org.apache.james.mime4j.message.Body;
 
-import org.apache.james.mime4j.message.Header;
+public interface ContentBody extends Body, ContentDescriptor {
 
-/**
- * {@link Header} implementation with the stricter RDC 822 compliance.
- * To be removed if resolved in mime4j.
- */
-class RFC822Header extends Header {
-
-    @Override
-    public void writeTo(final OutputStream out) throws IOException {
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(out, MIME.DEFAULT_CHARSET), 8192);
-        for (Iterator<?> it = getFields().iterator(); it.hasNext();) {
-            writer.write(it.next().toString());
-            writer.write("\r\n");
-        }
-        writer.write("\r\n");
-        writer.flush();
-    }
-
+    String getFilename();
+    
 }

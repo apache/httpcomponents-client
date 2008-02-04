@@ -27,7 +27,7 @@
  * 
  */
 
-package org.apache.http.examples.client.mime;
+package org.apache.http.examples.entity.mime;
 
 import java.io.File;
 
@@ -35,9 +35,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.mime.MultipartFormHttpEntity;
-import org.apache.http.client.mime.content.FileBody;
-import org.apache.http.client.mime.content.StringBody;
+import org.apache.http.entity.mime.MultipartFormHttpEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
