@@ -141,13 +141,13 @@ public class SSLSocketFactory implements LayeredSocketFactory {
     public static final String SSL   = "SSL";
     public static final String SSLV2 = "SSLv2";
     
-    public static final HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER 
+    public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER 
         = new AllowAllHostnameVerifier();
     
-    public static final HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER 
+    public static final X509HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER 
         = new BrowserCompatHostnameVerifier();
     
-    public static final HostnameVerifier STRICT_HOSTNAME_VERIFIER 
+    public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER 
         = new StrictHostnameVerifier();
     /**
      * The factory using the default JVM settings for secure connections.
@@ -164,7 +164,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
     
     private final SSLContext sslcontext;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
-    private HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+    private X509HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
     public SSLSocketFactory(
         String algorithm, 
@@ -360,14 +360,14 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         return sslSocket;
     }
 
-    public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
+    public void setHostnameVerifier(X509HostnameVerifier hostnameVerifier) {
         if ( hostnameVerifier == null ) {
             throw new IllegalArgumentException("Hostname verifier may not be null");
         }
         this.hostnameVerifier = hostnameVerifier;
     }
 
-    public HostnameVerifier getHostnameVerifier() {
+    public X509HostnameVerifier getHostnameVerifier() {
         return hostnameVerifier;
     }
 

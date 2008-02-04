@@ -43,7 +43,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Unit tests for {@link HostnameVerifier}.
+ * Unit tests for {@link X509HostnameVerifier}.
  *
  * @author Julius Davies
  * @since 11-Dec-2006
@@ -67,9 +67,9 @@ public class TestHostnameVerifier extends TestCase
     }
 
     public void testVerify() throws Exception {
-        HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
-        HostnameVerifier STRICT = new StrictHostnameVerifier();
-        HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
+        X509HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
+        X509HostnameVerifier STRICT = new StrictHostnameVerifier();
+        X509HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
@@ -210,7 +210,7 @@ public class TestHostnameVerifier extends TestCase
         //exceptionPlease(STRICT,"a.b.\u82b1\u5b50.co.jp", x509 );
     }
 
-    private void exceptionPlease(HostnameVerifier hv, String host,
+    private void exceptionPlease(X509HostnameVerifier hv, String host,
                                  X509Certificate x509) {
         try {
             hv.verify(host, x509);

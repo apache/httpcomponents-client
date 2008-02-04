@@ -50,12 +50,12 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 /**
- * Abstract base class for all standard {@link HostnameVerifier} 
+ * Abstract base class for all standard {@link X509HostnameVerifier} 
  * implementations.
  * 
  * @author Julius Davies
  */
-public abstract class AbstractVerifier implements HostnameVerifier {
+public abstract class AbstractVerifier implements X509HostnameVerifier {
 
     /**
      * This contains a list of 2nd-level domains that aren't allowed to

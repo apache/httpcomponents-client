@@ -31,6 +31,7 @@
 
 package org.apache.http.conn.ssl;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -56,7 +57,7 @@ import java.security.cert.X509Certificate;
  *
  * @since 4.0 (8-Dec-2006)
  */
-public interface HostnameVerifier extends javax.net.ssl.HostnameVerifier {
+public interface X509HostnameVerifier extends HostnameVerifier {
 
     boolean verify(String host, SSLSession session);
 
