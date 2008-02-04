@@ -40,8 +40,13 @@ import junit.framework.TestSuite;
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
+
+// for hierarchy testing
+import org.apache.http.impl.client.ClientParamsStack;
+
 
 
 /**
@@ -124,6 +129,43 @@ public class TestRouteParams extends TestCase {
         HttpRouteParams.setForcedRoute(params, HttpRouteParams.NO_ROUTE);
         assertNull("null route not detected",
                    HttpRouteParams.getForcedRoute(params));
+    }
+
+
+    public void testUnsetHierarchy() {
+        // hierarchical unsetting is only tested for the default proxy
+        HttpParams daddy = new BasicHttpParams();
+        HttpParams dummy  = new BasicHttpParams();
+        HttpParams child  = new BasicHttpParams();
+
+        HttpRouteParams.setDefaultProxy(daddy, TARGET1);
+        HttpRouteParams.setDefaultProxy(child, HttpRouteParams.NO_HOST);
+
+        HttpParams hierarchy =
+            new ClientParamsStack(null, daddy, child, null);
+        assertNull("1", HttpRouteParams.getDefaultProxy(hierarchy));
+
+        hierarchy = new ClientParamsStack
+            (null,
+             daddy,
+             new ClientParamsStack(null, child, dummy, null),
+             null);
+        assertNull("2", HttpRouteParams.getDefaultProxy(hierarchy));
+
+        hierarchy = new ClientParamsStack
+            (null, daddy, new DefaultedHttpParams(child, dummy), null);
+        assertNull("3", HttpRouteParams.getDefaultProxy(hierarchy));
+
+        hierarchy = new DefaultedHttpParams(child, daddy);
+        assertNull("4", HttpRouteParams.getDefaultProxy(hierarchy));
+
+        hierarchy = new DefaultedHttpParams
+            (new DefaultedHttpParams(child, dummy), daddy);
+        assertNull("5", HttpRouteParams.getDefaultProxy(hierarchy));
+
+        hierarchy = new DefaultedHttpParams
+            (child, new DefaultedHttpParams(dummy, daddy));
+        assertNull("6", HttpRouteParams.getDefaultProxy(hierarchy));
     }
 
 
