@@ -31,6 +31,7 @@
 
 package org.apache.http.cookie;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -47,7 +48,9 @@ import java.util.Comparator;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class CookiePathComparator implements Comparator<Cookie> {
+public class CookiePathComparator implements Serializable, Comparator<Cookie> {
+
+    private static final long serialVersionUID = 7523645369616405818L;
 
     private String normalizePath(final Cookie cookie) {
         String path = cookie.getPath();

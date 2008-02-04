@@ -31,6 +31,7 @@
 
 package org.apache.http.cookie;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -43,7 +44,9 @@ import java.util.Comparator;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class CookieIdentityComparator implements Comparator<Cookie> {
+public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
+
+    private static final long serialVersionUID = 4466565437490631532L;
 
     public int compare(final Cookie c1, final Cookie c2) {
         int res = c1.getName().compareTo(c2.getName());

@@ -41,13 +41,10 @@ import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.DefaultedHttpParams;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 
 // for hierarchy testing
 import org.apache.http.impl.client.ClientParamsStack;
-
-
 
 /**
  * Unit tests for parameters.
