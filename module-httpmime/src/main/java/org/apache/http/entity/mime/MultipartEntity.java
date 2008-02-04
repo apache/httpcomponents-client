@@ -53,7 +53,7 @@ import org.apache.james.mime4j.message.Message;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
-public class MultipartFormHttpEntity implements HttpEntity {
+public class MultipartEntity implements HttpEntity {
 
     /**
      * The pool of ASCII chars to be used for generating a multipart boundary.
@@ -68,7 +68,7 @@ public class MultipartFormHttpEntity implements HttpEntity {
     private long length;
     private boolean dirty;
     
-    public MultipartFormHttpEntity(
+    public MultipartEntity(
             HttpMultipartMode mode, 
             final String boundary,
             final Charset charset) {
@@ -91,11 +91,11 @@ public class MultipartFormHttpEntity implements HttpEntity {
         this.multipart.setMode(mode);
     }
 
-    public MultipartFormHttpEntity(final HttpMultipartMode mode) {
+    public MultipartEntity(final HttpMultipartMode mode) {
         this(mode, null, null);
     }
 
-    public MultipartFormHttpEntity() {
+    public MultipartEntity() {
         this(HttpMultipartMode.STRICT, null, null);
     }
 

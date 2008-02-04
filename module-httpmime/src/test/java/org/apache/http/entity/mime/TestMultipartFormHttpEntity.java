@@ -39,7 +39,7 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartFormHttpEntity;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.james.mime4j.util.CharsetUtil;
@@ -68,7 +68,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
     }
 
     public void testExplictContractorParams() throws Exception {
-        MultipartFormHttpEntity entity = new MultipartFormHttpEntity(
+        MultipartEntity entity = new MultipartEntity(
                 HttpMultipartMode.BROWSER_COMPATIBLE,
                 "whatever",
                 CharsetUtil.getCharset("UTF-8"));
@@ -91,7 +91,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
     }
     
     public void testImplictContractorParams() throws Exception {
-        MultipartFormHttpEntity entity = new MultipartFormHttpEntity();
+        MultipartEntity entity = new MultipartEntity();
         assertNull(entity.getContentEncoding());
         assertNotNull(entity.getContentType());
         Header header = entity.getContentType();
@@ -115,7 +115,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
     }
     
     public void testRepeatable() throws Exception {
-        MultipartFormHttpEntity entity = new MultipartFormHttpEntity();
+        MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new StringBody("blah blah"));
         entity.addPart("p2", new StringBody("yada yada"));
         assertTrue(entity.isRepeatable());
@@ -145,7 +145,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
     }
     
     public void testNonRepeatable() throws Exception {
-        MultipartFormHttpEntity entity = new MultipartFormHttpEntity();
+        MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new InputStreamBody(
                 new ByteArrayInputStream("blah blah".getBytes()), null));
         entity.addPart("p2", new InputStreamBody(
