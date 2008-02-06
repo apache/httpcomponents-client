@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-643] Automatic connect fail-over for multi-home remote servers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-735] unsetting of DEFAULT_PROXY and FORCED_ROUTE in hierarchies
   Contributed by Roland Weber <rolandw at apache.org>
 

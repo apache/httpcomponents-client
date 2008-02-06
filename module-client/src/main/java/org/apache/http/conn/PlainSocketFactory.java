@@ -36,6 +36,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import org.apache.http.conn.util.SocketUtils;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -89,9 +90,6 @@ public final class PlainSocketFactory implements SocketFactory {
             throw new IllegalArgumentException("Parameters may not be null.");
         }
 
-        // resolve the target hostname first
-        final InetSocketAddress target = new InetSocketAddress(host, port);
-
         if (sock == null)
             sock = createSocket();
 
@@ -107,7 +105,8 @@ public final class PlainSocketFactory implements SocketFactory {
         }
 
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
-        sock.connect(target, timeout);
+
+        SocketUtils.connect(sock, host, port, timeout);
 
         return sock;
 
