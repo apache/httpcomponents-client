@@ -55,10 +55,10 @@ public class HttpRouteParams {
     /**
      * A special value indicating "no host".
      * This relies on a nonsense scheme name to avoid conflicts
-     * with actual hosts.
+     * with actual hosts. Note that this is a <i>valid</i> host.
      */
     public static final HttpHost NO_HOST =
-        new HttpHost("127.0.0.255", -32768, "$_");
+        new HttpHost("127.0.0.255", 0, "no-host");
 
     /**
      * A special value indicating "no route".
