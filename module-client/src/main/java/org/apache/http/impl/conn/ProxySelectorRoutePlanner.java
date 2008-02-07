@@ -60,7 +60,8 @@ import org.apache.http.conn.params.HttpRouteParams;
  * from system properties or from the browser running the application.
  * Additionally, it interprets some
  * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
- * though not the {@link ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
+ * though not the {@link
+ * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
  */
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     

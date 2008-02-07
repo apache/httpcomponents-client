@@ -67,7 +67,6 @@ public class HttpRouteParams {
     public static final HttpRoute NO_ROUTE = new HttpRoute(NO_HOST);
 
 
-
     /** Disabled default constructor. */
     private HttpRouteParams() {
         // no body
@@ -165,12 +164,13 @@ public class HttpRouteParams {
     /**
      * Obtains the {@link ConnRoutePNames#LOCAL_ADDRESS LOCAL_ADDRESS}
      * parameter value.
-     * {@link #NO_HOST} will be mapped to <code>null</code>,
-     * to allow unsetting in a hierarchy.
+     * There is no special value that would automatically be mapped to
+     * <code>null</code>. You can use the wildcard address (0.0.0.0 for IPv4,
+     * :: for IPv6) to override a specific local address in a hierarchy.
      *
      * @param params    the parameters in which to look up
      *
-     * @return  the default proxy set in the argument parameters, or
+     * @return  the local address set in the argument parameters, or
      *          <code>null</code> if not set
      */
     public final static InetAddress getLocalAddress(HttpParams params) {
@@ -179,7 +179,7 @@ public class HttpRouteParams {
         }
         InetAddress local = (InetAddress)
             params.getParameter(ConnRoutePNames.LOCAL_ADDRESS);
-        // currently no explicit unsetting
+        // no explicit unsetting
         return local;
     }
 
@@ -189,7 +189,7 @@ public class HttpRouteParams {
      * parameter value.
      *
      * @param params    the parameters in which to set the value
-     * @param local     the value to set, may be <code>null</code>.
+     * @param local     the value to set, may be <code>null</code>
      */
     public final static void setLocalAddress(HttpParams params,
                                              InetAddress local) {
