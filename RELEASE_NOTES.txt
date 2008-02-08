@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-741] Fixed concurrency issues in AbstractClientConnAdapter.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-726] testcase for spurious wakeups in ThreadSafeClientConnManager
   Contributed by Roland Weber <rolandw at apache.org>
 
