@@ -29,7 +29,7 @@
    <http://www.apache.org/>.
  -->
 
-<project name="HttpComponents Client">
+<project name="HttpClient">
   <bannerLeft>
     <name>Apache</name>
     <src>http://www.apache.org/images/asf_logo_wide.gif</src>
@@ -45,7 +45,6 @@
   <body>
     <links>
       <item name="Apache" href="http://www.apache.org/" />
-      <item name="HttpComponents" href="http://hc.apache.org/"/>
     </links>
 
     <menu name="HttpComponents">
