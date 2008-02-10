@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 2
 -------------------
 
+* [HTTPCLIENT-742] common interface for HttpRoute and RouteTracker
+  Contributed by Roland Weber <rolandw at apache.org>
+
 * [HTTPCLIENT-741] Fixed concurrency issues in AbstractClientConnAdapter.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

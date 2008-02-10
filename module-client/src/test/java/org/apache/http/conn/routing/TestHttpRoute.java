@@ -41,8 +41,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.HttpRoute.TunnelType;
-import org.apache.http.conn.routing.HttpRoute.LayerType;
+import org.apache.http.conn.routing.RouteInfo.TunnelType;
+import org.apache.http.conn.routing.RouteInfo.LayerType;
 
 
 /**

@@ -48,33 +48,7 @@ import org.apache.http.HttpHost;
  *
  * @since 4.0
  */
-public final class HttpRoute implements Cloneable {
-
-    /**
-     * The tunnelling type of a route.
-     * Plain routes are established by connecting to the target or
-     * the first proxy.
-     * Tunnelled routes are established by connecting to the first proxy
-     * and tunnelling through all proxies to the target.
-     * Routes without a proxy cannot be tunnelled.
-     */
-    public enum TunnelType { PLAIN, TUNNELLED };
-
-    /**
-     * The layering type of a route.
-     * Plain routes are established by connecting or tunnelling.
-     * Layered routes are established by layering a protocol such as TLS/SSL
-     * over an existing connection.
-     * Protocols can only be layered over a tunnel to the target, or
-     * or over a direct connection without proxies.
-     * <br/>
-     * Layering a protocol
-     * over a direct connection makes little sense, since the connection
-     * could be established with the new protocol in the first place.
-     * But we don't want to exclude that use case.
-     */
-    public enum LayerType  { PLAIN, LAYERED };
-
+public final class HttpRoute implements RouteInfo, Cloneable {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;
@@ -279,55 +253,26 @@ public final class HttpRoute implements Cloneable {
     }
 
 
-    /**
-     * Obtains the target host.
-     * 
-     * @return the target host
-     */
+
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
 
-    /**
-     * Obtains the local address to connect from.
-     * 
-     * @return  the local address,
-     *          or <code>null</code>
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final InetAddress getLocalAddress() {
         return this.localAddress;
     }
 
 
-    /**
-     * Obtains the number of hops in this route.
-     * A direct route has one hop. A route through a proxy has two hops.
-     * A route through a chain of <i>n</i> proxies has <i>n+1</i> hops.
-     *
-     * @return  the number of hops in this route
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final int getHopCount() {
         return (proxyChain == null) ? 1 : (proxyChain.length+1);
     }
 
 
-    /**
-     * Obtains the target of a hop in this route.
-     * The target of the last hop is the {@link #getTargetHost target host},
-     * the target of previous hops is the respective proxy in the chain.
-     * For a route through exactly one proxy, target of hop 0 is the proxy
-     * and target of hop 1 is the target host.
-     *
-     * @param hop       index of the hop for which to get the target,
-     *                  0 for first
-     *
-     * @return  the target of the given hop
-     *
-     * @throws IllegalArgumentException
-     *  if the argument is negative or not less than
-     *  {@link #getHopCount getHopCount()}
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getHopTarget(int hop) {
         if (hop < 0)
             throw new IllegalArgumentException
@@ -348,72 +293,37 @@ public final class HttpRoute implements Cloneable {
     }
 
 
-    /**
-     * Obtains the first proxy host.
-     * 
-     * @return the first proxy in the proxy chain, or
-     *         <code>null</code> if this route is direct
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getProxyHost() {
         return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
 
-    /**
-     * Obtains the tunnel type of this route.
-     * If there is a proxy chain, only end-to-end tunnels are considered.
-     *
-     * @return  the tunnelling type
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
 
-    /**
-     * Checks whether this route is tunnelled through a proxy.
-     * If there is a proxy chain, only end-to-end tunnels are considered.
-     *
-     * @return  <code>true</code> if tunnelled end-to-end through at least
-     *          one proxy,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
 
-    /**
-     * Obtains the layering type of this route.
-     * In the presence of proxies, only layering over an end-to-end tunnel
-     * is considered.
-     *
-     * @return  the layering type
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final LayerType getLayerType() {
         return this.layered;
     }
 
 
-    /**
-     * Checks whether this route includes a layered protocol.
-     * In the presence of proxies, only layering over an end-to-end tunnel
-     * is considered.
-     *
-     * @return  <code>true</code> if layered,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
 
-    /**
-     * Checks whether this route is secure.
-     *
-     * @return  <code>true</code> if secure,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isSecure() {
         return this.secure;
     }

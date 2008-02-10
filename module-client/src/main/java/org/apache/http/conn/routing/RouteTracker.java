@@ -34,8 +34,6 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.HttpRoute.TunnelType;
-import org.apache.http.conn.routing.HttpRoute.LayerType;
 
 
 /**
@@ -49,7 +47,7 @@ import org.apache.http.conn.routing.HttpRoute.LayerType;
  *
  * @since 4.0
  */
-public final class RouteTracker implements Cloneable {
+public final class RouteTracker implements RouteInfo, Cloneable {
 
     /** The target host to connect to. */
     private final HttpHost targetHost;
@@ -212,37 +210,20 @@ public final class RouteTracker implements Cloneable {
     }
 
 
-    /**
-     * Obtains the target host.
-     * 
-     * @return the target host
-     */
+
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
 
-    /**
-     * Obtains the local address to connect from.
-     * 
-     * @return  the local address,
-     *          or <code>null</code>
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final InetAddress getLocalAddress() {
         return this.localAddress;
     }
 
 
-    /**
-     * Obtains the number of tracked hops.
-     * An unconnected route has no hops.
-     * Connecting directly to the target adds one hop.
-     * Connecting to a proxy adds two hops, one for the proxy and
-     * one for the target.
-     * Tunnelling to a proxy in a proxy chain adds one hop.
-     *
-     * @return  the number of hops in the tracked route
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final int getHopCount() {
         int hops = 0;
         if (this.connected) {
@@ -255,18 +236,7 @@ public final class RouteTracker implements Cloneable {
     }
 
 
-    /**
-     * Obtains the target of a hop in this route.
-     *
-     * @param hop       index of the hop for which to get the target,
-     *                  0 for first
-     *
-     * @return  the target of the given hop
-     *
-     * @throws IllegalArgumentException
-     *  if the argument is negative or not less than
-     *  {@link #getHopCount getHopCount()}
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getHopTarget(int hop) {
         if (hop < 0)
             throw new IllegalArgumentException
@@ -288,82 +258,43 @@ public final class RouteTracker implements Cloneable {
     }
 
 
-    /**
-     * Obtains the first proxy host.
-     * 
-     * @return the first proxy host, or <code>null</code> if not tracked
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getProxyHost() {
         return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
 
-    /**
-     * Checks whether this route is connected to it's first hop.
-     *
-     * @return  <code>true</code> if connected,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isConnected() {
         return this.connected;
     }
 
 
-    /**
-     * Obtains the tunnel type of this route.
-     * If there is a proxy chain, only end-to-end tunnels are considered.
-     *
-     * @return  the tunnelling type
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
 
-    /**
-     * Checks whether this route is tunnelled through a proxy.
-     * If there is a proxy chain, only end-to-end tunnels are considered.
-     *
-     * @return  <code>true</code> if tunnelled end-to-end through at least
-     *          one proxy,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
 
-    /**
-     * Obtains the layering type of this route.
-     * In the presence of proxies, only layering over an end-to-end tunnel
-     * is considered.
-     *
-     * @return  the layering type
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final LayerType getLayerType() {
         return this.layered;
     }
 
 
-    /**
-     * Checks whether this route includes a layered protocol.
-     * In the presence of proxies, only layering over an end-to-end tunnel
-     * is considered.
-     *
-     * @return  <code>true</code> if layered,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
 
-    /**
-     * Checks whether this route is secure.
-     *
-     * @return  <code>true</code> if secure,
-     *          <code>false</code> otherwise
-     */
+    // non-JavaDoc, see interface RouteInfo
     public final boolean isSecure() {
         return this.secure;
     }
