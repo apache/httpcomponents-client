@@ -81,7 +81,7 @@ public interface HttpRouteDirector {
      *          either the next step to perform, or success, or failure.
      *          0 is for success, a negative value for failure.
      */
-    public int nextStep(HttpRoute plan, HttpRoute fact)
+    public int nextStep(RouteInfo plan, RouteInfo fact)
         ;
 
 

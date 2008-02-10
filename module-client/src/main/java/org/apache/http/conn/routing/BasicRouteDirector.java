@@ -61,7 +61,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      *          either the next step to perform, or success, or failure.
      *          0 is for success, a negative value for failure.
      */
-    public int nextStep(HttpRoute plan, HttpRoute fact) {
+    public int nextStep(RouteInfo plan, RouteInfo fact) {
         if (plan == null) {
             throw new IllegalArgumentException
                 ("Planned route may not be null.");
@@ -69,7 +69,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
 
         int step = UNREACHABLE;
 
-        if (fact == null)
+        if ((fact == null) || (fact.getHopCount() < 1))
             step = firstStep(plan);
         else if (plan.getHopCount() > 1)
             step = proxiedStep(plan, fact);
@@ -88,7 +88,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      *
      * @return  the first step
      */
-    protected int firstStep(HttpRoute plan) {
+    protected int firstStep(RouteInfo plan) {
 
         return (plan.getHopCount() > 1) ?
             CONNECT_PROXY : CONNECT_TARGET;
@@ -104,7 +104,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      * @return  one of the constants defined in this class, indicating
      *          either the next step to perform, or success, or failure
      */
-    protected int directStep(HttpRoute plan, HttpRoute fact) {
+    protected int directStep(RouteInfo plan, RouteInfo fact) {
 
         if (fact.getHopCount() > 1)
             return UNREACHABLE;
@@ -139,7 +139,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      * @return  one of the constants defined in this class, indicating
      *          either the next step to perform, or success, or failure
      */
-    protected int proxiedStep(HttpRoute plan, HttpRoute fact) {
+    protected int proxiedStep(RouteInfo plan, RouteInfo fact) {
 
         if (fact.getHopCount() <= 1)
             return UNREACHABLE;
