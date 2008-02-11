@@ -43,10 +43,6 @@
   </bannerRight>
 
   <body>
-    <links>
-      <item name="Apache" href="http://www.apache.org/" />
-    </links>
-
     <menu name="HttpComponents">
       <item name="Home" href=".."/>
     </menu>
@@ -58,11 +54,5 @@
     <menu name="Modules">
       <item name="HttpClient" href="httpclient/index.html"/>
     </menu>
-    <menu name="ASF">
-      <item name="Foundation" href="http://www.apache.org/foundation/"/>
-      <item name="Sponsor Apache" href="http://www.apache.org/foundation/sponsorship.html"/>
-      <item name="Thanks" href="http://www.apache.org/foundation/thanks.html"/>
-    </menu>
-
   </body>
 </project>
