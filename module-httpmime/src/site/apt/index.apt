@@ -27,43 +27,21 @@
 ~~ <http://www.apache.org/>.
 
     ----------
-    HttpComponents HttpClient Download Page
+    HttpComponents HttpClient Module
     ----------
     ----------
     ----------
 
-HttpClient Downloads
+HttpClient
 
-    The latest release available for download:
+    This module extends {{{http://james.apache.org/mime4j/index.html}mime4j}} 
+    library with some HTTP specific functionality and integrates it with the 
+    HttpComponents framework.
 
-    {{{http://hc.apache.org/downloads.cgi}4.0-alpha3}} - 
-    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
-    {{{http://www.apache.org/dist/java-repository/httpcomponents-httpclient/licenses/LICENSE.txt}License}}
-
-Dependency management with Maven
-
-    If you are using {{{http://maven.apache.org}Maven}} for your project, you can create a dependency 
-    in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
-    by adding the following block to the dependency descriptor:
-
-* HttpComponents Client
-
--------------------------
-  <dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient</artifactId>
-    <version>4.0-alpha3</version>
-    <scope>compile</scope>
-  </dependency>
--------------------------
-
-* HttpComponents HttpMime
-
--------------------------
-  <dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpmime</artifactId>
-    <version>4.0-alpha3</version>
-    <scope>compile</scope>
-  </dependency>
--------------------------
+    {{{apidocs/index.html}Javadocs}}
+    
+    {{{xref/index.html}Project sources}}
+    
+    {{{dependencies.html}Dependencies}}    
+    
+    {{{issue-tracking.html}Issue Tracking}}    

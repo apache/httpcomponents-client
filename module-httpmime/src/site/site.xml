@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-   $HeadURL$
-   $Revision$
-   $Date$
+   $HeadURL:$
+   $Revision:$
+   $Date:$
 
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
@@ -28,7 +28,6 @@
    information on the Apache Software Foundation, please see
    <http://www.apache.org/>.
  -->
-
 <project name="HttpClient">
   <bannerLeft>
     <name>Apache</name>
@@ -44,16 +43,16 @@
 
   <body>
     <menu name="HttpComponents">
-      <item name="Home" href=".."/>
+      <item name="Home" href="../.."/>
     </menu>
     <menu name="HttpClient Overview">
-      <item name="Description" href="index.html"/>
-      <item name="Download" href="download.html"/>
-      <item name="Examples" href="examples.html"/>
+      <item name="Description" href="../index.html"/>
+      <item name="Download" href="../download.html"/>
+      <item name="Examples" href="../examples.html"/>
     </menu>
     <menu name="Modules">
-      <item name="HttpClient" href="httpclient/index.html"/>
-      <item name="HttpMime" href="httpmime/index.html"/>
+      <item name="HttpClient" href="../httpclient/index.html"/>
+      <item name="HttpMime" href="index.html"/>
     </menu>
   </body>
 </project>

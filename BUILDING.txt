@@ -25,6 +25,7 @@ mvn package
 The resultant packages can be found in the target folders of their respective modules
 
 module-client/target/httpclient-<VERSION>.jar
+module-httpmime/target/httpmime-<VERSION>.jar
 
 where <VERSION> is the release version
 

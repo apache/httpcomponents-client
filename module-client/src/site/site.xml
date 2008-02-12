@@ -53,6 +53,7 @@
     </menu>
     <menu name="Modules">
       <item name="HttpClient" href="index.html"/>
+      <item name="HttpMime" href="../httpmime/index.html"/>
     </menu>
   </body>
 </project>
