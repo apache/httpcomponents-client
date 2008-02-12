@@ -36,7 +36,7 @@
     <artifactId>httpcomponents-client</artifactId>
     <version>4.0-alpha3-SNAPSHOT</version>
   </parent>
-  <artifactId>httpclient-mime</artifactId>
+  <artifactId>httpmime</artifactId>
   <name>HttpClient (MIME entities)</name>
   <inceptionYear>2000</inceptionYear>
   <description>
@@ -69,6 +69,11 @@
       <groupId>org.apache.james</groupId>
       <artifactId>apache-mime4j</artifactId>
       <version>${mime4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
