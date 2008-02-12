@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-   $HeadURL:$
-   $Revision:$
-   $Date:$
+   $HeadURL$
+   $Revision$
+   $Date$
 
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
@@ -28,6 +28,7 @@
    information on the Apache Software Foundation, please see
    <http://www.apache.org/>.
  -->
+
 <project name="HttpClient">
   <bannerLeft>
     <name>Apache</name>
