@@ -165,6 +165,8 @@ public abstract class AbstractClientConnAdapter
 
     // non-javadoc, see interface HttpConnection
     public boolean isStale() {
+        if (aborted)
+            return true;
         OperatedClientConnection conn = getWrappedConnection();
         if (conn == null)
             return true;
