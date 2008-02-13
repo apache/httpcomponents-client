@@ -985,6 +985,10 @@ public class DefaultClientRequestDirector
             final HttpHost host,
             final CredentialsProvider credsProvider) {
         
+        if (!authState.isValid()) {
+            return;
+        }
+        
         String hostname = host.getHostName();
         int port = host.getPort();
         if (port < 0) {

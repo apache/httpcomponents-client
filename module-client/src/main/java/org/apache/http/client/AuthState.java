@@ -70,6 +70,10 @@ public class AuthState {
         this.credentials = null;
     }
 
+    public boolean isValid() {
+        return this.authScheme != null;
+    }
+    
     /**
      * Assigns the given {@link AuthScheme authentication scheme}.
      * 
