@@ -60,14 +60,26 @@
           <directory>module-client/src</directory>
           <outputDirectory>module-client/src</outputDirectory>
           <lineEnding>lf</lineEnding>
-          <excludes>
-            <exclude>site/**</exclude>
-          </excludes>
         </fileSet>
         <!-- Base module build files -->
         <fileSet>
           <directory>module-client</directory>
           <outputDirectory>module-client</outputDirectory>
+          <lineEnding>lf</lineEnding>
+          <includes>
+            <include>*.xml</include>
+          </includes>
+        </fileSet>
+        <!-- HttpMime module source and text resources -->
+        <fileSet>
+          <directory>module-httpmime/src</directory>
+          <outputDirectory>module-httpmime/src</outputDirectory>
+          <lineEnding>lf</lineEnding>
+        </fileSet>
+        <!-- HttpMime module build files -->
+        <fileSet>
+          <directory>module-httpmime</directory>
+          <outputDirectory>module-httpmime</outputDirectory>
           <lineEnding>lf</lineEnding>
           <includes>
             <include>*.xml</include>

@@ -66,5 +66,18 @@
             <include>**/*.java</include>
           </includes>
         </fileSet>
+        <!-- HttpMime module -->
+        <fileSet>
+          <directory>module-httpmime/target/site/apidocs</directory>
+          <outputDirectory>javadoc/httpmime</outputDirectory>
+        </fileSet>
+        <fileSet>
+          <directory>module-httpmime/src/examples/</directory>
+          <outputDirectory>examples</outputDirectory>
+          <lineEnding>crlf</lineEnding>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
     </fileSets>
 </assembly>
