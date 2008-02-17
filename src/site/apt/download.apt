@@ -38,7 +38,7 @@ HttpClient Downloads
 
     {{{http://hc.apache.org/downloads.cgi}4.0-alpha3}} - 
     {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
-    {{{http://www.apache.org/dist/java-repository/httpcomponents-httpclient/licenses/LICENSE.txt}License}}
+    {{{http://www.apache.org/licenses/LICENSE-2.0.html}License}}
 
 Dependency management with Maven
 
