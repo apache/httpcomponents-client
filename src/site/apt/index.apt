@@ -100,7 +100,7 @@ Modules
 * HttpClient module
 
     The {{{httpclient/index.html}HttpClient}} module is a full-featured, standards compliant HTTP 
-    client built on top of {{{/httpcomponents/httpcomponents-core/index.html}HttpCore}}.
+    client built on top of {{{/httpcomponents-core/index.html}HttpCore}}.
 
 * HttpMime module
 
