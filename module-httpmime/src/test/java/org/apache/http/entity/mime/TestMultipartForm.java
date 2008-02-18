@@ -156,7 +156,8 @@ public class TestMultipartForm extends TestCase {
         String expected = "\r\n" + 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
-            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Type: text/plain; charset=" + 
+                Charset.defaultCharset() + "\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "this stuff\r\n" +
@@ -168,7 +169,8 @@ public class TestMultipartForm extends TestCase {
             "that stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field3\"\r\n" +
-            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Type: text/plain; charset=" + 
+                Charset.defaultCharset() + "\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
