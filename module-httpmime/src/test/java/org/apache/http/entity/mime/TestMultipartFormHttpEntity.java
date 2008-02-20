@@ -72,14 +72,14 @@ public class TestMultipartFormHttpEntity extends TestCase {
                 HttpMultipartMode.BROWSER_COMPATIBLE,
                 "whatever",
                 CharsetUtil.getCharset("UTF-8"));
-        
+
         assertNull(entity.getContentEncoding());
         assertNotNull(entity.getContentType());
         Header header = entity.getContentType();
         HeaderElement[] elems = header.getElements();
         assertNotNull(elems);
         assertEquals(1, elems.length);
-        
+
         HeaderElement elem = elems[0];
         assertEquals("multipart/form-data", elem.getName());
         NameValuePair p1 = elem.getParameterByName("boundary");
@@ -89,7 +89,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
         assertNotNull(p2);
         assertEquals("UTF-8", p2.getValue());
     }
-    
+
     public void testImplictContractorParams() throws Exception {
         MultipartEntity entity = new MultipartEntity();
         assertNull(entity.getContentEncoding());
@@ -98,22 +98,22 @@ public class TestMultipartFormHttpEntity extends TestCase {
         HeaderElement[] elems = header.getElements();
         assertNotNull(elems);
         assertEquals(1, elems.length);
-        
+
         HeaderElement elem = elems[0];
         assertEquals("multipart/form-data", elem.getName());
         NameValuePair p1 = elem.getParameterByName("boundary");
         assertNotNull(p1);
-        
+
         String boundary = p1.getValue();
         assertNotNull(boundary);
-        
-        assertTrue(boundary.length() > 30);
+
+        assertTrue(boundary.length() >= 30);
         assertTrue(boundary.length() <= 40);
-        
+
         NameValuePair p2 = elem.getParameterByName("charset");
         assertNull(p2);
     }
-    
+
     public void testRepeatable() throws Exception {
         MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new StringBody("blah blah"));
@@ -121,29 +121,29 @@ public class TestMultipartFormHttpEntity extends TestCase {
         assertTrue(entity.isRepeatable());
         assertFalse(entity.isChunked());
         assertFalse(entity.isStreaming());
-        
+
         long len = entity.getContentLength();
         assertTrue(len == entity.getContentLength());
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        
+
         byte[] bytes = out.toByteArray();
         assertNotNull(bytes);
         assertTrue(bytes.length == len);
 
         assertTrue(len == entity.getContentLength());
-        
+
         out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        
+
         bytes = out.toByteArray();
         assertNotNull(bytes);
         assertTrue(bytes.length == len);
     }
-    
+
     public void testNonRepeatable() throws Exception {
         MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new InputStreamBody(
@@ -153,8 +153,8 @@ public class TestMultipartFormHttpEntity extends TestCase {
         assertFalse(entity.isRepeatable());
         assertTrue(entity.isChunked());
         assertTrue(entity.isStreaming());
-        
+
         assertTrue(entity.getContentLength() == -1);
     }
-    
+
 }
