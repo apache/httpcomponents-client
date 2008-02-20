@@ -55,6 +55,12 @@
           </includes>
           <lineEnding>crlf</lineEnding>
         </fileSet>
+        <!-- Site and assembly descriptors -->
+        <fileSet>
+          <directory>src</directory>
+          <outputDirectory>src</outputDirectory>
+          <lineEnding>crlf</lineEnding>
+        </fileSet>
         <!-- Base module source and text resources -->
         <fileSet>
           <directory>module-client/src</directory>
