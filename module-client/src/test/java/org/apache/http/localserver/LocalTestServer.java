@@ -99,10 +99,10 @@ public class LocalTestServer {
     public HttpParams serverParams;
 
     /** The server socket, while being served. */
-    protected ServerSocket servicedSocket;
+    protected volatile ServerSocket servicedSocket;
 
     /** The request listening thread, while listening. */
-    protected Thread listenerThread;
+    protected volatile Thread listenerThread;
 
 
     /**
