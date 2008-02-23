@@ -50,9 +50,9 @@ import org.apache.http.util.EntityUtils;
  */
 public class ExecReqThread extends GetConnThread {
 
-    protected RequestSpec  request_spec;
-    protected HttpResponse response;
-    protected byte[]       response_data;
+    protected          RequestSpec  request_spec;
+    protected volatile HttpResponse response;
+    protected volatile byte[]       response_data;
 
 
     /**

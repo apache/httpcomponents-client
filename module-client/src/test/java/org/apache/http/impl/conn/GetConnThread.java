@@ -48,8 +48,8 @@ public class GetConnThread extends Thread {
     protected HttpRoute               conn_route;
     protected long                    conn_timeout;
 
-    protected ManagedClientConnection connection;
-    protected Throwable               exception;
+    protected volatile ManagedClientConnection connection;
+    protected volatile Throwable               exception;
 
     /**
      * Creates a new thread.

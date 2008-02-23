@@ -44,8 +44,8 @@ public class AwaitThread extends Thread {
     protected Lock          wait_lock;
     protected Date          wait_deadline;
 
-    protected boolean       waiting;
-    protected Throwable     exception;
+    protected volatile boolean       waiting;
+    protected volatile Throwable     exception;
 
 
     /**
