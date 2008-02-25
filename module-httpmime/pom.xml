@@ -81,6 +81,14 @@
       <version>${commons-logging.version}</version>
     </dependency>
     <dependency>
+    <!-- To be removed as soon as apache-mime4j is upgraded to version 0.4
+     or GUMP has been made capable of handling of transitive dependencies
+    -->
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
