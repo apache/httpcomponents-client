@@ -35,38 +35,34 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-/**
- * The default class for creating sockets.
- * This class just uses the {@link java.net.Socket socket} API
- * in Java 1.4 or greater.
- * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author Michael Becke
- */
-public final class PlainSocketFactory implements SocketFactory {
+public final class MultihomePlainSocketFactory implements SocketFactory {
 
     /**
      * The factory singleton.
      */
     private static final
-        PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
+    MultihomePlainSocketFactory DEFAULT_FACTORY = new MultihomePlainSocketFactory();
 
     /**
      * Gets the singleton instance of this class.
      * @return the one and only plain socket factory
      */
-    public static final PlainSocketFactory getSocketFactory() {
+    public static final MultihomePlainSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
     }
 
     /**
      * Restricted default constructor.
      */
-    private PlainSocketFactory() {
+    private MultihomePlainSocketFactory() {
         super();
     }
 
@@ -76,7 +72,21 @@ public final class PlainSocketFactory implements SocketFactory {
         return new Socket();
     }
 
-    // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    /**
+     * Attempts to connects the socket to any of the {@link InetAddress}es the 
+     * given host name resolves to. If connection to all addresses fail, the  
+     * last I/O exception is propagated to the caller.
+     * 
+     * @param sock socket to connect to any of the given addresses
+     * @param host Host name to connect to
+     * @param port the port to connect to
+     * @param localAddress local address
+     * @param localPort local port
+     * @param params HTTP parameters 
+     * 
+     * @throws  IOException if an error occurs during the connection
+     * @throws  SocketTimeoutException if timeout expires before connecting
+     */
     public Socket connectSocket(Socket sock, String host, int port, 
                                 InetAddress localAddress, int localPort,
                                 HttpParams params)
@@ -105,10 +115,31 @@ public final class PlainSocketFactory implements SocketFactory {
 
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
 
-        sock.connect(new InetSocketAddress(host, port), timeout);
+        InetAddress[] inetadrs = InetAddress.getAllByName(host);
+        List<InetAddress> addresses = new ArrayList<InetAddress>(inetadrs.length);
+        for (InetAddress inetadr: inetadrs) {
+            addresses.add(inetadr);
+        }
+        Collections.shuffle(addresses);
 
+        IOException lastEx = null;
+        for (InetAddress address: addresses) {
+            try {
+                sock.connect(new InetSocketAddress(address, port), timeout);
+                break;
+            } catch (SocketTimeoutException ex) {
+                throw ex;
+            } catch (IOException ex) {
+                // create new socket
+                sock = new Socket();
+                // keep the last exception and retry
+                lastEx = ex;
+            }
+        }
+        if (lastEx != null) {
+            throw lastEx;
+        }
         return sock;
-
     } // connectSocket
 
 

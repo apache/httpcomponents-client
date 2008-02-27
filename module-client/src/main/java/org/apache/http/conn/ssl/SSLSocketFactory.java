@@ -32,7 +32,6 @@
 package org.apache.http.conn.ssl;
 
 import org.apache.http.conn.LayeredSocketFactory;
-import org.apache.http.conn.util.SocketUtils;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -290,7 +289,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
         int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
-        SocketUtils.connect(sock, host, port, connTimeout);
+        sock.connect(new InetSocketAddress(host, port), connTimeout);
 
         sslock.setSoTimeout(soTimeout);
         try {
