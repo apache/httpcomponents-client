@@ -43,6 +43,13 @@ import java.util.List;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+/**
+ * Socket factory that implements a simple multi-home fail-over on connect failure, 
+ * provided the same hostname resolves to multiple {@link InetAddress}es. Please note
+ * the {@link #connectSocket(Socket, String, int, InetAddress, int, HttpParams)}
+ * method cannot be reliably interrupted by closing the socket returned by the
+ * {@link #createSocket()} method.
+ */
 public final class MultihomePlainSocketFactory implements SocketFactory {
 
     /**
