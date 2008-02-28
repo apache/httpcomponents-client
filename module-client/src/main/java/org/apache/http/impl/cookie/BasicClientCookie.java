@@ -320,7 +320,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
         buffer.append("[name: ");
         buffer.append(this.name);
         buffer.append("]");
-        buffer.append("[name: ");
+        buffer.append("[value: ");
         buffer.append(this.value);
         buffer.append("]");
         buffer.append("[domain: ");
