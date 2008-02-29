@@ -138,7 +138,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             try {
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URLUtils.rewriteURI(requestURI, target, true);
-                uri = absoluteRequestURI.resolve(uri); 
+                uri = URLUtils.resolve(absoluteRequestURI, uri); 
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }

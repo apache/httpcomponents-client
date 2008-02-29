@@ -195,6 +195,46 @@ public class URLUtils {
     }
     
     /**
+     * Resolves a URI reference against a base URI. Work-around for bug in
+     * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
+     *
+     * @param baseURI the base URI
+     * @param reference the URI reference
+     * @return the resulting URI
+     */
+    public static URI resolve(final URI baseURI, final String reference) {
+        return URLUtils.resolve(baseURI, URI.create(reference));
+    }
+
+    /**
+     * Resolves a URI reference against a base URI. Work-around for bug in
+     * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
+     *
+     * @param baseURI the base URI
+     * @param reference the URI reference
+     * @return the resulting URI
+     */
+    public static URI resolve(final URI baseURI, URI reference){
+        if (baseURI == null) {
+            throw new IllegalArgumentException("Base URI may nor be null");
+        }
+        if (reference == null) {
+            throw new IllegalArgumentException("Reference URI may nor be null");
+        }
+        boolean emptyReference = reference.toString().length() == 0;
+        if (emptyReference) {
+            reference = URI.create("#");
+        }
+        URI resolved = baseURI.resolve(reference);
+        if (emptyReference) {
+            String resolvedString = resolved.toString();
+            resolved = URI.create(resolvedString.substring(0,
+                resolvedString.indexOf('#')));
+        }
+        return resolved;
+    }
+
+    /**
      * This class should not be instantiated.
      */
     private URLUtils() {

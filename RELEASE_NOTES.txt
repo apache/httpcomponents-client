@@ -1,3 +1,10 @@
+Changes since 4.0 Alpha 3
+-------------------
+
+* [HTTPCLIENT-755] Workaround for known bugs in java.net.URI.resolve()
+  Bug ID: 4708535
+  Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
+
 Release 4.0 Alpha 3
 -------------------
 
