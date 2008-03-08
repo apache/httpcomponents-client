@@ -30,69 +30,45 @@
 
 package org.apache.http.client.methods;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLUtils;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EncodingUtils;
 
-public class UrlEncodedFormEntity extends AbstractHttpEntity {
+public class UrlEncodedFormEntity extends StringEntity {
 
     /** The Content-Type for www-form-urlencoded. */
     public static final String FORM_URL_ENCODED_CONTENT_TYPE = 
         "application/x-www-form-urlencoded";
 
-    private final byte[] content;
-    
     public UrlEncodedFormEntity(
             final NameValuePair[] fields, 
             final String charset) throws UnsupportedEncodingException {
-        super();
-        String s = URLUtils.formUrlEncode(fields, charset);
-        this.content = EncodingUtils.getAsciiBytes(s);
+        super(URLUtils.formUrlEncode(fields, charset), charset);
+        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
     }
     
-    public UrlEncodedFormEntity(final NameValuePair[] fields) {
-        super();
-        String s = URLUtils.simpleFormUrlEncode(fields, HTTP.UTF_8);
-        this.content = EncodingUtils.getAsciiBytes(s);
+    public UrlEncodedFormEntity(
+            final NameValuePair[] fields) throws UnsupportedEncodingException {
+        super(URLUtils.formUrlEncode(fields, HTTP.UTF_8), HTTP.US_ASCII);
+        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
     }
     
-    public boolean isRepeatable() {
-        return true;
+    public UrlEncodedFormEntity (
+            final Map<String, List<String>> parameters, 
+            final String charset) throws UnsupportedEncodingException {
+        super(URLUtils.format(parameters, charset), HTTP.US_ASCII);
+        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
     }
     
-    public long getContentLength() {
-        return this.content.length;
-    }
-
-    public InputStream getContent() throws IOException {
-        return new ByteArrayInputStream(this.content);
+    public UrlEncodedFormEntity (
+            final Map<String, List<String>> parameters) throws UnsupportedEncodingException {
+        super(URLUtils.format(parameters, HTTP.UTF_8), HTTP.US_ASCII);
+        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
     }
     
-    @Override
-    public Header getContentType() {
-        return new BasicHeader(HTTP.CONTENT_TYPE, FORM_URL_ENCODED_CONTENT_TYPE);
-    }
-
-    public boolean isStreaming() {
-        return false;
-    }
-
-    public void writeTo(final OutputStream outstream) throws IOException {
-        if (outstream == null) {
-            throw new IllegalArgumentException("Output stream may not be null");
-        }
-        outstream.write(this.content);
-        outstream.flush();
-    }
-
 }

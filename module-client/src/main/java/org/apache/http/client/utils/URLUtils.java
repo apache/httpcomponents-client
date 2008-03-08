@@ -32,10 +32,18 @@ package org.apache.http.client.utils;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.TreeMap;
 
-import org.apache.commons.codec.net.URLCodec;
 import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
+import org.apache.http.protocol.HTTP;
 
 /**
  * The home for utility methods that handle various URL encoding tasks.
@@ -49,6 +57,8 @@ public class URLUtils {
 
     /** Default content encoding chatset */
     private static final String DEFAULT_CHARSET = "ISO-8859-1";
+    private static final String PARAMETER_SEPARATOR = "&";
+    private static final String NAME_VALUE_SEPARATOR = "=";
 
     /**
      * Form-urlencoding routine.
@@ -109,23 +119,81 @@ public class URLUtils {
              final String charset) throws UnsupportedEncodingException {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pairs.length; i++) {
-            URLCodec codec = new URLCodec();
             NameValuePair pair = pairs[i];
             if (pair.getName() != null) {
                 if (i > 0) {
                     buf.append("&");
                 }
-                buf.append(codec.encode(pair.getName(), charset));
+                buf.append(URLEncoder.encode(pair.getName(), charset));
                 buf.append("=");
                 if (pair.getValue() != null) {
-                    buf.append(codec.encode(pair.getValue(), charset));
+                    buf.append(URLEncoder.encode(pair.getValue(), charset));
                 }
             }
         }
         return buf.toString();
     }
     
-    public static URI createURI(
+     public static Map <String, List <String>> parse (
+             final URI uri, 
+             String charset) throws UnsupportedEncodingException {
+         Map <String, List <String>> result = Collections.emptyMap();
+         final String query = uri.getRawQuery();
+         if (query != null && query.length() > 0) {
+             result = new TreeMap <String, List <String>>();
+             parse(result, new Scanner(query), charset);
+         }
+         return result;
+     }
+
+     public static void parse (
+             final Map <String, List <String>> result, 
+             final Scanner scanner, String charset) throws UnsupportedEncodingException {
+         if (charset == null) {
+             charset = HTTP.DEFAULT_CONTENT_CHARSET;
+         }
+         scanner.useDelimiter(PARAMETER_SEPARATOR);
+         while (scanner.hasNext()) {
+             final String[] nameValue = scanner.next().split(NAME_VALUE_SEPARATOR);
+             if (nameValue.length == 0 || nameValue.length > 2)
+                 throw new IllegalArgumentException("bad parameter");
+             final String name = URLDecoder.decode(nameValue[0], charset);
+             if (nameValue.length == 2) {
+                 if (!result.containsKey(name))
+                     result.put(name, new LinkedList <String>());
+                 String value = null;
+                 final List <String> values = result.get(name);
+                 value = URLDecoder.decode(nameValue[1], charset);
+                 values.add(value);
+             }
+         }
+     }
+
+     public static String format (
+             final Map <String, List <String>> parameters, 
+             String charset) throws UnsupportedEncodingException {
+         if (charset == null) {
+             charset = HTTP.DEFAULT_CONTENT_CHARSET;
+         }
+         final StringBuilder result = new StringBuilder(64);
+         for (final String name : parameters.keySet()) {
+             final List <? extends String> values = parameters.get(name);
+             if (values != null) {
+                 final String encodedName = URLEncoder.encode(name, charset);
+                 for (final String value : values) {
+                     if (result.length() > 0)
+                         result.append(PARAMETER_SEPARATOR);
+                     final String encodedValue = URLEncoder.encode(value, charset);
+                     result.append(encodedName);
+                     result.append(NAME_VALUE_SEPARATOR);
+                     result.append(encodedValue);
+                 }
+             }
+         }
+         return result.toString();
+     }
+
+     public static URI createURI(
             final String scheme,
             final String host,
             int port,
