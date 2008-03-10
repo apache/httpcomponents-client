@@ -379,7 +379,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public void removeResponseInterceptorByClass(Class<HttpResponseInterceptor> clazz) {
+    public void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
     }
 
@@ -409,7 +409,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public void removeRequestInterceptorByClass(Class<HttpRequestInterceptor> clazz) {
+    public void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
     }
 

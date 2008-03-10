@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-758] Fixed the use of generics in AbstractHttpClient
+  #removeRequestInterceptorByClass and #removeResponseInterceptorByClass
+  Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
+
 * [HTTPCLIENT-749] HttpParams beans
   Contributed by Stojce Dimski <sdmiski at yahoo.it>
 
