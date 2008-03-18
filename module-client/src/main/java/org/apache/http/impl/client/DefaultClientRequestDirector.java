@@ -403,8 +403,7 @@ public class DefaultClientRequestDirector
                         managedConn.close();
                     }
                     // check if we can use the same connection for the followup
-                    if ((managedConn != null) &&
-                        !followup.getRoute().equals(roureq.getRoute())) {
+                    if (!followup.getRoute().equals(roureq.getRoute())) {
                         // the followup has a different route, release conn
                         //@@@ need to consume response body first?
                         //@@@ or let that be done in handleResponse(...)?
@@ -941,6 +940,8 @@ public class DefaultClientRequestDirector
             // we got here as the result of an exception
             // no response will be returned, release the connection
             managedConn = null;
+            // ensure the connection manager properly releases this connection
+            connManager.releaseConnection(mcc);
             //@@@ is the connection in a re-usable state? consume response?
             //@@@ for now, just shut it down
             try {

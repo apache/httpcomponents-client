@@ -1,6 +1,14 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-759] Ensure release of connections back to the connection manager 
+  on exceptions.
+  Contributed by Sam Berlin <sberlin at gmail.com>
+
+* [HTTPCLIENT-759] DefaultClientRequestDirector now releases connections back 
+  to the connection manager on exceptions.
+  Contributed by Sam Berlin <sberlin at gmail.com>
+
 * [HTTPCLIENT-758] Fixed the use of generics in AbstractHttpClient
   #removeRequestInterceptorByClass and #removeResponseInterceptorByClass
   Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>

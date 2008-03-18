@@ -30,6 +30,8 @@
 
 package org.apache.http.impl.conn;
 
+import java.io.IOException;
+
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
@@ -57,7 +59,7 @@ public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
         throw new UnsupportedOperationException("just a mockup");
     }
 
-    public void open(HttpRoute route, HttpContext context, HttpParams params) {
+    public void open(HttpRoute route, HttpContext context, HttpParams params) throws IOException {
         throw new UnsupportedOperationException("just a mockup");
     }
 
