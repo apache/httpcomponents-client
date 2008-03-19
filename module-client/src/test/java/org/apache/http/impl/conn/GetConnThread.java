@@ -33,6 +33,7 @@ package org.apache.http.impl.conn;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 
@@ -44,26 +45,36 @@ import org.apache.http.conn.ManagedClientConnection;
  */
 public class GetConnThread extends Thread {
 
-    protected ClientConnectionManager conn_manager;
-    protected HttpRoute               conn_route;
-    protected long                    conn_timeout;
+    protected final HttpRoute               conn_route;
+    protected final long                    conn_timeout;
+    protected final ClientConnectionRequest conn_request;
 
     protected volatile ManagedClientConnection connection;
     protected volatile Throwable               exception;
 
     /**
-     * Creates a new thread.
+     * Creates a new thread for requesting a connection from the given manager.
+     * 
      * When this thread is started, it will try to obtain a connection.
      * The timeout is in milliseconds.
      */
     public GetConnThread(ClientConnectionManager mgr,
                          HttpRoute route, long timeout) {
-
-        conn_manager = mgr;
-        conn_route   = route;
-        conn_timeout = timeout;
+        this(mgr.newConnectionRequest(), route, timeout);
     }
-
+    
+    /**
+     * Creates a new for requesting a connection from the given request object.
+     * 
+     * When this thread is started, it will try to obtain a connection.
+     * The timeout is in milliseconds.
+     */
+    public GetConnThread(ClientConnectionRequest connectionRequest,
+            HttpRoute route, long timeout) {
+        conn_route = route;
+        conn_timeout = timeout;
+        conn_request = connectionRequest;
+    }
 
     /**
      * This method is executed when the thread is started.
@@ -71,7 +82,7 @@ public class GetConnThread extends Thread {
     @Override
     public void run() {
         try {
-            connection = conn_manager.getConnection
+            connection = conn_request.getConnection
                 (conn_route, conn_timeout, TimeUnit.MILLISECONDS);
         } catch (Throwable dart) {
             exception = dart;

@@ -50,7 +50,8 @@ import org.apache.http.util.EntityUtils;
  */
 public class ExecReqThread extends GetConnThread {
 
-    protected          RequestSpec  request_spec;
+    protected final ClientConnectionManager conn_manager;
+    protected final RequestSpec 	request_spec;
     protected volatile HttpResponse response;
     protected volatile byte[]       response_data;
 
@@ -71,6 +72,7 @@ public class ExecReqThread extends GetConnThread {
                          HttpRoute route, long timeout,
                          RequestSpec reqspec) {
         super(mgr, route, timeout);
+        this.conn_manager = mgr;
 
         request_spec = reqspec;
     }

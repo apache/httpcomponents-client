@@ -38,18 +38,19 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 
 
 /**
@@ -542,6 +543,88 @@ public class TestTSCCMNoServer extends TestCase {
 
         mgr.shutdown();
     }
+    
+    public void testAbortAfterRequestStarts() throws Exception {
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
 
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target = new HttpHost("www.test.invalid", 80, "http");
+        HttpRoute route = new HttpRoute(target, null, false);
+        
+        // get the only connection, then start an extra thread
+        ManagedClientConnection conn = mgr.getConnection(route, 1L, TimeUnit.MILLISECONDS);
+        ClientConnectionRequest request = mgr.newConnectionRequest();
+        GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
+        gct.start();
+        Thread.sleep(100); // give extra thread time to block
+
+        request.abortRequest();
+
+        gct.join(10000);
+        assertNotNull("thread should have gotten an exception",
+                      gct.getException());
+        assertSame("thread got wrong exception",
+                   InterruptedException.class,
+                   gct.getException().getClass());
+
+        // make sure the manager is still working
+        try {
+            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+            fail("should have gotten a timeout");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        mgr.releaseConnection(conn);
+        // this time: no exception
+        conn = mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+        assertNotNull("should have gotten a connection", conn);
+
+        mgr.shutdown();
+    }
+    
+    public void testAbortBeforeRequestStarts() throws Exception {
+        HttpParams params = createDefaultParams();
+        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+
+        HttpHost target = new HttpHost("www.test.invalid", 80, "http");
+        HttpRoute route = new HttpRoute(target, null, false);
+        
+
+        // get the only connection, then start an extra thread
+        ManagedClientConnection conn = mgr.getConnection(route, 1L, TimeUnit.MILLISECONDS);
+        ClientConnectionRequest request = mgr.newConnectionRequest();
+        request.abortRequest();
+        
+        GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
+        gct.start();
+        Thread.sleep(100); // give extra thread time to block
+
+        gct.join(10000);
+        assertNotNull("thread should have gotten an exception",
+                      gct.getException());
+        assertSame("thread got wrong exception",
+                   InterruptedException.class,
+                   gct.getException().getClass());
+
+        // make sure the manager is still working
+        try {
+            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+            fail("should have gotten a timeout");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        mgr.releaseConnection(conn);
+        // this time: no exception
+        conn = mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+        assertNotNull("should have gotten a connection", conn);
+
+        mgr.shutdown();
+    }
 
 } // class TestTSCCMNoServer

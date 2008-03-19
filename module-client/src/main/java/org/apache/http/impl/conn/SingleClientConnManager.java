@@ -36,12 +36,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 
 
@@ -193,6 +194,22 @@ public class SingleClientConnManager implements ClientConnectionManager {
                                                        long timeout,
                                                        TimeUnit tunit) {
         return getConnection(route);
+    }
+    
+    public final ClientConnectionRequest newConnectionRequest() {
+        
+        return new ClientConnectionRequest() {
+            
+            public void abortRequest() {
+                // Nothing to abort, since requests are immediate.
+            }
+            
+            public ManagedClientConnection getConnection(HttpRoute route,
+                    long timeout, TimeUnit tunit) {
+                return SingleClientConnManager.this.getConnection(route);
+            }
+            
+        };
     }
 
 

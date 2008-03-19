@@ -47,8 +47,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.ProtocolException;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
@@ -69,21 +69,22 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.utils.URLUtils;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.routing.HttpRouteDirector;
-import org.apache.http.conn.routing.BasicRouteDirector;
-import org.apache.http.conn.Scheme;
+import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.Scheme;
+import org.apache.http.conn.routing.BasicRouteDirector;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRouteDirector;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
@@ -287,15 +288,20 @@ public class DefaultClientRequestDirector
                 // request is still available in 'orig'.
 
                 HttpRoute route = roureq.getRoute();
+                
+                ReleaseTrigger releaseTrigger = new ReleaseTrigger();
+                if (orig instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) orig).setReleaseTrigger(releaseTrigger);
+                }
 
                 // Allocate connection if needed
                 if (managedConn == null) {
-                    managedConn = allocateConnection(route, timeout);
+                    ClientConnectionRequest connectionRequest = allocateConnection();
+                    releaseTrigger.setClientConnectionRequest(connectionRequest);
+                    managedConn = connectionRequest.getConnection(route, timeout, TimeUnit.MILLISECONDS);
                 }
 
-                if (orig instanceof AbortableHttpRequest) {
-                    ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
-                }
+                releaseTrigger.setConnectionReleaseTrigger(managedConn);
 
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
@@ -489,23 +495,10 @@ public class DefaultClientRequestDirector
 
 
     /**
-     * Obtains a connection for the target route.
-     *
-     * @param route     the route for which to allocate a connection
-     * @param timeout   the timeout in milliseconds,
-     *                  0 or negative for no timeout
-     *
-     * @throws HttpException    in case of a (protocol) problem
-     * @throws ConnectionPoolTimeoutException   in case of a timeout
-     * @throws InterruptedException     in case of an interrupt
+     * Obtains a connection request, from which the connection can be retrieved.
      */
-    protected ManagedClientConnection allocateConnection(HttpRoute route,
-                                                         long timeout)
-        throws HttpException, ConnectionPoolTimeoutException,
-               InterruptedException {
-
-        return connManager.getConnection
-            (route, timeout, TimeUnit.MILLISECONDS);
+    protected ClientConnectionRequest allocateConnection() {
+        return connManager.newConnectionRequest();
 
     } // allocateConnection
 
@@ -1026,5 +1019,70 @@ public class DefaultClientRequestDirector
         authState.setAuthScope(authScope);
         authState.setCredentials(creds);
     }
+    
+    /**
+     *  A {@link ConnectionReleaseTrigger} that delegates either a 
+     *  {@link ClientConnectionRequest} or another ConnectionReleaseTrigger
+     *  for aborting. 
+     */
+    private static class ReleaseTrigger implements ConnectionReleaseTrigger {
+        private boolean aborted = false;
+        private ClientConnectionRequest delegateRequest;
+        private ConnectionReleaseTrigger delegateTrigger;
+                        
+        void setConnectionReleaseTrigger(ConnectionReleaseTrigger releaseTrigger) throws IOException {
+            synchronized(this) {
+                if(aborted) {
+                    throw new IOException("already aborted!");
+                }
+                this.delegateTrigger = releaseTrigger;
+                this.delegateRequest = null;
+            }
+        }
+        
+        void setClientConnectionRequest(ClientConnectionRequest connectionRequest) throws IOException {
+            synchronized(this) {
+                if(aborted) {
+                    throw new IOException("already aborted");
+                }
+                this.delegateRequest = connectionRequest;
+                this.delegateTrigger = null;
+            }
+        }
+        
+        
+        public void abortConnection() throws IOException {
+            ConnectionReleaseTrigger releaseTrigger;
+            ClientConnectionRequest connectionRequest;
+            synchronized(this) {
+                if(aborted)
+                    throw new IOException("already aborted");
+                aborted = true;
+                 // capture references within lock
+                releaseTrigger = delegateTrigger;
+                connectionRequest = delegateRequest;
+            }
+            
+            if(connectionRequest != null)
+                connectionRequest.abortRequest();
+            
+            if(releaseTrigger != null) {
+                releaseTrigger.abortConnection();
+            }
+        }
+        
+        public void releaseConnection() throws IOException {
+            ConnectionReleaseTrigger releaseTrigger;
+            synchronized(this) {
+                releaseTrigger = delegateTrigger; // capture reference within lock
+            }
+            
+            if(releaseTrigger != null)
+                releaseTrigger.releaseConnection();
+        }
+    }
+        
+
+    
     
 } // class DefaultClientRequestDirector

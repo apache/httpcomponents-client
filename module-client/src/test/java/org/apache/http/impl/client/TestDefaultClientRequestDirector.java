@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,9 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -40,6 +42,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
@@ -72,6 +75,43 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     public static Test suite() {
         return new TestSuite(TestDefaultClientRequestDirector.class);
     }
+    
+    /**
+     * Tests that if abort is called on an {@link AbortableHttpRequest} while
+     * {@link DefaultClientRequestDirector} is allocating a connection, that the
+     * connection is properly aborted.
+     */
+    public void testAbortInAllocate() throws Exception {
+        CountDownLatch connLatch = new CountDownLatch(1);
+        CountDownLatch awaitLatch = new CountDownLatch(1);
+        final ConMan conMan = new ConMan(connLatch, awaitLatch);        
+        final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
+        final CountDownLatch getLatch = new CountDownLatch(1);
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final HttpContext context = client.getDefaultContext();
+        final HttpGet httpget = new HttpGet("http://www.example.com/a");
+        
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    client.execute(httpget, context);
+                } catch(Throwable t) {
+                    throwableRef.set(t);
+                } finally {
+                    getLatch.countDown();
+                }
+            }
+        }).start();
+        
+        assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
+        
+        httpget.abort();
+        
+        assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
+        assertTrue("should be instanceof InterruptedException, was: " + throwableRef.get(),
+                throwableRef.get() instanceof InterruptedException);
+    }
+    
     
     /**
      * Tests that if a socket fails to connect, the allocated connection is
@@ -160,16 +200,29 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         }
 
         public ManagedClientConnection getConnection(HttpRoute route,
-                long timeout, TimeUnit tunit)
-                throws ConnectionPoolTimeoutException, InterruptedException {
-            allocatedConnection = new ClientConnAdapterMockup() {
-                @Override
-                public void open(HttpRoute route, HttpContext context,
-                        HttpParams params) throws IOException {
-                    throw new ConnectException();
+                long timeout, TimeUnit tunit) {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+        
+        public ClientConnectionRequest newConnectionRequest() {
+            return new ClientConnectionRequest() {
+                public void abortRequest() {
+                    throw new UnsupportedOperationException("just a mockup");
+                }
+                public ManagedClientConnection getConnection(HttpRoute route,
+                        long timeout, TimeUnit unit)
+                        throws InterruptedException,
+                        ConnectionPoolTimeoutException {
+                    allocatedConnection = new ClientConnAdapterMockup() {
+                        @Override
+                        public void open(HttpRoute route, HttpContext context,
+                                HttpParams params) throws IOException {
+                            throw new ConnectException();
+                        }
+                    };
+                    return allocatedConnection;
                 }
             };
-            return allocatedConnection;
         }
 
         public HttpParams getParams() {
@@ -184,6 +237,73 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
 
         public void releaseConnection(ManagedClientConnection conn) {
             this.releasedConnection = conn;
+        }
+
+        public void shutdown() {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+    }
+    
+    private static class ConMan implements ClientConnectionManager {
+        private final CountDownLatch connLatch;
+        private final CountDownLatch awaitLatch;
+        
+        public ConMan(CountDownLatch connLatch, CountDownLatch awaitLatch) {
+            this.connLatch = connLatch;
+            this.awaitLatch = awaitLatch;
+        }
+
+        public void closeIdleConnections(long idletime, TimeUnit tunit) {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public ManagedClientConnection getConnection(HttpRoute route)
+                throws InterruptedException {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public ManagedClientConnection getConnection(HttpRoute route,
+                long timeout, TimeUnit tunit) {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+        
+        public ClientConnectionRequest newConnectionRequest() {
+            final Thread currentThread = Thread.currentThread();
+            return new ClientConnectionRequest() {
+                public void abortRequest() {
+                    currentThread.interrupt();
+                }
+                
+                public ManagedClientConnection getConnection(HttpRoute route,
+                        long timeout, TimeUnit tunit)
+                        throws InterruptedException,
+                        ConnectionPoolTimeoutException {
+                    connLatch.countDown(); // notify waiter that we're getting a connection
+                    
+                    // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
+                    if(timeout == 0)
+                        timeout = Integer.MAX_VALUE;
+                    
+                    if(!awaitLatch.await(timeout, tunit))
+                        throw new ConnectionPoolTimeoutException();
+                    
+                    return new ClientConnAdapterMockup();
+                }
+            };
+        }
+
+        public HttpParams getParams() {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public SchemeRegistry getSchemeRegistry() {
+            SchemeRegistry registry = new SchemeRegistry();
+            registry.register(new Scheme("http", new SocketFactoryMockup(null), 80));
+            return registry;
+        }
+
+        public void releaseConnection(ManagedClientConnection conn) {
+            throw new UnsupportedOperationException("just a mockup");
         }
 
         public void shutdown() {

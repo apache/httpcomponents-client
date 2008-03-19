@@ -38,6 +38,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
@@ -147,7 +148,7 @@ public class ThreadSafeClientConnManager
 
     
     // non-javadoc, see interface ClientConnectionManager
-    public ManagedClientConnection getConnection(HttpRoute route)
+    public final ManagedClientConnection getConnection(HttpRoute route)
         throws InterruptedException {
 
         while (true) {
@@ -166,24 +167,44 @@ public class ThreadSafeClientConnManager
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public ManagedClientConnection getConnection(HttpRoute route,
+    public final ManagedClientConnection getConnection(HttpRoute route,
                                                  long timeout,
                                                  TimeUnit tunit)
         throws ConnectionPoolTimeoutException, InterruptedException {
+        
+        return newConnectionRequest().getConnection(route, timeout, tunit);
+    }
+    
+    
+    public ClientConnectionRequest newConnectionRequest() {
+        
+        final PoolEntryRequest poolRequest = connectionPool.newPoolEntryRequest();
+        
+        return new ClientConnectionRequest() {
+            
+            public void abortRequest() {
+                poolRequest.abortRequest();
+            }
+            
+            public ManagedClientConnection getConnection(HttpRoute route,
+                    long timeout, TimeUnit tunit) throws InterruptedException,
+                    ConnectionPoolTimeoutException {
+                if (route == null) {
+                    throw new IllegalArgumentException("Route may not be null.");
+                }
 
-        if (route == null) {
-            throw new IllegalArgumentException("Route may not be null.");
-        }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("ThreadSafeClientConnManager.getConnection: "
+                        + route + ", timeout = " + timeout);
+                }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("ThreadSafeClientConnManager.getConnection: "
-                + route + ", timeout = " + timeout);
-        }
+                final BasicPoolEntry entry = poolRequest.getPoolEntry(route, timeout, tunit, connOperator);
 
-        final BasicPoolEntry entry =
-            connectionPool.getEntry(route, timeout, tunit, connOperator);
-
-        return new BasicPooledConnAdapter(this, entry);
+                return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
+            }
+            
+        };
+        
     }
 
     

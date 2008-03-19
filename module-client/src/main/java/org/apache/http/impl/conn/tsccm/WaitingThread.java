@@ -58,6 +58,9 @@ public class WaitingThread {
 
     /** The thread that is waiting for an entry. */
     private Thread waiter;
+    
+    /** True if this was interrupted. */
+    private boolean aborted;
 
 
     /**
@@ -143,6 +146,9 @@ public class WaitingThread {
                  "\nwaiter: " + this.waiter);
         }
 
+        if (aborted)
+            throw new InterruptedException("interrupted already");
+        
         this.waiter = Thread.currentThread();
 
         boolean success = false;
@@ -178,6 +184,13 @@ public class WaitingThread {
         // One condition might be shared by several WaitingThread instances.
         // It probably isn't, but just in case: wake all, not just one.
         this.cond.signalAll();
+    }
+    
+    public void interrupt() {
+        aborted = true;
+        
+        if (this.waiter != null)
+            this.waiter.interrupt();
     }
 
 

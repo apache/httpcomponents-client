@@ -117,6 +117,15 @@ public interface ClientConnectionManager {
                                           TimeUnit tunit)
         throws ConnectionPoolTimeoutException, InterruptedException
         ;
+    
+    
+    /**
+     * Returns a new {@link ClientConnectionRequest}, from which a
+     * {@link ManagedClientConnection} can be obtained, or the request can be
+     * aborted.
+     */
+    ClientConnectionRequest newConnectionRequest()
+        ;
 
 
     /**

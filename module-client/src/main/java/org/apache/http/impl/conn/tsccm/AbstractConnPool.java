@@ -208,11 +208,18 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * @throws InterruptedException
      *         if the calling thread was interrupted
      */
-    public abstract
+    public final
         BasicPoolEntry getEntry(HttpRoute route, long timeout, TimeUnit tunit,
                                 ClientConnectionOperator operator)
-        throws ConnectionPoolTimeoutException, InterruptedException
-        ;
+        throws ConnectionPoolTimeoutException, InterruptedException {
+        return newPoolEntryRequest().getPoolEntry(route, timeout, tunit, operator);
+    }
+    
+    /**
+     * Returns a new {@link PoolEntryRequest}, from which a {@link BasicPoolEntry}
+     * can be obtained, or the request can be aborted.
+     */
+    public abstract PoolEntryRequest newPoolEntryRequest();
 
 
     /**

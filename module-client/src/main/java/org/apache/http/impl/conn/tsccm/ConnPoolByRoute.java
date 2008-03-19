@@ -205,13 +205,56 @@ public class ConnPoolByRoute extends AbstractConnPool {
             poolLock.unlock();
         }
     }
-
-
-    // non-javadoc, see base class AbstractConnPool
+    
     @Override
-    public BasicPoolEntry getEntry(HttpRoute route,
+    public PoolEntryRequest newPoolEntryRequest() {
+        
+        final Aborter aborter = new Aborter();
+        
+        return new PoolEntryRequest() {
+        
+            public void abortRequest() {
+                try {
+                    poolLock.lock();
+                    aborter.abort();
+                } finally {
+                    poolLock.unlock();
+                }
+            }
+            
+            public BasicPoolEntry getPoolEntry(HttpRoute route, long timeout,
+                    TimeUnit tunit, ClientConnectionOperator operator)
+                    throws InterruptedException, ConnectionPoolTimeoutException {
+                return getEntryBlocking(route, timeout, tunit, operator, aborter);
+            }
+            
+        };
+    }
+
+    /**
+     * Obtains a pool entry with a connection within the given timeout.
+     * If a {@link WaitingThread} is used to block, {@link Aborter#setWaitingThread(WaitingThread)}
+     * must be called before blocking, to allow the thread to be interrupted.
+     *
+     * @param route     the route for which to get the connection
+     * @param timeout   the timeout, 0 or negative for no timeout
+     * @param tunit     the unit for the <code>timeout</code>,
+     *                  may be <code>null</code> only if there is no timeout
+     * @param operator  the connection operator, in case
+     *                  a connection has to be created
+     * @param aborter   an object which can abort a {@link WaitingThread}.
+     *
+     * @return  pool entry holding a connection for the route
+     *
+     * @throws ConnectionPoolTimeoutException
+     *         if the timeout expired
+     * @throws InterruptedException
+     *         if the calling thread was interrupted
+     */
+    protected BasicPoolEntry getEntryBlocking(HttpRoute route,
                                    long timeout, TimeUnit tunit,
-                                   ClientConnectionOperator operator)
+                                   ClientConnectionOperator operator,
+                                   Aborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         int maxHostConnections = HttpConnectionManagerParams
@@ -269,6 +312,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     if (waitingThread == null) {
                         waitingThread =
                             newWaitingThread(poolLock.newCondition(), rospl);
+                        aborter.setWaitingThread(waitingThread);
                     }
 
                     boolean success = false;
