@@ -416,7 +416,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpUriRequest request)
-        throws HttpException, IOException, InterruptedException {
+        throws HttpException, IOException {
 
         return execute(request, null);
     }
@@ -433,7 +433,7 @@ public abstract class AbstractHttpClient implements HttpClient {
      */
     public final HttpResponse execute(HttpUriRequest request,
                                       HttpContext context)
-        throws HttpException, IOException, InterruptedException {
+        throws HttpException, IOException {
 
         if (request == null) {
             throw new IllegalArgumentException
@@ -458,7 +458,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
-        throws HttpException, IOException, InterruptedException {
+        throws HttpException, IOException {
 
         return execute(target, request, null);
     }
@@ -467,7 +467,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
-        throws HttpException, IOException, InterruptedException {
+        throws HttpException, IOException {
 
         if (request == null) {
             throw new IllegalArgumentException

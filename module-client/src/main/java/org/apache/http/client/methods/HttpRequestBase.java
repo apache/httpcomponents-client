@@ -58,7 +58,7 @@ abstract class HttpRequestBase extends AbstractHttpMessage
 
     private final Lock abortLock;
 
-    private volatile boolean aborted;
+    private boolean aborted;
     
     private URI uri;
     private ClientConnectionRequest connRequest;
@@ -97,24 +97,29 @@ abstract class HttpRequestBase extends AbstractHttpMessage
         this.uri = uri;
     }
 
-    public void setConnectionRequest(final ClientConnectionRequest connRequest) {
-        if (this.aborted) {
-            return;
-        }
+    public void setConnectionRequest(final ClientConnectionRequest connRequest)
+            throws IOException {
         this.abortLock.lock();
         try {
+            if (this.aborted) {
+                throw new IOException("Request already aborted");
+            }
+            
+            this.releaseTrigger = null;
             this.connRequest = connRequest;
         } finally {
             this.abortLock.unlock();
         }
     }
 
-    public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
-        if (this.aborted) {
-            return;
-        }
+    public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger)
+            throws IOException {
         this.abortLock.lock();
         try {
+            if (this.aborted) {
+                throw new IOException("Request already aborted");
+            }
+            
             this.connRequest = null;
             this.releaseTrigger = releaseTrigger;
         } finally {
@@ -123,24 +128,35 @@ abstract class HttpRequestBase extends AbstractHttpMessage
     }
     
     public void abort() {
-        if (this.aborted) {
-            return;
-        }
-        this.aborted = true;
+        ClientConnectionRequest localRequest;
+        ConnectionReleaseTrigger localTrigger;
+        
         this.abortLock.lock();
         try {
-            if (this.connRequest != null) {
-                this.connRequest.abortRequest();
-            }
-            if (this.releaseTrigger != null) {
-                try {
-                    this.releaseTrigger.abortConnection();
-                } catch (IOException ex) {
-                    // ignore
-                }
-            }
+            if (this.aborted) {
+                return;
+            }            
+            this.aborted = true;
+            
+            localRequest = connRequest;
+            localTrigger = releaseTrigger;
         } finally {
             this.abortLock.unlock();
+        }        
+
+        // Trigger the callbacks outside of the lock, to prevent
+        // deadlocks in the scenario where the callbacks have
+        // their own locks that may be used while calling
+        // setReleaseTrigger or setConnectionRequest.
+        if (localRequest != null) {
+            localRequest.abortRequest();
+        }
+        if (localTrigger != null) {
+            try {
+                localTrigger.abortConnection();
+            } catch (IOException ex) {
+                // ignore
+            }
         }
     }
 

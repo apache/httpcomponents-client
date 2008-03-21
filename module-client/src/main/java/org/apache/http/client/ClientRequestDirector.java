@@ -92,11 +92,11 @@ public interface ClientRequestDirector {
      *
      * @throws HttpException            in case of a problem
      * @throws IOException              in case of an IO problem
-     * @throws InterruptedException     in case of an interrupt
+     *                                     or if the connection was aborted
      */
     HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)
-        throws HttpException, IOException, InterruptedException
+        throws HttpException, IOException
         ;
 
 

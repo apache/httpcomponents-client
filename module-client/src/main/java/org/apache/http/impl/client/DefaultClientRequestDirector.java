@@ -32,6 +32,7 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -267,7 +268,7 @@ public class DefaultClientRequestDirector
     // non-javadoc, see interface ClientRequestDirector
     public HttpResponse execute(HttpHost target, HttpRequest request,
                                 HttpContext context)
-        throws HttpException, IOException, InterruptedException {
+        throws HttpException, IOException {
 
         RoutedRequest roureq = determineRoute(target, request, context);
 
@@ -294,7 +295,14 @@ public class DefaultClientRequestDirector
                     if (orig instanceof AbortableHttpRequest) {
                         ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
                     }
-                    managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
+                    
+                    try {
+                        managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
+                    } catch(InterruptedException interrupted) {
+                        InterruptedIOException iox = new InterruptedIOException();
+                        iox.initCause(interrupted);
+                        throw iox;
+                    }
                 }
 
                 if (orig instanceof AbortableHttpRequest) {
@@ -442,9 +450,6 @@ public class DefaultClientRequestDirector
             abortConnection();
             throw ex;
         } catch (IOException ex) {
-            abortConnection();
-            throw ex;
-        } catch (InterruptedException ex) {
             abortConnection();
             throw ex;
         } catch (RuntimeException ex) {
@@ -916,7 +921,6 @@ public class DefaultClientRequestDirector
      * @throws IOException      in case of an IO problem
      */
     private void abortConnection() throws IOException {
-
         ManagedClientConnection mcc = managedConn;
         if (mcc != null) {
             // we got here as the result of an exception
