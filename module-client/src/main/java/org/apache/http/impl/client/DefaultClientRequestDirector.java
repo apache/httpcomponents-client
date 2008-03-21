@@ -70,7 +70,6 @@ import org.apache.http.client.utils.URLUtils;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
-import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.Scheme;
 import org.apache.http.conn.routing.BasicRouteDirector;
@@ -289,19 +288,18 @@ public class DefaultClientRequestDirector
 
                 HttpRoute route = roureq.getRoute();
                 
-                ReleaseTrigger releaseTrigger = new ReleaseTrigger();
-                if (orig instanceof AbortableHttpRequest) {
-                    ((AbortableHttpRequest) orig).setReleaseTrigger(releaseTrigger);
-                }
-
                 // Allocate connection if needed
                 if (managedConn == null) {
-                    ClientConnectionRequest connectionRequest = allocateConnection();
-                    releaseTrigger.setClientConnectionRequest(connectionRequest);
-                    managedConn = connectionRequest.getConnection(route, timeout, TimeUnit.MILLISECONDS);
+                    ClientConnectionRequest connRequest = connManager.requestConnection(route);
+                    if (orig instanceof AbortableHttpRequest) {
+                        ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
+                    }
+                    managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
                 }
 
-                releaseTrigger.setConnectionReleaseTrigger(managedConn);
+                if (orig instanceof AbortableHttpRequest) {
+                    ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
+                }
 
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
@@ -492,15 +490,6 @@ public class DefaultClientRequestDirector
 
         return new RoutedRequest.Impl(request, route);
     }
-
-
-    /**
-     * Obtains a connection request, from which the connection can be retrieved.
-     */
-    protected ClientConnectionRequest allocateConnection() {
-        return connManager.newConnectionRequest();
-
-    } // allocateConnection
 
 
     /**
@@ -1019,70 +1008,5 @@ public class DefaultClientRequestDirector
         authState.setAuthScope(authScope);
         authState.setCredentials(creds);
     }
-    
-    /**
-     *  A {@link ConnectionReleaseTrigger} that delegates either a 
-     *  {@link ClientConnectionRequest} or another ConnectionReleaseTrigger
-     *  for aborting. 
-     */
-    private static class ReleaseTrigger implements ConnectionReleaseTrigger {
-        private boolean aborted = false;
-        private ClientConnectionRequest delegateRequest;
-        private ConnectionReleaseTrigger delegateTrigger;
-                        
-        void setConnectionReleaseTrigger(ConnectionReleaseTrigger releaseTrigger) throws IOException {
-            synchronized(this) {
-                if(aborted) {
-                    throw new IOException("already aborted!");
-                }
-                this.delegateTrigger = releaseTrigger;
-                this.delegateRequest = null;
-            }
-        }
-        
-        void setClientConnectionRequest(ClientConnectionRequest connectionRequest) throws IOException {
-            synchronized(this) {
-                if(aborted) {
-                    throw new IOException("already aborted");
-                }
-                this.delegateRequest = connectionRequest;
-                this.delegateTrigger = null;
-            }
-        }
-        
-        
-        public void abortConnection() throws IOException {
-            ConnectionReleaseTrigger releaseTrigger;
-            ClientConnectionRequest connectionRequest;
-            synchronized(this) {
-                if(aborted)
-                    throw new IOException("already aborted");
-                aborted = true;
-                 // capture references within lock
-                releaseTrigger = delegateTrigger;
-                connectionRequest = delegateRequest;
-            }
-            
-            if(connectionRequest != null)
-                connectionRequest.abortRequest();
-            
-            if(releaseTrigger != null) {
-                releaseTrigger.abortConnection();
-            }
-        }
-        
-        public void releaseConnection() throws IOException {
-            ConnectionReleaseTrigger releaseTrigger;
-            synchronized(this) {
-                releaseTrigger = delegateTrigger; // capture reference within lock
-            }
-            
-            if(releaseTrigger != null)
-                releaseTrigger.releaseConnection();
-        }
-    }
-        
-
-    
     
 } // class DefaultClientRequestDirector

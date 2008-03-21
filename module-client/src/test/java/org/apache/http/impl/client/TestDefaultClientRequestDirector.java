@@ -184,6 +184,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     }
     
     private static class ConnMan2 implements ClientConnectionManager {
+        
         private ManagedClientConnection allocatedConnection;
         private ManagedClientConnection releasedConnection;
         
@@ -204,12 +205,15 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
         
-        public ClientConnectionRequest newConnectionRequest() {
+        public ClientConnectionRequest requestConnection(final HttpRoute route) {
+            
             return new ClientConnectionRequest() {
+                
                 public void abortRequest() {
                     throw new UnsupportedOperationException("just a mockup");
                 }
-                public ManagedClientConnection getConnection(HttpRoute route,
+                
+                public ManagedClientConnection getConnection(
                         long timeout, TimeUnit unit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {
@@ -267,14 +271,17 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
         
-        public ClientConnectionRequest newConnectionRequest() {
+        public ClientConnectionRequest requestConnection(final HttpRoute route) {
+            
             final Thread currentThread = Thread.currentThread();
+            
             return new ClientConnectionRequest() {
+                
                 public void abortRequest() {
                     currentThread.interrupt();
                 }
                 
-                public ManagedClientConnection getConnection(HttpRoute route,
+                public ManagedClientConnection getConnection(
                         long timeout, TimeUnit tunit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {

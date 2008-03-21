@@ -31,6 +31,7 @@
 
 package org.apache.http.client.methods;
 
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 
 /**
@@ -45,6 +46,8 @@ import org.apache.http.conn.ConnectionReleaseTrigger;
  * @since 4.0
  */
 public interface AbortableHttpRequest {
+
+    void setConnectionRequest(ClientConnectionRequest connRequest);
     
     void setReleaseTrigger(ConnectionReleaseTrigger releaseTrigger);
     

@@ -20,7 +20,6 @@ public interface ClientConnectionRequest {
      * before this began, an {@link InterruptedException} will
      * be thrown.
      *
-     * @param route     where the connection should point to
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
@@ -33,9 +32,8 @@ public interface ClientConnectionRequest {
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    ManagedClientConnection getConnection(HttpRoute route, long timeout,
-            TimeUnit unit) throws InterruptedException,
-            ConnectionPoolTimeoutException;
+    ManagedClientConnection getConnection(long timeout, TimeUnit unit) 
+        throws InterruptedException, ConnectionPoolTimeoutException;
     
     /**
      * Aborts the call to {@link #getConnection(HttpRoute, long, TimeUnit)},

@@ -147,36 +147,7 @@ public class ThreadSafeClientConnManager
     }
 
     
-    // non-javadoc, see interface ClientConnectionManager
-    public final ManagedClientConnection getConnection(HttpRoute route)
-        throws InterruptedException {
-
-        while (true) {
-            try {
-                return getConnection(route, 0, null);
-            } catch (ConnectionPoolTimeoutException e) {
-                // We'll go ahead and log this, but it should never happen.
-                // These exceptions are only thrown when the timeout occurs
-                // and since we have no timeout, it doesn't happen.
-                LOG.debug
-                    ("Unexpected exception while waiting for connection.", e);
-                //@@@ throw RuntimeException or Error to indicate the problem?
-            }
-        }
-    }
-
-
-    // non-javadoc, see interface ClientConnectionManager
-    public final ManagedClientConnection getConnection(HttpRoute route,
-                                                 long timeout,
-                                                 TimeUnit tunit)
-        throws ConnectionPoolTimeoutException, InterruptedException {
-        
-        return newConnectionRequest().getConnection(route, timeout, tunit);
-    }
-    
-    
-    public ClientConnectionRequest newConnectionRequest() {
+    public ClientConnectionRequest requestConnection(final HttpRoute route) {
         
         final PoolEntryRequest poolRequest = connectionPool.newPoolEntryRequest();
         
@@ -186,7 +157,7 @@ public class ThreadSafeClientConnManager
                 poolRequest.abortRequest();
             }
             
-            public ManagedClientConnection getConnection(HttpRoute route,
+            public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
                 if (route == null) {
@@ -301,21 +272,6 @@ public class ThreadSafeClientConnManager
     public HttpParams getParams() {
         return this.params;
     }
-
-
-    /* *
-     * Assigns {@link HttpParams parameters} for this 
-     * connection manager.
-     * /
-    //@@@ this is basically a no-op unless we pass the params to the pool
-    public void setParams(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null");
-        }
-        this.params = params;
-    }
-    */
-
 
 } // class ThreadSafeClientConnManager
 

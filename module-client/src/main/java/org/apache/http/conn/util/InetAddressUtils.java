@@ -35,6 +35,9 @@ import java.util.regex.Pattern;
 
 public class InetAddressUtils {
 
+    private InetAddressUtils() {
+    }
+    
     private static final Pattern IPV4_PATTERN = 
         Pattern.compile(
                 "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");

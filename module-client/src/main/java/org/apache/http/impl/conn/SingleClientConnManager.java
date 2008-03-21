@@ -178,25 +178,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
 
-    /**
-     * Obtains a connection.
-     * Maps to {@link #getConnection(HttpRoute) getConnection(HttpRoute)}
-     * since this manager never blocks the caller.
-     *
-     * @param route     where the connection should point to
-     * @param timeout   ignored
-     * @param tunit     ignored
-     *
-     * @return  a connection that can be used to communicate
-     *          along the given route
-     */
-    public final ManagedClientConnection getConnection(HttpRoute route,
-                                                       long timeout,
-                                                       TimeUnit tunit) {
-        return getConnection(route);
-    }
-    
-    public final ClientConnectionRequest newConnectionRequest() {
+    public final ClientConnectionRequest requestConnection(final HttpRoute route) {
         
         return new ClientConnectionRequest() {
             
@@ -204,7 +186,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 // Nothing to abort, since requests are immediate.
             }
             
-            public ManagedClientConnection getConnection(HttpRoute route,
+            public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) {
                 return SingleClientConnManager.this.getConnection(route);
             }

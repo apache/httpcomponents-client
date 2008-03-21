@@ -44,6 +44,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
@@ -174,7 +176,22 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.shutdown();
     }
 
-
+    private static ManagedClientConnection getConnection(
+            final ClientConnectionManager mgr, 
+            final HttpRoute route,
+            long timeout,
+            TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
+        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        return connRequest.getConnection(timeout, unit);
+    }
+    
+    private static ManagedClientConnection getConnection(
+            final ClientConnectionManager mgr, 
+            final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
+        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        return connRequest.getConnection(0, null);
+    }
+    
     /**
      * Tests releasing and re-using a connection after a response is read.
      */
@@ -193,7 +210,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
-        ManagedClientConnection conn = mgr.getConnection(route);
+        ManagedClientConnection conn = getConnection(mgr, route);
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
@@ -212,7 +229,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+            getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -221,7 +238,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // release connection without marking for re-use
         // expect the next connection obtained to be closed
         mgr.releaseConnection(conn);
-        conn = mgr.getConnection(route);
+        conn = getConnection(mgr, route);
         assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
@@ -242,7 +259,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // expect the next connection obtained to be open
         conn.markReusable();
         mgr.releaseConnection(conn);
-        conn = mgr.getConnection(route);
+        conn = getConnection(mgr, route);
         assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
@@ -282,7 +299,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
-        ManagedClientConnection conn = mgr.getConnection(route);
+        ManagedClientConnection conn = getConnection(mgr, route);
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
@@ -296,7 +313,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // first check that we can't get another connection
         try {
             // this should fail quickly, connection has not been released
-            mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+            getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
             fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
@@ -315,7 +332,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         Thread.sleep(1000);
 
         assertNull("connection not garbage collected", wref.get());
-        conn = mgr.getConnection(route, 10L, TimeUnit.MILLISECONDS);
+        conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         assertFalse("GCed connection not closed", conn.isOpen());
 
         mgr.shutdown();
@@ -338,7 +355,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
-        ManagedClientConnection conn = mgr.getConnection(route);
+        ManagedClientConnection conn = getConnection(mgr, route);
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset

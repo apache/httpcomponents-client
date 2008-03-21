@@ -39,6 +39,7 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.PlainSocketFactory;
@@ -150,7 +151,8 @@ public class TestSpuriousWakeup extends TestCase {
 
         try {
             // take out the only connection
-            ManagedClientConnection conn = mgr.getConnection(ROUTE);
+            ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE);
+            ManagedClientConnection conn = connRequest.getConnection(0, null);
             assertNotNull(conn);
 
             // send a thread waiting

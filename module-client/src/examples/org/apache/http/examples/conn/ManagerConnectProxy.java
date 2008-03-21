@@ -39,6 +39,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.PlainSocketFactory;
 import org.apache.http.conn.Scheme;
@@ -112,7 +113,8 @@ public class ManagerConnectProxy {
              supportedSchemes.getScheme(target).isLayered());
 
         System.out.println("requesting connection for " + route);
-        ManagedClientConnection conn = clcm.getConnection(route);
+        ClientConnectionRequest connRequest = clcm.requestConnection(route);
+        ManagedClientConnection conn = connRequest.getConnection(0, null);
         try {
             System.out.println("opening connection");
             conn.open(route, ctx, getParams());

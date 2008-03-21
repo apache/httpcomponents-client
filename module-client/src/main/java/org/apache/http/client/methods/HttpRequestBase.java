@@ -33,9 +33,12 @@ package org.apache.http.client.methods;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
@@ -52,12 +55,18 @@ import org.apache.http.params.HttpProtocolParams;
  */
 abstract class HttpRequestBase extends AbstractHttpMessage 
     implements HttpUriRequest, AbortableHttpRequest {
+
+    private final Lock abortLock;
+
+    private volatile boolean aborted;
     
     private URI uri;
+    private ClientConnectionRequest connRequest;
     private ConnectionReleaseTrigger releaseTrigger;
     
     public HttpRequestBase() {
         super();
+        this.abortLock = new ReentrantLock();
     }
 
     public abstract String getMethod();
@@ -88,17 +97,50 @@ abstract class HttpRequestBase extends AbstractHttpMessage
         this.uri = uri;
     }
 
+    public void setConnectionRequest(final ClientConnectionRequest connRequest) {
+        if (this.aborted) {
+            return;
+        }
+        this.abortLock.lock();
+        try {
+            this.connRequest = connRequest;
+        } finally {
+            this.abortLock.unlock();
+        }
+    }
+
     public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
-        this.releaseTrigger = releaseTrigger;
+        if (this.aborted) {
+            return;
+        }
+        this.abortLock.lock();
+        try {
+            this.connRequest = null;
+            this.releaseTrigger = releaseTrigger;
+        } finally {
+            this.abortLock.unlock();
+        }
     }
     
     public void abort() {
-        if (this.releaseTrigger != null) {
-            try {
-                this.releaseTrigger.abortConnection();
-            } catch (IOException ex) {
-                // ignore
+        if (this.aborted) {
+            return;
+        }
+        this.aborted = true;
+        this.abortLock.lock();
+        try {
+            if (this.connRequest != null) {
+                this.connRequest.abortRequest();
             }
+            if (this.releaseTrigger != null) {
+                try {
+                    this.releaseTrigger.abortConnection();
+                } catch (IOException ex) {
+                    // ignore
+                }
+            }
+        } finally {
+            this.abortLock.unlock();
         }
     }
 

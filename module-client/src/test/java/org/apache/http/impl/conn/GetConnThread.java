@@ -60,7 +60,7 @@ public class GetConnThread extends Thread {
      */
     public GetConnThread(ClientConnectionManager mgr,
                          HttpRoute route, long timeout) {
-        this(mgr.newConnectionRequest(), route, timeout);
+        this(mgr.requestConnection(route), route, timeout);
     }
     
     /**
@@ -83,7 +83,7 @@ public class GetConnThread extends Thread {
     public void run() {
         try {
             connection = conn_request.getConnection
-                (conn_route, conn_timeout, TimeUnit.MILLISECONDS);
+                (conn_timeout, TimeUnit.MILLISECONDS);
         } catch (Throwable dart) {
             exception = dart;
         }
