@@ -214,12 +214,6 @@ public class DefaultClientRequestDirector
     } // constructor
 
 
-    // non-javadoc, see interface ClientRequestDirector
-    public ManagedClientConnection getConnection() {
-        return managedConn;
-    }
-
-    
     private RequestWrapper wrapRequest(
             final HttpRequest request) throws ProtocolException {
         try {

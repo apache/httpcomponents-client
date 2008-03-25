@@ -57,6 +57,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpProcessor;
 
 /**
  * Convenience base class for HTTP client implementations.
@@ -485,7 +486,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                 context = new BasicHttpContext(getDefaultContext());
             }
             // Create a director for this request
-            director = new DefaultClientRequestDirector(
+            director = createClientRequestDirector(
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
                     getRoutePlanner(),
@@ -508,6 +509,28 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     } // execute
 
+    
+    protected ClientRequestDirector createClientRequestDirector(
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final HttpRoutePlanner rouplan,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final RedirectHandler redirectHandler,
+            final AuthenticationHandler targetAuthHandler,
+            final AuthenticationHandler proxyAuthHandler,
+            final HttpParams params) {
+        return new DefaultClientRequestDirector(
+                conman,
+                reustrat,
+                rouplan,
+                httpProcessor,
+                retryHandler,
+                redirectHandler,
+                targetAuthHandler,
+                proxyAuthHandler,
+                params);
+    }
 
     /**
      * Obtains parameters for executing a request.

@@ -38,9 +38,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.conn.ManagedClientConnection;
-
-
 
 /**
  * A client-side request director.
@@ -97,21 +94,6 @@ public interface ClientRequestDirector {
     HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)
         throws HttpException, IOException
-        ;
-
-
-    /**
-     * Obtains the connection to which the response is tied.
-     * Responses with a non-buffered response entity are tied to
-     * their connection until the entity is consumed or discarded.
-     * Until then, the connection must not be released. Afterwards,
-     * it must be released.
-     *
-     * @return  the connection to which the response from
-     *          {@link #execute execute} is tied, or
-     *          <code>null</code> if there is none
-     */
-    ManagedClientConnection getConnection()
         ;
 
 
