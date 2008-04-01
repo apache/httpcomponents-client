@@ -69,16 +69,16 @@ import org.apache.http.conn.OperatedClientConnection;
 public abstract class AbstractPoolEntry {
 
     /** The underlying connection being pooled or used. */
-    protected OperatedClientConnection connection;
+    protected volatile OperatedClientConnection connection;
 
     /** The route for which this entry gets allocated. */
     //@@@ currently accessed from connection manager(s) as attribute
     //@@@ avoid that, derived classes should decide whether update is allowed
     //@@@ SCCM: yes, TSCCM: no
-    protected HttpRoute plannedRoute;
+    protected volatile HttpRoute plannedRoute;
 
     /** The tracked route, or <code>null</code> before tracking starts. */
-    protected RouteTracker tracker;
+    protected volatile RouteTracker tracker;
 
 
     /**

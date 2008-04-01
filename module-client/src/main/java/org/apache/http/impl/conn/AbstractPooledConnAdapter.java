@@ -63,7 +63,7 @@ import org.apache.http.conn.OperatedClientConnection;
 public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapter {
 
     /** The wrapped pool entry. */
-    protected AbstractPoolEntry poolEntry;
+    protected volatile AbstractPoolEntry poolEntry;
 
 
     /**
