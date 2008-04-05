@@ -1,5 +1,5 @@
 /*
- * $Header$
+ * $HeadURL$
  * $Revision$
  * $Date$
  *
@@ -32,43 +32,26 @@ package org.apache.http.client.methods;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLUtils;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
 
 public class UrlEncodedFormEntity extends StringEntity {
-
-    /** The Content-Type for www-form-urlencoded. */
-    public static final String FORM_URL_ENCODED_CONTENT_TYPE = 
-        "application/x-www-form-urlencoded";
-
-    public UrlEncodedFormEntity(
-            final NameValuePair[] fields, 
-            final String charset) throws UnsupportedEncodingException {
-        super(URLUtils.formUrlEncode(fields, charset), charset);
-        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
-    }
-    
-    public UrlEncodedFormEntity(
-            final NameValuePair[] fields) throws UnsupportedEncodingException {
-        super(URLUtils.formUrlEncode(fields, HTTP.UTF_8), HTTP.US_ASCII);
-        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
-    }
-    
+  
     public UrlEncodedFormEntity (
-            final Map<String, List<String>> parameters, 
-            final String charset) throws UnsupportedEncodingException {
-        super(URLUtils.format(parameters, charset), HTTP.US_ASCII);
-        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
+        final List <NameValuePair> parameters, 
+        final String encoding) throws UnsupportedEncodingException {
+        super(URLEncodedUtils.format(parameters, encoding), 
+            encoding);
+        setContentType(URLEncodedUtils.CONTENT_TYPE);
     }
-    
+
     public UrlEncodedFormEntity (
-            final Map<String, List<String>> parameters) throws UnsupportedEncodingException {
-        super(URLUtils.format(parameters, HTTP.UTF_8), HTTP.US_ASCII);
-        setContentType(FORM_URL_ENCODED_CONTENT_TYPE);
+        final List <NameValuePair> parameters) throws UnsupportedEncodingException {
+        super(URLEncodedUtils.format(parameters, HTTP.DEFAULT_CONTENT_CHARSET), 
+            HTTP.DEFAULT_CONTENT_CHARSET);
+        setContentType(URLEncodedUtils.CONTENT_TYPE);
     }
     
 }
