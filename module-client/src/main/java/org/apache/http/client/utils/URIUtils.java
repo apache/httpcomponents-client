@@ -34,7 +34,7 @@ import java.net.URISyntaxException;
 
 import org.apache.http.HttpHost;
 
-public class URLUtils {
+public class URIUtils {
 
      public static URI createURI(
             final String scheme,
@@ -81,7 +81,7 @@ public class URLUtils {
             throw new IllegalArgumentException("URI may nor be null");
         }
         if (target != null) {
-            return URLUtils.createURI(
+            return URIUtils.createURI(
                     target.getSchemeName(), 
                     target.getHostName(), 
                     target.getPort(), 
@@ -89,7 +89,7 @@ public class URLUtils {
                     uri.getRawQuery(), 
                     dropFragment ? null : uri.getRawFragment());
         } else {
-            return URLUtils.createURI(
+            return URIUtils.createURI(
                     null, 
                     null, 
                     -1, 
@@ -114,7 +114,7 @@ public class URLUtils {
      * @return the resulting URI
      */
     public static URI resolve(final URI baseURI, final String reference) {
-        return URLUtils.resolve(baseURI, URI.create(reference));
+        return URIUtils.resolve(baseURI, URI.create(reference));
     }
 
     /**
@@ -148,7 +148,7 @@ public class URLUtils {
     /**
      * This class should not be instantiated.
      */
-    private URLUtils() {
+    private URIUtils() {
     }
 
 }

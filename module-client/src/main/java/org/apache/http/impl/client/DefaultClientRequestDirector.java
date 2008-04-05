@@ -67,7 +67,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.client.utils.URLUtils;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -241,13 +241,13 @@ public class DefaultClientRequestDirector
                 // Make sure the request URI is absolute
                 if (!uri.isAbsolute()) {
                     HttpHost target = route.getTargetHost();
-                    uri = URLUtils.rewriteURI(uri, target);
+                    uri = URIUtils.rewriteURI(uri, target);
                     request.setURI(uri);
                 }
             } else {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
-                    uri = URLUtils.rewriteURI(uri, null);
+                    uri = URIUtils.rewriteURI(uri, null);
                     request.setURI(uri);
                 }
             }
