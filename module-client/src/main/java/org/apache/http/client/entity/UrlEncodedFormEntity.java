@@ -28,7 +28,7 @@
  *
  */
 
-package org.apache.http.client.methods;
+package org.apache.http.client.entity;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
