@@ -216,17 +216,12 @@ public class DefaultClientRequestDirector
 
     private RequestWrapper wrapRequest(
             final HttpRequest request) throws ProtocolException {
-        try {
-            if (request instanceof HttpEntityEnclosingRequest) {
-                return new EntityEnclosingRequestWrapper(
-                        (HttpEntityEnclosingRequest) request);
-            } else {
-                return new RequestWrapper(
-                        request);
-            }
-        } catch (URISyntaxException ex) {
-            throw new ProtocolException("Invalid URI: " + 
-                    request.getRequestLine().getUri(), ex);
+        if (request instanceof HttpEntityEnclosingRequest) {
+            return new EntityEnclosingRequestWrapper(
+                    (HttpEntityEnclosingRequest) request);
+        } else {
+            return new RequestWrapper(
+                    request);
         }
     }
     
@@ -264,9 +259,12 @@ public class DefaultClientRequestDirector
                                 HttpContext context)
         throws HttpException, IOException {
 
-        RoutedRequest roureq = determineRoute(target, request, context);
+        HttpRequest orig = request;
+        RequestWrapper origWrapper = wrapRequest(orig);
+        origWrapper.setParams(params);
+        HttpRoute origRoute = determineRoute(target, origWrapper, context);
 
-        final HttpRequest orig = request;
+        RoutedRequest roureq = new RoutedRequest.Impl(origWrapper, origRoute); 
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
@@ -281,6 +279,7 @@ public class DefaultClientRequestDirector
                 // in the method arguments will be replaced. The original
                 // request is still available in 'orig'.
 
+                RequestWrapper wrapper = roureq.getRequest();
                 HttpRoute route = roureq.getRoute();
                 
                 // Allocate connection if needed
@@ -328,15 +327,11 @@ public class DefaultClientRequestDirector
                     }
                 }
 
-                // Wrap the request to be sent, original or followup.
-                RequestWrapper reqwrap = wrapRequest(roureq.getRequest());
-                reqwrap.setParams(this.params);
-                
                 // Re-write request URI if needed
-                rewriteRequestURI(reqwrap, route);
+                rewriteRequestURI(wrapper, route);
 
                 // Use virtual host if set
-                target = (HttpHost) reqwrap.getParams().getParameter(
+                target = (HttpHost) wrapper.getParams().getParameter(
                         ClientPNames.VIRTUAL_HOST);
 
                 if (target == null) {
@@ -356,17 +351,17 @@ public class DefaultClientRequestDirector
                         targetAuthState);
                 context.setAttribute(ClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                requestExec.preProcess(reqwrap, httpProcessor, context);
+                requestExec.preProcess(wrapper, httpProcessor, context);
                 
                 context.setAttribute(ExecutionContext.HTTP_REQUEST,
-                        reqwrap);
+                        wrapper);
 
                 execCount++;
                 try {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Attempt " + execCount + " to execute request");
                     }
-                    response = requestExec.execute(reqwrap, managedConn, context);
+                    response = requestExec.execute(wrapper, managedConn, context);
                     
                 } catch (IOException ex) {
                     LOG.debug("Closing the connection.");
@@ -386,11 +381,11 @@ public class DefaultClientRequestDirector
                     throw ex;
                 }
 
-                response.setParams(this.params);
+                response.setParams(params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
                 RoutedRequest followup =
-                    handleResponse(roureq, reqwrap, response, context);
+                    handleResponse(roureq, wrapper, response, context);
                 if (followup == null) {
                     done = true;
                 } else {
@@ -466,11 +461,11 @@ public class DefaultClientRequestDirector
      * @param context   the context to use for the execution,
      *                  never <code>null</code>
      *
-     * @return  the request along with the route it should take
+     * @return  the route the request should take
      *
      * @throws HttpException    in case of a problem
      */
-    protected RoutedRequest determineRoute(HttpHost    target,
+    protected HttpRoute determineRoute(HttpHost    target,
                                            HttpRequest request,
                                            HttpContext context)
         throws HttpException {
@@ -484,10 +479,7 @@ public class DefaultClientRequestDirector
                 ("Target host must not be null, or set in parameters.");
         }
 
-        final HttpRoute route =
-            this.routePlanner.determineRoute(target, request, context);
-
-        return new RoutedRequest.Impl(request, route);
+        return this.routePlanner.determineRoute(target, request, context);
     }
 
 
@@ -826,11 +818,14 @@ public class DefaultClientRequestDirector
                     uri.getScheme());
             
             HttpGet redirect = new HttpGet(uri);
-            redirect.setParams(params);
-            RoutedRequest newRequest = determineRoute(newTarget, redirect, context);
+            RequestWrapper wrapper = new RequestWrapper(redirect);
+            wrapper.setParams(params);
+            
+            HttpRoute newRoute = determineRoute(newTarget, wrapper, context);
+            RoutedRequest newRequest = new RoutedRequest.Impl(wrapper, newRoute);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Redirecting to '" + uri + "' via " + newRequest.getRoute());
+                LOG.debug("Redirecting to '" + uri + "' via " + newRoute);
             }
             
             return newRequest;

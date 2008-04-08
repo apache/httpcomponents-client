@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -46,6 +47,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -555,5 +557,63 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         }
         
     }
-    
+
+    private class SimpleService implements HttpRequestHandler {
+        
+        public SimpleService() {
+            super();
+        }
+
+        public void handle(
+                final HttpRequest request, 
+                final HttpResponse response, 
+                final HttpContext context) throws HttpException, IOException {
+            response.setStatusCode(HttpStatus.SC_OK);
+            StringEntity entity = new StringEntity("Whatever");
+            response.setEntity(entity);
+        }
+    }
+
+    public void testDefaultHostAtClientLevel() throws Exception {
+        int port = this.localServer.getServicePort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpHost target = new HttpHost("localhost", port);
+        
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
+        
+        String s = "/path";
+        HttpGet httpget = new HttpGet(s);
+
+        HttpResponse response = client.execute(httpget);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+    }
+
+    public void testDefaultHostAtRequestLevel() throws Exception {
+        int port = this.localServer.getServicePort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpHost target1 = new HttpHost("whatever", 80);
+        HttpHost target2 = new HttpHost("localhost", port);
+        
+        DefaultHttpClient client = new DefaultHttpClient(); 
+        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target1);
+        
+        String s = "/path";
+        HttpGet httpget = new HttpGet(s);
+        httpget.getParams().setParameter(ClientPNames.DEFAULT_HOST, target2);
+
+        HttpResponse response = client.execute(httpget);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+    }
+
 }

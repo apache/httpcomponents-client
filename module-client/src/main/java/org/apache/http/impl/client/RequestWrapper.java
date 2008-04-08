@@ -35,6 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.http.HttpRequest;
+import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -64,7 +65,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
     private String method;
     private ProtocolVersion version;
     
-    public RequestWrapper(final HttpRequest request) throws URISyntaxException {
+    public RequestWrapper(final HttpRequest request) throws ProtocolException {
         super();
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -80,7 +81,12 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
             this.version = null;
         } else {
             RequestLine requestLine = request.getRequestLine();
-            this.uri = new URI(requestLine.getUri());
+            try {
+                this.uri = new URI(requestLine.getUri());
+            } catch (URISyntaxException ex) {
+                throw new ProtocolException("Invalid request URI: " 
+                        + requestLine.getUri(), ex);
+            }
             this.method = requestLine.getMethod();
             this.version = request.getProtocolVersion();
         }

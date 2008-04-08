@@ -31,11 +31,10 @@
 
 package org.apache.http.impl.client;
 
-import java.net.URISyntaxException;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.ProtocolException;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -58,7 +57,7 @@ class EntityEnclosingRequestWrapper extends RequestWrapper
     private HttpEntity entity = null;
     
     public EntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request) 
-        throws URISyntaxException {
+        throws ProtocolException {
         super(request);
         this.entity = request.getEntity();
     }

@@ -31,7 +31,6 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.HttpRequest;
 import org.apache.http.conn.routing.HttpRoute;
 
 
@@ -53,7 +52,7 @@ public interface RoutedRequest {
      *
      * @return the request
      */
-    HttpRequest getRequest()
+    RequestWrapper getRequest()
         ;
 
 
@@ -71,7 +70,7 @@ public interface RoutedRequest {
      */
     public static class Impl implements RoutedRequest {
 
-        protected final HttpRequest request;
+        protected final RequestWrapper request;
         protected final HttpRoute route;
 
         /**
@@ -80,13 +79,13 @@ public interface RoutedRequest {
          * @param req   the request
          * @param rou   the route
          */
-        public Impl(HttpRequest req, HttpRoute rou) {
+        public Impl(RequestWrapper req, HttpRoute rou) {
             this.request = req;
             this.route   = rou;
         }
 
         // non-javadoc, see interface
-        public final HttpRequest getRequest() {
+        public final RequestWrapper getRequest() {
             return request;
         }
 
