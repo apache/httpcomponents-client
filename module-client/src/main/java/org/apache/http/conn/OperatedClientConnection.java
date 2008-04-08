@@ -121,11 +121,8 @@ public interface OperatedClientConnection
      * @param sock      the unconnected socket which is about to
      *                  be connected.
      * @param target    the target host of this connection
-     * @param secure    <code>true</code> if this connection is secure, for
-     *                  example if an <code>SSLSocket</code> is used, or
-     *                  <code>false</code> if it is not secure
      */
-    void opening(Socket sock, HttpHost target, boolean secure)
+    void opening(Socket sock, HttpHost target)
         throws IOException
         ;
 
@@ -135,12 +132,14 @@ public interface OperatedClientConnection
      * An attempt to call this method on an open connection will cause
      * an exception.
      *
-     * @param sock      the open socket for communicating with the target host
+     * @param secure    <code>true</code> if this connection is secure, for
+     *                  example if an <code>SSLSocket</code> is used, or
+     *                  <code>false</code> if it is not secure
      * @param params    parameters for this connection. The parameters will
      *                  be used when creating dependent objects, for example
      *                  to determine buffer sizes.
      */
-    void openCompleted(HttpParams params)
+    void openCompleted(boolean secure, HttpParams params)
         throws IOException
         ;
 

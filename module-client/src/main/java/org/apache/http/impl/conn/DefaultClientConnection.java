@@ -102,20 +102,20 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    public void opening(Socket sock, HttpHost target, boolean secure) {
+    public void opening(Socket sock, HttpHost target) {
         assertNotOpen();
         this.socket = sock;
         this.targetHost = target;
-        this.connSecure = secure;
     }
 
     
-    public void openCompleted(HttpParams params) throws IOException {
+    public void openCompleted(boolean secure, HttpParams params) throws IOException {
         assertNotOpen();
         if (params == null) {
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
         }
+        this.connSecure = secure;
         bind(this.socket, params);
     }
 
