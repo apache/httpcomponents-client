@@ -264,7 +264,7 @@ public class DefaultClientRequestDirector
         origWrapper.setParams(params);
         HttpRoute origRoute = determineRoute(target, origWrapper, context);
 
-        RoutedRequest roureq = new RoutedRequest.Impl(origWrapper, origRoute); 
+        RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute); 
 
         long timeout = HttpClientParams.getConnectionManagerTimeout(params);
         
@@ -822,7 +822,7 @@ public class DefaultClientRequestDirector
             wrapper.setParams(params);
             
             HttpRoute newRoute = determineRoute(newTarget, wrapper, context);
-            RoutedRequest newRequest = new RoutedRequest.Impl(wrapper, newRoute);
+            RoutedRequest newRequest = new RoutedRequest(wrapper, newRoute);
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Redirecting to '" + uri + "' via " + newRoute);

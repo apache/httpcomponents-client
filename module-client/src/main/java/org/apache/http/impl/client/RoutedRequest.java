@@ -45,55 +45,29 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.0
  */
-public interface RoutedRequest {
+public class RoutedRequest {
+
+    protected final RequestWrapper request;
+    protected final HttpRoute route;
 
     /**
-     * Obtains the request.
+     * Creates a new routed request.
      *
-     * @return the request
+     * @param req   the request
+     * @param route   the route
      */
-    RequestWrapper getRequest()
-        ;
+    public RoutedRequest(final RequestWrapper req, final HttpRoute route) {
+        super();
+        this.request = req;
+        this.route   = route;
+    }
 
+    public final RequestWrapper getRequest() {
+        return request;
+    }
 
-    /**
-     * Obtains the route.
-     *
-     * @return the route
-     */
-    HttpRoute getRoute()
-        ;
-
-
-    /**
-     * Trivial default implementation of a routed request.
-     */
-    public static class Impl implements RoutedRequest {
-
-        protected final RequestWrapper request;
-        protected final HttpRoute route;
-
-        /**
-         * Creates a new routed request.
-         *
-         * @param req   the request
-         * @param rou   the route
-         */
-        public Impl(RequestWrapper req, HttpRoute rou) {
-            this.request = req;
-            this.route   = rou;
-        }
-
-        // non-javadoc, see interface
-        public final RequestWrapper getRequest() {
-            return request;
-        }
-
-        // non-javadoc, see interface
-        public final HttpRoute getRoute() {
-            return route;
-        }
-    } // class Impl
-
+    public final HttpRoute getRoute() {
+        return route;
+    }
 
 } // interface RoutedRequest
