@@ -71,8 +71,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     
     private static final Log LOG = LogFactory.getLog(DefaultClientConnection.class);
     
-    /** The unconnected socket between announce and open. */
-    private volatile Socket announcedSocket;
+    /** The unconnected socket */
+    private volatile Socket socket;
 
     /** The target host of this connection. */
     private HttpHost targetHost;
@@ -96,21 +96,28 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    // non-javadoc, see interface OperatedClientConnection
     @Override
     public final Socket getSocket() {
-        return super.getSocket(); // base class attribute
+        return this.socket;
     }
 
 
-    // non-javadoc, see interface OperatedClientConnection
-    public void announce(Socket sock) {
-
+    public void opening(Socket sock, HttpHost target, boolean secure) {
         assertNotOpen();
-        announcedSocket = sock;
+        this.socket = sock;
+        this.targetHost = target;
+        this.connSecure = secure;
+    }
 
-    } // prepare
-
+    
+    public void openCompleted(HttpParams params) throws IOException {
+        assertNotOpen();
+        if (params == null) {
+            throw new IllegalArgumentException
+                ("Parameters must not be null.");
+        }
+        bind(this.socket, params);
+    }
 
     /**
      * Force-closes this connection.
@@ -124,11 +131,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public void shutdown() throws IOException {
         LOG.debug("Connection shut down");
         
-        Socket sock = announcedSocket; // copy volatile attribute
+        super.shutdown();
+        Socket sock = this.socket; // copy volatile attribute
         if (sock != null)
             sock.close();
-
-        super.shutdown();
 
     } // shutdown
 
@@ -184,35 +190,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
 
     // non-javadoc, see interface OperatedClientConnection
-    public void open(Socket sock, HttpHost target,
-                     boolean secure, HttpParams params)
-        throws IOException {
-
-        assertNotOpen();
-        if (sock == null) {
-            throw new IllegalArgumentException
-                ("Socket must not be null.");
-        }
-        if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host must not be null.");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
-        }
-
-        bind(sock, params);
-        
-        targetHost = target;
-        connSecure = secure;
-
-        announcedSocket = null;
-
-    } // open
-
-
-    // non-javadoc, see interface OperatedClientConnection
     public void update(Socket sock, HttpHost target,
                        boolean secure, HttpParams params)
         throws IOException {
@@ -227,8 +204,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 ("Parameters must not be null.");
         }
 
-        if (sock != null)
+        if (sock != null) {
+            this.socket = sock;
             bind(sock, params);
+        }
         targetHost = target;
         connSecure = secure;
 

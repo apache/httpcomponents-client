@@ -128,7 +128,7 @@ public class DefaultClientConnectionOperator
         final SocketFactory sf = schm.getSocketFactory();
 
         Socket sock = sf.createSocket();
-        conn.announce(sock);
+        conn.opening(sock, target, sf.isSecure(sock));
 
         try {
             sock = sf.connectSocket(sock, target.getHostName(),
@@ -138,13 +138,7 @@ public class DefaultClientConnectionOperator
             throw new HttpHostConnectException(target, ex);
         }
         prepareSocket(sock, context, params);
-
-        final boolean secure = sf.isSecure(sock);
-
-        conn.open(sock, target, secure, params);
-        //@@@ error handling: unannounce at connection?
-        //@@@ error handling: close the created socket?
-
+        conn.openCompleted(params);
     } // openConnection
 
 

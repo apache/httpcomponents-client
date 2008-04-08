@@ -41,9 +41,8 @@ import org.apache.http.params.HttpParams;
 
 
 /**
- * A client-side connection that needs to be operated.
- * It relies on outside logic to connect sockets to the appropriate hosts.
- * It can be operated directly by an application, or through an
+ * A client-side connection that relies on outside logic to connect sockets to the 
+ * appropriate hosts. It can be operated directly by an application, or through an
  * {@link ClientConnectionOperator operator}.
  *
  *
@@ -103,15 +102,12 @@ public interface OperatedClientConnection
 
 
     /**
-     * Announces opening of this connection.
-     * Opening can be announced only while the connection is closed.
-     * This is an optional step, you can call {@link #open open}
-     * without an announcement.
+     * Signals that this connection is in the process of being open.
      * <br/>
-     * By calling this method, you provide the connection with
-     * the unconnected socket that will be connected in order
-     * to call {@link #open open}. This allows the connection to
-     * close that socket if
+     * By calling this method, you can provide the connection with
+     * the unconnected socket that will be connected before
+     * {@link #openCompleted} is called. This allows 
+     * the connection to close that socket if
      * {@link org.apache.http.HttpConnection#shutdown shutdown}
      * is called before it is open. Closing the unconnected socket
      * will interrupt a thread that is blocked on the connect.
@@ -119,36 +115,32 @@ public interface OperatedClientConnection
      * or it returns successfully and then opens this connection
      * which was just shut down.
      * <br/>
-     * <b>Note:</b>
-     * The result of {@link #getSocket getSocket} is defined
-     * only for open connections. You MUST NOT rely on that
-     * method to return the unconnected socket after announcing.
+     * You also must call {@link #openCompleted} in order to complete
+     * the process
      *
      * @param sock      the unconnected socket which is about to
-     *                  be connected in order to call {@link #open open}.
-     *                  <code>null</code> can be passed to undo a
-     *                  previous call.
-     */
-    void announce(Socket sock)
-        ;
-
-
-    /**
-     * Opens this connection.
-     * A connection can be openend only while it is closed.
-     * To modify a connection while it is open, use {@link #update update}.
-     *
-     * @param sock      the open socket for communicating with the target host
+     *                  be connected.
      * @param target    the target host of this connection
      * @param secure    <code>true</code> if this connection is secure, for
      *                  example if an <code>SSLSocket</code> is used, or
      *                  <code>false</code> if it is not secure
+     */
+    void opening(Socket sock, HttpHost target, boolean secure)
+        throws IOException
+        ;
+
+
+    /**
+     * Signals that the connection has been successfully open.
+     * An attempt to call this method on an open connection will cause
+     * an exception.
+     *
+     * @param sock      the open socket for communicating with the target host
      * @param params    parameters for this connection. The parameters will
      *                  be used when creating dependent objects, for example
      *                  to determine buffer sizes.
      */
-    void open(Socket sock, HttpHost target,
-              boolean secure, HttpParams params)
+    void openCompleted(HttpParams params)
         throws IOException
         ;
 
