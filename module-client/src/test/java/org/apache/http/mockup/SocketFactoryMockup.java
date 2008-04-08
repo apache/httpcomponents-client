@@ -33,7 +33,7 @@ package org.apache.http.mockup;
 import java.net.Socket;
 import java.net.InetAddress;
 
-import org.apache.http.conn.SocketFactory;
+import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpParams;
 
 

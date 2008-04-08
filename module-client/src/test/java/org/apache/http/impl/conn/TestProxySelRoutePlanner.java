@@ -46,12 +46,12 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.message.BasicHttpRequest;
 
-import org.apache.http.conn.PlainSocketFactory;
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.SocketFactory;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
 
 import org.apache.http.mockup.ProxySelectorMockup;
 

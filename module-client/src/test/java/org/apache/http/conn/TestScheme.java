@@ -39,6 +39,9 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 //import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.mockup.SecureSocketFactoryMockup;
 
 

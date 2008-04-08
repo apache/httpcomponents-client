@@ -44,10 +44,10 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.PlainSocketFactory;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 

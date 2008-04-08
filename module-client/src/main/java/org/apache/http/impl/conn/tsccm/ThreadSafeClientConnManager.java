@@ -36,13 +36,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.SchemeRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 

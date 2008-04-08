@@ -28,7 +28,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.conn;
+package org.apache.http.conn.scheme;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -42,12 +42,12 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.Scheme;
-import org.apache.http.conn.SchemeRegistry;
-import org.apache.http.conn.SocketFactory;
-import org.apache.http.conn.LayeredSocketFactory;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
 
 
 /**

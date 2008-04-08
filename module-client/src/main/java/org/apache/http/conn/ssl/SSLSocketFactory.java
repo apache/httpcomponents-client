@@ -31,7 +31,7 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.conn.LayeredSocketFactory;
+import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 

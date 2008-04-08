@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 

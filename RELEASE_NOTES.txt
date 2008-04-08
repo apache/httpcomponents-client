@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-753] Class Scheme and related classes moved to a separate package
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-757] Improved request wrapping in the DefaultClientRequestDirector. 
   This also fixed the problem with the default proxy set at the client level 
   having no effect. 

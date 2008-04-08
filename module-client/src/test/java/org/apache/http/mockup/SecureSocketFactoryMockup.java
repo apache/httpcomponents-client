@@ -32,7 +32,7 @@ package org.apache.http.mockup;
 
 import java.net.Socket;
 
-import org.apache.http.conn.LayeredSocketFactory;
+import org.apache.http.conn.scheme.LayeredSocketFactory;
 
 /**
  * {@link SecureSocketFactory} mockup implementation.
