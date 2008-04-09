@@ -151,7 +151,7 @@ public class TestSpuriousWakeup extends TestCase {
 
         try {
             // take out the only connection
-            ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE);
+            ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE, null);
             ManagedClientConnection conn = connRequest.getConnection(0, null);
             assertNotNull(conn);
 

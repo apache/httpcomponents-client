@@ -75,8 +75,8 @@ public abstract class AbstractPoolEntry {
     //@@@ currently accessed from connection manager(s) as attribute
     //@@@ avoid that, derived classes should decide whether update is allowed
     //@@@ SCCM: yes, TSCCM: no
-    protected volatile HttpRoute plannedRoute;
-
+    protected volatile ConnRoute route;
+    
     /** The tracked route, or <code>null</code> before tracking starts. */
     protected volatile RouteTracker tracker;
 
@@ -89,9 +89,9 @@ public abstract class AbstractPoolEntry {
      *                or <code>null</code>
      */
     protected AbstractPoolEntry(OperatedClientConnection occ,
-                                HttpRoute route) {
+                                ConnRoute route) {
         this.connection = occ;
-        this.plannedRoute = route;
+        this.route = route;
         this.tracker = null;
     }
 

@@ -45,6 +45,7 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
+import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -147,7 +148,7 @@ public class ThreadSafeClientConnManager
     }
 
     
-    public ClientConnectionRequest requestConnection(final HttpRoute route) {
+    public ClientConnectionRequest requestConnection(final HttpRoute route, final Object state) {
         
         final PoolEntryRequest poolRequest = connectionPool.newPoolEntryRequest();
         
@@ -169,7 +170,8 @@ public class ThreadSafeClientConnManager
                         + route + ", timeout = " + timeout);
                 }
 
-                final BasicPoolEntry entry = poolRequest.getPoolEntry(route, timeout, tunit, connOperator);
+                final BasicPoolEntry entry = poolRequest.getPoolEntry(
+                        new ConnRoute(route, state), timeout, tunit, connOperator);
 
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }
@@ -240,8 +242,9 @@ public class ThreadSafeClientConnManager
      *
      * @return  the total number of pooled connections for that route
      */
-    public int getConnectionsInPool(HttpRoute route) {
-        return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(route);
+    public int getConnectionsInPool(HttpRoute route, Object state) {
+        return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(
+                new ConnRoute(route, state));
     }
 
 

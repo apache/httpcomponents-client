@@ -284,7 +284,8 @@ public class DefaultClientRequestDirector
                 
                 // Allocate connection if needed
                 if (managedConn == null) {
-                    ClientConnectionRequest connRequest = connManager.requestConnection(route);
+                    ClientConnectionRequest connRequest = connManager.requestConnection(
+                            route, null);
                     if (orig instanceof AbortableHttpRequest) {
                         ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
                     }

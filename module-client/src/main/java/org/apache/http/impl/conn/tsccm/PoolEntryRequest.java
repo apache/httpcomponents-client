@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.ConnRoute;
 
 /**
  * Encapsulates a request for a {@link BasicPoolEntry}.
@@ -60,9 +61,12 @@ public interface PoolEntryRequest {
      * @throws InterruptedException
      *         if the calling thread was interrupted
      */
-    BasicPoolEntry getPoolEntry(HttpRoute route, long timeout, TimeUnit unit,
-            ClientConnectionOperator operator) throws InterruptedException,
-            ConnectionPoolTimeoutException;
+    BasicPoolEntry getPoolEntry(
+            ConnRoute route, 
+            long timeout, 
+            TimeUnit unit,
+            ClientConnectionOperator operator) 
+                throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**
      * Aborts the active or next call to

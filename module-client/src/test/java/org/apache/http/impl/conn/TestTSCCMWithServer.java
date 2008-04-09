@@ -181,14 +181,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
             final HttpRoute route,
             long timeout,
             TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(timeout, unit);
     }
     
     private static ManagedClientConnection getConnection(
             final ClientConnectionManager mgr, 
             final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(0, null);
     }
     

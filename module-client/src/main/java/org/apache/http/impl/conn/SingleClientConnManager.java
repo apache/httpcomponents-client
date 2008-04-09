@@ -178,7 +178,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
 
-    public final ClientConnectionRequest requestConnection(final HttpRoute route) {
+    public final ClientConnectionRequest requestConnection(
+            final HttpRoute route,
+            final Object state) {
         
         return new ClientConnectionRequest() {
             
@@ -188,7 +190,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
             
             public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) {
-                return SingleClientConnManager.this.getConnection(route);
+                return SingleClientConnManager.this.getConnection(
+                        route, state);
             }
             
         };
@@ -204,7 +207,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @return  a connection that can be used to communicate
      *          along the given route
      */
-    public ManagedClientConnection getConnection(HttpRoute route) {
+    public ManagedClientConnection getConnection(HttpRoute route, Object state) {
 
         if (route == null) {
             throw new IllegalArgumentException("Route may not be null.");
@@ -236,7 +239,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             }
         }
 
-        managedConn = new ConnAdapter(uniquePoolEntry, route);
+        managedConn = new ConnAdapter(uniquePoolEntry, new ConnRoute(route, state));
 
         return managedConn;
     }
@@ -417,10 +420,10 @@ public class SingleClientConnManager implements ClientConnectionManager {
          * @param entry   the pool entry for the connection being wrapped
          * @param plan    the planned route for this connection
          */
-        protected ConnAdapter(PoolEntry entry, HttpRoute plan) {
+        protected ConnAdapter(PoolEntry entry, ConnRoute route) {
             super(SingleClientConnManager.this, entry);
             markReusable();
-            entry.plannedRoute = plan;
+            entry.route = route;
         }
     }
 

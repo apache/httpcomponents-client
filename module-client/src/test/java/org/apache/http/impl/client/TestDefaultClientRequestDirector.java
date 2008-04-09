@@ -343,7 +343,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         }
         
         @Override
-        public ClientConnectionRequest requestConnection(HttpRoute route) {
+        public ClientConnectionRequest requestConnection(HttpRoute route, Object state) {
             // If this is the redirect route, stub the return value
             // so-as to pretend the host is waiting on a slot...
             if(route.getTargetHost().getHostName().equals("localhost")) {
@@ -372,7 +372,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
                     }
                 };  
             } else {
-                return super.requestConnection(route);
+                return super.requestConnection(route, state);
             }
         }
     }
@@ -387,8 +387,8 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         }
         
         @Override
-        public ManagedClientConnection getConnection(HttpRoute route) {
-            allocatedConnection = super.getConnection(route);
+        public ManagedClientConnection getConnection(HttpRoute route, Object state) {
+            allocatedConnection = super.getConnection(route, state);
             return allocatedConnection;
         }
         
@@ -423,7 +423,9 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
         
-        public ClientConnectionRequest requestConnection(final HttpRoute route) {
+        public ClientConnectionRequest requestConnection(
+                final HttpRoute route, 
+                final Object state) {
             
             return new ClientConnectionRequest() {
                 
@@ -489,7 +491,9 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
         
-        public ClientConnectionRequest requestConnection(final HttpRoute route) {
+        public ClientConnectionRequest requestConnection(
+                final HttpRoute route,
+                final Object state) {
             
             final Thread currentThread = Thread.currentThread();
             

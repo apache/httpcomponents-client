@@ -43,13 +43,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.IdleConnectionHandler;
+import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -209,7 +209,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      *         if the calling thread was interrupted
      */
     public final
-        BasicPoolEntry getEntry(HttpRoute route, long timeout, TimeUnit tunit,
+        BasicPoolEntry getEntry(ConnRoute route, long timeout, TimeUnit tunit,
                                 ClientConnectionOperator operator)
         throws ConnectionPoolTimeoutException, InterruptedException {
         return newPoolEntryRequest().getPoolEntry(route, timeout, tunit, operator);
@@ -247,7 +247,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
                 final boolean lost = issuedConnections.remove(ref);
                 if (lost) {
-                    final HttpRoute route =
+                    final ConnRoute route =
                         ((BasicPoolEntryRef)ref).getRoute();
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Connection garbage collected. " + route);
@@ -274,7 +274,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      *
      * @param route     the route of the pool entry that was lost
      */
-    protected abstract void handleLostEntry(HttpRoute route)
+    protected abstract void handleLostEntry(ConnRoute route)
         ;
 
 

@@ -33,7 +33,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Queue;
 import java.util.LinkedList;
 
-import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.ConnRoute;
 
 
 /**
@@ -44,7 +44,7 @@ import org.apache.http.conn.routing.HttpRoute;
 public class RouteSpecificPool {
 
     /** The route this pool is for. */
-    protected final HttpRoute route;
+    protected final ConnRoute route;
 
     /**
      * The list of free entries.
@@ -65,8 +65,8 @@ public class RouteSpecificPool {
      *
      * @param r     the route for which to pool
      */
-    public RouteSpecificPool(HttpRoute r) {
-        this.route = r;
+    public RouteSpecificPool(ConnRoute route) {
+        this.route = route;
         this.freeEntries = new LinkedList<BasicPoolEntry>();
         this.waitingThreads = new LinkedList<WaitingThread>();
         this.numEntries = 0;
@@ -78,7 +78,7 @@ public class RouteSpecificPool {
      *
      * @return  the route
      */
-    public final HttpRoute getRoute() {
+    public final ConnRoute getRoute() {
         return route;
     }
 

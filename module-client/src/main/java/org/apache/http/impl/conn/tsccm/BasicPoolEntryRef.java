@@ -34,7 +34,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -46,7 +46,7 @@ import org.apache.http.conn.routing.HttpRoute;
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */
-    private final HttpRoute route;
+    private final ConnRoute route;
 
 
     /**
@@ -72,7 +72,7 @@ public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
      *
      * @return      the planned route
      */
-    public final HttpRoute getRoute() {
+    public final ConnRoute getRoute() {
         return this.route;
     }
 

@@ -113,7 +113,7 @@ public class ManagerConnectProxy {
              supportedSchemes.getScheme(target).isLayered());
 
         System.out.println("requesting connection for " + route);
-        ClientConnectionRequest connRequest = clcm.requestConnection(route);
+        ClientConnectionRequest connRequest = clcm.requestConnection(route, null);
         ManagedClientConnection conn = connRequest.getConnection(0, null);
         try {
             System.out.println("opening connection");

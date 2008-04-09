@@ -80,7 +80,7 @@ public interface ClientConnectionManager {
      * {@link ManagedClientConnection} can be obtained, or the request can be
      * aborted.
      */
-    ClientConnectionRequest requestConnection(HttpRoute route)
+    ClientConnectionRequest requestConnection(HttpRoute route, Object state)
         ;
 
 

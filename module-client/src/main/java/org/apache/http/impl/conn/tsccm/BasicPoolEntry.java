@@ -33,10 +33,10 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.impl.conn.AbstractPoolEntry;
+import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -67,7 +67,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      *                or <code>null</code>
      */
     public BasicPoolEntry(ClientConnectionOperator op,
-                          HttpRoute route,
+                          ConnRoute route,
                           ReferenceQueue<Object> queue) {
         //@@@ create connection in base? or delay creation until needed?
         super(op.createConnection(), route);
@@ -92,8 +92,8 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         return super.connection;
     }
 
-    protected final HttpRoute getPlannedRoute() {
-        return super.plannedRoute;
+    protected final ConnRoute getPlannedRoute() {
+        return super.route;
     }
 
     protected final BasicPoolEntryRef getWeakRef() {

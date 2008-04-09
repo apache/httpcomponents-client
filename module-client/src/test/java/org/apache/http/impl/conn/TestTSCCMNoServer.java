@@ -79,14 +79,14 @@ public class TestTSCCMNoServer extends TestCase {
             final HttpRoute route,
             long timeout,
             TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(timeout, unit);
     }
     
     private static ManagedClientConnection getConnection(
             final ClientConnectionManager mgr, 
             final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route);
+        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(0, null);
     }
     
@@ -406,13 +406,13 @@ public class TestTSCCMNoServer extends TestCase {
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 1);
+                     mgr.getConnectionsInPool(route, null), 1);
         mgr.releaseConnection(conn);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 1);
+                     mgr.getConnectionsInPool(route, null), 1);
 
         // this implicitly deletes them
         mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
@@ -420,7 +420,7 @@ public class TestTSCCMNoServer extends TestCase {
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 0);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 0);
+                     mgr.getConnectionsInPool(route, null), 0);
 
         mgr.shutdown();
     }
@@ -575,7 +575,7 @@ public class TestTSCCMNoServer extends TestCase {
         
         // get the only connection, then start an extra thread
         ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
-        ClientConnectionRequest request = mgr.requestConnection(route);
+        ClientConnectionRequest request = mgr.requestConnection(route, null);
         GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
         gct.start();
         Thread.sleep(100); // give extra thread time to block
@@ -617,7 +617,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // get the only connection, then start an extra thread
         ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
-        ClientConnectionRequest request = mgr.requestConnection(route);
+        ClientConnectionRequest request = mgr.requestConnection(route, null);
         request.abortRequest();
         
         GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout

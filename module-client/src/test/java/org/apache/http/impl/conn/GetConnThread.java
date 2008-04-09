@@ -60,7 +60,7 @@ public class GetConnThread extends Thread {
      */
     public GetConnThread(ClientConnectionManager mgr,
                          HttpRoute route, long timeout) {
-        this(mgr.requestConnection(route), route, timeout);
+        this(mgr.requestConnection(route, null), route, timeout);
     }
     
     /**
