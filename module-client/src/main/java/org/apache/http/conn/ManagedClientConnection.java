@@ -229,5 +229,11 @@ public interface ManagedClientConnection extends
     boolean isMarkedReusable()
         ;
 
+    void setState(Object state)
+        ;
+    
+    boolean isStateful()
+        ;
+    
 
 } // interface ManagedClientConnection

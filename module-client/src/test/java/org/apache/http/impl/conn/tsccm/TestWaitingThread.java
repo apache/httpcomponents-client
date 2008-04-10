@@ -40,7 +40,6 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -84,7 +83,7 @@ public class TestWaitingThread extends TestCase {
         assertNull  ("thread from nowhere", wt.getThread());
 
         HttpRoute         route = new HttpRoute(TARGET);
-        RouteSpecificPool rospl = new RouteSpecificPool(new ConnRoute(route, null));
+        RouteSpecificPool rospl = new RouteSpecificPool(route);
         wt = new WaitingThread(cnd, rospl);
         assertEquals("wrong condition", cnd, wt.getCondition());
         assertEquals("wrong pool", rospl, wt.getPool());

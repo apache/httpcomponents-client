@@ -406,13 +406,13 @@ public class TestTSCCMNoServer extends TestCase {
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route, null), 1);
+                     mgr.getConnectionsInPool(route), 1);
         mgr.releaseConnection(conn);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route, null), 1);
+                     mgr.getConnectionsInPool(route), 1);
 
         // this implicitly deletes them
         mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
@@ -420,7 +420,7 @@ public class TestTSCCMNoServer extends TestCase {
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 0);
         assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route, null), 0);
+                     mgr.getConnectionsInPool(route), 0);
 
         mgr.shutdown();
     }

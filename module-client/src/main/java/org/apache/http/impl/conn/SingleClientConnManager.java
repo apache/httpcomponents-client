@@ -239,7 +239,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             }
         }
 
-        managedConn = new ConnAdapter(uniquePoolEntry, new ConnRoute(route, state));
+        managedConn = new ConnAdapter(uniquePoolEntry, route);
 
         return managedConn;
     }
@@ -420,11 +420,12 @@ public class SingleClientConnManager implements ClientConnectionManager {
          * @param entry   the pool entry for the connection being wrapped
          * @param plan    the planned route for this connection
          */
-        protected ConnAdapter(PoolEntry entry, ConnRoute route) {
+        protected ConnAdapter(PoolEntry entry, HttpRoute route) {
             super(SingleClientConnManager.this, entry);
             markReusable();
             entry.route = route;
         }
+
     }
 
 

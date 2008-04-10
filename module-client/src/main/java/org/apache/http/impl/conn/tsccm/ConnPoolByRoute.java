@@ -46,7 +46,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
-import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -84,7 +83,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * Keys are of class {@link HttpRoute},
      * values of class {@link RouteSpecificPool}.
      */
-    protected final Map<ConnRoute, RouteSpecificPool> routeToPool;
+    protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
 
 
 
@@ -128,8 +127,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  a map
      */
-    protected Map<ConnRoute,RouteSpecificPool> createRouteToPoolMap() {
-        return new HashMap<ConnRoute, RouteSpecificPool>();
+    protected Map<HttpRoute, RouteSpecificPool> createRouteToPoolMap() {
+        return new HashMap<HttpRoute, RouteSpecificPool>();
     }
 
 
@@ -141,7 +140,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  the new pool
      */
-    protected RouteSpecificPool newRouteSpecificPool(ConnRoute route) {
+    protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
         return new RouteSpecificPool(route);
     }
 
@@ -170,7 +169,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the pool for the argument route,
      *     never <code>null</code> if <code>create</code> is <code>true</code>
      */
-    protected RouteSpecificPool getRoutePool(ConnRoute route,
+    protected RouteSpecificPool getRoutePool(HttpRoute route,
                                              boolean create) {
         RouteSpecificPool rospl = null;
 
@@ -193,7 +192,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
 
     //@@@ consider alternatives for gathering statistics
-    public int getConnectionsInPool(ConnRoute route) {
+    public int getConnectionsInPool(HttpRoute route) {
 
         try {
             poolLock.lock();
@@ -224,12 +223,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
             }
             
             public BasicPoolEntry getPoolEntry(
-                    ConnRoute route, 
+                    HttpRoute route,
+                    Object state,
                     long timeout,
                     TimeUnit tunit, 
                     ClientConnectionOperator operator)
                         throws InterruptedException, ConnectionPoolTimeoutException {
-                return getEntryBlocking(route, timeout, tunit, operator, aborter);
+                return getEntryBlocking(route, state, timeout, tunit, operator, aborter);
             }
             
         };
@@ -256,14 +256,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *         if the calling thread was interrupted
      */
     protected BasicPoolEntry getEntryBlocking(
-                                   ConnRoute route,
+                                   HttpRoute route, Object state,
                                    long timeout, TimeUnit tunit,
                                    ClientConnectionOperator operator,
                                    Aborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         int maxHostConnections = HttpConnectionManagerParams
-            .getMaxConnectionsPerHost(this.params, route.getRoute());
+            .getMaxConnectionsPerHost(this.params, route);
         int maxTotalConnections = HttpConnectionManagerParams
             .getMaxTotalConnections(this.params);
         
@@ -363,7 +363,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     public void freeEntry(BasicPoolEntry entry) {
 
-        ConnRoute route = entry.getPlannedRoute();
+        HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Freeing connection. " + route);
         }
@@ -493,7 +493,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     protected void deleteEntry(BasicPoolEntry entry) {
 
-        ConnRoute route = entry.getPlannedRoute();
+        HttpRoute route = entry.getPlannedRoute();
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Deleting connection. " + route);
@@ -546,7 +546,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     // non-javadoc, see base class AbstractConnPool
     @Override
-    protected void handleLostEntry(ConnRoute route) {
+    protected void handleLostEntry(HttpRoute route) {
 
         try {
             poolLock.lock();

@@ -50,7 +50,6 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-import org.apache.http.impl.conn.ConnRoute;
 
 
 
@@ -114,13 +113,13 @@ public class TestDumbHelpers extends TestCase {
             // expected
         }
 
-        bpe = new BasicPoolEntry(ccop, new ConnRoute(route, null), null);
+        bpe = new BasicPoolEntry(ccop, route, null);
         assertEquals ("wrong operator", ccop, bpe.getOperator());
-        assertEquals ("wrong route", route, bpe.getPlannedRoute().getRoute());
+        assertEquals ("wrong route", route, bpe.getPlannedRoute());
         assertNotNull("missing ref", bpe.getWeakRef());
 
         assertEquals("bad weak ref", bpe, bpe.getWeakRef().get());
-        assertEquals("bad ref route", route, bpe.getWeakRef().getRoute().getRoute());
+        assertEquals("bad ref route", route, bpe.getWeakRef().getRoute());
     }
 
 

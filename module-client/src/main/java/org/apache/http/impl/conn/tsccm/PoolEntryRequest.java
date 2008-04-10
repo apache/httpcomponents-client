@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.conn.ConnRoute;
 
 /**
  * Encapsulates a request for a {@link BasicPoolEntry}.
@@ -62,7 +61,8 @@ public interface PoolEntryRequest {
      *         if the calling thread was interrupted
      */
     BasicPoolEntry getPoolEntry(
-            ConnRoute route, 
+            HttpRoute route, 
+            Object state,
             long timeout, 
             TimeUnit unit,
             ClientConnectionOperator operator) 

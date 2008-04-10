@@ -75,4 +75,11 @@ public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
         throw new UnsupportedOperationException("just a mockup");
     }
 
+    public boolean isStateful() {
+        throw new UnsupportedOperationException("just a mockup");
+    }
+
+    public void setState(Object state) {
+        throw new UnsupportedOperationException("just a mockup");
+    }
 }
