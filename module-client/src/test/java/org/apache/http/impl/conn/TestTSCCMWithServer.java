@@ -48,6 +48,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
@@ -125,8 +126,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         HttpParams mgrpar = defaultParams.copy();
         HttpConnectionManagerParams.setMaxTotalConnections
             (mgrpar, COUNT/2);
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost
-            (mgrpar, COUNT/2);
+        HttpConnectionManagerParams.setMaxConnectionsPerRoute
+            (mgrpar, new ConnPerRouteBean(COUNT/2));
         ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
 
         final HttpHost target = getServerHttp();

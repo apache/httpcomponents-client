@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-673] Revised max connections per route configuration
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-753] Class Scheme and related classes moved to a separate package
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

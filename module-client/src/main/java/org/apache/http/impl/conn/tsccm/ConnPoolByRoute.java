@@ -45,6 +45,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 
 
@@ -262,10 +263,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
                                    Aborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
-        int maxHostConnections = HttpConnectionManagerParams
-            .getMaxConnectionsPerHost(this.params, route);
         int maxTotalConnections = HttpConnectionManagerParams
-            .getMaxTotalConnections(this.params);
+                .getMaxTotalConnections(this.params);
+        
+        ConnPerRoute connPerRoute = HttpConnectionManagerParams
+                .getMaxConnectionsPerRoute(params);
+        
+        int maxHostConnections = connPerRoute.getMaxForRoute(route);
         
         Date deadline = null;
         if (timeout > 0) {

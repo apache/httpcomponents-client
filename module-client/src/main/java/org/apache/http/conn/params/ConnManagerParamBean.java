@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -40,12 +40,12 @@ public class ConnManagerParamBean extends HttpAbstractParamBean {
         super(params);
     }
 
-    public void setMaxHostConnections (final int maxConnections) {
-        params.setIntParameter(ConnManagerPNames.MAX_HOST_CONNECTIONS, maxConnections);
-    }
-
     public void setMaxTotalConnections (final int maxConnections) {
         params.setIntParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxConnections);
     }
     
+    public void setConnectionsPerRoute(final ConnPerRouteBean connPerRoute) {
+        params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, connPerRoute);
+    }
+
 }

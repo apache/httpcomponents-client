@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  *
@@ -30,34 +30,22 @@
 
 package org.apache.http.conn.params;
 
+import org.apache.http.conn.routing.HttpRoute;
 
 /**
- * Parameter names for connection managers in HttpConn.
- *
- * @version $Revision$
+ * This interface interface is intended to lookup maximum number of connections 
+ * allowed for for a given route. This class can be used by pooling 
+ * {@link org.apache.http.conn.ClientConnectionManager connection managers} for 
+ * a fine-grained control of connections on a per route basis. 
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @version $Revision:$
  * 
  * @since 4.0
  */
-public interface ConnManagerPNames {
+public interface ConnPerRoute {
 
-    /** 
-     * Defines the maximum number of connections per route.
-     * This limit is interpreted by client connection managers
-     * and applies to individual manager instances.
-     * <p>
-     * This parameter expects a value of type {@link ConnPerRouteBean}.
-     * </p>
-     */
-    public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
-
-    /** 
-     * Defines the maximum number of connections in total.
-     * This limit is interpreted by client connection managers
-     * and applies to individual manager instances.
-     * <p>
-     * This parameter expects a value of type {@link Integer}.
-     * </p>
-     */
-    public static final String MAX_TOTAL_CONNECTIONS = "http.conn-manager.max-total";
-
+    int getMaxForRoute(HttpRoute route);
+    
 }

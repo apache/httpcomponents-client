@@ -42,6 +42,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -209,7 +210,7 @@ public class TestTSCCMNoServer extends TestCase {
             throws InterruptedException, ConnectionPoolTimeoutException {
 
         HttpParams params = createDefaultParams();
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
         HttpConnectionManagerParams.setMaxTotalConnections(params, 2);
 
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
@@ -259,9 +260,12 @@ public class TestTSCCMNoServer extends TestCase {
         
         HttpParams params = createDefaultParams();
         HttpConnectionManagerParams.setMaxTotalConnections(params, 100);
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
-        HttpConnectionManagerParams.setMaxConnectionsPerHost(params,route2, 2);
-        HttpConnectionManagerParams.setMaxConnectionsPerHost(params,route3, 3);
+        
+        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(1);
+        connPerRoute.setMaxForRoute(route2, 2);
+        connPerRoute.setMaxForRoute(route3, 3);
+        
+        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
 
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
@@ -326,7 +330,7 @@ public class TestTSCCMNoServer extends TestCase {
     public void testReleaseConnection() throws Exception {
 
         HttpParams params = createDefaultParams();
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
         HttpConnectionManagerParams.setMaxTotalConnections(params, 3);
 
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
@@ -430,7 +434,7 @@ public class TestTSCCMNoServer extends TestCase {
         // 3.x: TestHttpConnectionManager.testShutdown
 
         HttpParams params = createDefaultParams();
-        HttpConnectionManagerParams.setDefaultMaxConnectionsPerHost(params, 1);
+        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
         HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
 
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);

@@ -43,7 +43,6 @@ public class TestAllConnParams extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
 
-        suite.addTest(TestParams.suite());
         suite.addTest(TestRouteParams.suite());
 
         return suite;
