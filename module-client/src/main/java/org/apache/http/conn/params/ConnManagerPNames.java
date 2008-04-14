@@ -45,7 +45,7 @@ public interface ConnManagerPNames {
      * This limit is interpreted by client connection managers
      * and applies to individual manager instances.
      * <p>
-     * This parameter expects a value of type {@link ConnPerRouteBean}.
+     * This parameter expects a value of type {@link ConnPerRoute}.
      * </p>
      */
     public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
