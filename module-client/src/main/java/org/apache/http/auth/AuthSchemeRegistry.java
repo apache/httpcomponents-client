@@ -130,5 +130,19 @@ public final class AuthSchemeRegistry {
     public synchronized List<String> getSchemeNames() {
         return new ArrayList<String>(registeredSchemes.keySet()); 
     } 
+ 
+    /**
+     * Populates the internal collection of registered {@link AuthScheme authentication schemes} 
+     * with the content of the map passed as a parameter.
+     * 
+     * @param map authentication schemes
+     */
+    public synchronized void setItems(final Map<String, AuthSchemeFactory> map) {
+        if (map == null) {
+            return;
+        }
+        registeredSchemes.clear();
+        registeredSchemes.putAll(map);
+    }
     
 }

@@ -142,4 +142,18 @@ public final class CookieSpecRegistry {
         return new ArrayList<String>(registeredSpecs.keySet()); 
     }
     
+    /**
+     * Populates the internal collection of registered {@link CookieSpec cookie 
+     * specs} with the content of the map passed as a parameter.
+     * 
+     * @param map cookie specs
+     */
+    public synchronized void setItems(final Map<String, CookieSpecFactory> map) {
+        if (map == null) {
+            return;
+        }
+        registeredSpecs.clear();
+        registeredSpecs.putAll(map);
+    }
+
 }

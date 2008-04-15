@@ -37,7 +37,6 @@ import java.util.Map;
 
 import org.apache.http.HttpHost;
 
-
 /**
  * A set of supported protocol {@link Scheme schemes}.
  * Schemes are identified by lowercase names.
@@ -170,6 +169,19 @@ public final class SchemeRegistry {
         return new ArrayList<String>(registeredSchemes.keySet());
     }
 
+    /**
+     * Populates the internal collection of registered {@link Scheme protocol schemes} 
+     * with the content of the map passed as a parameter.
+     * 
+     * @param map protocol schemes
+     */
+    public synchronized void setItems(final Map<String, Scheme> map) {
+        if (map == null) {
+            return;
+        }
+        registeredSchemes.clear();
+        registeredSchemes.putAll(map);
+    }
 
 } // class SchemeRegistry
 
