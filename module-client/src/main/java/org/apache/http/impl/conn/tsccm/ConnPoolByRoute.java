@@ -173,9 +173,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected RouteSpecificPool getRoutePool(HttpRoute route,
                                              boolean create) {
         RouteSpecificPool rospl = null;
-
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             rospl = routeToPool.get(route);
             if ((rospl == null) && create) {
@@ -195,9 +194,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     //@@@ consider alternatives for gathering statistics
     public int getConnectionsInPool(HttpRoute route) {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
-
             // don't allow a pool to be created here!
             RouteSpecificPool rospl = getRoutePool(route, false);
             return (rospl != null) ? rospl.getEntryCount() : 0;
@@ -215,8 +213,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         return new PoolEntryRequest() {
         
             public void abortRequest() {
+                poolLock.lock();
                 try {
-                    poolLock.lock();
                     aborter.abort();
                 } finally {
                     poolLock.unlock();
@@ -278,8 +276,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
 
         BasicPoolEntry entry = null;
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             RouteSpecificPool rospl = getRoutePool(route, true);
             WaitingThread waitingThread = null;
@@ -297,7 +295,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 // - can delete and replace a free connection for another route
                 // - need to wait for one of the things above to come true
 
-                entry = getFreeEntry(rospl);
+                entry = getFreeEntry(rospl, state);
                 if (entry != null) {
                     // we're fine
                     //@@@ yeah this is ugly, but historical... will be revised
@@ -372,9 +370,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Freeing connection. " + route);
         }
 
+        poolLock.lock();
         try {
-            poolLock.lock();
-
             if (isShutDown) {
                 // the pool is shut down, release the
                 // connection's resources and get out of here
@@ -416,11 +413,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  an available pool entry for the given route, or
      *          <code>null</code> if none is available
      */
-    protected BasicPoolEntry getFreeEntry(RouteSpecificPool rospl) {
+    protected BasicPoolEntry getFreeEntry(RouteSpecificPool rospl, Object state) {
 
         BasicPoolEntry entry = null;
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             entry = rospl.allocEntry();
 
@@ -468,8 +465,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         BasicPoolEntry entry =
             new BasicPoolEntry(op, rospl.getRoute(), refQueue);
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             rospl.createdEntry(entry);
             numConnections++;
@@ -503,8 +500,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
             LOG.debug("Deleting connection. " + route);
         }
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             closeConnection(entry.getConnection());
 
@@ -552,8 +549,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     protected void handleLostEntry(HttpRoute route) {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             RouteSpecificPool rospl = getRoutePool(route, true);
             rospl.dropEntry();
@@ -587,8 +584,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         // it from all wait queues before interrupting.
         WaitingThread waitingThread = null;
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             if ((rospl != null) && rospl.hasThread()) {
                 if (LOG.isDebugEnabled()) {
@@ -625,8 +622,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     public void deleteClosedConnections() {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
             while (iter.hasNext()) {
@@ -647,8 +644,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     public void shutdown() {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             super.shutdown();
 

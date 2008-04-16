@@ -171,8 +171,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         if (refQueue != null) {
             throw new IllegalStateException("Connection GC already enabled.");
         }
+        poolLock.lock();
         try {
-            poolLock.lock();
             if (numConnections > 0) { //@@@ is this check sufficient?
                 throw new IllegalStateException("Pool already in use.");
             }
@@ -242,8 +242,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     // non-javadoc, see interface RefQueueHandler
     public void handleReference(Reference<?> ref) {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             if (ref instanceof BasicPoolEntryRef) {
                 // check if the GCed pool entry was still in use
@@ -296,8 +296,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             throw new IllegalArgumentException("Time unit must not be null.");
         }
 
+        poolLock.lock();
         try {
-            poolLock.lock();
             idleConnHandler.closeIdleConnections(tunit.toMillis(idletime));
         } finally {
             poolLock.unlock();
@@ -319,8 +319,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     public void shutdown() {
 
+        poolLock.lock();
         try {
-            poolLock.lock();
 
             if (isShutDown)
                 return;
