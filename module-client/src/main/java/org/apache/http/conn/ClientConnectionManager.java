@@ -34,12 +34,8 @@ package org.apache.http.conn;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.params.HttpParams;
-
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
-
-
 
 /**
  * Management interface for {@link ManagedClientConnection client connections}.
@@ -56,15 +52,6 @@ import org.apache.http.conn.scheme.SchemeRegistry;
  * @since 4.0
  */
 public interface ClientConnectionManager {
-
-    /**
-     * Obtains the parameters of this manager.
-     *
-     * @return  the parameters, never <code>null</code>
-     */
-    HttpParams getParams()
-        ;
-
 
     /**
      * Obtains the scheme registry used by this manager.

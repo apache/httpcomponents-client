@@ -74,9 +74,6 @@ public class ThreadSafeClientConnManager
     /** The schemes supported by this connection manager. */
     protected SchemeRegistry schemeRegistry; 
     
-    /** The parameters of this connection manager. */
-    protected HttpParams params;
-
     /** The pool of connections being managed. */
     protected final AbstractConnPool connectionPool;
 
@@ -96,11 +93,10 @@ public class ThreadSafeClientConnManager
                                        SchemeRegistry schreg) {
 
         if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
+            throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        this.params         = params;
         this.schemeRegistry = schreg;
-        this.connectionPool = createConnectionPool();
+        this.connectionPool = createConnectionPool(params);
         this.connOperator   = createConnectionOperator(schreg);
 
     } // <constructor>
@@ -111,9 +107,9 @@ public class ThreadSafeClientConnManager
      *
      * @return  the connection pool to use
      */
-    protected AbstractConnPool createConnectionPool() {
+    protected AbstractConnPool createConnectionPool(final HttpParams params) {
 
-        AbstractConnPool acp = new ConnPoolByRoute(this);
+        AbstractConnPool acp = new ConnPoolByRoute(this, params);
         boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
             acp.enableConnectionGC();
@@ -269,11 +265,6 @@ public class ThreadSafeClientConnManager
         connectionPool.deleteClosedConnections();
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
-    public HttpParams getParams() {
-        return this.params;
-    }
 
 } // class ThreadSafeClientConnManager
 

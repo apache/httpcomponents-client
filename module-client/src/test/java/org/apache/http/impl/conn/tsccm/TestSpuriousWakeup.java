@@ -97,8 +97,8 @@ public class TestSpuriousWakeup extends TestCase {
         protected WaitingThread newestWT;
 
 
-        public XConnPoolByRoute(ClientConnectionManager mgr) {
-            super(mgr);
+        public XConnPoolByRoute(ClientConnectionManager mgr, HttpParams params) {
+            super(mgr, params);
         }
 
         protected synchronized
@@ -125,8 +125,8 @@ public class TestSpuriousWakeup extends TestCase {
             super(params, schreg);
         }
 
-        protected AbstractConnPool createConnectionPool() {
-            extendedCPBR = new XConnPoolByRoute(this);
+        protected AbstractConnPool createConnectionPool(HttpParams params) {
+            extendedCPBR = new XConnPoolByRoute(this, params);
             // no connection GC required
             return extendedCPBR;
         }

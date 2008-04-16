@@ -81,9 +81,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
     /** The schemes supported by this connection manager. */
     protected SchemeRegistry schemeRegistry; 
     
-    /** The parameters of this connection manager. */
-    protected HttpParams params;
-
     /** The operator for opening and updating connections. */
     protected ClientConnectionOperator connOperator;
 
@@ -115,15 +112,10 @@ public class SingleClientConnManager implements ClientConnectionManager {
     public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
 
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
-        }
         if (schreg == null) {
             throw new IllegalArgumentException
                 ("Scheme registry must not be null.");
         }
-        this.params          = params;
         this.schemeRegistry  = schreg;
         this.connOperator    = createConnectionOperator(schreg);
         this.uniquePoolEntry = new PoolEntry(connOperator.createConnection());
@@ -134,11 +126,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     } // <constructor>
 
-
-    // non-javadoc, see interface ClientConnectionManager
-    public HttpParams getParams() {
-        return this.params;
-    }
 
     // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {

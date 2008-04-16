@@ -48,7 +48,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.IdleConnectionHandler;
 
 
@@ -85,12 +84,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
     /** The current total number of connections. */
     protected int numConnections;
-
-    /** The parameters of this connection pool. */
-    //@@@ allow get/set? synchronized?
-    //@@@ currently needed for connection limits
-    protected HttpParams params;
-
 
     /**
      * The connection manager.
@@ -141,9 +134,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * @param mgr   the connection manager
      */
     protected AbstractConnPool(ClientConnectionManager mgr) {
-
-        params = mgr.getParams();
-
         issuedConnections = new HashSet<BasicPoolEntryRef>();
         idleConnHandler = new IdleConnectionHandler();
 

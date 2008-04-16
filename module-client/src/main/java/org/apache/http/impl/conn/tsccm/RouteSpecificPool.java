@@ -46,6 +46,9 @@ public class RouteSpecificPool {
     /** The route this pool is for. */
     protected final HttpRoute route;
 
+    /** the maximum number of entries allowed for this pool */
+    protected final int maxEntries;
+    
     /**
      * The list of free entries.
      * This list is managed LIFO, to increase idle times and
@@ -63,10 +66,12 @@ public class RouteSpecificPool {
     /**
      * Creates a new route-specific pool.
      *
-     * @param r     the route for which to pool
+     * @param route the route for which to pool
+     * @param maxEntries the maximum number of entries allowed for this pool
      */
-    public RouteSpecificPool(HttpRoute route) {
+    public RouteSpecificPool(HttpRoute route, int maxEntries) {
         this.route = route;
+        this.maxEntries = maxEntries;
         this.freeEntries = new LinkedList<BasicPoolEntry>();
         this.waitingThreads = new LinkedList<WaitingThread>();
         this.numEntries = 0;
@@ -82,7 +87,17 @@ public class RouteSpecificPool {
         return route;
     }
 
-
+    
+    /**
+     * Obtains the maximum number of entries allowed for this pool.
+     *
+     * @return  the max entry number
+     */
+    public final int getMaxEntries() {
+        return maxEntries;
+    }
+    
+    
     /**
      * Indicates whether this pool is unused.
      * A pool is unused if there is neither an entry nor a waiting thread.
@@ -113,7 +128,7 @@ public class RouteSpecificPool {
      *
      * @return an available pool entry, or <code>null</code> if there is none
      */
-    public BasicPoolEntry allocEntry() {
+    public BasicPoolEntry allocEntry(final Object state) {
 
         BasicPoolEntry entry = null;
 

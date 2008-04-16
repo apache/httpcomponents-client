@@ -47,6 +47,7 @@ import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.params.HttpParams;
 
 
 
@@ -86,19 +87,24 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
 
-
-
+    protected final int maxTotalConnections;
+    
+    private final ConnPerRoute connPerRoute;
+    
     /**
      * Creates a new connection pool, managed by route.
      *
      * @param mgr   the connection manager
      */
-    public ConnPoolByRoute(ClientConnectionManager mgr) {
+    public ConnPoolByRoute(final ClientConnectionManager mgr, final HttpParams params) {
         super(mgr);
-
         freeConnections = createFreeConnQueue();
         waitingThreads  = createWaitingThreadQueue();
         routeToPool     = createRouteToPoolMap();
+        maxTotalConnections = HttpConnectionManagerParams
+            .getMaxTotalConnections(params);
+        connPerRoute = HttpConnectionManagerParams
+            .getMaxConnectionsPerRoute(params);
     }
 
 
@@ -142,7 +148,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the new pool
      */
     protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
-        return new RouteSpecificPool(route);
+        return new RouteSpecificPool(route, connPerRoute.getMaxForRoute(route));
     }
 
 
@@ -261,14 +267,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
                                    Aborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
-        int maxTotalConnections = HttpConnectionManagerParams
-                .getMaxTotalConnections(this.params);
-        
-        ConnPerRoute connPerRoute = HttpConnectionManagerParams
-                .getMaxConnectionsPerRoute(params);
-        
-        int maxHostConnections = connPerRoute.getMaxForRoute(route);
-        
         Date deadline = null;
         if (timeout > 0) {
             deadline = new Date
@@ -299,12 +297,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 if (entry != null) {
                     // we're fine
                     //@@@ yeah this is ugly, but historical... will be revised
-                } else if ((rospl.getEntryCount() < maxHostConnections) &&
+                } else if ((rospl.getEntryCount() < rospl.getMaxEntries()) &&
                            (numConnections < maxTotalConnections)) {
 
                     entry = createEntry(rospl, operator);
 
-                } else if ((rospl.getEntryCount() < maxHostConnections) &&
+                } else if ((rospl.getEntryCount() < rospl.getMaxEntries()) &&
                            (freeConnections.size() > 0)) {
 
                     deleteLeastUsedEntry();
@@ -419,7 +417,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         poolLock.lock();
         try {
 
-            entry = rospl.allocEntry();
+            entry = rospl.allocEntry(state);
 
             if (entry != null) {
                 if (LOG.isDebugEnabled()) {

@@ -83,7 +83,7 @@ public class TestWaitingThread extends TestCase {
         assertNull  ("thread from nowhere", wt.getThread());
 
         HttpRoute         route = new HttpRoute(TARGET);
-        RouteSpecificPool rospl = new RouteSpecificPool(route);
+        RouteSpecificPool rospl = new RouteSpecificPool(route, 10);
         wt = new WaitingThread(cnd, rospl);
         assertEquals("wrong condition", cnd, wt.getCondition());
         assertEquals("wrong pool", rospl, wt.getPool());

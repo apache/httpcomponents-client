@@ -145,15 +145,9 @@ public class TestTSCCMNoServer extends TestCase {
         HttpParams     params = createDefaultParams();
         SchemeRegistry schreg = createSchemeRegistry();
 
-        final String paramkey = "test.parameter";
-        final String paramval = "Value of the test parameter.";
-        params.setParameter(paramkey, paramval);
-
         ThreadSafeClientConnManager mgr =
             new ThreadSafeClientConnManager(params, schreg);
         assertNotNull(mgr);
-        assertNotNull(mgr.getParams());
-        assertEquals(paramval, mgr.getParams().getParameter(paramkey));
         mgr.shutdown();
         mgr = null;
 
@@ -170,8 +164,6 @@ public class TestTSCCMNoServer extends TestCase {
 
         mgr = new ThreadSafeClientConnManager(params, schreg);
         assertNotNull(mgr);
-        assertNotNull(mgr.getParams());
-        assertEquals(paramval, mgr.getParams().getParameter(paramkey));
         mgr.shutdown();
         mgr = null;
 
