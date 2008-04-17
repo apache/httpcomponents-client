@@ -221,7 +221,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             final HttpRoute route,
             final Object state) {
         
-        final Aborter aborter = new Aborter();
+        final WaitingThreadAborter aborter = new WaitingThreadAborter();
         
         return new PoolEntryRequest() {
         
@@ -246,7 +246,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     /**
      * Obtains a pool entry with a connection within the given timeout.
-     * If a {@link WaitingThread} is used to block, {@link Aborter#setWaitingThread(WaitingThread)}
+     * If a {@link WaitingThread} is used to block, {@link WaitingThreadAborter#setWaitingThread(WaitingThread)}
      * must be called before blocking, to allow the thread to be interrupted.
      *
      * @param route     the route for which to get the connection
@@ -267,7 +267,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected BasicPoolEntry getEntryBlocking(
                                    HttpRoute route, Object state,
                                    long timeout, TimeUnit tunit,
-                                   Aborter aborter)
+                                   WaitingThreadAborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         Date deadline = null;

@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -31,7 +31,7 @@
 package org.apache.http.impl.conn.tsccm;
 
 /** A simple class that can interrupt a {@link WaitingThread}. */
-public class Aborter {
+public class WaitingThreadAborter {
     
     private WaitingThread waitingThread;
     private boolean aborted;
