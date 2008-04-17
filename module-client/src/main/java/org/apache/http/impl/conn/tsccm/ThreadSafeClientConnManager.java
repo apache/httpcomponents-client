@@ -96,10 +96,17 @@ public class ThreadSafeClientConnManager
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         this.schemeRegistry = schreg;
-        this.connectionPool = createConnectionPool(params);
         this.connOperator   = createConnectionOperator(schreg);
+        this.connectionPool = createConnectionPool(params);
 
     } // <constructor>
+
+    
+    @Override
+    protected void finalize() throws Throwable {
+        shutdown();
+        super.finalize();
+    }
 
 
     /**
@@ -109,7 +116,7 @@ public class ThreadSafeClientConnManager
      */
     protected AbstractConnPool createConnectionPool(final HttpParams params) {
 
-        AbstractConnPool acp = new ConnPoolByRoute(this, params);
+        AbstractConnPool acp = new ConnPoolByRoute(connOperator, params);
         boolean conngc = true; //@@@ check parameters to decide
         if (conngc) {
             acp.enableConnectionGC();
@@ -166,7 +173,7 @@ public class ThreadSafeClientConnManager
                 }
 
                 final BasicPoolEntry entry = poolRequest.getPoolEntry(
-                        route, state, timeout, tunit, connOperator);
+                        route, state, timeout, tunit);
 
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }

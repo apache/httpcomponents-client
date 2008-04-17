@@ -50,8 +50,6 @@ public interface PoolEntryRequest {
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
-     * @param operator  the connection operator, in case
-     *                  a connection has to be created
      *
      * @return  pool entry holding a connection for the route
      *
@@ -64,9 +62,7 @@ public interface PoolEntryRequest {
             HttpRoute route, 
             Object state,
             long timeout, 
-            TimeUnit unit,
-            ClientConnectionOperator operator) 
-                throws InterruptedException, ConnectionPoolTimeoutException;
+            TimeUnit unit) throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**
      * Aborts the active or next call to

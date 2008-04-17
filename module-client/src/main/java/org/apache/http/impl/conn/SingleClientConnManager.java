@@ -127,6 +127,13 @@ public class SingleClientConnManager implements ClientConnectionManager {
     } // <constructor>
 
 
+    @Override
+    protected void finalize() throws Throwable {
+        shutdown();
+        super.finalize();
+    }
+
+
     // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;

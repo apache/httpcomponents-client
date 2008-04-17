@@ -33,7 +33,6 @@ package org.apache.http.impl.conn.tsccm;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,13 +42,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.IdleConnectionHandler;
-
 
 
 /**
@@ -86,15 +82,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected int numConnections;
 
     /**
-     * The connection manager.
-     * This weak reference is used only to detect garbage collection
-     * of the manager. The connection pool MUST NOT keep a hard reference
-     * to the manager, or else the manager might never be GCed.
-     */
-    protected ConnMgrRef connManager;
-
-
-    /**
      * A reference queue to track loss of pool entries to GC.
      * The same queue is used to track loss of the connection manager,
      * so we cannot specialize the type.
@@ -108,39 +95,17 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     /** Indicates whether this pool is shut down. */
     protected volatile boolean isShutDown;
 
-
-    /**
-     * A weak reference to the connection manager, to detect GC.
-     */
-    private static class ConnMgrRef
-        extends WeakReference<ClientConnectionManager> {
-
-        /**
-         * Creates a new reference.
-         *
-         * @param ccmgr   the connection manager
-         * @param queue   the reference queue, or <code>null</code>
-         */
-        public ConnMgrRef(ClientConnectionManager ccmgr,
-                          ReferenceQueue<Object> queue) {
-            super(ccmgr, queue);
-        }
-    }
-
-
     /**
      * Creates a new connection pool.
      *
      * @param mgr   the connection manager
      */
-    protected AbstractConnPool(ClientConnectionManager mgr) {
+    protected AbstractConnPool() {
         issuedConnections = new HashSet<BasicPoolEntryRef>();
         idleConnHandler = new IdleConnectionHandler();
 
         boolean fair = false; //@@@ check parameters to decide
         poolLock = new ReentrantLock(fair);
-
-        connManager = new ConnMgrRef(mgr, null);
     }
 
 
@@ -176,8 +141,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         t.setDaemon(true);
         t.setName("RefQueueWorker@" + this);
         t.start();
-
-        connManager = new ConnMgrRef(connManager.get(), refQueue);
     }
 
 
@@ -203,10 +166,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 HttpRoute route, 
                 Object state,
                 long timeout, 
-                TimeUnit tunit,
-                ClientConnectionOperator operator)
+                TimeUnit tunit)
                     throws ConnectionPoolTimeoutException, InterruptedException {
-        return newPoolEntryRequest().getPoolEntry(route, state, timeout, tunit, operator);
+        return newPoolEntryRequest().getPoolEntry(route, state, timeout, tunit);
     }
     
     /**
@@ -248,11 +210,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                     }
                     handleLostEntry(route);
                 }
-            } else if (ref instanceof ConnMgrRef) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Connection manager garbage collected.");
-                }
-                shutdown();
             }
 
         } finally {

@@ -39,9 +39,9 @@ import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -97,8 +97,8 @@ public class TestSpuriousWakeup extends TestCase {
         protected WaitingThread newestWT;
 
 
-        public XConnPoolByRoute(ClientConnectionManager mgr, HttpParams params) {
-            super(mgr, params);
+        public XConnPoolByRoute(ClientConnectionOperator operator, HttpParams params) {
+            super(operator, params);
         }
 
         protected synchronized
@@ -126,7 +126,7 @@ public class TestSpuriousWakeup extends TestCase {
         }
 
         protected AbstractConnPool createConnectionPool(HttpParams params) {
-            extendedCPBR = new XConnPoolByRoute(this, params);
+            extendedCPBR = new XConnPoolByRoute(connOperator, params);
             // no connection GC required
             return extendedCPBR;
         }

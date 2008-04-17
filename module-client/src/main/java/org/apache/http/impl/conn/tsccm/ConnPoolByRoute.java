@@ -42,13 +42,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
 import org.apache.http.params.HttpParams;
-
 
 
 /**
@@ -73,7 +71,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
     //@@@ use a protected LOG in the base class?
     private final Log LOG = LogFactory.getLog(ConnPoolByRoute.class);
 
-
+    /** Connection operator for this pool */
+    protected final ClientConnectionOperator operator;
+    
     /** The list of free connections */
     protected Queue<BasicPoolEntry> freeConnections;
 
@@ -96,8 +96,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param mgr   the connection manager
      */
-    public ConnPoolByRoute(final ClientConnectionManager mgr, final HttpParams params) {
-        super(mgr);
+    public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
+        super();
+        if (operator == null) {
+            throw new IllegalArgumentException("Connection operator may not be null");
+        }
+        this.operator = operator;
+        
         freeConnections = createFreeConnQueue();
         waitingThreads  = createWaitingThreadQueue();
         routeToPool     = createRouteToPoolMap();
@@ -231,10 +236,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     HttpRoute route,
                     Object state,
                     long timeout,
-                    TimeUnit tunit, 
-                    ClientConnectionOperator operator)
+                    TimeUnit tunit)
                         throws InterruptedException, ConnectionPoolTimeoutException {
-                return getEntryBlocking(route, state, timeout, tunit, operator, aborter);
+                return getEntryBlocking(route, state, timeout, tunit, aborter);
             }
             
         };
@@ -263,7 +267,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected BasicPoolEntry getEntryBlocking(
                                    HttpRoute route, Object state,
                                    long timeout, TimeUnit tunit,
-                                   ClientConnectionOperator operator,
                                    Aborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
