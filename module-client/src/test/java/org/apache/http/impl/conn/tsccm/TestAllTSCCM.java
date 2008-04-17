@@ -46,7 +46,7 @@ public class TestAllTSCCM extends TestCase {
         suite.addTest(TestDumbHelpers.suite());
         suite.addTest(TestWaitingThread.suite());
         suite.addTest(TestSpuriousWakeup.suite());
-
+        suite.addTest(TestConnPoolByRoute.suite());
         return suite;
     }
 

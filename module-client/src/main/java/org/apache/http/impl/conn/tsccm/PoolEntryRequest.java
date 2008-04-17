@@ -46,7 +46,6 @@ public interface PoolEntryRequest {
      * If {@link #abortRequest()} is called before this completes,
      * an {@link InterruptedException} is thrown.
      *
-     * @param route     the route for which to get the connection
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
@@ -59,8 +58,6 @@ public interface PoolEntryRequest {
      *         if the calling thread was interrupted
      */
     BasicPoolEntry getPoolEntry(
-            HttpRoute route, 
-            Object state,
             long timeout, 
             TimeUnit unit) throws InterruptedException, ConnectionPoolTimeoutException;
 

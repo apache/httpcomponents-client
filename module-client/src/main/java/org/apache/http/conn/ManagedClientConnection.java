@@ -229,11 +229,21 @@ public interface ManagedClientConnection extends
     boolean isMarkedReusable()
         ;
 
+    /** 
+     * Assigns a state object to this connection. Connection managers may make 
+     * use of the connection state when allocating persistent connections.
+     *  
+     * @param state The state object
+     */
     void setState(Object state)
         ;
     
-    boolean isStateful()
+    /**
+     * Returns the state object associated with this connection.
+     * 
+     * @return The state object
+     */
+    Object getState()
         ;
-    
 
 } // interface ManagedClientConnection

@@ -30,10 +30,16 @@
 
 package org.apache.http.impl.conn.tsccm;
 
+import java.io.IOException;
+import java.util.ListIterator;
 import java.util.Queue;
 import java.util.LinkedList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.LangUtils;
 
 
 /**
@@ -43,6 +49,8 @@ import org.apache.http.conn.routing.HttpRoute;
  */
 public class RouteSpecificPool {
 
+    private final Log LOG = LogFactory.getLog(RouteSpecificPool.class);
+    
     /** The route this pool is for. */
     protected final HttpRoute route;
 
@@ -112,6 +120,16 @@ public class RouteSpecificPool {
 
 
     /**
+     * Return remaining capacity of this pool
+     * 
+     * @return capacity
+     */
+    public int getCapacity() {
+        return maxEntries - numEntries;
+    }
+    
+    
+    /**
      * Obtains the number of entries.
      * This includes not only the free entries, but also those that
      * have been created and are currently issued to an application.
@@ -129,14 +147,28 @@ public class RouteSpecificPool {
      * @return an available pool entry, or <code>null</code> if there is none
      */
     public BasicPoolEntry allocEntry(final Object state) {
-
-        BasicPoolEntry entry = null;
-
         if (!freeEntries.isEmpty()) {
-            entry = freeEntries.removeLast();
+            ListIterator<BasicPoolEntry> it = freeEntries.listIterator(freeEntries.size());
+            while (it.hasPrevious()) {
+                BasicPoolEntry entry = it.previous();
+                if (LangUtils.equals(state, entry.getState())) {
+                    it.remove();
+                    return entry;
+                }
+            }
         }
-
-        return entry;
+        if (!freeEntries.isEmpty()) {
+            BasicPoolEntry entry = freeEntries.remove();   
+            entry.setState(null);
+            OperatedClientConnection conn = entry.getConnection();
+            try {
+                conn.close();
+            } catch (IOException ex) {
+                LOG.debug("I/O error closing connection", ex);
+            }
+            return entry;
+        }
+        return null;
     }
 
 

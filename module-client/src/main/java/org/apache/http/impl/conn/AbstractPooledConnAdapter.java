@@ -170,15 +170,18 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         }
     }
 
+    
     // non-javadoc, see interface ManagedClientConnection        
-    public boolean isStateful() {
+    public Object getState() {
         assertAttached();
-        return poolEntry.state != null;
+        return poolEntry.getState();
     }
+
 
     // non-javadoc, see interface ManagedClientConnection        
     public void setState(final Object state) {
-        poolEntry.state = state;
+        assertAttached();
+        poolEntry.setState(state);
     }
     
 

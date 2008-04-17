@@ -40,7 +40,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
@@ -118,7 +117,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
         this.schemeRegistry  = schreg;
         this.connOperator    = createConnectionOperator(schreg);
-        this.uniquePoolEntry = new PoolEntry(connOperator.createConnection());
+        this.uniquePoolEntry = new PoolEntry();
         this.managedConn     = null;
         this.lastReleaseTime = -1L;
         this.alwaysShutDown  = false; //@@@ from params? as argument?
@@ -227,8 +226,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 } catch (IOException iox) {
                     LOG.debug("Problem shutting down connection.", iox);
                     // create a new connection, just to be sure
-                    uniquePoolEntry =
-                        new PoolEntry(connOperator.createConnection());
+                    uniquePoolEntry = new PoolEntry();
                 }
             }
         }
@@ -364,17 +362,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
          *
          * @param occ   the underlying connection for this entry
          */
-        protected PoolEntry(OperatedClientConnection occ) {
-            super(occ, null);
+        protected PoolEntry() {
+            super(SingleClientConnManager.this.connOperator, null);
         }
-
-
-        // non-javadoc, see base AbstractPoolEntry
-        @Override
-        protected ClientConnectionOperator getOperator() {
-            return SingleClientConnManager.this.connOperator;
-        }
-
 
         /**
          * Closes the connection in this pool entry.

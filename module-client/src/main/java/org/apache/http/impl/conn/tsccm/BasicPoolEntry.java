@@ -45,11 +45,6 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
  */
 public class BasicPoolEntry extends AbstractPoolEntry {
 
-    /** The connection operator. */
-    //@@@ move to base class, drop getOperator()?
-    private ClientConnectionOperator connOperator;
-
-
     /**
      * A weak reference to <code>this</code> used to detect GC of entries.
      * Pool entries can only be GCed when they are allocated by an application
@@ -57,7 +52,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      */
     private BasicPoolEntryRef reference;
 
-   
     /**
      * Creates a new pool entry.
      *
@@ -69,24 +63,12 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route,
                           ReferenceQueue<Object> queue) {
-        //@@@ create connection in base? or delay creation until needed?
-        super(op.createConnection(), route);
+        super(op, route);
         if (route == null) {
-            throw new IllegalArgumentException
-                ("Planned route must not be null.");
+            throw new IllegalArgumentException("HTTP route may not be null");
         }
-
-        this.connOperator = op;
         this.reference = new BasicPoolEntryRef(this, queue);
     }
-
-
-    // non-javadoc, see base AbstractPoolEntry
-    @Override
-    protected ClientConnectionOperator getOperator() {
-        return this.connOperator;
-    }
-
 
     protected final OperatedClientConnection getConnection() {
         return super.connection;

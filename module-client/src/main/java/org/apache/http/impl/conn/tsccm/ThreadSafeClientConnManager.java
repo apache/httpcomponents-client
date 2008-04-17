@@ -150,9 +150,12 @@ public class ThreadSafeClientConnManager
     }
 
     
-    public ClientConnectionRequest requestConnection(final HttpRoute route, final Object state) {
+    public ClientConnectionRequest requestConnection(
+            final HttpRoute route, 
+            final Object state) {
         
-        final PoolEntryRequest poolRequest = connectionPool.newPoolEntryRequest();
+        final PoolEntryRequest poolRequest = connectionPool.requestPoolEntry(
+                route, state);
         
         return new ClientConnectionRequest() {
             
@@ -172,9 +175,7 @@ public class ThreadSafeClientConnManager
                         + route + ", timeout = " + timeout);
                 }
 
-                final BasicPoolEntry entry = poolRequest.getPoolEntry(
-                        route, state, timeout, tunit);
-
+                BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }
             

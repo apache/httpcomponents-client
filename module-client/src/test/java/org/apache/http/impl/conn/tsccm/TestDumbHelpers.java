@@ -114,7 +114,6 @@ public class TestDumbHelpers extends TestCase {
         }
 
         bpe = new BasicPoolEntry(ccop, route, null);
-        assertEquals ("wrong operator", ccop, bpe.getOperator());
         assertEquals ("wrong route", route, bpe.getPlannedRoute());
         assertNotNull("missing ref", bpe.getWeakRef());
 

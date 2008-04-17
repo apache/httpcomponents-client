@@ -168,14 +168,14 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 long timeout, 
                 TimeUnit tunit)
                     throws ConnectionPoolTimeoutException, InterruptedException {
-        return newPoolEntryRequest().getPoolEntry(route, state, timeout, tunit);
+        return requestPoolEntry(route, state).getPoolEntry(timeout, tunit);
     }
     
     /**
      * Returns a new {@link PoolEntryRequest}, from which a {@link BasicPoolEntry}
      * can be obtained, or the request can be aborted.
      */
-    public abstract PoolEntryRequest newPoolEntryRequest();
+    public abstract PoolEntryRequest requestPoolEntry(HttpRoute route, Object state);
 
 
     /**

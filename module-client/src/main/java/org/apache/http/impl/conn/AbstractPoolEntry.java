@@ -68,6 +68,9 @@ import org.apache.http.conn.OperatedClientConnection;
  */
 public abstract class AbstractPoolEntry {
 
+    /** The connection operator. */
+    protected final ClientConnectionOperator connOperator;
+
     /** The underlying connection being pooled or used. */
     protected volatile OperatedClientConnection connection;
 
@@ -91,23 +94,36 @@ public abstract class AbstractPoolEntry {
      * @param route   the planned route for the connection,
      *                or <code>null</code>
      */
-    protected AbstractPoolEntry(OperatedClientConnection occ,
+    protected AbstractPoolEntry(ClientConnectionOperator connOperator,
                                 HttpRoute route) {
-        this.connection = occ;
+        super();
+        if (connOperator == null) {
+            throw new IllegalArgumentException("Connection operator may not be null");
+        }
+        this.connOperator = connOperator;
+        this.connection = connOperator.createConnection();
         this.route = route;
         this.tracker = null;
     }
 
-
     /**
-     * Obtains the connection {@link ClientConnectionOperator operator}.
-     *
-     * @return  the operator for opening connections and layering protocols
+     * Returns the state object associated with this pool entry.
+     * 
+     * @return The state object
      */
-    protected abstract ClientConnectionOperator getOperator()
-        ;
-
-
+    public Object getState() {
+        return state;
+    }
+    
+    /**
+     * Assigns a state object to this pool entry.
+     * 
+     * @param state The state object
+     */
+    public void setState(final Object state) {
+        this.state = state;
+    }
+    
     /**
      * Opens the underlying connection.
      *
@@ -142,14 +158,10 @@ public abstract class AbstractPoolEntry {
 
         //@@@ verify route against planned route?
 
-        //if (LOG.isDebugEnabled()) {
-        //    LOG.debug("Open connection for " + route);
-        //}
-
         this.tracker = new RouteTracker(route);
         final HttpHost proxy  = route.getProxyHost();
 
-        getOperator().openConnection
+        connOperator.openConnection
             (this.connection,
              (proxy != null) ? proxy : route.getTargetHost(),
              route.getLocalAddress(),
@@ -278,11 +290,7 @@ public abstract class AbstractPoolEntry {
 
         final HttpHost target = tracker.getTargetHost();
 
-        //if (LOG.isDebugEnabled()) {
-        //    LOG.debug("Layer protocol on connection to " + target);
-        //}
-
-        getOperator().updateSecureConnection(this.connection, target,
+        connOperator.updateSecureConnection(this.connection, target,
                                              context, params);
 
         this.tracker.layerProtocol(this.connection.isSecure());

@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-652] Added optional state attribute to managed client connections. 
+  This enables connection managers to correctly handle stateful connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-673] Revised max connections per route configuration
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
