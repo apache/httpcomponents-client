@@ -1,6 +1,11 @@
 Changes since 4.0 Alpha 3
 -------------------
 
+* [HTTPCLIENT-763] Fixed problem with AbstractClientConnAdapter#abortConnection() 
+  not releasing the connection if called from the main execution thread while 
+  there is no blocking I/O operation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-652] Added optional state attribute to managed client connections. 
   This enables connection managers to correctly handle stateful connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
