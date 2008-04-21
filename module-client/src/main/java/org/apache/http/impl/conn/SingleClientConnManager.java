@@ -208,7 +208,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         assertStillUp();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("SingleClientConnManager.getConnection: " + route);
+            LOG.debug("Get connection for route " + route);
         }
 
         if (managedConn != null)
@@ -246,6 +246,11 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 ("Connection class mismatch, " +
                  "connection not obtained from this manager.");
         }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Releasing connection " + conn);
+        }
+
         ConnAdapter sca = (ConnAdapter) conn;
         if (sca.getManager() != this) {
             throw new IllegalArgumentException
@@ -277,6 +282,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         } finally {
             sca.detach();
             managedConn = null;
+            uniquePoolEntry.tracker = null;
             lastReleaseTime = System.currentTimeMillis();
         }
     } // releaseConnection
@@ -334,11 +340,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         if (managedConn == null)
             return;
 
-        // Generate a stack trace, it might help debugging.
-        // Do NOT throw the exception, just log it!
-        IllegalStateException isx = new IllegalStateException
-            ("Revoking connection to " + managedConn.getRoute());
-        LOG.warn(MISUSE_MESSAGE, isx);
+        LOG.warn(MISUSE_MESSAGE);
 
         if (managedConn != null)
             managedConn.detach();

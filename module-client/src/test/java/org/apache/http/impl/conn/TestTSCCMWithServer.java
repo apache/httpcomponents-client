@@ -282,6 +282,58 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
 
     /**
+     * Tests releasing connection from #abort method called from the
+     * main execution thread while there is no blocking I/O operation.
+     */
+    public void testReleaseConnectionOnAbort() throws Exception {
+
+        HttpParams mgrpar = defaultParams.copy();
+        HttpConnectionManagerParams.setMaxTotalConnections(mgrpar, 1);
+
+        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final int      rsplen = 8;
+        final String      uri = "/random/" + rsplen;
+
+        HttpRequest request =
+            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+
+        ManagedClientConnection conn = getConnection(mgr, route);
+        conn.open(route, httpContext, defaultParams);
+
+        // a new context is created for each testcase, no need to reset
+        HttpResponse response = Helper.execute(
+                request, conn, target, 
+                httpExecutor, httpProcessor, defaultParams, httpContext);
+
+        assertEquals("wrong status in first response",
+                     HttpStatus.SC_OK,
+                     response.getStatusLine().getStatusCode());
+
+        // check that there are no connections available
+        try {
+            // this should fail quickly, connection has not been released
+            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
+            fail("ConnectionPoolTimeoutException should have been thrown");
+        } catch (ConnectionPoolTimeoutException e) {
+            // expected
+        }
+
+        // abort the connection
+        assertTrue(conn instanceof AbstractClientConnAdapter);
+        ((AbstractClientConnAdapter) conn).abortConnection();
+        
+        // the connection is expected to be released back to the manager
+        conn = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
+        assertFalse("connection should have been closed", conn.isOpen());
+
+        mgr.releaseConnection(conn);
+        mgr.shutdown();
+    }
+
+    /**
      * Tests GC of an unreferenced connection.
      */
     public void testConnectionGC() throws Exception {

@@ -78,6 +78,9 @@ import org.apache.http.conn.ClientConnectionManager;
 public abstract class AbstractClientConnAdapter
     implements ManagedClientConnection {
 
+    /** Thread that requested this connection. */
+    private final Thread executionThread; 
+    
     /**
      * The connection manager, if any.
      * This attribute MUST NOT be final, so the adapter can be detached
@@ -103,7 +106,8 @@ public abstract class AbstractClientConnAdapter
      */
     protected AbstractClientConnAdapter(ClientConnectionManager mgr,
                                         OperatedClientConnection conn) {
-
+        super();
+        executionThread = Thread.currentThread();
         connManager = mgr;
         wrappedConnection = conn;
         markedReusable = false;
@@ -361,6 +365,22 @@ public abstract class AbstractClientConnAdapter
             try {
                 conn.shutdown();
             } catch (IOException ignore) {
+            }
+            // Usually #abortConnection() is expected to be called from 
+            // a helper thread in order to unblock the main execution thread 
+            // blocked in an I/O operation. It may be unsafe to call 
+            // #releaseConnection() from the helper thread, so we have to rely
+            // on an IOException thrown by the closed socket on the main thread 
+            // to trigger the release of the connection back to the 
+            // connection manager.
+            // 
+            // However, if this method is called from the main execution thread 
+            // it should be safe to release the connection immediately. Besides, 
+            // this also helps ensure the connection gets released back to the 
+            // manager if #abortConnection() is called from the main execution 
+            // thread while there is no blocking I/O operation.
+            if (executionThread.equals(Thread.currentThread())) {
+                releaseConnection();
             }
         }
     }
