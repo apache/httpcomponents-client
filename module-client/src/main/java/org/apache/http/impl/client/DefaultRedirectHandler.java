@@ -155,7 +155,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             }
             
             URI redirectURI;
-            if (uri.getQuery() != null || uri.getFragment() != null) {
+            if (uri.getFragment() != null) {
                 try {
                     HttpHost target = new HttpHost(
                             uri.getHost(), 
