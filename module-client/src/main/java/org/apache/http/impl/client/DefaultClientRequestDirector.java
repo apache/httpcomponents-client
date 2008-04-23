@@ -813,6 +813,10 @@ public class DefaultClientRequestDirector
                     uri.getScheme());
             
             HttpGet redirect = new HttpGet(uri);
+            
+            HttpRequest orig = request.getOriginal();
+            redirect.setHeaders(orig.getAllHeaders());
+            
             RequestWrapper wrapper = new RequestWrapper(redirect);
             wrapper.setParams(params);
             
