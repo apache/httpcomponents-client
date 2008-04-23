@@ -252,12 +252,13 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
 
         ConnAdapter sca = (ConnAdapter) conn;
-        if (sca.getManager() != this) {
+        if (sca.poolEntry == null)
+            return; // already released
+        ClientConnectionManager manager = sca.getManager();
+        if (manager != null && manager != this) {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
-        if (sca.poolEntry == null)
-            return; // already released
 
         try {
             // make sure that the response has been read completely

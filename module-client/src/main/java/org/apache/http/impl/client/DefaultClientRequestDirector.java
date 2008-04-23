@@ -385,8 +385,7 @@ public class DefaultClientRequestDirector
                 response.setParams(params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
-                RoutedRequest followup =
-                    handleResponse(roureq, wrapper, response, context);
+                RoutedRequest followup = handleResponse(roureq, response, context);
                 if (followup == null) {
                     done = true;
                 } else {
@@ -407,8 +406,6 @@ public class DefaultClientRequestDirector
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
                         // the followup has a different route, release conn
-                        //@@@ need to consume response body first?
-                        //@@@ or let that be done in handleResponse(...)?
                         connManager.releaseConnection(managedConn);
                         managedConn = null;
                     }
@@ -778,10 +775,7 @@ public class DefaultClientRequestDirector
     /**
      * Analyzes a response to check need for a followup.
      *
-     * @param roureq    the request and route. This is the same object as
-     *                  was passed to {@link #wrapRequest(HttpRequest)}.
-     * @param request   the request that was actually sent. This is the object
-     *                  returned by {@link #wrapRequest(HttpRequest)}.
+     * @param roureq    the request and route. 
      * @param response  the response to analayze
      * @param context   the context used for the current request execution
      *
@@ -792,7 +786,6 @@ public class DefaultClientRequestDirector
      * @throws IOException      in case of an IO problem
      */
     protected RoutedRequest handleResponse(RoutedRequest roureq,
-                                           HttpRequest request,
                                            HttpResponse response,
                                            HttpContext context)
         throws HttpException, IOException {
@@ -800,6 +793,7 @@ public class DefaultClientRequestDirector
         HttpRoute route = roureq.getRoute();
         HttpHost target = route.getTargetHost();
         HttpHost proxy = route.getProxyHost();
+        RequestWrapper request = roureq.getRequest();
         
         HttpParams params = request.getParams();
         if (HttpClientParams.isRedirecting(params) && 
@@ -916,10 +910,6 @@ public class DefaultClientRequestDirector
             // we got here as the result of an exception
             // no response will be returned, release the connection
             managedConn = null;
-            // ensure the connection manager properly releases this connection
-            connManager.releaseConnection(mcc);
-            //@@@ is the connection in a re-usable state? consume response?
-            //@@@ for now, just shut it down
             try {
                 mcc.abortConnection();
             } catch (IOException ex) {
@@ -927,6 +917,8 @@ public class DefaultClientRequestDirector
                     LOG.debug(ex.getMessage(), ex);
                 }
             }
+            // ensure the connection manager properly releases this connection
+            connManager.releaseConnection(mcc);
         }
     } // abortConnection
 
