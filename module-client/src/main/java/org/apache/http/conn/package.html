@@ -48,11 +48,11 @@ The connection interface extends the core
 {@link org.apache.http.HttpClientConnection HttpClientConnection}
 by operations to set and update a socket.
 An operator encapsulates the logic to open and layer sockets,
-typically using a {@link org.apache.http.conn.SocketFactory SocketFactory}.
+typically using a {@link org.apache.http.conn.scheme.SocketFactory SocketFactory}.
 The socket factory for a protocol
-{@link org.apache.http.conn.Scheme Scheme}
+{@link org.apache.http.conn.scheme.Scheme Scheme}
 such as "http" or "https" can be looked up in a
-{@link org.apache.http.conn.SchemeRegistry SchemeRegistry}.
+{@link org.apache.http.conn.scheme.SchemeRegistry SchemeRegistry}.
 Applications without a need for sophisticated connection management
 can use this layer directly.
 </p>

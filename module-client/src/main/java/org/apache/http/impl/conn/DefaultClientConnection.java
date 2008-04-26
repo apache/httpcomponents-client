@@ -121,9 +121,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /**
      * Force-closes this connection.
-     * If it is not yet {@link #open open} but {@link #announce announced},
-     * the associated socket is closed. That will interrupt a thread that
-     * is blocked on connecting the socket.
+     * If the connection is still in the process of being open (the method 
+     * {@link #opening opening} was already called but 
+     * {@link #openCompleted openCompleted} was not), the associated 
+     * socket that is being connected to a remote address will be closed. 
+     * That will interrupt a thread that is blocked on connecting 
+     * the socket.
      *
      * @throws IOException      in case of a problem
      */

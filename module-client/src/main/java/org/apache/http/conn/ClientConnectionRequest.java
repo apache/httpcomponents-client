@@ -2,8 +2,6 @@ package org.apache.http.conn;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.conn.routing.HttpRoute;
-
 /**
  * Encapsulates a request for a {@link ManagedClientConnection}.
  */
@@ -13,7 +11,7 @@ public interface ClientConnectionRequest {
      * Obtains a connection within a given time.
      * This method will block until a connection becomes available,
      * the timeout expires, or the connection manager is
-     * {@link #shutdown shut down}.
+     * {@link ClientConnectionManager#shutdown() shut down}.
      * Timeouts are handled with millisecond precision.
      * 
      * If {@link #abortRequest()} is called while this is blocking or
@@ -32,11 +30,11 @@ public interface ClientConnectionRequest {
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    ManagedClientConnection getConnection(long timeout, TimeUnit unit) 
+    ManagedClientConnection getConnection(long timeout, TimeUnit tunit) 
         throws InterruptedException, ConnectionPoolTimeoutException;
     
     /**
-     * Aborts the call to {@link #getConnection(HttpRoute, long, TimeUnit)},
+     * Aborts the call to {@link #getConnection(long, TimeUnit)},
      * causing it to throw an {@link InterruptedException}.
      */
     void abortRequest();

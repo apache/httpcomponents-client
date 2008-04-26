@@ -51,8 +51,6 @@ import org.apache.http.protocol.HttpContext;
  * allocate connections, and return responses that depend on those
  * connections for reading the response entity. Such connections
  * MUST be released, but that is out of the scope of a request director.
- * The {@link #getConnection getConnection} provides access to the
- * connection that must be released when the response is handled.
  *
  * <p>
  * This interface and it's implementations replace the

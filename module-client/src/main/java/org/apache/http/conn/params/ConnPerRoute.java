@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -33,14 +33,14 @@ package org.apache.http.conn.params;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
- * This interface interface is intended to lookup maximum number of connections 
+ * This interface is intended for looking up maximum number of connections 
  * allowed for for a given route. This class can be used by pooling 
  * {@link org.apache.http.conn.ClientConnectionManager connection managers} for 
  * a fine-grained control of connections on a per route basis. 
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @version $Revision:$
+ * @version $Revision$
  * 
  * @since 4.0
  */

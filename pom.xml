@@ -99,7 +99,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-1</version>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/bin-unix.xml</descriptor>

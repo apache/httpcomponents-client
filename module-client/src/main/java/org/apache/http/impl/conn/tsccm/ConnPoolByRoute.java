@@ -93,8 +93,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
     
     /**
      * Creates a new connection pool, managed by route.
-     *
-     * @param mgr   the connection manager
      */
     public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
         super();

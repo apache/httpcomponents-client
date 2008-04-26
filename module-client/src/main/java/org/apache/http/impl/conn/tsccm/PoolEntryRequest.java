@@ -32,9 +32,7 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.routing.HttpRoute;
 
 /**
  * Encapsulates a request for a {@link BasicPoolEntry}.
@@ -59,11 +57,11 @@ public interface PoolEntryRequest {
      */
     BasicPoolEntry getPoolEntry(
             long timeout, 
-            TimeUnit unit) throws InterruptedException, ConnectionPoolTimeoutException;
+            TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**
      * Aborts the active or next call to
-     * {@link #getPoolEntry(HttpRoute, long, TimeUnit, ClientConnectionOperator)}.
+     * {@link #getPoolEntry(long, TimeUnit)}.
      */
     void abortRequest();
     

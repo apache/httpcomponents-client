@@ -62,11 +62,13 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
     };
     
     /**
-     * Sets maximum number of connections allowed per route lookup interface.
+     * Sets lookup interface for maximum number of connections allowed per route.
      *
-     * @param max The default maximum.
+     * @param params HTTP parameters
+     * @param connPerRoute lookup interface for maximum number of connections allowed 
+     *        per route
      * 
-     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
+     * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
     public static void setMaxConnectionsPerRoute(final HttpParams params,
                                                 final ConnPerRoute connPerRoute) {
@@ -78,13 +80,13 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
     }
 
     /**
-     * Returns maximum number of connections allowed per route lookup interface.
-     * 
-     * @param route     the route for which to get the maximum connections
+     * Returns lookup interface for maximum number of connections allowed per route.
      *
-     * @return The maximum number of connections allowed for the given route.
+     * @param params HTTP parameters
      * 
-     * @see ConnManagerPNames#MAX_HOST_CONNECTIONS
+     * @return lookup interface for maximum number of connections allowed per route.
+     * 
+     * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
     public static ConnPerRoute getMaxConnectionsPerRoute(final HttpParams params) {
         if (params == null) {
@@ -102,6 +104,7 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
     /**
      * Sets the maximum number of connections allowed.
      *
+     * @param params HTTP parameters
      * @param maxTotalConnections The maximum number of connections allowed.
      * 
      * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
@@ -118,6 +121,8 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
 
     /**
      * Gets the maximum number of connections allowed.
+     *
+     * @param params HTTP parameters
      *
      * @return The maximum number of connections allowed.
      * 

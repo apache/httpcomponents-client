@@ -151,8 +151,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
-     * @param operator  the connection operator, in case
-     *                  a connection has to be created
      *
      * @return  pool entry holding a connection for the route
      *
