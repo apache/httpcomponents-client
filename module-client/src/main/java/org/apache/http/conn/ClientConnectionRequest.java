@@ -48,7 +48,7 @@ public interface ClientConnectionRequest {
      * If {@link #abortRequest()} is called while this is blocking or
      * before this began, an {@link InterruptedException} will
      * be thrown.
-     *httpcomponents-client-4.0-alpha4-SNAPSHOT-src-unix.tar.gz
+     * 
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
