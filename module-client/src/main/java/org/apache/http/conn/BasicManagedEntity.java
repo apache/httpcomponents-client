@@ -32,6 +32,7 @@ package org.apache.http.conn;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
@@ -52,7 +53,7 @@ import org.apache.http.entity.HttpEntityWrapper;
  * @since 4.0
  */
 public class BasicManagedEntity extends HttpEntityWrapper
-    implements HttpEntity, ConnectionReleaseTrigger, EofSensorWatcher {
+    implements ConnectionReleaseTrigger, EofSensorWatcher {
 
     /** The connection to release. */
     protected ManagedClientConnection managedConn;
@@ -116,6 +117,14 @@ public class BasicManagedEntity extends HttpEntityWrapper
         } finally {
             releaseManagedConnection();
         }
+    }
+
+    
+    // non-javadoc, see interface HttpEntity
+    @Override
+    public void writeTo(final OutputStream outstream) throws IOException {
+        super.writeTo(outstream);
+        consumeContent();
     }
 
 

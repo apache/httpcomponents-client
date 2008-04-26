@@ -50,6 +50,7 @@ public class TestAllConn extends TestCase {
 
         suite.addTest(TestScheme.suite());
         suite.addTest(TestExceptions.suite());
+        suite.addTest(TestConnectionAutoRelease.suite());
         suite.addTest(TestAllConnParams.suite());
         suite.addTest(TestAllRouting.suite());
         suite.addTest(TestAllSSL.suite());
