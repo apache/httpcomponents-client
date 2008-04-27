@@ -64,7 +64,7 @@ public interface ClientConnectionManager {
     
     /**
      * Returns a new {@link ClientConnectionRequest}, from which a
-     * {@link ManagedClientConnection} can be obtained, or the request can be
+     * {@link ManagedClientConnection} can be obtained or the request can be
      * aborted.
      */
     ClientConnectionRequest requestConnection(HttpRoute route, Object state)

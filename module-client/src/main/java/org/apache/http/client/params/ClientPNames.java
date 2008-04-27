@@ -58,8 +58,16 @@ public interface ClientPNames {
      * This parameter expects a value of type {@link String}.
      * </p>
      */ 
-    public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory"; 
-
+    public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
+    
+    /**
+     * Defines the factory to create a default {@link org.apache.http.conn.ClientConnectionManager}.
+     * <p>
+     * This parameters expects a value of type {@link org.apache.http.conn.ClientConnectionManagerFactory}.
+     * </p>
+     */
+    public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory-object";
+    
     /** 
      * Defines whether redirects should be handled automatically
      * <p>

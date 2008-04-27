@@ -94,6 +94,7 @@ public abstract class AbstractClientConnAdapter
     /** The reusability marker. */
     private volatile boolean markedReusable;
 
+    /** True if the connection has been aborted. */
     private volatile boolean aborted;
 
     /**

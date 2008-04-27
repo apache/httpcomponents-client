@@ -46,12 +46,28 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
+/**
+ * A collection of utilities for encoding URLs.
+ */
 public class URLEncodedUtils {
 
     public static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
     private static final String PARAMETER_SEPARATOR = "&";
     private static final String NAME_VALUE_SEPARATOR = "=";
 
+    /**
+     * Returns a list of {@link NameValuePair NameValuePairs} as built from the
+     * URI's query portion. For example, a URI of
+     * http://example.org/path/to/file?a=1&b=2&c=3 would return a list of three
+     * NameValuePairs, one for a=1, one for b=2, and one for c=3.
+     * <p>
+     * This is typically useful while parsing an HTTP PUT.
+     * 
+     * @param uri
+     *            uri to parse
+     * @param encoding
+     *            encoding to use while parsing the query
+     */
     public static List <NameValuePair> parse (final URI uri, final String encoding) {
         List <NameValuePair> result = Collections.emptyList();
         final String query = uri.getRawQuery();
@@ -62,6 +78,18 @@ public class URLEncodedUtils {
         return result;
     }
 
+    /**
+     * Returns a list of {@link NameValuePair NameValuePairs} as parsed from an
+     * {@link HttpEntity}. The encoding is taken from the entity's
+     * Content-Encoding header.
+     * <p>
+     * This is typically used while parsing an HTTP POST.
+     * 
+     * @param entity
+     *            The entity to parse
+     * @throws IOException
+     *             If there was an exception getting the entity's data.
+     */
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
         List <NameValuePair> result = Collections.emptyList();
@@ -77,11 +105,29 @@ public class URLEncodedUtils {
         return result;
     }
 
+    /**
+     * Returns true if the entity's Content-Type header is
+     * <code>application/x-www-form-urlencoded</code>.
+     */
     public static boolean isEncoded (final HttpEntity entity) {
         final Header contentType = entity.getContentType();
         return (contentType != null && contentType.getValue().equalsIgnoreCase(CONTENT_TYPE));
     }
 
+    /**
+     * Adds all parameters within the Scanner to the list of
+     * <code>parameters</code>, as encoded by <code>encoding</code>. For
+     * example, a scanner containing the string <code>a=1&b=2&c=3</code> would
+     * add the {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the
+     * list of parameters.
+     * 
+     * @param parameters
+     *            List to add parameters to.
+     * @param scanner
+     *            Input that contains the parameters to parse.
+     * @param encoding
+     *            Encoding to use when decoding the parameters.
+     */
     public static void parse (
             final List <NameValuePair> parameters, 
             final Scanner scanner, 
@@ -100,6 +146,13 @@ public class URLEncodedUtils {
         }
     }
 
+    /**
+     * Returns a String that is suitable for use as an <code>application/x-www-form-urlencoded</code>
+     * list of parameters in an HTTP PUT or HTTP POST.
+     * 
+     * @param parameters  The parameters to include.
+     * @param encoding The encoding to use.
+     */
     public static String format (
             final List <NameValuePair> parameters, 
             final String encoding) {

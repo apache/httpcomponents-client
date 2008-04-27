@@ -151,28 +151,37 @@ public class DefaultHttpClient extends AbstractHttpClient {
         registry.register(
                 new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 
-        ClientConnectionManager connManager = null;        
-        
+        ClientConnectionManager connManager = null;     
         HttpParams params = getParams();
-        String className = (String) params.getParameter(
-                ClientPNames.CONNECTION_MANAGER_FACTORY);
         
-        if (className != null) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                ClientConnectionManagerFactory factory = 
-                    (ClientConnectionManagerFactory) clazz.newInstance();
-                connManager = factory.newInstance(params, registry);
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalStateException("Invalid class name: " + className);
-            } catch (IllegalAccessException ex) {
-                throw new IllegalAccessError(ex.getMessage());
-            } catch (InstantiationException ex) {
-                throw new InstantiationError(ex.getMessage());
+        ClientConnectionManagerFactory factory = null;
+
+        // Try first getting the factory directly as an object.
+        factory = (ClientConnectionManagerFactory) params
+                .getParameter(ClientPNames.CONNECTION_MANAGER_FACTORY);
+        if (factory == null) { // then try getting its class name.
+            String className = (String) params.getParameter(
+                    ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
+            if (className != null) {
+                try {
+                    Class<?> clazz = Class.forName(className);
+                    factory = (ClientConnectionManagerFactory) clazz.newInstance();
+                } catch (ClassNotFoundException ex) {
+                    throw new IllegalStateException("Invalid class name: " + className);
+                } catch (IllegalAccessException ex) {
+                    throw new IllegalAccessError(ex.getMessage());
+                } catch (InstantiationException ex) {
+                    throw new InstantiationError(ex.getMessage());
+                }
             }
+        }
+        
+        if(factory != null) {
+            connManager = factory.newInstance(params, registry);
         } else {
             connManager = new SingleClientConnManager(getParams(), registry); 
         }
+        
         return connManager;
     }
 

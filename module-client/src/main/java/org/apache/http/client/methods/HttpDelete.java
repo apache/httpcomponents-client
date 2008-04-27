@@ -34,10 +34,24 @@ package org.apache.http.client.methods;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * HTTP DELETE method
+ * <p>
+ * The HTTP DELETE method is defined in section 9.7 of
+ * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * <blockquote>
+ * The DELETE method requests that the origin server delete the resource
+ * identified by the Request-URI. [...] The client cannot
+ * be guaranteed that the operation has been carried out, even if the
+ * status code returned from the origin server indicates that the action
+ * has been completed successfully.
+ * </blockquote>
+ */
 public class HttpDelete extends HttpRequestBase {
 
     public final static String METHOD_NAME = "DELETE";
 
+    
     public HttpDelete() {
         super();
     }

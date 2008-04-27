@@ -37,8 +37,20 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
 
+/**
+ * An entity composed of a list of url-encoded pairs.
+ * This is typically useful while sending an HTTP POST request.
+ */
 public class UrlEncodedFormEntity extends StringEntity {
   
+    /**
+     * Constructs a new {@link UrlEncodedFormEntity} with the list
+     * of parameters in the specified encoding.
+     * 
+     * @param parameters list of name/value pairs
+     * @param encoding encoding the name/value pairs be encoded with
+     * @throws UnsupportedEncodingException if the encoding isn't supported
+     */
     public UrlEncodedFormEntity (
         final List <NameValuePair> parameters, 
         final String encoding) throws UnsupportedEncodingException {
@@ -47,6 +59,13 @@ public class UrlEncodedFormEntity extends StringEntity {
         setContentType(URLEncodedUtils.CONTENT_TYPE);
     }
 
+    /**
+     * Constructs a new {@link UrlEncodedFormEntity} with the list
+     * of parameters with the default encoding of {@link HTTP#DEFAULT_CONTENT_CHARSET}
+     * 
+     * @param parameters list of name/value pairs
+     * @throws UnsupportedEncodingException if the default encoding isn't supported
+     */
     public UrlEncodedFormEntity (
         final List <NameValuePair> parameters) throws UnsupportedEncodingException {
         super(URLEncodedUtils.format(parameters, HTTP.DEFAULT_CONTENT_CHARSET), 

@@ -34,16 +34,23 @@ package org.apache.http.conn.params;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
+/**
+ * Allows for setting parameters relating to connection managers on
+ * {@link HttpParams}.  This class ensures that the values set on the params
+ * are type-safe. 
+ */
 public class ConnManagerParamBean extends HttpAbstractParamBean {
 
     public ConnManagerParamBean (final HttpParams params) {
         super(params);
     }
 
+    /** @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS */
     public void setMaxTotalConnections (final int maxConnections) {
         params.setIntParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxConnections);
     }
     
+    /** @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE */
     public void setConnectionsPerRoute(final ConnPerRouteBean connPerRoute) {
         params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, connPerRoute);
     }

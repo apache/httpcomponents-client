@@ -35,6 +35,9 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A collection of URIs that were used as redirects.
+ */
 public class RedirectLocations {
 
     private final Set<URI> uris;
@@ -44,14 +47,23 @@ public class RedirectLocations {
         this.uris = new HashSet<URI>();
     }
     
+    /**
+     * Returns true if this collection contains the given URI.
+     */
     public boolean contains(final URI uri) {
         return this.uris.contains(uri);
     }
     
+    /**
+     * Adds a new URI to the list of redirects.
+     */
     public void add(final URI uri) {
         this.uris.add(uri);
     }
 
+    /**
+     * Removes a URI from the list of redirects.
+     */
     public boolean remove(final URI uri) {
         return this.uris.remove(uri);
     }

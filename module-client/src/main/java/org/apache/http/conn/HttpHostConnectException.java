@@ -34,6 +34,10 @@ import java.net.ConnectException;
 
 import org.apache.http.HttpHost;
 
+/**
+ * A {@link ConnectException} that specifies the {@link HttpHost} that was
+ * being connected to.
+ */
 public class HttpHostConnectException extends ConnectException {
 
     private static final long serialVersionUID = -3194482710275220224L;

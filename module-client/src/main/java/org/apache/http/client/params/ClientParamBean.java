@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -35,6 +35,7 @@ import java.util.Collection;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -48,7 +49,11 @@ public class ClientParamBean extends HttpAbstractParamBean {
         params.setLongParameter(ClientPNames.CONNECTION_MANAGER_TIMEOUT, timeout);
     }
 
-    public void setConnectionManagerFactory (final String factory) {
+    public void setConnectionManagerFactoryClassName (final String factory) {
+        params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME, factory);
+    }
+    
+    public void setConnectionManagerFactory(ClientConnectionManagerFactory factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY, factory);
     }
 

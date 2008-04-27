@@ -35,6 +35,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
 
 /**
+ * A factory for creating new {@link ClientConnectionManager} instances.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *

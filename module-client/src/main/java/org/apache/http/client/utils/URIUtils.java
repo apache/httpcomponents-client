@@ -34,9 +34,43 @@ import java.net.URISyntaxException;
 
 import org.apache.http.HttpHost;
 
+/**
+ * A collection of utilities for {@link URI URIs}, to workaround
+ * bugs within the class or for ease-of-use features.
+ */
 public class URIUtils {
 
-     public static URI createURI(
+     /**
+         * Constructs a {@link URI} using all the parameters. This should be
+         * used instead of
+         * {@link URI#URI(String, String, String, int, String, String, String)}
+         * or any of the other URI multi-argument URI constructors.
+         * 
+         * See <a
+         * href="https://issues.apache.org/jira/browse/HTTPCLIENT-730">HTTPCLIENT-730</a>
+         * for more information.
+         * 
+         * @param scheme
+         *            Scheme name
+         * @param host
+         *            Host name
+         * @param port
+         *            Port number
+         * @param path
+         *            Path
+         * @param query
+         *            Query
+         * @param fragment
+         *            Fragment
+         * 
+         * @throws URISyntaxException
+         *             If both a scheme and a path are given but the path is
+         *             relative, if the URI string constructed from the given
+         *             components violates RFC&nbsp;2396, or if the authority
+         *             component of the string is present but cannot be parsed
+         *             as a server-based authority
+         */
+    public static URI createURI(
             final String scheme,
             final String host,
             int port,
@@ -73,6 +107,22 @@ public class URIUtils {
         return new URI(buffer.toString());
     }
 
+    /**
+     * A convenience method for creating a new {@link URI} whose scheme, host
+     * and port are taken from the target host, but whose path, query and
+     * fragment are taken from the existing URI. The fragment is only used if
+     * dropFragment is false.
+     * 
+     * @param uri
+     *            Contains the path, query and fragment to use.
+     * @param target
+     *            Contains the scheme, host and port to use.
+     * @param dropFragment
+     *            True if the fragment should not be copied.
+     * 
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     */
     public static URI rewriteURI(
             final URI uri, 
             final HttpHost target,
@@ -99,6 +149,11 @@ public class URIUtils {
         }
     }
     
+    /**
+     * A convenience method for
+     * {@link URIUtils#rewriteURI(URI, HttpHost, boolean)} that always keeps the
+     * fragment.
+     */
     public static URI rewriteURI(
             final URI uri, 
             final HttpHost target) throws URISyntaxException {

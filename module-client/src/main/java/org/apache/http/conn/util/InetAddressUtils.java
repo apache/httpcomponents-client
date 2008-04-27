@@ -33,6 +33,9 @@ package org.apache.http.conn.util;
 
 import java.util.regex.Pattern;
 
+/**
+ * A collection of utilities relating to InetAddresses.
+ */
 public class InetAddressUtils {
 
     private InetAddressUtils() {

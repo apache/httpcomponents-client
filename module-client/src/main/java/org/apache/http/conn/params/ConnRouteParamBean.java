@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,20 +38,28 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
+/**
+ * Allows for setting parameters relating to connection routes on
+ * {@link HttpParams}.  This class ensures that the values set on the params
+ * are type-safe. 
+ */
 public class ConnRouteParamBean extends HttpAbstractParamBean {
     
     public ConnRouteParamBean (final HttpParams params) {
         super(params);
     }
 
+    /** @see ConnRoutePNames#DEFAULT_PROXY */
     public void setDefaultProxy (final HttpHost defaultProxy) {
         params.setParameter(ConnRoutePNames.DEFAULT_PROXY, defaultProxy);
     }
 
+    /** @see ConnRoutePNames#LOCAL_ADDRESS */
     public void setLocalAddress (final InetAddress address) {
         params.setParameter(ConnRoutePNames.LOCAL_ADDRESS, address);
     }
 
+    /** @see ConnRoutePNames#FORCED_ROUTE */
     public void setForcedRoute (final HttpRoute route) {
         params.setParameter(ConnRoutePNames.FORCED_ROUTE, route);
     }

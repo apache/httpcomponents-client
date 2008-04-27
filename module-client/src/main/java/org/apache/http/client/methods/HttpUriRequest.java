@@ -49,8 +49,16 @@ import org.apache.http.HttpRequest;
  */
 public interface HttpUriRequest extends HttpRequest {
     
+    /**
+     * Returns the HTTP method this request uses, such as <code>GET</code>,
+     * <code>PUT</code>, <code>POST</code>, or other.
+     */
     String getMethod();
 
+    /**
+     * Returns the URI this request uses, such as
+     * <code>http://example.org/path/to/file</code>.
+     */
     URI getURI();
     
 }

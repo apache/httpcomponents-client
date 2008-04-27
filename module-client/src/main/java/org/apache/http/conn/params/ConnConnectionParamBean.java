@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -34,12 +34,20 @@ package org.apache.http.conn.params;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
+/**
+ * Allows for setting parameters relating to connections on
+ * {@link HttpParams}.  This class ensures that the values set on the params
+ * are type-safe. 
+ */
 public class ConnConnectionParamBean extends HttpAbstractParamBean {
     
     public ConnConnectionParamBean (final HttpParams params) {
         super(params);
     }
 
+    /**
+     * @see ConnConnectionPNames#MAX_STATUS_LINE_GARBAGE
+     */
     public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
         params.setIntParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, maxStatusLineGarbage);
     }

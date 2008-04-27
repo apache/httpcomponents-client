@@ -41,7 +41,7 @@ public interface PoolEntryRequest {
 
     /**
      * Obtains a pool entry with a connection within the given timeout.
-     * If {@link #abortRequest()} is called before this completes,
+     * If {@link #abortRequest()} is called before this completes
      * an {@link InterruptedException} is thrown.
      *
      * @param timeout   the timeout, 0 or negative for no timeout
@@ -53,7 +53,7 @@ public interface PoolEntryRequest {
      * @throws ConnectionPoolTimeoutException
      *         if the timeout expired
      * @throws InterruptedException
-     *         if the calling thread was interrupted
+     *         if the calling thread was interrupted or the request was aborted
      */
     BasicPoolEntry getPoolEntry(
             long timeout, 
