@@ -38,7 +38,6 @@
   </parent>
   <artifactId>httpclient</artifactId>
   <name>HttpClient (base module)</name>
-  <inceptionYear>2000</inceptionYear>
   <description>
    HttpComponents Client (base module)
   </description>

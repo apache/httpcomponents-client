@@ -38,7 +38,6 @@
   </parent>
   <artifactId>httpmime</artifactId>
   <name>HttpClient (MIME entities)</name>
-  <inceptionYear>2000</inceptionYear>
   <description>
    HttpComponents HttpClient - MIME coded entities
   </description>
