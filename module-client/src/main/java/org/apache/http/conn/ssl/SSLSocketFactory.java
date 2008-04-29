@@ -272,7 +272,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
             throw new IllegalArgumentException("Parameters may not be null.");
         }
 
-        SSLSocket sslock = (SSLSocket)
+        SSLSocket sslsock = (SSLSocket)
             ((sock != null) ? sock : createSocket());
 
         if ((localAddress != null) || (localPort > 0)) {
@@ -283,25 +283,25 @@ public class SSLSocketFactory implements LayeredSocketFactory {
 
             InetSocketAddress isa =
                 new InetSocketAddress(localAddress, localPort);
-            sslock.bind(isa);
+            sslsock.bind(isa);
         }
 
         int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
         int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
-        sock.connect(new InetSocketAddress(host, port), connTimeout);
+        sslsock.connect(new InetSocketAddress(host, port), connTimeout);
 
-        sslock.setSoTimeout(soTimeout);
+        sslsock.setSoTimeout(soTimeout);
         try {
-            hostnameVerifier.verify(host, sslock);
+            hostnameVerifier.verify(host, sslsock);
             // verifyHostName() didn't blowup - good!
         } catch (IOException iox) {
             // close the socket before re-throwing the exception
-            try { sslock.close(); } catch (Exception x) { /*ignore*/ }
+            try { sslsock.close(); } catch (Exception x) { /*ignore*/ }
             throw iox;
         }
 
-        return sslock;
+        return sslsock;
     }
 
 
