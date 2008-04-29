@@ -53,7 +53,7 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;
 
     /** The default maximum number of connections allowed per host */
-    private static ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
+    private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
         
         public int getMaxForRoute(HttpRoute route) {
             return ConnPerRouteBean.DEFAULT_MAX_CONNECTIONS_PER_ROUTE;

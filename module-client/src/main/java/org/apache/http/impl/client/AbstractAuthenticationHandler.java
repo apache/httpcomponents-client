@@ -59,7 +59,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
     private static final Log LOG = LogFactory.getLog(AbstractAuthenticationHandler.class);
     
-    private static List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
+    private static final List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
             "digest",
             "basic"
     });
