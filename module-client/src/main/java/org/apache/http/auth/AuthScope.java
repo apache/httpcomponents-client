@@ -107,7 +107,7 @@ public class AuthScope {
         this.host =   (host == null)   ? ANY_HOST: host.toLowerCase();
         this.port =   (port < 0)       ? ANY_PORT: port;
         this.realm =  (realm == null)  ? ANY_REALM: realm;
-        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase();;
+        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase();
     }
     
     /** Creates a new credentials scope for the given 

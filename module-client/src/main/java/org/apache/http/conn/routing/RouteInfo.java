@@ -57,7 +57,7 @@ public interface RouteInfo {
      * and tunnelling through all proxies to the target.
      * Routes without a proxy cannot be tunnelled.
      */
-    public enum TunnelType { PLAIN, TUNNELLED };
+    public enum TunnelType { PLAIN, TUNNELLED }
 
     /**
      * The layering type of a route.
@@ -72,7 +72,7 @@ public interface RouteInfo {
      * could be established with the new protocol in the first place.
      * But we don't want to exclude that use case.
      */
-    public enum LayerType  { PLAIN, LAYERED };
+    public enum LayerType  { PLAIN, LAYERED }
 
 
 
