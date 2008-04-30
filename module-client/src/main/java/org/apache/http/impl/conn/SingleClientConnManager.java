@@ -343,8 +343,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
         LOG.warn(MISUSE_MESSAGE);
 
-        if (managedConn != null)
-            managedConn.detach();
+        managedConn.detach();
 
         try {
             uniquePoolEntry.shutdown();
