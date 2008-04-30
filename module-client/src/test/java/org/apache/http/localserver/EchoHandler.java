@@ -93,7 +93,7 @@ public class EchoHandler
 
         // For some reason, just putting the incoming entity into
         // the response will not work. We have to buffer the message.
-        byte[] data = null;
+        byte[] data;
         if (entity == null) {
             data = new byte [0];
         } else {
