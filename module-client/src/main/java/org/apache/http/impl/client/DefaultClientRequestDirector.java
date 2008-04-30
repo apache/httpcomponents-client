@@ -791,7 +791,6 @@ public class DefaultClientRequestDirector
         throws HttpException, IOException {
 
         HttpRoute route = roureq.getRoute();
-        HttpHost target = route.getTargetHost();
         HttpHost proxy = route.getProxyHost();
         RequestWrapper request = roureq.getRequest();
         
@@ -837,7 +836,7 @@ public class DefaultClientRequestDirector
 
             if (this.targetAuthHandler.isAuthenticationRequested(response, context)) {
 
-                target = (HttpHost)
+                HttpHost target = (HttpHost)
                     context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 if (target == null) {
                     target = route.getTargetHost();
