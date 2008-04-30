@@ -120,11 +120,6 @@ public class DefaultClientConnectionOperator
         }
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        if (schm == null) {
-            throw new IllegalArgumentException
-                ("Unknown scheme '" + target.getSchemeName() +
-                 "' in target host.");
-        }
         final SocketFactory sf = schm.getSocketFactory();
 
         Socket sock = sf.createSocket();
@@ -169,11 +164,6 @@ public class DefaultClientConnectionOperator
         }
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        if (schm == null) {
-            throw new IllegalArgumentException
-                ("Unknown scheme '" + target.getSchemeName() +
-                 "' in target host.");
-        }
         if (!(schm.getSocketFactory() instanceof LayeredSocketFactory)) {
             throw new IllegalArgumentException
                 ("Target scheme (" + schm.getName() +
