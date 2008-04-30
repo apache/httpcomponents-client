@@ -446,7 +446,7 @@ public class DigestScheme extends RFC2617Scheme {
      * Creates a random cnonce value based on the current time.
      * 
      * @return The cnonce value as String.
-     * @throws HttpClientError if MD5 algorithm is not supported.
+     * @throws UnsupportedDigestAlgorithmException if MD5 algorithm is not supported.
      */
     public static String createCnonce() {
         String cnonce;
