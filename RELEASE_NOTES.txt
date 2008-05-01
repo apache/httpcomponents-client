@@ -3,7 +3,7 @@ Release 4.0 Alpha 4
 
 ALPHA4 marks the completion of the overhaul of the connection management 
 code in HttpClient. All known shortcomings of the old HttpClient 3.x 
-codebase have been addressed.
+connection management API have been addressed.
 
 NTLM authentication remains the only missing major feature in the new 
 codeline that prevents us from moving awards the API freeze.
