@@ -23,6 +23,8 @@ HttpClient 3.x features that have NOT yet been ported:
 Changelog:
 -------------------
 
+* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify Locale.ENGLISH
+
 * [HTTPCLIENT-769] Do not pool connection marked non-reusable.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
