@@ -44,7 +44,7 @@ import org.apache.commons.logging.Log;
  */
 public class Wire {
 
-    private Log log;
+    private final Log log;
     
     public Wire(Log log) {
         this.log = log;

@@ -53,7 +53,7 @@ public class IdleConnectionHandler {
     private final Log LOG = LogFactory.getLog(IdleConnectionHandler.class);
     
     /** Holds connections and the time they were added. */
-    private Map<HttpConnection,Long> connectionToAdded;
+    private final Map<HttpConnection,Long> connectionToAdded;
     
 
     public IdleConnectionHandler() {

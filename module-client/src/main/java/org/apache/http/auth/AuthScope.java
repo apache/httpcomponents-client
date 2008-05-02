@@ -73,16 +73,16 @@ public class AuthScope {
     public static final AuthScope ANY = new AuthScope(ANY_HOST, ANY_PORT, ANY_REALM, ANY_SCHEME);
 
     /** The authentication scheme the credentials apply to. */
-    private String scheme = null;
+    private final String scheme;
     
     /** The realm the credentials apply to. */
-    private String realm = null;
+    private final String realm;
     
     /** The host the credentials apply to. */
-    private String host = null;
+    private final String host;
         
     /** The port the credentials apply to. */
-    private int port = -1;
+    private final int port;
         
     /** Creates a new credentials scope for the given 
      * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and 
