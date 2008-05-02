@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -942,7 +943,7 @@ public class DefaultClientRequestDirector
         }
         String id = authScheme.getSchemeName();
 
-        Header challenge = challenges.get(id.toLowerCase());
+        Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
         if (challenge == null) {
             throw new AuthenticationException(id + 
                 " authorization challenge expected, but not found");

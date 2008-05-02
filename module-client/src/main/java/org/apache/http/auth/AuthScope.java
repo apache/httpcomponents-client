@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import java.util.Locale;
+
 import org.apache.http.util.LangUtils;
 
 /** 
@@ -104,10 +106,10 @@ public class AuthScope {
     public AuthScope(final String host, int port, 
         final String realm, final String scheme)
     {
-        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase();
+        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ENGLISH);
         this.port =   (port < 0)       ? ANY_PORT: port;
         this.realm =  (realm == null)  ? ANY_REALM: realm;
-        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase();
+        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ENGLISH);
     }
     
     /** Creates a new credentials scope for the given 
@@ -254,7 +256,7 @@ public class AuthScope {
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         if (this.scheme != null) {
-            buffer.append(this.scheme.toUpperCase());
+            buffer.append(this.scheme.toUpperCase(Locale.ENGLISH));
             buffer.append(' ');
         }
         if (this.realm != null) {

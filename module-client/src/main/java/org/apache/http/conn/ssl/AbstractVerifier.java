@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import javax.net.ssl.SSLException;
@@ -178,12 +179,12 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
         // We're can be case-insensitive when comparing the host we used to
         // establish the socket to the hostname in the certificate.
-        String hostName = host.trim().toLowerCase();
+        String hostName = host.trim().toLowerCase(Locale.ENGLISH);
         boolean match = false;
         for(Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
             String cn = it.next();
-            cn = cn.toLowerCase();
+            cn = cn.toLowerCase(Locale.ENGLISH);
             // Store CN in StringBuffer in case we need to report an error.
             buf.append(" <");
             buf.append(cn);

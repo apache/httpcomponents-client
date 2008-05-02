@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.cookie.ClientCookie;
@@ -197,7 +198,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
      */
     public void setDomain(String domain) {
         if (domain != null) {
-            cookieDomain = domain.toLowerCase();
+            cookieDomain = domain.toLowerCase(Locale.ENGLISH);
         } else {
             cookieDomain = null;
         }

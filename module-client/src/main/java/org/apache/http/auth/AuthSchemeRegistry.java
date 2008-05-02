@@ -33,6 +33,7 @@ package org.apache.http.auth;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.params.HttpParams;
@@ -80,7 +81,7 @@ public final class AuthSchemeRegistry {
         if (factory == null) {
             throw new IllegalArgumentException("Authentication scheme factory may not be null");
         }
-        registeredSchemes.put(name.toLowerCase(), factory);
+        registeredSchemes.put(name.toLowerCase(Locale.ENGLISH), factory);
     }
 
     /**
@@ -93,7 +94,7 @@ public final class AuthSchemeRegistry {
          if (name == null) {
              throw new IllegalArgumentException("Name may not be null");
          }
-        registeredSchemes.remove(name.toLowerCase());
+        registeredSchemes.remove(name.toLowerCase(Locale.ENGLISH));
     }
 
     /**
@@ -113,7 +114,7 @@ public final class AuthSchemeRegistry {
         if (name == null) {
             throw new IllegalArgumentException("Name may not be null");
         }
-        AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase());
+        AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);
         } else {

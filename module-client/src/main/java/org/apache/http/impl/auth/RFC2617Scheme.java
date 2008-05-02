@@ -31,6 +31,7 @@
 package org.apache.http.impl.auth;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.Header;
@@ -159,7 +160,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
         if (this.params == null) {
             return null;
         }
-        return this.params.get(name.toLowerCase());
+        return this.params.get(name.toLowerCase(Locale.ENGLISH));
     }
 
     /**

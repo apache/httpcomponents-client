@@ -30,6 +30,8 @@
  */
 package org.apache.http.cookie;
 
+import java.util.Locale;
+
 /**
  * CookieOrigin class incapsulates details of an origin server that 
  * are relevant when parsing, validating or matching HTTP cookies.
@@ -62,7 +64,7 @@ public final class CookieOrigin {
             throw new IllegalArgumentException(
                     "Path of origin may not be null.");
         }
-        this.host = host.toLowerCase();
+        this.host = host.toLowerCase(Locale.ENGLISH);
         this.port = port;
         if (!path.trim().equals("")) {
             this.path = path;

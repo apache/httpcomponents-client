@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -97,7 +98,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             }
             int endIndex = pos;
             String s = buffer.substring(beginIndex, endIndex);
-            map.put(s.toLowerCase(), header);
+            map.put(s.toLowerCase(Locale.ENGLISH), header);
         }
         return map;
     }
@@ -126,7 +127,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         AuthScheme authScheme = null;
         for (Iterator<String> it = authPrefs.iterator(); it.hasNext(); ) {
             String id = it.next();
-            Header challenge = challenges.get(id.toLowerCase()); 
+            Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
             if (challenge != null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(id + " authentication scheme selected");

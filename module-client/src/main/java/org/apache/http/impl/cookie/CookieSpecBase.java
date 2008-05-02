@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
@@ -87,7 +88,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
             NameValuePair[] attribs = headerelement.getParameters();
             for (int j = attribs.length - 1; j >= 0; j--) {
                 NameValuePair attrib = attribs[j];
-                String s = attrib.getName().toLowerCase();
+                String s = attrib.getName().toLowerCase(Locale.ENGLISH);
                 
                 cookie.setAttribute(s, attrib.getValue());
                 

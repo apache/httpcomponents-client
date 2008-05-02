@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
@@ -109,7 +110,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         }
         String headervalue = header.getValue();
         boolean isNetscapeCookie = false; 
-        int i1 = headervalue.toLowerCase().indexOf("expires=");
+        int i1 = headervalue.toLowerCase(Locale.ENGLISH).indexOf("expires=");
         if (i1 != -1) {
             i1 += "expires=".length();
             int i2 = headervalue.indexOf(";", i1);

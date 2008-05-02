@@ -31,6 +31,7 @@
 package org.apache.http.cookie;
 
 import java.util.List;
+import java.util.Locale;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -85,9 +86,9 @@ public class TestCookiePolicy extends TestCase {
         names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(3, names.size());
-        assertEquals(BROWSER_COMPATIBILITY.toLowerCase(), names.get(0));
-        assertEquals(NETSCAPE.toLowerCase(), names.get(1));
-        assertEquals(RFC_2109.toLowerCase(), names.get(2));
+        assertEquals(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH), names.get(0));
+        assertEquals(NETSCAPE.toLowerCase(Locale.ENGLISH), names.get(1));
+        assertEquals(RFC_2109.toLowerCase(Locale.ENGLISH), names.get(2));
 
         registry.unregister(NETSCAPE); 
         registry.unregister(NETSCAPE); 

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Locale;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -82,7 +83,7 @@ public class RandomHandler
                        final HttpContext context)
         throws HttpException, IOException {
 
-        String method = request.getRequestLine().getMethod().toUpperCase();
+        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         if (!"GET".equals(method) && !"HEAD".equals(method)) {
             throw new MethodNotSupportedException
                 (method + " not supported by " + getClass().getName());

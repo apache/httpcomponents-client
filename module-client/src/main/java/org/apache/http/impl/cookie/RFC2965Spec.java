@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.Header;
@@ -132,11 +133,11 @@ public class RFC2965Spec extends RFC2109Spec {
                 new HashMap<String, NameValuePair>(attribs.length); 
             for (int j = attribs.length - 1; j >= 0; j--) {
                 NameValuePair param = attribs[j];
-                attribmap.put(param.getName().toLowerCase(), param);
+                attribmap.put(param.getName().toLowerCase(Locale.ENGLISH), param);
             }
             for (Map.Entry<String, NameValuePair> entry: attribmap.entrySet()) {
                 NameValuePair attrib = entry.getValue();
-                String s = attrib.getName().toLowerCase();
+                String s = attrib.getName().toLowerCase(Locale.ENGLISH);
                 
                 cookie.setAttribute(s, attrib.getValue());
                 
