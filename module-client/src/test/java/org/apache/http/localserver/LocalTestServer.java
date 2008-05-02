@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -157,7 +158,7 @@ public class LocalTestServer {
             .setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,
                                  true)
             .setParameter(CoreProtocolPNames.ORIGIN_SERVER,
-                          "Jakarta-HttpComponents-LocalTestServer/1.1");
+                          "LocalTestServer/1.1");
         return params;
     }
 
@@ -278,6 +279,19 @@ public class LocalTestServer {
         return ssock.getLocalPort();
     }
 
+
+    /**
+     * Obtains the local address the server is listening on
+     *  
+     * @return the service address
+     */
+    public SocketAddress getServiceAddress() {
+        ServerSocket ssock = servicedSocket; // avoid synchronization
+        if (ssock == null)
+            throw new IllegalStateException("not running");
+
+        return ssock.getLocalSocketAddress();
+    }
 
     /**
      * The request listener.

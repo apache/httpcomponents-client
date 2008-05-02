@@ -151,7 +151,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     // non-javadoc, see interface HttpConnection        
     public void close() throws IOException {
         if (poolEntry != null)
-            poolEntry.closing();
+            poolEntry.resetTrackedRoute();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {
@@ -162,7 +162,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     // non-javadoc, see interface HttpConnection        
     public void shutdown() throws IOException {
         if (poolEntry != null)
-            poolEntry.closing();
+            poolEntry.resetTrackedRoute();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {

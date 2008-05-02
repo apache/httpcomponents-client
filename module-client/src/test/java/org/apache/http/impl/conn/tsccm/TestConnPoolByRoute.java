@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -95,7 +95,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
 
             // Free one
-            connPool.freeEntry(e3);
+            connPool.freeEntry(e3, true);
 
             // This time the request should succeed
             PoolEntryRequest r5 = connPool.requestPoolEntry(route, null);
@@ -136,9 +136,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             e3.setState(Integer.valueOf(3));
 
             // Release entries
-            connPool.freeEntry(e1);
-            connPool.freeEntry(e2);
-            connPool.freeEntry(e3);
+            connPool.freeEntry(e1, true);
+            connPool.freeEntry(e2, true);
+            connPool.freeEntry(e3, true);
 
             // Request statefull entries
             PoolEntryRequest r4 = connPool.requestPoolEntry(route, Integer.valueOf(2));
@@ -160,9 +160,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             assertTrue(e6 == e1);
 
             // Release entries again
-            connPool.freeEntry(e4);
-            connPool.freeEntry(e5);
-            connPool.freeEntry(e6);
+            connPool.freeEntry(e4, true);
+            connPool.freeEntry(e5, true);
+            connPool.freeEntry(e6, true);
 
             // Request an entry with a state not avaialable in the pool
             PoolEntryRequest r7 = connPool.requestPoolEntry(route, Integer.valueOf(4));

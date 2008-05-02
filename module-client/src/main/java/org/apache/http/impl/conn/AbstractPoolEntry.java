@@ -299,12 +299,9 @@ public abstract class AbstractPoolEntry {
 
 
     /**
-     * Tracks close or shutdown of the connection.
-     * There is no distinction between the two, the route is dropped
-     * in both cases. This method should be called regardless of
-     * whether the close or shutdown succeeds or triggers an error.
+     * Resets tracked route.
      */
-    public void closing() { 
+    protected void resetTrackedRoute() { 
         tracker = null;
     }
 

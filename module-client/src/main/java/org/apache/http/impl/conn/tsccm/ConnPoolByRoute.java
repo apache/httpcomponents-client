@@ -369,7 +369,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     // non-javadoc, see base class AbstractConnPool
     @Override
-    public void freeEntry(BasicPoolEntry entry) {
+    public void freeEntry(BasicPoolEntry entry, boolean reusable) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
@@ -391,16 +391,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             RouteSpecificPool rospl = getRoutePool(route, true);
 
-            rospl.freeEntry(entry);
-            freeConnections.add(entry);
-
-            if (numConnections == 0) {
-                // for some reason this pool didn't already exist
-                LOG.error("Master connection pool not found: " + route);
-                numConnections = 1;
+            if (reusable) {
+                rospl.freeEntry(entry);
+                freeConnections.add(entry);
+                idleConnHandler.add(entry.getConnection());
+            } else {
+                rospl.dropEntry();
+                numConnections--;
             }
-
-            idleConnHandler.add(entry.getConnection());
 
             notifyWaitingThread(rospl);
 

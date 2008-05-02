@@ -283,7 +283,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         } finally {
             sca.detach();
             managedConn = null;
-            uniquePoolEntry.tracker = null;
             lastReleaseTime = System.currentTimeMillis();
         }
     } // releaseConnection
@@ -374,7 +373,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void close()
             throws IOException {
 
-            closing();
+            resetTrackedRoute();
             if (connection.isOpen())
                 connection.close();
         }
@@ -386,7 +385,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void shutdown()
             throws IOException {
 
-            closing();
+            resetTrackedRoute();
             if (connection.isOpen())
                 connection.shutdown();
         }

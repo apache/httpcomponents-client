@@ -200,8 +200,8 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         assertNotNull(e);
         httpget.abort();
         
-        // Expect one connection in the pool
-        assertEquals(1, mgr.getConnectionsInPool());
+        // Expect zero connections in the pool
+        assertEquals(0, mgr.getConnectionsInPool());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);
@@ -281,8 +281,8 @@ public class TestConnectionAutoRelease extends ServerTestBase {
             
         }
         
-        // Expect one connection in the pool
-        assertEquals(1, mgr.getConnectionsInPool());
+        // Expect zero connections in the pool
+        assertEquals(0, mgr.getConnectionsInPool());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);

@@ -359,30 +359,25 @@ public abstract class AbstractClientConnAdapter
         }
         aborted = true;
         unmarkReusable();
-
-        OperatedClientConnection conn = getWrappedConnection();
-        
-        if (conn != null) {
-            try {
-                conn.shutdown();
-            } catch (IOException ignore) {
-            }
-            // Usually #abortConnection() is expected to be called from 
-            // a helper thread in order to unblock the main execution thread 
-            // blocked in an I/O operation. It may be unsafe to call 
-            // #releaseConnection() from the helper thread, so we have to rely
-            // on an IOException thrown by the closed socket on the main thread 
-            // to trigger the release of the connection back to the 
-            // connection manager.
-            // 
-            // However, if this method is called from the main execution thread 
-            // it should be safe to release the connection immediately. Besides, 
-            // this also helps ensure the connection gets released back to the 
-            // manager if #abortConnection() is called from the main execution 
-            // thread while there is no blocking I/O operation.
-            if (executionThread.equals(Thread.currentThread())) {
-                releaseConnection();
-            }
+        try {
+            shutdown();
+        } catch (IOException ignore) {
+        }
+        // Usually #abortConnection() is expected to be called from 
+        // a helper thread in order to unblock the main execution thread 
+        // blocked in an I/O operation. It may be unsafe to call 
+        // #releaseConnection() from the helper thread, so we have to rely
+        // on an IOException thrown by the closed socket on the main thread 
+        // to trigger the release of the connection back to the 
+        // connection manager.
+        // 
+        // However, if this method is called from the main execution thread 
+        // it should be safe to release the connection immediately. Besides, 
+        // this also helps ensure the connection gets released back to the 
+        // manager if #abortConnection() is called from the main execution 
+        // thread while there is no blocking I/O operation.
+        if (executionThread.equals(Thread.currentThread())) {
+            releaseConnection();
         }
     }
 

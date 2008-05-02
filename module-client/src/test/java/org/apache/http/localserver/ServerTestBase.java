@@ -119,7 +119,7 @@ public abstract class ServerTestBase extends TestCase {
             HttpProtocolParams.setContentCharset
                 (defaultParams, "UTF-8");
             HttpProtocolParams.setUserAgent
-                (defaultParams, "Jakarta-HttpComponents-Test/1.1");
+                (defaultParams, "TestAgent/1.1");
             HttpProtocolParams.setUseExpectContinue
                 (defaultParams, false);
         }
