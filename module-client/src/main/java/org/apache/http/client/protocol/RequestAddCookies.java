@@ -146,7 +146,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get an instance of the selected cookie policy
         CookieSpec cookieSpec = registry.getCookieSpec(policy, request.getParams());
         // Get all cookies available in the HTTP state
-        List<Cookie> cookies = cookieStore.getCookies();
+        List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
         // Find cookies matching the given origin
         List<Cookie> matchedCookies = new ArrayList<Cookie>();
         for (Cookie cookie : cookies) {
