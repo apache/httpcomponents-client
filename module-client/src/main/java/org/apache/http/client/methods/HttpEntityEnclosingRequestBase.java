@@ -48,7 +48,7 @@ import org.apache.http.protocol.HTTP;
 abstract class HttpEntityEnclosingRequestBase 
     extends HttpRequestBase implements HttpEntityEnclosingRequest {
     
-    private HttpEntity entity = null;
+    private HttpEntity entity;
     
     public HttpEntityEnclosingRequestBase() {
         super();

@@ -97,8 +97,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
     /**
      * Creates a new connection pool.
-     *
-     * @param mgr   the connection manager
      */
     protected AbstractConnPool() {
         issuedConnections = new HashSet<BasicPoolEntryRef>();

@@ -113,7 +113,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         int i1 = headervalue.toLowerCase(Locale.ENGLISH).indexOf("expires=");
         if (i1 != -1) {
             i1 += "expires=".length();
-            int i2 = headervalue.indexOf(";", i1);
+            int i2 = headervalue.indexOf(';', i1);
             if (i2 == -1) {
                 i2 = headervalue.length(); 
             }

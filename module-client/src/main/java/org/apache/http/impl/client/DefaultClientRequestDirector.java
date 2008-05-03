@@ -761,7 +761,7 @@ public class DefaultClientRequestDirector
         
         StringBuilder buffer = new StringBuilder(host.length() + 6);
         buffer.append(host);
-        buffer.append(":");
+        buffer.append(':');
         buffer.append(Integer.toString(port));
         
         String authority = buffer.toString();

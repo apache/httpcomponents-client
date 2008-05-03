@@ -65,7 +65,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             throw new MalformedCookieException(
                     "Missing value for domain attribute");
         }
-        if (domain.trim().equals("")) {
+        if (domain.trim().length() == 0) {
             throw new MalformedCookieException(
                     "Blank value for domain attribute");
         }
@@ -76,7 +76,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             // a dot, the user agent supplies a leading dot ..."
             // That effectively implies that the domain attribute 
             // MAY NOT be an IP address of a host name
-            domain = "." + domain;
+            domain = '.' + domain;
         }
         cookie.setDomain(domain);
     }
@@ -189,10 +189,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
         // effective host name minus domain must not contain any dots
         String effectiveHostWithoutDomain = host.substring(
                 0, host.length() - cookieDomain.length());
-        if (effectiveHostWithoutDomain.indexOf('.') != -1) {
-            return false;
-        }
-        return true;
+        return effectiveHostWithoutDomain.indexOf('.') == -1;
     }
 
 }

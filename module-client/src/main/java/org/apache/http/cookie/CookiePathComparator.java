@@ -58,7 +58,7 @@ public class CookiePathComparator implements Serializable, Comparator<Cookie> {
             path = "/";
         }
         if (!path.endsWith("/")) {
-            path = path + "/";
+            path = path + '/';
         }
         return path;
     }

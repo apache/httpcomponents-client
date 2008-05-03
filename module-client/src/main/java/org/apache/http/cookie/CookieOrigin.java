@@ -53,7 +53,7 @@ public final class CookieOrigin {
             throw new IllegalArgumentException(
                     "Host of origin may not be null");
         }
-        if (host.trim().equals("")) {
+        if (host.trim().length() == 0) {
             throw new IllegalArgumentException(
                     "Host of origin may not be blank");
         }
@@ -66,7 +66,7 @@ public final class CookieOrigin {
         }
         this.host = host.toLowerCase(Locale.ENGLISH);
         this.port = port;
-        if (!path.trim().equals("")) {
+        if (path.trim().length() != 0) {
             this.path = path;
         } else {
             this.path = "/";
@@ -93,15 +93,15 @@ public final class CookieOrigin {
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
-        buffer.append("[");
+        buffer.append('[');
         if (this.secure) {
             buffer.append("(secure)");
         }
         buffer.append(this.host);
-        buffer.append(":");
+        buffer.append(':');
         buffer.append(Integer.toString(this.port));
         buffer.append(this.path);
-        buffer.append("]");
+        buffer.append(']');
         return buffer.toString();
     }
     

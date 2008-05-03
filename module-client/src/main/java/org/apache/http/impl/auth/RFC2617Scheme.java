@@ -60,7 +60,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
     /**
      * Authentication parameter map.
      */
-    private Map<String, String> params = null;
+    private Map<String, String> params;
 
     /**
      * Flag whether authenticating against a proxy.
@@ -131,8 +131,7 @@ public abstract class RFC2617Scheme implements AuthScheme {
         }
         
         this.params = new HashMap<String, String>(elements.length);
-        for (int i = 0; i < elements.length; i++) {
-            HeaderElement element = elements[i];
+        for (HeaderElement element : elements) {
             this.params.put(element.getName(), element.getValue());
         }
     }

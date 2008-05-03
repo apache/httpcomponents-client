@@ -39,6 +39,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Arrays;
 
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
@@ -64,7 +65,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * Gets the singleton instance of this class.
      * @return the one and only plain socket factory
      */
-    public static final MultihomePlainSocketFactory getSocketFactory() {
+    public static MultihomePlainSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
     }
 
@@ -126,9 +127,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
 
         InetAddress[] inetadrs = InetAddress.getAllByName(host);
         List<InetAddress> addresses = new ArrayList<InetAddress>(inetadrs.length);
-        for (InetAddress inetadr: inetadrs) {
-            addresses.add(inetadr);
-        }
+        addresses.addAll(Arrays.asList(inetadrs));
         Collections.shuffle(addresses);
 
         IOException lastEx = null;

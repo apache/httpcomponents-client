@@ -162,9 +162,9 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             names.add(cns[0]);
         }
         if(subjectAlts != null) {
-            for(int i = 0; i < subjectAlts.length; i++) {
-                if(subjectAlts[i] != null) {
-                    names.add(subjectAlts[i]);
+            for (String subjectAlt : subjectAlts) {
+                if (subjectAlt != null) {
+                    names.add(subjectAlt);
                 }
             }
         }
@@ -303,12 +303,11 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             cpe.printStackTrace();
         }
         if(c != null) {
-            Iterator<List<?>> it = c.iterator();
-            while(it.hasNext()) {
-                List<?> list = it.next();
+            for (List<?> aC : c) {
+                List<?> list = aC;
                 int type = ((Integer) list.get(0)).intValue();
                 // If type is 2, then we've got a dNSName
-                if(type == 2) {
+                if (type == 2) {
                     String s = (String) list.get(1);
                     subjectAltList.add(s);
                 }

@@ -33,7 +33,6 @@ package org.apache.http.impl.client;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,8 +72,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             final Header[] headers) throws MalformedChallengeException {
         
         Map<String, Header> map = new HashMap<String, Header>(headers.length);
-        for (int i = 0; i < headers.length; i++) {
-            Header header = headers[i];
+        for (Header header : headers) {
             CharArrayBuffer buffer;
             int pos;
             if (header instanceof FormattedHeader) {
@@ -125,9 +123,9 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         }
 
         AuthScheme authScheme = null;
-        for (Iterator<String> it = authPrefs.iterator(); it.hasNext(); ) {
-            String id = it.next();
+        for (String id : authPrefs) {
             Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
+
             if (challenge != null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(id + " authentication scheme selected");

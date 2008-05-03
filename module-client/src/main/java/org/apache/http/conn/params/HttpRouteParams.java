@@ -84,7 +84,7 @@ public class HttpRouteParams {
      * @return  the default proxy set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public final static HttpHost getDefaultProxy(HttpParams params) {
+    public static HttpHost getDefaultProxy(HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
@@ -108,7 +108,7 @@ public class HttpRouteParams {
      *                  <code>null</code> by {@link #getDefaultProxy},
      *                  to allow for explicit unsetting in hierarchies.
      */
-    public final static void setDefaultProxy(HttpParams params,
+    public static void setDefaultProxy(HttpParams params,
                                              HttpHost proxy) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
@@ -128,7 +128,7 @@ public class HttpRouteParams {
      * @return  the forced route set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public final static HttpRoute getForcedRoute(HttpParams params) {
+    public static HttpRoute getForcedRoute(HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
@@ -152,7 +152,7 @@ public class HttpRouteParams {
      *                  <code>null</code> by {@link #getForcedRoute},
      *                  to allow for explicit unsetting in hierarchies.
      */
-    public final static void setForcedRoute(HttpParams params,
+    public static void setForcedRoute(HttpParams params,
                                             HttpRoute route) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
@@ -173,7 +173,7 @@ public class HttpRouteParams {
      * @return  the local address set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public final static InetAddress getLocalAddress(HttpParams params) {
+    public static InetAddress getLocalAddress(HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
@@ -191,7 +191,7 @@ public class HttpRouteParams {
      * @param params    the parameters in which to set the value
      * @param local     the value to set, may be <code>null</code>
      */
-    public final static void setLocalAddress(HttpParams params,
+    public static void setLocalAddress(HttpParams params,
                                              InetAddress local) {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");

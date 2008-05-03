@@ -45,13 +45,13 @@ import org.apache.http.auth.Credentials;
 public class AuthState {
 
     /** Actual authentication scheme */
-    private AuthScheme authScheme = null;
+    private AuthScheme authScheme;
 
     /** Actual authentication scope */
-    private AuthScope authScope = null;
+    private AuthScope authScope;
     
     /** Credentials selected for authentication */
-    private Credentials credentials = null;
+    private Credentials credentials;
     
     /**
      * Default constructor.

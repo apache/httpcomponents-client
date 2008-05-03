@@ -71,27 +71,25 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
     protected List<Cookie> parse(final HeaderElement[] elems, final CookieOrigin origin)
                 throws MalformedCookieException {
         List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
-        for (int i = 0; i < elems.length; i++) {
-            HeaderElement headerelement = elems[i];
-
+        for (HeaderElement headerelement : elems) {
             String name = headerelement.getName();
             String value = headerelement.getValue();
-            if (name == null || name.equals("")) {
+            if (name == null || name.length() == 0) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
-            
+
             BasicClientCookie cookie = new BasicClientCookie(name, value);
             cookie.setPath(getDefaultPath(origin));
             cookie.setDomain(getDefaultDomain(origin));
-            
+
             // cycle through the parameters
             NameValuePair[] attribs = headerelement.getParameters();
             for (int j = attribs.length - 1; j >= 0; j--) {
                 NameValuePair attrib = attribs[j];
                 String s = attrib.getName().toLowerCase(Locale.ENGLISH);
-                
+
                 cookie.setAttribute(s, attrib.getValue());
-                
+
                 CookieAttributeHandler handler = findAttribHandler(s);
                 if (handler != null) {
                     handler.parse(cookie, attrib.getValue());

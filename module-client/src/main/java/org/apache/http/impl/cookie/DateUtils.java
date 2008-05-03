@@ -151,16 +151,16 @@ public final class DateUtils {
         ) {
             dateValue = dateValue.substring (1, dateValue.length() - 1);
         }
-        
-        for (int i = 0; i < dateFormats.length; i++) {
-            SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormats[i]);
+
+        for (String dateFormat : dateFormats) {
+            SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
             dateParser.set2DigitYearStart(startDate);
 
             try {
                 return dateParser.parse(dateValue);
             } catch (ParseException pe) {
                 // ignore this exception, we will try the next format
-            }                
+            }
         }
         
         // we were unable to parse the date

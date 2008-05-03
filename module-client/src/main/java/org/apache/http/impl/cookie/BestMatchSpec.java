@@ -53,9 +53,9 @@ public class BestMatchSpec implements CookieSpec {
     private final String[] datepatterns;
     private final boolean oneHeader;
     
-    private RFC2965Spec strict = null;
-    private BrowserCompatSpec compat = null;
-    private NetscapeDraftSpec netscape = null;
+    private RFC2965Spec strict;
+    private BrowserCompatSpec compat;
+    private NetscapeDraftSpec netscape;
 
     public BestMatchSpec(final String[] datepatterns, boolean oneHeader) {
         super();

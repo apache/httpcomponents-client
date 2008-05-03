@@ -33,7 +33,6 @@ package org.apache.http.client.protocol;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;
@@ -66,8 +65,8 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
         Collection<?> defHeaders = (Collection<?>) request.getParams().getParameter(
                 ClientPNames.DEFAULT_HEADERS);
         if (defHeaders != null) {
-            for (Iterator<?> it = defHeaders.iterator(); it.hasNext(); ) {
-                request.addHeader((Header) it.next());
+            for (Object defHeader : defHeaders) {
+                request.addHeader((Header) defHeader);
             }
         }
     }

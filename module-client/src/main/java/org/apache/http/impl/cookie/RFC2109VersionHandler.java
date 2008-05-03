@@ -49,7 +49,7 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
         if (value == null) {
             throw new MalformedCookieException("Missing value for version attribute");
         }
-        if (value.trim().equals("")) {
+        if (value.trim().length() == 0) {
             throw new MalformedCookieException("Blank value for version attribute");
         }
         try {

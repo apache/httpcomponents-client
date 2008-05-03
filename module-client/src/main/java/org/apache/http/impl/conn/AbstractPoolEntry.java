@@ -90,7 +90,7 @@ public abstract class AbstractPoolEntry {
     /**
      * Creates a new pool entry.
      *
-     * @param occ     the underlying connection for this entry
+     * @param connOperator     the Connection Operator for this entry
      * @param route   the planned route for the connection,
      *                or <code>null</code>
      */

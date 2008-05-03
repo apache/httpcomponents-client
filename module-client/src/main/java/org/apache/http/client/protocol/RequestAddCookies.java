@@ -149,8 +149,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         List<Cookie> matchedCookies = new ArrayList<Cookie>();
-        for (int i = 0; i < cookies.size(); i++) {
-            Cookie cookie = cookies.get(i);
+        for (Cookie cookie : cookies) {
             if (cookieSpec.match(cookie, cookieOrigin)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Cookie " + cookie + " match " + cookieOrigin);
@@ -161,16 +160,15 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Generate Cookie request headers
         if (!matchedCookies.isEmpty()) {
             List<Header> headers = cookieSpec.formatCookies(matchedCookies);
-            for (int i = 0; i < headers.size(); i++) {
-                request.addHeader(headers.get(i));
+            for (Header header : headers) {
+                request.addHeader(header);
             }
         }
         
         int ver = cookieSpec.getVersion();
         if (ver > 0) {
             boolean needVersionHeader = false;
-            for (int i = 0; i < matchedCookies.size(); i++) {
-                Cookie cookie = matchedCookies.get(i);
+            for (Cookie cookie : matchedCookies) {
                 if (ver != cookie.getVersion()) {
                     needVersionHeader = true;
                 }

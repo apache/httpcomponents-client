@@ -133,9 +133,9 @@ public class UsernamePasswordCredentials implements Credentials {
      */
     @Override
     public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         result.append(this.userName);
-        result.append(":");
+        result.append(':');
         result.append((this.password == null) ? "null" : this.password);
         return result.toString();
     }

@@ -198,7 +198,7 @@ public class DigestScheme extends RFC2617Scheme {
      * @param credentials A set of credentials to be used for athentication
      * @param request    The request being authenticated
      * 
-     * @throws InvalidCredentialsException if authentication credentials
+     * @throws org.apache.http.auth.InvalidCredentialsException if authentication credentials
      *         are not valid or not applicable for this authentication scheme
      * @throws AuthenticationException if authorization string cannot 
      *   be generated due to an authentication failure
@@ -241,10 +241,6 @@ public class DigestScheme extends RFC2617Scheme {
     
     /**
      * Creates an MD5 response digest.
-     * 
-     * @param uname Username
-     * @param pwd Password
-     * @param charset The credential charset
      * 
      * @return The created digest as string. This will be the response tag's
      *         value in the Authentication HTTP header.
@@ -311,7 +307,7 @@ public class DigestScheme extends RFC2617Scheme {
             //we do not have access to the entity-body or its hash
             //TODO: add Method ":" digest-uri-value ":" H(entity-body)      
         } else {
-            a2 = method + ":" + uri;
+            a2 = method + ':' + uri;
         }
         String md5a2 = encode(md5Helper.digest(EncodingUtils.getAsciiBytes(a2)));
 

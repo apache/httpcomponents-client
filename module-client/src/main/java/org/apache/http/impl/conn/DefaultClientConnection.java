@@ -223,8 +223,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         if (HEADERS_LOG.isDebugEnabled()) {
             HEADERS_LOG.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();
-            for (int i = 0; i < headers.length; i++) {
-                HEADERS_LOG.debug("<< " + headers[i].toString());
+            for (Header header : headers) {
+                HEADERS_LOG.debug("<< " + header.toString());
             }
         }
         return response;
@@ -237,8 +237,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         if (HEADERS_LOG.isDebugEnabled()) {
             HEADERS_LOG.debug(">> " + request.getRequestLine().toString());
             Header[] headers = request.getAllHeaders();
-            for (int i = 0; i < headers.length; i++) {
-                HEADERS_LOG.debug(">> " + headers[i].toString());
+            for (Header header : headers) {
+                HEADERS_LOG.debug(">> " + header.toString());
             }
         }
     }

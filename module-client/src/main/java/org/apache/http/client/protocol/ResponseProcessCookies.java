@@ -118,12 +118,11 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             Header header = iterator.nextHeader();
             try {
                 List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
-                for (int c = 0; c < cookies.size(); c++) {
-                    Cookie cookie = cookies.get(c);
+                for (Cookie cookie : cookies) {
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
                         cookieStore.addCookie(cookie);
-                        
+
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Cookie accepted: \""
                                     + cookie + "\". ");

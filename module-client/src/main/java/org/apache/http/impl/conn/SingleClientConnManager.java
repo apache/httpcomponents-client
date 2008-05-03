@@ -361,7 +361,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         /**
          * Creates a new pool entry.
          *
-         * @param occ   the underlying connection for this entry
          */
         protected PoolEntry() {
             super(SingleClientConnManager.this.connOperator, null);
@@ -403,7 +402,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
          * Creates a new connection adapter.
          *
          * @param entry   the pool entry for the connection being wrapped
-         * @param plan    the planned route for this connection
+         * @param route   the planned route for this connection
          */
         protected ConnAdapter(PoolEntry entry, HttpRoute route) {
             super(SingleClientConnManager.this, entry);

@@ -108,12 +108,10 @@ public class RFC2965Spec extends RFC2109Spec {
         HeaderElement[] elems = header.getElements();
 
         List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
-        for (int i = 0; i < elems.length; i++) {
-            HeaderElement headerelement = elems[i];
-
+        for (HeaderElement headerelement : elems) {
             String name = headerelement.getName();
             String value = headerelement.getValue();
-            if (name == null || name.equals("")) {
+            if (name == null || name.length() == 0) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
 
@@ -123,24 +121,24 @@ public class RFC2965Spec extends RFC2109Spec {
             } else {
                 cookie = createCookie(name, value, origin);
             }
-            
+
             // cycle through the parameters
             NameValuePair[] attribs = headerelement.getParameters();
-            
+
             // Eliminate duplicate attributes. The first occurrence takes precedence
             // See RFC2965: 3.2  Origin Server Role
-            Map<String, NameValuePair> attribmap = 
-                new HashMap<String, NameValuePair>(attribs.length); 
+            Map<String, NameValuePair> attribmap =
+                    new HashMap<String, NameValuePair>(attribs.length);
             for (int j = attribs.length - 1; j >= 0; j--) {
                 NameValuePair param = attribs[j];
                 attribmap.put(param.getName().toLowerCase(Locale.ENGLISH), param);
             }
-            for (Map.Entry<String, NameValuePair> entry: attribmap.entrySet()) {
+            for (Map.Entry<String, NameValuePair> entry : attribmap.entrySet()) {
                 NameValuePair attrib = entry.getValue();
                 String s = attrib.getName().toLowerCase(Locale.ENGLISH);
-                
+
                 cookie.setAttribute(s, attrib.getValue());
-                
+
                 CookieAttributeHandler handler = findAttribHandler(s);
                 if (handler != null) {
                     handler.parse(cookie, attrib.getValue());
@@ -214,7 +212,7 @@ public class RFC2965Spec extends RFC2109Spec {
      * the effective host name is the same as the host name.  Note
      * that all effective host names contain at least one dot.
      *
-     * @param host host name where cookie is received from or being sent to.
+     * @param origin origin where cookie is received from or being sent to.
      * @return
      */
     private static CookieOrigin adjustEffectiveHost(final CookieOrigin origin) {

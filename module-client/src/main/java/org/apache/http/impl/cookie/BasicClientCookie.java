@@ -363,7 +363,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     private boolean isSecure;
 
     /** The version of the cookie specification I was created from. */
-    private int cookieVersion = 0;
+    private int cookieVersion;
 
 }
 

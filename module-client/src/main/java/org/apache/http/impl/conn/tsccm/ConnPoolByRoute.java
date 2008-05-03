@@ -251,8 +251,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
-     * @param operator  the connection operator, in case
-     *                  a connection has to be created
      * @param aborter   an object which can abort a {@link WaitingThread}.
      *
      * @return  pool entry holding a connection for the route

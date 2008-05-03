@@ -57,7 +57,7 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        return cookie.isSecure() ? origin.isSecure() : true;
+        return !cookie.isSecure() || origin.isSecure();
     }
     
 }
