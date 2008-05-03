@@ -79,6 +79,7 @@ public class ProxySelectorMockup extends ProxySelector {
      * @return  the list passed to the constructor,
      *          or a default list with "DIRECT" as the only element
      */
+    @Override
     public List<Proxy> select(URI ignored) {
         return proxyList;
     }
@@ -87,6 +88,7 @@ public class ProxySelectorMockup extends ProxySelector {
     /**
      * Does nothing.
      */
+    @Override
     public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
         // no body
     }
