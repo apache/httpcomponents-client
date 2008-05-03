@@ -113,16 +113,16 @@ Standards Compliance
     HttpClient strives to conform to the following specifications endorsed by the Internet 
     Engineering Task Force (IETF) and the internet at large:
 
-    * {{{http://www.ietf.org/rfc/rfc1945.txt}RFC 1945}} - Hypertext Transfer Protocol -- HTTP/1.0
+    * {{{http://www.ietf.org/rfc/rfc1945.txt}RFC 1945}} Hypertext Transfer Protocol -- HTTP/1.0
 
-    * {{{http://www.ietf.org/rfc/rfc2616.txt}RFC 2116}} - Hypertext Transfer Protocol -- HTTP/1.1
+    * {{{http://www.ietf.org/rfc/rfc2616.txt}RFC 2616}} Hypertext Transfer Protocol -- HTTP/1.1
     
-    * {{{http://www.ietf.org/rfc/rfc2617.txt}RFC2617}}  HTTP Authentication: Basic and Digest Access 
+    * {{{http://www.ietf.org/rfc/rfc2617.txt}RFC 2617}} HTTP Authentication: Basic and Digest Access 
       Authentication
 
-    * {{{http://www.ietf.org/rfc/rfc2109.txt}RFC2109}} HTTP State Management Mechanism (Cookies)
+    * {{{http://www.ietf.org/rfc/rfc2109.txt}RFC 2109}} HTTP State Management Mechanism (Cookies)
     
-    * {{{http://www.ietf.org/rfc/rfc2965.txt}RFC2965}} HTTP State Management Mechanism (Cookies v2)
+    * {{{http://www.ietf.org/rfc/rfc2965.txt}RFC 2965}} HTTP State Management Mechanism (Cookies v2)
     
 
 Examples
