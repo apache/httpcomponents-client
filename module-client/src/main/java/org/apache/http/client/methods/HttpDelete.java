@@ -66,6 +66,7 @@ public class HttpDelete extends HttpRequestBase {
         setURI(new URI(uri));
     }
 
+    @Override
     public String getMethod() {
         return METHOD_NAME;
     }

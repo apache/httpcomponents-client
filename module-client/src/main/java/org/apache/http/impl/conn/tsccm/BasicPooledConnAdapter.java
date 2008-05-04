@@ -57,6 +57,7 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
     }
 
 
+    @Override
     protected ClientConnectionManager getManager() {
         // override needed only to make method visible in this package
         return super.getManager();
