@@ -37,7 +37,7 @@
 The implementation of a thread-safe client connection manager.
 
 <center>
-<image src="doc-files/tsccm-structure.png" alt="Relation Diagram"/>
+<img src="doc-files/tsccm-structure.png" alt="Relation Diagram"/>
 </center>
 
 <p>
@@ -48,7 +48,7 @@ maintains a <i>Pool</i> (yellow) of connections and waiting threads.
 Both Manager and Pool rely on <i>Operations</i> (cyan) to provide the
 actual connections.
 </p>
-</p>
+<p>
 In order to allow connection garbage collection, it is
 imperative that hard object references between the areas are
 restricted to the relations indicated by arrows in the diagram:

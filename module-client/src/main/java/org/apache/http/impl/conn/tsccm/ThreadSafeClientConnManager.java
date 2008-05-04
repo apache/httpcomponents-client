@@ -222,9 +222,11 @@ public class ThreadSafeClientConnManager
                           iox);
         } finally {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
+            boolean reusable = hca.isMarkedReusable();
             hca.detach();
-            if (entry != null) // is it worth to bother with this check? @@@
-                connectionPool.freeEntry(entry);
+            if (entry != null) {
+                connectionPool.freeEntry(entry, reusable);
+            }
         }
     }
 

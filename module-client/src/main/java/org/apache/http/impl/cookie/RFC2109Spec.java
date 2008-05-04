@@ -146,8 +146,7 @@ public class RFC2109Spec extends CookieSpecBase {
     private List<Header> doFormatOneHeader(final List<Cookie> cookies) {
         int version = Integer.MAX_VALUE;
         // Pick the lowest common denominator
-        for (int i = 0; i < cookies.size(); i++) {
-            Cookie cookie = cookies.get(i);
+        for (Cookie cookie : cookies) {
             if (cookie.getVersion() < version) {
                 version = cookie.getVersion();
             }
@@ -157,9 +156,9 @@ public class RFC2109Spec extends CookieSpecBase {
         buffer.append(": ");
         buffer.append("$Version=");
         buffer.append(Integer.toString(version));
-        for (int i = 0; i < cookies.size(); i++) {
+        for (Cookie cooky : cookies) {
             buffer.append("; ");
-            Cookie cookie = cookies.get(i);
+            Cookie cookie = cooky;
             formatCookieAsVer(buffer, cookie, version);
         }
         List<Header> headers = new ArrayList<Header>(1);
@@ -168,9 +167,8 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     private List<Header> doFormatManyHeaders(final List<Cookie> cookies) {
-        List<Header> headers = new ArrayList<Header>(cookies.size()); 
-        for (int i = 0; i < cookies.size(); i++) {
-            Cookie cookie = cookies.get(i);
+        List<Header> headers = new ArrayList<Header>(cookies.size());
+        for (Cookie cookie : cookies) {
             int version = cookie.getVersion();
             CharArrayBuffer buffer = new CharArrayBuffer(40);
             buffer.append("Cookie: ");

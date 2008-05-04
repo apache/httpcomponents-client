@@ -30,6 +30,7 @@
  */ 
 package org.apache.http.impl.cookie;
 
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.http.cookie.Cookie;
@@ -49,7 +50,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
         // Perform Netscape Cookie draft specific validation
         String host = origin.getHost();
         String domain = cookie.getDomain();
-        if (host.indexOf(".") >= 0) {
+        if (host.contains(".")) {
             int domainParts = new StringTokenizer(domain, ".").countTokens();
 
             if (isSpecialDomain(domain)) {
@@ -76,17 +77,14 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
     * @return True if the specified domain is "special"
     */
    private static boolean isSpecialDomain(final String domain) {
-       final String ucDomain = domain.toUpperCase();
-       if (ucDomain.endsWith(".COM") 
-          || ucDomain.endsWith(".EDU")
-          || ucDomain.endsWith(".NET")
-          || ucDomain.endsWith(".GOV")
-          || ucDomain.endsWith(".MIL")
-          || ucDomain.endsWith(".ORG")
-          || ucDomain.endsWith(".INT")) {
-           return true;
-       }
-       return false;
+       final String ucDomain = domain.toUpperCase(Locale.ENGLISH);
+       return ucDomain.endsWith(".COM")
+               || ucDomain.endsWith(".EDU")
+               || ucDomain.endsWith(".NET")
+               || ucDomain.endsWith(".GOV")
+               || ucDomain.endsWith(".MIL")
+               || ucDomain.endsWith(".ORG")
+               || ucDomain.endsWith(".INT");
    }
 
    @Override

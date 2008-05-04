@@ -54,7 +54,7 @@ import org.apache.http.protocol.HTTP;
 class EntityEnclosingRequestWrapper extends RequestWrapper 
     implements HttpEntityEnclosingRequest {
     
-    private HttpEntity entity = null;
+    private HttpEntity entity;
     
     public EntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request) 
         throws ProtocolException {

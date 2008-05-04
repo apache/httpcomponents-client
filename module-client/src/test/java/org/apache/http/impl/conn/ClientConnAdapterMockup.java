@@ -64,7 +64,6 @@ public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
     }
 
     public void shutdown() {
-        throw new UnsupportedOperationException("just a mockup");
     }
 
     public void tunnelTarget(boolean secure, HttpParams params) {

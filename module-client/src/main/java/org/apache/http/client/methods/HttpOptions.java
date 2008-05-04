@@ -93,8 +93,8 @@ public class HttpOptions extends HttpRequestBase {
         while (it.hasNext()) {
             Header header = it.nextHeader();
             HeaderElement[] elements = header.getElements();
-            for (int i = 0; i < elements.length; i++) {
-                methods.add(elements[i].getName());
+            for (HeaderElement element : elements) {
+                methods.add(element.getName());
             }
         }
         return methods;

@@ -103,10 +103,10 @@ public class ClientMultiThreadedExecution {
      */
     static class GetThread extends Thread {
         
-        private HttpClient httpClient;
-        private HttpContext context;
-        private HttpGet httpget;
-        private int id;
+        private final HttpClient httpClient;
+        private final HttpContext context;
+        private final HttpGet httpget;
+        private final int id;
         
         public GetThread(HttpClient httpClient, HttpGet httpget, int id) {
             this.httpClient = httpClient;

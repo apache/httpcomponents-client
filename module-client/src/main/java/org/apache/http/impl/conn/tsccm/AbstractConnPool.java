@@ -97,8 +97,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
 
     /**
      * Creates a new connection pool.
-     *
-     * @param mgr   the connection manager
      */
     protected AbstractConnPool() {
         issuedConnections = new HashSet<BasicPoolEntryRef>();
@@ -183,8 +181,10 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * attempt to determine whether it can be re-used or not.
      *
      * @param entry     the entry for the connection to release
+     * @param reusable  <code>true</code> if the entry is deemed 
+     *                  reusable, <code>false</code> otherwise.
      */
-    public abstract void freeEntry(BasicPoolEntry entry)
+    public abstract void freeEntry(BasicPoolEntry entry, boolean reusable)
         ;
 
 

@@ -86,22 +86,22 @@ public class URIUtils {
             }
             buffer.append(host);
             if (port > 0) {
-                buffer.append(":");
+                buffer.append(':');
                 buffer.append(port);
             }
         }
         if (path == null || !path.startsWith("/")) {
-            buffer.append("/");
+            buffer.append('/');
         }
         if (path != null) {
             buffer.append(path);
         }
         if (query != null) {
-            buffer.append("?");
+            buffer.append('?');
             buffer.append(query);
         }
         if (fragment != null) {
-            buffer.append("#");
+            buffer.append('#');
             buffer.append(fragment);
         }
         return new URI(buffer.toString());

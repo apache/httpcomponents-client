@@ -50,7 +50,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      * Pool entries can only be GCed when they are allocated by an application
      * and therefore not referenced with a hard link in the manager.
      */
-    private BasicPoolEntryRef reference;
+    private final BasicPoolEntryRef reference;
 
     /**
      * Creates a new pool entry.

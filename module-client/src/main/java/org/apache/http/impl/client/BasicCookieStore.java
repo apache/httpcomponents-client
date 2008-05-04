@@ -109,8 +109,8 @@ public class BasicCookieStore implements CookieStore {
      */
     public synchronized void addCookies(Cookie[] cookies) {
         if (cookies != null) {
-            for (int i = 0; i < cookies.length; i++) {
-                this.addCookie(cookies[i]);
+            for (Cookie cooky : cookies) {
+                this.addCookie(cooky);
             }
         }
     }

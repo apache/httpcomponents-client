@@ -101,6 +101,7 @@ public class TestSpuriousWakeup extends TestCase {
             super(operator, params);
         }
 
+        @Override
         protected synchronized
             WaitingThread newWaitingThread(Condition cond,
                                            RouteSpecificPool rospl) {
@@ -125,6 +126,7 @@ public class TestSpuriousWakeup extends TestCase {
             super(params, schreg);
         }
 
+        @Override
         protected AbstractConnPool createConnectionPool(HttpParams params) {
             extendedCPBR = new XConnPoolByRoute(connOperator, params);
             // no connection GC required

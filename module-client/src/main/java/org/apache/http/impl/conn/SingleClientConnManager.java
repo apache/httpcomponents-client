@@ -283,7 +283,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         } finally {
             sca.detach();
             managedConn = null;
-            uniquePoolEntry.tracker = null;
             lastReleaseTime = System.currentTimeMillis();
         }
     } // releaseConnection
@@ -362,7 +361,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         /**
          * Creates a new pool entry.
          *
-         * @param occ   the underlying connection for this entry
          */
         protected PoolEntry() {
             super(SingleClientConnManager.this.connOperator, null);
@@ -374,7 +372,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void close()
             throws IOException {
 
-            closing();
+            resetTrackedRoute();
             if (connection.isOpen())
                 connection.close();
         }
@@ -386,7 +384,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void shutdown()
             throws IOException {
 
-            closing();
+            resetTrackedRoute();
             if (connection.isOpen())
                 connection.shutdown();
         }
@@ -404,7 +402,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
          * Creates a new connection adapter.
          *
          * @param entry   the pool entry for the connection being wrapped
-         * @param plan    the planned route for this connection
+         * @param route   the planned route for this connection
          */
         protected ConnAdapter(PoolEntry entry, HttpRoute route) {
             super(SingleClientConnManager.this, entry);

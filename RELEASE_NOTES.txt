@@ -23,6 +23,11 @@ HttpClient 3.x features that have NOT yet been ported:
 Changelog:
 -------------------
 
+* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify Locale.ENGLISH
+
+* [HTTPCLIENT-769] Do not pool connection marked non-reusable.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-763] Fixed problem with AbstractClientConnAdapter#abortConnection() 
   not releasing the connection if called from the main execution thread while 
   there is no blocking I/O operation.

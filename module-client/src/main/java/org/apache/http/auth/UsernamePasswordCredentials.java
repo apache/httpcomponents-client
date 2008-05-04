@@ -64,6 +64,7 @@ public class UsernamePasswordCredentials implements Credentials {
             this.password = usernamePassword.substring(atColon + 1);
         } else {
             this.userName = usernamePassword;
+            this.password = null;
         }
     }
 
@@ -88,13 +89,13 @@ public class UsernamePasswordCredentials implements Credentials {
     /**
      * User name.
      */
-    private String userName;
+    private final String userName;
 
 
     /**
      * Password.
      */
-    private String password;
+    private final String password;
 
 
     // ------------------------------------------------------------- Properties
@@ -132,9 +133,9 @@ public class UsernamePasswordCredentials implements Credentials {
      */
     @Override
     public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         result.append(this.userName);
-        result.append(":");
+        result.append(':');
         result.append((this.password == null) ? "null" : this.password);
         return result.toString();
     }

@@ -47,7 +47,7 @@ public class BasicPathHandler implements CookieAttributeHandler {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        if (value == null || value.trim().equals("")) {
+        if (value == null || value.trim().length() == 0) {
             value = "/";
         }
         cookie.setPath(value);

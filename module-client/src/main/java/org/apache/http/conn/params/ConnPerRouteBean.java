@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -43,7 +43,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
- * @version $Revision:$
+ * @version $Revision$
  * 
  * @since 4.0
  */
@@ -52,7 +52,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
     /** The default maximum number of connections allowed per host */
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 2;   // Per RFC 2616 sec 8.1.4
     
-    private Map<HttpRoute, Integer> maxPerHostMap;
+    private final Map<HttpRoute, Integer> maxPerHostMap;
     
     private int defaultMax;
     

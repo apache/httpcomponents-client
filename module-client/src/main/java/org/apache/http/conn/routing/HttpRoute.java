@@ -239,10 +239,10 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if ((proxies == null) || (proxies.length < 1))
             return null;
 
-        for (int i=0; i<proxies.length; i++) {
-            if (proxies[i] == null)
+        for (HttpHost proxy : proxies) {
+            if (proxy == null)
                 throw new IllegalArgumentException
-                    ("Proxy chain may not contain null elements.");
+                        ("Proxy chain may not contain null elements.");
         }
 
         // copy the proxy chain, the traditional way
@@ -281,7 +281,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (hop >= hopcount)
             throw new IllegalArgumentException
                 ("Hop index " + hop +
-                 " exceeds route length " + hopcount +".");
+                 " exceeds route length " + hopcount);
 
         HttpHost result = null;
         if (hop < hopcount-1)
@@ -385,8 +385,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             hc ^= localAddress.hashCode();
         if (this.proxyChain != null) {
             hc ^= proxyChain.length;
-            for (int i=0; i<proxyChain.length; i++)
-                hc ^= proxyChain[i].hashCode();
+            for (HttpHost aProxyChain : proxyChain) hc ^= aProxyChain.hashCode();
         }
 
         if (this.secure)
@@ -422,8 +421,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             cab.append('s');
         cab.append("}->");
         if (this.proxyChain != null) {
-            for (int i=0; i<this.proxyChain.length; i++) {
-                cab.append(this.proxyChain[i]);
+            for (HttpHost aProxyChain : this.proxyChain) {
+                cab.append(aProxyChain);
                 cab.append("->");
             }
         }

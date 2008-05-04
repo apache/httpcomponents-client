@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import java.util.Locale;
+
 import org.apache.http.util.LangUtils;
 
 /** 
@@ -73,16 +75,16 @@ public class AuthScope {
     public static final AuthScope ANY = new AuthScope(ANY_HOST, ANY_PORT, ANY_REALM, ANY_SCHEME);
 
     /** The authentication scheme the credentials apply to. */
-    private String scheme = null;
+    private final String scheme;
     
     /** The realm the credentials apply to. */
-    private String realm = null;
+    private final String realm;
     
     /** The host the credentials apply to. */
-    private String host = null;
+    private final String host;
         
     /** The port the credentials apply to. */
-    private int port = -1;
+    private final int port;
         
     /** Creates a new credentials scope for the given 
      * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and 
@@ -104,10 +106,10 @@ public class AuthScope {
     public AuthScope(final String host, int port, 
         final String realm, final String scheme)
     {
-        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase();
+        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ENGLISH);
         this.port =   (port < 0)       ? ANY_PORT: port;
         this.realm =  (realm == null)  ? ANY_REALM: realm;
-        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase();
+        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ENGLISH);
     }
     
     /** Creates a new credentials scope for the given 
@@ -254,7 +256,7 @@ public class AuthScope {
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         if (this.scheme != null) {
-            buffer.append(this.scheme.toUpperCase());
+            buffer.append(this.scheme.toUpperCase(Locale.ENGLISH));
             buffer.append(' ');
         }
         if (this.realm != null) {

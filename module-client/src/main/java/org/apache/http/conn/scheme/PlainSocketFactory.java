@@ -57,7 +57,7 @@ public final class PlainSocketFactory implements SocketFactory {
      * Gets the singleton instance of this class.
      * @return the one and only plain socket factory
      */
-    public static final PlainSocketFactory getSocketFactory() {
+    public static PlainSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
     }
 

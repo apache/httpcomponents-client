@@ -90,7 +90,7 @@ public abstract class AbstractPoolEntry {
     /**
      * Creates a new pool entry.
      *
-     * @param occ     the underlying connection for this entry
+     * @param connOperator     the Connection Operator for this entry
      * @param route   the planned route for the connection,
      *                or <code>null</code>
      */
@@ -299,12 +299,9 @@ public abstract class AbstractPoolEntry {
 
 
     /**
-     * Tracks close or shutdown of the connection.
-     * There is no distinction between the two, the route is dropped
-     * in both cases. This method should be called regardless of
-     * whether the close or shutdown succeeds or triggers an error.
+     * Resets tracked route.
      */
-    public void closing() { 
+    protected void resetTrackedRoute() { 
         tracker = null;
     }
 

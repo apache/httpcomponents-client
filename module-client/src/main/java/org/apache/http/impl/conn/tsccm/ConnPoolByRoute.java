@@ -251,8 +251,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the <code>timeout</code>,
      *                  may be <code>null</code> only if there is no timeout
-     * @param operator  the connection operator, in case
-     *                  a connection has to be created
      * @param aborter   an object which can abort a {@link WaitingThread}.
      *
      * @return  pool entry holding a connection for the route
@@ -369,7 +367,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     // non-javadoc, see base class AbstractConnPool
     @Override
-    public void freeEntry(BasicPoolEntry entry) {
+    public void freeEntry(BasicPoolEntry entry, boolean reusable) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
@@ -391,16 +389,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             RouteSpecificPool rospl = getRoutePool(route, true);
 
-            rospl.freeEntry(entry);
-            freeConnections.add(entry);
-
-            if (numConnections == 0) {
-                // for some reason this pool didn't already exist
-                LOG.error("Master connection pool not found: " + route);
-                numConnections = 1;
+            if (reusable) {
+                rospl.freeEntry(entry);
+                freeConnections.add(entry);
+                idleConnHandler.add(entry.getConnection());
+            } else {
+                rospl.dropEntry();
+                numConnections--;
             }
-
-            idleConnHandler.add(entry.getConnection());
 
             notifyWaitingThread(rospl);
 

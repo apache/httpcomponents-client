@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import javax.net.ssl.SSLException;
@@ -161,9 +162,9 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             names.add(cns[0]);
         }
         if(subjectAlts != null) {
-            for(int i = 0; i < subjectAlts.length; i++) {
-                if(subjectAlts[i] != null) {
-                    names.add(subjectAlts[i]);
+            for (String subjectAlt : subjectAlts) {
+                if (subjectAlt != null) {
+                    names.add(subjectAlt);
                 }
             }
         }
@@ -178,12 +179,12 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
         // We're can be case-insensitive when comparing the host we used to
         // establish the socket to the hostname in the certificate.
-        String hostName = host.trim().toLowerCase();
+        String hostName = host.trim().toLowerCase(Locale.ENGLISH);
         boolean match = false;
         for(Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
             String cn = it.next();
-            cn = cn.toLowerCase();
+            cn = cn.toLowerCase(Locale.ENGLISH);
             // Store CN in StringBuffer in case we need to report an error.
             buf.append(" <");
             buf.append(cn);
@@ -302,12 +303,11 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             cpe.printStackTrace();
         }
         if(c != null) {
-            Iterator<List<?>> it = c.iterator();
-            while(it.hasNext()) {
-                List<?> list = it.next();
+            for (List<?> aC : c) {
+                List<?> list = aC;
                 int type = ((Integer) list.get(0)).intValue();
                 // If type is 2, then we've got a dNSName
-                if(type == 2) {
+                if (type == 2) {
                     String s = (String) list.get(1);
                     subjectAltList.add(s);
                 }

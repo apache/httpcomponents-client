@@ -120,7 +120,7 @@ public class BasicScheme extends RFC2617Scheme {
      * 
      * @param credentials The set of credentials to be used for athentication
      * @param request The request being authenticated
-     * @throws InvalidCredentialsException if authentication credentials
+     * @throws org.apache.http.auth.InvalidCredentialsException if authentication credentials
      *         are not valid or not applicable for this authentication scheme
      * @throws AuthenticationException if authorization string cannot 
      *   be generated due to an authentication failure

@@ -30,6 +30,8 @@
  */
 package org.apache.http.conn.scheme;
 
+import java.util.Locale;
+
 import org.apache.http.util.LangUtils;
 
 /**
@@ -99,7 +101,7 @@ public final class Scheme {
                 ("Port is invalid: " + port);
         }
 
-        this.name = name.toLowerCase();
+        this.name = name.toLowerCase(Locale.ENGLISH);
         this.socketFactory = factory;
         this.defaultPort = port;
         this.layered = (factory instanceof LayeredSocketFactory);

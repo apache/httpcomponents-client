@@ -44,7 +44,7 @@ import org.apache.commons.logging.Log;
  */
 public class Wire {
 
-    private Log log;
+    private final Log log;
     
     public Wire(Log log) {
         this.log = log;
@@ -52,7 +52,7 @@ public class Wire {
     
     private void wire(String header, InputStream instream)
       throws IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         int ch;
         while ((ch = instream.read()) != -1) {
             if (ch == 13) {
@@ -72,8 +72,8 @@ public class Wire {
             }
         } 
         if (buffer.length() > 0) {
-            buffer.append("\"");
-            buffer.insert(0, "\"");
+            buffer.append('\"');
+            buffer.insert(0, '\"');
             buffer.insert(0, header);
             log.debug(buffer.toString());
         }

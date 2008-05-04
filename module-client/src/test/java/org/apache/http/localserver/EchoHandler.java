@@ -32,6 +32,7 @@
 package org.apache.http.localserver;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -78,7 +79,7 @@ public class EchoHandler
                        final HttpContext context)
         throws HttpException, IOException {
 
-        String method = request.getRequestLine().getMethod().toUpperCase();
+        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         if (!"GET".equals(method) &&
             !"POST".equals(method) &&
             !"PUT".equals(method)

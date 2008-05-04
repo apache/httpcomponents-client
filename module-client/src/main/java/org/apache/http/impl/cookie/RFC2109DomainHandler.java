@@ -30,6 +30,8 @@
  */ 
 package org.apache.http.impl.cookie;
 
+import java.util.Locale;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -50,7 +52,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
         if (value == null) {
             throw new MalformedCookieException("Missing value for domain attribute");
         }
-        if (value.trim().equals("")) {
+        if (value.trim().length() == 0) {
             throw new MalformedCookieException("Blank value for domain attribute");
         }
         cookie.setDomain(value);
@@ -90,7 +92,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
                     + domain 
                     + "\" violates RFC 2109: domain must contain an embedded dot");
             }
-            host = host.toLowerCase();
+            host = host.toLowerCase(Locale.ENGLISH);
             if (!host.endsWith(domain)) {
                 throw new MalformedCookieException(
                     "Illegal domain attribute \"" + domain 

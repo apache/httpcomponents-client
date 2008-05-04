@@ -62,10 +62,10 @@ public class RouteSpecificPool {
      * This list is managed LIFO, to increase idle times and
      * allow for closing connections that are not really needed.
      */
-    protected LinkedList<BasicPoolEntry> freeEntries;
+    protected final LinkedList<BasicPoolEntry> freeEntries;
 
     /** The list of threads waiting for this pool. */
-    protected Queue<WaitingThread> waitingThreads;
+    protected final Queue<WaitingThread> waitingThreads;
 
     /** The number of created entries. */
     protected int numEntries;
