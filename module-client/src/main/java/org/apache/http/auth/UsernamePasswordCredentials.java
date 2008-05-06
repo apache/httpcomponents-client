@@ -33,7 +33,7 @@ package org.apache.http.auth;
 import org.apache.http.util.LangUtils;
 
 /**
- * <p>Username and password {@link Credentials}.</p>
+ * Username and password {@link Credentials}
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
  * @author Sean C. Sullivan
@@ -45,8 +45,9 @@ import org.apache.http.util.LangUtils;
  */
 public class UsernamePasswordCredentials implements Credentials {
 
-    // ----------------------------------------------------------- Constructors
-
+    private final String userName;
+    private final String password;
+     
     /**
      * The constructor with the username and password combined string argument.
      *
@@ -84,98 +85,45 @@ public class UsernamePasswordCredentials implements Credentials {
         this.password = password;
     }
 
-    // ----------------------------------------------------- Instance Variables
-
-    /**
-     * User name.
-     */
-    private final String userName;
-
-
-    /**
-     * Password.
-     */
-    private final String password;
-
-
-    // ------------------------------------------------------------- Properties
-
-
-    /**
-     * User name property getter.
-     *
-     * @return the userName
-     */
     public String getPrincipalName() {
         return userName;
     }
 
+    public String getUserName() {
+        return userName;
+    }
 
-    /**
-     * Password property getter.
-     *
-     * @return the password
-     */
     public String getPassword() {
         return password;
     }
 
-    
-    public String toText() {
-        return toString();
-    }
-
-
-    /**
-     * Get this object string.
-     *
-     * @return the username:password formed string
-     */
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append(this.userName);
-        result.append(':');
-        result.append((this.password == null) ? "null" : this.password);
-        return result.toString();
-    }
-
-    /**
-     * Does a hash of both user name and password.
-     *
-     * @return The hash code including user name and password.
-     */
     @Override
     public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.userName);
-        hash = LangUtils.hashCode(hash, this.password);
         return hash;
     }
 
-    /**
-     * These credentials are assumed equal if the username and password are the
-     * same.
-     *
-     * @param o The other object to compare with.
-     *
-     * @return  <code>true</code> if the object is equivalent.
-     */
     @Override
     public boolean equals(Object o) {
         if (o == null) return false;
         if (this == o) return true;
-        // note - to allow for sub-classing, this checks that class is the same
-        // rather than do "instanceof".
-        if (this.getClass().equals(o.getClass())) {
+        if (o instanceof UsernamePasswordCredentials) {
             UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
-
-            if (LangUtils.equals(this.userName, that.userName)
-                    && LangUtils.equals(this.password, that.password) ) {
+            if (LangUtils.equals(this.userName, that.userName)) {
                 return true;
             }
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("[username: ");
+        buffer.append(this.userName);
+        buffer.append("]");
+        return buffer.toString();
     }
 
 }
