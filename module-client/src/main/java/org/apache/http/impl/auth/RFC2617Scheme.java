@@ -1,5 +1,5 @@
 /*
- * $HeadeURL$
+ * $HeadURL$
  * $Revision$
  * $Date$
  *
@@ -34,28 +34,21 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.FormattedHeader;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.HeaderValueParser;
 import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * <p>
  * Abstract authentication scheme class that lays foundation for all
  * RFC 2617 compliant authetication schemes and provides capabilities common 
  * to all authentication schemes defined in RFC 2617.
- * </p>
  *
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
 */
-public abstract class RFC2617Scheme implements AuthScheme {
+public abstract class RFC2617Scheme extends AuthSchemeBase {
 
     /**
      * Authentication parameter map.
@@ -63,66 +56,15 @@ public abstract class RFC2617Scheme implements AuthScheme {
     private Map<String, String> params;
 
     /**
-     * Flag whether authenticating against a proxy.
-     */
-    private boolean proxy;
-    
-    /**
      * Default constructor for RFC2617 compliant authetication schemes.
      */
     public RFC2617Scheme() {
         super();
     }
 
-    /**
-     * Processes the given challenge token. Some authentication schemes
-     * may involve multiple challenge-response exchanges. Such schemes must be able 
-     * to maintain the state information when dealing with sequential challenges 
-     * 
-     * @param header the challenge header
-     * 
-     * @throws MalformedChallengeException is thrown if the authentication challenge
-     * is malformed
-     */
-    public void processChallenge(final Header header) throws MalformedChallengeException {
-        if (header == null) {
-            throw new IllegalArgumentException("Header may not be null");
-        }
-        String authheader = header.getName();
-        if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
-            this.proxy = false;
-        } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
-            this.proxy = true;
-        } else {
-            throw new MalformedChallengeException("Unexpected header name: " + authheader);
-        }
-
-        CharArrayBuffer buffer;
-        int pos;
-        if (header instanceof FormattedHeader) {
-            buffer = ((FormattedHeader) header).getBuffer();
-            pos = ((FormattedHeader) header).getValuePos();
-        } else {
-            String s = header.getValue();
-            if (s == null) {
-                throw new MalformedChallengeException("Header value is null");
-            }
-            buffer = new CharArrayBuffer(s.length());
-            buffer.append(s);
-            pos = 0;
-        }
-        while (pos < buffer.length() && HTTP.isWhitespace(buffer.charAt(pos))) {
-            pos++;
-        }
-        int beginIndex = pos;
-        while (pos < buffer.length() && !HTTP.isWhitespace(buffer.charAt(pos))) {
-            pos++;
-        }
-        int endIndex = pos;
-        String s = buffer.substring(beginIndex, endIndex);
-        if (!s.equalsIgnoreCase(getSchemeName())) {
-            throw new MalformedChallengeException("Invalid scheme identifier: " + s);
-        }
+    @Override
+    protected void parseChallenge(
+            final CharArrayBuffer buffer, int pos, int len) throws MalformedChallengeException {
         HeaderValueParser parser = BasicHeaderValueParser.DEFAULT;
         ParserCursor cursor = new ParserCursor(pos, buffer.length()); 
         HeaderElement[] elements = parser.parseElements(buffer, cursor);
@@ -171,15 +113,4 @@ public abstract class RFC2617Scheme implements AuthScheme {
         return getParameter("realm");
     }
 
-    /**
-     * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
-     * otherwise.
-     *  
-     * @return <code>true</code> if authenticating against a proxy, <code>false</code>
-     * otherwise
-     */
-    public boolean isProxy() {
-        return this.proxy;
-    }
-    
 }

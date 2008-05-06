@@ -274,7 +274,7 @@ public class DigestScheme extends RFC2617Scheme {
         String pwd = credentials.getPassword();
         
         // 3.2.2.2: Calculating digest
-        CharArrayBuffer tmp = new CharArrayBuffer(uname.length() + realm.length() + pwd.length() + 2);
+        StringBuilder tmp = new StringBuilder(uname.length() + realm.length() + pwd.length() + 2);
         tmp.append(uname);
         tmp.append(':');
         tmp.append(realm);
@@ -289,7 +289,7 @@ public class DigestScheme extends RFC2617Scheme {
             //      ":" unq(cnonce-value)
 
             String tmp2=encode(md5Helper.digest(EncodingUtils.getBytes(a1, charset)));
-            CharArrayBuffer tmp3 = new CharArrayBuffer(tmp2.length() + nonce.length() + cnonce.length() + 2);
+            StringBuilder tmp3 = new StringBuilder(tmp2.length() + nonce.length() + cnonce.length() + 2);
             tmp3.append(tmp2);
             tmp3.append(':');
             tmp3.append(nonce);
@@ -314,7 +314,7 @@ public class DigestScheme extends RFC2617Scheme {
         // 3.2.2.1
         String serverDigestValue;
         if (qopVariant == QOP_MISSING) {
-            CharArrayBuffer tmp2 = new CharArrayBuffer(md5a1.length() + nonce.length() + md5a2.length());
+            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length() + md5a2.length());
             tmp2.append(md5a1);
             tmp2.append(':');
             tmp2.append(nonce);
@@ -323,7 +323,7 @@ public class DigestScheme extends RFC2617Scheme {
             serverDigestValue = tmp2.toString();
         } else {
             String qopOption = getQopVariantString();
-            CharArrayBuffer tmp2 = new CharArrayBuffer(md5a1.length() + nonce.length()
+            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length()
                 + NC.length() + cnonce.length() + qopOption.length() + md5a2.length() + 5);
             tmp2.append(md5a1);
             tmp2.append(':');

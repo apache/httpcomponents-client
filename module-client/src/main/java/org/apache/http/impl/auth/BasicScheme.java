@@ -162,15 +162,15 @@ public class BasicScheme extends RFC2617Scheme {
             throw new IllegalArgumentException("charset may not be null");
         }
 
-        CharArrayBuffer buffer = new CharArrayBuffer(32);
-        buffer.append(credentials.getPrincipalName());
-        buffer.append(":");
-        buffer.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
+        StringBuilder tmp = new StringBuilder();
+        tmp.append(credentials.getPrincipalName());
+        tmp.append(":");
+        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
         byte[] base64password = Base64.encodeBase64(
-                EncodingUtils.getBytes(buffer.toString(), charset));
+                EncodingUtils.getBytes(tmp.toString(), charset));
         
-        buffer.clear();
+        CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (proxy) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
