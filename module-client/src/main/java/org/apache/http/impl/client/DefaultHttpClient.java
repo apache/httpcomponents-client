@@ -42,7 +42,6 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
@@ -287,23 +286,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
     @Override
     protected CredentialsProvider createCredentialsProvider() {
         return new BasicCredentialsProvider();
-    }
-
-
-    @Override
-    protected void populateContext(final HttpContext context) {
-        context.setAttribute(
-                ClientContext.AUTHSCHEME_REGISTRY, 
-                getAuthSchemes());
-        context.setAttribute(
-                ClientContext.COOKIESPEC_REGISTRY, 
-                getCookieSpecs());
-        context.setAttribute(
-                ClientContext.COOKIE_STORE, 
-                getCookieStore());
-        context.setAttribute(
-                ClientContext.CREDS_PROVIDER, 
-                getCredentialsProvider());
     }
 
 

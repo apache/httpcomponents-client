@@ -50,11 +50,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.DefaultedHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -71,9 +73,6 @@ import org.apache.http.protocol.HttpProcessor;
  * @since 4.0
  */
 public abstract class AbstractHttpClient implements HttpClient {
-
-    /** The default context. */
-    private HttpContext defaultContext;
 
     /** The parameters. */
     private HttpParams defaultParams;
@@ -165,9 +164,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     
     
     protected abstract CredentialsProvider createCredentialsProvider();
-    
-    
-    protected abstract void populateContext(HttpContext context);
     
     
     protected abstract HttpRoutePlanner createHttpRoutePlanner();
@@ -346,15 +342,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized final HttpContext getDefaultContext() {
-        if (defaultContext == null) {
-            defaultContext = createHttpContext();
-        }
-        populateContext(defaultContext);
-        return defaultContext;
-    }
-    
-    
     public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp) {
         getHttpProcessor().addInterceptor(itcp);
     }
@@ -477,13 +464,31 @@ public abstract class AbstractHttpClient implements HttpClient {
         // a null target may be acceptable, this depends on the route planner
         // a null context is acceptable, default context created below
 
+        HttpContext execContext = null;
         ClientRequestDirector director = null;
         
         // Initialize the request execution context making copies of 
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
+
+            HttpContext defaultContext = new BasicHttpContext(null);
+            defaultContext.setAttribute(
+                    ClientContext.AUTHSCHEME_REGISTRY, 
+                    getAuthSchemes());
+            defaultContext.setAttribute(
+                    ClientContext.COOKIESPEC_REGISTRY, 
+                    getCookieSpecs());
+            defaultContext.setAttribute(
+                    ClientContext.COOKIE_STORE, 
+                    getCookieStore());
+            defaultContext.setAttribute(
+                    ClientContext.CREDS_PROVIDER, 
+                    getCredentialsProvider());
+            
             if (context == null) {
-                context = new BasicHttpContext(getDefaultContext());
+                execContext = defaultContext;
+            } else {
+                execContext = new DefaultedHttpContext(context, defaultContext);
             }
             // Create a director for this request
             director = createClientRequestDirector(
@@ -498,7 +503,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     determineParams(request));
         }
 
-        HttpResponse response = director.execute(target, request, context);
+        HttpResponse response = director.execute(target, request, execContext);
         // If the response depends on the connection, the director
         // will have set up an auto-release input stream.
 

@@ -56,9 +56,8 @@ public class ClientInteractiveAuthentication {
     public static void main(String[] args) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
-        // Create custom execution context
-        // We'll need it in order to get hold of the authentication state object
-        HttpContext localContext = new BasicHttpContext(httpclient.getDefaultContext());
+        // Create local execution context
+        HttpContext localContext = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("http://localhost/test");
         

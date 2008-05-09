@@ -66,6 +66,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.mockup.SocketFactoryMockup;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
@@ -99,7 +100,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
-        final HttpContext context = client.getDefaultContext();
+        final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
         
         new Thread(new Runnable() {
@@ -140,7 +141,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
-        final HttpContext context = client.getDefaultContext();
+        final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new CustomGet("a", releaseLatch);
         
         new Thread(new Runnable() {
@@ -181,7 +182,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
-        final HttpContext context = client.getDefaultContext();
+        final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
         
         new Thread(new Runnable() {
@@ -228,7 +229,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
-        final HttpContext context = client.getDefaultContext();
+        final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
         
         new Thread(new Runnable() {
@@ -263,7 +264,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     public void testSocketConnectFailureReleasesConnection() throws Exception {
         final ConnMan2 conMan = new ConnMan2();
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
-        final HttpContext context = client.getDefaultContext();
+        final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
         
         try {

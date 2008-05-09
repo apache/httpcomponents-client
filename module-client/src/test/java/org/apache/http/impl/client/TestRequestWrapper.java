@@ -42,6 +42,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -91,7 +92,7 @@ public class TestRequestWrapper extends ServerTestBase {
         this.localServer.register("*", new SimpleService());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port + "/path";
         HttpGet httpget = new HttpGet(s);
@@ -116,7 +117,7 @@ public class TestRequestWrapper extends ServerTestBase {
         this.localServer.register("*", new SimpleService());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);

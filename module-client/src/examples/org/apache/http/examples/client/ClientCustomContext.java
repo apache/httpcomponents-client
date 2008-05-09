@@ -59,10 +59,8 @@ public class ClientCustomContext {
         // Create a local instance of cookie store
         CookieStore cookieStore = new BasicCookieStore();
         
-        // Obtain default HTTP context
-        HttpContext defaultContext = httpclient.getDefaultContext();
         // Create local HTTP context
-        HttpContext localContext = new BasicHttpContext(defaultContext);
+        HttpContext localContext = new BasicHttpContext();
         // Bind custom cookie store to the local context
         localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         

@@ -62,17 +62,6 @@ public interface HttpClient {
 
 
     /**
-     * Obtains the default context used by this client populated with
-     * default attributes. This context will be used by default when 
-     * executing requests with this client.
-     *
-     * @return  the default context
-     */
-    HttpContext getDefaultContext()
-        ;
-
-
-    /**
      * Obtains the parameters for this client.
      * These parameters will become defaults for all requests being
      * executed with this client, and for the parameters of

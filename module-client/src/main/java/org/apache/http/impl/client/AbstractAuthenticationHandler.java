@@ -60,6 +60,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     private static final Log LOG = LogFactory.getLog(AbstractAuthenticationHandler.class);
     
     private static final List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
+            "ntlm",
             "digest",
             "basic"
     });
@@ -116,14 +117,20 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
         
-        List<String> authPrefs = getAuthPreferences();
+        List<?> authPrefs = (List<?>) context.getAttribute(
+                ClientContext.AUTH_SCHEME_PREF);
+        if (authPrefs == null) {
+            authPrefs = getAuthPreferences();
+        }
+        
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Supported authentication schemes in the order of preference: " 
+            LOG.debug("Authentication schemes in the order of preference: " 
                 + authPrefs);
         }
 
         AuthScheme authScheme = null;
-        for (String id : authPrefs) {
+        for (int i = 0; i < authPrefs.size(); i++) {
+            String id = (String) authPrefs.get(i);
             Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
 
             if (challenge != null) {
@@ -132,10 +139,13 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
                 }
                 try {
                     authScheme = registry.getAuthScheme(id, response.getParams());
+                    break;
                 } catch (IllegalStateException e) {
-                    throw new AuthenticationException(e.getMessage());
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Authentication scheme " + id + " not supported");
+                        // Try again
+                    }
                 }
-                break;
             } else {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Challenge for " + id + " authentication scheme not available");

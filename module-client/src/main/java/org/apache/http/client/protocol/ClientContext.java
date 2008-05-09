@@ -45,5 +45,7 @@ public interface ClientContext {
     public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
     public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
     public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
-    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope"; 
+    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
+    public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
+    
 }

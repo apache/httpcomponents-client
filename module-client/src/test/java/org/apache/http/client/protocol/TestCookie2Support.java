@@ -53,6 +53,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -105,7 +106,7 @@ public class TestCookie2Support extends ServerTestBase {
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
 
         CookieStore cookieStore = new BasicCookieStore();
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         
         HttpGet httpget = new HttpGet("/test/");
@@ -156,7 +157,7 @@ public class TestCookie2Support extends ServerTestBase {
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
 
         CookieStore cookieStore = new BasicCookieStore();
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         
         HttpGet httpget = new HttpGet("/test/");
@@ -205,7 +206,7 @@ public class TestCookie2Support extends ServerTestBase {
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
 
         CookieStore cookieStore = new BasicCookieStore();
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         
         HttpGet httpget = new HttpGet("/test/");
@@ -256,7 +257,7 @@ public class TestCookie2Support extends ServerTestBase {
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
 
         CookieStore cookieStore = new BasicCookieStore();
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
         
         HttpGet httpget = new HttpGet("/test/");

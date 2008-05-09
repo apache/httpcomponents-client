@@ -55,6 +55,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -237,7 +238,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_MULTIPLE_CHOICES));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -261,7 +262,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_PERMANENTLY));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -289,7 +290,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_TEMPORARILY));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -317,7 +318,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_SEE_OTHER));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -345,7 +346,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_NOT_MODIFIED));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -369,7 +370,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_USE_PROXY));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -393,7 +394,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port, HttpStatus.SC_TEMPORARY_REDIRECT));
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -453,7 +454,7 @@ public class TestRedirects extends ServerTestBase {
         this.localServer.register("*", new BasicRedirectService(host, port));
 
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         
         HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
@@ -478,7 +479,7 @@ public class TestRedirects extends ServerTestBase {
         this.localServer.register("*", new RelativeRedirectService());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         client.getParams().setBooleanParameter(
                 ClientPNames.REJECT_RELATIVE_REDIRECT, false);
@@ -507,7 +508,7 @@ public class TestRedirects extends ServerTestBase {
         this.localServer.register("*", new RelativeRedirectService2());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         client.getParams().setBooleanParameter(
                 ClientPNames.REJECT_RELATIVE_REDIRECT, false);
@@ -598,7 +599,7 @@ public class TestRedirects extends ServerTestBase {
         
         cookieStore.addCookie(cookie);
 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         
@@ -626,7 +627,7 @@ public class TestRedirects extends ServerTestBase {
                 new BasicRedirectService(host, port));
 
         DefaultHttpClient client = new DefaultHttpClient(); 
-        HttpContext context = client.getDefaultContext();
+        HttpContext context = new BasicHttpContext();
 
         List<Header> defaultHeaders = new ArrayList<Header>(1);
         defaultHeaders.add(new BasicHeader(HTTP.USER_AGENT, "my-test-client"));

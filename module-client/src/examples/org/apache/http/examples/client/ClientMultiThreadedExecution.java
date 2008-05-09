@@ -110,7 +110,7 @@ public class ClientMultiThreadedExecution {
         
         public GetThread(HttpClient httpClient, HttpGet httpget, int id) {
             this.httpClient = httpClient;
-            this.context = new BasicHttpContext(httpClient.getDefaultContext());
+            this.context = new BasicHttpContext();
             this.httpget = httpget;
             this.id = id;
         }

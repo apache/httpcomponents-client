@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,20 +31,42 @@
 
 package org.apache.http.client.protocol;
 
+import java.util.List;
+
+import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.protocol.HttpContext;
 
-public class ClientContextConfigurer {
+public class ClientContextConfigurer implements ClientContext {
+    
     private final HttpContext context;
 
     public ClientContextConfigurer (final HttpContext context) {
         if (context == null)
-            throw new IllegalArgumentException("'context' must be set");
+            throw new IllegalArgumentException("HTTP context may not be null");
         this.context = context;
     }
 
-    public void setCookieStore (final CookieStore cookieStore) {
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+    public void setCookieSpecRegistry(final CookieSpecRegistry registry) {
+        this.context.setAttribute(COOKIESPEC_REGISTRY, registry);
     }
     
+    public void setAuthSchemeRegistry(final AuthSchemeRegistry registry) {
+        this.context.setAttribute(AUTHSCHEME_REGISTRY, registry);
+    }
+    
+    public void setCookieStore(final CookieStore store) {
+        this.context.setAttribute(COOKIE_STORE, store);
+    }
+
+    public void setCredentialsProvider(final CredentialsProvider provider) {
+        this.context.setAttribute(CREDS_PROVIDER, provider);
+    }
+
+    public void setAuthSchemePref(final List<String> list) {
+        this.context.setAttribute(AUTH_SCHEME_PREF, list);
+    }
+
 }
