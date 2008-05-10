@@ -52,7 +52,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      * @throws UnsupportedEncodingException if the encoding isn't supported
      */
     public UrlEncodedFormEntity (
-        final List <NameValuePair> parameters, 
+        final List <? extends NameValuePair> parameters, 
         final String encoding) throws UnsupportedEncodingException {
         super(URLEncodedUtils.format(parameters, encoding), 
             encoding);
@@ -67,7 +67,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      * @throws UnsupportedEncodingException if the default encoding isn't supported
      */
     public UrlEncodedFormEntity (
-        final List <NameValuePair> parameters) throws UnsupportedEncodingException {
+        final List <? extends NameValuePair> parameters) throws UnsupportedEncodingException {
         super(URLEncodedUtils.format(parameters, HTTP.DEFAULT_CONTENT_CHARSET), 
             HTTP.DEFAULT_CONTENT_CHARSET);
         setContentType(URLEncodedUtils.CONTENT_TYPE);

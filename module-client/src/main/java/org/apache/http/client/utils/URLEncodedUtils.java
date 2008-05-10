@@ -154,7 +154,7 @@ public class URLEncodedUtils {
      * @param encoding The encoding to use.
      */
     public static String format (
-            final List <NameValuePair> parameters, 
+            final List <? extends NameValuePair> parameters, 
             final String encoding) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
