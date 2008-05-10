@@ -410,6 +410,9 @@ public class DefaultClientRequestDirector
                         connManager.releaseConnection(managedConn);
                         managedConn = null;
                     }
+                    // In case we are going to retry the same request,
+                    // clear auto-generated headers
+                    followup.getRequest().clearHeaders();
                     roureq = followup;
                 }
             } // while not done

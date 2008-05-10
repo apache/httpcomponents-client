@@ -141,4 +141,8 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         return this.original;
     }
     
+    public void clearHeaders() {
+        this.headergroup.clear();
+    }
+    
 }
