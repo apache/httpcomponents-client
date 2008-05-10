@@ -30,7 +30,6 @@
 
 package org.apache.http.client.utils;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 public class TestURLEncodedUtils extends TestCase {
   
-    public TestURLEncodedUtils(final String testName) throws IOException {
+    public TestURLEncodedUtils(final String testName) {
         super(testName);
     }
 
