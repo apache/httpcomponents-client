@@ -1,0 +1,147 @@
+NTLM support in HttpClient 4.x
+==============================
+
+Currently HttpClient 4.0 does not provide support for the NTLM authentication
+scheme out of the box and probably never will. The reasons for that are legal 
+rather than technical.
+
+Background
+==========
+NTLM is a proprietary authentication scheme developed by Microsoft and 
+optimized for Windows operating system. 
+
+Until year 2008 there was no official, publicly available, complete 
+documentation of the protocol. Unofficial 3rd party protocol descriptions 
+existed [1] as a result of reverse-engineering efforts. It was not really 
+known whether the protocol based on the reverse-engineering were complete 
+or even correct.
+
+Microsoft published MS-NLMP [2] and MS-NTHT [3] specifications in February 
+2008 as a part of its Interoperability Principles initiative [4]. 
+Unfortunately, it is still not entirely clear whether NTLM encryption 
+algorithms are covered by any patents held by Microsoft, which would make 
+commercial users of open-source NTLM implementations liable for the use of 
+Microsoft intellectual property.  
+       
+Enabling NTLM support in HttpClient 4.x
+=======================================
+The good news is HttpClient is fully NTLM capable right out of the box. 
+HttpClient ships with the NTLM  authentication scheme, which, if configured 
+to use an external NTLM engine, can handle NTLM challenges and authenticate 
+against NTLM servers. 
+
+-----------------------------------------------------------
+public interface NTLMEngine {
+
+    String generateType1Msg(
+            String domain, 
+            String workstation) throws NTLMEngineException;
+    
+    String generateType3Msg(
+            String username,
+            String password,
+            String domain, 
+            String workstation,
+            String challenge) throws NTLMEngineException;
+
+}   
+-----------------------------------------------------------
+
+Using Samba JCIFS as an NTLM engine
+===================================
+Follow these instructions to build an NTLMEngine implementation using JCIFS 
+library
+
+=========== !!!! DISCLAIMER !!!! ===========
+HttpComponents project DOES _NOT_ SUPPORT the code provided below. Use it as
+is at your own discretion.
+
+* Download the latest jcifs library from the Samba web site [5]    
+* Implement NTLMEngine interface
+-----------------------------------------------------------
+import jcifs.ntlmssp.Type1Message;
+import jcifs.ntlmssp.Type2Message;
+import jcifs.ntlmssp.Type3Message;
+import jcifs.util.Base64;
+
+import org.apache.http.impl.auth.NTLMEngine;
+import org.apache.http.impl.auth.NTLMEngineException;
+
+public class JCIFSEngine implements NTLMEngine {
+
+    public String generateType1Msg(
+            String domain, 
+            String workstation) throws NTLMEngineException {
+
+        Type1Message t1m = new Type1Message(
+                Type1Message.getDefaultFlags(),
+                domain,
+                workstation);
+        return Base64.encode(t1m.toByteArray());
+    }
+
+    public String generateType3Msg(
+            String username, 
+            String password, 
+            String domain,
+            String workstation, 
+            String challenge) throws NTLMEngineException {
+        Type2Message t2m;
+        try {
+            t2m = new Type2Message(Base64.decode(challenge));
+        } catch (IOException ex) {
+            throw new NTLMEngineException("Invalid Type2 message", ex);
+        }
+        Type3Message t3m = new Type3Message(
+                t2m, 
+                password, 
+                domain, 
+                username, 
+                workstation);
+        return Base64.encode(t3m.toByteArray());
+    }
+
+}
+-----------------------------------------------------------
+* Implement AuthSchemeFactory interface
+-----------------------------------------------------------
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.impl.auth.NTLMScheme;
+import org.apache.http.params.HttpParams;
+
+public class NTLMSchemeFactory implements AuthSchemeFactory {
+
+    public AuthScheme newInstance(final HttpParams params) {
+        return new NTLMScheme(new JCIFSEngine());
+    }
+
+}
+-----------------------------------------------------------
+* Register NTLMSchemeFactory with the HttpClient instance you want to NTLM 
+  enable.
+-----------------------------------------------------------
+    httpclient.getAuthSchemes().register("ntlm", new NTLMSchemeFactory());
+-----------------------------------------------------------
+* Set NTCredentials for the web server you are going to access.
+-----------------------------------------------------------
+    httpclient.getCredentialsProvider().setCredentials(
+        new AuthScope("myserver", -1), 
+        new NTCredentials("username", "password", "MYSERVER", "MYDOMAIN"));
+-----------------------------------------------------------
+* You are done.
+
+
+Why this code is not distributed with HttpClient 
+================================================
+JCIFS is licensed under the Lesser General Public License (LGPL). This license 
+is not compatible with the Apache Licenses under which all Apache Software is 
+released. Lawyers of the Apache Software Foundation are currently investigating 
+under which conditions Apache software is allowed to make use of LGPL software.
+
+-----------------------------------------------------------
+[1] http://davenport.sourceforge.net/ntlm.html
+[2] http://download.microsoft.com/download/a/e/6/ae6e4142-aa58-45c6-8dcf-a657e5900cd3/%5BMS-NLMP%5D.pdf
+[3] http://download.microsoft.com/download/a/e/6/ae6e4142-aa58-45c6-8dcf-a657e5900cd3/%5BMS-NTHT%5D.pdf
+[4] http://www.microsoft.com/interop/principles/default.mspx
+[5] http://jcifs.samba.org/

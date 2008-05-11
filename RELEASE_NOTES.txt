@@ -1,3 +1,15 @@
+Changes since 4.0 Alpha 4
+-------------------
+
+* Partial NTLM support (requires an external NTLM engine). For details see
+  NTLM_SUPPORT.txt
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Redesigned local execution context management.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+--------------------------------------
+
 Release 4.0 Alpha 4
 -------------------
 
@@ -23,7 +35,9 @@ HttpClient 3.x features that have NOT yet been ported:
 Changelog:
 -------------------
 
-* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify Locale.ENGLISH
+* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify 
+  Locale.ENGLISH
+  Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-769] Do not pool connection marked non-reusable.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
