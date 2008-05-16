@@ -51,6 +51,10 @@
       <item name="Download" href="download.html"/>
       <item name="Examples" href="examples.html"/>
     </menu>
+    <menu name="Documentation">
+      <item name="Client HTTP Programming Primer" href="primer.html"/>
+      <item name="NTLM support" href="ntlm.html"/>
+    </menu>
     <menu name="Modules">
       <item name="HttpClient" href="httpclient/index.html"/>
       <item name="HttpMime" href="httpmime/index.html"/>

@@ -62,7 +62,7 @@ Features
 
     * Tunneled HTTPS connections through HTTP proxies, via the CONNECT method.
 
-    * Basic, Digest authentication schemes. Please note NTLM is currently not supported.
+    * Basic, Digest authentication schemes. Please note NTLM is supported only partially.
 
     * Plug-in mechanism for custom authentication schemes.
 
