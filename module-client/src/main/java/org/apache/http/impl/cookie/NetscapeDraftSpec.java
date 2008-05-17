@@ -64,18 +64,32 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public class NetscapeDraftSpec extends CookieSpecBase {
 
+    protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss z";
+    
+    private final String[] datepatterns; 
+    
     /** Default constructor */
-    public NetscapeDraftSpec() {
+    public NetscapeDraftSpec(final String[] datepatterns) {
         super();
+        if (datepatterns != null) {
+            this.datepatterns = datepatterns.clone();
+        } else {
+            this.datepatterns = new String[] { EXPIRES_PATTERN };
+        }
         registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new NetscapeDomainHandler());
         registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
         registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
         registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
         registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
-                new String[] {"EEE, dd-MMM-yyyy HH:mm:ss z"}));
+                this.datepatterns));
     }
 
+    /** Default constructor */
+    public NetscapeDraftSpec() {
+        this(null);
+    }
+    
     /**
       * Parses the Set-Cookie value into an array of <tt>Cookie</tt>s.
       *

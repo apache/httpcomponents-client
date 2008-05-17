@@ -83,7 +83,11 @@ public class BestMatchSpec implements CookieSpec {
 
     private NetscapeDraftSpec getNetscape() {
         if (this.netscape == null) {
-            this.netscape = new NetscapeDraftSpec();
+            String[] patterns = this.datepatterns;
+            if (patterns == null) {
+                patterns = BrowserCompatSpec.DATE_PATTERNS;
+            }
+            this.netscape = new NetscapeDraftSpec(patterns);
         }
         return netscape;
     }

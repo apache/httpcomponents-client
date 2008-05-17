@@ -33,6 +33,7 @@ package org.apache.http.impl.cookie;
 
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -44,7 +45,12 @@ import org.apache.http.params.HttpParams;
 public class NetscapeDraftSpecFactory implements CookieSpecFactory {    
 
     public CookieSpec newInstance(final HttpParams params) {
-        return new NetscapeDraftSpec();
+        if (params != null) {
+            return new NetscapeDraftSpec(
+                    (String []) params.getParameter(CookieSpecPNames.DATE_PATTERNS));
+        } else {
+            return new NetscapeDraftSpec();
+        }
     }
 
 }

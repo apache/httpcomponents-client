@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-773] Improved handling of the 'expires' attribute by the
+  'Best Match' cookie spec.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * Partial NTLM support (requires an external NTLM engine). For details see
   NTLM_SUPPORT.txt
   Contributed by Oleg Kalnichevski <olegk at apache.org>
