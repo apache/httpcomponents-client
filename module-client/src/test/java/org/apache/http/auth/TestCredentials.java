@@ -57,59 +57,67 @@ public class TestCredentials extends TestCase {
         UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name", "pwd"); 
         assertEquals("name", creds1.getUserName());
-        assertEquals("name", creds1.getPrincipalName());
+        assertEquals(new BasicUserPrincipal("name"), 
+                creds1.getUserPrincipal());
         assertEquals("pwd", creds1.getPassword());
-        assertEquals("[username: name]", creds1.toString());
+        assertEquals("[principal: name]", creds1.toString());
         UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
                 "name:pwd"); 
         assertEquals("name", creds2.getUserName());
-        assertEquals("name", creds2.getPrincipalName());
+        assertEquals(new BasicUserPrincipal("name"), 
+                creds2.getUserPrincipal());
         assertEquals("pwd", creds2.getPassword());
-        assertEquals("[username: name]", creds2.toString());
+        assertEquals("[principal: name]", creds2.toString());
         UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
             "name"); 
         assertEquals("name", creds3.getUserName());
-        assertEquals("name", creds3.getPrincipalName());
+        assertEquals(new BasicUserPrincipal("name"), 
+                creds3.getUserPrincipal());
         assertEquals(null, creds3.getPassword());
-        assertEquals("[username: name]", creds3.toString());
+        assertEquals("[principal: name]", creds3.toString());
     }
     
     public void testNTCredentialsBasics() {
         NTCredentials creds1 = new NTCredentials(
                 "name", "pwd", "localhost", "domain"); 
         assertEquals("name", creds1.getUserName());
-        assertEquals("DOMAIN/name", creds1.getPrincipalName());
+        assertEquals(new NTUserPrincipal("DOMAIN", "name"), 
+                creds1.getUserPrincipal());
         assertEquals("pwd", creds1.getPassword());
-        assertEquals("[username: name][workstation: LOCALHOST]" +
-                "[domain: DOMAIN]", creds1.toString());
+        assertEquals("[principal: DOMAIN/name][workstation: LOCALHOST]", 
+                creds1.toString());
         NTCredentials creds2 = new NTCredentials(
                 "name", null, null, null); 
         assertEquals("name", creds2.getUserName());
-        assertEquals("name", creds2.getPrincipalName());
+        assertEquals(new NTUserPrincipal(null, "name"), 
+                creds2.getUserPrincipal());
         assertEquals(null, creds2.getPassword());
-        assertEquals("[username: name][workstation: null]" +
-                "[domain: null]", creds2.toString());
+        assertEquals("[principal: name][workstation: null]", 
+                creds2.toString());
         NTCredentials creds3 = new NTCredentials(
                 "domain/name:pwd"); 
         assertEquals("name", creds3.getUserName());
-        assertEquals("DOMAIN/name", creds3.getPrincipalName());
+        assertEquals(new NTUserPrincipal("DOMAIN", "name"), 
+                creds3.getUserPrincipal());
         assertEquals("pwd", creds3.getPassword());
-        assertEquals("[username: name][workstation: null]" +
-                "[domain: DOMAIN]", creds3.toString());
+        assertEquals("[principal: DOMAIN/name][workstation: null]", 
+                creds3.toString());
         NTCredentials creds4 = new NTCredentials(
             "domain/name"); 
         assertEquals("name", creds4.getUserName());
-        assertEquals("DOMAIN/name", creds4.getPrincipalName());
+        assertEquals(new NTUserPrincipal("DOMAIN", "name"), 
+                creds4.getUserPrincipal());
         assertEquals(null, creds4.getPassword());
-        assertEquals("[username: name][workstation: null]" +
-                "[domain: DOMAIN]", creds4.toString());
+        assertEquals("[principal: DOMAIN/name][workstation: null]", 
+                creds4.toString());
         NTCredentials creds5 = new NTCredentials(
             "name"); 
         assertEquals("name", creds5.getUserName());
-        assertEquals("name", creds5.getPrincipalName());
+        assertEquals(new NTUserPrincipal(null, "name"), 
+                creds5.getUserPrincipal());
         assertEquals(null, creds5.getPassword());
-        assertEquals("[username: name][workstation: null]" +
-                "[domain: null]", creds5.toString());
+        assertEquals("[principal: name][workstation: null]", 
+                creds5.toString());
     }
  
     public void testUsernamePasswordCredentialsHashCode() {

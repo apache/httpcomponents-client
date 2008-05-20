@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import java.security.Principal;
+
 import org.apache.http.util.LangUtils;
 
 /**
@@ -45,7 +47,7 @@ import org.apache.http.util.LangUtils;
  */
 public class UsernamePasswordCredentials implements Credentials {
 
-    private final String userName;
+    private final BasicUserPrincipal principal;
     private final String password;
      
     /**
@@ -61,10 +63,10 @@ public class UsernamePasswordCredentials implements Credentials {
         }
         int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
-            this.userName = usernamePassword.substring(0, atColon);
+            this.principal = new BasicUserPrincipal(usernamePassword.substring(0, atColon));
             this.password = usernamePassword.substring(atColon + 1);
         } else {
-            this.userName = usernamePassword;
+            this.principal = new BasicUserPrincipal(usernamePassword);
             this.password = null;
         }
     }
@@ -81,16 +83,16 @@ public class UsernamePasswordCredentials implements Credentials {
         if (userName == null) {
             throw new IllegalArgumentException("Username may not be null");            
         }
-        this.userName = userName;
+        this.principal = new BasicUserPrincipal(userName);
         this.password = password;
     }
 
-    public String getPrincipalName() {
-        return userName;
+    public Principal getUserPrincipal() {
+        return this.principal;
     }
 
     public String getUserName() {
-        return userName;
+        return this.principal.getName();
     }
 
     public String getPassword() {
@@ -99,9 +101,7 @@ public class UsernamePasswordCredentials implements Credentials {
 
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.userName);
-        return hash;
+        return this.principal.hashCode();
     }
 
     @Override
@@ -110,7 +110,7 @@ public class UsernamePasswordCredentials implements Credentials {
         if (this == o) return true;
         if (o instanceof UsernamePasswordCredentials) {
             UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
-            if (LangUtils.equals(this.userName, that.userName)) {
+            if (LangUtils.equals(this.principal, that.principal)) {
                 return true;
             }
         }
@@ -119,11 +119,7 @@ public class UsernamePasswordCredentials implements Credentials {
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("[username: ");
-        buffer.append(this.userName);
-        buffer.append("]");
-        return buffer.toString();
+        return this.principal.toString();
     }
 
 }

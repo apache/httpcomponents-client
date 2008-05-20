@@ -163,7 +163,7 @@ public class BasicScheme extends RFC2617Scheme {
         }
 
         StringBuilder tmp = new StringBuilder();
-        tmp.append(credentials.getPrincipalName());
+        tmp.append(credentials.getUserPrincipal().getName());
         tmp.append(":");
         tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 

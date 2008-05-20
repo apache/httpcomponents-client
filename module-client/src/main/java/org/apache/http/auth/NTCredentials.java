@@ -30,6 +30,7 @@
 
 package org.apache.http.auth;
 
+import java.security.Principal;
 import java.util.Locale;
 
 import org.apache.http.util.LangUtils;
@@ -44,15 +45,12 @@ import org.apache.http.util.LangUtils;
  */
 public class NTCredentials implements Credentials {
 
-    /** User name */
-    private final String userName;
+    /** The user principal  */
+    private final NTUserPrincipal principal;
 
     /** Password */
     private final String password;
     
-    /** The Domain to authenticate with.  */
-    private final String domain;
-
     /** The host the authentication request is originating from.  */
     private final String workstation;
 
@@ -78,11 +76,13 @@ public class NTCredentials implements Credentials {
         }
         int atSlash = username.indexOf('/');
         if (atSlash >= 0) {
-            this.domain = username.substring(0, atSlash).toUpperCase(Locale.ENGLISH);
-            this.userName = username.substring(atSlash + 1);
+            this.principal = new NTUserPrincipal(
+                    username.substring(0, atSlash).toUpperCase(Locale.ENGLISH),
+                    username.substring(atSlash + 1));
         } else {
-            this.domain = null;
-            this.userName = username;
+            this.principal = new NTUserPrincipal(
+                    null,
+                    username.substring(atSlash + 1));
         }
         this.workstation = null;
     }
@@ -105,34 +105,21 @@ public class NTCredentials implements Credentials {
         if (userName == null) {
             throw new IllegalArgumentException("User name may not be null");
         }
-        this.userName = userName;
+        this.principal = new NTUserPrincipal(domain, userName);
         this.password = password;
         if (workstation != null) {
             this.workstation = workstation.toUpperCase(Locale.ENGLISH);
         } else {
             this.workstation = null;
         }
-        if (domain != null) {
-            this.domain = domain.toUpperCase(Locale.ENGLISH);
-        } else {
-            this.domain = null;
-        }
     }
 
-    public String getUserName() {
-        return this.userName;
+    public Principal getUserPrincipal() {
+        return this.principal;
     }
     
-    public String getPrincipalName() {
-        if (this.domain != null && this.domain.length() > 0) {
-            StringBuilder buffer = new StringBuilder();
-            buffer.append(this.domain);
-            buffer.append('/');
-            buffer.append(this.userName);
-            return buffer.toString();
-        } else {
-            return this.userName;
-        }
+    public String getUserName() {
+        return this.principal.getUsername();
     }
     
     public String getPassword() {
@@ -145,7 +132,7 @@ public class NTCredentials implements Credentials {
      * @return String the domain these credentials are intended to authenticate with.
      */
     public String getDomain() {
-        return domain;
+        return this.principal.getDomain();
     }
 
     /**
@@ -160,9 +147,8 @@ public class NTCredentials implements Credentials {
     @Override
     public int hashCode() {
         int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.userName);
+        hash = LangUtils.hashCode(hash, this.principal);
         hash = LangUtils.hashCode(hash, this.workstation);
-        hash = LangUtils.hashCode(hash, this.domain);
         return hash;
     }
 
@@ -172,9 +158,8 @@ public class NTCredentials implements Credentials {
         if (this == o) return true;
         if (o instanceof NTCredentials) {
             NTCredentials that = (NTCredentials) o;
-            if (LangUtils.equals(this.userName, that.userName)
-                    && LangUtils.equals(this.workstation, that.workstation)
-                    && LangUtils.equals(this.domain, that.domain)) {
+            if (LangUtils.equals(this.principal, that.principal)
+                    && LangUtils.equals(this.workstation, that.workstation)) {
                 return true;
             }
         }
@@ -184,12 +169,10 @@ public class NTCredentials implements Credentials {
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
-        buffer.append("[username: ");
-        buffer.append(this.userName);
+        buffer.append("[principal: ");
+        buffer.append(this.principal);
         buffer.append("][workstation: ");
         buffer.append(this.workstation);
-        buffer.append("][domain: ");
-        buffer.append(this.domain);
         buffer.append("]");
         return buffer.toString();
     }

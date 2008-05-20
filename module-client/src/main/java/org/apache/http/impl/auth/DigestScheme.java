@@ -270,7 +270,7 @@ public class DigestScheme extends RFC2617Scheme {
 
         MessageDigest md5Helper = createMessageDigest("MD5");
 
-        String uname = credentials.getPrincipalName();
+        String uname = credentials.getUserPrincipal().getName();
         String pwd = credentials.getPassword();
         
         // 3.2.2.2: Calculating digest
@@ -372,8 +372,10 @@ public class DigestScheme extends RFC2617Scheme {
         String response = digest;
         String algorithm = getParameter("algorithm");
 
+        String uname = credentials.getUserPrincipal().getName();
+        
         List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
-        params.add(new BasicNameValuePair("username", credentials.getPrincipalName()));
+        params.add(new BasicNameValuePair("username", uname));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));

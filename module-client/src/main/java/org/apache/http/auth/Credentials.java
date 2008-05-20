@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import java.security.Principal;
+
 /**
  * User name and password based authentication credentials.
  * 
@@ -40,7 +42,7 @@ package org.apache.http.auth;
  */
 public interface Credentials {
 
-    String getPrincipalName();
+    Principal getUserPrincipal();
 
     String getPassword();
     
