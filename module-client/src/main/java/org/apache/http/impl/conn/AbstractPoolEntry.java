@@ -72,7 +72,7 @@ public abstract class AbstractPoolEntry {
     protected final ClientConnectionOperator connOperator;
 
     /** The underlying connection being pooled or used. */
-    protected volatile OperatedClientConnection connection;
+    protected final OperatedClientConnection connection;
 
     /** The route for which this entry gets allocated. */
     //@@@ currently accessed from connection manager(s) as attribute
@@ -167,10 +167,19 @@ public abstract class AbstractPoolEntry {
              route.getLocalAddress(),
              context, params);
 
-        if (proxy == null)
-            this.tracker.connectTarget(this.connection.isSecure());
-        else
-            this.tracker.connectProxy(proxy, this.connection.isSecure());
+        RouteTracker localTracker = tracker; // capture volatile        
+
+        // If this tracker was reset while connecting,
+        // fail early.
+        if (localTracker == null) {
+            throw new IOException("Request aborted");
+        }
+
+        if (proxy == null) {
+            localTracker.connectTarget(this.connection.isSecure());
+        } else {
+            localTracker.connectProxy(proxy, this.connection.isSecure());
+        }
 
     } // open
 
@@ -299,9 +308,12 @@ public abstract class AbstractPoolEntry {
 
 
     /**
-     * Resets tracked route.
+     * Shuts down the entry.
+     * 
+     * If {@link #open(HttpRoute, HttpContext, HttpParams)} is in progress,
+     * this will cause that open to possibly throw an {@link IOException}.
      */
-    protected void resetTrackedRoute() { 
+    protected void shutdownEntry() { 
         tracker = null;
     }
 

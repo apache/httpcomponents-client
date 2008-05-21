@@ -79,6 +79,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /** Whether this connection is secure. */
     private boolean connSecure;
+    
+    /** True if this connection was shutdown. */
+    private volatile boolean shutdown;
 
 
     // public default constructor
@@ -102,10 +105,17 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
 
-    public void opening(Socket sock, HttpHost target) {
-        assertNotOpen();
+    public void opening(Socket sock, HttpHost target) throws IOException {
+        assertNotOpen();        
         this.socket = sock;
         this.targetHost = target;
+        
+        // Check for shutdown after assigning socket, so that 
+        if (this.shutdown) {
+            sock.close(); // allow this to throw...
+            // ...but if it doesn't, explicitly throw one ourselves.
+            throw new IOException("Connection already shutdown");
+        }
     }
 
     
@@ -127,14 +137,17 @@ public class DefaultClientConnection extends SocketHttpClientConnection
      * socket that is being connected to a remote address will be closed. 
      * That will interrupt a thread that is blocked on connecting 
      * the socket.
+     * If the connection is not yet open, this will prevent the connection
+     * from being opened.
      *
      * @throws IOException      in case of a problem
      */
     @Override
     public void shutdown() throws IOException {
         LOG.debug("Connection shut down");
+        shutdown = true;
         
-        super.shutdown();
+        super.shutdown();        
         Socket sock = this.socket; // copy volatile attribute
         if (sock != null)
             sock.close();

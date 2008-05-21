@@ -372,7 +372,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void close()
             throws IOException {
 
-            resetTrackedRoute();
+            shutdownEntry();
             if (connection.isOpen())
                 connection.close();
         }
@@ -384,7 +384,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         protected void shutdown()
             throws IOException {
 
-            resetTrackedRoute();
+            shutdownEntry();
             if (connection.isOpen())
                 connection.shutdown();
         }

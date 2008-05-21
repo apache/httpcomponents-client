@@ -39,6 +39,7 @@ import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
@@ -104,6 +105,9 @@ public class LocalTestServer {
 
     /** The request listening thread, while listening. */
     protected volatile Thread listenerThread;
+    
+    /** The number of connections this accepted. */
+    private final AtomicInteger acceptedConnections = new AtomicInteger(0);
 
 
     /**
@@ -161,7 +165,13 @@ public class LocalTestServer {
                           "LocalTestServer/1.1");
         return params;
     }
-
+    
+    /**
+     * Returns the number of connections this test server has accepted.
+     */
+    public int getAcceptedConnectionCount() {
+        return acceptedConnections.get();
+    }
 
     /**
      * {@link #register Registers} a set of default request handlers.
@@ -332,6 +342,7 @@ public class LocalTestServer {
         protected void accept() throws IOException {
             // Set up HTTP connection
             Socket socket = servicedSocket.accept();
+            acceptedConnections.incrementAndGet();
             DefaultHttpServerConnection conn =
                 new DefaultHttpServerConnection();
             conn.bind(socket, serverParams);

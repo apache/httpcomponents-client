@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-776] Fixed concurrency issues with AbstractPoolEntry.
+  Contributed by Sam Berlin <sberlin at gmail.com>
+
 * Resolved a long standing problem with HttpClient not taking into account
   the user context when pooling / re-using connections. HttpClient now
   correctly handles stateful / user specific connections such as persistent 
