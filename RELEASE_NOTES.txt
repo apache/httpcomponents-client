@@ -1,6 +1,12 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* Resolved a long standing problem with HttpClient not taking into account
+  the user context when pooling / re-using connections. HttpClient now
+  correctly handles stateful / user specific connections such as persistent 
+  NTLM connections and SSL connections with client side authentication. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-773] Improved handling of the 'expires' attribute by the
   'Best Match' cookie spec.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

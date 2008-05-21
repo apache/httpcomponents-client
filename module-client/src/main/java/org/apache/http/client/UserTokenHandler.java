@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,24 +29,36 @@
  *
  */
 
-package org.apache.http.client.protocol;
+package org.apache.http.client;
 
+import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link org.apache.http.protocol.HttpContext Context}
- * attribute names for client.
+ * A handler for determining if the given execution context is user specific 
+ * or not. The token object returned by this handler is expected to uniquely 
+ * identify the current user if the context is user specific or to be 
+ * <code>null</code> if the context does not contain any resources or details 
+ * specific to the current user.
+ * <p/>
+ * The user token will be used to ensure that user specific resouces will not
+ * shared with or reused by other users.
+ *
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @since 4.0
  */
-public interface ClientContext {
-    
-    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
-    public static final String COOKIE_STORE          = "http.cookie-store"; 
-    public static final String COOKIE_SPEC           = "http.cookie-spec"; 
-    public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
-    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
-    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
-    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
-    public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
-    public static final String USER_TOKEN            = "http.user-token";
-    
+public interface UserTokenHandler {
+
+    /**
+     * The token object returned by this method is expected to uniquely 
+     * identify the current user if the context is user specific or to be 
+     * <code>null</code> if it is not.
+     * 
+     * @param context the execution context
+     * 
+     * @return user token that uniquely identifies the user or 
+     * <code>null</null> if the context is not user specific.
+     */
+    Object getUserToken(HttpContext context);
+
 }

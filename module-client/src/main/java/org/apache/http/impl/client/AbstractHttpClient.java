@@ -49,6 +49,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
@@ -110,8 +111,11 @@ public abstract class AbstractHttpClient implements HttpClient {
     /** The credentials provider. */
     private CredentialsProvider credsProvider;
     
-    /** The HttpRoutePlanner object. */
+    /** The route planner. */
     private HttpRoutePlanner routePlanner;
+
+    /** The user token handler. */
+    private UserTokenHandler userTokenHandler;
 
 
     /**
@@ -169,18 +173,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     protected abstract HttpRoutePlanner createHttpRoutePlanner();
 
     
-    public synchronized final HttpRoutePlanner getRoutePlanner() {
-        if (this.routePlanner == null) {
-            this.routePlanner = createHttpRoutePlanner();
-        }
-        return this.routePlanner;
-    }
+    protected abstract UserTokenHandler createUserTokenHandler();
 
-
-    public synchronized void setRoutePlanner(final HttpRoutePlanner routePlanner) {
-        this.routePlanner = routePlanner;
-    }
-    
     
     // non-javadoc, see interface HttpClient
     public synchronized final HttpParams getParams() {
@@ -334,6 +328,32 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
+    public synchronized final HttpRoutePlanner getRoutePlanner() {
+        if (this.routePlanner == null) {
+            this.routePlanner = createHttpRoutePlanner();
+        }
+        return this.routePlanner;
+    }
+
+
+    public synchronized void setRoutePlanner(final HttpRoutePlanner routePlanner) {
+        this.routePlanner = routePlanner;
+    }
+    
+    
+    public synchronized final UserTokenHandler getUserTokenHandler() {
+        if (this.userTokenHandler == null) {
+            this.userTokenHandler = createUserTokenHandler();
+        }
+        return this.userTokenHandler;
+    }
+
+
+    public synchronized void setUserTokenHandler(final UserTokenHandler userTokenHandler) {
+        this.userTokenHandler = userTokenHandler;
+    }
+    
+    
     protected synchronized final BasicHttpProcessor getHttpProcessor() {
         if (httpProcessor == null) {
             httpProcessor = createHttpProcessor();
@@ -500,6 +520,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getRedirectHandler(),
                     getTargetAuthenticationHandler(),
                     getProxyAuthenticationHandler(),
+                    getUserTokenHandler(),
                     determineParams(request));
         }
 
@@ -524,6 +545,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final RedirectHandler redirectHandler,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
+            final UserTokenHandler stateHandler,
             final HttpParams params) {
         return new DefaultClientRequestDirector(
                 conman,
@@ -534,6 +556,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                 redirectHandler,
                 targetAuthHandler,
                 proxyAuthHandler,
+                stateHandler,
                 params);
     }
 

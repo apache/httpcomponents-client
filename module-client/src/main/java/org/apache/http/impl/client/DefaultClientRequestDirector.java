@@ -63,6 +63,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
@@ -134,6 +135,9 @@ public class DefaultClientRequestDirector
     /** The proxy authentication handler. */
     private final AuthenticationHandler proxyAuthHandler;
     
+    /** The user token handler. */
+    private final UserTokenHandler userTokenHandler;
+    
     /** The HTTP parameters. */
     protected final HttpParams params;
     
@@ -157,6 +161,7 @@ public class DefaultClientRequestDirector
             final RedirectHandler redirectHandler,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
+            final UserTokenHandler userTokenHandler,
             final HttpParams params) {
 
         if (conman == null) {
@@ -191,6 +196,10 @@ public class DefaultClientRequestDirector
             throw new IllegalArgumentException
                 ("Proxy authentication handler may not be null.");
         }
+        if (userTokenHandler == null) {
+            throw new IllegalArgumentException
+                ("User token handler may not be null.");
+        }
         if (params == null) {
             throw new IllegalArgumentException
                 ("HTTP parameters may not be null");
@@ -203,6 +212,7 @@ public class DefaultClientRequestDirector
         this.redirectHandler   = redirectHandler;
         this.targetAuthHandler = targetAuthHandler;
         this.proxyAuthHandler  = proxyAuthHandler;
+        this.userTokenHandler  = userTokenHandler; 
         this.params            = params;
         this.requestExec       = new HttpRequestExecutor();
 
@@ -283,10 +293,13 @@ public class DefaultClientRequestDirector
                 RequestWrapper wrapper = roureq.getRequest();
                 HttpRoute route = roureq.getRoute();
                 
+                // See if we have a user token bound to the execution context
+                Object userToken = context.getAttribute(ClientContext.USER_TOKEN);
+                
                 // Allocate connection if needed
                 if (managedConn == null) {
                     ClientConnectionRequest connRequest = connManager.requestConnection(
-                            route, null);
+                            route, userToken);
                     if (orig instanceof AbortableHttpRequest) {
                         ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
                     }
@@ -414,6 +427,12 @@ public class DefaultClientRequestDirector
                     // clear auto-generated headers
                     followup.getRequest().clearHeaders();
                     roureq = followup;
+                }
+                
+                userToken = this.userTokenHandler.getUserToken(context);
+                context.setAttribute(ClientContext.USER_TOKEN, userToken);
+                if (managedConn != null) {
+                    managedConn.setState(userToken);
                 }
             } // while not done
 

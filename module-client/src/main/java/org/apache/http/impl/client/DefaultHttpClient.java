@@ -39,6 +39,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
@@ -289,11 +290,16 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
 
-    // non-javadoc, see base class AbstractHttpClient
     @Override
     protected HttpRoutePlanner createHttpRoutePlanner() {
         return new DefaultHttpRoutePlanner
             (getConnectionManager().getSchemeRegistry());
+    }
+
+
+    @Override
+    protected UserTokenHandler createUserTokenHandler() {
+        return new DefaultUserTokenHandler();
     }
     
 } // class DefaultHttpClient

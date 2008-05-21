@@ -45,6 +45,7 @@ public class TestAllHttpClientImpl extends TestCase {
         suite.addTest(TestBasicCredentialsProvider.suite());
         suite.addTest(TestRequestWrapper.suite());
         suite.addTest(TestDefaultClientRequestDirector.suite());
+        suite.addTest(TestStatefulConnManagement.suite());
         return suite;
     }
 
