@@ -45,10 +45,6 @@ public class ClientParamBean extends HttpAbstractParamBean {
         super(params);
     }
 
-    public void setConnectionManagerTimeout (final long timeout) {
-        params.setLongParameter(ClientPNames.CONNECTION_MANAGER_TIMEOUT, timeout);
-    }
-
     public void setConnectionManagerFactoryClassName (final String factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME, factory);
     }

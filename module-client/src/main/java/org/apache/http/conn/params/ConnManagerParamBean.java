@@ -44,6 +44,10 @@ public class ConnManagerParamBean extends HttpAbstractParamBean {
     public ConnManagerParamBean (final HttpParams params) {
         super(params);
     }
+    
+    public void setTimeout (final long timeout) {
+        params.setLongParameter(ConnManagerPNames.TIMEOUT, timeout);
+    }
 
     /** @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS */
     public void setMaxTotalConnections (final int maxConnections) {

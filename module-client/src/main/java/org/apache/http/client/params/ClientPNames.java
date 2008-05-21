@@ -43,16 +43,6 @@ package org.apache.http.client.params;
 public interface ClientPNames {
 
     /**
-     * Defines the timeout in milliseconds used when retrieving an instance of 
-     * {@link org.apache.http.conn.ManagedClientConnection} from the
-     * {@link org.apache.http.conn.ClientConnectionManager}.
-     * <p>
-     * This parameter expects a value of type {@link Long}.
-     * </p>
-     */ 
-    public static final String CONNECTION_MANAGER_TIMEOUT = "http.connection-manager.timeout"; 
-
-    /**
      * Defines the class name of the default {@link org.apache.http.conn.ClientConnectionManager}
      * <p>
      * This parameter expects a value of type {@link String}.

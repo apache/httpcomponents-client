@@ -52,6 +52,34 @@ public final class HttpConnectionManagerParams implements ConnManagerPNames {
     /** The default maximum number of connections allowed overall */
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;
 
+    /**
+     * Returns the timeout in milliseconds used when retrieving a
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
+     * 
+     * @return timeout in milliseconds.
+     */ 
+    public static long getTimeout(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        return params.getLongParameter(TIMEOUT, 0);
+    }
+
+    /**
+     * Sets the timeout in milliseconds used when retrieving a
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
+     * 
+     * @param timeout the timeout in milliseconds
+     */ 
+    public static void setTimeout(final HttpParams params, long timeout) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setLongParameter(TIMEOUT, timeout);
+    }
+
     /** The default maximum number of connections allowed per host */
     private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
         

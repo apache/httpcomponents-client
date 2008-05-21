@@ -47,36 +47,6 @@ public class HttpClientParams {
         super();
     }
 
-    /**
-     * Returns the timeout in milliseconds used when retrieving a
-     * {@link org.apache.http.conn.ManagedClientConnection} from the
-     * {@link org.apache.http.conn.ClientConnectionManager}.
-     * 
-     * @return timeout in milliseconds.
-     */ 
-    public static long getConnectionManagerTimeout(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
-        return params.getLongParameter
-            (ClientPNames.CONNECTION_MANAGER_TIMEOUT, 0);
-    }
-
-    /**
-     * Sets the timeout in milliseconds used when retrieving a
-     * {@link org.apache.http.conn.ManagedClientConnection} from the
-     * {@link org.apache.http.conn.ClientConnectionManager}.
-     * 
-     * @param timeout the timeout in milliseconds
-     */ 
-    public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
-        params.setLongParameter
-            (ClientPNames.CONNECTION_MANAGER_TIMEOUT, timeout);
-    }
-
     public static boolean isRedirecting(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");

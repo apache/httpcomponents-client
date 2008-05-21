@@ -42,7 +42,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.params.HttpConnectionManagerParams;
@@ -103,7 +102,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpConnectionManagerParams.setMaxTotalConnections(params, workerCount);
         HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, 
                 new ConnPerRouteBean(workerCount));
-        HttpClientParams.setConnectionManagerTimeout(params, 10L);
+        HttpConnectionManagerParams.setTimeout(params, 10L);
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
                 params, supportedSchemes);        
