@@ -39,7 +39,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.localserver.ServerTestBase;
@@ -69,7 +69,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         
         BasicHttpParams params = new BasicHttpParams(); 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
         
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, params);
         try {
@@ -116,7 +116,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         
         BasicHttpParams params = new BasicHttpParams(); 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
         
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, params);
         try {

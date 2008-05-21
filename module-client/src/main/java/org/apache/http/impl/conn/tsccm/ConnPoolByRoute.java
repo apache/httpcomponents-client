@@ -45,7 +45,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.ConnPerRoute;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.params.HttpParams;
 
 
@@ -104,9 +104,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
         freeConnections = createFreeConnQueue();
         waitingThreads  = createWaitingThreadQueue();
         routeToPool     = createRouteToPoolMap();
-        maxTotalConnections = HttpConnectionManagerParams
+        maxTotalConnections = ConnManagerParams
             .getMaxTotalConnections(params);
-        connPerRoute = HttpConnectionManagerParams
+        connPerRoute = ConnManagerParams
             .getMaxConnectionsPerRoute(params);
     }
 

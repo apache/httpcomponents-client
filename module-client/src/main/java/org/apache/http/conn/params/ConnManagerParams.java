@@ -47,7 +47,7 @@ import org.apache.http.params.HttpParams;
  *
  * @see ConnManagerPNames
  */
-public final class HttpConnectionManagerParams implements ConnManagerPNames {
+public final class ConnManagerParams implements ConnManagerPNames {
 
     /** The default maximum number of connections allowed overall */
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 20;

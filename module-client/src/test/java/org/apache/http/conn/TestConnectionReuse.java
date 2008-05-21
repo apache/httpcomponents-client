@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * 
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -48,7 +48,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -113,8 +113,8 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        HttpConnectionManagerParams.setMaxTotalConnections(params, 5);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, 
+        ConnManagerParams.setMaxTotalConnections(params, 5);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, 
                 new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
@@ -185,8 +185,8 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        HttpConnectionManagerParams.setMaxTotalConnections(params, 5);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, 
+        ConnManagerParams.setMaxTotalConnections(params, 5);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, 
                 new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
@@ -247,8 +247,8 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        HttpConnectionManagerParams.setMaxTotalConnections(params, 5);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, 
+        ConnManagerParams.setMaxTotalConnections(params, 5);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, 
                 new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();

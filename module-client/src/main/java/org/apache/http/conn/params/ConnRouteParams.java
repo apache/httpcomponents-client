@@ -50,7 +50,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * 
  * @since 4.0
  */
-public class HttpRouteParams {
+public class ConnRouteParams implements ConnRoutePNames {
 
     /**
      * A special value indicating "no host".
@@ -68,7 +68,7 @@ public class HttpRouteParams {
 
 
     /** Disabled default constructor. */
-    private HttpRouteParams() {
+    private ConnRouteParams() {
         // no body
     }
 
@@ -89,7 +89,7 @@ public class HttpRouteParams {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
         HttpHost proxy = (HttpHost)
-            params.getParameter(ConnRoutePNames.DEFAULT_PROXY);
+            params.getParameter(DEFAULT_PROXY);
         if ((proxy != null) && NO_HOST.equals(proxy)) {
             // value is explicitly unset
             proxy = null;
@@ -113,7 +113,7 @@ public class HttpRouteParams {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
-        params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        params.setParameter(DEFAULT_PROXY, proxy);
     }
 
 
@@ -133,7 +133,7 @@ public class HttpRouteParams {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
         HttpRoute route = (HttpRoute)
-            params.getParameter(ConnRoutePNames.FORCED_ROUTE);
+            params.getParameter(FORCED_ROUTE);
         if ((route != null) && NO_ROUTE.equals(route)) {
             // value is explicitly unset
             route = null;
@@ -157,7 +157,7 @@ public class HttpRouteParams {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
-        params.setParameter(ConnRoutePNames.FORCED_ROUTE, route);
+        params.setParameter(FORCED_ROUTE, route);
     }
 
 
@@ -178,7 +178,7 @@ public class HttpRouteParams {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
         InetAddress local = (InetAddress)
-            params.getParameter(ConnRoutePNames.LOCAL_ADDRESS);
+            params.getParameter(LOCAL_ADDRESS);
         // no explicit unsetting
         return local;
     }
@@ -196,7 +196,8 @@ public class HttpRouteParams {
         if (params == null) {
             throw new IllegalArgumentException("Parameters must not be null.");
         }
-        params.setParameter(ConnRoutePNames.LOCAL_ADDRESS, local);
+        params.setParameter(LOCAL_ADDRESS, local);
     }
+    
 }
 

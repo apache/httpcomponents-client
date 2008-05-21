@@ -47,7 +47,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.MalformedChunkCodingException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BasicHttpEntity;
@@ -87,9 +87,9 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
     public void testReleaseOnEntityConsumeContent() throws Exception {
         HttpParams params = defaultParams.copy();
-        HttpConnectionManagerParams.setMaxTotalConnections
+        ConnManagerParams.setMaxTotalConnections
             (params, 1);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute
+        ConnManagerParams.setMaxConnectionsPerRoute
             (params, new ConnPerRouteBean(1));
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
@@ -129,9 +129,9 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     
     public void testReleaseOnEntityWriteTo() throws Exception {
         HttpParams params = defaultParams.copy();
-        HttpConnectionManagerParams.setMaxTotalConnections
+        ConnManagerParams.setMaxTotalConnections
             (params, 1);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute
+        ConnManagerParams.setMaxConnectionsPerRoute
             (params, new ConnPerRouteBean(1));
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
@@ -172,9 +172,9 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     
     public void testReleaseOnAbort() throws Exception {
         HttpParams params = defaultParams.copy();
-        HttpConnectionManagerParams.setMaxTotalConnections
+        ConnManagerParams.setMaxTotalConnections
             (params, 1);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute
+        ConnManagerParams.setMaxConnectionsPerRoute
             (params, new ConnPerRouteBean(1));
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 
@@ -247,9 +247,9 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         });
         
         HttpParams params = defaultParams.copy();
-        HttpConnectionManagerParams.setMaxTotalConnections
+        ConnManagerParams.setMaxTotalConnections
             (params, 1);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute
+        ConnManagerParams.setMaxConnectionsPerRoute
             (params, new ConnPerRouteBean(1));
         ThreadSafeClientConnManager mgr = createTSCCM(params, null);
 

@@ -44,7 +44,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.ServerTestBase;
@@ -99,10 +99,10 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpHost target = new HttpHost("localhost", port);
         
         HttpParams params = defaultParams.copy();
-        HttpConnectionManagerParams.setMaxTotalConnections(params, workerCount);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, 
+        ConnManagerParams.setMaxTotalConnections(params, workerCount);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, 
                 new ConnPerRouteBean(workerCount));
-        HttpConnectionManagerParams.setTimeout(params, 10L);
+        ConnManagerParams.setTimeout(params, 10L);
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
                 params, supportedSchemes);        

@@ -36,7 +36,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -60,7 +60,7 @@ public class ClientMultiThreadedExecution {
     public static void main(String[] args) throws Exception {
         // Create and initialize HTTP parameters
         HttpParams params = new BasicHttpParams();
-        HttpConnectionManagerParams.setMaxTotalConnections(params, 100);
+        ConnManagerParams.setMaxTotalConnections(params, 100);
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         
         // Create and initialize scheme registry 

@@ -48,7 +48,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -143,8 +143,8 @@ public class TestSpuriousWakeup extends TestCase {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setUseExpectContinue(params, false);
-        HttpConnectionManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
-        HttpConnectionManagerParams.setMaxTotalConnections(params, 1);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
+        ConnManagerParams.setMaxTotalConnections(params, 1);
 
         SchemeRegistry schreg = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();

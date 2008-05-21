@@ -87,45 +87,45 @@ public class TestRouteParams extends TestCase {
         HttpParams params = new BasicHttpParams();
 
         assertNull("phantom proxy",
-                   HttpRouteParams.getDefaultProxy(params));
+                   ConnRouteParams.getDefaultProxy(params));
         assertNull("phantom route",
-                   HttpRouteParams.getForcedRoute(params));
+                   ConnRouteParams.getForcedRoute(params));
         assertNull("phantom address",
-                   HttpRouteParams.getLocalAddress(params));
+                   ConnRouteParams.getLocalAddress(params));
 
-        HttpRouteParams.setDefaultProxy(params, TARGET1);
+        ConnRouteParams.setDefaultProxy(params, TARGET1);
         assertSame("wrong proxy", TARGET1,
-                   HttpRouteParams.getDefaultProxy(params));
-        HttpRouteParams.setForcedRoute(params, ROUTE1);
+                   ConnRouteParams.getDefaultProxy(params));
+        ConnRouteParams.setForcedRoute(params, ROUTE1);
         assertSame("wrong route", ROUTE1,
-                   HttpRouteParams.getForcedRoute(params));
-        HttpRouteParams.setLocalAddress(params, LOCAL1);
+                   ConnRouteParams.getForcedRoute(params));
+        ConnRouteParams.setLocalAddress(params, LOCAL1);
         assertSame("wrong address", LOCAL1,
-                   HttpRouteParams.getLocalAddress(params));
+                   ConnRouteParams.getLocalAddress(params));
     }
 
 
     public void testSetNull() {
         HttpParams params = new BasicHttpParams();
 
-        HttpRouteParams.setDefaultProxy(params, null);
-        HttpRouteParams.setForcedRoute(params, null);
-        HttpRouteParams.setLocalAddress(params, null);
+        ConnRouteParams.setDefaultProxy(params, null);
+        ConnRouteParams.setForcedRoute(params, null);
+        ConnRouteParams.setLocalAddress(params, null);
 
         assertNull("phantom proxy",
-                   HttpRouteParams.getDefaultProxy(params));
+                   ConnRouteParams.getDefaultProxy(params));
         assertNull("phantom route",
-                   HttpRouteParams.getForcedRoute(params));
+                   ConnRouteParams.getForcedRoute(params));
         assertNull("phantom address",
-                   HttpRouteParams.getLocalAddress(params));
+                   ConnRouteParams.getLocalAddress(params));
 
-        HttpRouteParams.setDefaultProxy(params, HttpRouteParams.NO_HOST);
+        ConnRouteParams.setDefaultProxy(params, ConnRouteParams.NO_HOST);
         assertNull("null proxy not detected",
-                   HttpRouteParams.getDefaultProxy(params));
+                   ConnRouteParams.getDefaultProxy(params));
 
-        HttpRouteParams.setForcedRoute(params, HttpRouteParams.NO_ROUTE);
+        ConnRouteParams.setForcedRoute(params, ConnRouteParams.NO_ROUTE);
         assertNull("null route not detected",
-                   HttpRouteParams.getForcedRoute(params));
+                   ConnRouteParams.getForcedRoute(params));
     }
 
 
@@ -135,71 +135,71 @@ public class TestRouteParams extends TestCase {
         HttpParams dummy  = new BasicHttpParams();
         HttpParams child  = new BasicHttpParams();
 
-        HttpRouteParams.setDefaultProxy(daddy, TARGET1);
-        HttpRouteParams.setDefaultProxy(child, HttpRouteParams.NO_HOST);
+        ConnRouteParams.setDefaultProxy(daddy, TARGET1);
+        ConnRouteParams.setDefaultProxy(child, ConnRouteParams.NO_HOST);
 
         HttpParams hierarchy =
             new ClientParamsStack(null, daddy, child, null);
-        assertNull("1", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("1", ConnRouteParams.getDefaultProxy(hierarchy));
 
         hierarchy = new ClientParamsStack
             (null,
              daddy,
              new ClientParamsStack(null, child, dummy, null),
              null);
-        assertNull("2", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("2", ConnRouteParams.getDefaultProxy(hierarchy));
 
         hierarchy = new ClientParamsStack
             (null, daddy, new DefaultedHttpParams(child, dummy), null);
-        assertNull("3", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("3", ConnRouteParams.getDefaultProxy(hierarchy));
 
         hierarchy = new DefaultedHttpParams(child, daddy);
-        assertNull("4", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("4", ConnRouteParams.getDefaultProxy(hierarchy));
 
         hierarchy = new DefaultedHttpParams
             (new DefaultedHttpParams(child, dummy), daddy);
-        assertNull("5", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("5", ConnRouteParams.getDefaultProxy(hierarchy));
 
         hierarchy = new DefaultedHttpParams
             (child, new DefaultedHttpParams(dummy, daddy));
-        assertNull("6", HttpRouteParams.getDefaultProxy(hierarchy));
+        assertNull("6", ConnRouteParams.getDefaultProxy(hierarchy));
     }
 
 
     public void testBadArgs() {
 
         try {
-            HttpRouteParams.getDefaultProxy(null);
+            ConnRouteParams.getDefaultProxy(null);
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            HttpRouteParams.getForcedRoute(null);
+            ConnRouteParams.getForcedRoute(null);
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            HttpRouteParams.getLocalAddress(null);
+            ConnRouteParams.getLocalAddress(null);
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            HttpRouteParams.setDefaultProxy(null, null);
+            ConnRouteParams.setDefaultProxy(null, null);
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            HttpRouteParams.setForcedRoute(null, null);
+            ConnRouteParams.setForcedRoute(null, null);
         } catch (IllegalArgumentException iax) {
             // expected
         }
 
         try {
-            HttpRouteParams.setLocalAddress(null, null);
+            ConnRouteParams.setLocalAddress(null, null);
         } catch (IllegalArgumentException iax) {
             // expected
         }

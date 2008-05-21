@@ -50,7 +50,7 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 
-import org.apache.http.conn.params.HttpRouteParams;
+import org.apache.http.conn.params.ConnRouteParams;
 
 
 /**
@@ -126,7 +126,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
 
         // If we have a forced route, we can do without a target.
         HttpRoute route =
-            HttpRouteParams.getForcedRoute(request.getParams());
+            ConnRouteParams.getForcedRoute(request.getParams());
         if (route != null)
             return route;
 
@@ -139,7 +139,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         }
 
         final InetAddress local =
-            HttpRouteParams.getLocalAddress(request.getParams());
+            ConnRouteParams.getLocalAddress(request.getParams());
         final HttpHost proxy = determineProxy(target, request, context);
 
         final Scheme schm =

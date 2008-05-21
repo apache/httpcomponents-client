@@ -74,7 +74,7 @@ import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.params.HttpConnectionManagerParams;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
@@ -278,7 +278,7 @@ public class DefaultClientRequestDirector
 
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute); 
 
-        long timeout = HttpConnectionManagerParams.getTimeout(params);
+        long timeout = ConnManagerParams.getTimeout(params);
         
         int execCount = 0;
         
