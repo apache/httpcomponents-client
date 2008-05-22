@@ -31,6 +31,7 @@
 
 package org.apache.http.conn.ssl;
 
+import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -164,6 +165,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
     
     private final SSLContext sslcontext;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
+    private final HostNameResolver nameResolver;
     private X509HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
     public SSLSocketFactory(
@@ -171,7 +173,8 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         final KeyStore keystore, 
         final String keystorePassword, 
         final KeyStore truststore,
-        final SecureRandom random) 
+        final SecureRandom random,
+        final HostNameResolver nameResolver) 
         throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
     {
         super();
@@ -189,6 +192,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         this.sslcontext = SSLContext.getInstance(algorithm);
         this.sslcontext.init(keymanagers, trustmanagers, random);
         this.socketfactory = this.sslcontext.getSocketFactory();
+        this.nameResolver = nameResolver;
     }
 
     public SSLSocketFactory(
@@ -197,19 +201,19 @@ public class SSLSocketFactory implements LayeredSocketFactory {
             final KeyStore truststore) 
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
     {
-        this(TLS, keystore, keystorePassword, truststore, null);
+        this(TLS, keystore, keystorePassword, truststore, null, null);
     }
 
     public SSLSocketFactory(final KeyStore keystore, final String keystorePassword) 
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
     {
-        this(TLS, keystore, keystorePassword, null, null);
+        this(TLS, keystore, keystorePassword, null, null, null);
     }
 
     public SSLSocketFactory(final KeyStore truststore) 
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
     {
-        this(TLS, null, null, truststore, null);
+        this(TLS, null, null, truststore, null, null);
     }
 
     /**
@@ -221,6 +225,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         super();
         this.sslcontext = null;
         this.socketfactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+        this.nameResolver = null;
     }
 
     private static KeyManager[] createKeyManagers(final KeyStore keystore, final String password)
@@ -289,7 +294,14 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
         int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
-        sslsock.connect(new InetSocketAddress(host, port), connTimeout);
+        InetSocketAddress remoteAddress;
+        if (this.nameResolver != null) {
+            remoteAddress = new InetSocketAddress(this.nameResolver.resolve(host), port); 
+        } else {
+            remoteAddress = new InetSocketAddress(host, port);            
+        }
+        
+        sslsock.connect(remoteAddress, connTimeout);
 
         sslsock.setSoTimeout(soTimeout);
         try {

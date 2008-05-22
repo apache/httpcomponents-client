@@ -53,6 +53,8 @@ public final class PlainSocketFactory implements SocketFactory {
     private static final
         PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
 
+    private final HostNameResolver nameResolver;
+    
     /**
      * Gets the singleton instance of this class.
      * @return the one and only plain socket factory
@@ -61,13 +63,15 @@ public final class PlainSocketFactory implements SocketFactory {
         return DEFAULT_FACTORY;
     }
 
-    /**
-     * Restricted default constructor.
-     */
-    private PlainSocketFactory() {
+    public PlainSocketFactory(final HostNameResolver nameResolver) {
         super();
+        this.nameResolver = nameResolver;
     }
 
+
+    public PlainSocketFactory() {
+        this(null);
+    }
 
     // non-javadoc, see interface org.apache.http.conn.SocketFactory
     public Socket createSocket() {
@@ -103,7 +107,14 @@ public final class PlainSocketFactory implements SocketFactory {
 
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
 
-        sock.connect(new InetSocketAddress(host, port), timeout);
+        InetSocketAddress remoteAddress;
+        if (this.nameResolver != null) {
+            remoteAddress = new InetSocketAddress(this.nameResolver.resolve(host), port); 
+        } else {
+            remoteAddress = new InetSocketAddress(host, port);            
+        }
+        
+        sock.connect(remoteAddress, timeout);
 
         return sock;
 

@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-670] Pluggable hostname resolver.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-719] Clone support for HTTP request and cookie objects.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
