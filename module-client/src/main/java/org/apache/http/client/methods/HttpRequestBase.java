@@ -38,10 +38,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
+import org.apache.http.message.HeaderGroup;
+import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
 /**
@@ -54,9 +57,9 @@ import org.apache.http.params.HttpProtocolParams;
  * @since 4.0
  */
 abstract class HttpRequestBase extends AbstractHttpMessage 
-    implements HttpUriRequest, AbortableHttpRequest {
+    implements HttpUriRequest, AbortableHttpRequest, Cloneable {
 
-    private final Lock abortLock;
+    private Lock abortLock;
 
     private boolean aborted;
     
@@ -159,5 +162,21 @@ abstract class HttpRequestBase extends AbstractHttpMessage
             }
         }
     }
+    
+    public boolean isAborted() {
+        return this.aborted;
+    }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        HttpRequestBase clone = (HttpRequestBase) super.clone();
+        clone.abortLock = new ReentrantLock();
+        clone.aborted = false;
+        clone.releaseTrigger = null;
+        clone.connRequest = null;
+        clone.headergroup = (HeaderGroup) CloneUtils.clone(this.headergroup);
+        clone.params = (HttpParams) CloneUtils.clone(this.params);
+        return clone;
+    }
+    
 }

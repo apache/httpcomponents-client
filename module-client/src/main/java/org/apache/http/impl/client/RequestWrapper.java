@@ -137,6 +137,14 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         return new BasicRequestLine(method, uritext, ver);
     }
 
+    public void abort() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isAborted() {
+        return false;
+    }
+
     public HttpRequest getOriginal() {
         return this.original;
     }

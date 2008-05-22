@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-719] Clone support for HTTP request and cookie objects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-776] Fixed concurrency issues with AbstractPoolEntry.
   Contributed by Sam Berlin <sberlin at gmail.com>
 

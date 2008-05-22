@@ -57,7 +57,7 @@ import org.apache.http.cookie.SetCookie;
  * 
  * @version $Revision$
  */
-public class BasicClientCookie implements SetCookie, ClientCookie {
+public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable {
 
     /**
      * Default Constructor taking a name and a value. The value may be null.
@@ -311,6 +311,13 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     public boolean containsAttribute(final String name) {
         return this.attribs.get(name) != null;
     }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        BasicClientCookie clone = (BasicClientCookie) super.clone();
+        clone.attribs = new HashMap<String, String>(this.attribs);
+        return clone;
+    }
 
     @Override
     public String toString() {
@@ -342,7 +349,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie {
     private final String name;
 
     /** Cookie attributes as specified by the origin server */
-    private final Map<String, String> attribs;
+    private Map<String, String> attribs;
    
     /** Cookie value */
     private String value;

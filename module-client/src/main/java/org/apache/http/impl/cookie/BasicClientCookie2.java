@@ -89,6 +89,13 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
     public boolean isExpired(final Date date) {
         return this.discard || super.isExpired(date);
     }
+ 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        BasicClientCookie2 clone = (BasicClientCookie2) super.clone();
+        clone.ports = this.ports.clone();
+        return clone;
+    }
     
 }
 

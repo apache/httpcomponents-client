@@ -61,4 +61,20 @@ public interface HttpUriRequest extends HttpRequest {
      */
     URI getURI();
     
+    /**
+     * Aborts execution of the request. 
+     * 
+     * @throws UnsupportedOperationException if the abort operation 
+     *   is not supported / cannot be implemented.
+     */
+    void abort() throws UnsupportedOperationException;
+    
+    /**
+     * Tests if the request execution has been aborted.
+     * 
+     * @return <code>true</code> if the request execution has been aborted,
+     *   <code>false</code> otherwise.
+     */
+    boolean isAborted();
+    
 }
