@@ -41,6 +41,7 @@ import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
 
@@ -215,21 +216,33 @@ public class SingleClientConnManager implements ClientConnectionManager {
             revokeConnection();
 
         // check re-usability of the connection
+        boolean recreate = false;
+        boolean shutdown = false;
+        
         if (uniquePoolEntry.connection.isOpen()) {
-            final boolean shutdown =
-                ((uniquePoolEntry.tracker == null) || // how could that happen?
-                 !uniquePoolEntry.tracker.toRoute().equals(route));
+            RouteTracker tracker = uniquePoolEntry.tracker;
+            shutdown = (tracker == null || // can happen if method is aborted
+                        !tracker.toRoute().equals(route));
+        } else {
+            // If the connection is not open, create a new PoolEntry,
+            // as the connection may have been marked not reusable,
+            // due to aborts -- and the PoolEntry should not be reused
+            // either.  There's no harm in recreating an entry if
+            // the connection is closed.
+            recreate = true;
+        }
 
-            if (shutdown) {
-                try {
-                    uniquePoolEntry.shutdown();
-                } catch (IOException iox) {
-                    LOG.debug("Problem shutting down connection.", iox);
-                    // create a new connection, just to be sure
-                    uniquePoolEntry = new PoolEntry();
-                }
+        if (shutdown) {
+            recreate = true;
+            try {
+                uniquePoolEntry.shutdown();
+            } catch (IOException iox) {
+                LOG.debug("Problem shutting down connection.", iox);
             }
         }
+        
+        if (recreate)
+            uniquePoolEntry = new PoolEntry();
 
         managedConn = new ConnAdapter(uniquePoolEntry, route);
 
