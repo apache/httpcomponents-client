@@ -1,6 +1,11 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-424] Preemptive authentication no longer limited to BASIC
+  scheme only. HttpClient can be customized to authenticate preemptively
+  with DIGEST scheme.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-670] Pluggable hostname resolver.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

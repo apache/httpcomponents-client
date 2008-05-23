@@ -84,6 +84,9 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      * @return the map of authentication parameters
      */
     protected Map<String, String> getParameters() {
+        if (this.params == null) {
+            this.params = new HashMap<String, String>();
+        }
         return this.params;
     }
 

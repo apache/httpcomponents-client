@@ -79,35 +79,6 @@ public class HttpClientParams {
             (ClientPNames.HANDLE_AUTHENTICATION, value); 
     }
     
-    /**
-     * Returns <tt>true</tt> if authentication should be attempted preemptively, 
-     * <tt>false</tt> otherwise.
-     * 
-     * @return <tt>true</tt> if authentication should be attempted preemptively,
-     *   <tt>false</tt> otherwise.
-     */
-    public static boolean isAuthenticationPreemptive(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
-        return params.getBooleanParameter
-            (ClientPNames.PREEMPTIVE_AUTHENTICATION, false); 
-    }
-
-    /**
-     * Sets whether authentication should be attempted preemptively.
-     * 
-     * @param value <tt>true</tt> if authentication should be attempted preemptively,
-     *   <tt>false</tt> otherwise.
-     */
-    public static void setAuthenticationPreemptive(final HttpParams params, boolean value) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
-        params.setBooleanParameter
-            (ClientPNames.PREEMPTIVE_AUTHENTICATION, value); 
-    }
-    
     public static String getCookiePolicy(final HttpParams params) { 
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");

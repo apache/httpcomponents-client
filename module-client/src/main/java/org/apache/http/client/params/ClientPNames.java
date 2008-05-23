@@ -102,14 +102,6 @@ public interface ClientPNames {
     public static final String HANDLE_AUTHENTICATION = "http.protocol.handle-authentication";
 
     /**
-     * Defines whether authentication should be attempted preemptively.
-     * <p>
-     * This parameter expects a value of type {@link Boolean}.
-     * </p>
-     */
-    public static final String PREEMPTIVE_AUTHENTICATION = "http.protocol.authentication-preemptive";
-
-    /**
      * Defines the name of the cookie specification to be used for HTTP state management.
      * <p>
      * This parameter expects a value of type {@link String}.

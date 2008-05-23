@@ -153,8 +153,8 @@ public class DigestScheme extends RFC2617Scheme {
         if (unsupportedQop && (qopVariant == QOP_MISSING)) {
             throw new MalformedChallengeException("None of the qop methods is supported");   
         }
-        
-        cnonce = createCnonce();   
+        // Reset cnonce
+        this.cnonce = null;
         this.complete = true;
     }
 
@@ -191,6 +191,17 @@ public class DigestScheme extends RFC2617Scheme {
         return false;    
     }
 
+    public void overrideParamter(final String name, final String value) {
+        getParameters().put(name, value);
+    }
+    
+    private String getCnonce() {
+        if (this.cnonce == null) {
+            this.cnonce = createCnonce();
+        }
+        return this.cnonce; 
+    }
+    
     /**
      * Produces a digest authorization string for the given set of 
      * {@link Credentials}, method name and URI.
@@ -253,6 +264,15 @@ public class DigestScheme extends RFC2617Scheme {
         String nonce = getParameter("nonce");
         String method = getParameter("methodname");
         String algorithm = getParameter("algorithm");
+        if (uri == null) {
+            throw new IllegalStateException("URI may not be null");
+        }
+        if (realm == null) {
+            throw new IllegalStateException("Realm may not be null");
+        }
+        if (nonce == null) {
+            throw new IllegalStateException("Nonce may not be null");
+        }
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
             algorithm = "MD5";
@@ -282,12 +302,15 @@ public class DigestScheme extends RFC2617Scheme {
         tmp.append(pwd);
         // unq(username-value) ":" unq(realm-value) ":" passwd
         String a1 = tmp.toString();
+        
         //a1 is suitable for MD5 algorithm
         if(algorithm.equals("MD5-sess")) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
 
+            String cnonce = getCnonce();
+            
             String tmp2=encode(md5Helper.digest(EncodingUtils.getBytes(a1, charset)));
             StringBuilder tmp3 = new StringBuilder(tmp2.length() + nonce.length() + cnonce.length() + 2);
             tmp3.append(tmp2);
@@ -323,6 +346,8 @@ public class DigestScheme extends RFC2617Scheme {
             serverDigestValue = tmp2.toString();
         } else {
             String qopOption = getQopVariantString();
+            String cnonce = getCnonce();
+            
             StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length()
                 + NC.length() + cnonce.length() + qopOption.length() + md5a2.length() + 5);
             tmp2.append(md5a1);
@@ -384,7 +409,7 @@ public class DigestScheme extends RFC2617Scheme {
         if (qopVariant != QOP_MISSING) {
             params.add(new BasicNameValuePair("qop", getQopVariantString()));
             params.add(new BasicNameValuePair("nc", NC));
-            params.add(new BasicNameValuePair("cnonce", this.cnonce));
+            params.add(new BasicNameValuePair("cnonce", getCnonce()));
         }
         if (algorithm != null) {
             params.add(new BasicNameValuePair("algorithm", algorithm));

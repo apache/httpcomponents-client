@@ -73,10 +73,6 @@ public class ClientParamBean extends HttpAbstractParamBean {
         params.setBooleanParameter(ClientPNames.HANDLE_AUTHENTICATION, handle);
     }
 
-    public void setPreemptiveAuthentication (final boolean preemptive) {
-        params.setBooleanParameter(ClientPNames.PREEMPTIVE_AUTHENTICATION, preemptive);
-    }
-
     public void setCookiePolicy (final String policy) {
         params.setParameter(ClientPNames.COOKIE_POLICY, policy);
     }
