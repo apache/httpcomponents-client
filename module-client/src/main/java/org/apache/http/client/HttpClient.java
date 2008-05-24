@@ -82,9 +82,7 @@ public interface HttpClient {
         ;
 
     /**
-     * Executes a request using the
-     * {@link #getDefaultContext() default context}.
-     * See there for details.
+     * Executes a request using the default context.
      *
      * @param request   the request to execute
      *
@@ -106,8 +104,7 @@ public interface HttpClient {
      *
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
-     *                  <code>null</code> to use the
-     *                  {@link #getDefaultContext default context}
+     *                  <code>null</code> to use the default context
      *
      * @return  the response to the request. This is always a final response,
      *          never an intermediate response with an 1xx status code.
@@ -126,8 +123,7 @@ public interface HttpClient {
 
 
     /**
-     * Executes a request to the target using the
-     * {@link #getDefaultContext() default context}.
+     * Executes a request to the target using the default context.
      * See there for details.
      *
      * @param target    the target host for the request.
@@ -161,8 +157,7 @@ public interface HttpClient {
      *                  to a default target or by inspecting the request.
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
-     *                  <code>null</code> to use the
-     *                  {@link #getDefaultContext default context}
+     *                  <code>null</code> to use the default context
      *
      * @return  the response to the request. This is always a final response,
      *          never an intermediate response with an 1xx status code.

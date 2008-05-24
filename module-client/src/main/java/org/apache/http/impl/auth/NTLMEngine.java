@@ -35,7 +35,7 @@ package org.apache.http.impl.auth;
  * generate Type1 messages and Type3 messages in response to a 
  * Type2 challenge.
  * <p/>
- * For details see {@linkplain http://davenport.sourceforge.net/ntlm.html}}
+ * For details see <a href="http://davenport.sourceforge.net/ntlm.html">this resource</a>
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
 */
