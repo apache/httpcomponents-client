@@ -40,9 +40,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.AuthState;
 import org.apache.http.protocol.HttpContext;
 
 /**

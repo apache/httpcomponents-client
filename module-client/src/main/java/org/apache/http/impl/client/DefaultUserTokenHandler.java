@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -35,8 +35,8 @@ import java.security.Principal;
 import javax.net.ssl.SSLSession;
 
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.AuthState;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ManagedClientConnection;

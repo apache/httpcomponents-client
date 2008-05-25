@@ -28,11 +28,8 @@
  *
  */
 
-package org.apache.http.client;
+package org.apache.http.auth;
 
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
 
 /**
  * This class provides detailed information about the state of the
