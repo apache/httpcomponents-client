@@ -91,7 +91,6 @@ public interface HttpClient {
      * @throws HttpException            in case of a problem
      * @throws IOException              in case of an IO problem
      *                                     or the connection was aborted
-     * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpUriRequest request)
         throws HttpException, IOException
@@ -115,7 +114,6 @@ public interface HttpClient {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      *                             or the connection was aborted
-     * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpUriRequest request, HttpContext context)
         throws HttpException, IOException
@@ -141,7 +139,6 @@ public interface HttpClient {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      *                             or the connection was aborted
-     * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpHost target, HttpRequest request)
         throws HttpException, IOException
@@ -168,7 +165,6 @@ public interface HttpClient {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      *                             or the connection was aborted
-     * <br/><i @@@>timeout exceptions?</i>
      */
     HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)

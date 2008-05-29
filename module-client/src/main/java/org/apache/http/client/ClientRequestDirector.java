@@ -52,11 +52,6 @@ import org.apache.http.protocol.HttpContext;
  * connections for reading the response entity. Such connections
  * MUST be released, but that is out of the scope of a request director.
  *
- * <p>
- * This interface and it's implementations replace the
- * <code>HttpMethodDirector</code> in HttpClient 3.
- * </p>
- *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *

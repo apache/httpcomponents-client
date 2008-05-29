@@ -37,8 +37,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -53,8 +51,6 @@ public class ClientFormLogin {
     public static void main(String[] args) throws Exception {
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getParams().setParameter(
-                ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 
         HttpGet httpget = new HttpGet("https://portal.sun.com/portal/dt");
 

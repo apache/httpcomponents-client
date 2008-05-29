@@ -48,7 +48,6 @@ public class ClientConnAdapterMockup extends AbstractClientConnAdapter {
     }
 
     public void close() {
-        throw new UnsupportedOperationException("just a mockup");
     }
 
     public HttpRoute getRoute() {

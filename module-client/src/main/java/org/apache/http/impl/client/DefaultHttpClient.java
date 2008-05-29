@@ -72,6 +72,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
@@ -143,6 +144,12 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
     
+    @Override
+    protected HttpRequestExecutor createRequestExecutor() {
+        return new HttpRequestExecutor();
+    }
+
+
     @Override
     protected ClientConnectionManager createClientConnectionManager() {
         SchemeRegistry registry = new SchemeRegistry();

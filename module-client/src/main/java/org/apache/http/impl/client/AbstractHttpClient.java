@@ -61,6 +61,7 @@ import org.apache.http.protocol.DefaultedHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
  * Convenience base class for HTTP client implementations.
@@ -77,6 +78,9 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     /** The parameters. */
     private HttpParams defaultParams;
+
+    /** The request executor. */
+    private HttpRequestExecutor requestExec;
 
     /** The connection manager. */
     private ClientConnectionManager connManager;
@@ -137,6 +141,9 @@ public abstract class AbstractHttpClient implements HttpClient {
     protected abstract HttpContext createHttpContext();
 
     
+    protected abstract HttpRequestExecutor createRequestExecutor();
+
+
     protected abstract ClientConnectionManager createClientConnectionManager();
 
 
@@ -196,7 +203,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    // non-javadoc, see interface HttpClient
     public synchronized final ClientConnectionManager getConnectionManager() {
         if (connManager == null) {
             connManager = createClientConnectionManager();
@@ -205,8 +211,12 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    // no setConnectionManager(), too dangerous to replace while in use
-    // derived classes may offer that method at their own risk
+    public synchronized final HttpRequestExecutor getRequestExecutor() {
+        if (requestExec == null) {
+            requestExec = createRequestExecutor();
+        }
+        return requestExec;
+    }
 
 
     public synchronized final AuthSchemeRegistry getAuthSchemes() {
@@ -512,6 +522,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             }
             // Create a director for this request
             director = createClientRequestDirector(
+                    getRequestExecutor(),
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
                     getRoutePlanner(),
@@ -524,19 +535,12 @@ public abstract class AbstractHttpClient implements HttpClient {
                     determineParams(request));
         }
 
-        HttpResponse response = director.execute(target, request, execContext);
-        // If the response depends on the connection, the director
-        // will have set up an auto-release input stream.
-
-        //@@@ "finalize" response, to allow for buffering of entities?
-        //@@@ here or in director?
-
-        return response;
-
+        return director.execute(target, request, execContext);
     } // execute
 
     
     protected ClientRequestDirector createClientRequestDirector(
+            final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
             final HttpRoutePlanner rouplan,
@@ -548,6 +552,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final UserTokenHandler stateHandler,
             final HttpParams params) {
         return new DefaultClientRequestDirector(
+                requestExec,
                 conman,
                 reustrat,
                 rouplan,
