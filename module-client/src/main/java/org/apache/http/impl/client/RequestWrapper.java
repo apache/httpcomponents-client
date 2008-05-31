@@ -71,8 +71,6 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
         this.original = request;
-        // Make a copy of original headers
-        setHeaders(request.getAllHeaders());
         setParams(request.getParams());
         // Make a copy of the original URI 
         if (request instanceof HttpUriRequest) {
@@ -149,8 +147,10 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         return this.original;
     }
     
-    public void clearHeaders() {
+    public void resetHeaders() {
+        // Make a copy of original headers
         this.headergroup.clear();
+        setHeaders(this.original.getAllHeaders());
     }
     
 }
