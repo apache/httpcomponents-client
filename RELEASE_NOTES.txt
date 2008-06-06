@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* HttpClient will throw an exception if an attempt is made to retry
+  a request with a non-repeatable request entity.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * Fixed request re-generation logic when retrying a failed request.
   Auto-generated headers will no accumulate.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

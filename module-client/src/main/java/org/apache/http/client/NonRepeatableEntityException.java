@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  *
@@ -33,40 +33,31 @@ package org.apache.http.client;
 import org.apache.http.ProtocolException;
 
 /**
- * Signals violation of HTTP specification caused by an invalid redirect
+ * Signals failure to retry the request due to non-repeatable request 
+ * entity.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */
-public class RedirectException extends ProtocolException {
+public class NonRepeatableEntityException extends ProtocolException {
 
-    private static final long serialVersionUID = 4418824536372559326L;
+    private static final long serialVersionUID = 82685265288806048L;
 
     /**
-     * Creates a new RedirectException with a <tt>null</tt> detail message. 
+     * Creates a new NonRepeatableEntityException with a <tt>null</tt> detail message. 
      */
-    public RedirectException() {
+    public NonRepeatableEntityException() {
         super();
     }
 
     /**
-     * Creates a new RedirectException with the specified detail message.
+     * Creates a new NonRepeatableEntityException with the specified detail message.
      * 
      * @param message The exception detail message
      */
-    public RedirectException(String message) {
+    public NonRepeatableEntityException(String message) {
         super(message);
     }
 
-    /**
-     * Creates a new RedirectException with the specified detail message and cause.
-     * 
-     * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
-     */
-    public RedirectException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

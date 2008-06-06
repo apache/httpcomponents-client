@@ -28,6 +28,7 @@
 
 package org.apache.http.impl.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URISyntaxException;
@@ -49,8 +50,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.NonRepeatableEntityException;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -61,6 +64,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.ClientConnAdapterMockup;
 import org.apache.http.impl.conn.SingleClientConnManager;
@@ -704,6 +708,28 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         Header[] myheaders = reqWrapper.getHeaders("my-header");
         assertNotNull(myheaders);
         assertEquals(1, myheaders.length);
+    }
+    
+    public void testNonRepatableEntity() throws Exception {
+        int port = this.localServer.getServicePort();
+        this.localServer.register("*", new SimpleService());
+        
+        FaultyHttpClient client = new FaultyHttpClient(); 
+        HttpContext context = new BasicHttpContext();
+
+        String s = "http://localhost:" + port;
+        HttpPost httppost = new HttpPost(s);
+        httppost.setEntity(new InputStreamEntity(
+                new ByteArrayInputStream(
+                        new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
+                        -1));
+
+        try {
+            client.execute(getServerHttp(), httppost, context);
+            fail("NonRepeatableEntityException should have been thrown");
+        } catch (NonRepeatableEntityException ex) {
+           // expected
+        }
     }
     
 }
