@@ -50,7 +50,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.NonRepeatableEntityException;
+import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -727,7 +727,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         try {
             client.execute(getServerHttp(), httppost, context);
             fail("NonRepeatableEntityException should have been thrown");
-        } catch (NonRepeatableEntityException ex) {
+        } catch (NonRepeatableRequestException ex) {
            // expected
         }
     }

@@ -64,6 +64,7 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
     private URI uri;
     private String method;
     private ProtocolVersion version;
+    private int execCount;
     
     public RequestWrapper(final HttpRequest request) throws ProtocolException {
         super();
@@ -88,8 +89,15 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
             this.method = requestLine.getMethod();
             this.version = request.getProtocolVersion();
         }
+        this.execCount = 0;
     }
 
+    public void resetHeaders() {
+        // Make a copy of original headers
+        this.headergroup.clear();
+        setHeaders(this.original.getAllHeaders());
+    }
+    
     public String getMethod() {
         return this.method;
     }
@@ -147,10 +155,16 @@ class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
         return this.original;
     }
     
-    public void resetHeaders() {
-        // Make a copy of original headers
-        this.headergroup.clear();
-        setHeaders(this.original.getAllHeaders());
+    public boolean isRepeatable() {
+        return true;
+    }
+
+    public int getExecCount() {
+        return this.execCount;
+    }
+    
+    public void incrementExecCount() {
+        this.execCount++;
     }
     
 }

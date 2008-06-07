@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -40,14 +40,14 @@ import org.apache.http.ProtocolException;
  * 
  * @since 4.0
  */
-public class NonRepeatableEntityException extends ProtocolException {
+public class NonRepeatableRequestException extends ProtocolException {
 
     private static final long serialVersionUID = 82685265288806048L;
 
     /**
      * Creates a new NonRepeatableEntityException with a <tt>null</tt> detail message. 
      */
-    public NonRepeatableEntityException() {
+    public NonRepeatableRequestException() {
         super();
     }
 
@@ -56,7 +56,7 @@ public class NonRepeatableEntityException extends ProtocolException {
      * 
      * @param message The exception detail message
      */
-    public NonRepeatableEntityException(String message) {
+    public NonRepeatableRequestException(String message) {
         super(message);
     }
 

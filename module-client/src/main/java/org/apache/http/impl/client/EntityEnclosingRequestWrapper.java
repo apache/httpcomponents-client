@@ -74,5 +74,10 @@ class EntityEnclosingRequestWrapper extends RequestWrapper
         Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());
     }
-        
+
+    @Override
+    public boolean isRepeatable() {
+        return this.entity == null || this.entity.isRepeatable();
+    }
+    
 }

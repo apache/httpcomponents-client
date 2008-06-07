@@ -61,7 +61,7 @@ import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.NonRepeatableEntityException;
+import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.UserTokenHandler;
@@ -384,17 +384,13 @@ public class DefaultClientRequestDirector
 
                 boolean retrying = true;
                 while (retrying) {
+                    // Increment total exec count (with redirects)
                     execCount++;
-                    
-                    if (execCount > 1) {
-                        if (request instanceof HttpEntityEnclosingRequest) {
-                            HttpEntity entity = 
-                                ((HttpEntityEnclosingRequest) request).getEntity();
-                            if (entity != null && !entity.isRepeatable()) {
-                                throw new NonRepeatableEntityException(
-                                        "Cannot retry the request");
-                            }
-                        }
+                    // Increment exec count for this particular request
+                    wrapper.incrementExecCount();
+                    if (wrapper.getExecCount() > 1 && !wrapper.isRepeatable()) {
+                        throw new NonRepeatableRequestException("Cannot retry request " +
+                                "with a non-repeatable request entity");
                     }
                     
                     try {
