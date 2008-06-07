@@ -698,6 +698,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
             throw new RuntimeException(throwRef.get());
         
         assertFalse(conn.isOpen());
+        // Give the server a bit of time to accept the connection, but
+        // ensure that it can accept it.
+        for(int i = 0; i < 10; i++) {
+            if(localServer.getAcceptedConnectionCount() == 1)
+                break;
+            Thread.sleep(100);
+        }
         assertEquals(1, localServer.getAcceptedConnectionCount());
         
         // check that there are no connections available
