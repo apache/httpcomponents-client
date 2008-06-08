@@ -1,6 +1,10 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-779] Top-level classes (HttpClient, and HttpGet, HttpPut
+  and similar HttpMethods) throw fewer exceptions.
+  Contributed by Sam Berlin <sberlin at apache.org>
+
 * HttpClient will throw an exception if an attempt is made to retry
   a request with a non-repeatable request entity.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
