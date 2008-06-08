@@ -43,6 +43,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CircularRedirectException;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.methods.HttpGet;
@@ -426,9 +427,9 @@ public class TestRedirects extends ServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("RedirectException exception should have been thrown");
-        } catch (RedirectException e) {
-            // expected
+            fail("ClientProtocolException exception should have been thrown");
+        } catch (ClientProtocolException e) {
+            assertTrue(e.getCause() instanceof RedirectException);
         }
     }
 
@@ -442,9 +443,9 @@ public class TestRedirects extends ServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("CircularRedirectException exception should have been thrown");
-        } catch (CircularRedirectException e) {
-            // expected
+            fail("ClientProtocolException exception should have been thrown");
+        } catch (ClientProtocolException e) {
+            assertTrue(e.getCause() instanceof CircularRedirectException);
         }
     }
 
@@ -542,8 +543,9 @@ public class TestRedirects extends ServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ProtocolException exception should have been thrown");
-        } catch (ProtocolException e) {
+            fail("ClientProtocolException exception should have been thrown");
+        } catch (ClientProtocolException e) {
+            assertTrue(e.getCause() instanceof ProtocolException);
             // expected
         }
     }
@@ -575,8 +577,9 @@ public class TestRedirects extends ServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ProtocolException should have been thrown");
-        } catch (ProtocolException e) {
+            fail("ClientProtocolException should have been thrown");
+        } catch (ClientProtocolException e) {
+            assertTrue(e.getCause() instanceof ProtocolException);
             // expected
         }
     }

@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * HTTP GET method.
@@ -68,9 +67,12 @@ public class HttpGet extends HttpRequestBase {
         setURI(uri);
     }
 
-    public HttpGet(final String uri) throws URISyntaxException {
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpGet(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override

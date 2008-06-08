@@ -31,7 +31,6 @@ package org.apache.http.impl.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -49,6 +48,7 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.AbortableHttpRequest;
@@ -554,7 +554,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     private static class CustomGet extends HttpGet {
         private final CountDownLatch releaseTriggerLatch;
 
-        public CustomGet(String uri, CountDownLatch releaseTriggerLatch) throws URISyntaxException {
+        public CustomGet(String uri, CountDownLatch releaseTriggerLatch) {
             super(uri);
             this.releaseTriggerLatch = releaseTriggerLatch;
         }
@@ -726,8 +726,9 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
 
         try {
             client.execute(getServerHttp(), httppost, context);
-            fail("NonRepeatableEntityException should have been thrown");
-        } catch (NonRepeatableRequestException ex) {
+            fail("ClientProtocolException should have been thrown");
+        } catch (ClientProtocolException ex) {
+            assertTrue(ex.getCause() instanceof NonRepeatableRequestException);
            // expected
         }
     }

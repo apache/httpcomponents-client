@@ -43,6 +43,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ClientRequestDirector;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
@@ -434,7 +435,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpUriRequest request)
-        throws HttpException, IOException {
+        throws IOException, ClientProtocolException {
 
         return execute(request, null);
     }
@@ -451,7 +452,7 @@ public abstract class AbstractHttpClient implements HttpClient {
      */
     public final HttpResponse execute(HttpUriRequest request,
                                       HttpContext context)
-        throws HttpException, IOException {
+        throws IOException, ClientProtocolException {
 
         if (request == null) {
             throw new IllegalArgumentException
@@ -476,7 +477,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
-        throws HttpException, IOException {
+        throws IOException, ClientProtocolException {
 
         return execute(target, request, null);
     }
@@ -485,7 +486,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
-        throws HttpException, IOException {
+        throws IOException, ClientProtocolException {
 
         if (request == null) {
             throw new IllegalArgumentException
@@ -535,7 +536,11 @@ public abstract class AbstractHttpClient implements HttpClient {
                     determineParams(request));
         }
 
-        return director.execute(target, request, execContext);
+        try {
+            return director.execute(target, request, execContext);
+        } catch(HttpException httpException) {
+            throw new ClientProtocolException(httpException);
+        }
     } // execute
 
     

@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * HTTP PUT method.
@@ -64,9 +63,12 @@ public class HttpPut extends HttpEntityEnclosingRequestBase {
         setURI(uri);
     }
 
-    public HttpPut(final String uri) throws URISyntaxException {
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpPut(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override

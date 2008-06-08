@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * HTTP POST method.
@@ -71,10 +70,13 @@ public class HttpPost extends HttpEntityEnclosingRequestBase {
         super();
         setURI(uri);
     }
-
-    public HttpPost(final String uri) throws URISyntaxException {
+    
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpPost(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override

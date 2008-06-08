@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * HTTP TRACE method.
@@ -66,10 +65,13 @@ public class HttpTrace extends HttpRequestBase {
         super();
         setURI(uri);
     }
-
-    public HttpTrace(final String uri) throws URISyntaxException {
+    
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpTrace(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override

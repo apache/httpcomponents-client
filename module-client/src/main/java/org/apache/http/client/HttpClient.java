@@ -36,7 +36,6 @@ import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpException;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -87,13 +86,11 @@ public interface HttpClient {
      * @param request   the request to execute
      *
      * @return  the response to the request
-     *
-     * @throws HttpException            in case of a problem
-     * @throws IOException              in case of an IO problem
-     *                                     or the connection was aborted
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpUriRequest request)
-        throws HttpException, IOException
+        throws IOException, ClientProtocolException
         ;
 
 
@@ -110,13 +107,11 @@ public interface HttpClient {
      *          Whether redirects or authentication challenges will be returned
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     *                             or the connection was aborted
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpUriRequest request, HttpContext context)
-        throws HttpException, IOException
+        throws IOException, ClientProtocolException
         ;
 
 
@@ -135,13 +130,11 @@ public interface HttpClient {
      *          Whether redirects or authentication challenges will be returned
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     *                             or the connection was aborted
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpHost target, HttpRequest request)
-        throws HttpException, IOException
+        throws IOException, ClientProtocolException
         ;
 
 
@@ -161,14 +154,12 @@ public interface HttpClient {
      *          Whether redirects or authentication challenges will be returned
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
-     *
-     * @throws HttpException    in case of a problem
-     * @throws IOException      in case of an IO problem
-     *                             or the connection was aborted
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)
-        throws HttpException, IOException
+        throws IOException, ClientProtocolException
         ;
 
 

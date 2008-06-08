@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * HTTP DELETE method
@@ -61,9 +60,12 @@ public class HttpDelete extends HttpRequestBase {
         setURI(uri);
     }
 
-    public HttpDelete(final String uri) throws URISyntaxException {
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpDelete(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override

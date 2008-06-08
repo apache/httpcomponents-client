@@ -32,7 +32,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -73,9 +72,12 @@ public class HttpOptions extends HttpRequestBase {
         setURI(uri);
     }
 
-    public HttpOptions(final String uri) throws URISyntaxException {
+    /**
+     * @throws IllegalArgumentException if the uri is invalid. 
+     */
+    public HttpOptions(final String uri) {
         super();
-        setURI(new URI(uri));
+        setURI(URI.create(uri));
     }
 
     @Override
