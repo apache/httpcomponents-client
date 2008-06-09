@@ -244,7 +244,7 @@ public class DefaultClientRequestDirector
     }
     
     
-    private void rewriteRequestURI(
+    protected void rewriteRequestURI(
             final RequestWrapper request,
             final HttpRoute route) throws ProtocolException {
         try {
