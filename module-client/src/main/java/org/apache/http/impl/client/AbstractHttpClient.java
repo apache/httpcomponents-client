@@ -60,7 +60,6 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.DefaultedHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
@@ -502,7 +501,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
 
-            HttpContext defaultContext = new BasicHttpContext(null);
+            HttpContext defaultContext = createHttpContext();
             defaultContext.setAttribute(
                     ClientContext.AUTHSCHEME_REGISTRY, 
                     getAuthSchemes());
