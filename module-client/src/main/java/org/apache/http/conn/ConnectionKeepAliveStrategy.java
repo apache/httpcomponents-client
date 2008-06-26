@@ -50,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
 public interface ConnectionKeepAliveStrategy {
 
     /** Returns the TimeUnit that this uses for specifying duration. */
-    public TimeUnit getTimeUnit();
+    TimeUnit getTimeUnit();
     
     /**
      * Returns the duration of time which this connection can be safely kept
@@ -71,6 +71,6 @@ public interface ConnectionKeepAliveStrategy {
      * @return the duration which it is safe to keep the connection idle,
      *         or <=0 if no suggested duration.
      */
-    public long getKeepAliveDuration(HttpResponse response, HttpContext context);
+    long getKeepAliveDuration(HttpResponse response, HttpContext context);
     
 }

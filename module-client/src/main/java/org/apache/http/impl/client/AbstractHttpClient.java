@@ -158,8 +158,10 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     
     protected abstract ConnectionReuseStrategy createConnectionReuseStrategy();
+
     
     protected abstract ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy();
+
     
     protected abstract BasicHttpProcessor createHttpProcessor();
 
@@ -269,6 +271,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
         return keepAliveStrategy;
     }
+
     
     public synchronized void setKeepAliveStrategy(final ConnectionKeepAliveStrategy keepAliveStrategy) {
         this.keepAliveStrategy = keepAliveStrategy;

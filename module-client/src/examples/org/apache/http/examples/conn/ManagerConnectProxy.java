@@ -173,7 +173,7 @@ public class ManagerConnectProxy {
             }
 
             System.out.println("releasing connection");
-            clcm.releaseConnection(conn);
+            clcm.releaseConnection(conn, -1, null);
         }
 
     } // main

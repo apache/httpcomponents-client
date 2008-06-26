@@ -46,6 +46,7 @@ public class TestAllHttpClientImpl extends TestCase {
         suite.addTest(TestRequestWrapper.suite());
         suite.addTest(TestDefaultClientRequestDirector.suite());
         suite.addTest(TestStatefulConnManagement.suite());
+        suite.addTest(TestDefaultConnKeepAliveStrategy.suite());
         return suite;
     }
 

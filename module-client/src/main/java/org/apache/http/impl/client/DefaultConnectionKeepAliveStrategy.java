@@ -30,16 +30,13 @@
  */
 package org.apache.http.impl.client;
 
-import java.util.Locale;
-import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
+import org.apache.http.HeaderElement;
+import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpResponse;
-import org.apache.http.TokenIterator;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.message.BasicTokenIterator;
+import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
@@ -59,73 +56,27 @@ import org.apache.http.protocol.HttpContext;
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
     
     public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
-        long duration = -1;
-        HeaderIterator hit = response.headerIterator(HTTP.CONN_KEEP_ALIVE);
-        
-        while(hit.hasNext() && duration==-1) {
-            Header header = hit.nextHeader();
-            if(header.getValue() == null)
-                continue;
-            StringTokenizer tokenizer = new StringTokenizer(header.getValue(), ",");
-            while(tokenizer.hasMoreTokens()) {
-                String token = tokenizer.nextToken().trim();
-                if(token.toLowerCase(Locale.US).startsWith("timeout=")) {
-                  duration = parseTimeout(token);
-                  break;
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        HeaderElementIterator it = new BasicHeaderElementIterator(
+                response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+        while (it.hasNext()) {
+            HeaderElement he = it.nextElement();
+            String param = he.getName(); 
+            String value = he.getValue();
+            if (value != null && param.equalsIgnoreCase("timeout")) {
+                try {
+                    return Long.parseLong(value);
+                } catch(NumberFormatException ignore) {
                 }
             }
         }
-            
-        // TODO: I'd prefer to do it this way, but BasicTokenIterator
-        // freaks out on an '=' character.
-//        if(hit.hasNext()) {
-//            try {
-//                TokenIterator it = createTokenIterator(hit);
-//                while(it.hasNext()) {
-//                    String token = it.nextToken();
-//                    if(token.toLowerCase(Locale.US).startsWith("timeout=")) {
-//                        duration = parseTimeout(token);
-//                        break;
-//                    }
-//                }
-//            } catch(ParseException pe) {
-//                // Stop trying to find it and just fall-through.
-//            }
-//        }
-        
-        return duration;
+        return -1;
     }
     
-    /**
-     * Parses the # out of the 'timeout=#' token.
-     */
-    protected long parseTimeout(String token) {
-        // Make sure the length is valid.
-        if(token.length() == "timeout=".length())
-            return -1;
-        
-        try {
-            return Long.parseLong(token.substring("timeout=".length()));
-        } catch(NumberFormatException nfe) {
-            return -1;
-        }
-    }
-
     public TimeUnit getTimeUnit() {
         return TimeUnit.SECONDS;
     }
 
-    /**
-     * Creates a token iterator from a header iterator.
-     * This method can be overridden to replace the implementation of
-     * the token iterator.
-     *
-     * @param hit       the header iterator
-     *
-     * @return  the token iterator
-     */
-    protected TokenIterator createTokenIterator(HeaderIterator hit) {
-        return new BasicTokenIterator(hit);
-    }
-    
 }
