@@ -39,6 +39,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -47,8 +48,8 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -289,6 +290,77 @@ public class TestConnectionReuse extends TestCase {
 
         mgr.shutdown();
     }
+    
+    public void testKeepAliveHeaderRespected() throws Exception {
+        BasicHttpProcessor httpproc = new BasicHttpProcessor();
+        httpproc.addInterceptor(new ResponseDate());
+        httpproc.addInterceptor(new ResponseServer());
+        httpproc.addInterceptor(new ResponseContent());
+        httpproc.addInterceptor(new ResponseConnControl());
+        httpproc.addInterceptor(new ResponseKeepAlive());
+        
+        this.localServer = new LocalTestServer(httpproc, null);
+        this.localServer.register("/random/*", new RandomHandler());
+        this.localServer.start();
+
+        InetSocketAddress saddress = (InetSocketAddress) this.localServer.getServiceAddress();
+        
+        HttpParams params = new BasicHttpParams();
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setContentCharset(params, "UTF-8");
+        HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
+        HttpProtocolParams.setUseExpectContinue(params, false);
+        HttpConnectionParams.setStaleCheckingEnabled(params, false);
+        ConnManagerParams.setMaxTotalConnections(params, 5);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, 
+                new ConnPerRouteBean(5));
+        
+        SchemeRegistry supportedSchemes = new SchemeRegistry();
+        SocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", sf, 80));
+        
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
+                params, supportedSchemes);
+
+        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+        HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
+        
+        HttpResponse response = client.execute(target, new HttpGet("/random/2000"));
+        if(response.getEntity() != null)
+            response.getEntity().consumeContent();
+        
+        assertEquals(1, mgr.getConnectionsInPool());
+        assertEquals(1, localServer.getAcceptedConnectionCount());
+        
+        response = client.execute(target, new HttpGet("/random/2000"));
+        if(response.getEntity() != null)
+            response.getEntity().consumeContent();
+        
+        assertEquals(1, mgr.getConnectionsInPool());
+        assertEquals(1, localServer.getAcceptedConnectionCount());
+        
+        // Now sleep for 1.1 seconds and let the timeout do its work
+        Thread.sleep(1100);
+        response = client.execute(target, new HttpGet("/random/2000"));
+        if(response.getEntity() != null)
+            response.getEntity().consumeContent();
+        
+        assertEquals(1, mgr.getConnectionsInPool());
+        assertEquals(2, localServer.getAcceptedConnectionCount());
+        
+        // Do another request just under the 1 second limit & make
+        // sure we reuse that connection.
+        Thread.sleep(500);
+        response = client.execute(target, new HttpGet("/random/2000"));
+        if(response.getEntity() != null)
+            response.getEntity().consumeContent();
+        
+        assertEquals(1, mgr.getConnectionsInPool());
+        assertEquals(2, localServer.getAcceptedConnectionCount());
+        
+
+        mgr.shutdown();
+    }
 
     private static class WorkerThread extends Thread {
 
@@ -340,6 +412,20 @@ public class TestConnectionReuse extends TestCase {
             return exception;
         }
         
+    }
+    
+    // A very basic keep-alive header interceptor, to add Keep-Alive: timeout=1
+    // if there is no Connection: close header.
+    private static class ResponseKeepAlive implements HttpResponseInterceptor {
+        public void process(HttpResponse response, HttpContext context)
+                throws HttpException, IOException {
+            Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);
+            if(connection != null) {
+                if(!connection.getValue().equalsIgnoreCase("Close")) {
+                    response.addHeader(HTTP.CONN_KEEP_ALIVE, "timeout=1");
+                }
+            }            
+        }
     }
     
 }

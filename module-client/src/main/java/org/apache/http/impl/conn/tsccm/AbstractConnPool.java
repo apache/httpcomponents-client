@@ -183,8 +183,10 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * @param entry     the entry for the connection to release
      * @param reusable  <code>true</code> if the entry is deemed 
      *                  reusable, <code>false</code> otherwise.
+     * @param validDuration The duration that the entry should remain free and reusable.
+     * @param timeUnit The unit of time the duration is measured in.
      */
-    public abstract void freeEntry(BasicPoolEntry entry, boolean reusable)
+    public abstract void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit)
         ;
 
 
@@ -248,6 +250,16 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             poolLock.unlock();
         }
     }
+    
+    public void closeExpiredConnections() {
+        poolLock.lock();
+        try {
+            idleConnHandler.closeExpiredConnections();
+        } finally {
+            poolLock.unlock();
+        }
+    }
+
         
     //@@@ revise this cleanup stuff (closeIdle+deleteClosed), it's not good
 
@@ -311,6 +323,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             }
         }
     }
+
+
 
 
 

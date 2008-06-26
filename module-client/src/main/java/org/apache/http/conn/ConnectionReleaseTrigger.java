@@ -31,6 +31,7 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -56,15 +57,22 @@ import java.io.IOException;
 public interface ConnectionReleaseTrigger {
 
     /**
-     * Releases the connection with the option of keep-alive.
-     * This is a "graceful" release and may cause IO operations
-     * for consuming the remainder of a response entity.
-     * Use {@link #abortConnection abortConnection} for a hard release.
-     *
-     * @throws IOException      in case of an IO problem.
-     *         The connection will be released anyway.
+     * Releases the connection with the option of keep-alive. This is a
+     * "graceful" release and may cause IO operations for consuming the
+     * remainder of a response entity. Use
+     * {@link #abortConnection abortConnection} for a hard release. The
+     * connection may be reused as specified by the duration.
+     * 
+     * @param validDuration
+     *            The duration of time this connection is valid to be reused.
+     * @param timeUnit
+     *            The time unit the duration is measured in.
+     * 
+     * @throws IOException
+     *             in case of an IO problem. The connection will be released
+     *             anyway.
      */
-    void releaseConnection()
+    void releaseConnection(long validDuration, TimeUnit timeUnit)
         throws IOException
         ;
 

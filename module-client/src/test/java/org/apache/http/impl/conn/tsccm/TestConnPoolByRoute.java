@@ -95,7 +95,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
 
             // Free one
-            connPool.freeEntry(e3, true);
+            connPool.freeEntry(e3, true, -1, null);
 
             // This time the request should succeed
             PoolEntryRequest r5 = connPool.requestPoolEntry(route, null);
@@ -136,9 +136,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             e3.setState(Integer.valueOf(3));
 
             // Release entries
-            connPool.freeEntry(e1, true);
-            connPool.freeEntry(e2, true);
-            connPool.freeEntry(e3, true);
+            connPool.freeEntry(e1, true, -1, null);
+            connPool.freeEntry(e2, true, -1, null);
+            connPool.freeEntry(e3, true, -1, null);
 
             // Request statefull entries
             PoolEntryRequest r4 = connPool.requestPoolEntry(route, Integer.valueOf(2));
@@ -160,9 +160,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             assertTrue(e6 == e1);
 
             // Release entries again
-            connPool.freeEntry(e4, true);
-            connPool.freeEntry(e5, true);
-            connPool.freeEntry(e6, true);
+            connPool.freeEntry(e4, true, -1, null);
+            connPool.freeEntry(e5, true, -1, null);
+            connPool.freeEntry(e6, true, -1, null);
 
             // Request an entry with a state not avaialable in the pool
             PoolEntryRequest r7 = connPool.requestPoolEntry(route, Integer.valueOf(4));

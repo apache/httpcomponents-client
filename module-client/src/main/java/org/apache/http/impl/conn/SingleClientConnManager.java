@@ -92,6 +92,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     /** The time of the last connection release, or -1. */
     protected long lastReleaseTime;
+    
+    /** The time the last released connection expires and shouldn't be reused. */
+    protected long connectionExpiresTime;
 
     /** Whether the connection should be shut down  on release. */
     protected boolean alwaysShutDown;
@@ -219,6 +222,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
         boolean recreate = false;
         boolean shutdown = false;
         
+        // Kill the connection if it expired.
+        closeExpiredConnections();
+        
         if (uniquePoolEntry.connection.isOpen()) {
             RouteTracker tracker = uniquePoolEntry.tracker;
             shutdown = (tracker == null || // can happen if method is aborted
@@ -251,7 +257,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
 
     // non-javadoc, see interface ClientConnectionManager
-    public void releaseConnection(ManagedClientConnection conn) {
+    public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
         assertStillUp();
 
         if (!(conn instanceof ConnAdapter)) {
@@ -297,8 +303,18 @@ public class SingleClientConnManager implements ClientConnectionManager {
             sca.detach();
             managedConn = null;
             lastReleaseTime = System.currentTimeMillis();
+            if(validDuration > 0)
+                connectionExpiresTime = timeUnit.toMillis(validDuration) + lastReleaseTime;
+            else
+                connectionExpiresTime = Long.MAX_VALUE;
         }
     } // releaseConnection
+    
+    public void closeExpiredConnections() {
+        if(System.currentTimeMillis() >= connectionExpiresTime) {
+            closeIdleConnections(0, TimeUnit.MILLISECONDS);
+        }
+    }
 
 
     // non-javadoc, see interface ClientConnectionManager

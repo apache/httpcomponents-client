@@ -74,6 +74,7 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.BasicManagedEntity;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.BasicRouteDirector;
@@ -118,6 +119,9 @@ public class DefaultClientRequestDirector
 
     /** The connection re-use strategy. */
     protected final ConnectionReuseStrategy reuseStrategy;
+    
+    /** The keep-alive duration strategy. */
+    protected final ConnectionKeepAliveStrategy keepAliveStrategy;
 
     /** The request executor. */
     protected final HttpRequestExecutor requestExec;
@@ -158,6 +162,7 @@ public class DefaultClientRequestDirector
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
@@ -178,6 +183,10 @@ public class DefaultClientRequestDirector
         if (reustrat == null) {
             throw new IllegalArgumentException
                 ("Connection reuse strategy may not be null.");
+        }
+        if (kastrat == null) {
+            throw new IllegalArgumentException
+                ("Connection keep alive strategy may not be null.");
         }
         if (rouplan == null) {
             throw new IllegalArgumentException
@@ -214,6 +223,7 @@ public class DefaultClientRequestDirector
         this.requestExec       = requestExec;
         this.connManager       = conman;
         this.reuseStrategy     = reustrat;
+        this.keepAliveStrategy = kastrat;
         this.routePlanner      = rouplan;
         this.httpProcessor     = httpProcessor;
         this.retryHandler      = retryHandler;
@@ -336,7 +346,7 @@ public class DefaultClientRequestDirector
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
                     managedConn.open(route, context, params);
-                }
+                } 
                 
                 try {
                     establishRoute(route, context);
@@ -455,9 +465,7 @@ public class DefaultClientRequestDirector
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
-                        // the followup has a different route, release conn
-                        connManager.releaseConnection(managedConn);
-                        managedConn = null;
+                        releaseConnection(response, context);
                     }
                     roureq = followup;
                 }
@@ -478,12 +486,13 @@ public class DefaultClientRequestDirector
                 // connection not needed and (assumed to be) in re-usable state
                 if (reuse)
                     managedConn.markReusable();
-                connManager.releaseConnection(managedConn);
-                managedConn = null;
+                releaseConnection(response, context);
             } else {
                 // install an auto-release entity
                 HttpEntity entity = response.getEntity();
-                entity = new BasicManagedEntity(entity, managedConn, reuse);
+                long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                TimeUnit unit = keepAliveStrategy.getTimeUnit();
+                entity = new BasicManagedEntity(entity, managedConn, reuse, duration, unit);
                 response.setEntity(entity);
             }
 
@@ -501,6 +510,17 @@ public class DefaultClientRequestDirector
         }
     } // execute
 
+    /**
+     * Returns the connection back to the connection manager
+     * and prepares for retrieving a new connection during
+     * the next request.
+     */
+    protected void releaseConnection(HttpResponse response, HttpContext context) {
+        long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+        TimeUnit unit = keepAliveStrategy.getTimeUnit();
+        connManager.releaseConnection(managedConn, duration, unit);
+        managedConn = null;
+    }
 
     /**
      * Determines the route for a request.
@@ -977,7 +997,7 @@ public class DefaultClientRequestDirector
                 }
             }
             // ensure the connection manager properly releases this connection
-            connManager.releaseConnection(mcc);
+            connManager.releaseConnection(mcc, -1, null);
         }
     } // abortConnection
 

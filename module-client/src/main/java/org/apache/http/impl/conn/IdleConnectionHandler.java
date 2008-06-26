@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,12 +54,12 @@ public class IdleConnectionHandler {
     private final Log LOG = LogFactory.getLog(IdleConnectionHandler.class);
     
     /** Holds connections and the time they were added. */
-    private final Map<HttpConnection,Long> connectionToAdded;
+    private final Map<HttpConnection,TimeValues> connectionToTimes;
     
 
     public IdleConnectionHandler() {
         super();
-        connectionToAdded = new HashMap<HttpConnection,Long>();
+        connectionToTimes = new HashMap<HttpConnection,TimeValues>();
     }
     
     /**
@@ -69,7 +70,7 @@ public class IdleConnectionHandler {
      * 
      * @see #remove
      */
-    public void add(HttpConnection connection) {
+    public void add(HttpConnection connection, long validDuration, TimeUnit unit) {
         
         Long timeAdded = Long.valueOf(System.currentTimeMillis());
         
@@ -77,22 +78,32 @@ public class IdleConnectionHandler {
             LOG.debug("Adding connection at: " + timeAdded);
         }
         
-        connectionToAdded.put(connection, timeAdded);
+        connectionToTimes.put(connection, new TimeValues(timeAdded, validDuration, unit));
     }
     
     /**
      * Removes the given connection from the list of connections to be closed when idle.
+     * This will return true if the connection is still valid, and false
+     * if the connection should be considered expired and not used.
+     * 
      * @param connection
+     * @return True if the connection is still valid.
      */
-    public void remove(HttpConnection connection) {
-        connectionToAdded.remove(connection);
+    public boolean remove(HttpConnection connection) {
+        TimeValues times = connectionToTimes.remove(connection);
+        if(times == null) {
+            LOG.warn("Removing a connection that never existed!");
+            return true;
+        } else {
+            return System.currentTimeMillis() <= times.timeExpires;
+        }
     }
 
     /**
      * Removes all connections referenced by this handler.
      */
     public void removeAll() {
-        this.connectionToAdded.clear();
+        this.connectionToTimes.clear();
     }
     
     /**
@@ -111,11 +122,12 @@ public class IdleConnectionHandler {
         }
         
         Iterator<HttpConnection> connectionIter =
-            connectionToAdded.keySet().iterator();
+            connectionToTimes.keySet().iterator();
         
         while (connectionIter.hasNext()) {
             HttpConnection conn = connectionIter.next();
-            Long connectionTime = connectionToAdded.get(conn);
+            TimeValues times = connectionToTimes.get(conn);
+            Long connectionTime = times.timeAdded;
             if (connectionTime.longValue() <= idleTimeout) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Closing connection, connection time: "  + connectionTime);
@@ -126,6 +138,52 @@ public class IdleConnectionHandler {
                 } catch (IOException ex) {
                     LOG.debug("I/O error closing connection", ex);
                 }
+            }
+        }
+    }
+    
+
+    public void closeExpiredConnections() {
+        long now = System.currentTimeMillis();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Checking for expired connections, now: "  + now);
+        }
+        
+        Iterator<HttpConnection> connectionIter =
+            connectionToTimes.keySet().iterator();
+        
+        while (connectionIter.hasNext()) {
+            HttpConnection conn = connectionIter.next();
+            TimeValues times = connectionToTimes.get(conn);
+            if(times.timeExpires <= now) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Closing connection, expired @: "  + times.timeExpires);
+                }
+                connectionIter.remove();
+                try {
+                    conn.close();
+                } catch (IOException ex) {
+                    LOG.debug("I/O error closing connection", ex);
+                }
+            }
+        }        
+    }
+    
+    private static class TimeValues {
+        private final long timeAdded;
+        private final long timeExpires;
+
+        /**
+         * @param now The current time in milliseconds
+         * @param validDuration The duration this connection is valid for
+         * @param validUnit The unit of time the duration is specified in.
+         */
+        TimeValues(long now, long validDuration, TimeUnit validUnit) {
+            this.timeAdded = now;
+            if(validDuration > 0) {
+                this.timeExpires = now + validUnit.toMillis(validDuration);
+            } else {
+                this.timeExpires = Long.MAX_VALUE;
             }
         }
     }

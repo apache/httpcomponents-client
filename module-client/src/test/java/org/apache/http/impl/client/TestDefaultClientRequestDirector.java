@@ -404,9 +404,9 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         }
         
         @Override
-        public void releaseConnection(ManagedClientConnection conn) {
+        public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
             releasedConnection = conn;
-            super.releaseConnection(conn);
+            super.releaseConnection(conn, validDuration, timeUnit);
         }
         
         
@@ -422,6 +422,10 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
 
         public void closeIdleConnections(long idletime, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
+        }
+        
+        public void closeExpiredConnections() {
+            throw new UnsupportedOperationException("just a mockup");   
         }
 
         public ManagedClientConnection getConnection(HttpRoute route)
@@ -470,7 +474,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             return registry;
         }
 
-        public void releaseConnection(ManagedClientConnection conn) {
+        public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
             this.releasedConnection = conn;
         }
 
@@ -490,6 +494,10 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
 
         public void closeIdleConnections(long idletime, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
+        }
+        
+        public void closeExpiredConnections() {
+            throw new UnsupportedOperationException("just a mockup");            
         }
 
         public ManagedClientConnection getConnection(HttpRoute route)
@@ -542,7 +550,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             return registry;
         }
 
-        public void releaseConnection(ManagedClientConnection conn) {
+        public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 

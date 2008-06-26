@@ -32,6 +32,7 @@ package org.apache.http.conn;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -305,7 +306,7 @@ public class EofSensorInputStream extends InputStream
     /**
      * Same as {@link #close close()}.
      */
-    public void releaseConnection() throws IOException {
+    public void releaseConnection(long validDuration, TimeUnit timeUnit) throws IOException {
         this.close();
     }
 

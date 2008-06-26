@@ -33,6 +33,7 @@ package org.apache.http.conn;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
@@ -59,7 +60,13 @@ public class BasicManagedEntity extends HttpEntityWrapper
     protected ManagedClientConnection managedConn;
 
     /** Whether to keep the connection alive. */
-    protected boolean attemptReuse;
+    protected final boolean attemptReuse;
+    
+    /** The duration this is valid for. */
+    protected final long validDuration;
+    
+    /** The unit of time the duration is valid for. */
+    protected final TimeUnit validUnit;
 
 
     /**
@@ -74,15 +81,19 @@ public class BasicManagedEntity extends HttpEntityWrapper
      */
     public BasicManagedEntity(HttpEntity entity,
                               ManagedClientConnection conn,
-                              boolean reuse) {
+                              boolean reuse,
+                              long validDuration,
+                              TimeUnit validUnit) {
         super(entity);
 
         if (conn == null)
             throw new IllegalArgumentException
                 ("Connection may not be null.");
 
-        managedConn = conn;
-        attemptReuse = reuse;
+        this.managedConn = conn;
+        this.attemptReuse = reuse;
+        this.validDuration = validDuration;
+        this.validUnit = validUnit;
     }
 
 
@@ -129,7 +140,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
 
     // non-javadoc, see interface ConnectionReleaseTrigger
-    public void releaseConnection()
+    public void releaseConnection(long validDuration, TimeUnit timeUnit)
         throws IOException {
 
         this.consumeContent();
@@ -210,7 +221,11 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
         if (managedConn != null) {
             try {
-                managedConn.releaseConnection();
+                // TODO: Should this be subtracting the elapsed time from
+                //       when the entity was created till now?
+                //       There's no good specification for when the 'timeout'
+                //       starts counting.
+                managedConn.releaseConnection(validDuration, validUnit);
             } finally {
                 managedConn = null;
             }

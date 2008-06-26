@@ -54,6 +54,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.params.HttpParams;
@@ -87,6 +88,9 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     /** The connection re-use strategy. */
     private ConnectionReuseStrategy reuseStrategy;
+    
+    /** The connection keep-alive strategy. */
+    private ConnectionKeepAliveStrategy keepAliveStrategy;
 
     /** The cookie spec registry. */
     private CookieSpecRegistry supportedCookieSpecs;
@@ -155,6 +159,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     
     protected abstract ConnectionReuseStrategy createConnectionReuseStrategy();
     
+    protected abstract ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy();
     
     protected abstract BasicHttpProcessor createHttpProcessor();
 
@@ -255,6 +260,18 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     public synchronized void setReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
+    }
+
+    
+    public synchronized final ConnectionKeepAliveStrategy getConnectionKeepAliveStrategy() {
+        if (keepAliveStrategy == null) {
+            keepAliveStrategy = createConnectionKeepAliveStrategy();
+        }
+        return keepAliveStrategy;
+    }
+    
+    public synchronized void setKeepAliveStrategy(final ConnectionKeepAliveStrategy keepAliveStrategy) {
+        this.keepAliveStrategy = keepAliveStrategy;
     }
 
 
@@ -525,6 +542,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getRequestExecutor(),
                     getConnectionManager(),
                     getConnectionReuseStrategy(),
+                    getConnectionKeepAliveStrategy(),
                     getRoutePlanner(),
                     getHttpProcessor().copy(),
                     getHttpRequestRetryHandler(),
@@ -547,6 +565,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
@@ -559,6 +578,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                 requestExec,
                 conman,
                 reustrat,
+                kastrat,
                 rouplan,
                 httpProcessor,
                 retryHandler,

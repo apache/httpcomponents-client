@@ -50,6 +50,7 @@ import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -202,6 +203,11 @@ public class DefaultHttpClient extends AbstractHttpClient {
     @Override
     protected ConnectionReuseStrategy createConnectionReuseStrategy() {
         return new DefaultConnectionReuseStrategy();
+    }
+    
+    @Override
+    protected ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy() {
+        return new DefaultConnectionKeepAliveStrategy();
     }
     
 

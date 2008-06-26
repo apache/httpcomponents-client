@@ -367,7 +367,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     // non-javadoc, see base class AbstractConnPool
     @Override
-    public void freeEntry(BasicPoolEntry entry, boolean reusable) {
+    public void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (LOG.isDebugEnabled()) {
@@ -392,7 +392,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             if (reusable) {
                 rospl.freeEntry(entry);
                 freeConnections.add(entry);
-                idleConnHandler.add(entry.getConnection());
+                idleConnHandler.add(entry.getConnection(), validDuration, timeUnit);
             } else {
                 rospl.dropEntry();
                 numConnections--;
@@ -421,27 +421,40 @@ public class ConnPoolByRoute extends AbstractConnPool {
         BasicPoolEntry entry = null;
         poolLock.lock();
         try {
-
-            entry = rospl.allocEntry(state);
-
-            if (entry != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Getting free connection" 
-                            + " [" + rospl.getRoute() + "][" + state + "]");
-
-                }
-                freeConnections.remove(entry);
-                idleConnHandler.remove(entry.getConnection());// no longer idle
-
-                issuedConnections.add(entry.getWeakRef());
-
-            } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No free connections" 
-                            + " [" + rospl.getRoute() + "][" + state + "]");
+            boolean done = false;
+            while(!done) {
+                entry = rospl.allocEntry(state);
+    
+                if (entry != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Getting free connection" 
+                                + " [" + rospl.getRoute() + "][" + state + "]");
+    
+                    }
+                    freeConnections.remove(entry);
+                    boolean valid = idleConnHandler.remove(entry.getConnection());
+                    if(!valid) {
+                        // If the free entry isn't valid anymore, get rid of it
+                        // and loop to find another one that might be valid.
+                        if(LOG.isDebugEnabled())
+                            LOG.debug("Closing expired free connection"
+                                    + " [" + rospl.getRoute() + "][" + state + "]");
+                        closeConnection(entry.getConnection());
+                        rospl.deleteEntry(entry);
+                        numConnections--;
+                    } else {
+                        issuedConnections.add(entry.getWeakRef());
+                        done = true;
+                    }
+    
+                } else {
+                    done = true;
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("No free connections" 
+                                + " [" + rospl.getRoute() + "][" + state + "]");
+                    }
                 }
             }
-
         } finally {
             poolLock.unlock();
         }

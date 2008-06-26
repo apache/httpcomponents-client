@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSession;
 
@@ -347,9 +349,9 @@ public abstract class AbstractClientConnAdapter
     }
 
     // non-javadoc, see interface ConnectionReleaseTrigger
-    public void releaseConnection() {
+    public void releaseConnection(long validDuration, TimeUnit timeUnit) {
         if (connManager != null)
-            connManager.releaseConnection(this);
+            connManager.releaseConnection(this, validDuration, timeUnit);
     }
 
     // non-javadoc, see interface ConnectionReleaseTrigger
@@ -377,7 +379,7 @@ public abstract class AbstractClientConnAdapter
         // manager if #abortConnection() is called from the main execution 
         // thread while there is no blocking I/O operation.
         if (executionThread.equals(Thread.currentThread())) {
-            releaseConnection();
+            releaseConnection(-1, null);
         }
     }
 

@@ -185,7 +185,7 @@ public class ThreadSafeClientConnManager
 
     
     // non-javadoc, see interface ClientConnectionManager
-    public void releaseConnection(ManagedClientConnection conn) {
+    public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
 
         if (!(conn instanceof BasicPooledConnAdapter)) {
             throw new IllegalArgumentException
@@ -225,7 +225,7 @@ public class ThreadSafeClientConnManager
             boolean reusable = hca.isMarkedReusable();
             hca.detach();
             if (entry != null) {
-                connectionPool.freeEntry(entry, reusable);
+                connectionPool.freeEntry(entry, reusable, validDuration, timeUnit);
             }
         }
     }
@@ -272,6 +272,11 @@ public class ThreadSafeClientConnManager
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         // combine these two in a single call?
         connectionPool.closeIdleConnections(idleTimeout, tunit);
+        connectionPool.deleteClosedConnections();
+    }
+    
+    public void closeExpiredConnections() {
+        connectionPool.closeExpiredConnections();
         connectionPool.deleteClosedConnections();
     }
 

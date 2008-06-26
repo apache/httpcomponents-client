@@ -122,7 +122,7 @@ public class ExecReqThread extends GetConnThread {
                 exception = dart;
 
         } finally {
-            conn_manager.releaseConnection(connection);
+            conn_manager.releaseConnection(connection, -1, null);
         }
     }
 

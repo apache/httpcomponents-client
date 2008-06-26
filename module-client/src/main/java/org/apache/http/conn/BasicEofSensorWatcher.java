@@ -86,7 +86,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
                 managedConn.markReusable();
             }
         } finally {
-            managedConn.releaseConnection();
+            managedConn.releaseConnection(-1, null);
         }
         return false;
     }
@@ -104,7 +104,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
                 managedConn.markReusable();
             }
         } finally {
-            managedConn.releaseConnection();
+            managedConn.releaseConnection(-1, null);
         }
         return false;
     }

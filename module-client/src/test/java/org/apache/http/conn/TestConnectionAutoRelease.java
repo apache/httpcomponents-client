@@ -122,7 +122,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         connreq = mgr.requestConnection(new HttpRoute(target), null);
         ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
         
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         
         mgr.shutdown();
     }
@@ -165,7 +165,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         connreq = mgr.requestConnection(new HttpRoute(target), null);
         ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
         
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         
         mgr.shutdown();
     }
@@ -207,7 +207,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         connreq = mgr.requestConnection(new HttpRoute(target), null);
         ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
         
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         
         mgr.shutdown();
     }
@@ -288,7 +288,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         connreq = mgr.requestConnection(new HttpRoute(target), null);
         ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
         
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         
         mgr.shutdown();
     }

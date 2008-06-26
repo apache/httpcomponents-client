@@ -73,12 +73,21 @@ public interface ClientConnectionManager {
 
     /**
      * Releases a connection for use by others.
-     * If the argument connection has been released before,
+     * You may optionally specify how long the connection is valid
+     * to be reused.  Values <= 0 are considered to be valid forever.
+     * If the connection is not marked as reusable, the connection will
+     * not be reused regardless of the valid duration.
+     * 
+     * If the connection has been released before,
      * the call will be ignored.
      *
      * @param conn      the connection to release
+     * @param validDuration the duration of time this connection is valid for reuse
+     * @param timeUnit the unit of time validDuration is measured in
+     * 
+     * @see #closeExpiredConnections()
      */
-    void releaseConnection(ManagedClientConnection conn)
+    void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit)
         ;
 
 
@@ -89,12 +98,24 @@ public interface ClientConnectionManager {
      * Currently allocated connections are not subject to this method.
      * Times will be checked with milliseconds precision
      * 
+     * All expired connections will also be closed.
+     * 
      * @param idletime  the idle time of connections to be closed
      * @param tunit     the unit for the <code>idletime</code>
+     * 
+     * @see #closeExpiredConnections()
      */
     void closeIdleConnections(long idletime, TimeUnit tunit)
         ;
 
+    /**
+     * Closes all expired connections in the pool.
+     * Open connections in the pool that have not been used for
+     * the timespan defined when the connection was released will be closed.
+     * Currently allocated connections are not subject to this method.
+     * Times will be checked with milliseconds precision.
+     */
+    void closeExpiredConnections();
 
     /**
      * Shuts down this connection manager and releases allocated resources.

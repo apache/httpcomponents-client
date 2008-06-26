@@ -182,7 +182,7 @@ public class TestTSCCMNoServer extends TestCase {
         assertNull(conn.getRoute());
         assertFalse(conn.isOpen());
 
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
 
         try {
             conn = getConnection(mgr, null);
@@ -226,7 +226,7 @@ public class TestTSCCMNoServer extends TestCase {
         }
         
         // release one of the connections
-        mgr.releaseConnection(conn2);
+        mgr.releaseConnection(conn2, -1, null);
         conn2 = null;
 
         // there should be a connection available now
@@ -303,13 +303,13 @@ public class TestTSCCMNoServer extends TestCase {
 
         // check releaseConnection with invalid arguments
         try {
-            mgr.releaseConnection(null);
+            mgr.releaseConnection(null, -1, null);
             fail("null connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
         try {
-            mgr.releaseConnection(new ClientConnAdapterMockup());
+            mgr.releaseConnection(new ClientConnAdapterMockup(), -1, null);
             fail("foreign connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
@@ -367,7 +367,7 @@ public class TestTSCCMNoServer extends TestCase {
         }
 
         // now release one and check that exactly that one can be obtained then
-        mgr.releaseConnection(conn2);
+        mgr.releaseConnection(conn2, -1, null);
         conn2 = null;
         try {
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
@@ -403,7 +403,7 @@ public class TestTSCCMNoServer extends TestCase {
                      mgr.getConnectionsInPool(), 1);
         assertEquals("connectionsInPool(host)",
                      mgr.getConnectionsInPool(route), 1);
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
 
         assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
@@ -420,7 +420,6 @@ public class TestTSCCMNoServer extends TestCase {
 
         mgr.shutdown();
     }
-
 
     public void testShutdown() throws Exception {
         // 3.x: TestHttpConnectionManager.testShutdown
@@ -449,7 +448,7 @@ public class TestTSCCMNoServer extends TestCase {
         // First release the connection. If the manager keeps working
         // despite the shutdown, this will deblock the extra thread.
         // The release itself should turn into a no-op, without exception.
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
 
 
         gct.join(10000);
@@ -508,7 +507,7 @@ public class TestTSCCMNoServer extends TestCase {
             // expected
         }
 
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         assertNotNull("should have gotten a connection", conn);
@@ -547,7 +546,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // releasing the connection for route1 should deblock thread1
         // the other thread gets a timeout
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
 
         gct1.join(10000);
         gct2.join(10000);
@@ -593,7 +592,7 @@ public class TestTSCCMNoServer extends TestCase {
             // expected
         }
 
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         assertNotNull("should have gotten a connection", conn);
@@ -635,7 +634,7 @@ public class TestTSCCMNoServer extends TestCase {
             // expected
         }
 
-        mgr.releaseConnection(conn);
+        mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         assertNotNull("should have gotten a connection", conn);
