@@ -30,8 +30,6 @@
  */
 package org.apache.http.conn;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
@@ -48,9 +46,6 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.0
  */
 public interface ConnectionKeepAliveStrategy {
-
-    /** Returns the TimeUnit that this uses for specifying duration. */
-    TimeUnit getTimeUnit();
     
     /**
      * Returns the duration of time which this connection can be safely kept
@@ -68,8 +63,8 @@ public interface ConnectionKeepAliveStrategy {
      * @param context
      *            the context in which the connection is being used.
      * 
-     * @return the duration which it is safe to keep the connection idle,
-     *         or <=0 if no suggested duration.
+     * @return the duration in ms for which it is safe to keep the connection
+     *         idle, or <=0 if no suggested duration.
      */
     long getKeepAliveDuration(HttpResponse response, HttpContext context);
     

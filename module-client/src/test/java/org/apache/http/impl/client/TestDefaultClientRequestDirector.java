@@ -379,7 +379,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
                         if(!awaitLatch.await(timeout, tunit))
                             throw new ConnectionPoolTimeoutException();
                         
-                        return new ClientConnAdapterMockup();
+                        return new ClientConnAdapterMockup(ConnMan4.this);
                     }
                 };  
             } else {
@@ -452,7 +452,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
                         long timeout, TimeUnit unit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {
-                    allocatedConnection = new ClientConnAdapterMockup() {
+                    allocatedConnection = new ClientConnAdapterMockup(ConnMan2.this) {
                         @Override
                         public void open(HttpRoute route, HttpContext context,
                                 HttpParams params) throws IOException {
@@ -535,7 +535,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
                     if(!awaitLatch.await(timeout, tunit))
                         throw new ConnectionPoolTimeoutException();
                     
-                    return new ClientConnAdapterMockup();
+                    return new ClientConnAdapterMockup(ConMan.this);
                 }
             };
         }

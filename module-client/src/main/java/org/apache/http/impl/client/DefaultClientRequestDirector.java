@@ -298,6 +298,7 @@ public class DefaultClientRequestDirector
         
         int execCount = 0;
         
+        boolean reuse = false;
         HttpResponse response = null;
         boolean done = false;
         try {
@@ -445,11 +446,19 @@ public class DefaultClientRequestDirector
                 response.setParams(params);
                 requestExec.postProcess(response, httpProcessor, context);
                 
+
+                // The connection is in or can be brought to a re-usable state.
+                reuse = reuseStrategy.keepAlive(response, context);
+                if(reuse) {
+                    // Set the idle duration of this connection
+                    long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                    managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
+                }
+                
                 RoutedRequest followup = handleResponse(roureq, response, context);
                 if (followup == null) {
                     done = true;
                 } else {
-                    boolean reuse = reuseStrategy.keepAlive(response, context);
                     if (reuse) {
                         LOG.debug("Connection kept alive");
                         // Make sure the response body is fully consumed, if present
@@ -465,7 +474,7 @@ public class DefaultClientRequestDirector
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
-                        releaseConnection(response, context);
+                        releaseConnection();
                     }
                     roureq = followup;
                 }
@@ -477,8 +486,6 @@ public class DefaultClientRequestDirector
                 }
             } // while not done
 
-            // The connection is in or can be brought to a re-usable state.
-            boolean reuse = reuseStrategy.keepAlive(response, context);
 
             // check for entity, release connection if possible
             if ((response == null) || (response.getEntity() == null) ||
@@ -486,13 +493,11 @@ public class DefaultClientRequestDirector
                 // connection not needed and (assumed to be) in re-usable state
                 if (reuse)
                     managedConn.markReusable();
-                releaseConnection(response, context);
+                releaseConnection();
             } else {
                 // install an auto-release entity
                 HttpEntity entity = response.getEntity();
-                long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                TimeUnit unit = keepAliveStrategy.getTimeUnit();
-                entity = new BasicManagedEntity(entity, managedConn, reuse, duration, unit);
+                entity = new BasicManagedEntity(entity, managedConn, reuse);
                 response.setEntity(entity);
             }
 
@@ -515,10 +520,15 @@ public class DefaultClientRequestDirector
      * and prepares for retrieving a new connection during
      * the next request.
      */
-    protected void releaseConnection(HttpResponse response, HttpContext context) {
-        long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-        TimeUnit unit = keepAliveStrategy.getTimeUnit();
-        connManager.releaseConnection(managedConn, duration, unit);
+    protected void releaseConnection() {
+        // Release the connection through the ManagedConnection instead of the
+        // ConnectionManager directly.  This lets the connection control how
+        // it is released.
+        try {
+            managedConn.releaseConnection();
+        } catch(IOException ignored) {
+            LOG.debug("IOException releasing connection", ignored);
+        }
         managedConn = null;
     }
 
@@ -980,10 +990,8 @@ public class DefaultClientRequestDirector
      * Shuts down the connection.
      * This method is called from a <code>catch</code> block in
      * {@link #execute execute} during exception handling.
-     *
-     * @throws IOException      in case of an IO problem
      */
-    private void abortConnection() throws IOException {
+    private void abortConnection() {
         ManagedClientConnection mcc = managedConn;
         if (mcc != null) {
             // we got here as the result of an exception
@@ -997,7 +1005,11 @@ public class DefaultClientRequestDirector
                 }
             }
             // ensure the connection manager properly releases this connection
-            connManager.releaseConnection(mcc, -1, null);
+            try {
+                mcc.releaseConnection();
+            } catch(IOException ignored) {
+                LOG.debug("Error releasing connection", ignored);
+            }
         }
     } // abortConnection
 

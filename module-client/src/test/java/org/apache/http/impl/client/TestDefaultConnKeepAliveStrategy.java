@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -115,7 +115,7 @@ public class TestDefaultConnKeepAliveStrategy extends TestCase {
         response.addHeader("Keep-Alive", "timeout=300, max=20");
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         long d = keepAliveStrat.getKeepAliveDuration(response, context);
-        assertEquals(300, d);
+        assertEquals(300000, d);
     }
 
 }

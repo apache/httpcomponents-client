@@ -32,6 +32,8 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpClientConnection;
@@ -245,5 +247,12 @@ public interface ManagedClientConnection extends
      */
     Object getState()
         ;
+    
+    /**
+     * Sets the duration that this connection can remain idle
+     * before it is reused.
+     * The connection should not be used again if this time elapses.
+     */
+    void setIdleDuration(long duration, TimeUnit unit);
 
 } // interface ManagedClientConnection

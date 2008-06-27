@@ -654,7 +654,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection(-1, null);
+        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -720,7 +720,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection(-1, null);
+        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -791,7 +791,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection(-1, null);
+        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -869,7 +869,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection(-1, null);
+        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);

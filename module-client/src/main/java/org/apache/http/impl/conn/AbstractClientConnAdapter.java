@@ -98,6 +98,12 @@ public abstract class AbstractClientConnAdapter
 
     /** True if the connection has been aborted. */
     private volatile boolean aborted;
+    
+    /** The last time this processed incoming headers. */
+    private volatile long lastHeadersRead;
+    
+    /** The duration this is valid for while idle (in ms). */
+    private volatile long duration;
 
     /**
      * Creates a new connection adapter.
@@ -115,7 +121,7 @@ public abstract class AbstractClientConnAdapter
         wrappedConnection = conn;
         markedReusable = false;
         aborted = false;
-
+        duration = Long.MAX_VALUE;
     } // <constructor>
 
 
@@ -126,6 +132,7 @@ public abstract class AbstractClientConnAdapter
     protected void detach() {
         wrappedConnection = null;
         connManager = null; // base class attribute
+        duration = Long.MAX_VALUE;
     }
 
     protected OperatedClientConnection getWrappedConnection() {
@@ -252,6 +259,8 @@ public abstract class AbstractClientConnAdapter
         assertValid(conn);
 
         unmarkReusable();
+        duration = Long.MAX_VALUE; // Reset duration per request.
+        lastHeadersRead = System.currentTimeMillis();
         return conn.receiveResponseHeader();
     }
 
@@ -347,11 +356,45 @@ public abstract class AbstractClientConnAdapter
     public boolean isMarkedReusable() {
         return markedReusable;
     }
+    
+    public void setIdleDuration(long duration, TimeUnit unit) {
+        if(duration > 0) {
+            this.duration = unit.toMillis(duration);
+        } else {
+            this.duration = Long.MAX_VALUE;
+        }
+    }
+    
+    /**
+     * Returns the amount of time remaining that this connection
+     * can be reused.  If negative, the connection should not
+     * be reused.  If Long.MAX_VALUE, there is no suggested
+     * duration.
+     * 
+     * The remaining time is the elapsed time between now,
+     * the time the last headers were processed, and the duration
+     * given from {@link #setIdleDuration(long, TimeUnit)}.
+     */
+    protected long getRemainingIdleDuration() {
+        if(duration == Long.MAX_VALUE) {
+            return Long.MAX_VALUE;
+        } else {
+            long elapsedAlready = System.currentTimeMillis() - lastHeadersRead;
+            return duration - elapsedAlready;
+        }
+    }
 
     // non-javadoc, see interface ConnectionReleaseTrigger
-    public void releaseConnection(long validDuration, TimeUnit timeUnit) {
-        if (connManager != null)
-            connManager.releaseConnection(this, validDuration, timeUnit);
+    public void releaseConnection() {
+        if (connManager != null) {
+            long remainingTime = getRemainingIdleDuration();
+            if(remainingTime <= 0) {
+                unmarkReusable();
+            } else if(remainingTime == Long.MAX_VALUE) {
+                remainingTime = -1;
+            }
+            connManager.releaseConnection(this, remainingTime, TimeUnit.MILLISECONDS);
+        }
     }
 
     // non-javadoc, see interface ConnectionReleaseTrigger
@@ -379,7 +422,7 @@ public abstract class AbstractClientConnAdapter
         // manager if #abortConnection() is called from the main execution 
         // thread while there is no blocking I/O operation.
         if (executionThread.equals(Thread.currentThread())) {
-            releaseConnection(-1, null);
+            releaseConnection();
         }
     }
 

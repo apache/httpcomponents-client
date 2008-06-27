@@ -309,7 +309,7 @@ public class TestTSCCMNoServer extends TestCase {
             // expected
         }
         try {
-            mgr.releaseConnection(new ClientConnAdapterMockup(), -1, null);
+            mgr.releaseConnection(new ClientConnAdapterMockup(null), -1, null);
             fail("foreign connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected

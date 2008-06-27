@@ -30,8 +30,6 @@
  */
 package org.apache.http.impl.client;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpResponse;
@@ -67,16 +65,12 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
             String value = he.getValue();
             if (value != null && param.equalsIgnoreCase("timeout")) {
                 try {
-                    return Long.parseLong(value);
+                    return Long.parseLong(value) * 1000;
                 } catch(NumberFormatException ignore) {
                 }
             }
         }
         return -1;
-    }
-    
-    public TimeUnit getTimeUnit() {
-        return TimeUnit.SECONDS;
     }
 
 }
