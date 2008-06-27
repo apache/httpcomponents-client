@@ -45,6 +45,7 @@ import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.ClientResponseHandler;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -456,7 +457,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     public final HttpResponse execute(HttpUriRequest request)
         throws IOException, ClientProtocolException {
 
-        return execute(request, null);
+        return execute(request, (HttpContext) null);
     }
 
 
@@ -498,7 +499,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     public final HttpResponse execute(HttpHost target, HttpRequest request)
         throws IOException, ClientProtocolException {
 
-        return execute(target, request, null);
+        return execute(target, request, (HttpContext) null);
     }
 
 
@@ -610,6 +611,66 @@ public abstract class AbstractHttpClient implements HttpClient {
     protected HttpParams determineParams(HttpRequest req) {
         return new ClientParamsStack
             (null, getParams(), req.getParams(), null);
+    }
+
+
+    // non-javadoc, see interface HttpClient
+    public <T> T execute(
+            final HttpUriRequest request, 
+            final ClientResponseHandler<? extends T> responseHandler) 
+                throws IOException, ClientProtocolException {
+        if (responseHandler == null) {
+            throw new IllegalArgumentException
+                ("Response handler must not be null.");
+        }
+        HttpResponse response = execute(request);
+        return responseHandler.handleResponse(response);
+    }
+
+
+    // non-javadoc, see interface HttpClient
+    public <T> T execute(
+            final HttpUriRequest request,
+            final ClientResponseHandler<? extends T> responseHandler, 
+            final HttpContext context)
+                throws IOException, ClientProtocolException {
+        if (responseHandler == null) {
+            throw new IllegalArgumentException
+                ("Response handler must not be null.");
+        }
+        HttpResponse response = execute(request, context);
+        return responseHandler.handleResponse(response);
+    }
+
+
+    // non-javadoc, see interface HttpClient
+    public <T> T execute(
+            final HttpHost target, 
+            final HttpRequest request,
+            final ClientResponseHandler<? extends T> responseHandler) 
+                throws IOException, ClientProtocolException {
+        if (responseHandler == null) {
+            throw new IllegalArgumentException
+                ("Response handler must not be null.");
+        }
+        HttpResponse response = execute(target, request);
+        return responseHandler.handleResponse(response);
+    }
+
+
+    // non-javadoc, see interface HttpClient
+    public <T> T execute(
+            final HttpHost target, 
+            final HttpRequest request,
+            final ClientResponseHandler<? extends T> responseHandler, 
+            final HttpContext context) 
+                throws IOException, ClientProtocolException {
+        if (responseHandler == null) {
+            throw new IllegalArgumentException
+                ("Response handler must not be null.");
+        }
+        HttpResponse response = execute(target, request, context);
+        return responseHandler.handleResponse(response);
     }
 
 

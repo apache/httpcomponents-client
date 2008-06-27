@@ -94,7 +94,7 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
- * Default implementation of a client-side request director.
+ * Default implementation of {@link ClientRequestDirector}.
  * <br/>
  * This class replaces the <code>HttpMethodDirector</code> in HttpClient 3.
  *

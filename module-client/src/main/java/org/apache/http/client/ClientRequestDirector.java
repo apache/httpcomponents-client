@@ -89,5 +89,4 @@ public interface ClientRequestDirector {
         throws HttpException, IOException
         ;
 
-
 } // class ClientRequestDirector

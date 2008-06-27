@@ -63,7 +63,7 @@ public class ClientProxyAuthentication {
         System.out.println("via proxy: " + proxy);
         System.out.println("to target: " + targetHost);
         
-        HttpResponse response = httpclient.execute(targetHost, httpget, null);
+        HttpResponse response = httpclient.execute(targetHost, httpget);
         HttpEntity entity = response.getEntity();
 
         System.out.println("----------------------------------------");

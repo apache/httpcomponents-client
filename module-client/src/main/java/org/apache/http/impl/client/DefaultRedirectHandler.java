@@ -52,7 +52,7 @@ import org.apache.http.protocol.ExecutionContext;
 
 
 /**
- * Default implementation of a redirect handler.
+ * Default implementation of {@link RedirectHandler}.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *

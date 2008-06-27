@@ -30,31 +30,22 @@
 
 package org.apache.http.client;
 
-import java.io.IOException;
-
 /**
- * Signals an error in the HTTP protocol.
+ * Signals a non 2xx HTTP response.
  */
-public class ClientProtocolException extends IOException {
+public class HttpResponseException extends ClientProtocolException {
     
-    private static final long serialVersionUID = -5596590843227115865L;
+    private static final long serialVersionUID = -7186627969477257933L;
 
-    public ClientProtocolException() {
-        super();
-    }
-
-    public ClientProtocolException(String s) {
+    private final int statusCode;
+    
+    public HttpResponseException(int statusCode, final String s) {
         super(s);
+        this.statusCode = statusCode;
     }
-    
-    public ClientProtocolException(Throwable cause) {
-        initCause(cause);
-    }
-    
-    public ClientProtocolException(String message, Throwable cause) {
-        super(message);
-        initCause(cause);
-    }
-    
 
+    public int getStatusCode() {
+        return this.statusCode;
+    }
+    
 }

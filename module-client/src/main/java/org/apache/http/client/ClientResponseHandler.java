@@ -32,29 +32,18 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpResponse;
+
 /**
- * Signals an error in the HTTP protocol.
+ * Handler that incapsulates the process of generating a response object 
+ * from a {@link HttpResponse}.
+ * 
+ * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+ * 
+ * @since 4.0
  */
-public class ClientProtocolException extends IOException {
-    
-    private static final long serialVersionUID = -5596590843227115865L;
+public interface ClientResponseHandler<T> {
 
-    public ClientProtocolException() {
-        super();
-    }
-
-    public ClientProtocolException(String s) {
-        super(s);
-    }
+    T handleResponse(HttpResponse response) throws ClientProtocolException, IOException;
     
-    public ClientProtocolException(Throwable cause) {
-        initCause(cause);
-    }
-    
-    public ClientProtocolException(String message, Throwable cause) {
-        super(message);
-        initCause(cause);
-    }
-    
-
 }

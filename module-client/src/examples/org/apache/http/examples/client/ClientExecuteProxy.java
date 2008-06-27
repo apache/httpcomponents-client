@@ -107,7 +107,7 @@ public class ClientExecuteProxy {
         System.out.println("executing request to " + target + " via " + proxy);
         HttpEntity entity = null;
         try {
-            HttpResponse rsp = client.execute(target, req, null);
+            HttpResponse rsp = client.execute(target, req);
             entity = rsp.getEntity();
 
             System.out.println("----------------------------------------");

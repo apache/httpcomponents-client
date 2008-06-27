@@ -99,7 +99,7 @@ public class ClientExecuteDirect {
         System.out.println("executing request to " + target);
         HttpEntity entity = null;
         try {
-            HttpResponse rsp = client.execute(target, req, null);
+            HttpResponse rsp = client.execute(target, req);
             entity = rsp.getEntity();
 
             System.out.println("----------------------------------------");
