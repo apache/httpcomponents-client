@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -32,6 +32,7 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
 /**
@@ -44,6 +45,21 @@ import org.apache.http.HttpResponse;
  */
 public interface ClientResponseHandler<T> {
 
+    /**
+     * Processes an {@link HttpResponse} and returns some value
+     * corresponding to that response.
+     * 
+     * Implementations should make an effort to ensure that the
+     * response {@link HttpEntity} is fully consumed before
+     * returning from this method or document that users
+     * must consume the entity.
+     * 
+     * @param response The response to process
+     * @return A value determined by the response
+     * 
+     * @throws ClientProtocolException in case of an http protocol error
+     * @throws IOException in case of a problem or the connection was aborted
+     */
     T handleResponse(HttpResponse response) throws ClientProtocolException, IOException;
     
 }

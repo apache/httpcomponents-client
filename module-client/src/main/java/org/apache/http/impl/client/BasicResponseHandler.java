@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -42,16 +42,28 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Default implementation of {@link ClientResponseHandler}.
+ * A {@link ClientResponseHandler} that returns the response body as a String
+ * for successful (2xx) responses. If the response code was >= 300, the response
+ * body is consumed and an {@link HttpResponseException} is thrown.
+ * 
+ * If this is used with
+ * {@link HttpClient#execute(org.apache.http.client.methods.HttpUriRequest, ClientResponseHandler),
+ * HttpClient may handle redirects (3xx responses) internally.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- *
- * @version $Revision: $
- *
+ * 
+ * @version $Revision$
+ * 
  * @since 4.0
  */
 public class BasicResponseHandler implements ClientResponseHandler<String> {
 
+    /**
+     * Returns the response body as a String if the response was successful (a
+     * 2xx status code). If no response body exists, this returns null. If the
+     * response was unsuccessful (>= 300 status code), throws an
+     * {@link HttpResponseException}.
+     */
     public String handleResponse(
             final HttpResponse response) throws ClientProtocolException, IOException {
         HttpEntity entity = response.getEntity();
