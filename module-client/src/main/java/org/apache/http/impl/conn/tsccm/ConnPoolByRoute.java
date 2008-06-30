@@ -286,6 +286,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         ("Connection pool shut down.");
                 }
 
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Total connections kept alive: " + freeConnections.size()); 
+                    LOG.debug("Total issued connections: " + issuedConnections.size()); 
+                    LOG.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
+                }
+                
                 // the cases to check for:
                 // - have a free connection for that route
                 // - allowed to create a free connection for that route
@@ -301,6 +307,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Available capacity: " + rospl.getCapacity() 
+                            + " out of " + rospl.getMaxEntries()
                             + " [" + route + "][" + state + "]");
                 }
                 
@@ -423,6 +430,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         try {
             boolean done = false;
             while(!done) {
+
                 entry = rospl.allocEntry(state);
     
                 if (entry != null) {
