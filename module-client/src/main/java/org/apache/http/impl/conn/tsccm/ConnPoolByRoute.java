@@ -448,7 +448,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
                             LOG.debug("Closing expired free connection"
                                     + " [" + rospl.getRoute() + "][" + state + "]");
                         closeConnection(entry.getConnection());
-                        rospl.deleteEntry(entry);
+                        // We use dropEntry instead of deleteEntry because the entry
+                        // is no longer "free" (we just allocated it), and deleteEntry
+                        // can only be used to delete free entries.
+                        rospl.dropEntry();
                         numConnections--;
                     } else {
                         issuedConnections.add(entry.getWeakRef());

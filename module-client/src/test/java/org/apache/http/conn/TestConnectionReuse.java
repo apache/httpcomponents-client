@@ -311,9 +311,9 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        ConnManagerParams.setMaxTotalConnections(params, 5);
+        ConnManagerParams.setMaxTotalConnections(params, 1);
         ConnManagerParams.setMaxConnectionsPerRoute(params, 
-                new ConnPerRouteBean(5));
+                new ConnPerRouteBean(1));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
@@ -360,7 +360,7 @@ public class TestConnectionReuse extends TestCase {
         
 
         mgr.shutdown();
-    }
+    }    
 
     private static class WorkerThread extends Thread {
 
