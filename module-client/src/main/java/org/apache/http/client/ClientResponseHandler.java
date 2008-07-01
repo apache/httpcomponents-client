@@ -36,7 +36,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
 /**
- * Handler that incapsulates the process of generating a response object 
+ * Handler that encapsulates the process of generating a response object 
  * from a {@link HttpResponse}.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>

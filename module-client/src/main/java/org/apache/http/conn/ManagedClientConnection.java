@@ -249,9 +249,12 @@ public interface ManagedClientConnection extends
         ;
     
     /**
-     * Sets the duration that this connection can remain idle
-     * before it is reused.
-     * The connection should not be used again if this time elapses.
+     * Sets the duration that this connection can remain idle before it is
+     * reused. The connection should not be used again if this time elapses. The
+     * idle duration must be reset after each request sent over this connection.
+     * The elapsed time starts counting when the connection is released, which
+     * is typically after the headers (and any response body, if present) is
+     * fully consumed.
      */
     void setIdleDuration(long duration, TimeUnit unit);
 
