@@ -61,7 +61,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(ResponseProcessCookies.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     public ResponseProcessCookies() {
         super();
@@ -80,21 +80,21 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
         if (cookieStore == null) {
-            LOG.info("Cookie store not available in HTTP context");
+            this.log.info("Cookie store not available in HTTP context");
             return;
         }
         // Obtain actual CookieSpec instance
         CookieSpec cookieSpec = (CookieSpec) context.getAttribute(
                 ClientContext.COOKIE_SPEC);
         if (cookieSpec == null) {
-            LOG.info("CookieSpec not available in HTTP context");
+            this.log.info("CookieSpec not available in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance
         CookieOrigin cookieOrigin = (CookieOrigin) context.getAttribute(
                 ClientContext.COOKIE_ORIGIN);
         if (cookieOrigin == null) {
-            LOG.info("CookieOrigin not available in HTTP context");
+            this.log.info("CookieOrigin not available in HTTP context");
             return;
         }
         HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
@@ -109,7 +109,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         }
     }
      
-    private static void processCookies(
+    private void processCookies(
             final HeaderIterator iterator, 
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
@@ -123,20 +123,20 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                         cookieSpec.validate(cookie, cookieOrigin);
                         cookieStore.addCookie(cookie);
 
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Cookie accepted: \""
+                        if (this.log.isDebugEnabled()) {
+                            this.log.debug("Cookie accepted: \""
                                     + cookie + "\". ");
                         }
                     } catch (MalformedCookieException ex) {
-                        if (LOG.isWarnEnabled()) {
-                            LOG.warn("Cookie rejected: \""
+                        if (this.log.isWarnEnabled()) {
+                            this.log.warn("Cookie rejected: \""
                                     + cookie + "\". " + ex.getMessage());
                         }
                     }
                 }
             } catch (MalformedCookieException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("Invalid cookie header: \""
+                if (this.log.isWarnEnabled()) {
+                    this.log.warn("Invalid cookie header: \""
                             + header + "\". " + ex.getMessage());
                 }
             }

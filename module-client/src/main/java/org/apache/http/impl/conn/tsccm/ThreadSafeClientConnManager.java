@@ -67,9 +67,7 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 public class ThreadSafeClientConnManager
     implements ClientConnectionManager {
 
-    private final Log LOG =
-        LogFactory.getLog(ThreadSafeClientConnManager.class);
-
+    private transient final Log log = LogFactory.getLog(getClass());
 
     /** The schemes supported by this connection manager. */
     protected SchemeRegistry schemeRegistry; 
@@ -170,8 +168,8 @@ public class ThreadSafeClientConnManager
                     throw new IllegalArgumentException("Route may not be null.");
                 }
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("ThreadSafeClientConnManager.getConnection: "
+                if (log.isDebugEnabled()) {
+                    log.debug("ThreadSafeClientConnManager.getConnection: "
                         + route + ", timeout = " + timeout);
                 }
 
@@ -201,8 +199,8 @@ public class ThreadSafeClientConnManager
         try {
             // make sure that the response has been read completely
             if (hca.isOpen() && !hca.isMarkedReusable()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug
+                if (log.isDebugEnabled()) {
+                    log.debug
                         ("Released connection open but not marked reusable.");
                 }
                 // In MTHCM, there would be a call to
@@ -217,8 +215,8 @@ public class ThreadSafeClientConnManager
             }
         } catch (IOException iox) {
             //@@@ log as warning? let pass?
-            if (LOG.isDebugEnabled())
-                LOG.debug("Exception shutting down released connection.",
+            if (log.isDebugEnabled())
+                log.debug("Exception shutting down released connection.",
                           iox);
         } finally {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();

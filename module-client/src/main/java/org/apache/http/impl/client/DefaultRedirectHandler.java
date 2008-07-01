@@ -64,7 +64,7 @@ import org.apache.http.protocol.ExecutionContext;
  */
 public class DefaultRedirectHandler implements RedirectHandler {
 
-    private static final Log LOG = LogFactory.getLog(DefaultRedirectHandler.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
@@ -105,8 +105,8 @@ public class DefaultRedirectHandler implements RedirectHandler {
                     + " but no location header");
         }
         String location = locationHeader.getValue();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Redirect requested to location '" + location + "'");
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Redirect requested to location '" + location + "'");
         }
 
         URI uri;

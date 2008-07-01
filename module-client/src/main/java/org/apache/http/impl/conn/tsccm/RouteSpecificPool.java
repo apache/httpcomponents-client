@@ -49,7 +49,7 @@ import org.apache.http.util.LangUtils;
  */
 public class RouteSpecificPool {
 
-    private final Log LOG = LogFactory.getLog(RouteSpecificPool.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     /** The route this pool is for. */
     protected final HttpRoute route;
@@ -164,7 +164,7 @@ public class RouteSpecificPool {
             try {
                 conn.close();
             } catch (IOException ex) {
-                LOG.debug("I/O error closing connection", ex);
+                log.debug("I/O error closing connection", ex);
             }
             return entry;
         }

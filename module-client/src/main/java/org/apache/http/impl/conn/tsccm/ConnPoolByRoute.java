@@ -68,8 +68,7 @@ import org.apache.http.params.HttpParams;
  */
 public class ConnPoolByRoute extends AbstractConnPool {
         
-    //@@@ use a protected LOG in the base class?
-    private final Log LOG = LogFactory.getLog(ConnPoolByRoute.class);
+    private transient final Log log = LogFactory.getLog(getClass());
 
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;
@@ -286,10 +285,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         ("Connection pool shut down.");
                 }
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Total connections kept alive: " + freeConnections.size()); 
-                    LOG.debug("Total issued connections: " + issuedConnections.size()); 
-                    LOG.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
+                if (log.isDebugEnabled()) {
+                    log.debug("Total connections kept alive: " + freeConnections.size()); 
+                    log.debug("Total issued connections: " + issuedConnections.size()); 
+                    log.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
                 }
                 
                 // the cases to check for:
@@ -305,8 +304,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 
                 boolean hasCapacity = rospl.getCapacity() > 0; 
                 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Available capacity: " + rospl.getCapacity() 
+                if (log.isDebugEnabled()) {
+                    log.debug("Available capacity: " + rospl.getCapacity() 
                             + " out of " + rospl.getMaxEntries()
                             + " [" + route + "][" + state + "]");
                 }
@@ -322,8 +321,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
                 } else {
 
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Need to wait for connection" +
+                    if (log.isDebugEnabled()) {
+                        log.debug("Need to wait for connection" +
                                 " [" + route + "][" + state + "]");
                     }
 
@@ -377,8 +376,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit) {
 
         HttpRoute route = entry.getPlannedRoute();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Freeing connection" +                                 
+        if (log.isDebugEnabled()) {
+            log.debug("Freeing connection" +                                 
                     " [" + route + "][" + entry.getState() + "]");
         }
 
@@ -434,8 +433,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 entry = rospl.allocEntry(state);
     
                 if (entry != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Getting free connection" 
+                    if (log.isDebugEnabled()) {
+                        log.debug("Getting free connection" 
                                 + " [" + rospl.getRoute() + "][" + state + "]");
     
                     }
@@ -444,8 +443,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     if(!valid) {
                         // If the free entry isn't valid anymore, get rid of it
                         // and loop to find another one that might be valid.
-                        if(LOG.isDebugEnabled())
-                            LOG.debug("Closing expired free connection"
+                        if(log.isDebugEnabled())
+                            log.debug("Closing expired free connection"
                                     + " [" + rospl.getRoute() + "][" + state + "]");
                         closeConnection(entry.getConnection());
                         // We use dropEntry instead of deleteEntry because the entry
@@ -460,8 +459,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     
                 } else {
                     done = true;
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("No free connections" 
+                    if (log.isDebugEnabled()) {
+                        log.debug("No free connections" 
                                 + " [" + rospl.getRoute() + "][" + state + "]");
                     }
                 }
@@ -487,8 +486,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected BasicPoolEntry createEntry(RouteSpecificPool rospl,
                                          ClientConnectionOperator op) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Creating new connection [" + rospl.getRoute() + "]");
+        if (log.isDebugEnabled()) {
+            log.debug("Creating new connection [" + rospl.getRoute() + "]");
         }
 
         // the entry will create the connection when needed
@@ -526,8 +525,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         HttpRoute route = entry.getPlannedRoute();
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Deleting connection" 
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting connection" 
                     + " [" + route + "][" + entry.getState() + "]");
         }
 
@@ -566,8 +565,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             if (entry != null) {
                 deleteEntry(entry);
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("No free connection to delete.");
+            } else if (log.isDebugEnabled()) {
+                log.debug("No free connection to delete.");
             }
 
         } finally {
@@ -619,22 +618,22 @@ public class ConnPoolByRoute extends AbstractConnPool {
         try {
 
             if ((rospl != null) && rospl.hasThread()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Notifying thread waiting on pool" +
+                if (log.isDebugEnabled()) {
+                    log.debug("Notifying thread waiting on pool" +
                             " [" + rospl.getRoute() + "]");
                 }
                 waitingThread = rospl.dequeueThread();
                 waitingThreads.remove(waitingThread);
 
             } else if (!waitingThreads.isEmpty()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Notifying thread waiting on any pool");
+                if (log.isDebugEnabled()) {
+                    log.debug("Notifying thread waiting on any pool");
                 }
                 waitingThread = waitingThreads.remove();
                 waitingThread.getPool().removeThread(waitingThread);
 
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Notifying no-one, there are no waiting threads");
+            } else if (log.isDebugEnabled()) {
+                log.debug("Notifying no-one, there are no waiting threads");
             }
 
             if (waitingThread != null) {

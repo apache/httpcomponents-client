@@ -51,7 +51,7 @@ import org.apache.http.HttpConnection;
  */
 public class IdleConnectionHandler {
 
-    private final Log LOG = LogFactory.getLog(IdleConnectionHandler.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     /** Holds connections and the time they were added. */
     private final Map<HttpConnection,TimeValues> connectionToTimes;
@@ -74,8 +74,8 @@ public class IdleConnectionHandler {
         
         Long timeAdded = Long.valueOf(System.currentTimeMillis());
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding connection at: " + timeAdded);
+        if (log.isDebugEnabled()) {
+            log.debug("Adding connection at: " + timeAdded);
         }
         
         connectionToTimes.put(connection, new TimeValues(timeAdded, validDuration, unit));
@@ -92,7 +92,7 @@ public class IdleConnectionHandler {
     public boolean remove(HttpConnection connection) {
         TimeValues times = connectionToTimes.remove(connection);
         if(times == null) {
-            LOG.warn("Removing a connection that never existed!");
+            log.warn("Removing a connection that never existed!");
             return true;
         } else {
             return System.currentTimeMillis() <= times.timeExpires;
@@ -117,8 +117,8 @@ public class IdleConnectionHandler {
         // the latest time for which connections will be closed
         long idleTimeout = System.currentTimeMillis() - idleTime;
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Checking for connections, idleTimeout: "  + idleTimeout);
+        if (log.isDebugEnabled()) {
+            log.debug("Checking for connections, idleTimeout: "  + idleTimeout);
         }
         
         Iterator<HttpConnection> connectionIter =
@@ -129,14 +129,14 @@ public class IdleConnectionHandler {
             TimeValues times = connectionToTimes.get(conn);
             Long connectionTime = times.timeAdded;
             if (connectionTime.longValue() <= idleTimeout) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Closing connection, connection time: "  + connectionTime);
+                if (log.isDebugEnabled()) {
+                    log.debug("Closing connection, connection time: "  + connectionTime);
                 }
                 connectionIter.remove();
                 try {
                     conn.close();
                 } catch (IOException ex) {
-                    LOG.debug("I/O error closing connection", ex);
+                    log.debug("I/O error closing connection", ex);
                 }
             }
         }
@@ -145,8 +145,8 @@ public class IdleConnectionHandler {
 
     public void closeExpiredConnections() {
         long now = System.currentTimeMillis();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Checking for expired connections, now: "  + now);
+        if (log.isDebugEnabled()) {
+            log.debug("Checking for expired connections, now: "  + now);
         }
         
         Iterator<HttpConnection> connectionIter =
@@ -156,14 +156,14 @@ public class IdleConnectionHandler {
             HttpConnection conn = connectionIter.next();
             TimeValues times = connectionToTimes.get(conn);
             if(times.timeExpires <= now) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Closing connection, expired @: "  + times.timeExpires);
+                if (log.isDebugEnabled()) {
+                    log.debug("Closing connection, expired @: "  + times.timeExpires);
                 }
                 connectionIter.remove();
                 try {
                     conn.close();
                 } catch (IOException ex) {
-                    LOG.debug("I/O error closing connection", ex);
+                    log.debug("I/O error closing connection", ex);
                 }
             }
         }        

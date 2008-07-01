@@ -54,7 +54,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class RequestTargetAuthentication implements HttpRequestInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(RequestTargetAuthentication.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     public RequestTargetAuthentication() {
         super();
@@ -87,7 +87,7 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
         
         Credentials creds = authState.getCredentials();
         if (creds == null) {
-            LOG.debug("User credentials not available");
+            this.log.debug("User credentials not available");
             return;
         }
 
@@ -95,8 +95,8 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
             try {
                 request.addHeader(authScheme.authenticate(creds, request));
             } catch (AuthenticationException ex) {
-                if (LOG.isErrorEnabled()) {
-                    LOG.error("Authentication error: " + ex.getMessage());
+                if (this.log.isErrorEnabled()) {
+                    this.log.error("Authentication error: " + ex.getMessage());
                 }
             }
         }

@@ -49,8 +49,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RefQueueWorker implements Runnable {
 
-    protected final Log LOG = LogFactory.getLog(RefQueueWorker.class);
-
+    private transient final Log log = LogFactory.getLog(getClass());
 
     /** The reference queue to monitor. */
     protected final ReferenceQueue<?> refQueue;
@@ -104,9 +103,9 @@ public class RefQueueWorker implements Runnable {
                 refHandler.handleReference(ref);
             } catch (InterruptedException e) {
                 //@@@ is logging really necessary? this here is the
-                //@@@ only reason for having a LOG in this class
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(this.toString() + " interrupted", e);
+                //@@@ only reason for having a log in this class
+                if (log.isDebugEnabled()) {
+                    log.debug(this.toString() + " interrupted", e);
                 }
             }
         }

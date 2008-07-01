@@ -54,7 +54,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class RequestProxyAuthentication implements HttpRequestInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(RequestProxyAuthentication.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     public RequestProxyAuthentication() {
         super();
@@ -87,15 +87,15 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         
         Credentials creds = authState.getCredentials();
         if (creds == null) {
-            LOG.debug("User credentials not available");
+            this.log.debug("User credentials not available");
             return;
         }
         if (authState.getAuthScope() != null || !authScheme.isConnectionBased()) {
             try {
                 request.addHeader(authScheme.authenticate(creds, request));
             } catch (AuthenticationException ex) {
-                if (LOG.isErrorEnabled()) {
-                    LOG.error("Proxy authentication error: " + ex.getMessage());
+                if (this.log.isErrorEnabled()) {
+                    this.log.error("Proxy authentication error: " + ex.getMessage());
                 }
             }
         }

@@ -66,11 +66,10 @@ import org.apache.http.conn.OperatedClientConnection;
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection {
 
-    private static final Log HEADERS_LOG = LogFactory.getLog("org.apache.http.headers");
-    private static final Log WIRE_LOG = LogFactory.getLog("org.apache.http.wire");
-    
-    private static final Log LOG = LogFactory.getLog(DefaultClientConnection.class);
-    
+    private transient final Log log = LogFactory.getLog(getClass());
+    private transient final Log headerLog = LogFactory.getLog("org.apache.http.headers");
+    private transient final Log wireLog = LogFactory.getLog("org.apache.http.wire");
+
     /** The unconnected socket */
     private volatile Socket socket;
 
@@ -83,8 +82,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     /** True if this connection was shutdown. */
     private volatile boolean shutdown;
 
-
-    // public default constructor
+    public DefaultClientConnection() {
+        super();
+    }
 
 
     // non-javadoc, see interface OperatedClientConnection
@@ -144,7 +144,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
      */
     @Override
     public void shutdown() throws IOException {
-        LOG.debug("Connection shut down");
+        log.debug("Connection shut down");
         shutdown = true;
         
         super.shutdown();        
@@ -157,7 +157,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     
     @Override
     public void close() throws IOException {
-        LOG.debug("Connection closed");
+        log.debug("Connection closed");
         super.close();
     }
 
@@ -171,8 +171,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 socket, 
                 buffersize,
                 params);
-        if (WIRE_LOG.isDebugEnabled()) {
-            inbuffer = new LoggingSessionInputBuffer(inbuffer, new Wire(WIRE_LOG));
+        if (wireLog.isDebugEnabled()) {
+            inbuffer = new LoggingSessionInputBuffer(inbuffer, new Wire(wireLog));
         }
         return inbuffer;
     }
@@ -187,8 +187,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 socket,
                 buffersize,
                 params);
-        if (WIRE_LOG.isDebugEnabled()) {
-            outbuffer = new LoggingSessionOutputBuffer(outbuffer, new Wire(WIRE_LOG));
+        if (wireLog.isDebugEnabled()) {
+            outbuffer = new LoggingSessionOutputBuffer(outbuffer, new Wire(wireLog));
         }
         return outbuffer;
     }
@@ -233,11 +233,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
         HttpResponse response = super.receiveResponseHeader();
-        if (HEADERS_LOG.isDebugEnabled()) {
-            HEADERS_LOG.debug("<< " + response.getStatusLine().toString());
+        if (headerLog.isDebugEnabled()) {
+            headerLog.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();
             for (Header header : headers) {
-                HEADERS_LOG.debug("<< " + header.toString());
+                headerLog.debug("<< " + header.toString());
             }
         }
         return response;
@@ -247,11 +247,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
         super.sendRequestHeader(request);
-        if (HEADERS_LOG.isDebugEnabled()) {
-            HEADERS_LOG.debug(">> " + request.getRequestLine().toString());
+        if (headerLog.isDebugEnabled()) {
+            headerLog.debug(">> " + request.getRequestLine().toString());
             Header[] headers = request.getAllHeaders();
             for (Header header : headers) {
-                HEADERS_LOG.debug(">> " + header.toString());
+                headerLog.debug(">> " + header.toString());
             }
         }
     }

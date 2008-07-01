@@ -69,8 +69,7 @@ import org.apache.http.params.HttpParams;
  */
 public class SingleClientConnManager implements ClientConnectionManager {
 
-    private static final Log LOG =
-        LogFactory.getLog(SingleClientConnManager.class);
+    private transient final Log log = LogFactory.getLog(getClass());
 
     /** The message to be logged on multiple allocation. */
     public final static String MISUSE_MESSAGE =
@@ -211,8 +210,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
         assertStillUp();
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Get connection for route " + route);
+        if (log.isDebugEnabled()) {
+            log.debug("Get connection for route " + route);
         }
 
         if (managedConn != null)
@@ -243,7 +242,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             try {
                 uniquePoolEntry.shutdown();
             } catch (IOException iox) {
-                LOG.debug("Problem shutting down connection.", iox);
+                log.debug("Problem shutting down connection.", iox);
             }
         }
         
@@ -266,8 +265,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
                  "connection not obtained from this manager.");
         }
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Releasing connection " + conn);
+        if (log.isDebugEnabled()) {
+            log.debug("Releasing connection " + conn);
         }
 
         ConnAdapter sca = (ConnAdapter) conn;
@@ -284,8 +283,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
             if (sca.isOpen() && (this.alwaysShutDown ||
                                  !sca.isMarkedReusable())
                 ) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug
+                if (log.isDebugEnabled()) {
+                    log.debug
                         ("Released connection open but not reusable.");
                 }
 
@@ -296,8 +295,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
             }
         } catch (IOException iox) {
             //@@@ log as warning? let pass?
-            if (LOG.isDebugEnabled())
-                LOG.debug("Exception shutting down released connection.",
+            if (log.isDebugEnabled())
+                log.debug("Exception shutting down released connection.",
                           iox);
         } finally {
             sca.detach();
@@ -334,7 +333,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                     uniquePoolEntry.close();
                 } catch (IOException iox) {
                     // ignore
-                    LOG.debug("Problem closing idle connection.", iox);
+                    log.debug("Problem closing idle connection.", iox);
                 }
             }
         }
@@ -354,7 +353,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 uniquePoolEntry.shutdown();
         } catch (IOException iox) {
             // ignore
-            LOG.debug("Problem while shutting down manager.", iox);
+            log.debug("Problem while shutting down manager.", iox);
         } finally {
             uniquePoolEntry = null;
         }
@@ -369,7 +368,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         if (managedConn == null)
             return;
 
-        LOG.warn(MISUSE_MESSAGE);
+        log.warn(MISUSE_MESSAGE);
 
         managedConn.detach();
 
@@ -377,7 +376,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             uniquePoolEntry.shutdown();
         } catch (IOException iox) {
             // ignore
-            LOG.debug("Problem while shutting down connection.", iox);
+            log.debug("Problem while shutting down connection.", iox);
         }
     }
 

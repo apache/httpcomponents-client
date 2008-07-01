@@ -57,7 +57,7 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
-    private static final Log LOG = LogFactory.getLog(AbstractAuthenticationHandler.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     private static final List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
             "ntlm",
@@ -123,8 +123,8 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             authPrefs = getAuthPreferences();
         }
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authentication schemes in the order of preference: " 
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Authentication schemes in the order of preference: " 
                 + authPrefs);
         }
 
@@ -134,21 +134,21 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
 
             if (challenge != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(id + " authentication scheme selected");
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug(id + " authentication scheme selected");
                 }
                 try {
                     authScheme = registry.getAuthScheme(id, response.getParams());
                     break;
                 } catch (IllegalStateException e) {
-                    if (LOG.isWarnEnabled()) {
-                        LOG.warn("Authentication scheme " + id + " not supported");
+                    if (this.log.isWarnEnabled()) {
+                        this.log.warn("Authentication scheme " + id + " not supported");
                         // Try again
                     }
                 }
             } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Challenge for " + id + " authentication scheme not available");
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Challenge for " + id + " authentication scheme not available");
                     // Try again
                 }
             }

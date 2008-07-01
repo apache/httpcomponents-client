@@ -57,8 +57,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  */
 public abstract class AbstractConnPool implements RefQueueHandler {
 
-    //@@@ protected, obtain with getClass()?
-    private final Log LOG = LogFactory.getLog(AbstractConnPool.class);
+    private transient final Log log = LogFactory.getLog(getClass());
 
     /**
      * The global lock for this pool.
@@ -205,8 +204,8 @@ public abstract class AbstractConnPool implements RefQueueHandler {
                 if (lost) {
                     final HttpRoute route =
                         ((BasicPoolEntryRef)ref).getRoute();
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Connection garbage collected. " + route);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Connection garbage collected. " + route);
                     }
                     handleLostEntry(route);
                 }
@@ -319,7 +318,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             try {
                 conn.close();
             } catch (IOException ex) {
-                LOG.debug("I/O error closing connection", ex);
+                log.debug("I/O error closing connection", ex);
             }
         }
     }

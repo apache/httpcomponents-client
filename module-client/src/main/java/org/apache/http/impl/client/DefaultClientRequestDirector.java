@@ -109,7 +109,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
 public class DefaultClientRequestDirector
     implements ClientRequestDirector {
 
-    private static final Log LOG = LogFactory.getLog(DefaultClientRequestDirector.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     /** The connection manager. */
     protected final ClientConnectionManager connManager;
@@ -332,9 +332,9 @@ public class DefaultClientRequestDirector
 
                     if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
                         // validate connection
-                        LOG.debug("Stale connection check");
+                        this.log.debug("Stale connection check");
                         if (managedConn.isStale()) {
-                            LOG.debug("Stale connection detected");
+                            this.log.debug("Stale connection detected");
                             managedConn.close();
                         }
                     }
@@ -352,8 +352,8 @@ public class DefaultClientRequestDirector
                 try {
                     establishRoute(route, context);
                 } catch (TunnelRefusedException ex) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(ex.getMessage());
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug(ex.getMessage());
                     }
                     response = ex.getResponse();
                     break;
@@ -405,25 +405,25 @@ public class DefaultClientRequestDirector
                     }
                     
                     try {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Attempt " + execCount + " to execute request");
+                        if (this.log.isDebugEnabled()) {
+                            this.log.debug("Attempt " + execCount + " to execute request");
                         }
                         response = requestExec.execute(wrapper, managedConn, context);
                         retrying = false;
                         
                     } catch (IOException ex) {
-                        LOG.debug("Closing the connection.");
+                        this.log.debug("Closing the connection.");
                         managedConn.close();
                         if (retryHandler.retryRequest(ex, execCount, context)) {
-                            if (LOG.isInfoEnabled()) {
-                                LOG.info("I/O exception ("+ ex.getClass().getName() + 
+                            if (this.log.isInfoEnabled()) {
+                                this.log.info("I/O exception ("+ ex.getClass().getName() + 
                                         ") caught when processing request: "
                                         + ex.getMessage());
                             }
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug(ex.getMessage(), ex);
+                            if (this.log.isDebugEnabled()) {
+                                this.log.debug(ex.getMessage(), ex);
                             }
-                            LOG.info("Retrying request");
+                            this.log.info("Retrying request");
                         } else {
                             throw ex;
                         }
@@ -431,7 +431,7 @@ public class DefaultClientRequestDirector
                         // If we have a direct route to the target host
                         // just re-open connection and re-try the request
                         if (route.getHopCount() == 1) {
-                            LOG.debug("Reopening the direct connection.");
+                            this.log.debug("Reopening the direct connection.");
                             managedConn.open(route, context, params);
                         } else {
                             // otherwise give up
@@ -460,7 +460,7 @@ public class DefaultClientRequestDirector
                     done = true;
                 } else {
                     if (reuse) {
-                        LOG.debug("Connection kept alive");
+                        this.log.debug("Connection kept alive");
                         // Make sure the response body is fully consumed, if present
                         HttpEntity entity = response.getEntity();
                         if (entity != null) {
@@ -527,7 +527,7 @@ public class DefaultClientRequestDirector
         try {
             managedConn.releaseConnection();
         } catch(IOException ignored) {
-            LOG.debug("IOException releasing connection", ignored);
+            this.log.debug("IOException releasing connection", ignored);
         }
         managedConn = null;
     }
@@ -603,7 +603,7 @@ public class DefaultClientRequestDirector
 
             case HttpRouteDirector.TUNNEL_TARGET: {
                 boolean secure = createTunnelToTarget(route, context);
-                LOG.debug("Tunnel to target created.");
+                this.log.debug("Tunnel to target created.");
                 managedConn.tunnelTarget(secure, this.params);
             }   break;
 
@@ -614,7 +614,7 @@ public class DefaultClientRequestDirector
                 // fact:  Source -> P1 -> Target       (2 hops)
                 final int hop = fact.getHopCount()-1; // the hop to establish
                 boolean secure = createTunnelToProxy(route, hop, context);
-                LOG.debug("Tunnel to proxy created.");
+                this.log.debug("Tunnel to proxy created.");
                 managedConn.tunnelProxy(route.getHopTarget(hop),
                                         secure, this.params);
             }   break;
@@ -696,8 +696,8 @@ public class DefaultClientRequestDirector
                     try {
                         connect.addHeader(authScheme.authenticate(creds, connect));
                     } catch (AuthenticationException ex) {
-                        if (LOG.isErrorEnabled()) {
-                            LOG.error("Proxy authentication error: " + ex.getMessage());
+                        if (this.log.isErrorEnabled()) {
+                            this.log.error("Proxy authentication error: " + ex.getMessage());
                         }
                     }
                 }
@@ -717,7 +717,7 @@ public class DefaultClientRequestDirector
             if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
                 if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
-                    LOG.debug("Proxy requested authentication");
+                    this.log.debug("Proxy requested authentication");
                     Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
                             response, context);
                     try {
@@ -725,8 +725,8 @@ public class DefaultClientRequestDirector
                                 challenges, this.proxyAuthState, this.proxyAuthHandler, 
                                 response, context);
                     } catch (AuthenticationException ex) {
-                        if (LOG.isWarnEnabled()) {
-                            LOG.warn("Authentication error: " +  ex.getMessage());
+                        if (this.log.isWarnEnabled()) {
+                            this.log.warn("Authentication error: " +  ex.getMessage());
                             break;
                         }
                     }
@@ -737,7 +737,7 @@ public class DefaultClientRequestDirector
 
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
-                            LOG.debug("Connection kept alive");
+                            this.log.debug("Connection kept alive");
                             // Consume response content
                             HttpEntity entity = response.getEntity();
                             if (entity != null) {
@@ -908,8 +908,8 @@ public class DefaultClientRequestDirector
             HttpRoute newRoute = determineRoute(newTarget, wrapper, context);
             RoutedRequest newRequest = new RoutedRequest(wrapper, newRoute);
             
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Redirecting to '" + uri + "' via " + newRoute);
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Redirecting to '" + uri + "' via " + newRoute);
             }
             
             return newRequest;
@@ -928,7 +928,7 @@ public class DefaultClientRequestDirector
                     target = route.getTargetHost();
                 }
                 
-                LOG.debug("Target requested authentication");
+                this.log.debug("Target requested authentication");
                 Map<String, Header> challenges = this.targetAuthHandler.getChallenges(
                         response, context); 
                 try {
@@ -936,8 +936,8 @@ public class DefaultClientRequestDirector
                             this.targetAuthState, this.targetAuthHandler,
                             response, context);
                 } catch (AuthenticationException ex) {
-                    if (LOG.isWarnEnabled()) {
-                        LOG.warn("Authentication error: " +  ex.getMessage());
+                    if (this.log.isWarnEnabled()) {
+                        this.log.warn("Authentication error: " +  ex.getMessage());
                         return null;
                     }
                 }
@@ -956,7 +956,7 @@ public class DefaultClientRequestDirector
             
             if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
-                LOG.debug("Proxy requested authentication");
+                this.log.debug("Proxy requested authentication");
                 Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
                         response, context);
                 try {
@@ -964,8 +964,8 @@ public class DefaultClientRequestDirector
                             this.proxyAuthState, this.proxyAuthHandler, 
                             response, context);
                 } catch (AuthenticationException ex) {
-                    if (LOG.isWarnEnabled()) {
-                        LOG.warn("Authentication error: " +  ex.getMessage());
+                    if (this.log.isWarnEnabled()) {
+                        this.log.warn("Authentication error: " +  ex.getMessage());
                         return null;
                     }
                 }
@@ -1000,15 +1000,15 @@ public class DefaultClientRequestDirector
             try {
                 mcc.abortConnection();
             } catch (IOException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(ex.getMessage(), ex);
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug(ex.getMessage(), ex);
                 }
             }
             // ensure the connection manager properly releases this connection
             try {
                 mcc.releaseConnection();
             } catch(IOException ignored) {
-                LOG.debug("Error releasing connection", ignored);
+                this.log.debug("Error releasing connection", ignored);
             }
         }
     } // abortConnection
@@ -1036,7 +1036,7 @@ public class DefaultClientRequestDirector
                 " authorization challenge expected, but not found");
         }
         authScheme.processChallenge(challenge);
-        LOG.debug("Authorization challenge processed");
+        this.log.debug("Authorization challenge processed");
     }
     
     
@@ -1063,22 +1063,22 @@ public class DefaultClientRequestDirector
                 authScheme.getRealm(), 
                 authScheme.getSchemeName());  
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authentication scope: " + authScope);
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Authentication scope: " + authScope);
         }
         Credentials creds = authState.getCredentials();
         if (creds == null) {
             creds = credsProvider.getCredentials(authScope);
-            if (LOG.isDebugEnabled()) {
+            if (this.log.isDebugEnabled()) {
                 if (creds != null) {
-                    LOG.debug("Found credentials");
+                    this.log.debug("Found credentials");
                 } else {
-                    LOG.debug("Credentials not found");
+                    this.log.debug("Credentials not found");
                 }
             }
         } else {
             if (authScheme.isComplete()) {
-                LOG.debug("Authentication failed");
+                this.log.debug("Authentication failed");
                 creds = null;
             }
         }

@@ -69,7 +69,7 @@ import org.apache.http.protocol.ExecutionContext;
  */
 public class RequestAddCookies implements HttpRequestInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(RequestAddCookies.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     public RequestAddCookies() {
         super();
@@ -88,7 +88,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
         if (cookieStore == null) {
-            LOG.info("Cookie store not available in HTTP context");
+            this.log.info("Cookie store not available in HTTP context");
             return;
         }
         
@@ -96,7 +96,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         CookieSpecRegistry registry= (CookieSpecRegistry) context.getAttribute(
                 ClientContext.COOKIESPEC_REGISTRY);
         if (registry == null) {
-            LOG.info("CookieSpec registry not available in HTTP context");
+            this.log.info("CookieSpec registry not available in HTTP context");
             return;
         }
         
@@ -115,8 +115,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         String policy = HttpClientParams.getCookiePolicy(request.getParams());
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("CookieSpec selected: " + policy);
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("CookieSpec selected: " + policy);
         }
         
         URI requestURI;
@@ -151,8 +151,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         List<Cookie> matchedCookies = new ArrayList<Cookie>();
         for (Cookie cookie : cookies) {
             if (cookieSpec.match(cookie, cookieOrigin)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Cookie " + cookie + " match " + cookieOrigin);
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Cookie " + cookie + " match " + cookieOrigin);
                 }
                 matchedCookies.add(cookie);
             }

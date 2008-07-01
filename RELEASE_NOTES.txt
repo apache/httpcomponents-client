@@ -1,6 +1,9 @@
 Changes since 4.0 Alpha 4
 -------------------
 
+* [HTTPCLIENT-668] Do not use static loggers
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-781] Respect Keep-Alive header's timeout value.
   Contributed by Sam Berlin <sberlin at apache.org>
 

@@ -77,7 +77,7 @@ import org.apache.http.params.AbstractHttpParams;
  */
 public class ClientParamsStack extends AbstractHttpParams {
 
-    private static final Log LOG = LogFactory.getLog(ClientParamsStack.class);
+    private transient final Log log = LogFactory.getLog(getClass());
     
     /** The application parameter collection, or <code>null</code>. */
     protected final HttpParams applicationParams;
@@ -215,8 +215,8 @@ public class ClientParamsStack extends AbstractHttpParams {
         if ((result == null) && (applicationParams != null)) {
             result = applicationParams.getParameter(name);
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("'" + name + "': " + result);
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("'" + name + "': " + result);
         }
 
         return result;
