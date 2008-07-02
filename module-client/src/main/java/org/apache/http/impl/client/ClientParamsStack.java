@@ -77,7 +77,7 @@ import org.apache.http.params.AbstractHttpParams;
  */
 public class ClientParamsStack extends AbstractHttpParams {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     /** The application parameter collection, or <code>null</code>. */
     protected final HttpParams applicationParams;

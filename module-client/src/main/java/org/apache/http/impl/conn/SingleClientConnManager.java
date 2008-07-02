@@ -69,7 +69,7 @@ import org.apache.http.params.HttpParams;
  */
 public class SingleClientConnManager implements ClientConnectionManager {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     /** The message to be logged on multiple allocation. */
     public final static String MISUSE_MESSAGE =

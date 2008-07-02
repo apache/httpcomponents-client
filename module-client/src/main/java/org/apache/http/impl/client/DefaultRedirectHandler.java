@@ -64,7 +64,7 @@ import org.apache.http.protocol.ExecutionContext;
  */
 public class DefaultRedirectHandler implements RedirectHandler {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 

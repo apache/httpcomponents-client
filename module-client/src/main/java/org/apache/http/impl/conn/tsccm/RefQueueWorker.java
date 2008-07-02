@@ -49,7 +49,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RefQueueWorker implements Runnable {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     /** The reference queue to monitor. */
     protected final ReferenceQueue<?> refQueue;

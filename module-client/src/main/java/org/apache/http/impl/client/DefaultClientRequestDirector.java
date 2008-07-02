@@ -106,10 +106,9 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *
  * @since 4.0
  */
-public class DefaultClientRequestDirector
-    implements ClientRequestDirector {
+public class DefaultClientRequestDirector implements ClientRequestDirector {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     /** The connection manager. */
     protected final ClientConnectionManager connManager;

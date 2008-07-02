@@ -57,7 +57,7 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     private static final List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
             "ntlm",

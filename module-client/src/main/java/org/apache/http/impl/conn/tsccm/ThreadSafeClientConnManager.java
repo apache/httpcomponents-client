@@ -64,10 +64,9 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
  *
  * @since 4.0
  */
-public class ThreadSafeClientConnManager
-    implements ClientConnectionManager {
+public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     /** The schemes supported by this connection manager. */
     protected SchemeRegistry schemeRegistry; 

@@ -51,7 +51,7 @@ import org.apache.http.HttpConnection;
  */
 public class IdleConnectionHandler {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     /** Holds connections and the time they were added. */
     private final Map<HttpConnection,TimeValues> connectionToTimes;

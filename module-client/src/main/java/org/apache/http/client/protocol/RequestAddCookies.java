@@ -69,7 +69,7 @@ import org.apache.http.protocol.ExecutionContext;
  */
 public class RequestAddCookies implements HttpRequestInterceptor {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     public RequestAddCookies() {
         super();

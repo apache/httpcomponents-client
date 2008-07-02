@@ -49,7 +49,7 @@ import org.apache.http.util.LangUtils;
  */
 public class RouteSpecificPool {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     /** The route this pool is for. */
     protected final HttpRoute route;

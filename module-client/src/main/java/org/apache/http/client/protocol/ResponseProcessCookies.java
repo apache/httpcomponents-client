@@ -61,7 +61,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     public ResponseProcessCookies() {
         super();

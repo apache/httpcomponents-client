@@ -66,9 +66,9 @@ import org.apache.http.conn.OperatedClientConnection;
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection {
 
-    private transient final Log log = LogFactory.getLog(getClass());
-    private transient final Log headerLog = LogFactory.getLog("org.apache.http.headers");
-    private transient final Log wireLog = LogFactory.getLog("org.apache.http.wire");
+    private final Log log = LogFactory.getLog(getClass());
+    private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
+    private final Log wireLog = LogFactory.getLog("org.apache.http.wire");
 
     /** The unconnected socket */
     private volatile Socket socket;

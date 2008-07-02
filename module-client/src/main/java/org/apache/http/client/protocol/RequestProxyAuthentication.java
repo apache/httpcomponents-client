@@ -54,7 +54,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class RequestProxyAuthentication implements HttpRequestInterceptor {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
     
     public RequestProxyAuthentication() {
         super();

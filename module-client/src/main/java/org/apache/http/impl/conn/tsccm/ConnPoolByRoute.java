@@ -68,7 +68,7 @@ import org.apache.http.params.HttpParams;
  */
 public class ConnPoolByRoute extends AbstractConnPool {
         
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;

@@ -57,7 +57,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  */
 public abstract class AbstractConnPool implements RefQueueHandler {
 
-    private transient final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     /**
      * The global lock for this pool.
