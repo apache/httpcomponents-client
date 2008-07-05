@@ -76,18 +76,5 @@ public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
         return this.route;
     }
 
-
-    /* *
-     * Indicates whether this reference is still valid.
-     *
-     * @return <code>true</code> if the pool entry is still referenced,
-     *         <code>false</code> otherwise
-     * /
-    public final boolean isValid() {
-        //@@@ better sematics: allow explicit invalidation
-        return (super.get() != null);
-    }
-    */
-        
 } // class BasicPoolEntryRef
 

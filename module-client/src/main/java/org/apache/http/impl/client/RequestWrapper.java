@@ -57,7 +57,7 @@ import org.apache.http.params.HttpProtocolParams;
  * 
  * @since 4.0
  */
-class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
+public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
     
     private final HttpRequest original;
 

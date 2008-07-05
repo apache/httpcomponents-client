@@ -56,7 +56,7 @@ import org.apache.http.params.HttpProtocolParams;
  * 
  * @since 4.0
  */
-abstract class HttpRequestBase extends AbstractHttpMessage 
+public abstract class HttpRequestBase extends AbstractHttpMessage 
     implements HttpUriRequest, AbortableHttpRequest, Cloneable {
 
     private Lock abortLock;

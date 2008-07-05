@@ -45,7 +45,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0
  */
-class LoggingSessionInputBuffer implements SessionInputBuffer {
+public class LoggingSessionInputBuffer implements SessionInputBuffer {
      
     /** Original session input buffer. */
     private final SessionInputBuffer in;

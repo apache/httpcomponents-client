@@ -51,7 +51,7 @@ import org.apache.http.protocol.HTTP;
  * 
  * @since 4.0
  */
-class EntityEnclosingRequestWrapper extends RequestWrapper 
+public class EntityEnclosingRequestWrapper extends RequestWrapper 
     implements HttpEntityEnclosingRequest {
     
     private HttpEntity entity;

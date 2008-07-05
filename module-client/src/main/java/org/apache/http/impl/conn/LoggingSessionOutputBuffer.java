@@ -43,7 +43,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0
  */
-class LoggingSessionOutputBuffer implements SessionOutputBuffer {
+public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 
     /** Original data transmitter. */
     private final SessionOutputBuffer out;
