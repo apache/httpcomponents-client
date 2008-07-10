@@ -33,13 +33,15 @@ package org.apache.http.entity.mime.content;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
 import org.apache.james.mime4j.message.TextBody;
@@ -71,25 +73,45 @@ public class StringBody extends AbstractBody implements TextBody, ContentBody {
                 this.charset);
     }
 
-    public void writeTo(final OutputStream out) throws IOException {
+    public void writeTo(final OutputStream out, int mode) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
-        IOUtils.copy(new ByteArrayInputStream(this.content), out);
+        InputStream in = new ByteArrayInputStream(this.content);
+        byte[] tmp = new byte[4096];
+        int l;
+        while ((l = in.read(tmp)) != -1) {
+            out.write(tmp, 0, l);
+        }
+        out.flush();
     }
 
     public String getTransferEncoding() {
         return MIME.ENC_8BIT;
     }
 
-    public Charset getCharset() {
-        return this.charset;
+    public String getCharset() {
+        return this.charset.name();
     }
 
     public String getMimeType() {
         return "text/plain";
     }
     
+    public String getMediaType() {
+        return "text";
+    }
+
+    public String getSubType() {
+        return "plain";
+    }
+
+    public Map<?, ?> getContentTypeParameters() {
+        Map<Object, Object> map = new HashMap<Object, Object>();
+        map.put("charset", this.charset.name());
+        return map;
+    }
+
     public long getContentLength() {
         return this.content.length;
     }

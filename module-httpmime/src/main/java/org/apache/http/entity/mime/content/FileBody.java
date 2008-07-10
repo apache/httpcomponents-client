@@ -36,9 +36,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.AbstractBody;
 import org.apache.james.mime4j.message.BinaryBody;
@@ -59,13 +59,18 @@ public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
         return new FileInputStream(this.file);
     }
 
-    public void writeTo(final OutputStream out) throws IOException {
+    public void writeTo(final OutputStream out, int mode) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
         InputStream in = new FileInputStream(this.file);
         try {
-            IOUtils.copy(in, out);
+            byte[] tmp = new byte[4096];
+            int l;
+            while ((l = in.read(tmp)) != -1) {
+                out.write(tmp, 0, l);
+            }
+            out.flush();
         } finally {
             in.close();
         }
@@ -75,7 +80,7 @@ public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
         return MIME.ENC_BINARY;
     }
 
-    public Charset getCharset() {
+    public String getCharset() {
         return null;
     }
 
@@ -83,6 +88,18 @@ public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
         return "application/octet-stream";
     }
     
+    public Map<?, ?> getContentTypeParameters() {
+        return Collections.EMPTY_MAP;
+    }
+
+    public String getMediaType() {
+        return "application";
+    }
+
+    public String getSubType() {
+        return "octet-stream";
+    }
+
     public long getContentLength() {
         return this.file.length();
     }

@@ -80,7 +80,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         BodyPart p1 = new BodyPart();
         Header h1 = new Header();
@@ -106,7 +106,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
         
-        String expected = "\r\n" + 
+        String expected = 
             "--foo\r\n" +
             "Content-Type: text/plain\r\n" +
             "\r\n" +
@@ -119,8 +119,7 @@ public class TestMultipartForm extends TestCase {
             "Content-Type: text/plain\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
-            "--foo--\r\n" +
-            "\r\n";
+            "--foo--\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(s.length(), multipart.getTotalLength());
@@ -133,7 +132,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -153,7 +152,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
         
-        String expected = "\r\n" + 
+        String expected = 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=" + 
@@ -174,8 +173,7 @@ public class TestMultipartForm extends TestCase {
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
-            "--foo--\r\n" +
-            "\r\n";
+            "--foo--\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(s.length(), multipart.getTotalLength());
@@ -197,7 +195,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -213,7 +211,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
         
-        String expected = "\r\n" + 
+        String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
@@ -228,8 +226,7 @@ public class TestMultipartForm extends TestCase {
             "Content-Transfer-Encoding: binary\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
-            "--foo--\r\n" +
-            "\r\n";
+            "--foo--\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
@@ -253,7 +250,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -271,7 +268,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
         
-        String expected = "\r\n" + 
+        String expected = 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
@@ -282,8 +279,7 @@ public class TestMultipartForm extends TestCase {
                 "filename=\"file.tmp\"\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
-            "--foo--\r\n" +
-            "\r\n";
+            "--foo--\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
@@ -329,7 +325,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -347,7 +343,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
         
-        String expected = "\r\n" + 
+        String expected = 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + s1 + ".tmp\"\r\n" +
@@ -358,8 +354,7 @@ public class TestMultipartForm extends TestCase {
                 "filename=\"" + s2 + ".tmp\"\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
-            "--foo--\r\n" +
-            "\r\n";
+            "--foo--\r\n";
         String s = out.toString("UTF-8");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
@@ -377,7 +372,7 @@ public class TestMultipartForm extends TestCase {
                 Field.parse("Content-Type: multipart/form-data; boundary=foo"));
         message.setHeader(header);
         
-        HttpMultipart multipart = new HttpMultipart();
+        HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -395,7 +390,7 @@ public class TestMultipartForm extends TestCase {
         
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
 
-        out2.write(("\r\n" + 
+        out2.write(( 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
@@ -410,8 +405,7 @@ public class TestMultipartForm extends TestCase {
             "\r\n").getBytes("US-ASCII"));
         out2.write(s2.getBytes("KOI8-R"));
         out2.write(("\r\n" +
-            "--foo--\r\n" +
-            "\r\n").getBytes("US-ASCII"));
+            "--foo--\r\n").getBytes("US-ASCII"));
         out2.close();
 
         byte[] actual = out1.toByteArray();

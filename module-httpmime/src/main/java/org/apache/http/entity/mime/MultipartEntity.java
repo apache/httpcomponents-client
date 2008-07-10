@@ -73,14 +73,15 @@ public class MultipartEntity implements HttpEntity {
             final String boundary,
             final Charset charset) {
         super();
-        this.multipart = new HttpMultipart();
+        this.multipart = new HttpMultipart("form-data");
         this.contentType = new BasicHeader(
                 HTTP.CONTENT_TYPE,
                 generateContentType(boundary, charset));
         this.dirty = true;
         
         Message message = new Message();
-        org.apache.james.mime4j.message.Header header = new RFC822Header();
+        org.apache.james.mime4j.message.Header header = 
+          new org.apache.james.mime4j.message.Header();
         header.addField(
                 Field.parse("Content-Type: " + this.contentType.getValue()));
         message.setHeader(header);

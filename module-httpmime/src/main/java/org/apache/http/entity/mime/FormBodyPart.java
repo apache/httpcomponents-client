@@ -32,6 +32,7 @@
 package org.apache.http.entity.mime;
 
 import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.james.mime4j.ContentDescriptor;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
@@ -57,7 +58,7 @@ public class FormBodyPart extends BodyPart {
         }
         this.name = name;
         
-        Header header = new RFC822Header();
+        Header header = new Header();
         setHeader(header);
         setBody(body);
 
@@ -92,7 +93,7 @@ public class FormBodyPart extends BodyPart {
             buffer.append(desc.getMimeType());
             if (desc.getCharset() != null) {
                 buffer.append("; charset=");
-                buffer.append(desc.getCharset().name());
+                buffer.append(desc.getCharset());
             }
             getHeader().addField(Field.parse(buffer.toString()));
         }
