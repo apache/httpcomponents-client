@@ -177,7 +177,7 @@ public interface HttpClient {
      */
     <T> T execute(
             HttpUriRequest request, 
-            ClientResponseHandler<? extends T> responseHandler)
+            ResponseHandler<? extends T> responseHandler)
         throws IOException, ClientProtocolException
         ;
 
@@ -194,7 +194,7 @@ public interface HttpClient {
      */
     <T> T execute(
             HttpUriRequest request, 
-            ClientResponseHandler<? extends T> responseHandler,
+            ResponseHandler<? extends T> responseHandler,
             HttpContext context)
         throws IOException, ClientProtocolException
         ;
@@ -217,7 +217,7 @@ public interface HttpClient {
     <T> T execute(
             HttpHost target, 
             HttpRequest request,
-            ClientResponseHandler<? extends T> responseHandler)
+            ResponseHandler<? extends T> responseHandler)
         throws IOException, ClientProtocolException
         ;
     
@@ -241,7 +241,7 @@ public interface HttpClient {
     <T> T execute(
             HttpHost target, 
             HttpRequest request,
-            ClientResponseHandler<? extends T> responseHandler, 
+            ResponseHandler<? extends T> responseHandler, 
             HttpContext context)
         throws IOException, ClientProtocolException
         ;

@@ -44,8 +44,8 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ClientRequestDirector;
-import org.apache.http.client.ClientResponseHandler;
+import org.apache.http.client.RequestDirector;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -516,7 +516,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         // a null context is acceptable, default context created below
 
         HttpContext execContext = null;
-        ClientRequestDirector director = null;
+        RequestDirector director = null;
         
         // Initialize the request execution context making copies of 
         // all shared objects that are potentially threading unsafe.
@@ -565,7 +565,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     } // execute
 
     
-    protected ClientRequestDirector createClientRequestDirector(
+    protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
@@ -617,7 +617,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpUriRequest request, 
-            final ClientResponseHandler<? extends T> responseHandler) 
+            final ResponseHandler<? extends T> responseHandler) 
                 throws IOException, ClientProtocolException {
         if (responseHandler == null) {
             throw new IllegalArgumentException
@@ -631,7 +631,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpUriRequest request,
-            final ClientResponseHandler<? extends T> responseHandler, 
+            final ResponseHandler<? extends T> responseHandler, 
             final HttpContext context)
                 throws IOException, ClientProtocolException {
         if (responseHandler == null) {
@@ -647,7 +647,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     public <T> T execute(
             final HttpHost target, 
             final HttpRequest request,
-            final ClientResponseHandler<? extends T> responseHandler) 
+            final ResponseHandler<? extends T> responseHandler) 
                 throws IOException, ClientProtocolException {
         if (responseHandler == null) {
             throw new IllegalArgumentException
@@ -662,7 +662,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     public <T> T execute(
             final HttpHost target, 
             final HttpRequest request,
-            final ClientResponseHandler<? extends T> responseHandler, 
+            final ResponseHandler<? extends T> responseHandler, 
             final HttpContext context) 
                 throws IOException, ClientProtocolException {
         if (responseHandler == null) {

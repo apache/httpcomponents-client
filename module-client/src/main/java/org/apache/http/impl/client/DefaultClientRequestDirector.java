@@ -58,7 +58,7 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.ClientRequestDirector;
+import org.apache.http.client.RequestDirector;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
@@ -94,7 +94,7 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
- * Default implementation of {@link ClientRequestDirector}.
+ * Default implementation of {@link RequestDirector}.
  * <br/>
  * This class replaces the <code>HttpMethodDirector</code> in HttpClient 3.
  *
@@ -106,7 +106,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *
  * @since 4.0
  */
-public class DefaultClientRequestDirector implements ClientRequestDirector {
+public class DefaultClientRequestDirector implements RequestDirector {
 
     private final Log log = LogFactory.getLog(getClass());
     

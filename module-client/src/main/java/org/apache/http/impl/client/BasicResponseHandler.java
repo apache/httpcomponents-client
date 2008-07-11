@@ -37,12 +37,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ClientResponseHandler;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.util.EntityUtils;
 
 /**
- * A {@link ClientResponseHandler} that returns the response body as a String
+ * A {@link ResponseHandler} that returns the response body as a String
  * for successful (2xx) responses. If the response code was >= 300, the response
  * body is consumed and an {@link HttpResponseException} is thrown.
  * 
@@ -56,7 +56,7 @@ import org.apache.http.util.EntityUtils;
  * 
  * @since 4.0
  */
-public class BasicResponseHandler implements ClientResponseHandler<String> {
+public class BasicResponseHandler implements ResponseHandler<String> {
 
     /**
      * Returns the response body as a String if the response was successful (a

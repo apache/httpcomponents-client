@@ -31,14 +31,14 @@
 
 package org.apache.http.examples.client;
 
-import org.apache.http.client.ClientResponseHandler;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * This example demonstrates the use of the {@link ClientResponseHandler} to simply 
+ * This example demonstrates the use of the {@link ResponseHandler} to simply 
  * the process of processing the HTTP response and releasing associated resources.
  */
 public class ClientWithResponseHandler {
@@ -52,7 +52,7 @@ public class ClientWithResponseHandler {
         System.out.println("executing request " + httpget.getURI());
 
         // Create a response handler
-        ClientResponseHandler<String> responseHandler = new BasicResponseHandler();
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httpget, responseHandler);
         System.out.println(responseBody);
         

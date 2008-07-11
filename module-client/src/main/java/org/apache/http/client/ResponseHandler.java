@@ -43,7 +43,7 @@ import org.apache.http.HttpResponse;
  * 
  * @since 4.0
  */
-public interface ClientResponseHandler<T> {
+public interface ResponseHandler<T> {
 
     /**
      * Processes an {@link HttpResponse} and returns some value

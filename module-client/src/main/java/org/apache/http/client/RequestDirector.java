@@ -60,7 +60,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-public interface ClientRequestDirector {
+public interface RequestDirector {
 
 
     /**
