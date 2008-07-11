@@ -106,7 +106,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *
  * @since 4.0
  */
-public class DefaultClientRequestDirector implements RequestDirector {
+public class DefaultRequestDirector implements RequestDirector {
 
     private final Log log = LogFactory.getLog(getClass());
     
@@ -157,7 +157,7 @@ public class DefaultClientRequestDirector implements RequestDirector {
     
     private final AuthState proxyAuthState;
     
-    public DefaultClientRequestDirector(
+    public DefaultRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,

@@ -81,7 +81,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpRequestHandler;
 
 /**
- * Unit tests for {@link DefaultClientRequestDirector}
+ * Unit tests for {@link DefaultRequestDirector}
  */
 public class TestDefaultClientRequestDirector extends ServerTestBase {
 
@@ -100,7 +100,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     
     /**
      * Tests that if abort is called on an {@link AbortableHttpRequest} while
-     * {@link DefaultClientRequestDirector} is allocating a connection, that the
+     * {@link DefaultRequestDirector} is allocating a connection, that the
      * connection is properly aborted.
      */
     public void testAbortInAllocate() throws Exception {

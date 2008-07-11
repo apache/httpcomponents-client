@@ -55,7 +55,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
 /**
- * Unit tests for {@link DefaultClientRequestDirector}
+ * Unit tests for {@link DefaultRequestDirector}
  */
 public class TestStatefulConnManagement extends ServerTestBase {
 

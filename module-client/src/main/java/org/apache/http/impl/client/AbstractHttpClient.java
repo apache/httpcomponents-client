@@ -578,7 +578,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final AuthenticationHandler proxyAuthHandler,
             final UserTokenHandler stateHandler,
             final HttpParams params) {
-        return new DefaultClientRequestDirector(
+        return new DefaultRequestDirector(
                 requestExec,
                 conman,
                 reustrat,
@@ -602,7 +602,7 @@ public abstract class AbstractHttpClient implements HttpClient {
      * This method is called by the default implementation of
      * {@link #execute(HttpHost,HttpRequest,HttpContext)}
      * to obtain the parameters for the
-     * {@link DefaultClientRequestDirector}.
+     * {@link DefaultRequestDirector}.
      *
      * @param req    the request that will be executed
      *
