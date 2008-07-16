@@ -57,7 +57,6 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -531,19 +530,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         synchronized (this) {
 
             HttpContext defaultContext = createHttpContext();
-            defaultContext.setAttribute(
-                    ClientContext.AUTHSCHEME_REGISTRY, 
-                    getAuthSchemes());
-            defaultContext.setAttribute(
-                    ClientContext.COOKIESPEC_REGISTRY, 
-                    getCookieSpecs());
-            defaultContext.setAttribute(
-                    ClientContext.COOKIE_STORE, 
-                    getCookieStore());
-            defaultContext.setAttribute(
-                    ClientContext.CREDS_PROVIDER, 
-                    getCredentialsProvider());
-            
             if (context == null) {
                 execContext = defaultContext;
             } else {

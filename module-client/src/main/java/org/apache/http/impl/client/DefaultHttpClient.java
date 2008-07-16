@@ -43,6 +43,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
@@ -70,6 +71,7 @@ import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -79,7 +81,6 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
-import org.apache.http.protocol.SyncBasicHttpContext;
 import org.apache.http.util.VersionInfo;
 
 
@@ -196,7 +197,20 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     @Override
     protected HttpContext createHttpContext() {
-        return new SyncBasicHttpContext(null);
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(
+                ClientContext.AUTHSCHEME_REGISTRY, 
+                getAuthSchemes());
+        context.setAttribute(
+                ClientContext.COOKIESPEC_REGISTRY, 
+                getCookieSpecs());
+        context.setAttribute(
+                ClientContext.COOKIE_STORE, 
+                getCookieStore());
+        context.setAttribute(
+                ClientContext.CREDS_PROVIDER, 
+                getCredentialsProvider());
+        return context;
     }
 
     
