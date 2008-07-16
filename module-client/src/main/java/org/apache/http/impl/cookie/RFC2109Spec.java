@@ -128,14 +128,18 @@ public class RFC2109Spec extends CookieSpecBase {
         super.validate(cookie, origin);
     }
 
-    public List<Header> formatCookies(final List<Cookie> cookies) {
+    public List<Header> formatCookies(List<Cookie> cookies) {
         if (cookies == null) {
             throw new IllegalArgumentException("List of cookies may not be null");
         }
         if (cookies.isEmpty()) {
             throw new IllegalArgumentException("List of cookies may not be empty");
         }
-        Collections.sort(cookies, PATH_COMPARATOR);
+        if (cookies.size() > 1) {
+            // Create a mutable copy and sort the copy.
+            cookies = new ArrayList<Cookie>(cookies);
+            Collections.sort(cookies, PATH_COMPARATOR);
+        }
         if (this.oneHeader) {
             return doFormatOneHeader(cookies);
         } else {

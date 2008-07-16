@@ -33,7 +33,10 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.lang.reflect.UndeclaredThrowableException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -41,6 +44,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientProtocolException;
@@ -77,6 +81,8 @@ import org.apache.http.protocol.HttpRequestExecutor;
  * @since 4.0
  */
 public abstract class AbstractHttpClient implements HttpClient {
+
+    private final Log log = LogFactory.getLog(getClass());
 
     /** The parameters. */
     private HttpParams defaultParams;
@@ -479,21 +485,23 @@ public abstract class AbstractHttpClient implements HttpClient {
                 ("Request must not be null.");
         }
 
+        return execute(determineTarget(request), request, context);
+    }
+
+    private HttpHost determineTarget(HttpUriRequest request) {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
-        
+
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
             target = new HttpHost(
-                    requestURI.getHost(), 
-                    requestURI.getPort(), 
+                    requestURI.getHost(),
+                    requestURI.getPort(),
                     requestURI.getScheme());
         }
-        
-        return execute(target, request, context);
+        return target;
     }
-
 
     // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
@@ -619,12 +627,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final HttpUriRequest request, 
             final ResponseHandler<? extends T> responseHandler) 
                 throws IOException, ClientProtocolException {
-        if (responseHandler == null) {
-            throw new IllegalArgumentException
-                ("Response handler must not be null.");
-        }
-        HttpResponse response = execute(request);
-        return responseHandler.handleResponse(response);
+        return execute(request, responseHandler, null);
     }
 
 
@@ -634,12 +637,8 @@ public abstract class AbstractHttpClient implements HttpClient {
             final ResponseHandler<? extends T> responseHandler, 
             final HttpContext context)
                 throws IOException, ClientProtocolException {
-        if (responseHandler == null) {
-            throw new IllegalArgumentException
-                ("Response handler must not be null.");
-        }
-        HttpResponse response = execute(request, context);
-        return responseHandler.handleResponse(response);
+        HttpHost target = determineTarget(request);
+        return execute(target, request, responseHandler, context);
     }
 
 
@@ -649,12 +648,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler) 
                 throws IOException, ClientProtocolException {
-        if (responseHandler == null) {
-            throw new IllegalArgumentException
-                ("Response handler must not be null.");
-        }
-        HttpResponse response = execute(target, request);
-        return responseHandler.handleResponse(response);
+        return execute(target, request, responseHandler, null);
     }
 
 
@@ -669,8 +663,48 @@ public abstract class AbstractHttpClient implements HttpClient {
             throw new IllegalArgumentException
                 ("Response handler must not be null.");
         }
+
         HttpResponse response = execute(target, request, context);
-        return responseHandler.handleResponse(response);
+
+        T result;
+        try {
+            result = responseHandler.handleResponse(response);
+        } catch (Throwable t) {
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                try {
+                    entity.consumeContent();
+                } catch (Throwable t2) {
+                    // Log this exception. The original exception is more
+                    // important and will be thrown to the caller.
+                    this.log.warn("Error consuming content after an exception.", t2);
+                }
+            }
+
+            if (t instanceof Error) {
+                throw (Error) t;
+            }
+
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
+
+            if (t instanceof IOException) {
+                throw (IOException) t;
+            }
+            
+            throw new UndeclaredThrowableException(t);
+        }
+
+        // Handling the response was successful. Ensure that the content has
+        // been fully consumed.
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            // Let this exception go to the caller.
+            entity.consumeContent();
+        }
+
+        return result;
     }
 
 

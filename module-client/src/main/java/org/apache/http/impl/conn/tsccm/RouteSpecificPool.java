@@ -276,12 +276,12 @@ public class RouteSpecificPool {
 
 
     /**
-     * Obtains and removes a waiting thread.
+     * Returns the next thread in the queue.
      *
      * @return  a waiting thread, or <code>null</code> if there is none
      */
-    public WaitingThread dequeueThread() {
-        return this.waitingThreads.poll();
+    public WaitingThread nextThread() {
+        return this.waitingThreads.peek();
     }
 
 

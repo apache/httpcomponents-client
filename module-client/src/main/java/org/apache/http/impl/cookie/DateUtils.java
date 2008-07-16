@@ -67,11 +67,12 @@ public final class DateUtils {
      */
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
-    private static final String[] DEFAULT_PATTERNS = new String[] { 
-        PATTERN_ASCTIME, 
-        PATTERN_RFC1036, 
-        PATTERN_RFC1123 };
-    
+    private static final String[] DEFAULT_PATTERNS = new String[] {
+    	PATTERN_RFC1036,
+    	PATTERN_RFC1123,
+        PATTERN_ASCTIME
+    };
+
     private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
     
     public static final TimeZone GMT = TimeZone.getTimeZone("GMT");

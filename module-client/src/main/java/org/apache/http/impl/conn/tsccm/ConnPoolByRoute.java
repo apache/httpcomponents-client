@@ -343,14 +343,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         // connection pool and should now have a connection
                         // waiting for us, or else we're shutting down.
                         // Just continue in the loop, both cases are checked.
-                        if (!success) {
-                            // Either we timed out, experienced a
-                            // "spurious wakeup", or were interrupted by
-                            // an external thread. Regardless, we need to 
-                            // cleanup for ourselves in the wait queue.
-                            rospl.removeThread(waitingThread);
-                            waitingThreads.remove(waitingThread);
-                        }
+                        rospl.removeThread(waitingThread);
+                        waitingThreads.remove(waitingThread);
                     }
 
                     // check for spurious wakeup vs. timeout
@@ -622,16 +616,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     log.debug("Notifying thread waiting on pool" +
                             " [" + rospl.getRoute() + "]");
                 }
-                waitingThread = rospl.dequeueThread();
-                waitingThreads.remove(waitingThread);
-
+                waitingThread = rospl.nextThread();
             } else if (!waitingThreads.isEmpty()) {
                 if (log.isDebugEnabled()) {
                     log.debug("Notifying thread waiting on any pool");
                 }
                 waitingThread = waitingThreads.remove();
-                waitingThread.getPool().removeThread(waitingThread);
-
             } else if (log.isDebugEnabled()) {
                 log.debug("Notifying no-one, there are no waiting threads");
             }

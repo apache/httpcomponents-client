@@ -45,6 +45,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
@@ -299,8 +301,8 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             c = cert.getSubjectAlternativeNames();
         }
         catch(CertificateParsingException cpe) {
-            // Should probably log.debug() this?
-            cpe.printStackTrace();
+            Logger.getLogger(AbstractVerifier.class.getName())
+                    .log(Level.FINE, "Error parsing certificate.", cpe);
         }
         if(c != null) {
             for (List<?> aC : c) {

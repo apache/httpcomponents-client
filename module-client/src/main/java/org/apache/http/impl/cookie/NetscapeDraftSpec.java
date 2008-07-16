@@ -109,8 +109,9 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * character may be present in unquoted cookie value or unquoted 
       * parameter value.</p>
       * 
-      * @link http://wp.netscape.com/newsref/std/cookie_spec.html
-      * 
+      * @see <a href="http://wp.netscape.com/newsref/std/cookie_spec.html">
+      *  The Cookie Spec.</a>
+      *
       * @param header the <tt>Set-Cookie</tt> received from the server
       * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing

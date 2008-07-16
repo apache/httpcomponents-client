@@ -36,7 +36,6 @@ import java.io.IOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.util.EntityUtils;
@@ -47,7 +46,8 @@ import org.apache.http.util.EntityUtils;
  * body is consumed and an {@link HttpResponseException} is thrown.
  * 
  * If this is used with
- * {@link HttpClient#execute(org.apache.http.client.methods.HttpUriRequest, ClientResponseHandler),
+ * {@link org.apache.http.client.HttpClient#execute(
+ *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler),
  * HttpClient may handle redirects (3xx responses) internally.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
@@ -64,20 +64,16 @@ public class BasicResponseHandler implements ResponseHandler<String> {
      * response was unsuccessful (>= 300 status code), throws an
      * {@link HttpResponseException}.
      */
-    public String handleResponse(
-            final HttpResponse response) throws ClientProtocolException, IOException {
-        HttpEntity entity = response.getEntity();
-        if (entity != null) {
-            StatusLine statusLine = response.getStatusLine();
-            if (statusLine.getStatusCode() >= 300) {
-                entity.consumeContent();
-                throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
-            } else {
-                return EntityUtils.toString(entity);
-            }
-        } else {
-            return null;
+    public String handleResponse(final HttpResponse response)
+            throws HttpResponseException, IOException {
+        StatusLine statusLine = response.getStatusLine();
+        if (statusLine.getStatusCode() >= 300) {
+            throw new HttpResponseException(statusLine.getStatusCode(),
+                    statusLine.getReasonPhrase());
         }
+
+        HttpEntity entity = response.getEntity();
+        return entity == null ? null : EntityUtils.toString(entity);
     }
 
 }
