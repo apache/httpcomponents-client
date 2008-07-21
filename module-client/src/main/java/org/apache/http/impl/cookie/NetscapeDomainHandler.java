@@ -88,7 +88,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
    }
 
    @Override
-public boolean match(Cookie cookie, CookieOrigin origin) {
+   public boolean match(Cookie cookie, CookieOrigin origin) {
        if (cookie == null) {
            throw new IllegalArgumentException("Cookie may not be null");
        }
