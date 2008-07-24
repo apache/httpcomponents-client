@@ -36,18 +36,69 @@ import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Interface for an HTTP client.
- * HTTP clients encapsulate a smorgasbord of objects required to
+ * HTTP clients act as a facade to a number of objects required to
  * execute HTTP requests while handling cookies, authentication,
  * connection management, and other features.
  * Thread safety of HTTP clients depends on the implementation
  * and configuration of the specific client.
+ * <p/>
+ * The usual execution flow can be demonstrated by the 
+ * code snippet below:
+ * <PRE>
+ * HttpClient httpclient = new DefaultHttpClient();
+ * 
+ * // Prepare a request object
+ * HttpGet httpget = new HttpGet("http://www.apache.org/"); 
+ * 
+ * // Execute the request
+ * HttpResponse response = httpclient.execute(httpget);
+ * 
+ * // Examine the response status
+ * System.out.println(response.getStatusLine());
+ * 
+ * // Get hold of the response entity
+ * HttpEntity entity = response.getEntity();
+ * 
+ * // If the response does not enclose an entity, there is no need
+ * // to worry about connection release
+ * if (entity != null) {
+ *     InputStream instream = entity.getContent();
+ *     try {
+ *         
+ *         BufferedReader reader = new BufferedReader(
+ *                 new InputStreamReader(instream));
+ *         // do something useful with the response
+ *         System.out.println(reader.readLine());
+ *         
+ *     } catch (IOException ex) {
+ * 
+ *         // In case of an IOException the connection will be released
+ *         // back to the connection manager automatically
+ *         throw ex;
+ *         
+ *     } catch (RuntimeException ex) {
+ * 
+ *         // In case of an unexpected exception you may want to abort
+ *         // the HTTP request in order to shut down the underlying 
+ *         // connection and release it back to the connection manager.
+ *         httpget.abort();
+ *         throw ex;
+ *         
+ *     } finally {
+ * 
+ *         // Closing the input stream will trigger connection release
+ *         instream.close();
+ *         
+ *     }
+ * }
+ * </PRE>
  *
  * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *

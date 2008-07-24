@@ -36,6 +36,59 @@
 <body>
 The API for client-side HTTP communication and
 entry point to the <i>HttpClient</i> module.
+<p/>
+The usual execution flow can be demonstrated by the 
+code snippet below:
+
+<PRE>
+HttpClient httpclient = new DefaultHttpClient();
+
+// Prepare a request object
+HttpGet httpget = new HttpGet("http://www.apache.org/"); 
+
+// Execute the request
+HttpResponse response = httpclient.execute(httpget);
+
+// Examine the response status
+System.out.println(response.getStatusLine());
+
+// Get hold of the response entity
+HttpEntity entity = response.getEntity();
+
+// If the response does not enclose an entity, there is no need
+// to worry about connection release
+if (entity != null) {
+    InputStream instream = entity.getContent();
+    try {
+        
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(instream));
+        // do something useful with the response
+        System.out.println(reader.readLine());
+        
+    } catch (IOException ex) {
+
+        // In case of an IOException the connection will be released
+        // back to the connection manager automatically
+        throw ex;
+        
+    } catch (RuntimeException ex) {
+
+        // In case of an unexpected exception you may want to abort
+        // the HTTP request in order to shut down the underlying 
+        // connection and release it back to the connection manager.
+        httpget.abort();
+        throw ex;
+        
+    } finally {
+
+        // Closing the input stream will trigger connection release
+        instream.close();
+        
+    }
+}
+
+</PRE>
 
 </body>
 </html>
