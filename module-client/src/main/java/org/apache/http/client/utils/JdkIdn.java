@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 
 /**
  * Uses the java.net.IDN class through reflection.
- * 
- * @author Ortwin Glück
  */
 public class JdkIdn implements Idn {
     private Method toUnicode;

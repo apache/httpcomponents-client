@@ -9,8 +9,6 @@ import java.util.Collection;
 /**
  * Parses the list from <a href="http://publicsuffix.org/">publicsuffix.org</a>
  * and configures a PublicSuffixFilter.
- * 
- * @author Ortwin Glück
  */
 public class PublicSuffixListParser {
     private static final int MAX_LINE_LEN = 256;

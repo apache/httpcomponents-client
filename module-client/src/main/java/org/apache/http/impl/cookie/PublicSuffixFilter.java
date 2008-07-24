@@ -18,8 +18,6 @@ import org.apache.http.cookie.SetCookie;
  * cookies from apparent domains that are not publicly available.
  * An uptodate list of suffixes can be obtained from 
  * <a href="http://publicsuffix.org/">publicsuffix.org</a> 
- * 
- * @author Ortwin Glück
  */
 public class PublicSuffixFilter implements CookieAttributeHandler {
     private CookieAttributeHandler wrapped;

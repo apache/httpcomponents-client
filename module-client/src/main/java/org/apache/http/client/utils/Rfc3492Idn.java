@@ -4,8 +4,6 @@ import java.util.StringTokenizer;
 
 /**
  * Implementation from pseudo code in RFC 3492.
- * 
- * @author Ortwin Glück
  */
 public class Rfc3492Idn implements Idn {
     private static final int base = 36;
