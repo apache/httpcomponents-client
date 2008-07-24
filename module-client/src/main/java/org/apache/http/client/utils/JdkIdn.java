@@ -14,7 +14,7 @@ public class JdkIdn implements Idn {
      * @throws ClassNotFoundException if java.net.IDN is not available
      */
     public JdkIdn() throws ClassNotFoundException {
-        Class clazz = Class.forName("java.net.IDN");
+        Class<?> clazz = Class.forName("java.net.IDN");
         try {
             toUnicode = clazz.getMethod("toUnicode", String.class);
         } catch (SecurityException e) {
