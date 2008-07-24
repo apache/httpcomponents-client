@@ -11,7 +11,7 @@ import junit.framework.TestSuite;
 import org.apache.http.cookie.CookieOrigin;
 
 public class TestPublicSuffixListParser extends TestCase {
-    private static final String LIST_FILE = "suffixlist.txt";
+    private static final String LIST_FILE = "/suffixlist.txt";
     private PublicSuffixFilter filter;
     
     public TestPublicSuffixListParser(String testName) {
