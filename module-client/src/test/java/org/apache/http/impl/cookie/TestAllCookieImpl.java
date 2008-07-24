@@ -53,6 +53,7 @@ public class TestAllCookieImpl extends TestCase {
         suite.addTest(TestCookieRFC2109Spec.suite());
         suite.addTest(TestCookieRFC2965Spec.suite());
         suite.addTest(TestCookieBestMatchSpec.suite());
+        suite.addTest(TestPublicSuffixListParser.suite());
         return suite;
     }
 

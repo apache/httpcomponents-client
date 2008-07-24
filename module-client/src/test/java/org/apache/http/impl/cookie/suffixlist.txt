@@ -1,0 +1,13 @@
+jp
+ac.jp
+*.tokyo.jp
+!metro.tokyo.jp
+
+// unicode
+no
+hå.no
+
+
+// invalid
+xx yy
+//zz

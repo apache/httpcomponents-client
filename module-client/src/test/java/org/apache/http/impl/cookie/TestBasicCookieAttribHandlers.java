@@ -32,6 +32,7 @@ package org.apache.http.impl.cookie;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -42,6 +43,16 @@ import junit.framework.TestSuite;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.impl.cookie.BasicCommentHandler;
+import org.apache.http.impl.cookie.BasicDomainHandler;
+import org.apache.http.impl.cookie.BasicExpiresHandler;
+import org.apache.http.impl.cookie.BasicMaxAgeHandler;
+import org.apache.http.impl.cookie.BasicPathHandler;
+import org.apache.http.impl.cookie.BasicSecureHandler;
+import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.impl.cookie.PublicSuffixFilter;
+import org.apache.http.impl.cookie.RFC2109DomainHandler;
 
 public class TestBasicCookieAttribHandlers extends TestCase {
 
@@ -456,6 +467,28 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         } catch (IllegalArgumentException ex) {
             // expected
         }
+    }
+    
+    public void testPublicSuffixFilter() throws Exception {
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        
+        PublicSuffixFilter h = new PublicSuffixFilter(new RFC2109DomainHandler());
+        h.setPublicSuffixes(Arrays.asList(new String[] { "co.uk", "com" }));
+        
+        cookie.setDomain(".co.uk");
+        assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));
+        
+        cookie.setDomain("co.uk");
+        assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));
+        
+        cookie.setDomain(".com");
+        assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
+        
+        cookie.setDomain("com");
+        assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));        
+        
+        cookie.setDomain("localhost");
+        assertTrue(h.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));        
     }
     
 }
