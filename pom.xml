@@ -80,7 +80,9 @@
 
   <modules>
     <module>module-client</module>
+<!--
     <module>module-httpmime</module>
+-->
   </modules>
 
   <build>
