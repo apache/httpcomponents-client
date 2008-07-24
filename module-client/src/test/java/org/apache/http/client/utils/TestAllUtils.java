@@ -43,6 +43,7 @@ public class TestAllUtils extends TestCase {
     public static Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTest(TestURLEncodedUtils.suite());
+        suite.addTest(TestRfc3492Idn.suite());
         return suite;
     }
 
