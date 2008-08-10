@@ -216,6 +216,20 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         this(TLS, null, null, truststore, null, null);
     }
 
+    public SSLSocketFactory(
+        final SSLContext sslContext,
+        final HostNameResolver nameResolver)
+    {
+        this.sslcontext = sslContext;
+        this.socketfactory = this.sslcontext.getSocketFactory();
+        this.nameResolver = nameResolver;
+    }
+
+    public SSLSocketFactory(final SSLContext sslContext)
+    {
+        this(sslContext, null);
+    }
+
     /**
      * Creates the default SSL socket factory.
      * This constructor is used exclusively to instantiate the factory for
