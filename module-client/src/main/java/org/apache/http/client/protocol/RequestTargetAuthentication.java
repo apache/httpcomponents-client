@@ -69,6 +69,11 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
+        String method = request.getRequestLine().getMethod();
+        if (method.equalsIgnoreCase("CONNECT")) {
+            return;
+        }
+        
         if (request.containsHeader(AUTH.WWW_AUTH_RESP)) {
             return;
         }

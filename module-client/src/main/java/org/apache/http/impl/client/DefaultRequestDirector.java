@@ -88,7 +88,6 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -385,13 +384,12 @@ public class DefaultRequestDirector implements RequestDirector {
                         targetAuthState);
                 context.setAttribute(ClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                
-                // Run request protocol interceptors
-                requestExec.preProcess(wrapper, httpProcessor, context);
-                
                 context.setAttribute(ExecutionContext.HTTP_REQUEST,
                         wrapper);
 
+                // Run request protocol interceptors
+                requestExec.preProcess(wrapper, httpProcessor, context);
+                
                 boolean retrying = true;
                 while (retrying) {
                     // Increment total exec count (with redirects)
@@ -680,29 +678,28 @@ public class DefaultRequestDirector implements RequestDirector {
             }
             
             HttpRequest connect = createConnectRequest(route, context);
+            connect.setParams(this.params);
             
-            String agent = HttpProtocolParams.getUserAgent(params);
-            if (agent != null) {
-                connect.addHeader(HTTP.USER_AGENT, agent);
-            }
-            connect.addHeader(HTTP.TARGET_HOST, target.toHostString());
+            // Populate the execution context
+            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST,
+                    target);
+            context.setAttribute(ExecutionContext.HTTP_PROXY_HOST,
+                    proxy);
+            context.setAttribute(ExecutionContext.HTTP_CONNECTION,
+                    managedConn);
+            context.setAttribute(ClientContext.TARGET_AUTH_STATE,
+                    targetAuthState);
+            context.setAttribute(ClientContext.PROXY_AUTH_STATE,
+                    proxyAuthState);
+            context.setAttribute(ExecutionContext.HTTP_REQUEST,
+                    connect);
             
-            AuthScheme authScheme = this.proxyAuthState.getAuthScheme();
-            AuthScope authScope = this.proxyAuthState.getAuthScope();
-            Credentials creds = this.proxyAuthState.getCredentials();
-            if (creds != null) {
-                if (authScope != null || !authScheme.isConnectionBased()) {
-                    try {
-                        connect.addHeader(authScheme.authenticate(creds, connect));
-                    } catch (AuthenticationException ex) {
-                        if (this.log.isErrorEnabled()) {
-                            this.log.error("Proxy authentication error: " + ex.getMessage());
-                        }
-                    }
-                }
-            }
+            this.requestExec.preProcess(connect, this.httpProcessor, context);
             
-            response = requestExec.execute(connect, this.managedConn, context);
+            response = this.requestExec.execute(connect, this.managedConn, context);
+            
+            response.setParams(this.params);
+            this.requestExec.postProcess(response, this.httpProcessor, context);
             
             int status = response.getStatusLine().getStatusCode();
             if (status < 200) {

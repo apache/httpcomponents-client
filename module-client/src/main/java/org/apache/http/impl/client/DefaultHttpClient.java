@@ -31,7 +31,12 @@
 
 package org.apache.http.impl.client;
 
+import java.io.IOException;
+
 import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
@@ -266,9 +271,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new RequestDefaultHeaders());
         // Required protocol interceptors
         httpproc.addInterceptor(new RequestContent());
-        httpproc.addInterceptor(new RequestTargetHost());
+        httpproc.addInterceptor(new IgnoreConnectMethod(new RequestTargetHost()));
         // Recommended protocol interceptors
-        httpproc.addInterceptor(new RequestConnControl());
+        httpproc.addInterceptor(new IgnoreConnectMethod(new RequestConnControl()));
         httpproc.addInterceptor(new RequestUserAgent());
         httpproc.addInterceptor(new RequestExpectContinue());
         // HTTP state management interceptors
@@ -327,6 +332,28 @@ public class DefaultHttpClient extends AbstractHttpClient {
     @Override
     protected UserTokenHandler createUserTokenHandler() {
         return new DefaultUserTokenHandler();
+    }
+    
+    // FIXME: remove this class when protocol interceptors in HttpCore
+    // are updated to ignore CONNECT methods
+    static class IgnoreConnectMethod implements HttpRequestInterceptor {
+
+        private final HttpRequestInterceptor interceptor;
+        
+        public IgnoreConnectMethod(final HttpRequestInterceptor interceptor) {
+            super();
+            this.interceptor = interceptor;
+        }
+        
+        public void process(
+                final HttpRequest request, 
+                final HttpContext context) throws HttpException, IOException {
+            String method = request.getRequestLine().getMethod();
+            if (!method.equalsIgnoreCase("CONNECT")) {
+                this.interceptor.process(request, context);
+            }
+        }
+        
     }
     
 } // class DefaultHttpClient

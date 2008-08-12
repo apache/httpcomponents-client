@@ -84,6 +84,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
         
+        String method = request.getRequestLine().getMethod();
+        if (method.equalsIgnoreCase("CONNECT")) {
+            return;
+        }
+        
         // Obtain cookie store
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
