@@ -27,6 +27,7 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.http.client.utils;
 
 import java.net.URI;
