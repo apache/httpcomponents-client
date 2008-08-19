@@ -46,10 +46,7 @@
           <directory></directory>
           <outputDirectory>/</outputDirectory>
           <includes>
-            <include>README.txt</include>
-            <include>LICENSE.txt</include>
-            <include>NOTICE.txt</include>
-            <include>RELEASE_NOTES.txt</include>
+            <include>*.txt</include>
           </includes>
           <lineEnding>lf</lineEnding>
         </fileSet>
