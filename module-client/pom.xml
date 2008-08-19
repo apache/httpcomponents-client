@@ -37,7 +37,7 @@
     <version>4.0-alpha5-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient</artifactId>
-  <name>HttpClient (base module)</name>
+  <name>HttpClient</name>
   <description>
    HttpComponents Client (base module)
   </description>

@@ -34,18 +34,19 @@
 
 HttpClient Examples
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientExecuteDirect.java}Direct request}}
-    
-    This example demonstrates how to send an HTTP request directly.
+    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientWithResponseHandler.java}Response handling}}
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientExecuteProxy.java}Request via a proxy}}
-    
-    This example demonstrates how to send an HTTP request via a proxy.
+    This example demonstrates how to process HTTP responses using a response handler. This is 
+    the recommended way of executing HTTP requests and processing HTTP responses. This approach 
+    enables the caller to concentrate on the process of digesting HTTP responses and to delegate 
+    the task of system resource deallocation to HttpClient. The use of an HTTP response guarantees
+    that the underlying HTTP connection will be released back to the connection manager automatically
+    in all cases.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientConnectionRelease.java}Connection management}}
+    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientConnectionRelease.java}Manual connection release}}
     
-    This example demonstrates the recommended way of using API to make sure the underlying 
-    connection gets released back to the connection manager.
+    This example demonstrates how to ensure the release of the underlying HTTP connection back to 
+    the connection manager in case of a manual processing of HTTP responses.
 
     * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientAbortMethod.java}Abort method}}
     
@@ -55,6 +56,10 @@ HttpClient Examples
     
     This example uses HttpClient to execute an HTTP request against a target site that requires user
     authentication.  
+
+    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientExecuteProxy.java}Request via a proxy}}
+    
+    This example demonstrates how to send an HTTP request via a proxy.
 
     * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientProxyAuthentication.java}Proxy authentication}}
     
@@ -93,5 +98,14 @@ HttpClient Examples
     interceptors makes content compression completely transparent to the consumer of the HttpClient
     interface.
     
+    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientPreemptiveBasicAuthentication.java}Preemptive BASIC authentication}}
+    
+    This example shows how HttpClient can be customized to authenticate preemptively using BASIC 
+    scheme. Generally, preemptive authentication can be considered less secure than a response to 
+    an authentication challenge and therefore discouraged.
 
-
+    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client/src/examples/org/apache/http/examples/client/ClientPreemptiveDigestAuthentication.java}Preemptive DIGEST authentication}}
+    
+    This example shows how HttpClient can be customized to authenticate preemptively using DIGEST 
+    scheme. Generally, preemptive authentication can be considered less secure than a response to 
+    an authentication challenge and therefore discouraged.

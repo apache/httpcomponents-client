@@ -51,9 +51,7 @@
       <item name="Download" href="../download.html"/>
       <item name="Examples" href="../examples.html"/>
     </menu>
-    <menu name="Modules">
-      <item name="HttpClient" href="index.html"/>
-      <item name="HttpMime" href="../httpmime/index.html"/>
-    </menu>
+		<menu ref="modules" />
+		<menu ref="reports"/>      
   </body>
 </project>
