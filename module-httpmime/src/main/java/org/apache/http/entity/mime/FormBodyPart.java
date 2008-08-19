@@ -32,7 +32,7 @@
 package org.apache.http.entity.mime;
 
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.james.mime4j.ContentDescriptor;
+import org.apache.james.mime4j.descriptor.ContentDescriptor;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Header;
