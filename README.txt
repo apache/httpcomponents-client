@@ -22,12 +22,8 @@ HttpMime module is optional and requires Java 5.0 compatible runtime
 and depends on the following external libraries:
 
 * Apache HttpComponents HttpCore 4.0-beta1 or newer API compatible version
-* Apache mime4j 0.3 or newer API compatible version
+* Apache mime4j 0.4 or newer API compatible version
 * Apache Commons Logging 1.0.3 or newer API compatible version
-* Apache Commons IO 1.2 or newer API compatible version
-* Apache Log4j 1.2.14 or newer API compatible version
-  (The runtime dependency on Log4j will be removed with the next
-  release of Apache mime4j.)
 
 Licensing
 ---------
