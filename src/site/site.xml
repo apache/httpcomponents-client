@@ -55,7 +55,10 @@
       <item name="Client HTTP Programming Primer" href="primer.html"/>
       <item name="NTLM support" href="ntlm.html"/>
     </menu>
-	<menu ref="modules" />
+    <menu name="Modules">
+      <item name="HttpClient" href="httpclient/index.html"/>
+      <item name="HttpMime" href="httpmime/index.html"/>
+    </menu>
 	<menu ref="reports"/>      
   </body>
 </project>
