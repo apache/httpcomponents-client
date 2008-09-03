@@ -198,10 +198,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         try {
             // make sure that the response has been read completely
             if (hca.isOpen() && !hca.isMarkedReusable()) {
-                if (log.isDebugEnabled()) {
-                    log.debug
-                        ("Released connection open but not marked reusable.");
-                }
                 // In MTHCM, there would be a call to
                 // SimpleHttpConnectionManager.finishLastResponse(conn);
                 // Consuming the response is handled outside in 4.0.
@@ -220,6 +216,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         } finally {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             boolean reusable = hca.isMarkedReusable();
+            if (log.isDebugEnabled()) {
+                if (reusable) {
+                    log.debug("Released connection is reusable.");
+                } else {
+                    log.debug("Released connection is not reusable.");
+                }
+            }
             hca.detach();
             if (entry != null) {
                 connectionPool.freeEntry(entry, reusable, validDuration, timeUnit);

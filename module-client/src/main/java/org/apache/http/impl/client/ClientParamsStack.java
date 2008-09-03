@@ -215,7 +215,7 @@ public class ClientParamsStack extends AbstractHttpParams {
         if ((result == null) && (applicationParams != null)) {
             result = applicationParams.getParameter(name);
         }
-        if (this.log.isDebugEnabled()) {
+        if (this.log.isDebugEnabled() && result != null) {
             this.log.debug("'" + name + "': " + result);
         }
 

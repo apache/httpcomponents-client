@@ -371,7 +371,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         HttpRoute route = entry.getPlannedRoute();
         if (log.isDebugEnabled()) {
-            log.debug("Freeing connection" +                                 
+            log.debug("Releasing connection" +                                 
                     " [" + route + "][" + entry.getState() + "]");
         }
 
@@ -390,6 +390,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
             RouteSpecificPool rospl = getRoutePool(route, true);
 
             if (reusable) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Pooling connection" +                                 
+                            " [" + route + "][" + entry.getState() + "]" +
+                            "; keep alive for " + validDuration + " " + timeUnit.toString());
+                }
                 rospl.freeEntry(entry);
                 freeConnections.add(entry);
                 idleConnHandler.add(entry.getConnection(), validDuration, timeUnit);

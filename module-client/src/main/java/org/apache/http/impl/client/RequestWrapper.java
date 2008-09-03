@@ -110,11 +110,10 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     }
 
     public ProtocolVersion getProtocolVersion() {
-        if (this.version != null) {
-            return this.version;
-        } else {
-            return HttpProtocolParams.getVersion(getParams());
+        if (this.version == null) {
+            this.version = HttpProtocolParams.getVersion(getParams());
         }
+        return this.version;
     }
 
     public void setProtocolVersion(final ProtocolVersion version) {

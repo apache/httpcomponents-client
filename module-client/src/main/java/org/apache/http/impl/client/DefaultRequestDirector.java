@@ -330,10 +330,12 @@ public class DefaultRequestDirector implements RequestDirector {
 
                     if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
                         // validate connection
-                        this.log.debug("Stale connection check");
-                        if (managedConn.isStale()) {
-                            this.log.debug("Stale connection detected");
-                            managedConn.close();
+                        if (managedConn.isOpen()) {
+                            this.log.debug("Stale connection check");
+                            if (managedConn.isStale()) {
+                                this.log.debug("Stale connection detected");
+                                managedConn.close();
+                            }
                         }
                     }
                 }
@@ -446,10 +448,14 @@ public class DefaultRequestDirector implements RequestDirector {
 
                 // The connection is in or can be brought to a re-usable state.
                 reuse = reuseStrategy.keepAlive(response, context);
-                if(reuse) {
+                if (reuse) {
                     // Set the idle duration of this connection
                     long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
+
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Connection can be kept alive for " + duration + " ms");
+                    }
                 }
                 
                 RoutedRequest followup = handleResponse(roureq, response, context);
@@ -457,7 +463,6 @@ public class DefaultRequestDirector implements RequestDirector {
                     done = true;
                 } else {
                     if (reuse) {
-                        this.log.debug("Connection kept alive");
                         // Make sure the response body is fully consumed, if present
                         HttpEntity entity = response.getEntity();
                         if (entity != null) {
