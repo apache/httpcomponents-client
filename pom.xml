@@ -81,6 +81,7 @@
   <modules>
     <module>module-client</module>
     <module>module-httpmime</module>
+    <module>module-osgi-bundle</module>
   </modules>
 
   <build>

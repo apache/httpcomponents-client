@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- 
+   $HeadURL:$
+   $Revision:$
+   $Date:$
+
+   ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+   ====================================================================
+
+   This software consists of voluntary contributions made by many
+   individuals on behalf of the Apache Software Foundation.  For more
+   information on the Apache Software Foundation, please see
+   <http://www.apache.org />.
+ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpcomponents-client</artifactId>
+    <version>4.0-beta2-SNAPSHOT</version>
+  </parent>
+  <artifactId>httpclient-osgi</artifactId>
+  <name>HttpClient OSGi bundle</name>
+  <inceptionYear>1999</inceptionYear>
+  <description>
+   HttpComponents Client (OSGi bundle)
+  </description>
+  <url>http://hc.apache.org/httpcomponents-client</url>
+  <packaging>bundle</packaging>  
+
+  <licenses>
+    <license>
+      <name>Apache License</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${pom.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>${commons-codec.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>${pom.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.james</groupId>
+      <artifactId>apache-mime4j</artifactId>
+      <version>${mime4j.version}</version>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <maven.compile.source>1.5</maven.compile.source>
+    <maven.compile.target>1.5</maven.compile.target>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-Name>Apache ${pom.name}</Bundle-Name>
+            <Bundle-SymbolicName>${pom.groupId}.httpclient</Bundle-SymbolicName>
+            <_exportcontents>
+               org.apache.http.cookie.*, 
+               org.apache.http.impl.cookie.*, 
+               org.apache.http.auth.*, 
+               org.apache.http.impl.auth.*, 
+               org.apache.http.conn.*, 
+               org.apache.http.impl.conn.*, 
+               org.apache.http.client.*, 
+               org.apache.http.impl.client.*,
+               org.apache.http.entity.mime.*, 
+               org.apache.http.entity.mime.content.*
+            </_exportcontents>
+            <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+    <finalName>org.apache.httpcomponents.httpclient_${pom.version}</finalName>
+  </build>
+
+</project>
