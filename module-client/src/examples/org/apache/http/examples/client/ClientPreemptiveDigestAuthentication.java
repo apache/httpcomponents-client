@@ -101,7 +101,6 @@ public class ClientPreemptiveDigestAuthentication {
             System.out.println(response.getStatusLine());
             if (entity != null) {
                 System.out.println("Response content length: " + entity.getContentLength());
-                System.out.println("Chunked?: " + entity.isChunked());
                 entity.consumeContent();
             }
         }

@@ -76,7 +76,6 @@ public class ClientCustomContext {
         System.out.println(response.getStatusLine());
         if (entity != null) {
             System.out.println("Response content length: " + entity.getContentLength());
-            System.out.println("Chunked?: " + entity.isChunked());
         }
         List<Cookie> cookies = cookieStore.getCookies();
         for (int i = 0; i < cookies.size(); i++) {

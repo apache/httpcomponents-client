@@ -70,7 +70,6 @@ public class ClientProxyAuthentication {
         System.out.println(response.getStatusLine());
         if (entity != null) {
             System.out.println("Response content length: " + entity.getContentLength());
-            System.out.println("Chunked?: " + entity.isChunked());
         }
         if (entity != null) {
             entity.consumeContent();
