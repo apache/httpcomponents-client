@@ -48,7 +48,7 @@ import org.apache.http.params.HttpParams;
 public final class PlainSocketFactory implements SocketFactory {
 
     /**
-     * The factory singleton.
+     * The default factory.
      */
     private static final
         PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
@@ -56,8 +56,10 @@ public final class PlainSocketFactory implements SocketFactory {
     private final HostNameResolver nameResolver;
     
     /**
-     * Gets the singleton instance of this class.
-     * @return the one and only plain socket factory
+     * Gets the default factory. Usually there should be no reason for creating 
+     * multiple instances of this class.
+     * 
+     * @return the default factory
      */
     public static PlainSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
@@ -154,29 +156,5 @@ public final class PlainSocketFactory implements SocketFactory {
         return false;
 
     } // isSecure
-
-
-    /**
-     * Compares this factory with an object.
-     * There is only one instance of this class.
-     *
-     * @param obj       the object to compare with
-     *
-     * @return  iff the argument is this object
-     */
-    @Override
-    public boolean equals(Object obj) {
-        return (obj == this);
-    }
-
-    /**
-     * Obtains a hash code for this object.
-     * All instances of this class have the same hash code.
-     * There is only one instance of this class.
-     */
-    @Override
-    public int hashCode() {
-        return PlainSocketFactory.class.hashCode();
-    }
 
 }

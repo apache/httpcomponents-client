@@ -150,14 +150,17 @@ public class SSLSocketFactory implements LayeredSocketFactory {
     
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER 
         = new StrictHostnameVerifier();
+
     /**
-     * The factory using the default JVM settings for secure connections.
+     * The default factory using the default JVM settings for secure connections.
      */
     private static final SSLSocketFactory DEFAULT_FACTORY = new SSLSocketFactory();
     
     /**
-     * Gets an singleton instance of the SSLProtocolSocketFactory.
-     * @return a SSLProtocolSocketFactory
+     * Gets the default factory, which uses the default JVM settings for secure 
+     * connections.
+     * 
+     * @return the default factory
      */
     public static SSLSocketFactory getSocketFactory() {
         return DEFAULT_FACTORY;
