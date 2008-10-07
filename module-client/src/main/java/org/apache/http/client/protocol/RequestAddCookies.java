@@ -98,7 +98,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         
         // Obtain the registry of cookie specs
-        CookieSpecRegistry registry= (CookieSpecRegistry) context.getAttribute(
+        CookieSpecRegistry registry = (CookieSpecRegistry) context.getAttribute(
                 ClientContext.COOKIESPEC_REGISTRY);
         if (registry == null) {
             this.log.info("CookieSpec registry not available in HTTP context");
