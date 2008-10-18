@@ -32,6 +32,7 @@
 package org.apache.http.entity.mime;
 
 import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.descriptor.ContentDescriptor;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.message.BodyPart;
@@ -82,7 +83,7 @@ public class FormBodyPart extends BodyPart {
             buffer.append(body.getFilename());
             buffer.append("\"");
         }
-        getHeader().addField(Field.parse(buffer.toString()));
+        addField(buffer.toString());
     }
     
     protected void generateContentType(final ContentDescriptor desc) {
@@ -95,7 +96,7 @@ public class FormBodyPart extends BodyPart {
                 buffer.append("; charset=");
                 buffer.append(desc.getCharset());
             }
-            getHeader().addField(Field.parse(buffer.toString()));
+            addField(buffer.toString());
         }
     }
     
@@ -105,8 +106,17 @@ public class FormBodyPart extends BodyPart {
             buffer.append(MIME.CONTENT_TRANSFER_ENC);
             buffer.append(": ");
             buffer.append(desc.getTransferEncoding());
-            getHeader().addField(Field.parse(buffer.toString()));
+            addField(buffer.toString());
         }
     }
 
+    private void addField(final String s) {
+        try {
+            getHeader().addField(Field.parse(s));
+        } catch (MimeException ex) {
+            // Should never happen
+            throw new UnexpectedMimeException(ex);
+        }
+    }
+    
 }
