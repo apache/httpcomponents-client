@@ -43,6 +43,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie2;
 import org.apache.http.message.BasicHeader;
 
 /**
@@ -120,6 +121,36 @@ public class TestCookieBestMatchSpec extends TestCase {
             fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
+        }
+    }
+
+    public void testCookieStandardCompliantParsingLocalHost() throws Exception {
+        CookieSpec cookiespec = new BestMatchSpec();
+        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+
+        Header header = new BasicHeader("Set-Cookie", "special=\"abcdigh\"; Version=1");
+
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
+            cookiespec.validate(cookie, origin);
+            assertEquals("localhost.local", cookie.getDomain());
+            assertTrue(cookie instanceof SetCookie2);
+        }
+    }
+
+    public void testCookieStandardCompliantParsingLocalHost2() throws Exception {
+        CookieSpec cookiespec = new BestMatchSpec();
+        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+
+        Header header = new BasicHeader("Set-Cookie2", "special=\"abcdigh\"; Version=1");
+
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            Cookie cookie = cookies.get(i);
+            cookiespec.validate(cookie, origin);
+            assertEquals("localhost.local", cookie.getDomain());
+            assertTrue(cookie instanceof SetCookie2);
         }
     }
 

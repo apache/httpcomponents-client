@@ -122,7 +122,7 @@ public class TestCookieRFC2965Spec extends TestCase {
     /**
      * Test parsing cookie <tt>"Domain"</tt> attribute.
      */
-    public void testcookiesomain() throws Exception {
+    public void testParseDomain() throws Exception {
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin = new CookieOrigin("www.domain.com", 80, "/", false);
         Header header = new BasicHeader("Set-Cookie2", "name=value;Domain=.domain.com;Version=1;Domain=");
@@ -143,7 +143,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         assertEquals(".domain.com", cookie.getDomain());
     }
 
-    public void testcookiesomainDefault() throws Exception {
+    public void testParseDomainDefaultValue() throws Exception {
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin = new CookieOrigin("www.domain.com", 80, "/", false);
         // Domain is OPTIONAL, defaults to the request host
@@ -392,7 +392,7 @@ public class TestCookieRFC2965Spec extends TestCase {
     /**
      * test parsing <tt>"Discard"</tt> attribute.
      */
-    public void testcookiesiscard() throws Exception {
+    public void testParseDiscard() throws Exception {
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin = new CookieOrigin("www.domain.com", 80, "/", false);
         Header header = new BasicHeader("Set-Cookie2", "name=value;Discard;Max-age=36000;Version=1");
@@ -549,6 +549,19 @@ public class TestCookieRFC2965Spec extends TestCase {
         } catch (MalformedCookieException expected) {}
     }
 
+    public void testValidateDomainLocalhost() throws Exception {
+        CookieSpec cookiespec = new RFC2965Spec();
+        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+        Header header = new BasicHeader("Set-Cookie2", "name=value; version=1");
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
+        }
+        assertNotNull(cookies);
+        assertEquals(1, cookies.size());
+        ClientCookie cookie = (ClientCookie) cookies.get(0);
+        assertEquals("localhost.local", cookie.getDomain());
+    }
 
     /**
      * Test <tt>Domain</tt> validation. Effective host name
