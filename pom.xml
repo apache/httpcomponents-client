@@ -181,6 +181,11 @@
         <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+      </plugin>
+
     </plugins>
   </reporting>
 
