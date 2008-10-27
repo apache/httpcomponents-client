@@ -151,15 +151,15 @@ public class RouteSpecificPool {
             ListIterator<BasicPoolEntry> it = freeEntries.listIterator(freeEntries.size());
             while (it.hasPrevious()) {
                 BasicPoolEntry entry = it.previous();
-                if (LangUtils.equals(state, entry.getState())) {
+                if (entry.getState() == null || LangUtils.equals(state, entry.getState())) {
                     it.remove();
                     return entry;
                 }
             }
         }
-        if (!freeEntries.isEmpty()) {
-            BasicPoolEntry entry = freeEntries.remove();   
-            entry.setState(null);
+        if (getCapacity() == 0 && !freeEntries.isEmpty()) {
+            BasicPoolEntry entry = freeEntries.remove();
+            entry.shutdownEntry();
             OperatedClientConnection conn = entry.getConnection();
             try {
                 conn.close();

@@ -1,3 +1,11 @@
+Changes since 4.0 beta 1
+-------------------
+
+* Fixed bug that can cause a managed connection to be returned from the
+  pool in an inconsistent state.     
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 4.0 Beta 1
 -------------------
 

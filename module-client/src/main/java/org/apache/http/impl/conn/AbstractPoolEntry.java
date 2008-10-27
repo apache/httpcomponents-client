@@ -315,6 +315,7 @@ public abstract class AbstractPoolEntry {
      */
     protected void shutdownEntry() { 
         tracker = null;
+        state = null;
     }
 
 

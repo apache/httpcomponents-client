@@ -82,6 +82,10 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         return this.reference;
     }
 
+    @Override
+    protected void shutdownEntry() {
+        super.shutdownEntry();
+    }
 
 } // class BasicPoolEntry
 
