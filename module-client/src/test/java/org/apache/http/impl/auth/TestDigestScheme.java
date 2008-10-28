@@ -130,6 +130,25 @@ public class TestDigestScheme extends TestCase {
         assertEquals("e95a7ddf37c2eab009568b1ed134f89a", table.get("response"));
     }
 
+    public void testDigestAuthenticationWithSHA() throws Exception {
+        String challenge = "Digest realm=\"realm1\", " +
+                "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+                "algorithm=SHA";
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
+        HttpRequest request = new BasicHttpRequest("Simple", "/");
+        Credentials cred = new UsernamePasswordCredentials("username","password");
+        AuthScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge);
+        Header authResponse = authscheme.authenticate(cred, request);
+
+        Map<String, String> table = parseAuthResponse(authResponse);
+        assertEquals("username", table.get("username"));
+        assertEquals("realm1", table.get("realm"));
+        assertEquals("/", table.get("uri"));
+        assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
+        assertEquals("8769e82e4e28ecc040b969562b9050580c6d186d", table.get("response"));
+    }
+
     public void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
         String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);

@@ -288,7 +288,11 @@ public class DigestScheme extends RFC2617Scheme {
                 "Unsupported qop in HTTP Digest authentication");   
         }
 
-        MessageDigest md5Helper = createMessageDigest("MD5");
+        String digAlg = algorithm;
+        if (digAlg.equalsIgnoreCase("MD5-sess")) {
+            digAlg = "MD5";
+        }
+        MessageDigest digester = createMessageDigest(digAlg);
 
         String uname = credentials.getUserPrincipal().getName();
         String pwd = credentials.getPassword();
@@ -304,25 +308,25 @@ public class DigestScheme extends RFC2617Scheme {
         String a1 = tmp.toString();
         
         //a1 is suitable for MD5 algorithm
-        if(algorithm.equals("MD5-sess")) {
+        if (algorithm.equalsIgnoreCase("MD5-sess")) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
 
+            algorithm = "MD5";
             String cnonce = getCnonce();
             
-            String tmp2=encode(md5Helper.digest(EncodingUtils.getBytes(a1, charset)));
-            StringBuilder tmp3 = new StringBuilder(tmp2.length() + nonce.length() + cnonce.length() + 2);
+            String tmp2 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
+            StringBuilder tmp3 = new StringBuilder(
+                    tmp2.length() + nonce.length() + cnonce.length() + 2);
             tmp3.append(tmp2);
             tmp3.append(':');
             tmp3.append(nonce);
             tmp3.append(':');
             tmp3.append(cnonce);
             a1 = tmp3.toString();
-        } else if (!algorithm.equals("MD5")) {
-            throw new AuthenticationException("Unhandled algorithm " + algorithm + " requested");
         }
-        String md5a1 = encode(md5Helper.digest(EncodingUtils.getBytes(a1, charset)));
+        String hasha1 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
 
         String a2 = null;
         if (qopVariant == QOP_AUTH_INT) {
@@ -332,25 +336,26 @@ public class DigestScheme extends RFC2617Scheme {
         } else {
             a2 = method + ':' + uri;
         }
-        String md5a2 = encode(md5Helper.digest(EncodingUtils.getAsciiBytes(a2)));
+        String hasha2 = encode(digester.digest(EncodingUtils.getAsciiBytes(a2)));
 
         // 3.2.2.1
         String serverDigestValue;
         if (qopVariant == QOP_MISSING) {
-            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length() + md5a2.length());
-            tmp2.append(md5a1);
+            StringBuilder tmp2 = new StringBuilder(
+                    hasha1.length() + nonce.length() + hasha1.length());
+            tmp2.append(hasha1);
             tmp2.append(':');
             tmp2.append(nonce);
             tmp2.append(':');
-            tmp2.append(md5a2);
+            tmp2.append(hasha2);
             serverDigestValue = tmp2.toString();
         } else {
             String qopOption = getQopVariantString();
             String cnonce = getCnonce();
             
-            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length()
-                + NC.length() + cnonce.length() + qopOption.length() + md5a2.length() + 5);
-            tmp2.append(md5a1);
+            StringBuilder tmp2 = new StringBuilder(hasha1.length() + nonce.length()
+                + NC.length() + cnonce.length() + qopOption.length() + hasha2.length() + 5);
+            tmp2.append(hasha1);
             tmp2.append(':');
             tmp2.append(nonce);
             tmp2.append(':');
@@ -360,12 +365,12 @@ public class DigestScheme extends RFC2617Scheme {
             tmp2.append(':');
             tmp2.append(qopOption);
             tmp2.append(':');
-            tmp2.append(md5a2); 
+            tmp2.append(hasha2); 
             serverDigestValue = tmp2.toString();
         }
 
         String serverDigest =
-            encode(md5Helper.digest(EncodingUtils.getAsciiBytes(serverDigestValue)));
+            encode(digester.digest(EncodingUtils.getAsciiBytes(serverDigestValue)));
 
         return serverDigest;
     }
@@ -449,12 +454,9 @@ public class DigestScheme extends RFC2617Scheme {
      * @return encoded MD5, or <CODE>null</CODE> if encoding failed
      */
     private static String encode(byte[] binaryData) {
-        if (binaryData.length != 16) {
-            return null;
-        } 
-
-        char[] buffer = new char[32];
-        for (int i = 0; i < 16; i++) {
+        int n = binaryData.length; 
+        char[] buffer = new char[n * 2];
+        for (int i = 0; i < n; i++) {
             int low = (binaryData[i] & 0x0f);
             int high = ((binaryData[i] & 0xf0) >> 4);
             buffer[i * 2] = HEXADECIMAL[high];
