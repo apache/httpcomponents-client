@@ -39,6 +39,8 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SM;
+import org.apache.http.cookie.SetCookie2;
 
 /**
  * 'Meta' cookie specification that selects a cookie policy depending
@@ -54,6 +56,7 @@ public class BestMatchSpec implements CookieSpec {
     private final boolean oneHeader;
     
     private RFC2965Spec strict;
+    private RFC2109Spec obsoleteStrict;
     private BrowserCompatSpec compat;
     private NetscapeDraftSpec netscape;
 
@@ -72,6 +75,13 @@ public class BestMatchSpec implements CookieSpec {
              this.strict = new RFC2965Spec(this.datepatterns, this.oneHeader);
         }
         return strict;
+    }
+
+    private RFC2109Spec getObsoleteStrict() {
+        if (this.obsoleteStrict == null) {
+             this.obsoleteStrict = new RFC2109Spec(this.datepatterns, this.oneHeader);
+        }
+        return obsoleteStrict;
     }
 
     private BrowserCompatSpec getCompat() {
@@ -112,12 +122,13 @@ public class BestMatchSpec implements CookieSpec {
                netscape = true;
             }
         }
-        if (netscape) {
-            
-        }
         // Do we have a cookie with a version attribute?
         if (versioned) {
-            return getStrict().parse(helems, origin);
+            if (SM.SET_COOKIE2.equals(header.getName())) {
+                return getStrict().parse(helems, origin);
+            } else {
+                return getObsoleteStrict().parse(helems, origin);
+            }
         } else if (netscape) {
             // Need to parse the header again,
             // because Netscape draft cannot handle
@@ -138,7 +149,11 @@ public class BestMatchSpec implements CookieSpec {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         if (cookie.getVersion() > 0) {
-            getStrict().validate(cookie, origin);
+            if (cookie instanceof SetCookie2) {
+                getStrict().validate(cookie, origin);
+            } else {
+                getObsoleteStrict().validate(cookie, origin);
+            }
         } else {
             getCompat().validate(cookie, origin);
         }
@@ -152,7 +167,11 @@ public class BestMatchSpec implements CookieSpec {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         if (cookie.getVersion() > 0) {
-            return getStrict().match(cookie, origin);
+            if (cookie instanceof SetCookie2) {
+                return getStrict().match(cookie, origin);
+            } else {
+                return getObsoleteStrict().match(cookie, origin);
+            }
         } else {
             return getCompat().match(cookie, origin);
         }
@@ -163,13 +182,21 @@ public class BestMatchSpec implements CookieSpec {
             throw new IllegalArgumentException("List of cookie may not be null");
         }
         int version = Integer.MAX_VALUE;
+        boolean isSetCookie2 = true; 
         for (Cookie cookie: cookies) {
+            if (!(cookie instanceof SetCookie2)) {
+                isSetCookie2 = false;
+            }
             if (cookie.getVersion() < version) {
                 version = cookie.getVersion();
             }
         }
         if (version > 0) {
-            return getStrict().formatCookies(cookies);
+            if (isSetCookie2) {
+                return getStrict().formatCookies(cookies);
+            } else {
+                return getObsoleteStrict().formatCookies(cookies);
+            }
         } else {
             return getCompat().formatCookies(cookies);
         }

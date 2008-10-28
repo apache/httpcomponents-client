@@ -106,15 +106,24 @@ public class TestCookieBestMatchSpec extends TestCase {
         CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
 
         // Make sure the strict (RFC2965) cookie parsing
-        // and validation is used for version 1 cookies
-        Header header = new BasicHeader("Set-Cookie", "name=value;path=/;domain=b.domain.com; version=1");
+        // and validation is used for version 1 Set-Cookie2 headers
+        Header header = new BasicHeader("Set-Cookie2", "name=value;path=/;domain=b.domain.com; version=1");
 
         List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
 
-        header = new BasicHeader("Set-Cookie", "name=value;path=/;domain=domain.com; version=1");
+        // Make sure the strict (RFC2109) cookie parsing
+        // and validation is used for version 1 Set-Cookie headers
+        header = new BasicHeader("Set-Cookie", "name=value;path=/;domain=.b.domain.com; version=1");
+
+        cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
+        }
+
+        header = new BasicHeader("Set-Cookie2", "name=value;path=/;domain=domain.com; version=1");
         try {
             cookies = cookiespec.parse(header, origin);
             cookiespec.validate(cookies.get(0), origin);
@@ -134,8 +143,8 @@ public class TestCookieBestMatchSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             Cookie cookie = cookies.get(i);
             cookiespec.validate(cookie, origin);
-            assertEquals("localhost.local", cookie.getDomain());
-            assertTrue(cookie instanceof SetCookie2);
+            assertEquals("localhost", cookie.getDomain());
+            assertFalse(cookie instanceof SetCookie2);
         }
     }
 
@@ -175,7 +184,7 @@ public class TestCookieBestMatchSpec extends TestCase {
 
         // Make sure the strict (RFC2965) cookie matching
         // is used for version 1 cookies
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        BasicClientCookie2 cookie = new BasicClientCookie2("name", "value");
         cookie.setVersion(1);
         cookie.setDomain(".domain.com");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
