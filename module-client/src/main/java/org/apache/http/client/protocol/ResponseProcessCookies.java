@@ -86,7 +86,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
         if (cookieStore == null) {
-            this.log.info("Cookie store not available in HTTP context");
+            this.log.info("CookieStore not available in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance

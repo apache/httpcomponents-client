@@ -58,44 +58,6 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public class RFC2965Spec extends RFC2109Spec {
 
-    private static final ClientCookieFactory COOKIE_FACTORY = new BasicClientCookieFactory();
-    private static final ClientCookieFactory COOKIE2_FACTORY = new BasicClientCookie2Factory();
-    
-    private static interface ClientCookieFactory {
-        
-        BasicClientCookie createCookie(String name, String value, CookieOrigin origin);
-        
-    }
-    
-    private static class BasicClientCookieFactory implements ClientCookieFactory {
-
-        public BasicClientCookie createCookie(
-                final String name, 
-                final String value, 
-                final CookieOrigin origin) {
-            BasicClientCookie cookie = new BasicClientCookie(name, value);
-            cookie.setPath(getDefaultPath(origin));
-            cookie.setDomain(getDefaultDomain(origin));
-            return cookie;
-        }
-        
-    }
-    
-    private static class BasicClientCookie2Factory implements ClientCookieFactory {
-
-        public BasicClientCookie createCookie(
-                final String name, 
-                final String value, 
-                final CookieOrigin origin) {
-            BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
-            cookie.setPath(getDefaultPath(origin));
-            cookie.setDomain(getDefaultDomain(origin));
-            cookie.setPorts(new int [] { origin.getPort() });
-            return cookie;
-        }
-        
-    }
-
     /** 
      * Default constructor 
      * 
@@ -123,16 +85,13 @@ public class RFC2965Spec extends RFC2109Spec {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        
+        if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE2)) {
+            throw new MalformedCookieException("Unrecognized cookie header '"
+                    + header.toString() + "'");
+        }
         origin = adjustEffectiveHost(origin);
         HeaderElement[] elems = header.getElements();
-        ClientCookieFactory cookieFactory;
-        if (header.getName().equals(SM.SET_COOKIE2)) {
-            cookieFactory = COOKIE2_FACTORY;
-        } else {
-            cookieFactory = COOKIE_FACTORY;
-        }
-        return createCookies(elems, origin, cookieFactory);
+        return createCookies(elems, origin);
     }
     
     @Override
@@ -140,13 +99,12 @@ public class RFC2965Spec extends RFC2109Spec {
             final HeaderElement[] elems, 
             CookieOrigin origin) throws MalformedCookieException {
         origin = adjustEffectiveHost(origin);
-        return createCookies(elems, origin, COOKIE2_FACTORY);
+        return createCookies(elems, origin);
     }
 
     private List<Cookie> createCookies(
             final HeaderElement[] elems, 
-            final CookieOrigin origin,
-            final ClientCookieFactory cookieFactory) throws MalformedCookieException {
+            final CookieOrigin origin) throws MalformedCookieException {
         List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
         for (HeaderElement headerelement : elems) {
             String name = headerelement.getName();
@@ -155,7 +113,10 @@ public class RFC2965Spec extends RFC2109Spec {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
 
-            BasicClientCookie cookie = cookieFactory.createCookie(name, value, origin);
+            BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
+            cookie.setPath(getDefaultPath(origin));
+            cookie.setDomain(getDefaultDomain(origin));
+            cookie.setPorts(new int [] { origin.getPort() });
             // cycle through the parameters
             NameValuePair[] attribs = headerelement.getParameters();
 

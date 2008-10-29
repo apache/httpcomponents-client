@@ -972,19 +972,17 @@ public class TestCookieRFC2965Spec extends TestCase {
     // ------------------------------------------------------- Backward compatibility tests
 
     /**
-     * Test backward compatibility with <tt>Set-Cookie</tt> header.
+     * Test rejection of <tt>Set-Cookie</tt> header.
      */
-    public void testCompatibilityWithSetCookie() throws Exception {
+    public void testRejectSetCookie() throws Exception {
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin = new CookieOrigin("www.domain.com", 80, "/", false);
         Header header = new BasicHeader("Set-Cookie", "name=value; domain=.domain.com; version=1");
-        List<Cookie> cookies = cookiespec.parse(header, origin);
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
-        assertEquals("name", cookies.get(0).getName());
-        assertEquals("value", cookies.get(0).getValue());
-        assertEquals(".domain.com", cookies.get(0).getDomain());
-        assertEquals("/", cookies.get(0).getPath());
+        try {
+            cookiespec.parse(header, origin);
+        } catch (MalformedCookieException ex) {
+            // expected
+        }
     }
 
 }

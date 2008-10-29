@@ -53,6 +53,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.cookie.SetCookie2;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 
@@ -174,7 +175,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         if (ver > 0) {
             boolean needVersionHeader = false;
             for (Cookie cookie : matchedCookies) {
-                if (ver != cookie.getVersion()) {
+                if (ver != cookie.getVersion() || !(cookie instanceof SetCookie2)) {
                     needVersionHeader = true;
                 }
             }

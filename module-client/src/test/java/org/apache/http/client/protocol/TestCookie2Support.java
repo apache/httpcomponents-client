@@ -103,7 +103,7 @@ public class TestCookie2Support extends ServerTestBase {
         this.localServer.register("*", new CookieVer0Service());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
+        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -154,7 +154,7 @@ public class TestCookie2Support extends ServerTestBase {
         this.localServer.register("*", new CookieVer1Service());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
+        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -181,7 +181,8 @@ public class TestCookie2Support extends ServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
         
         Header cookiesupport = reqWrapper.getFirstHeader(SM.COOKIE2);
-        assertNull(cookiesupport);
+        assertNotNull(cookiesupport);
+        assertEquals("$Version=1", cookiesupport.getValue());
     }
 
     private static class CookieVer2Service implements HttpRequestHandler {
@@ -203,7 +204,7 @@ public class TestCookie2Support extends ServerTestBase {
         this.localServer.register("*", new CookieVer2Service());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
+        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -254,7 +255,7 @@ public class TestCookie2Support extends ServerTestBase {
         this.localServer.register("*", new SetCookieVersionMixService());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
+        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();

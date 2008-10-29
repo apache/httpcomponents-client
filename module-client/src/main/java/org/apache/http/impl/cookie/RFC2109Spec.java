@@ -108,6 +108,10 @@ public class RFC2109Spec extends CookieSpecBase {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
+        if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE)) {
+            throw new MalformedCookieException("Unrecognized cookie header '"
+                    + header.toString() + "'");
+        }
         HeaderElement[] elems = header.getElements();
         return parse(elems, origin);
     }

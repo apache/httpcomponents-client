@@ -108,7 +108,12 @@ public class BrowserCompatSpec extends CookieSpecBase {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
+        String headername = header.getName();
         String headervalue = header.getValue();
+        if (!headername.equalsIgnoreCase(SM.SET_COOKIE)) {
+            throw new MalformedCookieException("Unrecognized cookie header '"
+                    + header.toString() + "'");
+        }
         boolean isNetscapeCookie = false; 
         int i1 = headervalue.toLowerCase(Locale.ENGLISH).indexOf("expires=");
         if (i1 != -1) {

@@ -124,6 +124,10 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
+        if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE)) {
+            throw new MalformedCookieException("Unrecognized cookie header '"
+                    + header.toString() + "'");
+        }
         NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
         CharArrayBuffer buffer;
         ParserCursor cursor;
