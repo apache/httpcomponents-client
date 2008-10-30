@@ -1,6 +1,10 @@
 Changes since 4.0 beta 1
 -------------------
 
+* [HTTPCLIENT-806] DefaultHttpMethodRetryHandler will no longer retry
+  on ConnectExceptions.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * DigestScheme can use an arbitrary digest algorithm requested by the
   target server (such SHA) as long as this algorithm is supported by 
   the Java runtime.     

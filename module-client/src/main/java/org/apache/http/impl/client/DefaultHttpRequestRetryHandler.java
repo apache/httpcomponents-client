@@ -33,6 +33,7 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -99,6 +100,10 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         }
         if (exception instanceof UnknownHostException) {
             // Unknown host
+            return false;
+        }
+        if (exception instanceof ConnectException) {
+            // Connection refused 
             return false;
         }
         if (exception instanceof SSLHandshakeException) {
