@@ -43,16 +43,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.entity.mime.MIME;
-import org.apache.james.mime4j.message.AbstractBody;
 import org.apache.james.mime4j.message.TextBody;
 
-public class StringBody extends AbstractBody implements TextBody, ContentBody {
+public class StringBody extends AbstractContentBody implements TextBody {
 
     private final byte[] content;
     private final Charset charset;
     
-    public StringBody(final String text, Charset charset) throws UnsupportedEncodingException {
-        super();
+    public StringBody(
+            final String text, 
+            final String mimeType, 
+            Charset charset) throws UnsupportedEncodingException {
+        super(mimeType);
         if (text == null) {
             throw new IllegalArgumentException("Text may not be null");
         }
@@ -63,8 +65,12 @@ public class StringBody extends AbstractBody implements TextBody, ContentBody {
         this.charset = charset;
     }
     
+    public StringBody(final String text, Charset charset) throws UnsupportedEncodingException {
+        this(text, "text/plain", charset);
+    }
+    
     public StringBody(final String text) throws UnsupportedEncodingException {
-        this(text, null);
+        this(text, "text/plain", null);
     }
     
     public Reader getReader() throws IOException {
@@ -94,18 +100,7 @@ public class StringBody extends AbstractBody implements TextBody, ContentBody {
         return this.charset.name();
     }
 
-    public String getMimeType() {
-        return "text/plain";
-    }
-    
-    public String getMediaType() {
-        return "text";
-    }
-
-    public String getSubType() {
-        return "plain";
-    }
-
+    @Override
     public Map<?, ?> getContentTypeParameters() {
         Map<Object, Object> map = new HashMap<Object, Object>();
         map.put("charset", this.charset.name());

@@ -36,23 +36,24 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Map;
 
 import org.apache.http.entity.mime.MIME;
-import org.apache.james.mime4j.message.AbstractBody;
 import org.apache.james.mime4j.message.BinaryBody;
 
-public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
+public class FileBody extends AbstractContentBody implements BinaryBody {
 
     private final File file;
     
-    public FileBody(final File file) {
-        super();
+    public FileBody(final File file, final String mimeType) {
+        super(mimeType);
         if (file == null) {
             throw new IllegalArgumentException("File may not be null");
         }
         this.file = file;
+    }
+    
+    public FileBody(final File file) {
+        this(file, "application/octet-stream");
     }
     
     public InputStream getInputStream() throws IOException {
@@ -82,22 +83,6 @@ public class FileBody extends AbstractBody implements BinaryBody, ContentBody {
 
     public String getCharset() {
         return null;
-    }
-
-    public String getMimeType() {
-        return "application/octet-stream";
-    }
-    
-    public Map<?, ?> getContentTypeParameters() {
-        return Collections.EMPTY_MAP;
-    }
-
-    public String getMediaType() {
-        return "application";
-    }
-
-    public String getSubType() {
-        return "octet-stream";
     }
 
     public long getContentLength() {
