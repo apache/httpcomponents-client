@@ -131,6 +131,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         verify(host, x509);
     }
 
+    @Deprecated
     public final boolean verify(String host, SSLSession session) {
         try {
             Certificate[] certs = session.getPeerCertificates();
@@ -146,7 +147,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     public final void verify(String host, X509Certificate cert)
           throws SSLException {
         String[] cns = getCNs(cert);
-        String[] subjectAlts = getDNSSubjectAlts(cert);
+        String[] subjectAlts = getSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
 
@@ -201,7 +202,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             boolean doWildcard = cn.startsWith("*.") &&
                                  cn.lastIndexOf('.') >= 0 &&
                                  acceptableCountryWildcard(cn) &&
-                                 !InetAddressUtils.isIPv4Address(host);
+                                 !isIPAddress(host);
 
             if(doWildcard) {
                 match = hostName.endsWith(cn.substring(1));
@@ -279,6 +280,50 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
+    /**
+     * Extracts the array of SubjectAlt DNS or IP names from an X509Certificate.
+     * Returns null if there aren't any.
+     *
+     * @param cert X509Certificate
+     * @param hostname
+     * @return Array of SubjectALT DNS or IP names stored in the certificate.
+     */
+    private static String[] getSubjectAlts(
+            final X509Certificate cert, final String hostname) {
+        int subjectType;
+        if (isIPAddress(hostname)) {
+            subjectType = 7;
+        } else {
+            subjectType = 2;
+        }
+        
+        LinkedList<String> subjectAltList = new LinkedList<String>();
+        Collection<List<?>> c = null;
+        try {
+            c = cert.getSubjectAlternativeNames();
+        }
+        catch(CertificateParsingException cpe) {
+            Logger.getLogger(AbstractVerifier.class.getName())
+                    .log(Level.FINE, "Error parsing certificate.", cpe);
+        }
+        if(c != null) {
+            for (List<?> aC : c) {
+                List<?> list = aC;
+                int type = ((Integer) list.get(0)).intValue();
+                if (type == subjectType) {
+                    String s = (String) list.get(1);
+                    subjectAltList.add(s);
+                }
+            }
+        }
+        if(!subjectAltList.isEmpty()) {
+            String[] subjectAlts = new String[subjectAltList.size()];
+            subjectAltList.toArray(subjectAlts);
+            return subjectAlts;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Extracts the array of SubjectAlt DNS names from an X509Certificate.
@@ -295,33 +340,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      * @return Array of SubjectALT DNS names stored in the certificate.
      */
     public static String[] getDNSSubjectAlts(X509Certificate cert) {
-        LinkedList<String> subjectAltList = new LinkedList<String>();
-        Collection<List<?>> c = null;
-        try {
-            c = cert.getSubjectAlternativeNames();
-        }
-        catch(CertificateParsingException cpe) {
-            Logger.getLogger(AbstractVerifier.class.getName())
-                    .log(Level.FINE, "Error parsing certificate.", cpe);
-        }
-        if(c != null) {
-            for (List<?> aC : c) {
-                List<?> list = aC;
-                int type = ((Integer) list.get(0)).intValue();
-                // If type is 2, then we've got a dNSName
-                if (type == 2) {
-                    String s = (String) list.get(1);
-                    subjectAltList.add(s);
-                }
-            }
-        }
-        if(!subjectAltList.isEmpty()) {
-            String[] subjectAlts = new String[subjectAltList.size()];
-            subjectAltList.toArray(subjectAlts);
-            return subjectAlts;
-        } else {
-            return null;
-        }
+        return getSubjectAlts(cert, null);
     }
 
     /**
@@ -337,6 +356,12 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             }
         }
         return count;
+    }
+    
+    private static boolean isIPAddress(final String hostname) {
+        return hostname != null && 
+            (InetAddressUtils.isIPv4Address(hostname) || 
+                    InetAddressUtils.isIPv6Address(hostname));
     }
     
 }

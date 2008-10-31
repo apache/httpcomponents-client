@@ -1,6 +1,11 @@
 Changes since 4.0 beta 1
 -------------------
 
+* [HTTPCLIENT-803] Fixed bug in SSL host verifier implementations 
+  causing the SSL certificate to be rejected as invalid if the connection 
+  is established using an IP address.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-806] DefaultHttpMethodRetryHandler will no longer retry
   on ConnectExceptions.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
