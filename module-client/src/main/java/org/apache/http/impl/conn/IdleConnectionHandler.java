@@ -72,7 +72,7 @@ public class IdleConnectionHandler {
      */
     public void add(HttpConnection connection, long validDuration, TimeUnit unit) {
         
-        Long timeAdded = Long.valueOf(System.currentTimeMillis());
+        long timeAdded = System.currentTimeMillis();
         
         if (log.isDebugEnabled()) {
             log.debug("Adding connection at: " + timeAdded);
@@ -127,8 +127,8 @@ public class IdleConnectionHandler {
         while (connectionIter.hasNext()) {
             HttpConnection conn = connectionIter.next();
             TimeValues times = connectionToTimes.get(conn);
-            Long connectionTime = times.timeAdded;
-            if (connectionTime.longValue() <= idleTimeout) {
+            long connectionTime = times.timeAdded;
+            if (connectionTime <= idleTimeout) {
                 if (log.isDebugEnabled()) {
                     log.debug("Closing connection, connection time: "  + connectionTime);
                 }
