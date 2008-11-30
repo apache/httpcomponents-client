@@ -47,7 +47,7 @@ import org.apache.http.util.EntityUtils;
  * 
  * If this is used with
  * {@link org.apache.http.client.HttpClient#execute(
- *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler),
+ *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * 
  * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>

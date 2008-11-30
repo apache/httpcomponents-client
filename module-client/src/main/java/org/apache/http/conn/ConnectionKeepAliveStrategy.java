@@ -54,7 +54,7 @@ public interface ConnectionKeepAliveStrategy {
      * there is no suitable suggestion.
      * 
      * When coupled with a {@link ConnectionReuseStrategy}, if
-     * {@link ConnectionReuseStrategy#keepAlive(HttpResponse, HttpContext)
+     * {@link ConnectionReuseStrategy#keepAlive(HttpResponse, HttpContext)}
      * returns true, this allows you to control how long the reuse will last. If
      * keepAlive returns false, this should have no meaningful impact
      * 
