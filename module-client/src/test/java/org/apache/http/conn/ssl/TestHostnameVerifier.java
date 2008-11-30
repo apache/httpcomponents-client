@@ -211,9 +211,6 @@ public class TestHostnameVerifier extends TestCase
     }
 
     public void testSubjectAlt() throws Exception {
-        X509HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
-        X509HostnameVerifier STRICT = new StrictHostnameVerifier();
-        X509HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in = new ByteArrayInputStream(X509_MULTIPLE_SUBJECT_ALT);
         X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
