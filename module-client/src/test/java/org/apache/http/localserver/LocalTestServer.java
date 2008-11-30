@@ -291,6 +291,20 @@ public class LocalTestServer {
 
 
     /**
+     * Obtains the hostname of the server.
+     *
+     * @return  the hostname
+     */
+    public String getServiceHostName() {
+        ServerSocket ssock = servicedSocket; // avoid synchronization
+        if (ssock == null)
+            throw new IllegalStateException("not running");
+
+        return ((InetSocketAddress) ssock.getLocalSocketAddress()).getHostName();
+    }
+
+
+    /**
      * Obtains the local address the server is listening on
      *  
      * @return the service address

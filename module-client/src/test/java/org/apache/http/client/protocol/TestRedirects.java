@@ -476,7 +476,7 @@ public class TestRedirects extends ServerTestBase {
 
     public void testRelativeRedirect() throws Exception {
         int port = this.localServer.getServicePort();
-        String host = "localhost";
+        String host = this.localServer.getServiceHostName();
         this.localServer.register("*", new RelativeRedirectService());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
@@ -505,7 +505,7 @@ public class TestRedirects extends ServerTestBase {
 
     public void testRelativeRedirect2() throws Exception {
         int port = this.localServer.getServicePort();
-        String host = "localhost";
+        String host = this.localServer.getServiceHostName();
         this.localServer.register("*", new RelativeRedirectService2());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
