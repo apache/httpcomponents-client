@@ -269,6 +269,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
 
 
     // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    @SuppressWarnings("cast")
     public Socket createSocket()
         throws IOException {
 
