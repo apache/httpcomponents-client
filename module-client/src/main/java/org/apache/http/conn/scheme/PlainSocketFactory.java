@@ -140,13 +140,6 @@ public final class PlainSocketFactory implements SocketFactory {
         if (sock == null) {
             throw new IllegalArgumentException("Socket may not be null.");
         }
-        // This class check assumes that createSocket() calls the constructor
-        // directly. If it was using javax.net.SocketFactory, we couldn't make
-        // an assumption about the socket class here.
-        if (sock.getClass() != Socket.class) {
-            throw new IllegalArgumentException
-                ("Socket not created by this factory.");
-        }
         // This check is performed last since it calls a method implemented
         // by the argument object. getClass() is final in java.lang.Object.
         if (sock.isClosed()) {
