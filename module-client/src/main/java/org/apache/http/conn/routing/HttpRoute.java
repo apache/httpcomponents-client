@@ -50,6 +50,8 @@ import org.apache.http.HttpHost;
  */
 public final class HttpRoute implements RouteInfo, Cloneable {
 
+    private static final HttpHost[] EMPTY_HTTP_HOST_ARRAY = new HttpHost[]{};
+
     /** The target host to connect to. */
     private final HttpHost targetHost;
 
@@ -59,7 +61,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     private final InetAddress localAddress;
 
-    /** The proxy servers, if any. */
+    /** The proxy servers, if any. Never null. */
     private final HttpHost[] proxyChain;
 
     /** Whether the the route is tunnelled through the proxy. */
@@ -100,7 +102,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             throw new IllegalArgumentException
                 ("Target host may not be null.");
         }
-        if ((tunnelled == TunnelType.TUNNELLED) && (proxies == null)) {
+        if (proxies == null) {
+            throw new IllegalArgumentException
+                ("Proxies may not be null.");
+        }
+        if ((tunnelled == TunnelType.TUNNELLED) && (proxies.length == 0)) {
             throw new IllegalArgumentException
                 ("Proxy required if tunnelled.");
         }
@@ -173,7 +179,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *                  <code>false</code> otherwise
      */
     public HttpRoute(HttpHost target, InetAddress local, boolean secure) {
-        this(local, target, null, secure, TunnelType.PLAIN, LayerType.PLAIN);
+        this(local, target, EMPTY_HTTP_HOST_ARRAY, secure, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
 
@@ -183,7 +189,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param target    the host to which to route
      */
     public HttpRoute(HttpHost target) {
-        this(null, target, null, false, TunnelType.PLAIN, LayerType.PLAIN);
+        this(null, target, EMPTY_HTTP_HOST_ARRAY, false, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
 
@@ -217,11 +223,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param proxy     the only proxy in the chain, or <code>null</code>
      *
-     * @return  a proxy chain array, or <code>null</code>
+     * @return  a proxy chain array, may be empty (never null)
      */
     private static HttpHost[] toChain(HttpHost proxy) {
         if (proxy == null)
-            return null;
+            return EMPTY_HTTP_HOST_ARRAY;
 
         return new HttpHost[]{ proxy };
     }
@@ -229,15 +235,15 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     /**
      * Helper to duplicate and check a proxy chain.
-     * An empty proxy chain is converted to <code>null</code>.
+     * <code>null</code> is converted to an empty proxy chain.
      *
      * @param proxies   the proxy chain to duplicate, or <code>null</code>
      *
-     * @return  a new proxy chain array, or <code>null</code>
+     * @return  a new proxy chain array, may be empty (never null)
      */
     private static HttpHost[] toChain(HttpHost[] proxies) {
         if ((proxies == null) || (proxies.length < 1))
-            return null;
+            return EMPTY_HTTP_HOST_ARRAY;
 
         for (HttpHost proxy : proxies) {
             if (proxy == null)
@@ -268,7 +274,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     // non-JavaDoc, see interface RouteInfo
     public final int getHopCount() {
-        return (proxyChain == null) ? 1 : (proxyChain.length+1);
+        return proxyChain.length+1;
     }
 
 
@@ -295,7 +301,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     // non-JavaDoc, see interface RouteInfo
     public final HttpHost getProxyHost() {
-        return (this.proxyChain == null) ? null : this.proxyChain[0];
+        return (this.proxyChain.length == 0) ? null : this.proxyChain[0];
     }
 
 
@@ -352,9 +358,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
               this.localAddress.equals(that.localAddress));
         equal &=
             ( this.proxyChain        == that.proxyChain) ||
-            ((this.proxyChain        != null) &&
-             (that.proxyChain        != null) &&
-             (this.proxyChain.length == that.proxyChain.length));
+            ( this.proxyChain.length == that.proxyChain.length);
         // comparison of actual proxies follows below
         equal &=
             (this.secure    == that.secure) &&
@@ -383,10 +387,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
         if (this.localAddress != null)
             hc ^= localAddress.hashCode();
-        if (this.proxyChain != null) {
-            hc ^= proxyChain.length;
-            for (HttpHost aProxyChain : proxyChain) hc ^= aProxyChain.hashCode();
-        }
+        hc ^= proxyChain.length;
+        for (HttpHost aProxyChain : proxyChain) hc ^= aProxyChain.hashCode();
 
         if (this.secure)
             hc ^= 0x11111111;
@@ -420,11 +422,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (this.secure)
             cab.append('s');
         cab.append("}->");
-        if (this.proxyChain != null) {
-            for (HttpHost aProxyChain : this.proxyChain) {
-                cab.append(aProxyChain);
-                cab.append("->");
-            }
+        for (HttpHost aProxyChain : this.proxyChain) {
+            cab.append(aProxyChain);
+            cab.append("->");
         }
         cab.append(this.targetHost);
         cab.append(']');
