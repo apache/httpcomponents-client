@@ -61,8 +61,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.localserver.LocalTestServer;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 
 /**
  * Unit tests for {@link SSLSocketFactory}.
@@ -113,7 +111,6 @@ public class TestSSLSocketFactory extends TestCase
     }
     
     public void testCreateSocket() throws Exception {
-        HttpParams params = new BasicHttpParams();
         String password = "changeit";
         char[] pwd = password.toCharArray();
 
