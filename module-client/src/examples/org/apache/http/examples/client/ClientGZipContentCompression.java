@@ -108,6 +108,8 @@ public class ClientGZipContentCompression {
 
         System.out.println("----------------------------------------");
         System.out.println(response.getStatusLine());
+        System.out.println(response.getLastHeader("Content-Encoding"));
+        System.out.println(response.getLastHeader("Content-Length"));
         System.out.println("----------------------------------------");
 
         HttpEntity entity = response.getEntity();
@@ -115,6 +117,8 @@ public class ClientGZipContentCompression {
         if (entity != null) {
             String content = EntityUtils.toString(entity);
             System.out.println(content);
+            System.out.println("----------------------------------------");
+            System.out.println("Uncompressed size: "+content.length());
         }
     }
 
