@@ -404,7 +404,7 @@ public class LocalTestServer {
             // Set up the HTTP service
             HttpService httpService = new HttpService(
                 httpProcessor, 
-                new DefaultConnectionReuseStrategy(), 
+                reuseStrategy, 
                 new DefaultHttpResponseFactory());
             httpService.setParams(serverParams);
             httpService.setHandlerResolver(handlerRegistry);
