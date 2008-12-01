@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,7 +38,7 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * This example demonstrates the use of the {@link ResponseHandler} to simply 
+ * This example demonstrates the use of the {@link ResponseHandler} to simplify 
  * the process of processing the HTTP response and releasing associated resources.
  */
 public class ClientWithResponseHandler {
