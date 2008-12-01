@@ -223,14 +223,14 @@ public class TestHttpRoute extends TestCase {
         // we can't test hashCode in general due to it's dependency
         // on InetAddress and HttpHost, but we can check for the flags
         Set<Integer> routecodes = new HashSet<Integer>();
-        routecodes.add(new Integer(routefff.hashCode()));
-        routecodes.add(new Integer(routefft.hashCode()));
-        routecodes.add(new Integer(routeftf.hashCode()));
-        routecodes.add(new Integer(routeftt.hashCode()));
-        routecodes.add(new Integer(routetff.hashCode()));
-        routecodes.add(new Integer(routetft.hashCode()));
-        routecodes.add(new Integer(routettf.hashCode()));
-        routecodes.add(new Integer(routettt.hashCode()));
+        routecodes.add(Integer.valueOf(routefff.hashCode()));
+        routecodes.add(Integer.valueOf(routefft.hashCode()));
+        routecodes.add(Integer.valueOf(routeftf.hashCode()));
+        routecodes.add(Integer.valueOf(routeftt.hashCode()));
+        routecodes.add(Integer.valueOf(routetff.hashCode()));
+        routecodes.add(Integer.valueOf(routetft.hashCode()));
+        routecodes.add(Integer.valueOf(routettf.hashCode()));
+        routecodes.add(Integer.valueOf(routettt.hashCode()));
         assertEquals("some flagged routes have same hashCode",
                      8, routecodes.size());
 

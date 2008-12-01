@@ -436,19 +436,19 @@ public class TestRouteTracker extends TestCase {
         assertTrue(hs.add(rt4));
         assertTrue(hs.add(rt6));
 
-        assertTrue(hc0.add(new Integer(rt0.hashCode())));
-        assertTrue(hc4.add(new Integer(rt4.hashCode())));
-        assertTrue(hc6.add(new Integer(rt6.hashCode())));
+        assertTrue(hc0.add(Integer.valueOf(rt0.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt4.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt6.hashCode())));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(false);
         assertTrue(hs.add(rt));
-        assertTrue(hc0.add(new Integer(rt.hashCode())));
+        assertTrue(hc0.add(Integer.valueOf(rt.hashCode())));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(true);
         assertTrue(hs.add(rt));
-        assertTrue(hc0.add(new Integer(rt.hashCode())));
+        assertTrue(hc0.add(Integer.valueOf(rt.hashCode())));
 
 
         // proxy (insecure) -> tunnel (insecure) -> layer (secure)
@@ -456,15 +456,15 @@ public class TestRouteTracker extends TestCase {
         rt.connectProxy(PROXY1, false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
 
         // proxy (secure) -> tunnel (secure) -> layer (insecure)
@@ -472,15 +472,15 @@ public class TestRouteTracker extends TestCase {
         rt.connectProxy(PROXY1, true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc4.add(new Integer(rt.hashCode())));
+        assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
 
 
         // PROXY1/i -> PROXY2/i -> tunnel/i -> layer/s
@@ -488,20 +488,20 @@ public class TestRouteTracker extends TestCase {
         rt.connectProxy(PROXY1, false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelProxy(PROXY2, false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
 
         // PROXY1/s -> PROXY2/s -> tunnel/s -> layer/i
@@ -509,20 +509,20 @@ public class TestRouteTracker extends TestCase {
         rt.connectProxy(PROXY1, true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelProxy(PROXY2, true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
 
         // PROXY2/i -> PROXY1/i -> tunnel/i -> layer/s
@@ -530,22 +530,22 @@ public class TestRouteTracker extends TestCase {
         rt.connectProxy(PROXY2, false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        assertTrue(hc6.add(new Integer(rt.hashCode())));
+        assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelProxy(PROXY1, false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+        // assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(false);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+        // assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(true);
         assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // assertTrue(hc6.add(new Integer(rt.hashCode())));
+        // assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
 
         // check that all toString are OK and different
