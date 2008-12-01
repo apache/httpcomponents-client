@@ -32,14 +32,9 @@
 package org.apache.http.conn.ssl;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -47,13 +42,25 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.RSAPrivateCrtKeySpec;
 
-import javax.net.ServerSocketFactory;
-import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
@@ -81,6 +88,30 @@ public class TestSSLSocketFactory extends TestCase
         return ts;
     }
 
+    static class TestX509HostnameVerifier implements X509HostnameVerifier {
+
+        private boolean fired = false;
+        
+        public boolean verify(String host, SSLSession session) {
+            return true;
+        }
+
+        public void verify(String host, SSLSocket ssl) throws IOException {
+            this.fired = true;
+        }
+
+        public void verify(String host, String[] cns, String[] subjectAlts) throws SSLException {
+        }
+
+        public void verify(String host, X509Certificate cert) throws SSLException {
+        }
+        
+        public boolean isFired() {
+            return this.fired;
+        }
+        
+    }
+    
     public void testCreateSocket() throws Exception {
         HttpParams params = new BasicHttpParams();
         String password = "changeit";
@@ -113,95 +144,44 @@ public class TestSSLSocketFactory extends TestCase
         ks.setKeyEntry("RSA_KEY", pk, pwd, chain);
         ks.setCertificateEntry("CERT", chain[2]); // Let's trust ourselves. :-)
 
-        File tempFile = File.createTempFile("junit", "jks");
+        KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory
+                .getDefaultAlgorithm());
+        kmfactory.init(ks, pwd);
+        KeyManager[] keymanagers = kmfactory.getKeyManagers();
+            
+        TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
+        tmfactory.init(ks);
+        TrustManager[] trustmanagers = tmfactory.getTrustManagers();
+        
+        SSLContext sslcontext = SSLContext.getInstance("TLSv1");
+        sslcontext.init(keymanagers, trustmanagers, null);
+        
+        LocalTestServer server = new LocalTestServer(null, null, null, sslcontext);
+        server.registerDefaultHandlers();
+        server.start();
         try {
-            String path = tempFile.getCanonicalPath();
-            tempFile.deleteOnExit();
-            FileOutputStream fOut = new FileOutputStream(tempFile);
-            ks.store(fOut, pwd);
-            fOut.close();
-
-            System.setProperty("javax.net.ssl.keyStore", path);
-            System.setProperty("javax.net.ssl.keyStorePassword", password);
-            System.setProperty("javax.net.ssl.trustStore", path);
-            System.setProperty("javax.net.ssl.trustStorePassword", password);
-
-            ServerSocketFactory server = SSLServerSocketFactory.getDefault();
-            // Let the operating system just choose an available port:
-            ServerSocket serverSocket = server.createServerSocket(0);
-            serverSocket.setSoTimeout(30000);
-            int port = serverSocket.getLocalPort();
-            // System.out.println("\nlistening on port: " + port);
-
-            SSLSocketFactory ssf = SSLSocketFactory.getSocketFactory();
-            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-
-            // Test 1 - createSocket()
-            IOException[] e = new IOException[1];
-            boolean[] success = new boolean[1];
-            listen(serverSocket, e, success);
-            Socket s = ssf.connectSocket(null, "localhost", port,
-                                         null, 0, params);
-            exerciseSocket(s, e, success);
-
-            // Test 2 - createSocket( Socket ), where we upgrade a plain socket
-            //          to SSL.
-            success[0] = false;
-            listen(serverSocket, e, success);
-            s = new Socket("localhost", port);
-            s = ssf.createSocket(s, "localhost", port, true);
-            exerciseSocket(s, e, success);
-        }
-        finally {
-            tempFile.delete();
+            
+            TestX509HostnameVerifier hostnameVerifier = new TestX509HostnameVerifier();
+            
+            SSLSocketFactory socketFactory = new SSLSocketFactory(sslcontext);
+            socketFactory.setHostnameVerifier(hostnameVerifier);
+            
+            Scheme https = new Scheme("https", socketFactory, 443); 
+            DefaultHttpClient httpclient = new DefaultHttpClient();
+            httpclient.getConnectionManager().getSchemeRegistry().register(https);
+            
+            HttpHost target = new HttpHost(
+                    LocalTestServer.TEST_SERVER_ADDR.getHostName(),
+                    server.getServicePort(),
+                    "https");
+            HttpGet httpget = new HttpGet("/random/100");
+            HttpResponse response = httpclient.execute(target, httpget);
+            assertEquals(200, response.getStatusLine().getStatusCode());
+            assertTrue(hostnameVerifier.isFired());
+        } finally {
+            server.stop();
         }
     }
-
-    private static void listen(final ServerSocket ss,
-                               final IOException[] e,
-                               final boolean[] success) {
-        Runnable r = new Runnable() {
-            public void run() {
-                try {
-                    Socket s = ss.accept();
-                    InputStream in = s.getInputStream();
-                    OutputStream out = s.getOutputStream();
-                    out.write("server says hello\n".getBytes());
-                    byte[] buf = new byte[4096];
-                    in.read(buf);
-                    out.close();
-                    in.close();
-                    s.close();
-                } catch(IOException ioe) {
-                    e[0] = ioe;
-                } finally {
-                    success[0] = true;
-                }
-            }
-        };
-        new Thread(r).start();
-        Thread.yield();
-    }
-
-    private static void exerciseSocket(Socket s, IOException[] e,
-                                       boolean[] success)
-          throws IOException {
-        InputStream in = s.getInputStream();
-        OutputStream out = s.getOutputStream();
-        out.write(42);
-        byte[] buf = new byte[4096];
-        in.read(buf);
-        out.close();
-        in.close();
-        s.close();
-        // String response = new String( buf, 0, c );
-        while(!success[0]) {
-            Thread.yield();
-        }
-        if(e[0] != null) {
-            throw e[0];
-        }
-    }
-
 
 }

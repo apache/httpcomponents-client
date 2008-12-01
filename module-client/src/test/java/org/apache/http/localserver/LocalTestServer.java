@@ -41,6 +41,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpException;
 import org.apache.http.HttpServerConnection;
@@ -85,21 +88,24 @@ public class LocalTestServer {
         new InetSocketAddress("127.0.0.1", 0);
 
     /** The request handler registry. */
-    public HttpRequestHandlerRegistry handlerRegistry;
+    private final HttpRequestHandlerRegistry handlerRegistry;
 
     /** The server-side connection re-use strategy. */
-    public ConnectionReuseStrategy reuseStrategy;
+    private final ConnectionReuseStrategy reuseStrategy;
 
     /**
      * The HTTP processor.
      * If the interceptors are thread safe and the list is not
      * modified during operation, the processor is thread safe.
      */
-    public BasicHttpProcessor httpProcessor;
+    private final BasicHttpProcessor httpProcessor;
 
     /** The server parameters. */
-    public HttpParams serverParams;
+    private final HttpParams serverParams;
 
+    /** Optional SSL context */
+    private final SSLContext sslcontext;
+    
     /** The server socket, while being served. */
     protected volatile ServerSocket servicedSocket;
 
@@ -116,24 +122,52 @@ public class LocalTestServer {
      * @param proc      the HTTP processors to be used by the server, or
      *                  <code>null</code> to use a
      *                  {@link #newProcessor default} processor
+     * @param reuseStrat the connection reuse strategy to be used by the 
+     *                  server, or <code>null</code> to use
+     *                  {@link #newConnectionReuseStrategy() default}
+     *                  strategy.                 
+     * @param params    the parameters to be used by the server, or
+     *                  <code>null</code> to use
+     *                  {@link #newDefaultParams default} parameters
+     * @param sslcontext optional SSL context if the server is to leverage
+     *                   SSL/TLS transport security
+     */
+    public LocalTestServer(
+            BasicHttpProcessor proc, 
+            ConnectionReuseStrategy reuseStrat,
+            HttpParams params, 
+            SSLContext sslcontext) {
+        super();
+        this.handlerRegistry = new HttpRequestHandlerRegistry();
+        this.reuseStrategy = (reuseStrat != null) ? reuseStrat: newConnectionReuseStrategy();
+        this.httpProcessor = (proc != null) ? proc : newProcessor();
+        this.serverParams = (params != null) ? params : newDefaultParams();
+        this.sslcontext = sslcontext;
+    }
+
+
+    /**
+     * Creates a new test server.
+     *
+     * @param proc      the HTTP processors to be used by the server, or
+     *                  <code>null</code> to use a
+     *                  {@link #newProcessor default} processor
      * @param params    the parameters to be used by the server, or
      *                  <code>null</code> to use
      *                  {@link #newDefaultParams default} parameters
      */
-    public LocalTestServer(BasicHttpProcessor proc, HttpParams params) {
-        handlerRegistry = new HttpRequestHandlerRegistry();
-        reuseStrategy = new DefaultConnectionReuseStrategy();
-        httpProcessor = (proc != null) ? proc : newProcessor();
-        serverParams = (params != null) ? params : newDefaultParams();
+    public LocalTestServer(
+            BasicHttpProcessor proc, 
+            HttpParams params) {
+        this(proc, null, params, null);
     }
-
 
     /**
      * Obtains an HTTP protocol processor with default interceptors.
      *
      * @return  a protocol processor for server-side use
      */
-    public static BasicHttpProcessor newProcessor() {
+    protected BasicHttpProcessor newProcessor() {
 
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -150,7 +184,7 @@ public class LocalTestServer {
      *
      * @return  default parameters
      */
-    public static HttpParams newDefaultParams() {
+    protected HttpParams newDefaultParams() {
         HttpParams params = new BasicHttpParams();
         params
             .setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
@@ -165,6 +199,11 @@ public class LocalTestServer {
                           "LocalTestServer/1.1");
         return params;
     }
+    
+    protected ConnectionReuseStrategy newConnectionReuseStrategy() {
+        return new DefaultConnectionReuseStrategy();
+    }
+    
     
     /**
      * Returns the number of connections this test server has accepted.
@@ -210,16 +249,6 @@ public class LocalTestServer {
 
 
     /**
-     * Specifies the connection re-use strategy.
-     *
-     * @param strategy  the re-use strategy
-     */
-    public void setReuseStrategy(ConnectionReuseStrategy strategy) {
-        reuseStrategy = strategy;
-    }
-
-
-    /**
      * Starts this test server.
      * Use {@link #getServicePort getServicePort}
      * to obtain the port number afterwards.
@@ -229,7 +258,14 @@ public class LocalTestServer {
             throw new IllegalStateException
                 (this.toString() + " already running");
 
-        ServerSocket ssock = new ServerSocket();
+        ServerSocket ssock;
+        if (sslcontext != null) {
+            SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
+            ssock = sf.createServerSocket();
+        } else {
+            ssock = new ServerSocket();
+        }
+        
         ssock.setReuseAddress(true); // probably pointless for port '0'
         ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;
@@ -257,12 +293,16 @@ public class LocalTestServer {
 
         if (listenerThread != null) {
             listenerThread.interrupt();
-            //@@@ listenerThread.join(); ?
-            listenerThread = null;
         }
     }
 
 
+    public void awaitTermination(long timeMs) throws InterruptedException {
+        if (listenerThread != null) {
+            listenerThread.join(timeMs);
+        }
+    }
+    
     @Override
     public String toString() {
         ServerSocket ssock = servicedSocket; // avoid synchronization
