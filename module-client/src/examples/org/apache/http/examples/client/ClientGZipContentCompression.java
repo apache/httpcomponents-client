@@ -124,6 +124,7 @@ public class ClientGZipContentCompression {
             super(entity);
         }
     
+        @Override
         public InputStream getContent()
             throws IOException, IllegalStateException {
 
@@ -133,6 +134,7 @@ public class ClientGZipContentCompression {
             return new GZIPInputStream(wrappedin);
         }
 
+        @Override
         public long getContentLength() {
             // length of ungzipped content is not known
             return -1;
