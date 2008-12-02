@@ -98,6 +98,9 @@
       </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <aggregate>true</aggregate>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
@@ -112,16 +115,42 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
-            <descriptor>src/main/assembly/bin-unix.xml</descriptor>
-            <descriptor>src/main/assembly/bin-win.xml</descriptor>
-            <descriptor>src/main/assembly/bin-with-deps-unix.xml</descriptor>
-            <descriptor>src/main/assembly/bin-with-deps-win.xml</descriptor>
-            <descriptor>src/main/assembly/src-unix.xml</descriptor>
-            <descriptor>src/main/assembly/src-win.xml</descriptor>
+            <descriptor>src/main/assembly/bin.xml</descriptor>
+            <descriptor>src/main/assembly/osgi-bin.xml</descriptor>
+            <descriptor>src/main/assembly/bin-with-deps.xml</descriptor>
+            <descriptor>src/main/assembly/src.xml</descriptor>
           </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
         </configuration>
       </plugin>
-
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <tasks>
+            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+              <property name="target" value="${project.build.directory}" />
+              <property name="package.zip" value="${pom.artifactId}-${pom.version}-bin.zip" />
+            </ant>
+            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+              <property name="target" value="${project.build.directory}" />
+              <property name="package.zip" value="${pom.artifactId}-${pom.version}-osgi-bin.zip" />
+            </ant>
+            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+              <property name="target" value="${project.build.directory}" />
+              <property name="package.zip" value="${pom.artifactId}-${pom.version}-bin-with-dependencies.zip" />
+            </ant>
+            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+              <property name="target" value="${project.build.directory}" />
+              <property name="package.zip" value="${pom.artifactId}-${pom.version}-src.zip" />
+            </ant>
+            <ant antfile="src/main/assembly/build.xml" target="fixtar">
+              <property name="target" value="${project.build.directory}" />
+              <property name="package.tar" value="${pom.artifactId}-${pom.version}-bin-with-dependencies.tar.gz" />
+            </ant>
+          </tasks>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-clover-plugin</artifactId>
         <configuration>

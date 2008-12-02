@@ -1,7 +1,7 @@
 <!-- 
-   $HeadURL$
-   $Revision$
-   $Date$
+   $HeadURL: http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/src/main/assembly/bin-unix.xml $
+   $Revision: 687166 $
+   $Date: 2008-08-19 23:40:27 +0200 (Tue, 19 Aug 2008) $
 
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
@@ -28,63 +28,51 @@
    <http://www.apache.org/>.
  -->
 <assembly>
-    <id>src-win</id>
+    <id>osgi-bin</id>
     <formats>
+        <format>tar.gz</format>
         <format>zip</format>
     </formats>
     <fileSets>
-        <!-- Release materials -->
+        <fileSet>
+          <directory>module-osgi-bundle/target</directory>
+          <outputDirectory>/</outputDirectory>
+          <includes>
+            <include>*.jar</include>
+          </includes>
+          <excludes>
+            <exclude>*sources.jar</exclude>
+          </excludes>
+        </fileSet>
         <fileSet>
           <directory></directory>
           <outputDirectory>/</outputDirectory>
           <includes>
-            <include>*.txt</include>
-          </includes>
-          <lineEnding>crlf</lineEnding>
-        </fileSet>
-        <!-- Build files -->
-        <fileSet>
-          <directory></directory>
-          <outputDirectory>/</outputDirectory>
-          <includes>
-            <include>*.xml</include>
-          </includes>
-          <lineEnding>crlf</lineEnding>
-        </fileSet>
-        <!-- Site and assembly descriptors -->
-        <fileSet>
-          <directory>src</directory>
-          <outputDirectory>src</outputDirectory>
-          <lineEnding>crlf</lineEnding>
-        </fileSet>
-        <!-- Base module source and text resources -->
-        <fileSet>
-          <directory>module-client/src</directory>
-          <outputDirectory>module-client/src</outputDirectory>
-          <lineEnding>crlf</lineEnding>
-        </fileSet>
-        <!-- Base module build files -->
-        <fileSet>
-          <directory>module-client</directory>
-          <outputDirectory>module-client</outputDirectory>
-          <lineEnding>crlf</lineEnding>
-          <includes>
-            <include>*.xml</include>
+            <include>README.txt</include>
+            <include>LICENSE.txt</include>
+            <include>NOTICE.txt</include>
+            <include>RELEASE_NOTES.txt</include>
           </includes>
         </fileSet>
-        <!-- HttpMime module source and text resources -->
+        <!-- Javadocs -->
         <fileSet>
-          <directory>module-httpmime/src</directory>
-          <outputDirectory>module-httpmime/src</outputDirectory>
-          <lineEnding>crlf</lineEnding>
+          <directory>target/site/apidocs</directory>
+          <outputDirectory>javadoc</outputDirectory>
         </fileSet>
-        <!-- HttpMime module build files -->
+        <!-- Base module -->
         <fileSet>
-          <directory>module-httpmime</directory>
-          <outputDirectory>module-httpmime</outputDirectory>
-          <lineEnding>crlf</lineEnding>
+          <directory>module-client/src/examples/</directory>
+          <outputDirectory>examples</outputDirectory>
           <includes>
-            <include>*.xml</include>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <!-- HttpMime module -->
+        <fileSet>
+          <directory>module-httpmime/src/examples/</directory>
+          <outputDirectory>examples</outputDirectory>
+          <includes>
+            <include>**/*.java</include>
           </includes>
         </fileSet>
     </fileSets>
