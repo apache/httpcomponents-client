@@ -5,12 +5,9 @@ BETA2 is a maintenance release, which addresses a number of issues
 discovered since the previous release. 
 
 The only significant new feature is an addition of an OSGi compliant 
-bundlecombining HttpClient and HttpMime jars.
+bundle combining HttpClient and HttpMime jars.
 
-HttpClient 4.0 code line appears to have stablizied to such an extend 
-that the next release is likely to be the 4.0 FINAL, general 
-availability release provided no major bugs are reported in the 
-meantime.
+All upstream projects are strongly encouraged to upgrade.
 
 * [HTTPCLIENT-803] Fixed bug in SSL host verifier implementations 
   causing the SSL certificate to be rejected as invalid if the connection 
