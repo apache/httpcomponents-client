@@ -9,6 +9,10 @@ bundle combining HttpClient and HttpMime jars.
 
 All upstream projects are strongly encouraged to upgrade.
 
+* Fixed NPE in DefaultRequestDirector thrown when retrying a failed 
+  request over a proxied connection. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-803] Fixed bug in SSL host verifier implementations 
   causing the SSL certificate to be rejected as invalid if the connection 
   is established using an IP address.

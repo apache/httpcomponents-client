@@ -434,11 +434,17 @@ public class DefaultRequestDirector implements RequestDirector {
                             managedConn.open(route, context, params);
                         } else {
                             // otherwise give up
+                            this.log.debug("Proxied connection. Need to start over.");
                             retrying = false;
                         }
                         
                     }
 
+                }
+                
+                if (response == null) {
+                    // Need to start over
+                    continue;
                 }
 
                 // Run response protocol interceptors
