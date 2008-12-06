@@ -165,7 +165,7 @@ public class RandomHandler
             if (len < 0L)
                 throw new IllegalArgumentException
                     ("Length must not be negative");
-            if (len > (long) Integer.MAX_VALUE)
+            if (len > Integer.MAX_VALUE)
                 throw new IllegalArgumentException
                     ("Length must not exceed Integer.MAX_VALUE");
 
@@ -233,9 +233,9 @@ public class RandomHandler
                     if (i%5 == 0) {
                         value = Math.random();
                     }
-                    value = value * (double)RANGE.length;
+                    value = value * RANGE.length;
                     int d = (int) value;
-                    value = value - (double)d;
+                    value = value - d;
                     data[i] = RANGE[d];
                 }
                 out.write(data, 0, end);
