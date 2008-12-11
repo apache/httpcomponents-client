@@ -46,9 +46,6 @@ import java.net.URI;
  * process, unless that text happens to be the output of the process.
  * </blockquote>
  * </p>
- * <p>
- * GetMethods will follow redirect requests from the http server by default.
- * This behavour can be disabled by calling setFollowRedirects(false).</p>
  * 
  * @version $Revision$
  * 
