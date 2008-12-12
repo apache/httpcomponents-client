@@ -23,7 +23,7 @@ All upstream projects are strongly encouraged to upgrade.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * DigestScheme can use an arbitrary digest algorithm requested by the
-  target server (such SHA) as long as this algorithm is supported by 
+  target server (such as SHA) as long as this algorithm is supported by 
   the Java runtime.     
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

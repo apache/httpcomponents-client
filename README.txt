@@ -14,16 +14,20 @@ Dependencies
 HttpClient main module requires Java 5.0 compatible runtime and
 depends on the following external libraries:
 
-* Apache HttpComponents HttpCore 4.0-beta1 or newer API compatible version
-* Apache Commons Logging 1.0.3 or newer API compatible version
-* Apache Commons Codec 1.3 or newer API compatible version
+* Apache HttpComponents HttpCore
+* Apache Commons Logging
+* Apache Commons Codec
+
+(for detailed information on external dependencies please see pom.xml)
 
 HttpMime module is optional and requires Java 5.0 compatible runtime
 and depends on the following external libraries:
 
-* Apache HttpComponents HttpCore 4.0-beta1 or newer API compatible version
-* Apache mime4j 0.4 or newer API compatible version
-* Apache Commons Logging 1.0.3 or newer API compatible version
+* Apache HttpComponents HttpCore
+* Apache mime4j
+* Apache Commons Logging
+
+(for detailed information on external dependencies please see pom.xml)
 
 Licensing
 ---------
