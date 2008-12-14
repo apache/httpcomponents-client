@@ -34,7 +34,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.0-beta2-SNAPSHOT</version>
+    <version>4.0-beta2</version>
   </parent>
   <artifactId>httpmime</artifactId>
   <name>HttpMime</name>
@@ -53,9 +53,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</connection>
-    <developerConnection>scm:svn:http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</developerConnection>
-    <url>http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</url>
+    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-httpmime</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-httpmime</developerConnection>
+    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-httpmime</url>
   </scm>
 
   <dependencies>

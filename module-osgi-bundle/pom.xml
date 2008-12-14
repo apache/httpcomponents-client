@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!-- 
-   $HeadURL:$
-   $Revision:$
-   $Date:$
+   $HeadURL$
+   $Revision$
+   $Date$
 
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
@@ -34,7 +34,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.0-beta2-SNAPSHOT</version>
+    <version>4.0-beta2</version>
   </parent>
   <artifactId>httpclient-osgi</artifactId>
   <name>HttpClient OSGi bundle</name>
