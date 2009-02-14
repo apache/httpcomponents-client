@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 
-import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -131,12 +130,12 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
         Collections.shuffle(addresses);
 
         IOException lastEx = null;
-        for (InetAddress address: addresses) {
+        for (InetAddress remoteAddress: addresses) {
             try {
-                sock.connect(new InetSocketAddress(address, port), timeout);
+                sock.connect(new InetSocketAddress(remoteAddress, port), timeout);
                 break;
             } catch (SocketTimeoutException ex) {
-                throw ex;
+                throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
             } catch (IOException ex) {
                 // create new socket
                 sock = new Socket();
@@ -184,29 +183,5 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
         return false;
 
     } // isSecure
-
-
-    /**
-     * Compares this factory with an object.
-     * There is only one instance of this class.
-     *
-     * @param obj       the object to compare with
-     *
-     * @return  iff the argument is this object
-     */
-    @Override
-    public boolean equals(Object obj) {
-        return (obj == this);
-    }
-
-    /**
-     * Obtains a hash code for this object.
-     * All instances of this class have the same hash code.
-     * There is only one instance of this class.
-     */
-    @Override
-    public int hashCode() {
-        return PlainSocketFactory.class.hashCode();
-    }
 
 }

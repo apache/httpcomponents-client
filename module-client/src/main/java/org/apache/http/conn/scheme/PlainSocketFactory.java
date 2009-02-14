@@ -35,7 +35,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -115,9 +117,11 @@ public final class PlainSocketFactory implements SocketFactory {
         } else {
             remoteAddress = new InetSocketAddress(host, port);            
         }
-        
-        sock.connect(remoteAddress, timeout);
-
+        try {
+            sock.connect(remoteAddress, timeout);
+        } catch (SocketTimeoutException ex) {
+            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
+        }
         return sock;
 
     } // connectSocket

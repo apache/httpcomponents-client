@@ -31,6 +31,7 @@
 
 package org.apache.http.conn.ssl;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
@@ -47,6 +48,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -318,9 +320,11 @@ public class SSLSocketFactory implements LayeredSocketFactory {
         } else {
             remoteAddress = new InetSocketAddress(host, port);            
         }
-        
-        sslsock.connect(remoteAddress, connTimeout);
-
+        try {
+            sock.connect(remoteAddress, connTimeout);
+        } catch (SocketTimeoutException ex) {
+            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
+        }
         sslsock.setSoTimeout(soTimeout);
         try {
             hostnameVerifier.verify(host, sslsock);

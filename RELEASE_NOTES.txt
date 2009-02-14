@@ -1,3 +1,14 @@
+Changes since 4.0 beta 2
+-------------------
+
+* [HTTPCLIENT-822] Default socket factories to rethrow SocketTimeoutException as 
+  ConnectTimeoutException in case of connect failure due to a time out.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-813] Fixed default port resolution. Invalid ports no longer
+  get replaced with the default port value.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 Release 4.0 beta 2
 -------------------
 
@@ -8,10 +19,6 @@ The only significant new feature is an addition of an OSGi compliant
 bundle combining HttpClient and HttpMime jars.
 
 All upstream projects are strongly encouraged to upgrade.
-
-* [HTTPCLIENT-813] Fixed default port resolution. Invalid ports no longer
-  get replaced with the default port value.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Fixed NPE in DefaultRequestDirector thrown when retrying a failed 
   request over a proxied connection. 
