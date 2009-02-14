@@ -9,6 +9,10 @@ bundle combining HttpClient and HttpMime jars.
 
 All upstream projects are strongly encouraged to upgrade.
 
+* [HTTPCLIENT-813] Fixed default port resolution. Invalid ports no longer
+  get replaced with the default port value.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * Fixed NPE in DefaultRequestDirector thrown when retrying a failed 
   request over a proxied connection. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>

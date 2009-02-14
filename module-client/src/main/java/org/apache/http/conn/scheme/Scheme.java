@@ -161,7 +161,7 @@ public final class Scheme {
      * @return the given port or the defaultPort
      */
     public final int resolvePort(int port) {
-        return ((port <= 0) || (port > 0xffff)) ? defaultPort : port;
+        return port <= 0 ? defaultPort : port;
     }
 
 
