@@ -38,6 +38,8 @@ import org.apache.http.HttpHost;
 /**
  * A collection of utilities for {@link URI URIs}, to workaround
  * bugs within the class or for ease-of-use features.
+ *
+ * @since 4.0
  */
 public class URIUtils {
 

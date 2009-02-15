@@ -51,6 +51,8 @@ import org.apache.http.params.HttpParams;
  * the {@link #connectSocket(Socket, String, int, InetAddress, int, HttpParams)}
  * method cannot be reliably interrupted by closing the socket returned by the
  * {@link #createSocket()} method.
+ *
+ * @since 4.0
  */
 public final class MultihomePlainSocketFactory implements SocketFactory {
 

@@ -35,6 +35,8 @@ import java.lang.ref.Reference;
 
 /**
  * Callback handler for {@link RefQueueWorker RefQueueWorker}.
+ *
+ * @since 4.0
  */
 public interface RefQueueHandler {
 

@@ -48,6 +48,8 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * A collection of utilities for encoding URLs.
+ *
+ * @since 4.0
  */
 public class URLEncodedUtils {
 

@@ -134,6 +134,8 @@ import java.security.UnrecoverableKeyException;
  *      </p>
  *     </li>
  *   </ul>
+ *
+ * @since 4.0
  */
 
 public class SSLSocketFactory implements LayeredSocketFactory {

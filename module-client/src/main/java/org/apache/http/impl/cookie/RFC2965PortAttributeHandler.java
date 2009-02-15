@@ -43,6 +43,8 @@ import org.apache.http.cookie.SetCookie2;
 
 /**
  * <tt>"Port"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ *
+ * @since 4.0
  */
 public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
 

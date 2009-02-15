@@ -50,6 +50,8 @@ import javax.net.ssl.SSLException;
  * level, for example "a.foo.com".  It does not match deeper subdomains
  * such as "a.b.foo.com".
  * 
+ *
+ * @since 4.0
  */
 public class StrictHostnameVerifier extends AbstractVerifier {
 

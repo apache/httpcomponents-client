@@ -46,6 +46,8 @@ import org.apache.commons.logging.LogFactory;
  * If that feature is used, a daemon thread should be executing
  * this worker. It will pick up the queued references and pass them
  * on to a handler for appropriate processing.
+ *
+ * @since 4.0
  */
 public class RefQueueWorker implements Runnable {
 

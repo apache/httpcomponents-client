@@ -36,6 +36,8 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 
 /**
  * Encapsulates a request for a {@link BasicPoolEntry}.
+ *
+ * @since 4.0
  */
 public interface PoolEntryRequest {
 

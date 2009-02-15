@@ -49,6 +49,8 @@ import org.apache.http.util.LangUtils;
  * SchemeRegistry.DEFAULT.register(https);
  * </pre>
  *
+ *
+ * @since 4.0
  */
 public final class Scheme {
 

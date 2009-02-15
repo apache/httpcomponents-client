@@ -62,6 +62,8 @@ import org.apache.http.params.HttpParams;
  * {@link AbstractConnPool#poolLock poolLock} in the base class,
  * not via <code>synchronized</code> methods.
  *
+ *
+ * @since 4.0
  */
 public class ConnPoolByRoute extends AbstractConnPool {
         

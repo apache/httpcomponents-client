@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -32,6 +32,8 @@ package org.apache.http.client;
 
 /**
  * Signals a non 2xx HTTP response.
+ *
+ * @since 4.0
  */
 public class HttpResponseException extends ClientProtocolException {
     

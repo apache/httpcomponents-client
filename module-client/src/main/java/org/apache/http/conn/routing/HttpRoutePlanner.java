@@ -42,6 +42,8 @@ import org.apache.http.protocol.HttpContext;
  * Encapsulates logic to compute a {@link HttpRoute} to a target host.
  * Implementations may for example be based on parameters, or on the
  * standard Java system properties.
+ *
+ * @since 4.0
  */
 public interface HttpRoutePlanner {
     

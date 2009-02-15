@@ -45,6 +45,8 @@ import java.util.concurrent.locks.Condition;
  * passed to the constructor.
  * Instances of this class do <i>not</i> synchronize access!
  *
+ *
+ * @since 4.0
  */
 public class WaitingThread {
 

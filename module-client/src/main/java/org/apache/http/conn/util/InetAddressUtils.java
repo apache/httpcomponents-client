@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
 
 /**
  * A collection of utilities relating to InetAddresses.
+ *
+ * @since 4.0
  */
 public class InetAddressUtils {
 

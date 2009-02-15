@@ -62,6 +62,8 @@ import org.apache.http.conn.params.ConnRouteParams;
  * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
  * though not the {@link
  * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
+ *
+ * @since 4.0
  */
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     

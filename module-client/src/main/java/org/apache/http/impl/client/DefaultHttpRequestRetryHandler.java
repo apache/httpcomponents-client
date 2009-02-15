@@ -46,6 +46,8 @@ import org.apache.http.protocol.ExecutionContext;
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
  * 
+ *
+ * @since 4.0
  */
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 

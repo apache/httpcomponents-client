@@ -37,6 +37,8 @@ import org.apache.http.HttpHost;
 /**
  * A {@link ConnectException} that specifies the {@link HttpHost} that was
  * being connected to.
+ *
+ * @since 4.0
  */
 public class HttpHostConnectException extends ConnectException {
 

@@ -46,6 +46,8 @@ import java.util.Comparator;
  * comparison is undefined.
  * </p>
  * 
+ *
+ * @since 4.0
  */
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 

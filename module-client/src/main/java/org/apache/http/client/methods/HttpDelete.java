@@ -45,6 +45,8 @@ import java.net.URI;
  * status code returned from the origin server indicates that the action
  * has been completed successfully.
  * </blockquote>
+ *
+ * @since 4.0
  */
 public class HttpDelete extends HttpRequestBase {
 

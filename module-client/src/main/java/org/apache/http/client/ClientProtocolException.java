@@ -34,6 +34,8 @@ import java.io.IOException;
 
 /**
  * Signals an error in the HTTP protocol.
+ *
+ * @since 4.0
  */
 public class ClientProtocolException extends IOException {
     

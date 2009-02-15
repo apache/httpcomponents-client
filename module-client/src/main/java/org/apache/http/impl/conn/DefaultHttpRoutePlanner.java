@@ -53,6 +53,8 @@ import org.apache.http.conn.params.ConnRouteParams;
  * {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
  * It will not make use of any Java system properties,
  * nor of system or browser proxy settings.
+ *
+ * @since 4.0
  */
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 

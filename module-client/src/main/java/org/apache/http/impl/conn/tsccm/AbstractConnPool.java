@@ -54,6 +54,8 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  * The abstract pool includes a {@link #poolLock}, which is used to
  * synchronize access to the internal pool datastructures.
  * Don't use <code>synchronized</code> for that purpose!
+ *
+ * @since 4.0
  */
 public abstract class AbstractConnPool implements RefQueueHandler {
 

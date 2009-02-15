@@ -35,6 +35,8 @@ package org.apache.http.client.protocol;
 /**
  * {@link org.apache.http.protocol.HttpContext Context}
  * attribute names for client.
+ *
+ * @since 4.0
  */
 public interface ClientContext {
     

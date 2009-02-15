@@ -35,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Encapsulates a request for a {@link ManagedClientConnection}.
+ *
+ * @since 4.0
  */
 public interface ClientConnectionRequest {
     

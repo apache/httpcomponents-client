@@ -40,6 +40,8 @@ import org.apache.http.util.LangUtils;
  * 
  * @version $Revision$ $Date$
  * 
+ *
+ * @since 4.0
  */
 public class UsernamePasswordCredentials implements Credentials {
 

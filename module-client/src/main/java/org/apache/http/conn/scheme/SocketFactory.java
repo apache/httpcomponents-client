@@ -47,6 +47,8 @@ import org.apache.http.params.HttpParams;
  * and {@link java.lang.Object#hashCode() Object.hashCode()}
  * must be overridden for the correct operation of some connection managers.
  * 
+ *
+ * @since 4.0
  */
 public interface SocketFactory {
 

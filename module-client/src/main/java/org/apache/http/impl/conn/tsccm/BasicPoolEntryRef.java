@@ -42,6 +42,8 @@ import org.apache.http.conn.routing.HttpRoute;
  * A weak reference to a {@link BasicPoolEntry BasicPoolEntry}.
  * This reference explicitly keeps the planned route, so the connection
  * can be reclaimed if it is lost to garbage collection.
+ *
+ * @since 4.0
  */
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 

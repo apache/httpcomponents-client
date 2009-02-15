@@ -42,6 +42,8 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
 
 /**
  * Basic implementation of a connection pool entry.
+ *
+ * @since 4.0
  */
 public class BasicPoolEntry extends AbstractPoolEntry {
 

@@ -41,6 +41,8 @@ import org.apache.http.impl.conn.AbstractPooledConnAdapter;
  * A connection wrapper and callback handler.
  * All connections given out by the manager are wrappers which
  * can be {@link #detach detach}ed to prevent further use on release.
+ *
+ * @since 4.0
  */
 public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
 

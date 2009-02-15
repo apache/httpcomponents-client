@@ -53,6 +53,8 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
+ *
+ * @since 4.0
  */
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 

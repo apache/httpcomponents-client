@@ -47,6 +47,8 @@ import org.apache.http.protocol.HttpContext;
  * data as methods of this interfrace may be executed from multiple threads 
  * </p>
  * 
+ *
+ * @since 4.0
  */
 public interface RedirectHandler {
 

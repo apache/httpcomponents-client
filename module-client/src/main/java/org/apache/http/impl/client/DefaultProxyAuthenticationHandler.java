@@ -41,6 +41,8 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
 
 /**
+ *
+ * @since 4.0
  */
 public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 

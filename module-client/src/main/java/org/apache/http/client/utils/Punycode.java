@@ -33,6 +33,8 @@ package org.apache.http.client.utils;
 /**
  * Facade that provides conversion between Unicode and Punycode domain names.
  * It will use an appropriate implementation.
+ *
+ * @since 4.0
  */
 public class Punycode {
     private static Idn impl;

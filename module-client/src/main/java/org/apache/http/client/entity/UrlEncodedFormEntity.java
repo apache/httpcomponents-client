@@ -40,6 +40,8 @@ import org.apache.http.protocol.HTTP;
 /**
  * An entity composed of a list of url-encoded pairs.
  * This is typically useful while sending an HTTP POST request.
+ *
+ * @since 4.0
  */
 public class UrlEncodedFormEntity extends StringEntity {
   

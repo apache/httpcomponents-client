@@ -40,6 +40,8 @@ import java.util.Collection;
 /**
  * Parses the list from <a href="http://publicsuffix.org/">publicsuffix.org</a>
  * and configures a PublicSuffixFilter.
+ *
+ * @since 4.0
  */
 public class PublicSuffixListParser {
     private static final int MAX_LINE_LEN = 256;

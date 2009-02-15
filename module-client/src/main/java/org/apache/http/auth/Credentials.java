@@ -37,6 +37,8 @@ import java.security.Principal;
  * 
  * 
  * @version $Revision$ $Date$
+ *
+ * @since 4.0
  */
 public interface Credentials {
 

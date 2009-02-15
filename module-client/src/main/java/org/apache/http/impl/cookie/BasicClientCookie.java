@@ -46,6 +46,8 @@ import org.apache.http.cookie.SetCookie;
  * 
  * 
  * @version $Revision$
+ *
+ * @since 4.0
  */
 public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable {
 

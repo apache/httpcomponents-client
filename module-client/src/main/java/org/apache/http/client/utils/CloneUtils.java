@@ -35,6 +35,8 @@ import java.lang.reflect.Method;
 
 /**
  * A collection of utilities to workaround limitations of Java clone framework.
+ *
+ * @since 4.0
  */
 public class CloneUtils {
 

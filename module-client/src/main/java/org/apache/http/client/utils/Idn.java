@@ -32,6 +32,8 @@ package org.apache.http.client.utils;
 
 /**
  * Abstraction of international domain name (IDN) conversion.
+ *
+ * @since 4.0
  */
 public interface Idn {
     /**

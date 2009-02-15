@@ -37,6 +37,8 @@ import java.util.Set;
 
 /**
  * A collection of URIs that were used as redirects.
+ *
+ * @since 4.0
  */
 public class RedirectLocations {
 

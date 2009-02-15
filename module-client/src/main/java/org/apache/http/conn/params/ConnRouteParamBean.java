@@ -42,6 +42,8 @@ import org.apache.http.params.HttpParams;
  * Allows for setting parameters relating to connection routes on
  * {@link HttpParams}.  This class ensures that the values set on the params
  * are type-safe. 
+ *
+ * @since 4.0
  */
 public class ConnRouteParamBean extends HttpAbstractParamBean {
     

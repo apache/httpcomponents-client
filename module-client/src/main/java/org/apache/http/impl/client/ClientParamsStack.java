@@ -73,6 +73,8 @@ import org.apache.http.params.AbstractHttpParams;
  *
  *
  * @version $Revision$
+ *
+ * @since 4.0
  */
 public class ClientParamsStack extends AbstractHttpParams {
 

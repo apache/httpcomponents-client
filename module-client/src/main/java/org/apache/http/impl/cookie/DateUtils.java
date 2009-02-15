@@ -46,6 +46,8 @@ import java.util.TimeZone;
  * other headers.  This class handles dates as defined by RFC 2616 section 
  * 3.3.1 as well as some other common non-standard formats.
  * 
+ *
+ * @since 4.0
  */
 public final class DateUtils {
 

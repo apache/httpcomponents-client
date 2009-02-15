@@ -40,6 +40,8 @@ import org.apache.http.cookie.SetCookie2;
  * that the HTTP agent and the target server can exchange to maintain 
  * a session as specified by RFC2965.
  * 
+ *
+ * @since 4.0
  */
 public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 {
 

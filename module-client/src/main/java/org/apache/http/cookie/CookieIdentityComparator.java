@@ -42,6 +42,8 @@ import java.util.Comparator;
  *  their domain attributes match ignoring case.
  * </p>
  * 
+ *
+ * @since 4.0
  */
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 

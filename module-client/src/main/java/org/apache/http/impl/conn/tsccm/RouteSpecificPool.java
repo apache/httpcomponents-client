@@ -46,6 +46,8 @@ import org.apache.http.util.LangUtils;
  * A connection sub-pool for a specific route, used by {@link ConnPoolByRoute}.
  * The methods in this class are unsynchronized. It is expected that the
  * containing pool takes care of synchronization.
+ *
+ * @since 4.0
  */
 public class RouteSpecificPool {
 
