@@ -31,6 +31,10 @@
 
 package org.apache.http.client.params;
 
+/**
+ *
+ * @since 4.0
+ */
 public final class AuthPolicy {
 
     private AuthPolicy() {

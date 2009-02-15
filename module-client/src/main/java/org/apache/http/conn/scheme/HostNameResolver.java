@@ -34,6 +34,10 @@ package org.apache.http.conn.scheme;
 import java.io.IOException;
 import java.net.InetAddress;
 
+/**
+ *
+ * @since 4.0
+ */
 public interface HostNameResolver {
 
     InetAddress resolve (String hostname) throws IOException;

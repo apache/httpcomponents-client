@@ -47,6 +47,10 @@ import org.apache.http.message.ParserCursor;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 
+/**
+ *
+ * @since 4.0
+ */
 public class DefaultResponseParser extends AbstractMessageParser {
     
     private final HttpResponseFactory responseFactory;

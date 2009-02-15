@@ -43,6 +43,10 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
+/**
+ *
+ * @since 4.0
+ */
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public Object getUserToken(final HttpContext context) {

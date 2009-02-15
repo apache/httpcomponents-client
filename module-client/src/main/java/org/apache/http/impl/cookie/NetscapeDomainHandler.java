@@ -37,6 +37,10 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 
+/**
+ *
+ * @since 4.0
+ */
 public class NetscapeDomainHandler extends BasicDomainHandler {
 
     public NetscapeDomainHandler() {

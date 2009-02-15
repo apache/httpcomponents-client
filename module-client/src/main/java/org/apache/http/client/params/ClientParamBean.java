@@ -39,6 +39,10 @@ import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
+/**
+ *
+ * @since 4.0
+ */
 public class ClientParamBean extends HttpAbstractParamBean {
 
     public ClientParamBean (final HttpParams params) {

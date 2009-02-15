@@ -39,6 +39,10 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.protocol.HttpContext;
 
+/**
+ *
+ * @since 4.0
+ */
 public class ClientContextConfigurer implements ClientContext {
     
     private final HttpContext context;

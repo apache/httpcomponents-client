@@ -42,6 +42,10 @@ import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
 
+/**
+ *
+ * @since 4.0
+ */
 public class NetscapeDraftHeaderParser {
 
     public final static NetscapeDraftHeaderParser DEFAULT = new NetscapeDraftHeaderParser();

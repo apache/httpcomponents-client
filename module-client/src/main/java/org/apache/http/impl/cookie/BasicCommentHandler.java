@@ -33,6 +33,10 @@ package org.apache.http.impl.cookie;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
+/**
+ *
+ * @since 4.0
+ */
 public class BasicCommentHandler extends AbstractCookieAttributeHandler {
 
     public BasicCommentHandler() {

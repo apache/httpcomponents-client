@@ -42,6 +42,10 @@ import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
+/**
+ *
+ * @since 4.0
+ */
 public class NTLMScheme extends AuthSchemeBase {
 
     enum State {

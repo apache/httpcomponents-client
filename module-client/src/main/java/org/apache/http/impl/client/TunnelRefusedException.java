@@ -34,6 +34,10 @@ package org.apache.http.impl.client;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 
+/**
+ *
+ * @since 4.0
+ */
 public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;

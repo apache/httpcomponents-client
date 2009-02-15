@@ -31,6 +31,10 @@
 package org.apache.http.impl.conn.tsccm;
 
 /** A simple class that can interrupt a {@link WaitingThread}. */
+/**
+ *
+ * @since 4.0
+ */
 public class WaitingThreadAborter {
     
     private WaitingThread waitingThread;

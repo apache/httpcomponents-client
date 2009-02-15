@@ -39,8 +39,10 @@ import org.apache.http.cookie.SetCookie;
 import org.apache.http.cookie.SetCookie2;
 
 /**
-   * <tt>"Discard"</tt> cookie attribute handler for RFC 2965 cookie spec.
-   */
+ * <tt>"Discard"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ *
+ * @since 4.0
+ */
   public class RFC2965DiscardAttributeHandler implements CookieAttributeHandler {
 
       public RFC2965DiscardAttributeHandler() {

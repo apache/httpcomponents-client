@@ -35,6 +35,10 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
+/**
+ *
+ * @since 4.0
+ */
 public class BasicSecureHandler extends AbstractCookieAttributeHandler {
 
     public BasicSecureHandler() {

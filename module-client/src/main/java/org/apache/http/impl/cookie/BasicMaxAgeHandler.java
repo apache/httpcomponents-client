@@ -35,6 +35,10 @@ import java.util.Date;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
+/**
+ *
+ * @since 4.0
+ */
 public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
 
     public BasicMaxAgeHandler() {

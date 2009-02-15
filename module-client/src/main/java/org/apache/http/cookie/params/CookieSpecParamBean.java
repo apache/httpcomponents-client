@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,6 +36,10 @@ import java.util.Collection;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
+/**
+ *
+ * @since 4.0
+ */
 public class CookieSpecParamBean extends HttpAbstractParamBean {
 
     public CookieSpecParamBean (final HttpParams params) {

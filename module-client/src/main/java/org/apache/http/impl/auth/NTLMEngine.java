@@ -37,7 +37,9 @@ package org.apache.http.impl.auth;
  * <p/>
  * For details see <a href="http://davenport.sourceforge.net/ntlm.html">this resource</a>
  * 
-*/
+ *
+ * @since 4.0
+ */
 public interface NTLMEngine {
 
     /**
