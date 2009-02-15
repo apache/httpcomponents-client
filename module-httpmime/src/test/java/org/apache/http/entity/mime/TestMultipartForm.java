@@ -35,7 +35,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
@@ -57,7 +56,7 @@ import org.apache.james.mime4j.message.Message;
 public class TestMultipartForm extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestMultipartForm(final String testName) throws IOException {
+    public TestMultipartForm(final String testName) {
         super(testName);
     }
 

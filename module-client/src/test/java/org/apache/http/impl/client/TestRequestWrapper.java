@@ -55,7 +55,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 public class TestRequestWrapper extends ServerTestBase {
 
     // ------------------------------------------------------------ Constructor
-    public TestRequestWrapper(final String testName) throws IOException {
+    public TestRequestWrapper(final String testName) {
         super(testName);
     }
 

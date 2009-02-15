@@ -31,7 +31,6 @@
 package org.apache.http.client.methods;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import org.apache.http.Header;
 import org.apache.http.HttpVersion;
@@ -47,7 +46,7 @@ import junit.framework.TestSuite;
 public class TestHttpRequestBase extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestHttpRequestBase(final String testName) throws IOException {
+    public TestHttpRequestBase(final String testName) {
         super(testName);
     }
 

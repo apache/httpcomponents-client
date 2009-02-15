@@ -49,7 +49,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 
 public class TestUriEscapes extends ServerTestBase {
 
-    public TestUriEscapes(final String testName) throws IOException {
+    public TestUriEscapes(final String testName) {
         super(testName);
     }
 

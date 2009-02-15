@@ -30,7 +30,6 @@
 
 package org.apache.http.client.methods;
 
-import java.io.IOException;
 import java.util.Set;
 
 import junit.framework.Test;
@@ -44,7 +43,7 @@ import org.apache.http.message.BasicStatusLine;
 public class TestHttpOptions extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestHttpOptions(final String testName) throws IOException {
+    public TestHttpOptions(final String testName) {
         super(testName);
     }
 

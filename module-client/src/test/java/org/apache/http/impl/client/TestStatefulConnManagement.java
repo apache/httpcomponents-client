@@ -59,7 +59,7 @@ import org.apache.http.protocol.HttpRequestHandler;
  */
 public class TestStatefulConnManagement extends ServerTestBase {
 
-    public TestStatefulConnManagement(final String testName) throws IOException {
+    public TestStatefulConnManagement(final String testName) {
         super(testName);
     }
 

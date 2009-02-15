@@ -85,7 +85,7 @@ import org.apache.http.protocol.HttpRequestHandler;
  */
 public class TestDefaultClientRequestDirector extends ServerTestBase {
 
-    public TestDefaultClientRequestDirector(final String testName) throws IOException {
+    public TestDefaultClientRequestDirector(final String testName) {
         super(testName);
     }
 
@@ -428,8 +428,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");   
         }
 
-        public ManagedClientConnection getConnection(HttpRoute route)
-                throws InterruptedException {
+        public ManagedClientConnection getConnection(HttpRoute route) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -500,8 +499,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             throw new UnsupportedOperationException("just a mockup");            
         }
 
-        public ManagedClientConnection getConnection(HttpRoute route)
-                throws InterruptedException {
+        public ManagedClientConnection getConnection(HttpRoute route) {
             throw new UnsupportedOperationException("just a mockup");
         }
 

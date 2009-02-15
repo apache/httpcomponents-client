@@ -32,7 +32,6 @@
 package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 import junit.framework.Test;
@@ -45,7 +44,7 @@ import org.apache.http.entity.mime.content.StringBody;
 public class TestMultipartContentBody extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestMultipartContentBody(final String testName) throws IOException {
+    public TestMultipartContentBody(final String testName) {
         super(testName);
     }
 

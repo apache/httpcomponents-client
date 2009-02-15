@@ -61,14 +61,12 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  * Cookie2 support tests.
  *
- * @author Oleg Kalnichevski
- * 
  * @version $Revision$
  */
 public class TestCookie2Support extends ServerTestBase {
 
     // ------------------------------------------------------------ Constructor
-    public TestCookie2Support(final String testName) throws IOException {
+    public TestCookie2Support(final String testName) {
         super(testName);
     }
 

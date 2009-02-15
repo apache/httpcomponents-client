@@ -30,7 +30,6 @@
 
 package org.apache.http.impl.cookie;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -102,7 +101,7 @@ public class TestAbstractCookieSpec extends TestCase {
         
     }
     
-    public void testSimpleRegisterAndGet() throws IOException {
+    public void testSimpleRegisterAndGet() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
         
@@ -125,7 +124,7 @@ public class TestAbstractCookieSpec extends TestCase {
         assertFalse(it.hasNext());
     }
 
-    public void testInvalidHandler() throws IOException {
+    public void testInvalidHandler() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
         

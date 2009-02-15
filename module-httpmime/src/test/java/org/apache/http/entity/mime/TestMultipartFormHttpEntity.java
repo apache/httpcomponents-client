@@ -33,7 +33,6 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -51,7 +50,7 @@ import junit.framework.TestSuite;
 public class TestMultipartFormHttpEntity extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestMultipartFormHttpEntity(final String testName) throws IOException {
+    public TestMultipartFormHttpEntity(final String testName) {
         super(testName);
     }
 

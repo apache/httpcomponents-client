@@ -29,8 +29,6 @@
 
 package org.apache.http.impl.client;
 
-import java.io.IOException;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -52,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
 public class TestDefaultConnKeepAliveStrategy extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestDefaultConnKeepAliveStrategy(final String testName) throws IOException {
+    public TestDefaultConnKeepAliveStrategy(final String testName) {
         super(testName);
     }
 

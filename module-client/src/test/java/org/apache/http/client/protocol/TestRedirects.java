@@ -68,14 +68,12 @@ import junit.framework.TestSuite;
 /**
  * Redirection test cases.
  *
- * @author Oleg Kalnichevski
- * 
  * @version $Revision$
  */
 public class TestRedirects extends ServerTestBase {
 
     // ------------------------------------------------------------ Constructor
-    public TestRedirects(final String testName) throws IOException {
+    public TestRedirects(final String testName) {
         super(testName);
     }
 

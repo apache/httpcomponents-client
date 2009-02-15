@@ -29,8 +29,6 @@
 
 package org.apache.http.impl.auth;
 
-import java.io.IOException;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -49,14 +47,12 @@ import org.apache.http.util.EncodingUtils;
 /**
  * Basic authentication test cases.
  *
- * @author Oleg Kalnichevski
- * 
  * @version $Id$
  */
 public class TestBasicScheme extends TestCase {
 
     // ------------------------------------------------------------ Constructor
-    public TestBasicScheme(final String testName) throws IOException {
+    public TestBasicScheme(final String testName) {
         super(testName);
     }
 
