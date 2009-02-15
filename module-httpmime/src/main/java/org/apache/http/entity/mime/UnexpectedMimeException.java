@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,6 +32,10 @@ package org.apache.http.entity.mime;
 
 import org.apache.james.mime4j.MimeException;
 
+/**
+ *
+ * @since 4.0
+ */
 public class UnexpectedMimeException extends RuntimeException {
 
     private static final long serialVersionUID = 1316818299528463579L;

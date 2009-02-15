@@ -43,6 +43,8 @@ import org.apache.james.mime4j.message.Header;
  * automatically populates the header with standard fields based 
  * on the content description of the enclosed body.
  * 
+ *
+ * @since 4.0
  */
 public class FormBodyPart extends BodyPart {
 

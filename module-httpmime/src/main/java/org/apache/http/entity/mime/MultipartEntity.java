@@ -52,6 +52,8 @@ import org.apache.james.mime4j.message.Message;
  * Multipart/form coded HTTP entity consisting of multiple
  * body parts. 
  * 
+ *
+ * @since 4.0
  */
 public class MultipartEntity implements HttpEntity {
 

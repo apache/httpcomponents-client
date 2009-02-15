@@ -40,6 +40,10 @@ import java.io.OutputStream;
 import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.BinaryBody;
 
+/**
+ *
+ * @since 4.0
+ */
 public class FileBody extends AbstractContentBody implements BinaryBody {
 
     private final File file;

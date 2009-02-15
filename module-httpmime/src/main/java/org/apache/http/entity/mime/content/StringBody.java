@@ -45,6 +45,10 @@ import java.util.Map;
 import org.apache.http.entity.mime.MIME;
 import org.apache.james.mime4j.message.TextBody;
 
+/**
+ *
+ * @since 4.0
+ */
 public class StringBody extends AbstractContentBody implements TextBody {
 
     private final byte[] content;

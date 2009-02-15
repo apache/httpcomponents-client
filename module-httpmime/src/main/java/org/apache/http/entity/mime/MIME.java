@@ -36,6 +36,10 @@ import java.nio.charset.Charset;
 import org.apache.james.mime4j.field.Field;
 import org.apache.james.mime4j.util.CharsetUtil;
 
+/**
+ *
+ * @since 4.0
+ */
 public final class MIME {
 
     public static final String CONTENT_TYPE          = Field.CONTENT_TYPE;

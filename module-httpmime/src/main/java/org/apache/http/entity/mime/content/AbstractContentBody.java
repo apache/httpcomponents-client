@@ -36,6 +36,10 @@ import java.util.Map;
 
 import org.apache.james.mime4j.message.AbstractBody;
 
+/**
+ *
+ * @since 4.0
+ */
 public abstract class AbstractContentBody extends AbstractBody implements ContentBody {
 
     private final String mimeType;
