@@ -47,14 +47,6 @@ import org.apache.http.util.EncodingUtils;
  * Basic authentication scheme as defined in RFC 2617.
  * </p>
  * 
- * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
- * @author Rodney Waldhoff
- * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
- * @author Ortwin Glueck
- * @author Sean C. Sullivan
- * @author <a href="mailto:adrian@ephox.com">Adrian Sutton</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

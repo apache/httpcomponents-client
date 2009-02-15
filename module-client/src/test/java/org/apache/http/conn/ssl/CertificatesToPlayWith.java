@@ -41,7 +41,6 @@ package org.apache.http.conn.ssl;
  * find &#x82b1;&#x5b50;.co.jp.  So would the CN in the certificate contain
  * "xn--i8s592g.co.jp" in ASCII, or "&#x82b1;&#x5b50;.co.jp" in UTF8?  (Both?)
  *
- * @author Julius Davies
  * @since 11-Dec-2006
  */
 public interface CertificatesToPlayWith {

@@ -57,8 +57,6 @@ import org.apache.http.conn.OperatedClientConnection;
  * gets disconnected, but the pool entry still contains the
  * underlying connection and the established route.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

@@ -48,8 +48,6 @@ import org.apache.http.mockup.SecureSocketFactoryMockup;
 /**
  * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class TestScheme extends TestCase {
 

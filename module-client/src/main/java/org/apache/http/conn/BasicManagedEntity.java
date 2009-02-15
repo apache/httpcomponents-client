@@ -44,7 +44,6 @@ import org.apache.http.entity.HttpEntityWrapper;
  * typically <i>not</i> return a managed entity, but you can replace
  * the unmanaged entity in the response with a managed one.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

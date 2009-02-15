@@ -44,7 +44,6 @@ import org.apache.http.protocol.HttpContext;
 /**
  * Request interceptor that adds default request headers.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * 

@@ -70,7 +70,6 @@ import org.apache.http.params.AbstractHttpParams;
  * an empty params collection, since it avoids searching the empty collection
  * when looking up parameters.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * @version $Revision$

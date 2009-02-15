@@ -34,7 +34,6 @@ package org.apache.http.cookie;
 /**
  * Constants and static helpers related to the HTTP state management.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */

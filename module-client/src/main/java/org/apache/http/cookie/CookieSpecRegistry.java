@@ -44,8 +44,6 @@ import org.apache.http.params.HttpParams;
  * cookie specification implementation for a given type of type or version of 
  * cookie. 
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *
  * @since 4.0
  */

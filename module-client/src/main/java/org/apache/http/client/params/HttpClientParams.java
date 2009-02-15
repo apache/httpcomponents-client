@@ -35,7 +35,6 @@ import org.apache.http.params.HttpParams;
 /**
  * An adaptor for accessing HTTP client parameters in {@link HttpParams}.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  * 

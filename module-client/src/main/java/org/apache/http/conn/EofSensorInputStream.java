@@ -49,10 +49,6 @@ import java.io.IOException;
  *
  * @see EofSensorWatcher EofSensorWatcher
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author Ortwin Glueck
- * @author Eric Johnson
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

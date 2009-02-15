@@ -51,9 +51,6 @@ import org.apache.http.message.BasicHttpRequest;
 /**
  * Test Methods for DigestScheme Authentication.
  *
- * @author Rodney Waldhoff
- * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  */
 public class TestDigestScheme extends TestCase {
 

@@ -45,7 +45,6 @@ import junit.framework.TestSuite;
 /**
  * Unit tests for {@link X509HostnameVerifier}.
  *
- * @author Julius Davies
  * @since 11-Dec-2006
  */
 public class TestHostnameVerifier extends TestCase

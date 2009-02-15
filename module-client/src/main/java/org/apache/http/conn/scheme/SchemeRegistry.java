@@ -41,7 +41,6 @@ import org.apache.http.HttpHost;
  * A set of supported protocol {@link Scheme schemes}.
  * Schemes are identified by lowercase names.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

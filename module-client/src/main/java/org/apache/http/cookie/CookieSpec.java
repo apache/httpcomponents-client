@@ -45,8 +45,6 @@ import org.apache.http.Header;
  * </ul>
  * for a given host, port and path of origin
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
  *
  * @since 4.0
  */

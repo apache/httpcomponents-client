@@ -62,8 +62,6 @@ import org.apache.http.HttpRequest;
  * challenge-response exchanges
  * </p>
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:adrian@ephox.com">Adrian Sutton</a>
  *
  * @since 4.0
  */

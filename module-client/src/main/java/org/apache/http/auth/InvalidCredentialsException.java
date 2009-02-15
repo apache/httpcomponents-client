@@ -34,7 +34,6 @@ package org.apache.http.auth;
  * Authentication credentials required to respond to a authentication 
  * challenge are invalid
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

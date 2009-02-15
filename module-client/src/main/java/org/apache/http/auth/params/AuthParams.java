@@ -38,7 +38,6 @@ import org.apache.http.protocol.HTTP;
  * This class implements an adaptor around the {@link HttpParams} interface
  * to simplify manipulation of the HTTP authentication specific parameters.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  * 

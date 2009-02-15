@@ -35,7 +35,6 @@ import org.apache.http.ProtocolException;
 /**
  * Signals violation of HTTP specification caused by an invalid redirect
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

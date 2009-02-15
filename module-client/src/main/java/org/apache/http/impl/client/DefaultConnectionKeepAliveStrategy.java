@@ -45,7 +45,6 @@ import org.apache.http.protocol.HttpContext;
  * The default implementation looks solely at the 'Keep-Alive'
  * header's timeout token.
  *
- * @author <a href="mailto:sberlin at gmail.com">Sam Berlin</a>
  *
  * @version $Revision: $
  * 

@@ -51,8 +51,6 @@ import org.apache.http.util.EntityUtils;
 /**
  * A handler that echos the incoming request entity.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->

@@ -52,7 +52,6 @@ import org.apache.http.conn.OperatedClientConnection;
  * will clear the tracked route in the pool entry and call the
  * respective method of the wrapped connection.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

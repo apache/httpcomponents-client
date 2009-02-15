@@ -38,10 +38,6 @@ import junit.framework.*;
  * 
  * Simple tests for {@link BasicCredentialsProvider}.
  *
- * @author Rodney Waldhoff
- * @author <a href="mailto:jsdever@apache.org">Jeff Dever</a>
- * @author Sean C. Sullivan
- * @author Oleg Kalnichevski
  * 
  * @version $Id$
  * 

@@ -37,7 +37,6 @@ import org.apache.http.ProtocolException;
  * Signals that a cookie is in some way invalid or illegal in a given
  * context
  *
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

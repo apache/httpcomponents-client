@@ -40,7 +40,6 @@ import org.apache.http.protocol.HTTP;
 /**
  * Basic implementation of an HTTP request that can be modified.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * 

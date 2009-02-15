@@ -50,7 +50,6 @@ import org.apache.http.util.EntityUtils;
  *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  * 

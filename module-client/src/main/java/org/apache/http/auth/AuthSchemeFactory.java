@@ -35,7 +35,6 @@ import org.apache.http.params.HttpParams;
 
 /**
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */

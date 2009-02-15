@@ -56,7 +56,6 @@ import javax.net.ssl.SSLSocket;
  * Abstract base class for all standard {@link X509HostnameVerifier} 
  * implementations.
  * 
- * @author Julius Davies
  */
 public abstract class AbstractVerifier implements X509HostnameVerifier {
 

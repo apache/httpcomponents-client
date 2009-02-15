@@ -43,8 +43,6 @@ import org.apache.http.conn.routing.HttpRoute;
  * An adaptor for accessing route related parameters in {@link HttpParams}.
  * See {@link ConnRoutePNames} for parameter name definitions.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  * 
  * @version $Revision$
  * 

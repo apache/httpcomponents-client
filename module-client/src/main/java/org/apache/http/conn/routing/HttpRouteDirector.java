@@ -38,7 +38,6 @@ package org.apache.http.conn.routing;
  * Implementations of this interface compare a planned route with
  * a tracked route and indicate the next step required.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

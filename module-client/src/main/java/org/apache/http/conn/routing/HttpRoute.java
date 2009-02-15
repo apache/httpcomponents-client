@@ -40,7 +40,6 @@ import org.apache.http.HttpHost;
  * Instances of this class are unmodifiable and therefore suitable
  * for use as lookup keys.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

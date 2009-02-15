@@ -41,7 +41,6 @@ import junit.framework.TestSuite;
 /**
  * Unit tests for {@link DateUtils}.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class TestDateUtils extends TestCase {
 

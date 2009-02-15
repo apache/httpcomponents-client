@@ -90,8 +90,6 @@ import org.apache.http.util.VersionInfo;
  * <br/>
  * This class replaces <code>HttpClient</code> in HttpClient 3.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$

@@ -35,7 +35,6 @@ package org.apache.http.cookie;
  * This interface represents a <code>SetCookie2</code> response header sent by the 
  * origin server to the HTTP agent in order to maintain a conversational state.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

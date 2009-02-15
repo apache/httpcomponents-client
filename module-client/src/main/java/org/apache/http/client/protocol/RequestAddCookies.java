@@ -62,7 +62,6 @@ import org.apache.http.protocol.ExecutionContext;
  * {@link CookieStore} to the request being executed and generates 
  * corresponding cookierequest headers.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * 

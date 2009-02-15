@@ -37,10 +37,6 @@ import org.apache.http.util.LangUtils;
 /**
  * Username and password {@link Credentials}
  *
- * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
- * @author Sean C. Sullivan
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$ $Date$
  * 

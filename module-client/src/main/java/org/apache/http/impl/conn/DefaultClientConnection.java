@@ -55,7 +55,6 @@ import org.apache.http.conn.OperatedClientConnection;
 /**
  * Default implementation of an operated client connection.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

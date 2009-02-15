@@ -46,7 +46,6 @@ import org.apache.http.params.HttpParams;
  * {@link ClientConnectionOperator operator}.
  *
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

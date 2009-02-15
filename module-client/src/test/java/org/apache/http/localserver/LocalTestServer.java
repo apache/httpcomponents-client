@@ -69,8 +69,6 @@ import org.apache.http.protocol.ResponseServer;
  * Local HTTP server for tests that require one.
  * Based on the <code>ElementalHttpServer</code> example in HttpCore.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->

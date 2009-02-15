@@ -36,7 +36,6 @@ import java.util.Locale;
  * CookieOrigin class incapsulates details of an origin server that 
  * are relevant when parsing, validating or matching HTTP cookies.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

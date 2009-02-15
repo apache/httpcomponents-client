@@ -58,8 +58,6 @@ import org.apache.http.params.HttpParams;
  * in HttpClient 3. See there for original authors.
  * </p>
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

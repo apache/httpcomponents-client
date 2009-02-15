@@ -43,7 +43,6 @@ import org.apache.james.mime4j.message.Header;
  * automatically populates the header with standard fields based 
  * on the content description of the enclosed body.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class FormBodyPart extends BodyPart {
 

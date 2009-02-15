@@ -39,7 +39,6 @@ import org.apache.http.HttpHost;
 /**
  * Helps tracking the steps in establishing a route.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

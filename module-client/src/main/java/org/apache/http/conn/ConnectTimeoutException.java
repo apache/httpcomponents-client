@@ -37,7 +37,6 @@ import java.io.InterruptedIOException;
  * A timeout while connecting to an HTTP server or waiting for an
  * available connection from an HttpConnectionManager.
  * 
- * @author <a href="mailto:laura@lwerner.org">Laura Werner</a>
  * 
  * @since 4.0
  */

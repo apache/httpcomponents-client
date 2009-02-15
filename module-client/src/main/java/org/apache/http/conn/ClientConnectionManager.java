@@ -40,10 +40,6 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 /**
  * Management interface for {@link ManagedClientConnection client connections}.
  * 
- * @author Michael Becke
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

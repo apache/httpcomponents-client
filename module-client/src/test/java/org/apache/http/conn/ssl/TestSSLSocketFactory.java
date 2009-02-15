@@ -65,7 +65,6 @@ import org.apache.http.localserver.LocalTestServer;
 /**
  * Unit tests for {@link SSLSocketFactory}.
  *
- * @author Julius Davies
  * @since 8-Dec-2006
  */
 public class TestSSLSocketFactory extends TestCase

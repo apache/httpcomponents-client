@@ -53,7 +53,6 @@ import org.apache.http.protocol.HttpContext;
  * Response interceptor that populates the current {@link CookieStore} with data 
  * contained in response cookies received in the given the HTTP response.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * 

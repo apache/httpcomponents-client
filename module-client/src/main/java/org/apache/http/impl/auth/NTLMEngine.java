@@ -37,7 +37,6 @@ package org.apache.http.impl.auth;
  * <p/>
  * For details see <a href="http://davenport.sourceforge.net/ntlm.html">this resource</a>
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
 */
 public interface NTLMEngine {
 

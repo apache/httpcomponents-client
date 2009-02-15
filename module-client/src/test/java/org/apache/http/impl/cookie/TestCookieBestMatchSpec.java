@@ -49,7 +49,6 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for 'best match' cookie policy
  *
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  */

@@ -45,7 +45,6 @@ import java.io.IOException;
  * The first invocation releases the connection, subsequent calls
  * are ignored.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

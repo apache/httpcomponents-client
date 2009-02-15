@@ -36,7 +36,6 @@ import org.apache.http.ProtocolException;
  * Signals failure to retry the request due to non-repeatable request 
  * entity.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

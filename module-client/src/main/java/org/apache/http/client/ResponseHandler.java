@@ -38,7 +38,6 @@ import org.apache.http.HttpResponse;
  * Handler that encapsulates the process of generating a response object 
  * from a {@link HttpResponse}.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

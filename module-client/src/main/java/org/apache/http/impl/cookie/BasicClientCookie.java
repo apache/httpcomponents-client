@@ -44,16 +44,6 @@ import org.apache.http.cookie.SetCookie;
  * that the HTTP agent and the target server can exchange to maintain 
  * a session.
  * 
- * @author B.C. Holmes
- * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
- * @author <a href="mailto:dsale@us.britannica.com">Doug Sale</a>
- * @author Rod Waldhoff
- * @author dIon Gillard
- * @author Sean C. Sullivan
- * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
- * @author Marc A. Saegesser
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
  * @version $Revision$
  */

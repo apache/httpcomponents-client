@@ -38,7 +38,6 @@ import org.apache.http.conn.routing.HttpRoute;
  * {@link org.apache.http.conn.ClientConnectionManager connection managers} for 
  * a fine-grained control of connections on a per route basis. 
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  * 

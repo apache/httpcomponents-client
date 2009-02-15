@@ -39,7 +39,6 @@ import org.apache.http.HttpHost;
 /**
  * Read-only interface for route information.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

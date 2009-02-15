@@ -52,7 +52,6 @@ import org.apache.james.mime4j.message.Message;
  * Multipart/form coded HTTP entity consisting of multiple
  * body parts. 
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class MultipartEntity implements HttpEntity {
 

@@ -52,7 +52,6 @@ import org.apache.http.protocol.HttpContext;
  * connections for reading the response entity. Such connections
  * MUST be released, but that is out of the scope of a request director.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

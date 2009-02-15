@@ -38,7 +38,6 @@ import org.apache.commons.logging.Log;
 /**
  * Logs data to the wire LOG.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

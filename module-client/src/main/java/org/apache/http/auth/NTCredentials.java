@@ -37,9 +37,6 @@ import org.apache.http.util.LangUtils;
 
 /** {@link Credentials} specific to the Windows platform.
  *
- * @author <a href="mailto:adrian@ephox.com">Adrian Sutton</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 2.0
  */

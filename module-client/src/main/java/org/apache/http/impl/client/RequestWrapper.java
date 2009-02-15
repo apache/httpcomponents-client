@@ -51,7 +51,6 @@ import org.apache.http.params.HttpProtocolParams;
  * This class is also capable of resetting the request headers to
  * the state of the original request.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @version $Revision$
  * 

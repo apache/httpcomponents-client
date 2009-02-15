@@ -59,7 +59,6 @@ import org.apache.http.util.EntityUtils;
 /**
  * How to send a request via proxy using {@link HttpClient HttpClient}.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines above to avoid 'svn diff' context problems -->

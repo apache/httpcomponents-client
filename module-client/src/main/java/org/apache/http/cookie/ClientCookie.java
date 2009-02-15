@@ -40,7 +40,6 @@ package org.apache.http.cookie;
  * <tt>Cookie</tt> header should include certain attributes only if 
  * they were specified in the <tt>Set-Cookie</tt> header.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

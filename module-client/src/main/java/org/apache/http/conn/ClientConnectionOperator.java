@@ -52,7 +52,6 @@ import org.apache.http.protocol.HttpContext;
  * sockets. Creating a tunnelled connection through a proxy, however,
  * is not within the scope of the operator.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

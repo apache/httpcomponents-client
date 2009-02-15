@@ -39,9 +39,6 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Logs all data read to the wire LOG.
  *
- * @author Ortwin Glueck
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

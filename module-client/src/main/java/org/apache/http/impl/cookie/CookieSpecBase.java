@@ -45,7 +45,6 @@ import org.apache.http.cookie.MalformedCookieException;
 /**
  * Cookie management functions shared by all specification.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0 
  */

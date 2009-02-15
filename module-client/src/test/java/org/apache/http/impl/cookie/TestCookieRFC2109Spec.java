@@ -49,7 +49,6 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for RFC2109 cookie spec
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  */

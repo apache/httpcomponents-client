@@ -39,7 +39,6 @@ package org.apache.http.cookie;
  * implementation for this class based on their cookie handling
  * rules.
  *
- * @author jain.samit@gmail.com (Samit Jain)
  * 
  * @since 4.0
  */

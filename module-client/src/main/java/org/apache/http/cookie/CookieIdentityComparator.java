@@ -42,7 +42,6 @@ import java.util.Comparator;
  *  their domain attributes match ignoring case.
  * </p>
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 

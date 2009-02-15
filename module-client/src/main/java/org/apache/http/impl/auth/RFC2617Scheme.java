@@ -46,7 +46,6 @@ import org.apache.http.util.CharArrayBuffer;
  * RFC 2617 compliant authetication schemes and provides capabilities common 
  * to all authentication schemes defined in RFC 2617.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
 */
 public abstract class RFC2617Scheme extends AuthSchemeBase {
 

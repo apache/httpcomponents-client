@@ -39,7 +39,6 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Logs all data written to the wire LOG.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

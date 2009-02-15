@@ -44,7 +44,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
  * Interface representing an HTTP request that can be aborted by shutting 
  * down the underlying HTTP connection.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$

@@ -56,7 +56,6 @@ import org.apache.james.mime4j.util.MessageUtils;
  * capable of operating either in the strict (fully RFC 822, RFC 2045, 
  * RFC 2046 compliant) or the browser compatible modes.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class HttpMultipart extends Multipart {
 

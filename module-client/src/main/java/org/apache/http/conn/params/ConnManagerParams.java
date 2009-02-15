@@ -38,8 +38,6 @@ import org.apache.http.params.HttpParams;
  * to client-side
  * {@link org.apache.http.conn.ClientConnectionManager connection managers}. 
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author Michael Becke
  * 
  * @version $Revision$
  * 

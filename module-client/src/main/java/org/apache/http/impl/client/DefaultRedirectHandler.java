@@ -54,7 +54,6 @@ import org.apache.http.protocol.ExecutionContext;
 /**
  * Default implementation of {@link RedirectHandler}.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

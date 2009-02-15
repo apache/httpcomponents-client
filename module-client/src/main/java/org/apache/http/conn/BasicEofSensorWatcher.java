@@ -38,7 +38,6 @@ import java.io.IOException;
  * Basic implementation of {@link EofSensorWatcher EofSensorWatcher}.
  * The underlying connection is released on close or EOF.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

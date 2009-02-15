@@ -40,7 +40,6 @@ import org.apache.http.HttpRequest;
  * convenience methods to access request properties such as request URI
  * and method type.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version   $Revision$

@@ -51,8 +51,6 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * <p>RFC 2965 specific cookie management functions.</p>
  * 
- * @author jain.samit@gmail.com (Samit Jain)
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 3.1
  */

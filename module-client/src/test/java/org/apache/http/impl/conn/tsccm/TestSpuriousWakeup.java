@@ -64,7 +64,6 @@ import org.apache.http.impl.conn.GetConnThread;
  * which is required to trigger a wakeup without actually
  * satisfying the condition.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  */
 public class TestSpuriousWakeup extends TestCase {
 

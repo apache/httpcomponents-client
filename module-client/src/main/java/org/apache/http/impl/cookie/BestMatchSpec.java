@@ -46,7 +46,6 @@ import org.apache.http.cookie.SetCookie2;
  * 'Meta' cookie specification that selects a cookie policy depending
  * on the format of the cookie(s)
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */

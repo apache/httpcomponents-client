@@ -53,7 +53,6 @@ import org.apache.http.util.EntityUtils;
 /**
  * An example that performs GETs from multiple threads.
  * 
- * @author Michael Becke
  */
 public class ClientMultiThreadedExecution {
 

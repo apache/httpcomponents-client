@@ -37,7 +37,6 @@ import org.apache.http.util.LangUtils;
 
 /**  NT (MS Windows specific) user principal used for HTTP authentication
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

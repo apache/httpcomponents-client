@@ -60,7 +60,6 @@ import org.apache.http.protocol.BasicHttpContext;
  * The subsequent message exchange in this example should not
  * be used as a template.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines above to avoid 'svn diff' context problems -->

@@ -53,7 +53,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 

@@ -38,7 +38,6 @@ import org.apache.http.HttpConnectionMetrics;
 /**
  * {@link HttpConnection} mockup implementation.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class HttpConnectionMockup implements HttpConnection {
 

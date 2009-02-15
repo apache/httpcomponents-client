@@ -45,8 +45,6 @@ import org.apache.http.util.EntityUtils;
 /**
  * Executes a request from a new thread.
  * 
- * @author Michael Becke
- * @author Roland Weber (rolandw at apache.org)
  */
 public class ExecReqThread extends GetConnThread {
 

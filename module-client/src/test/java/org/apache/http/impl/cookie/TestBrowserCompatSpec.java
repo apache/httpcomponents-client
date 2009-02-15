@@ -50,12 +50,6 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for BrowserCompatSpec
  *
- * @author BC Holmes
- * @author Rod Waldhoff
- * @author dIon Gillard
- * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
- * @author Marc A. Saegesser
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @version $Revision$
  */
 public class TestBrowserCompatSpec extends TestCase {

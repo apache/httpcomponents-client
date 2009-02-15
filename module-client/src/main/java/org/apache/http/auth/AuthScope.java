@@ -39,8 +39,6 @@ import org.apache.http.util.LangUtils;
  * a port number, a realm name and an authentication scheme name which 
  * {@link Credentials Credentials} apply to.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:adrian@intencha.com">Adrian Sutton</a>
  * 
  * @since 4.0
  */

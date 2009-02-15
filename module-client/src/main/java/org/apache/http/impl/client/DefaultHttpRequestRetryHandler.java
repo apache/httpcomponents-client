@@ -46,8 +46,6 @@ import org.apache.http.protocol.ExecutionContext;
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
  * 
- * @author Michael Becke
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 

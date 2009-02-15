@@ -100,7 +100,6 @@ import org.apache.http.protocol.HttpContext;
  * }
  * </PRE>
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

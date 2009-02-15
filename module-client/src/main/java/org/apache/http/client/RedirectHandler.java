@@ -47,7 +47,6 @@ import org.apache.http.protocol.HttpContext;
  * data as methods of this interfrace may be executed from multiple threads 
  * </p>
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public interface RedirectHandler {
 

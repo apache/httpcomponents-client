@@ -134,8 +134,6 @@ import java.security.UnrecoverableKeyException;
  *      </p>
  *     </li>
  *   </ul>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
- * @author Julius Davies
  */
 
 public class SSLSocketFactory implements LayeredSocketFactory {

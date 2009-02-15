@@ -41,7 +41,6 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHandler {
 

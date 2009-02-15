@@ -43,7 +43,6 @@ import org.apache.http.cookie.SetCookie;
 /**
  * <tt>"Domain"</tt> cookie attribute handler for RFC 2965 cookie spec.
  * 
- * @author jain.samit@gmail.com (Samit Jain)
  *
  * @since 3.1
  */

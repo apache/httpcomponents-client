@@ -49,16 +49,6 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Netscape cookie draft compliant cookie policy
  *
- * @author  B.C. Holmes
- * @author <a href="mailto:jericho@thinkfree.com">Park, Sung-Gu</a>
- * @author <a href="mailto:dsale@us.britannica.com">Doug Sale</a>
- * @author Rod Waldhoff
- * @author dIon Gillard
- * @author Sean C. Sullivan
- * @author <a href="mailto:JEvans@Cyveillance.com">John Evans</a>
- * @author Marc A. Saegesser
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
  * @since 4.0 
  */

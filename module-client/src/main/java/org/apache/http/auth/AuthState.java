@@ -35,7 +35,6 @@ package org.apache.http.auth;
  * This class provides detailed information about the state of the
  * authentication process.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * @since 4.0
  */

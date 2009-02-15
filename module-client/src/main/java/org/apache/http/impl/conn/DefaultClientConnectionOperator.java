@@ -56,7 +56,6 @@ import org.apache.http.conn.scheme.SocketFactory;
  * It uses a {@link SchemeRegistry SchemeRegistry} to look up
  * {@link SocketFactory SocketFactory} objects.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

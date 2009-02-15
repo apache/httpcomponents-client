@@ -51,8 +51,6 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  * A handler that generates random data.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->

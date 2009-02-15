@@ -33,7 +33,6 @@ package org.apache.http.client;
 /**
  * Signals a circular redirect
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

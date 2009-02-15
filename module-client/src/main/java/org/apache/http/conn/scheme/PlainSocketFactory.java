@@ -44,8 +44,6 @@ import org.apache.http.params.HttpParams;
 /**
  * The default class for creating sockets.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author Michael Becke
  */
 public final class PlainSocketFactory implements SocketFactory {
 

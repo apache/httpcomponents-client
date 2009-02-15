@@ -45,7 +45,6 @@ import org.apache.http.util.CharArrayBuffer;
  * does not make any assumptions regarding the format of the challenge 
  * nor does it impose any specific way of responding to that challenge.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
 */
 public abstract class AuthSchemeBase implements AuthScheme {
 

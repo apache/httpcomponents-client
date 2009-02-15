@@ -38,7 +38,6 @@ import org.apache.http.cookie.Cookie;
 /**
  * Abstract cookie store.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

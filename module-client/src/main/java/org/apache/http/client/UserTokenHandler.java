@@ -1,7 +1,7 @@
 /*
- * $HeadURL:$
- * $Revision:$
- * $Date:$
+ * $HeadURL$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -43,7 +43,6 @@ import org.apache.http.protocol.HttpContext;
  * The user token will be used to ensure that user specific resouces will not
  * shared with or reused by other users.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

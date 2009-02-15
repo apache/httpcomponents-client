@@ -69,7 +69,6 @@ import org.apache.http.conn.ClientConnectionManager;
  * clear the reusability mark first. The connection manager is
  * expected to tolerate multiple calls to the release method.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

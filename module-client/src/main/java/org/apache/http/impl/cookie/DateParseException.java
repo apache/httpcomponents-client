@@ -37,7 +37,6 @@ package org.apache.http.impl.cookie;
  * 
  * @see DateUtils
  * 
- * @author Michael Becke
  */
 public class DateParseException extends Exception {
 

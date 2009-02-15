@@ -38,7 +38,6 @@ import org.apache.http.protocol.HttpContext;
  * Interface for deciding how long a connection can remain
  * idle before being reused.
  *
- * @author <a href="mailto:sberlin at gmail.com">Sam Berlin</a>
  *
  *
  * @version $Revision: $

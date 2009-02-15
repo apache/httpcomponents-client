@@ -48,7 +48,6 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for Netscape cookie draft
  *
- * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  */

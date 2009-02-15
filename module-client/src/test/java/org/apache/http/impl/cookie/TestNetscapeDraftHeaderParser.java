@@ -43,7 +43,6 @@ import junit.framework.TestSuite;
 /**
  * Unit tests for {@link NetscapeDraftHeaderParser}.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  */
 public class TestNetscapeDraftHeaderParser extends TestCase {
 

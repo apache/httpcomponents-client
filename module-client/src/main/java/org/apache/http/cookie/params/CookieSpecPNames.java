@@ -34,7 +34,6 @@ package org.apache.http.cookie.params;
 /**
  * Parameter names for cookie specifications in HttpCookie.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @version $Revision$
  * 

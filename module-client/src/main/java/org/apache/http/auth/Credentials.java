@@ -35,8 +35,6 @@ import java.security.Principal;
 /**
  * User name and password based authentication credentials.
  * 
- * @author Unascribed
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * 
  * @version $Revision$ $Date$
  */

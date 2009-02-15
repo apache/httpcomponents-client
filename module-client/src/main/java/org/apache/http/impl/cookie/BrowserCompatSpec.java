@@ -52,7 +52,6 @@ import org.apache.http.util.CharArrayBuffer;
  * common web browser applications such as Microsoft Internet Explorer
  * and Mozilla FireFox.
  *
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0 
  */

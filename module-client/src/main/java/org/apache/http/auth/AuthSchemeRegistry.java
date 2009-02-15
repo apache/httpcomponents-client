@@ -42,7 +42,6 @@ import org.apache.http.params.HttpParams;
  * Authentication scheme registry that can be used to obtain the corresponding
  * authentication scheme implementation for a given type of authorization challenge. 
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  *
  * @version $Revision$

@@ -49,10 +49,6 @@ import org.apache.http.util.LangUtils;
  * SchemeRegistry.DEFAULT.register(https);
  * </pre>
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author Michael Becke 
- * @author Jeff Dever
- * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  */
 public final class Scheme {
 

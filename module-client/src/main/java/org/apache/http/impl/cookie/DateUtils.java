@@ -46,8 +46,6 @@ import java.util.TimeZone;
  * other headers.  This class handles dates as defined by RFC 2616 section 
  * 3.3.1 as well as some other common non-standard formats.
  * 
- * @author Christopher Brown
- * @author Michael Becke
  */
 public final class DateUtils {
 
@@ -210,7 +208,6 @@ public final class DateUtils {
      * threadlocal way because SimpleDateFormat is not threadsafe as noted in
      * {@link SimpleDateFormat its javadoc}.
      * 
-     * @author Daniel Mueller
      */
     final static class DateFormatHolder {
 

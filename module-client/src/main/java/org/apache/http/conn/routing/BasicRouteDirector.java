@@ -37,7 +37,6 @@ package org.apache.http.conn.routing;
  * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.
  * This implementation is stateless and therefore thread-safe.
  * 
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
  *
  *
  * <!-- empty lines to avoid svn diff problems -->

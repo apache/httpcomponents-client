@@ -52,8 +52,6 @@ import java.security.cert.X509Certificate;
  * Inspired by Sebastian Hauer's original StrictSSLProtocolSocketFactory in the
  * HttpClient "contrib" repository.
  *
- * @author Julius Davies
- * @author <a href="mailto:hauer@psicode.com">Sebastian Hauer</a>
  *
  * @since 4.0 (8-Dec-2006)
  */

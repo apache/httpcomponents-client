@@ -38,7 +38,6 @@ import java.util.Date;
  * that the HTTP agent and the target server can exchange to maintain 
  * a session.
  * 
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  * 
  * @since 4.0
  */

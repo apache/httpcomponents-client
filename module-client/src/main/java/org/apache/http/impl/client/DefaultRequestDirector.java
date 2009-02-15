@@ -97,8 +97,6 @@ import org.apache.http.protocol.HttpRequestExecutor;
  * <br/>
  * This class replaces the <code>HttpMethodDirector</code> in HttpClient 3.
  *
- * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
- * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
  *
  * <!-- empty lines to avoid svn diff problems -->
  * @version $Revision$

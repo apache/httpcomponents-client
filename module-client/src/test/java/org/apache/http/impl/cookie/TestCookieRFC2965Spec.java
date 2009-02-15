@@ -48,7 +48,6 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for RFC2965 cookie spec
  *
- * @author jain.samit@gmail.com (Samit Jain)
  */
 public class TestCookieRFC2965Spec extends TestCase {
 

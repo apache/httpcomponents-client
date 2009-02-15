@@ -43,7 +43,6 @@ import javax.net.ssl.SSLException;
  * (such as "*.foo.com") with BROWSER_COMPATIBLE matches all subdomains, 
  * including "a.b.foo.com".
  * 
- * @author Julius Davies
  */
 public class BrowserCompatHostnameVerifier extends AbstractVerifier {
 
