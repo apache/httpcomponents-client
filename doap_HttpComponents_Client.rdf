@@ -60,9 +60,34 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
     <!-- multiple releases can be listed, each in it's own section -->
     <release>
       <Version>
+        <name>httpcomponents-client-4.0-alpha1</name>
+        <created>2007-07-20</created>
+        <revision>4.0-alpha1</revision>
+      </Version>
+      <Version>
         <name>httpcomponents-client-4.0-alpha2</name>
         <created>2007-11-07</created>
         <revision>4.0-alpha2</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0-alpha3</name>
+        <created>2008-02-26</created>
+        <revision>4.0-alpha3</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0-alpha4</name>
+        <created>2008-05-09</created>
+        <revision>4.0-alpha4</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0-beta1</name>
+        <created>2008-08-29</created>
+        <revision>4.0-beta1</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0-beta2</name>
+        <created>2008-12-20</created>
+        <revision>4.0-beta2</revision>
       </Version>
     </release>
 
