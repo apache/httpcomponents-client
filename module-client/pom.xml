@@ -152,6 +152,13 @@
            </reportSet>
          </reportSets>
       </plugin>
+      <plugin>
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-clover2-plugin</artifactId>
+        <configuration>
+          <jdk>1.5</jdk>
+        </configuration>
+      </plugin>
 
     </plugins>
   </reporting>

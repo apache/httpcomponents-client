@@ -174,7 +174,8 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-clover-plugin</artifactId>
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-clover2-plugin</artifactId>
         <configuration>
           <flushPolicy>threaded</flushPolicy>
           <flushInterval>100</flushInterval>
@@ -187,6 +188,7 @@
             <goals>
               <goal>instrument</goal>
               <goal>aggregate</goal>
+              <goal>save-history</goal>
             </goals>
           </execution>
         </executions>
@@ -210,14 +212,6 @@
              </reports>
            </reportSet>
          </reportSets>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-clover-plugin</artifactId>
-        <configuration>
-          <jdk>1.5</jdk>
-          <licenseLocation>${clover.license}</licenseLocation>
-        </configuration>
       </plugin>
 
       <plugin>
