@@ -53,9 +53,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-client</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-client</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/4.0-beta2/module-client</url>
+    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</developerConnection>
+    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-client</url>
   </scm>
 
   <dependencies>
@@ -118,6 +118,17 @@
           <optimize>${maven.compile.optimize}</optimize>
           <showDeprecations>${maven.compile.deprecation}</showDeprecations>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
