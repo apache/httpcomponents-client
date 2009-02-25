@@ -1,8 +1,13 @@
 Changes since 4.0 beta 2
 -------------------
 
-* [HTTPCLIENT-822] Default socket factories to rethrow SocketTimeoutException as 
-  ConnectTimeoutException in case of connect failure due to a time out.
+* [HTTPCLIENT-823] 'http.conn-manager.max-total' parameter can be adjusted 
+  dynamically. However, the size of existing connection pools per route, 
+  once allocated, will not be adjusted.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-822] Default socket factories to rethrow SocketTimeoutException
+  as ConnectTimeoutException in case of connect failure due to a time out.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-813] Fixed default port resolution. Invalid ports no longer

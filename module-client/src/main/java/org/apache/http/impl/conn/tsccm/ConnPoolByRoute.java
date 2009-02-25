@@ -69,6 +69,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
         
     private final Log log = LogFactory.getLog(getClass());
 
+    protected final HttpParams params;
+    
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;
     
@@ -85,10 +87,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
 
-    protected final int maxTotalConnections;
-    
-    private final ConnPerRoute connPerRoute;
-    
     /**
      * Creates a new connection pool, managed by route.
      */
@@ -98,14 +96,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
             throw new IllegalArgumentException("Connection operator may not be null");
         }
         this.operator = operator;
+        this.params = params;
         
         freeConnections = createFreeConnQueue();
         waitingThreads  = createWaitingThreadQueue();
         routeToPool     = createRouteToPoolMap();
-        maxTotalConnections = ConnManagerParams
-            .getMaxTotalConnections(params);
-        connPerRoute = ConnManagerParams
-            .getMaxConnectionsPerRoute(params);
     }
 
 
@@ -149,6 +144,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the new pool
      */
     protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
+        ConnPerRoute connPerRoute = ConnManagerParams.getMaxConnectionsPerRoute(params);
         return new RouteSpecificPool(route, connPerRoute.getMaxForRoute(route));
     }
 
@@ -264,6 +260,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
                                    WaitingThreadAborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
+        int maxTotalConnections = ConnManagerParams.getMaxTotalConnections(params);
+        
         Date deadline = null;
         if (timeout > 0) {
             deadline = new Date
