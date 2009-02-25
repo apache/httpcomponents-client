@@ -384,8 +384,6 @@ public class DefaultRequestDirector implements RequestDirector {
                         targetAuthState);
                 context.setAttribute(ClientContext.PROXY_AUTH_STATE,
                         proxyAuthState);
-                context.setAttribute(ExecutionContext.HTTP_REQUEST,
-                        wrapper);
 
                 // Run request protocol interceptors
                 requestExec.preProcess(wrapper, httpProcessor, context);
