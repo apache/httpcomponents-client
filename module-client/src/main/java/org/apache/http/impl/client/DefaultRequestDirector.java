@@ -456,7 +456,11 @@ public class DefaultRequestDirector implements RequestDirector {
                     managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
 
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Connection can be kept alive for " + duration + " ms");
+                        if (duration >= 0) {
+                            this.log.debug("Connection can be kept alive for " + duration + " ms");
+                        } else {
+                            this.log.debug("Connection can be kept alive indefinitely");
+                        }
                     }
                 }
                 
