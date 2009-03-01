@@ -52,12 +52,6 @@
     </license>
   </licenses>
 
-  <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/module-httpmime</url>
-  </scm>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

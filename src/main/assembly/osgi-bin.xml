@@ -61,7 +61,7 @@
         </fileSet>
         <!-- Base module -->
         <fileSet>
-          <directory>module-client/src/examples/</directory>
+          <directory>httpclient/src/examples/</directory>
           <outputDirectory>examples</outputDirectory>
           <includes>
             <include>**/*.java</include>
@@ -69,7 +69,7 @@
         </fileSet>
         <!-- HttpMime module -->
         <fileSet>
-          <directory>module-httpmime/src/examples/</directory>
+          <directory>httpmime/src/examples/</directory>
           <outputDirectory>examples</outputDirectory>
           <includes>
             <include>**/*.java</include>
