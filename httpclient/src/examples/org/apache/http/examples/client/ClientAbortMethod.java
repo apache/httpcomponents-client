@@ -61,6 +61,11 @@ public class ClientAbortMethod {
         // Do not feel like reading the response body
         // Call abort on the request object
         httpget.abort();
+        
+        // When HttpClient instance is no longer needed, 
+        // shut down the connection manager to ensure
+        // immediate deallocation of all system resources
+        httpclient.getConnectionManager().shutdown();        
     }
 
 }

@@ -54,8 +54,7 @@ public class ClientProxyAuthentication {
         HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https"); 
         HttpHost proxy = new HttpHost("localhost", 8080); 
 
-        httpclient.getParams().setParameter
-            (ConnRoutePNames.DEFAULT_PROXY, proxy);
+        httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 
         HttpGet httpget = new HttpGet("/");
         
@@ -74,5 +73,10 @@ public class ClientProxyAuthentication {
         if (entity != null) {
             entity.consumeContent();
         }
+        
+        // When HttpClient instance is no longer needed, 
+        // shut down the connection manager to ensure
+        // immediate deallocation of all system resources
+        httpclient.getConnectionManager().shutdown();        
     }
 }

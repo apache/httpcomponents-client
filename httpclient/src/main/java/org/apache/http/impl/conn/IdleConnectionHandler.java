@@ -111,18 +111,15 @@ public class IdleConnectionHandler {
      * 
      * @param idleTime the minimum idle time, in milliseconds, for connections to be closed
      */
-    //@@@ add TimeUnit argument here?
     public void closeIdleConnections(long idleTime) {
         
         // the latest time for which connections will be closed
         long idleTimeout = System.currentTimeMillis() - idleTime;
 
         if (log.isDebugEnabled()) {
-            log.debug("Checking for connections, idleTimeout: "  + idleTimeout);
+            log.debug("Checking for connections, idle timeout: "  + idleTimeout);
         }
-        
-        Iterator<HttpConnection> connectionIter =
-            connectionToTimes.keySet().iterator();
+        Iterator<HttpConnection> connectionIter = connectionToTimes.keySet().iterator();
         
         while (connectionIter.hasNext()) {
             HttpConnection conn = connectionIter.next();
@@ -130,9 +127,8 @@ public class IdleConnectionHandler {
             long connectionTime = times.timeAdded;
             if (connectionTime <= idleTimeout) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Closing connection, connection time: "  + connectionTime);
+                    log.debug("Closing idle connection, connection time: "  + connectionTime);
                 }
-                connectionIter.remove();
                 try {
                     conn.close();
                 } catch (IOException ex) {
@@ -159,7 +155,6 @@ public class IdleConnectionHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("Closing connection, expired @: "  + times.timeExpires);
                 }
-                connectionIter.remove();
                 try {
                     conn.close();
                 } catch (IOException ex) {

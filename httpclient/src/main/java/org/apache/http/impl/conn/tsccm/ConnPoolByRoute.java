@@ -638,15 +638,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
     }
 
 
-    //@@@ revise this cleanup stuff
-    //@@@ move method to base class when deleteEntry() is fixed
-    // non-javadoc, see base class AbstractConnPool
     @Override
     public void deleteClosedConnections() {
-
         poolLock.lock();
         try {
-
             Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
             while (iter.hasNext()) {
                 BasicPoolEntry entry = iter.next();
@@ -655,7 +650,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     deleteEntry(entry);
                 }
             }
-
         } finally {
             poolLock.unlock();
         }
@@ -677,6 +671,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
             while (ibpe.hasNext()) {
                 BasicPoolEntry entry = ibpe.next();
                 ibpe.remove();
+                
+                if (log.isDebugEnabled()) {
+                    log.debug("Closing connection" 
+                            + " [" + entry.getPlannedRoute() + "][" + entry.getState() + "]");
+                }
                 closeConnection(entry.getConnection());
             }
 

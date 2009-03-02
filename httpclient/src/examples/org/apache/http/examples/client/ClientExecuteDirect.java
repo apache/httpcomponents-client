@@ -34,17 +34,16 @@ package org.apache.http.examples.client;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -79,7 +78,7 @@ public class ClientExecuteDirect {
                 supportedSchemes);
         DefaultHttpClient httpclient = new DefaultHttpClient(connMgr, params);
 
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpGet req = new HttpGet("/");
 
         System.out.println("executing request to " + target);
 
@@ -97,6 +96,11 @@ public class ClientExecuteDirect {
         if (entity != null) {
             System.out.println(EntityUtils.toString(entity));
         }
+
+        // When HttpClient instance is no longer needed, 
+        // shut down the connection manager to ensure
+        // immediate deallocation of all system resources
+        httpclient.getConnectionManager().shutdown();        
     }
 
 }

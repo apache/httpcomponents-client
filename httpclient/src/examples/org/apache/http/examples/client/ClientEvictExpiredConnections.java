@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  *
@@ -30,6 +30,8 @@
  
 package org.apache.http.examples.client;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -45,15 +47,12 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.util.EntityUtils;
 
 /**
- * An example that performs GETs from multiple threads.
- * 
+ * Example demonstrating how to evict expired and idle connections
+ * from the connection pool.
  */
-public class ClientMultiThreadedExecution {
+public class ClientEvictExpiredConnections {
 
     public static void main(String[] args) throws Exception {
         // Create and initialize HTTP parameters
@@ -66,87 +65,90 @@ public class ClientMultiThreadedExecution {
         schemeRegistry.register(
                 new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         
-        // Create an HttpClient with the ThreadSafeClientConnManager.
-        // This connection manager must be used if more than one thread will
-        // be using the HttpClient.
         ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
-        HttpClient httpClient = new DefaultHttpClient(cm, params);
+        HttpClient httpclient = new DefaultHttpClient(cm, params);
         
         // create an array of URIs to perform GETs on
         String[] urisToGet = {
-            "http://hc.apache.org/",
-            "http://hc.apache.org/httpcomponents-core/",
-            "http://hc.apache.org/httpcomponents-client/",
-            "http://svn.apache.org/viewvc/httpcomponents/"
+            "http://jakarta.apache.org/",
+            "http://jakarta.apache.org/commons/",
+            "http://jakarta.apache.org/commons/httpclient/",
+            "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
         };
         
-        // create a thread for each URI
-        GetThread[] threads = new GetThread[urisToGet.length];
-        for (int i = 0; i < threads.length; i++) {
-            HttpGet httpget = new HttpGet(urisToGet[i]);
-            threads[i] = new GetThread(httpClient, httpget, i + 1);
+        IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
+        connEvictor.start();
+        
+        for (int i = 0; i < urisToGet.length; i++) {
+            String requestURI = urisToGet[i];
+            HttpGet req = new HttpGet(requestURI);
+
+            System.out.println("executing request " + requestURI);
+
+            HttpResponse rsp = httpclient.execute(req);
+            HttpEntity entity = rsp.getEntity();
+
+            System.out.println("----------------------------------------");
+            System.out.println(rsp.getStatusLine());
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+            }
+            System.out.println("----------------------------------------");
+
+            if (entity != null) {
+                entity.consumeContent();
+            }
         }
         
-        // start the threads
-        for (int j = 0; j < threads.length; j++) {
-            threads[j].start();
-        }
+        // Sleep 10 sec and let the connection evictor do its job
+        Thread.sleep(20000);
         
-        // join the threads
-        for (int j = 0; j < threads.length; j++) {
-            threads[j].join();
-        }
+        // Shut down the evictor thread
+        connEvictor.shutdown();
+        connEvictor.join();
 
         // When HttpClient instance is no longer needed, 
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpClient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();        
     }
     
-    /**
-     * A thread that performs a GET.
-     */
-    static class GetThread extends Thread {
+    public static class IdleConnectionEvictor extends Thread {
         
-        private final HttpClient httpClient;
-        private final HttpContext context;
-        private final HttpGet httpget;
-        private final int id;
+        private final ClientConnectionManager connMgr;
         
-        public GetThread(HttpClient httpClient, HttpGet httpget, int id) {
-            this.httpClient = httpClient;
-            this.context = new BasicHttpContext();
-            this.httpget = httpget;
-            this.id = id;
+        private volatile boolean shutdown;
+        
+        public IdleConnectionEvictor(ClientConnectionManager connMgr) {
+            super();
+            this.connMgr = connMgr;
         }
-        
-        /**
-         * Executes the GetMethod and prints some status information.
-         */
+
         @Override
         public void run() {
-            
-            System.out.println(id + " - about to get something from " + httpget.getURI());
-
             try {
-                
-                // execute the method
-                HttpResponse response = httpClient.execute(httpget, context);
-                
-                System.out.println(id + " - get executed");
-                // get the response body as an array of bytes
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    byte[] bytes = EntityUtils.toByteArray(entity);
-                    System.out.println(id + " - " + bytes.length + " bytes read");
+                while (!shutdown) {
+                    synchronized (this) {
+                        wait(5000);
+                        // Close expired connections
+                        connMgr.closeExpiredConnections();
+                        // Optionally, close connections
+                        // that have been idle longer than 5 sec
+                        connMgr.closeIdleConnections(5, TimeUnit.SECONDS);
+                    }
                 }
-                
-            } catch (Exception e) {
-                httpget.abort();
-                System.out.println(id + " - error: " + e);
+            } catch (InterruptedException ex) {
+                // terminate
             }
         }
-       
+        
+        public void shutdown() {
+            shutdown = true;
+            synchronized (this) {
+                notifyAll();
+            }
+        }
+        
     }
     
 }

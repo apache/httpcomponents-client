@@ -33,11 +33,6 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-
-
 /**
  * A worker thread for processing queued references.
  * {@link Reference Reference}s can be
@@ -50,8 +45,6 @@ import org.apache.commons.logging.LogFactory;
  * @since 4.0
  */
 public class RefQueueWorker implements Runnable {
-
-    private final Log log = LogFactory.getLog(getClass());
 
     /** The reference queue to monitor. */
     protected final ReferenceQueue<?> refQueue;
@@ -103,12 +96,7 @@ public class RefQueueWorker implements Runnable {
                 // remove the next reference and process it
                 Reference<?> ref = refQueue.remove();
                 refHandler.handleReference(ref);
-            } catch (InterruptedException e) {
-                //@@@ is logging really necessary? this here is the
-                //@@@ only reason for having a log in this class
-                if (log.isDebugEnabled()) {
-                    log.debug(this.toString() + " interrupted", e);
-                }
+            } catch (InterruptedException ignore) {
             }
         }
     }

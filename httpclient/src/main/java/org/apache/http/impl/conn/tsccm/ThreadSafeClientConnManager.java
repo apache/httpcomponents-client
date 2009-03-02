@@ -231,6 +231,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     // non-javadoc, see interface ClientConnectionManager
     public void shutdown() {
+        log.debug("Shutting down");
         connectionPool.shutdown();
     }
 
@@ -268,12 +269,15 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     // non-javadoc, see interface ClientConnectionManager
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
-        // combine these two in a single call?
+        if (log.isDebugEnabled()) {
+            log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
+        }
         connectionPool.closeIdleConnections(idleTimeout, tunit);
         connectionPool.deleteClosedConnections();
     }
     
     public void closeExpiredConnections() {
+        log.debug("Closing expired connections");
         connectionPool.closeExpiredConnections();
         connectionPool.deleteClosedConnections();
     }

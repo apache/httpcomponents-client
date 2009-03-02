@@ -262,8 +262,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     }
 
         
-    //@@@ revise this cleanup stuff (closeIdle+deleteClosed), it's not good
-
     /**
      * Deletes all entries for closed connections.
      */
@@ -324,10 +322,6 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             }
         }
     }
-
-
-
-
 
 } // class AbstractConnPool
 

@@ -120,6 +120,11 @@ public class ClientGZipContentCompression {
             System.out.println("----------------------------------------");
             System.out.println("Uncompressed size: "+content.length());
         }
+
+        // When HttpClient instance is no longer needed, 
+        // shut down the connection manager to ensure
+        // immediate deallocation of all system resources
+        httpclient.getConnectionManager().shutdown();        
     }
 
     static class GzipDecompressingEntity extends HttpEntityWrapper {
