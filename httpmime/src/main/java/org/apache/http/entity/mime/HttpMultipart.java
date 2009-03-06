@@ -31,25 +31,28 @@
 
 package org.apache.http.entity.mime;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.protocol.HTTP;
-import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.field.ContentTypeField;
-import org.apache.james.mime4j.field.Field;
+import org.apache.james.mime4j.field.FieldName;
 import org.apache.james.mime4j.message.Body;
 import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Entity;
+import org.apache.james.mime4j.message.Header;
+import org.apache.james.mime4j.message.MessageWriter;
 import org.apache.james.mime4j.message.Multipart;
+import org.apache.james.mime4j.parser.Field;
+import org.apache.james.mime4j.util.ByteArrayBuffer;
+import org.apache.james.mime4j.util.ByteSequence;
 import org.apache.james.mime4j.util.CharsetUtil;
-import org.apache.james.mime4j.util.MessageUtils;
 
 /**
  * An extension of the mime4j standard {@link Multipart} class, which is
@@ -61,6 +64,28 @@ import org.apache.james.mime4j.util.MessageUtils;
  */
 public class HttpMultipart extends Multipart {
 
+    private static ByteArrayBuffer encode(Charset charset, String string) {
+        ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
+        ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
+        bab.append(encoded.array(), encoded.position(), encoded.remaining());
+        return bab;
+    }
+    
+    private static void writeBytes(ByteArrayBuffer b, OutputStream out) throws IOException {
+        out.write(b.buffer(), 0, b.length());
+    }
+    
+    private static void writeBytes(ByteSequence b, OutputStream out) throws IOException {
+        if (b instanceof ByteArrayBuffer) {
+            writeBytes((ByteArrayBuffer) b, out);
+        } else {
+            out.write(b.toByteArray());
+        }
+    }
+    
+    private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
+    private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
+    
     private HttpMultipartMode mode;
     
     public HttpMultipart(final String subType) {
@@ -79,7 +104,7 @@ public class HttpMultipart extends Multipart {
     protected Charset getCharset() {
         Entity e = getParent();
         ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
-                Field.CONTENT_TYPE);
+                FieldName.CONTENT_TYPE);
         Charset charset = null;
         
         switch (this.mode) {
@@ -100,7 +125,7 @@ public class HttpMultipart extends Multipart {
     protected String getBoundary() {
         Entity e = getParent();
         ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
-                Field.CONTENT_TYPE);
+                FieldName.CONTENT_TYPE);
         return cField.getBoundary();
     }
 
@@ -109,44 +134,49 @@ public class HttpMultipart extends Multipart {
         final OutputStream out, 
         boolean writeContent) throws IOException {
         
-        List<?> bodyParts = getBodyParts();
+        List<BodyPart> bodyParts = getBodyParts();
         Charset charset = getCharset();
-        String boundary = getBoundary();
 
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(out, charset),
-                8192);
+        ByteArrayBuffer boundary = encode(charset, getBoundary());
         
         switch (mode) {
         case STRICT:
             String preamble = getPreamble();
             if (preamble != null && preamble.length() != 0) {
-                writer.write(preamble);
-                writer.write("\r\n");
+                ByteArrayBuffer b = encode(charset, preamble);
+                writeBytes(b, out);
+                writeBytes(CR_LF, out);
             }
 
             for (int i = 0; i < bodyParts.size(); i++) {
-                writer.write("--");
-                writer.write(boundary);
-                writer.write("\r\n");
-                writer.flush();
-                BodyPart part = (BodyPart) bodyParts.get(i);
-                part.getHeader().writeTo(out, MessageUtils.STRICT_IGNORE);
-                if (writeContent) {
-                    part.getBody().writeTo(out, MessageUtils.STRICT_IGNORE);
-                }
-                writer.write("\r\n");
-            }
+                writeBytes(TWO_DASHES, out);
+                writeBytes(boundary, out);
+                writeBytes(CR_LF, out);
 
-            writer.write("--");
-            writer.write(boundary);
-            writer.write("--\r\n");
+                BodyPart part = bodyParts.get(i);
+                Header header = part.getHeader();
+                
+                List<Field> fields = header.getFields();
+                for (Field field: fields) {
+                    writeBytes(field.getRaw(), out);
+                    writeBytes(CR_LF, out);
+                }
+                writeBytes(CR_LF, out);
+                if (writeContent) {
+                    MessageWriter.DEFAULT.writeBody(part.getBody(), out);
+                }
+                writeBytes(CR_LF, out);
+            }
+            writeBytes(TWO_DASHES, out);
+            writeBytes(boundary, out);
+            writeBytes(TWO_DASHES, out);
+            writeBytes(CR_LF, out);
             String epilogue = getEpilogue();
             if (epilogue != null && epilogue.length() != 0) {
-                writer.write(epilogue);
-                writer.write("\r\n");
+                ByteArrayBuffer b = encode(charset, epilogue);
+                writeBytes(b, out);
+                writeBytes(CR_LF, out);
             }
-            writer.flush();
             break;
         case BROWSER_COMPATIBLE:
 
@@ -155,28 +185,30 @@ public class HttpMultipart extends Multipart {
             // (3) Use content charset
             
             for (int i = 0; i < bodyParts.size(); i++) {
-                writer.write("--");
-                writer.write(boundary);
-                writer.write("\r\n");
-                writer.flush();
+                writeBytes(TWO_DASHES, out);
+                writeBytes(boundary, out);
+                writeBytes(CR_LF, out);
                 BodyPart part = (BodyPart) bodyParts.get(i);
                 
                 Field cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
-                writer.write(cd.toString());
-                writer.write("\r\n");
-                writer.write("\r\n");
-                writer.flush();
-                if (writeContent) {
-                    part.getBody().writeTo(out, MessageUtils.LENIENT);
-                }
                 
-                writer.write("\r\n");
+                StringBuilder s = new StringBuilder();
+                s.append(cd.getName());
+                s.append(": ");
+                s.append(cd.getBody());
+                writeBytes(encode(charset, s.toString()), out);
+                writeBytes(CR_LF, out);
+                writeBytes(CR_LF, out);
+                if (writeContent) {
+                    MessageWriter.DEFAULT.writeBody(part.getBody(), out);
+                }
+                writeBytes(CR_LF, out);
             }
 
-            writer.write("--");
-            writer.write(boundary);
-            writer.write("--\r\n");
-            writer.flush();
+            writeBytes(TWO_DASHES, out);
+            writeBytes(boundary, out);
+            writeBytes(TWO_DASHES, out);
+            writeBytes(CR_LF, out);
             break;
         }
     }
@@ -190,15 +222,6 @@ public class HttpMultipart extends Multipart {
      */
     public void writeTo(final OutputStream out) throws IOException {
         doWriteTo(this.mode, out, true);
-    }
-
-    @Override
-    public void writeTo(final OutputStream out, int mode) throws IOException, MimeException {
-        if (mode == MessageUtils.LENIENT) {
-            doWriteTo(HttpMultipartMode.BROWSER_COMPATIBLE, out, true);
-        } else {
-            doWriteTo(HttpMultipartMode.STRICT, out, true);
-        }
     }
 
     /**

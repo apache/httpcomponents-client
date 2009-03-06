@@ -1,7 +1,7 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,22 +28,54 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.http.entity.mime;
 
-import org.apache.james.mime4j.MimeException;
+import org.apache.james.mime4j.parser.Field;
+import org.apache.james.mime4j.util.ByteSequence;
+import org.apache.james.mime4j.util.ContentUtil;
 
 /**
- * @deprecated no longer used.
+ * Minimal implementation of {@link Field}.
  *
  * @since 4.0
  */
-@Deprecated
-public class UnexpectedMimeException extends RuntimeException {
+public class MinimalField implements Field {
 
-    private static final long serialVersionUID = 1316818299528463579L;
+    private final String name;
+    private final String value;
 
-    public UnexpectedMimeException(MimeException ex) {
-        super(ex.getMessage(), ex);
+    private ByteSequence raw;
+    
+    MinimalField(final String name, final String value) {
+        super();
+        this.name = name;
+        this.value = value;
+        this.raw = null;
+    }
+    
+    public String getName() {
+        return this.name;
+    }
+
+    public String getBody() {
+        return this.value;
+    }
+
+    public ByteSequence getRaw() {
+        if (this.raw == null) {
+            this.raw = ContentUtil.encode(toString());
+        }
+        return this.raw;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(this.name);
+        buffer.append(": ");
+        buffer.append(this.value);
+        return buffer.toString();
     }
     
 }

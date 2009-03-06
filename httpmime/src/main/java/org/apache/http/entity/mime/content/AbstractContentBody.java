@@ -34,18 +34,21 @@ package org.apache.http.entity.mime.content;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.james.mime4j.message.AbstractBody;
+import org.apache.james.mime4j.message.Entity;
+import org.apache.james.mime4j.message.SingleBody;
 
 /**
  *
  * @since 4.0
  */
-public abstract class AbstractContentBody extends AbstractBody implements ContentBody {
+public abstract class AbstractContentBody extends SingleBody implements ContentBody {
 
     private final String mimeType;
     private final String mediaType;
     private final String subType;
     
+    private Entity parent = null;
+
     public AbstractContentBody(final String mimeType) {
         super();
         if (mimeType == null) {
@@ -61,7 +64,15 @@ public abstract class AbstractContentBody extends AbstractBody implements Conten
             this.subType = null;
         }
     }
-    
+
+    public Entity getParent() {
+        return this.parent;
+    }
+
+    public void setParent(final Entity parent) {
+        this.parent = parent;
+    }
+
     public String getMimeType() {
         return this.mimeType;
     }
@@ -74,8 +85,11 @@ public abstract class AbstractContentBody extends AbstractBody implements Conten
         return this.subType;
     }
 
-    public Map<?, ?> getContentTypeParameters() {
-        return Collections.EMPTY_MAP;
+    public Map<String, String> getContentTypeParameters() {
+        return Collections.emptyMap();
     }
 
+    public void dispose() {
+    }
+    
 }

@@ -44,8 +44,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.field.Field;
+import org.apache.james.mime4j.field.Fields;
 import org.apache.james.mime4j.message.Message;
 
 /**
@@ -91,7 +90,7 @@ public class MultipartEntity implements HttpEntity {
             mode = HttpMultipartMode.STRICT;
         }
         this.multipart.setMode(mode);
-        addField("Content-Type: " + this.contentType.getValue());
+        this.message.getHeader().addField(Fields.contentType(this.contentType.getValue()));
     }
 
     public MultipartEntity(final HttpMultipartMode mode) {
@@ -181,13 +180,4 @@ public class MultipartEntity implements HttpEntity {
         this.multipart.writeTo(outstream);
     }
 
-    private void addField(final String s) {
-        try {
-            this.message.getHeader().addField(Field.parse(s));
-        } catch (MimeException ex) {
-            // Should never happen
-            throw new UnexpectedMimeException(ex);
-        }
-    }
-    
 }

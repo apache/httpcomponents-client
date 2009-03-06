@@ -43,13 +43,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.entity.mime.MIME;
-import org.apache.james.mime4j.message.TextBody;
 
 /**
  *
  * @since 4.0
  */
-public class StringBody extends AbstractContentBody implements TextBody {
+public class StringBody extends AbstractContentBody {
 
     private final byte[] content;
     private final Charset charset;
@@ -83,7 +82,15 @@ public class StringBody extends AbstractContentBody implements TextBody {
                 this.charset);
     }
 
+    /**
+     * @deprecated use {@link #writeTo(OutputStream)}
+     */
+    @Deprecated
     public void writeTo(final OutputStream out, int mode) throws IOException {
+        writeTo(out);
+    }
+
+    public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
@@ -105,8 +112,8 @@ public class StringBody extends AbstractContentBody implements TextBody {
     }
 
     @Override
-    public Map<?, ?> getContentTypeParameters() {
-        Map<Object, Object> map = new HashMap<Object, Object>();
+    public Map<String, String> getContentTypeParameters() {
+        Map<String, String> map = new HashMap<String, String>();
         map.put("charset", this.charset.name());
         return map;
     }

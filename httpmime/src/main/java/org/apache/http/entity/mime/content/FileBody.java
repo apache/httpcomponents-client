@@ -38,13 +38,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.http.entity.mime.MIME;
-import org.apache.james.mime4j.message.BinaryBody;
 
 /**
  *
  * @since 4.0
  */
-public class FileBody extends AbstractContentBody implements BinaryBody {
+public class FileBody extends AbstractContentBody {
 
     private final File file;
     
@@ -64,7 +63,15 @@ public class FileBody extends AbstractContentBody implements BinaryBody {
         return new FileInputStream(this.file);
     }
 
+    /**
+     * @deprecated use {@link #writeTo(OutputStream)}
+     */
+    @Deprecated
     public void writeTo(final OutputStream out, int mode) throws IOException {
+        writeTo(out);
+    }
+
+    public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
@@ -100,5 +107,5 @@ public class FileBody extends AbstractContentBody implements BinaryBody {
     public File getFile() {
         return this.file;
     }
-    
+
 }
