@@ -377,7 +377,7 @@ public class DigestScheme extends RFC2617Scheme {
      */
     private Header createDigestHeader(
             final Credentials credentials, 
-            final String digest) throws AuthenticationException {
+            final String digest) {
         
         CharArrayBuffer buffer = new CharArrayBuffer(128);
         if (isProxy()) {
