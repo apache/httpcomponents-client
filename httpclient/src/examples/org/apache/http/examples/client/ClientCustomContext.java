@@ -83,7 +83,9 @@ public class ClientCustomContext {
         }
         
         // Consume response content
-        entity.consumeContent();
+        if (entity != null) {
+            entity.consumeContent();
+        }
         
         System.out.println("----------------------------------------");
 
