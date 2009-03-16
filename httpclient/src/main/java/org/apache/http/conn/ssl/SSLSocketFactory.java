@@ -321,7 +321,7 @@ public class SSLSocketFactory implements LayeredSocketFactory {
             remoteAddress = new InetSocketAddress(host, port);            
         }
         try {
-            sock.connect(remoteAddress, connTimeout);
+            sslsock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
