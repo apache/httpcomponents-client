@@ -38,6 +38,8 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
@@ -110,9 +112,19 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // SSL handshake exception
             return false;
         }
+        
+        HttpRequest request = (HttpRequest)
+            context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        boolean idempotent = !(request instanceof HttpEntityEnclosingRequest); 
+        if (idempotent) {
+            // Retry if the request is considered idempotent 
+            return true;
+        }
+        
         Boolean b = (Boolean)
             context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
         boolean sent = (b != null && b.booleanValue());
+        
         if (!sent || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or
             // if it's OK to retry methods that have been sent
