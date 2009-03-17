@@ -67,11 +67,13 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
         }
         
         // Add default headers
-        Collection<?> defHeaders = (Collection<?>) request.getParams().getParameter(
+        @SuppressWarnings("unchecked")
+        Collection<Header> defHeaders = (Collection<Header>) request.getParams().getParameter(
                 ClientPNames.DEFAULT_HEADERS);
+
         if (defHeaders != null) {
-            for (Object defHeader : defHeaders) {
-                request.addHeader((Header) defHeader);
+            for (Header defHeader : defHeaders) {
+                request.addHeader(defHeader);
             }
         }
     }
