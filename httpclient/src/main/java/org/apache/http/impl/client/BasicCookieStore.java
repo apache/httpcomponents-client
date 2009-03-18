@@ -37,6 +37,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieIdentityComparator;
@@ -47,10 +50,13 @@ import org.apache.http.cookie.CookieIdentityComparator;
  * 
  * @since 4.0
  */
+@ThreadSafe
 public class BasicCookieStore implements CookieStore {
 
+    @GuardedBy("this")
     private final ArrayList<Cookie> cookies;
 
+    @GuardedBy("this")
     private final Comparator<Cookie> cookieComparator;
     
     // -------------------------------------------------------- Class Variables

@@ -33,6 +33,8 @@ package org.apache.http.conn;
 
 import java.io.InterruptedIOException;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * A timeout while connecting to an HTTP server or waiting for an
  * available connection from an HttpConnectionManager.
@@ -40,6 +42,7 @@ import java.io.InterruptedIOException;
  * 
  * @since 4.0
  */
+@Immutable
 public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;

@@ -33,11 +33,14 @@ package org.apache.http.conn.util;
 
 import java.util.regex.Pattern;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * A collection of utilities relating to InetAddresses.
  *
  * @since 4.0
  */
+@Immutable
 public class InetAddressUtils {
 
     private InetAddressUtils() {

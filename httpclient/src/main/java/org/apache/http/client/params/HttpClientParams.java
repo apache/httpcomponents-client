@@ -30,6 +30,8 @@
 
 package org.apache.http.client.params;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.params.HttpParams;
 
 /**
@@ -40,6 +42,7 @@ import org.apache.http.params.HttpParams;
  * 
  * @since 4.0
  */
+@Immutable
 public class HttpClientParams {
 
     private HttpClientParams() {

@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.auth;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
@@ -40,6 +42,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@Immutable
 public class BasicSchemeFactory implements AuthSchemeFactory {    
 
     public AuthScheme newInstance(final HttpParams params) {

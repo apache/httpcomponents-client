@@ -33,6 +33,8 @@ package org.apache.http.client.utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpHost;
 
 /**
@@ -41,6 +43,7 @@ import org.apache.http.HttpHost;
  *
  * @since 4.0
  */
+@Immutable
 public class URIUtils {
 
      /**

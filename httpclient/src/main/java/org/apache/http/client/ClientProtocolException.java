@@ -32,11 +32,14 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Signals an error in the HTTP protocol.
  *
  * @since 4.0
  */
+@Immutable
 public class ClientProtocolException extends IOException {
     
     private static final long serialVersionUID = -5596590843227115865L;

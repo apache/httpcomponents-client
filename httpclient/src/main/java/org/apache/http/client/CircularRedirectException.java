@@ -30,12 +30,15 @@
 
 package org.apache.http.client;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Signals a circular redirect
  * 
  * 
  * @since 4.0
  */
+@Immutable
 public class CircularRedirectException extends RedirectException {
 
     private static final long serialVersionUID = 6830063487001091803L;

@@ -35,6 +35,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.HttpHost;
 
 /**
@@ -48,9 +51,11 @@ import org.apache.http.HttpHost;
  *
  * @since 4.0
  */
+@ThreadSafe
 public final class SchemeRegistry {
 
     /** The available schemes in this registry. */
+    @GuardedBy("this")
     private final Map<String,Scheme> registeredSchemes;
 
 

@@ -38,6 +38,8 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
@@ -51,6 +53,7 @@ import org.apache.http.protocol.ExecutionContext;
  *
  * @since 4.0
  */
+@Immutable
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     /** the number of times a method will be retried */

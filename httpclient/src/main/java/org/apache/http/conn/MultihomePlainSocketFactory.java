@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -54,6 +56,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@Immutable
 public final class MultihomePlainSocketFactory implements SocketFactory {
 
     /**

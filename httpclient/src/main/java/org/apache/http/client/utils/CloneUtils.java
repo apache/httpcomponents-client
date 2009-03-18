@@ -32,12 +32,14 @@ package org.apache.http.client.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import net.jcip.annotations.Immutable;
 
 /**
  * A collection of utilities to workaround limitations of Java clone framework.
  *
  * @since 4.0
  */
+@Immutable
 public class CloneUtils {
 
     public static Object clone(final Object obj) throws CloneNotSupportedException {

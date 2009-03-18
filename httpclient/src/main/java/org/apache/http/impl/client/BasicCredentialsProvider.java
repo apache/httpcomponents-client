@@ -32,6 +32,9 @@ package org.apache.http.impl.client;
 
 import java.util.HashMap;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
@@ -42,8 +45,10 @@ import org.apache.http.client.CredentialsProvider;
  * 
  * @since 4.0
  */
+@ThreadSafe
 public class BasicCredentialsProvider implements CredentialsProvider {
 
+    @GuardedBy("this")
     private final HashMap<AuthScope, Credentials> credMap;
 
     /**

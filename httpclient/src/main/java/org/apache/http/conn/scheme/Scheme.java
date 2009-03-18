@@ -32,6 +32,8 @@ package org.apache.http.conn.scheme;
 
 import java.util.Locale;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.util.LangUtils;
 
 /**
@@ -52,6 +54,7 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
+@Immutable
 public final class Scheme {
 
     /** The name of this scheme, in lowercase. (e.g. http, https) */
@@ -69,6 +72,11 @@ public final class Scheme {
 
     /** A string representation, for {@link #toString toString}. */
     private String stringRep;
+    /*
+     *  This is used to cache the result of the toString() method
+     *  Since the method always generates the same value, there's no
+     *  need to synchronize.
+    */
 
 
     /**

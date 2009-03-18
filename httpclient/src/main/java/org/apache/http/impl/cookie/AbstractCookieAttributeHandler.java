@@ -30,6 +30,8 @@
  */ 
 package org.apache.http.impl.cookie;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -39,6 +41,7 @@ import org.apache.http.cookie.MalformedCookieException;
  *
  * @since 4.0
  */
+@Immutable
 public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
     public void validate(final Cookie cookie, final CookieOrigin origin) 

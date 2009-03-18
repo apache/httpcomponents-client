@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -43,7 +45,8 @@ import org.apache.http.cookie.SetCookie2;
  *
  * @since 4.0
  */
-  public class RFC2965DiscardAttributeHandler implements CookieAttributeHandler {
+@Immutable
+public class RFC2965DiscardAttributeHandler implements CookieAttributeHandler {
 
       public RFC2965DiscardAttributeHandler() {
           super();

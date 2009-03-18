@@ -34,6 +34,8 @@ package org.apache.http.cookie;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * This cookie comparator can be used to compare identity of cookies.
  *  
@@ -45,6 +47,7 @@ import java.util.Comparator;
  *
  * @since 4.0
  */
+@Immutable
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 
     private static final long serialVersionUID = 4466565437490631532L;

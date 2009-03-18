@@ -33,6 +33,8 @@ package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpHost;
 
 /**
@@ -47,6 +49,7 @@ import org.apache.http.HttpHost;
  *
  * @since 4.0
  */
+@Immutable
 public final class HttpRoute implements RouteInfo, Cloneable {
 
     private static final HttpHost[] EMPTY_HTTP_HOST_ARRAY = new HttpHost[]{};

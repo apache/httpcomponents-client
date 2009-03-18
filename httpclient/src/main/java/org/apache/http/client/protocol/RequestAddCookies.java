@@ -37,6 +37,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -67,6 +69,7 @@ import org.apache.http.protocol.ExecutionContext;
  * 
  * @since 4.0
  */
+@Immutable
 public class RequestAddCookies implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());

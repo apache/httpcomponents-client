@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.ssl;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.conn.util.InetAddressUtils;
 
 import java.io.IOException;
@@ -59,6 +61,7 @@ import javax.net.ssl.SSLSocket;
  *
  * @since 4.0
  */
+@Immutable
 public abstract class AbstractVerifier implements X509HostnameVerifier {
 
     /**

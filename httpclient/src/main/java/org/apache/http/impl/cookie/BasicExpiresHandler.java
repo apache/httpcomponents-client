@@ -30,6 +30,8 @@
  */ 
 package org.apache.http.impl.cookie;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
@@ -38,6 +40,7 @@ import org.apache.http.cookie.SetCookie;
  *
  * @since 4.0
  */
+@Immutable
 public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
 
     /** Valid date patterns */

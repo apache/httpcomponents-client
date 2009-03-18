@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.params.CookieSpecPNames;
@@ -41,6 +43,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@Immutable
 public class NetscapeDraftSpecFactory implements CookieSpecFactory {    
 
     public CookieSpec newInstance(final HttpParams params) {

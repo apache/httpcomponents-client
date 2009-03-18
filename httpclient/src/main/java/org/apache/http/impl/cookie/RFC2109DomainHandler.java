@@ -32,6 +32,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.Locale;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -42,6 +44,7 @@ import org.apache.http.cookie.SetCookie;
  *
  * @since 4.0
  */
+@Immutable
 public class RFC2109DomainHandler implements CookieAttributeHandler {
 
     public RFC2109DomainHandler() {

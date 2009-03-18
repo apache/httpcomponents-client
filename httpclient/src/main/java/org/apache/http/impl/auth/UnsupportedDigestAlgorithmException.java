@@ -30,6 +30,8 @@
 
 package org.apache.http.impl.auth;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Authentication credentials required to respond to a authentication 
  * challenge are invalid
@@ -37,6 +39,7 @@ package org.apache.http.impl.auth;
  * 
  * @since 4.0
  */
+@Immutable
 public class UnsupportedDigestAlgorithmException extends RuntimeException {
 
     private static final long serialVersionUID = 319558534317118022L;

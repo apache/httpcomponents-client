@@ -32,11 +32,14 @@ package org.apache.http.client.utils;
 
 import java.util.StringTokenizer;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Implementation from pseudo code in RFC 3492.
  *
  * @since 4.0
  */
+@Immutable
 public class Rfc3492Idn implements Idn {
     private static final int base = 36;
     private static final int tmin = 1;

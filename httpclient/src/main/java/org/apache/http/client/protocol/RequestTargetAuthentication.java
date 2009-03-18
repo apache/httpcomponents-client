@@ -33,6 +33,8 @@ package org.apache.http.client.protocol;
 
 import java.io.IOException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
@@ -51,6 +53,7 @@ import org.apache.http.protocol.HttpContext;
  * 
  * @since 4.0
  */
+@Immutable
 public class RequestTargetAuthentication implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());

@@ -33,6 +33,8 @@ package org.apache.http.impl.cookie;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -41,6 +43,7 @@ import org.apache.http.cookie.MalformedCookieException;
  *
  * @since 4.0
  */
+@Immutable
 public class NetscapeDomainHandler extends BasicDomainHandler {
 
     public NetscapeDomainHandler() {

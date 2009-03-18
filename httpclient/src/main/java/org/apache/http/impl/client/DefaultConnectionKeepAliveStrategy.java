@@ -30,6 +30,8 @@
  */
 package org.apache.http.impl.client;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpResponse;
@@ -50,6 +52,7 @@ import org.apache.http.protocol.HttpContext;
  * 
  * @since 4.0
  */
+@Immutable
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
     
     public long getKeepAliveDuration(HttpResponse response, HttpContext context) {

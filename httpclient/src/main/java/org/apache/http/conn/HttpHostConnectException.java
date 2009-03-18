@@ -32,6 +32,8 @@ package org.apache.http.conn;
 
 import java.net.ConnectException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpHost;
 
 /**
@@ -40,6 +42,7 @@ import org.apache.http.HttpHost;
  *
  * @since 4.0
  */
+@Immutable
 public class HttpHostConnectException extends ConnectException {
 
     private static final long serialVersionUID = -3194482710275220224L;

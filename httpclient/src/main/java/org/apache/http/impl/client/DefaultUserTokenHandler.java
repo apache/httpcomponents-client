@@ -34,6 +34,8 @@ import java.security.Principal;
 
 import javax.net.ssl.SSLSession;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
@@ -47,6 +49,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
+@Immutable
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public Object getUserToken(final HttpContext context) {

@@ -32,6 +32,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
@@ -39,6 +41,7 @@ import org.apache.http.cookie.SetCookie;
  *
  * @since 4.0
  */
+@Immutable
 public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
 
     public BasicMaxAgeHandler() {

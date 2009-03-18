@@ -34,6 +34,8 @@ package org.apache.http.client.protocol;
 import java.io.IOException;
 import java.util.Collection;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -49,6 +51,7 @@ import org.apache.http.protocol.HttpContext;
  * 
  * @since 4.0
  */
+@Immutable
 public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
     public RequestDefaultHeaders() {

@@ -34,6 +34,8 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -61,6 +63,7 @@ import org.apache.http.protocol.ExecutionContext;
  *
  * @since 4.0
  */
+@Immutable
 public class DefaultRedirectHandler implements RedirectHandler {
 
     private final Log log = LogFactory.getLog(getClass());

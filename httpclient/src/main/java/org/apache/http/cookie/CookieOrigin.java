@@ -32,6 +32,8 @@ package org.apache.http.cookie;
 
 import java.util.Locale;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * CookieOrigin class incapsulates details of an origin server that 
  * are relevant when parsing, validating or matching HTTP cookies.
@@ -39,6 +41,7 @@ import java.util.Locale;
  * 
  * @since 4.0
  */
+@Immutable
 public final class CookieOrigin {
 
     private final String host;

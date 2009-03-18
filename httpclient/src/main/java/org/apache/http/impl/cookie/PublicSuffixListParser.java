@@ -37,15 +37,18 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Parses the list from <a href="http://publicsuffix.org/">publicsuffix.org</a>
  * and configures a PublicSuffixFilter.
  *
  * @since 4.0
  */
+@Immutable
 public class PublicSuffixListParser {
     private static final int MAX_LINE_LEN = 256;
-    private PublicSuffixFilter filter;
+    private final PublicSuffixFilter filter;
     
     PublicSuffixListParser(PublicSuffixFilter filter) {
         this.filter = filter;

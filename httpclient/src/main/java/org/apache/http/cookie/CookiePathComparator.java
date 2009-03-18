@@ -34,6 +34,8 @@ package org.apache.http.cookie;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * This cookie comparator ensures that multiple cookies satisfying 
  * a common criteria are ordered in the <tt>Cookie</tt> header such
@@ -49,6 +51,7 @@ import java.util.Comparator;
  *
  * @since 4.0
  */
+@Immutable
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 
     private static final long serialVersionUID = 7523645369616405818L;

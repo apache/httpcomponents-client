@@ -34,6 +34,8 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
@@ -46,6 +48,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@Immutable
 public class NetscapeDraftHeaderParser {
 
     public final static NetscapeDraftHeaderParser DEFAULT = new NetscapeDraftHeaderParser();

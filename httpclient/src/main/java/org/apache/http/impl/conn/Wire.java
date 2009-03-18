@@ -33,6 +33,9 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
+
+import net.jcip.annotations.Immutable;
+
 import org.apache.commons.logging.Log;
 
 /**
@@ -41,6 +44,7 @@ import org.apache.commons.logging.Log;
  * 
  * @since 4.0
  */
+@Immutable
 public class Wire {
 
     private final Log log;

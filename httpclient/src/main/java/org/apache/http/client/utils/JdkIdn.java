@@ -33,13 +33,16 @@ package org.apache.http.client.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Uses the java.net.IDN class through reflection.
  *
  * @since 4.0
  */
+@Immutable
 public class JdkIdn implements Idn {
-    private Method toUnicode;
+    private final Method toUnicode;
 
     /**
      * 

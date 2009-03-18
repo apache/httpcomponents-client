@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.client;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 
@@ -38,6 +40,7 @@ import org.apache.http.HttpResponse;
  *
  * @since 4.0
  */
+@Immutable
 public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;

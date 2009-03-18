@@ -37,6 +37,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -47,6 +49,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@Immutable
 public final class PlainSocketFactory implements SocketFactory {
 
     /**

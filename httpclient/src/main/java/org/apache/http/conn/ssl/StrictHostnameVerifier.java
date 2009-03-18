@@ -33,6 +33,8 @@ package org.apache.http.conn.ssl;
 
 import javax.net.ssl.SSLException;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * The Strict HostnameVerifier works the same way as Sun Java 1.4, Sun
  * Java 5, Sun Java 6-rc.  It's also pretty close to IE6.  This
@@ -53,6 +55,7 @@ import javax.net.ssl.SSLException;
  *
  * @since 4.0
  */
+@Immutable
 public class StrictHostnameVerifier extends AbstractVerifier {
 
     public final void verify(

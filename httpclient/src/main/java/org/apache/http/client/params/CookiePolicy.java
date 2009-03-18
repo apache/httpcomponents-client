@@ -31,10 +31,13 @@
 
 package org.apache.http.client.params;
 
+import net.jcip.annotations.Immutable;
+
 /**
  *
  * @since 4.0
  */
+@Immutable
 public final class CookiePolicy {
 
     /**

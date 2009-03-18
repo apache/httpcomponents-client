@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.ssl;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * The ALLOW_ALL HostnameVerifier essentially turns hostname verification
  * off. This implementation is a no-op, and never throws the SSLException.
@@ -38,6 +40,7 @@ package org.apache.http.conn.ssl;
  *
  * @since 4.0
  */
+@Immutable
 public class AllowAllHostnameVerifier extends AbstractVerifier {
 
     public final void verify(
