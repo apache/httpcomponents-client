@@ -533,6 +533,16 @@ public abstract class AbstractHttpClient implements HttpClient {
             } else {
                 execContext = new DefaultedHttpContext(context, defaultContext);
             }
+            
+            // Copy the HttpProcessor (along with interceptors) and add the default 
+            // handling for Content Codings
+            // This is the last interceptor added, so that client code is unaffected 
+            // by this addition.
+            BasicHttpProcessor httpProcessorCopy = getHttpProcessor().copy();
+            ContentEncodingProcessor ceProcessor = new ContentEncodingProcessor();
+            httpProcessorCopy.addRequestInterceptor(ceProcessor);
+            httpProcessorCopy.addResponseInterceptor(ceProcessor);
+            
             // Create a director for this request
             director = createClientRequestDirector(
                     getRequestExecutor(),
@@ -540,7 +550,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getConnectionReuseStrategy(),
                     getConnectionKeepAliveStrategy(),
                     getRoutePlanner(),
-                    getHttpProcessor().copy(),
+                    httpProcessorCopy,
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
                     getTargetAuthenticationHandler(),
@@ -690,6 +700,5 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         return result;
     }
-
 
 } // class AbstractHttpClient

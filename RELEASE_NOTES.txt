@@ -1,3 +1,9 @@
+Changes in 4.1 branch
+-------------------
+
+* [HTTPCLIENT-834] Transparent content encoding support.
+  Contributed by James Abley <james.abley at gmail.com>
+
 Changes since 4.0 beta 2
 -------------------
 
