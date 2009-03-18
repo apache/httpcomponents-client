@@ -30,6 +30,8 @@
 
 package org.apache.http.conn.params;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 
@@ -45,6 +47,7 @@ import org.apache.http.params.HttpParams;
  *
  * @see ConnManagerPNames
  */
+@Immutable
 public final class ConnManagerParams implements ConnManagerPNames {
 
     /** The default maximum number of connections allowed overall */

@@ -31,6 +31,8 @@
 
 package org.apache.http.auth.params;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
@@ -45,6 +47,7 @@ import org.apache.http.protocol.HTTP;
  *
  * @see AuthPNames
  */
+@Immutable
 public final class AuthParams {
 
     private AuthParams() {

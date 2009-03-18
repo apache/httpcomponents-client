@@ -33,6 +33,8 @@ package org.apache.http.conn.params;
 
 import java.net.InetAddress;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.conn.routing.HttpRoute;
@@ -48,6 +50,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * 
  * @since 4.0
  */
+@Immutable
 public class ConnRouteParams implements ConnRoutePNames {
 
     /**
@@ -56,13 +59,13 @@ public class ConnRouteParams implements ConnRoutePNames {
      * with actual hosts. Note that this is a <i>valid</i> host.
      */
     public static final HttpHost NO_HOST =
-        new HttpHost("127.0.0.255", 0, "no-host");
+        new HttpHost("127.0.0.255", 0, "no-host"); // Immutable
 
     /**
      * A special value indicating "no route".
      * This is a route with {@link #NO_HOST} as the target.
      */
-    public static final HttpRoute NO_ROUTE = new HttpRoute(NO_HOST);
+    public static final HttpRoute NO_ROUTE = new HttpRoute(NO_HOST); // Immutable
 
 
     /** Disabled default constructor. */

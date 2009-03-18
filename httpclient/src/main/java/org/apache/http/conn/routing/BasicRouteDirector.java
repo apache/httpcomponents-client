@@ -31,6 +31,7 @@
 
 package org.apache.http.conn.routing;
 
+import net.jcip.annotations.Immutable;
 
 
 /**
@@ -44,6 +45,7 @@ package org.apache.http.conn.routing;
  *
  * @since 4.0
  */
+@Immutable
 public class BasicRouteDirector implements HttpRouteDirector {
 
     // public default constructor
