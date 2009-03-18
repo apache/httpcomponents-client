@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.client;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -50,6 +52,7 @@ import org.apache.http.protocol.HTTP;
  * 
  * @since 4.0
  */
+@NotThreadSafe // e.g. [gs]etEntity()
 public class EntityEnclosingRequestWrapper extends RequestWrapper 
     implements HttpEntityEnclosingRequest {
     

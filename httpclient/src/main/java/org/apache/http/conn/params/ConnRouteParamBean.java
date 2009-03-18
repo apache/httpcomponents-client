@@ -33,6 +33,8 @@ package org.apache.http.conn.params;
 
 import java.net.InetAddress;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpAbstractParamBean;
@@ -45,6 +47,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class ConnRouteParamBean extends HttpAbstractParamBean {
     
     public ConnRouteParamBean (final HttpParams params) {

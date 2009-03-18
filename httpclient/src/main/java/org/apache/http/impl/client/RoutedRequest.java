@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.client;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.conn.routing.HttpRoute;
 
 
@@ -44,10 +46,11 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.0
  */
+@NotThreadSafe // RequestWrapper is @NotThreadSafe
 public class RoutedRequest {
 
-    protected final RequestWrapper request;
-    protected final HttpRoute route;
+    protected final RequestWrapper request; // @NotThreadSafe
+    protected final HttpRoute route; // @Immutable
 
     /**
      * Creates a new routed request.

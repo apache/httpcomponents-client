@@ -35,11 +35,14 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * A collection of URIs that were used as redirects.
  *
  * @since 4.0
  */
+@NotThreadSafe // HashSet is not synch.
 public class RedirectLocations {
 
     private final Set<URI> uris;

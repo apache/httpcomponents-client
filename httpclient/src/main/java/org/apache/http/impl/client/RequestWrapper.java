@@ -34,6 +34,8 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
@@ -56,6 +58,7 @@ import org.apache.http.params.HttpProtocolParams;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
     
     private final HttpRequest original;

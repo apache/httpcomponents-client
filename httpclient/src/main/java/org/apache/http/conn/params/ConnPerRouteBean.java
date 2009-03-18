@@ -33,6 +33,8 @@ package org.apache.http.conn.params;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
@@ -46,6 +48,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * 
  * @since 4.0
  */
+@NotThreadSafe // maxPerHostMap and defaultMax
 public final class ConnPerRouteBean implements ConnPerRoute {
 
     /** The default maximum number of connections allowed per host */

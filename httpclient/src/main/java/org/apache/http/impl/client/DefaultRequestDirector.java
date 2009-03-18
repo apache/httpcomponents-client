@@ -39,6 +39,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
@@ -103,6 +105,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *
  * @since 4.0
  */
+@NotThreadSafe // e.g. managedConn
 public class DefaultRequestDirector implements RequestDirector {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -763,7 +766,7 @@ public class DefaultRequestDirector implements RequestDirector {
             }
         }
         
-        int status = response.getStatusLine().getStatusCode();
+        int status = response.getStatusLine().getStatusCode(); // can't be null
 
         if (status > 299) {
 

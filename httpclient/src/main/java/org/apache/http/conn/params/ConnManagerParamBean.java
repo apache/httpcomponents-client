@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.params;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -41,6 +43,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class ConnManagerParamBean extends HttpAbstractParamBean {
 
     public ConnManagerParamBean (final HttpParams params) {

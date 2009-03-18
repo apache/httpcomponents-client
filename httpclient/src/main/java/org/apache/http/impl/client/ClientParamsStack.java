@@ -32,6 +32,8 @@
 package org.apache.http.impl.client;
 
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.params.HttpParams;
@@ -76,6 +78,7 @@ import org.apache.http.params.AbstractHttpParams;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class ClientParamsStack extends AbstractHttpParams {
 
     private final Log log = LogFactory.getLog(getClass());
