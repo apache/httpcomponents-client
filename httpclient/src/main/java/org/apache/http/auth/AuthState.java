@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import net.jcip.annotations.NotThreadSafe;
+
 
 /**
  * This class provides detailed information about the state of the
@@ -38,6 +40,7 @@ package org.apache.http.auth;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class AuthState {
 
     /** Actual authentication scheme */

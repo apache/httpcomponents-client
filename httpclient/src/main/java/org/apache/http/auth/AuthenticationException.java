@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.ProtocolException;
 
 /**
@@ -38,6 +40,7 @@ import org.apache.http.ProtocolException;
  * 
  * @since 4.0
  */
+@Immutable
 public class AuthenticationException extends ProtocolException {
 
     private static final long serialVersionUID = -6794031905674764776L;

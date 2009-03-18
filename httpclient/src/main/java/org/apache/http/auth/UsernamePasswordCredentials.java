@@ -32,6 +32,8 @@ package org.apache.http.auth;
 
 import java.security.Principal;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.util.LangUtils;
 
 /**
@@ -43,11 +45,12 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
+@Immutable
 public class UsernamePasswordCredentials implements Credentials {
 
     private final BasicUserPrincipal principal;
     private final String password;
-     
+    
     /**
      * The constructor with the username and password combined string argument.
      *

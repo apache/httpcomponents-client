@@ -30,6 +30,8 @@
 
 package org.apache.http.auth;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.ProtocolException;
 
 /**
@@ -39,6 +41,7 @@ import org.apache.http.ProtocolException;
  * 
  * @since 4.0
  */
+@Immutable
 public class MalformedChallengeException extends ProtocolException {
 
     private static final long serialVersionUID = 814586927989932284L;

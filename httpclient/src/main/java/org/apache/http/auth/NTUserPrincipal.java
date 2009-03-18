@@ -33,6 +33,8 @@ package org.apache.http.auth;
 import java.security.Principal;
 import java.util.Locale;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.util.LangUtils;
 
 /**  NT (MS Windows specific) user principal used for HTTP authentication
@@ -40,6 +42,7 @@ import org.apache.http.util.LangUtils;
  * 
  * @since 4.0
  */
+@Immutable
 public class NTUserPrincipal implements Principal {
 
     private final String username;

@@ -32,6 +32,8 @@ package org.apache.http.auth;
 
 import java.security.Principal;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.util.LangUtils;
 
 /**
@@ -40,6 +42,7 @@ import org.apache.http.util.LangUtils;
  * 
  * @since 4.0
  */
+@Immutable
 public final class BasicUserPrincipal implements Principal {
 
     private final String username;

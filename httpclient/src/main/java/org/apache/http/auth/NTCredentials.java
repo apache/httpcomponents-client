@@ -33,6 +33,8 @@ package org.apache.http.auth;
 import java.security.Principal;
 import java.util.Locale;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.util.LangUtils;
 
 /** {@link Credentials} specific to the Windows platform.
@@ -40,6 +42,7 @@ import org.apache.http.util.LangUtils;
  * 
  * @since 2.0
  */
+@Immutable
 public class NTCredentials implements Credentials {
 
     /** The user principal  */

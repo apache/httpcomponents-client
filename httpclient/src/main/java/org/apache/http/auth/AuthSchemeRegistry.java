@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.params.HttpParams;
 
 /**
@@ -47,8 +50,10 @@ import org.apache.http.params.HttpParams;
  * @version $Revision$
  * @since 4.0
  */
+@ThreadSafe
 public final class AuthSchemeRegistry {
 
+    @GuardedBy("this")
     private final Map<String,AuthSchemeFactory> registeredSchemes;
     
     public AuthSchemeRegistry() {
