@@ -67,13 +67,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     private final Log log = LogFactory.getLog(getClass());
 
     /** The schemes supported by this connection manager. */
-    protected SchemeRegistry schemeRegistry; 
+    protected final SchemeRegistry schemeRegistry; 
     
     /** The pool of connections being managed. */
     protected final AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    protected ClientConnectionOperator connOperator;
+    protected final ClientConnectionOperator connOperator;
     
 
 
