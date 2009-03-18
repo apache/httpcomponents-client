@@ -30,27 +30,29 @@
 
 package org.apache.http.client.utils;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * Facade that provides conversion between Unicode and Punycode domain names.
  * It will use an appropriate implementation.
  *
  * @since 4.0
  */
+@Immutable
 public class Punycode {
-    private static Idn impl;
+    private static final Idn impl;
     static {
-        init();
+        Idn _impl;
+        try {
+            _impl = new JdkIdn();
+        } catch (Exception e) {
+            _impl = new Rfc3492Idn();
+        }
+        impl = _impl;
     }
     
     public static String toUnicode(String punycode) {
         return impl.toUnicode(punycode);
     }
     
-    private static void init() {
-        try {
-            impl = new JdkIdn();
-        } catch (Exception e) {
-            impl = new Rfc3492Idn();
-        }
-    }
 }
