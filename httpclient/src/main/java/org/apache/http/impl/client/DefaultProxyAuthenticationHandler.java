@@ -33,6 +33,8 @@ package org.apache.http.impl.client;
 
 import java.util.Map;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -44,6 +46,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
+@Immutable 
 public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 
     public DefaultProxyAuthenticationHandler() {

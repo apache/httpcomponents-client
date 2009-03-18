@@ -32,10 +32,13 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import net.jcip.annotations.Immutable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,15 +59,17 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@Immutable 
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
     private final Log log = LogFactory.getLog(getClass());
     
-    private static final List<String> DEFAULT_SCHEME_PRIORITY = Arrays.asList(new String[] {
+    private static final List<String> DEFAULT_SCHEME_PRIORITY = 
+        Collections.unmodifiableList(Arrays.asList(new String[] {
             "ntlm",
             "digest",
             "basic"
-    });
+    }));
     
     public AbstractAuthenticationHandler() {
         super();
