@@ -33,6 +33,8 @@ package org.apache.http.client.protocol;
 
 import java.util.List;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
@@ -43,6 +45,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class ClientContextConfigurer implements ClientContext {
     
     private final HttpContext context;

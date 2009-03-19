@@ -33,6 +33,8 @@ package org.apache.http.client.params;
 
 import java.util.Collection;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionManagerFactory;
@@ -43,6 +45,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class ClientParamBean extends HttpAbstractParamBean {
 
     public ClientParamBean (final HttpParams params) {

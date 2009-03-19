@@ -31,6 +31,8 @@
 
 package org.apache.http.conn.ssl;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
@@ -137,7 +139,7 @@ import java.security.UnrecoverableKeyException;
  *
  * @since 4.0
  */
-
+@NotThreadSafe
 public class SSLSocketFactory implements LayeredSocketFactory {
 
     public static final String TLS   = "TLS";

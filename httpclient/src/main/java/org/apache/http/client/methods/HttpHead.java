@@ -33,6 +33,8 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * HTTP HEAD method.
  * <p>
@@ -54,6 +56,7 @@ import java.net.URI;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class HttpHead extends HttpRequestBase {
 
     public final static String METHOD_NAME = "HEAD";

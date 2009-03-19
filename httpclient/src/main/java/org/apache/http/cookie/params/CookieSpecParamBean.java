@@ -33,6 +33,8 @@ package org.apache.http.cookie.params;
 
 import java.util.Collection;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -40,6 +42,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class CookieSpecParamBean extends HttpAbstractParamBean {
 
     public CookieSpecParamBean (final HttpParams params) {

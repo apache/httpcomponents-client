@@ -33,6 +33,7 @@ package org.apache.http.conn;
 import java.io.InputStream;
 import java.io.IOException;
 
+import net.jcip.annotations.NotThreadSafe;
 
 /**
  * Basic implementation of {@link EofSensorWatcher EofSensorWatcher}.
@@ -45,6 +46,7 @@ import java.io.IOException;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class BasicEofSensorWatcher implements EofSensorWatcher {
 
 

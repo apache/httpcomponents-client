@@ -33,6 +33,8 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * HTTP PUT method.
  * <p>
@@ -50,6 +52,7 @@ import java.net.URI;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class HttpPut extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "PUT";

@@ -32,6 +32,9 @@ package org.apache.http.client.entity;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
@@ -43,6 +46,7 @@ import org.apache.http.protocol.HTTP;
  *
  * @since 4.0
  */
+@NotThreadSafe // AbstractHttpEntity is not thread-safe
 public class UrlEncodedFormEntity extends StringEntity {
   
     /**

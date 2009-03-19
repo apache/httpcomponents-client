@@ -33,6 +33,8 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * HTTP TRACE method.
  * <p>
@@ -53,6 +55,7 @@ import java.net.URI;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class HttpTrace extends HttpRequestBase {
 
     public final static String METHOD_NAME = "TRACE";

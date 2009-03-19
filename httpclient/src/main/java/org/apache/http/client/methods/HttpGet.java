@@ -33,6 +33,8 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * HTTP GET method.
  * <p>
@@ -51,6 +53,7 @@ import java.net.URI;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class HttpGet extends HttpRequestBase {
 
     public final static String METHOD_NAME = "GET";

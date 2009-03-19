@@ -30,6 +30,8 @@
 
 package org.apache.http.impl.auth;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -51,6 +53,7 @@ import org.apache.http.util.EncodingUtils;
  * @since 4.0
  */
 
+@NotThreadSafe
 public class BasicScheme extends RFC2617Scheme {
     
     /** Whether the basic authentication process is complete */

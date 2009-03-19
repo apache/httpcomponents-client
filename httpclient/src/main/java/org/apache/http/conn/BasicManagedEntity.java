@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
 
@@ -51,6 +53,7 @@ import org.apache.http.entity.HttpEntityWrapper;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class BasicManagedEntity extends HttpEntityWrapper
     implements ConnectionReleaseTrigger, EofSensorWatcher {
 

@@ -35,6 +35,8 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderIterator;
@@ -59,6 +61,7 @@ import org.apache.http.HttpResponse;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class HttpOptions extends HttpRequestBase {
 
     public final static String METHOD_NAME = "OPTIONS";

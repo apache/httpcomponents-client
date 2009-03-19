@@ -36,6 +36,8 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.utils.CloneUtils;
@@ -55,6 +57,7 @@ import org.apache.http.params.HttpProtocolParams;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public abstract class HttpRequestBase extends AbstractHttpMessage 
     implements HttpUriRequest, AbortableHttpRequest, Cloneable {
 
