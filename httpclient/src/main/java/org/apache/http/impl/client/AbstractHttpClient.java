@@ -421,8 +421,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    // TODO - should this be synch? Is remove MT safe?
-    public void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
+    public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
     }
 
@@ -452,8 +451,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    // TODO - should this be synch? Is remove MT safe?
-    public void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
+    public synchronized void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
     }
 
