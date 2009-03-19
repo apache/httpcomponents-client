@@ -59,7 +59,7 @@ public class InputStreamBody extends AbstractContentBody {
         this(in, "application/octet-stream", filename);
     }
     
-    public InputStream getInputStream() throws IOException {
+    public InputStream getInputStream() {
         return this.in;
     }
 
@@ -71,6 +71,7 @@ public class InputStreamBody extends AbstractContentBody {
         writeTo(out);
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");

@@ -71,6 +71,7 @@ public class FileBody extends AbstractContentBody {
         writeTo(out);
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");

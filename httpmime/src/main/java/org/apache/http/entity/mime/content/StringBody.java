@@ -76,7 +76,7 @@ public class StringBody extends AbstractContentBody {
         this(text, "text/plain", null);
     }
     
-    public Reader getReader() throws IOException {
+    public Reader getReader() {
         return new InputStreamReader(
                 new ByteArrayInputStream(this.content),
                 this.charset);
@@ -90,6 +90,7 @@ public class StringBody extends AbstractContentBody {
         writeTo(out);
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");

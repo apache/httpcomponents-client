@@ -65,10 +65,12 @@ public abstract class AbstractContentBody extends SingleBody implements ContentB
         }
     }
 
+    @Override
     public Entity getParent() {
         return this.parent;
     }
 
+    @Override
     public void setParent(final Entity parent) {
         this.parent = parent;
     }
@@ -89,6 +91,7 @@ public abstract class AbstractContentBody extends SingleBody implements ContentB
         return Collections.emptyMap();
     }
 
+    @Override
     public void dispose() {
     }
     

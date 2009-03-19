@@ -188,7 +188,7 @@ public class HttpMultipart extends Multipart {
                 writeBytes(TWO_DASHES, out);
                 writeBytes(boundary, out);
                 writeBytes(CR_LF, out);
-                BodyPart part = (BodyPart) bodyParts.get(i);
+                BodyPart part = bodyParts.get(i);
                 
                 Field cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
                 
