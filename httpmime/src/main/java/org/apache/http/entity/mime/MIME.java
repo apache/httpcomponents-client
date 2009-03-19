@@ -33,6 +33,8 @@ package org.apache.http.entity.mime;
 
 import java.nio.charset.Charset;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.james.mime4j.field.FieldName;
 import org.apache.james.mime4j.util.CharsetUtil;
 
@@ -40,6 +42,7 @@ import org.apache.james.mime4j.util.CharsetUtil;
  *
  * @since 4.0
  */
+@Immutable
 public final class MIME {
 
     public static final String CONTENT_TYPE          = FieldName.CONTENT_TYPE;

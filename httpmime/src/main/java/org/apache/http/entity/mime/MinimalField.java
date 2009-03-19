@@ -31,6 +31,8 @@
 
 package org.apache.http.entity.mime;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.james.mime4j.parser.Field;
 import org.apache.james.mime4j.util.ByteSequence;
 import org.apache.james.mime4j.util.ContentUtil;
@@ -40,12 +42,13 @@ import org.apache.james.mime4j.util.ContentUtil;
  *
  * @since 4.0
  */
+@Immutable
 public class MinimalField implements Field {
 
     private final String name;
     private final String value;
 
-    private ByteSequence raw;
+    private ByteSequence raw; // cache, recreated on demand
     
     MinimalField(final String name, final String value) {
         super();
