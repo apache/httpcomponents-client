@@ -36,6 +36,8 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.InetAddress;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -63,12 +65,13 @@ import org.apache.http.conn.scheme.SocketFactory;
  *
  * @since 4.0
  */
+@ThreadSafe
 public class DefaultClientConnectionOperator
     implements ClientConnectionOperator {
 
 
     /** The scheme registry for looking up socket factories. */
-    protected SchemeRegistry schemeRegistry;
+    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
 
     /**
