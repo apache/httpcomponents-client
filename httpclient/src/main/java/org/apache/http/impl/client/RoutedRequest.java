@@ -49,8 +49,8 @@ import org.apache.http.conn.routing.HttpRoute;
 @NotThreadSafe // RequestWrapper is @NotThreadSafe
 public class RoutedRequest {
 
-    protected final RequestWrapper request; // @NotThreadSafe
-    protected final HttpRoute route; // @Immutable
+    private final RequestWrapper request; // @NotThreadSafe
+    private final HttpRoute route; // @Immutable
 
     /**
      * Creates a new routed request.
