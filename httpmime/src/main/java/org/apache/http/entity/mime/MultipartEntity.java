@@ -39,6 +39,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.content.ContentBody;
@@ -54,6 +56,7 @@ import org.apache.james.mime4j.message.Message;
  *
  * @since 4.0
  */
+@ThreadSafe
 public class MultipartEntity implements HttpEntity {
 
     /**
@@ -68,7 +71,7 @@ public class MultipartEntity implements HttpEntity {
     private final Header contentType;
     
     private long length;
-    private boolean dirty;
+    private volatile boolean dirty; // used to decide whether to recalculate length
     
     public MultipartEntity(
             HttpMultipartMode mode, 
