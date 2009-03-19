@@ -34,6 +34,8 @@ package org.apache.http.entity.mime.content;
 import java.util.Collections;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.james.mime4j.message.Entity;
 import org.apache.james.mime4j.message.SingleBody;
 
@@ -41,6 +43,7 @@ import org.apache.james.mime4j.message.SingleBody;
  *
  * @since 4.0
  */
+@NotThreadSafe // setParent() also SingleBody and Entity are not T-S
 public abstract class AbstractContentBody extends SingleBody implements ContentBody {
 
     private final String mimeType;

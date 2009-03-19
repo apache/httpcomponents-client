@@ -31,6 +31,8 @@
 
 package org.apache.http.entity.mime;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.james.mime4j.descriptor.ContentDescriptor;
 import org.apache.james.mime4j.message.BodyPart;
@@ -44,6 +46,7 @@ import org.apache.james.mime4j.message.Header;
  *
  * @since 4.0
  */
+@NotThreadSafe // Entity is @NotThreadSafe
 public class FormBodyPart extends BodyPart {
 
     private final String name;

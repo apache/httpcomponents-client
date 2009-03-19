@@ -39,6 +39,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.field.ContentTypeField;
@@ -62,6 +64,7 @@ import org.apache.james.mime4j.util.CharsetUtil;
  *
  * @since 4.0
  */
+@NotThreadSafe // parent is @NotThreadSafe
 public class HttpMultipart extends Multipart {
 
     private static ByteArrayBuffer encode(Charset charset, String string) {

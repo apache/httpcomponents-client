@@ -42,12 +42,15 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.entity.mime.MIME;
 
 /**
  *
  * @since 4.0
  */
+@NotThreadSafe // parent is @NotThreadSafe
 public class StringBody extends AbstractContentBody {
 
     private final byte[] content;
