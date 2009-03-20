@@ -34,6 +34,8 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.conn.routing.HttpRoute;
 
 
@@ -45,10 +47,11 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.0
  */
+@Immutable
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */
-    private final HttpRoute route;
+    private final HttpRoute route; // HttpRoute is @Immutable
 
 
     /**
