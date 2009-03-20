@@ -34,6 +34,8 @@ package org.apache.http.impl.conn;
 
 import java.net.InetAddress;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -56,10 +58,11 @@ import org.apache.http.conn.params.ConnRouteParams;
  *
  * @since 4.0
  */
+@ThreadSafe
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 
     /** The scheme registry. */
-    protected SchemeRegistry schemeRegistry;
+    protected final SchemeRegistry schemeRegistry; // class is @ThreadSafe
 
 
     /**

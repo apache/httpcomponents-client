@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.lang.reflect.UndeclaredThrowableException;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
@@ -77,6 +79,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *
  * @since 4.0
  */
+@ThreadSafe
 public abstract class AbstractHttpClient implements HttpClient {
 
     private final Log log = LogFactory.getLog(getClass());

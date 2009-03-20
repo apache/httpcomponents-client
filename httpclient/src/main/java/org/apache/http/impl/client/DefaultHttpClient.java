@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.client;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeRegistry;
@@ -96,6 +98,7 @@ import org.apache.http.util.VersionInfo;
  *
  * @since 4.0
  */
+@ThreadSafe
 public class DefaultHttpClient extends AbstractHttpClient {
 
 

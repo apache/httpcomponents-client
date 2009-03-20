@@ -32,6 +32,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionOutputBuffer;
 import org.apache.http.util.CharArrayBuffer;
@@ -42,6 +44,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0
  */
+@Immutable
 public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 
     /** Original data transmitter. */

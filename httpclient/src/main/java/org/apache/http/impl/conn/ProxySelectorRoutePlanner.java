@@ -40,6 +40,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -65,10 +68,11 @@ import org.apache.http.conn.params.ConnRouteParams;
  *
  * @since 4.0
  */
+@NotThreadSafe // e.g [gs]etProxySelector()
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     
     /** The scheme registry. */
-    protected SchemeRegistry schemeRegistry;
+    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
     /** The proxy selector to use, or <code>null</code> for system default. */
     protected ProxySelector proxySelector;

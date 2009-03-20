@@ -33,6 +33,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpResponseFactory;
@@ -51,6 +53,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@ThreadSafe // no public methods
 public class DefaultResponseParser extends AbstractMessageParser {
     
     private final HttpResponseFactory responseFactory;
