@@ -33,6 +33,8 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
+import net.jcip.annotations.NotThreadSafe;
+
 /**
  * HTTP DELETE method
  * <p>
@@ -48,6 +50,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
+@NotThreadSafe // HttpRequestBase is @NotThreadSafe
 public class HttpDelete extends HttpRequestBase {
 
     public final static String METHOD_NAME = "DELETE";
