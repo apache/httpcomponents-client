@@ -41,6 +41,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and 
  * other headers.  This class handles dates as defined by RFC 2616 section 
@@ -49,6 +51,7 @@ import java.util.TimeZone;
  *
  * @since 4.0
  */
+@Immutable
 public final class DateUtils {
 
     /**

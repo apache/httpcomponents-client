@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import net.jcip.annotations.Immutable;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.cookie.ClientCookie;
@@ -52,7 +54,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0 
  */
-
+@Immutable
 public class RFC2109Spec extends CookieSpecBase {
 
     private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator(); 
