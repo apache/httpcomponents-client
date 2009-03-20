@@ -53,7 +53,7 @@ import org.apache.http.cookie.SetCookie;
  * @since 4.0
  */
 public class PublicSuffixFilter implements CookieAttributeHandler {
-    private CookieAttributeHandler wrapped;
+    private final CookieAttributeHandler wrapped;
     private Set<String> exceptions;
     private Set<String> suffixes;
 
