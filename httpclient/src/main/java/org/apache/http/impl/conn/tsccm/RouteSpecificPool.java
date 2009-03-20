@@ -35,6 +35,8 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.LinkedList;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.OperatedClientConnection;
@@ -49,12 +51,13 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
+@NotThreadSafe // e.g. numEntries, freeEntries, 
 public class RouteSpecificPool {
 
     private final Log log = LogFactory.getLog(getClass());
     
     /** The route this pool is for. */
-    protected final HttpRoute route;
+    protected final HttpRoute route; //Immutable
 
     /** the maximum number of entries allowed for this pool */
     protected final int maxEntries;

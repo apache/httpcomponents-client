@@ -60,7 +60,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  *
  * @since 4.0
  */
-@NotThreadSafe // unsynch access to queues etc
+@NotThreadSafe // unsynch access to refQueue, refWorker
 public abstract class AbstractConnPool implements RefQueueHandler {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -77,10 +77,13 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * {@link BasicPoolEntryRef BasicPoolEntryRef},
      * and point to the pool entry for the issued connection.
      * GCed connections are detected by the missing pool entries.
+     * Must hold poolLock when accessing.
      */
+    @GuardedBy("poolLock")
     protected Set<BasicPoolEntryRef> issuedConnections;
 
-    /** The handler for idle connections. */
+    /** The handler for idle connections. Must hold poolLock when accessing. */
+    @GuardedBy("poolLock")
     protected IdleConnectionHandler idleConnHandler;
 
     /** The current total number of connections. */
@@ -92,9 +95,11 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * The same queue is used to track loss of the connection manager,
      * so we cannot specialize the type.
      */
+    // TODO - this needs to be synchronized, e.g. on Pool Lock
     protected ReferenceQueue<Object> refQueue;
 
     /** A worker (thread) to track loss of pool entries to GC. */
+    // TODO - this needs to be synchronized, e.g. on Pool Lock
     private RefQueueWorker refWorker;
 
 
@@ -127,7 +132,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     public void enableConnectionGC()
         throws IllegalStateException {
 
-        if (refQueue != null) {
+        if (refQueue != null) { // TODO - this access is not guaranteed protected by the pool lock
             throw new IllegalStateException("Connection GC already enabled.");
         }
         poolLock.lock();

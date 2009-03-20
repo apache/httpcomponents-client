@@ -35,11 +35,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpConnection;
 
-
+// Currently only used by AbstractConnPool
 /**
  * A helper class for connection managers to track idle connections.
  * 
@@ -49,6 +51,7 @@ import org.apache.http.HttpConnection;
  * 
  * @since 4.0
  */
+@NotThreadSafe
 public class IdleConnectionHandler {
 
     private final Log log = LogFactory.getLog(getClass());
