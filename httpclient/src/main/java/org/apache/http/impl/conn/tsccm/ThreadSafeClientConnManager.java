@@ -261,9 +261,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
-        synchronized (connectionPool) {
-            return connectionPool.numConnections; //@@@
-        }
+        int count;
+        connectionPool.poolLock.lock();
+        count = connectionPool.numConnections; //@@@
+        connectionPool.poolLock.unlock();
+        return count;
     }
 
 
