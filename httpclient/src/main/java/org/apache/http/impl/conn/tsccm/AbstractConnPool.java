@@ -40,6 +40,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -57,6 +60,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  *
  * @since 4.0
  */
+@NotThreadSafe // unsynch access to queues etc
 public abstract class AbstractConnPool implements RefQueueHandler {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -80,6 +84,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected IdleConnectionHandler idleConnHandler;
 
     /** The current total number of connections. */
+    @GuardedBy("poolLock")
     protected int numConnections;
 
     /**
