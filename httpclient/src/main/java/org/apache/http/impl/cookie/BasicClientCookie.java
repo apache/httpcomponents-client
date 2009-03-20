@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
 
@@ -49,6 +51,7 @@ import org.apache.http.cookie.SetCookie;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable {
 
     /**
