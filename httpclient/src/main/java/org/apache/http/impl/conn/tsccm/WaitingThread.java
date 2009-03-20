@@ -34,6 +34,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 
+import net.jcip.annotations.NotThreadSafe;
 
 /**
  * Represents a thread waiting for a connection.
@@ -48,6 +49,7 @@ import java.util.concurrent.locks.Condition;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class WaitingThread {
 
     /** The condition on which the thread is waiting. */

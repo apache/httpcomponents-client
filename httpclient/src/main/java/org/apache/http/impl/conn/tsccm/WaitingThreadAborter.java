@@ -30,11 +30,17 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-/** A simple class that can interrupt a {@link WaitingThread}. */
-/**
- *
+import net.jcip.annotations.NotThreadSafe;
+
+// TODO - only called from ConnPoolByRoute currently; consider adding it as nested class
+/** 
+ * A simple class that can interrupt a {@link WaitingThread}.
+ * 
+ * Must be called with the pool lock held.
+ * 
  * @since 4.0
  */
+@NotThreadSafe
 public class WaitingThreadAborter {
     
     private WaitingThread waitingThread;
