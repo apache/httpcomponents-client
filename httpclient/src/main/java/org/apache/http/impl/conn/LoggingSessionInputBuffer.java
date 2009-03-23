@@ -78,7 +78,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
 
     public int read() throws IOException {
         int l = this.in.read();
-        if (this.wire.enabled() && l > 0) { 
+        if (this.wire.enabled() && l != -1) { 
             this.wire.input(l);
         }
         return l;

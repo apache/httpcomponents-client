@@ -1,6 +1,10 @@
 Changes since 4.0 beta 2
 -------------------
 
+* [HTTPCLIENT-837] Fixed problem with the wire log skipping zero byte values 
+  if read one byte at a time.
+  Contributed by Kirill Safonov <ksafonov at swiftteams.com>
+
 * [HTTPCLIENT-823] 'http.conn-manager.max-total' parameter can be adjusted 
   dynamically. However, the size of existing connection pools per route, 
   once allocated, will not be adjusted.
