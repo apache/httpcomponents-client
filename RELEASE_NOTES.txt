@@ -1,6 +1,10 @@
 Changes since 4.0 beta 2
 -------------------
 
+* NonRepeatableRequestExceptions now include the cause that the original
+  request failed.
+  Contributed by Sam Berlin <sberlin at apache.org>
+
 * [HTTPCLIENT-837] Fixed problem with the wire log skipping zero byte values 
   if read one byte at a time.
   Contributed by Kirill Safonov <ksafonov at swiftteams.com>

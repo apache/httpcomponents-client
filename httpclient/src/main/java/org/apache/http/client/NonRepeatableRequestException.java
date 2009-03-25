@@ -62,4 +62,16 @@ public class NonRepeatableRequestException extends ProtocolException {
         super(message);
     }
 
+    /**
+     * Creates a new NonRepeatableEntityException with the specified detail message.
+     * 
+     * @param message The exception detail message
+     * @param cause the cause
+     */
+    public NonRepeatableRequestException(String message, Throwable cause) {
+        super(message, cause);
+    }
+    
+    
+
 }

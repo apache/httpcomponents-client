@@ -638,8 +638,14 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     }
 
     private static class FaultyHttpRequestExecutor extends HttpRequestExecutor {
-
+        
         private static final String MARKER = "marker";
+        
+        private final String failureMsg;
+
+        public FaultyHttpRequestExecutor(String failureMsg) {
+            this.failureMsg = failureMsg;
+        }
         
         @Override
         public HttpResponse execute(
@@ -650,7 +656,7 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             Object marker = context.getAttribute(MARKER);
             if (marker == null) {
                 context.setAttribute(MARKER, Boolean.TRUE);
-                throw new IOException("Oppsie");
+                throw new IOException(failureMsg);
             }
             return super.execute(request, conn, context);
         }
@@ -658,10 +664,20 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
     }
     
     private static class FaultyHttpClient extends DefaultHttpClient {
+        
+        private final String failureMsg;
+        
+        public FaultyHttpClient() {
+            this("Oppsie");
+        }
+
+        public FaultyHttpClient(String failureMsg) {
+            this.failureMsg = failureMsg;
+        }
 
         @Override
         protected HttpRequestExecutor createRequestExecutor() {
-            return new FaultyHttpRequestExecutor();
+            return new FaultyHttpRequestExecutor(failureMsg);
         }
         
     }
@@ -716,11 +732,13 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
         assertEquals(1, myheaders.length);
     }
     
-    public void testNonRepatableEntity() throws Exception {
+    public void testNonRepeatableEntity() throws Exception {
         int port = this.localServer.getServicePort();
         this.localServer.register("*", new SimpleService());
         
-        FaultyHttpClient client = new FaultyHttpClient(); 
+        String failureMsg = "a message showing that this failed";
+        
+        FaultyHttpClient client = new FaultyHttpClient(failureMsg); 
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
@@ -735,7 +753,9 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
             fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException ex) {
             assertTrue(ex.getCause() instanceof NonRepeatableRequestException);
-           // expected
+            NonRepeatableRequestException nonRepeat = (NonRepeatableRequestException)ex.getCause();
+            assertTrue(nonRepeat.getCause() instanceof IOException);
+            assertEquals(failureMsg, nonRepeat.getCause().getMessage());
         }
     }
     

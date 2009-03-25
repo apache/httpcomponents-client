@@ -392,14 +392,21 @@ public class DefaultRequestDirector implements RequestDirector {
                 requestExec.preProcess(wrapper, httpProcessor, context);
                 
                 boolean retrying = true;
+                Exception retryReason = null;
                 while (retrying) {
                     // Increment total exec count (with redirects)
                     execCount++;
                     // Increment exec count for this particular request
                     wrapper.incrementExecCount();
                     if (wrapper.getExecCount() > 1 && !wrapper.isRepeatable()) {
-                        throw new NonRepeatableRequestException("Cannot retry request " +
-                                "with a non-repeatable request entity");
+                        if(retryReason != null) {
+                            throw new NonRepeatableRequestException("Cannot retry request " +
+                                "with a non-repeatable request entity.  The cause lists the " +
+                                "reason the original request failed.", retryReason);
+                        } else {
+                            throw new NonRepeatableRequestException("Cannot retry request " +
+                                    "with a non-repeatable request entity.");
+                        }
                     }
                     
                     try {
@@ -422,6 +429,7 @@ public class DefaultRequestDirector implements RequestDirector {
                                 this.log.debug(ex.getMessage(), ex);
                             }
                             this.log.info("Retrying request");
+                            retryReason = ex;
                         } else {
                             throw ex;
                         }
