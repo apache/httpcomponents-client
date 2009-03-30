@@ -28,6 +28,7 @@
 
 package org.apache.http.impl.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import junit.framework.Test;
@@ -41,8 +42,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
@@ -196,6 +201,54 @@ public class TestClientAuthentication extends BasicServerTestBase {
         AuthScope authscope = credsProvider.getAuthScope();
         assertNotNull(authscope);
         assertEquals("test realm", authscope.getRealm());
+    }
+
+    public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+        
+        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test"));
+        
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.setCredentialsProvider(credsProvider);
+        
+        HttpPost httppost = new HttpPost("/");
+        httppost.setEntity(new StringEntity("some important stuff", HTTP.ISO_8859_1));
+        
+        HttpResponse response = httpclient.execute(getServerHttp(), httppost);
+        HttpEntity entity = response.getEntity();
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertNotNull(entity);
+        entity.consumeContent();
+        AuthScope authscope = credsProvider.getAuthScope();
+        assertNotNull(authscope);
+        assertEquals("test realm", authscope.getRealm());
+    }
+
+    public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+        
+        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test"));
+        
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.setCredentialsProvider(credsProvider);
+        
+        HttpPost httppost = new HttpPost("/");
+        httppost.setEntity(new InputStreamEntity(
+                new ByteArrayInputStream(
+                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
+        
+        try {
+            httpclient.execute(getServerHttp(), httppost);
+            fail("ClientProtocolException should have been thrown");
+        } catch (ClientProtocolException ex) {
+            Throwable cause = ex.getCause();
+            assertNotNull(cause);
+            assertTrue(cause instanceof NonRepeatableRequestException);
+        }
     }
 
 }

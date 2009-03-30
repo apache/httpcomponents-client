@@ -399,7 +399,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     // Increment exec count for this particular request
                     wrapper.incrementExecCount();
                     if (wrapper.getExecCount() > 1 && !wrapper.isRepeatable()) {
-                        if(retryReason != null) {
+                        this.log.debug("Cannot retry non-repeatable request");
+                        if (retryReason != null) {
                             throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity.  The cause lists the " +
                                 "reason the original request failed.", retryReason);
