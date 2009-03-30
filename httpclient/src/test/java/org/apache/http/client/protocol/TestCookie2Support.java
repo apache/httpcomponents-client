@@ -51,7 +51,8 @@ import org.apache.http.cookie.SetCookie2;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -63,7 +64,7 @@ import org.apache.http.protocol.HttpRequestHandler;
  *
  * @version $Revision$
  */
-public class TestCookie2Support extends ServerTestBase {
+public class TestCookie2Support extends BasicServerTestBase {
 
     // ------------------------------------------------------------ Constructor
     public TestCookie2Support(final String testName) {
@@ -82,6 +83,13 @@ public class TestCookie2Support extends ServerTestBase {
         return new TestSuite(TestCookie2Support.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        localServer = new LocalTestServer(null, null);
+        localServer.registerDefaultHandlers();
+        localServer.start();
+    }
+    
     private static class CookieVer0Service implements HttpRequestHandler {
 
         public void handle(

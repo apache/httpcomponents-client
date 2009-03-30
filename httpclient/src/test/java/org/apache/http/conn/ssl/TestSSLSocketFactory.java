@@ -64,11 +64,8 @@ import org.apache.http.localserver.LocalTestServer;
 
 /**
  * Unit tests for {@link SSLSocketFactory}.
- *
- * @since 8-Dec-2006
  */
-public class TestSSLSocketFactory extends TestCase
-      implements CertificatesToPlayWith {
+public class TestSSLSocketFactory extends TestCase {
 
     public TestSSLSocketFactory(String testName) {
         super(testName);
@@ -80,9 +77,7 @@ public class TestSSLSocketFactory extends TestCase
     }
 
     public static Test suite() {
-        TestSuite ts = new TestSuite();
-        ts.addTestSuite(TestSSLSocketFactory.class);
-        return ts;
+        return new TestSuite(TestSSLSocketFactory.class);
     }
 
     static class TestX509HostnameVerifier implements X509HostnameVerifier {
@@ -114,14 +109,14 @@ public class TestSSLSocketFactory extends TestCase
         char[] pwd = password.toCharArray();
 
         RSAPrivateCrtKeySpec k;
-        k = new RSAPrivateCrtKeySpec(new BigInteger(RSA_PUBLIC_MODULUS, 16),
-                                     new BigInteger(RSA_PUBLIC_EXPONENT, 10),
-                                     new BigInteger(RSA_PRIVATE_EXPONENT, 16),
-                                     new BigInteger(RSA_PRIME1, 16),
-                                     new BigInteger(RSA_PRIME2, 16),
-                                     new BigInteger(RSA_EXPONENT1, 16),
-                                     new BigInteger(RSA_EXPONENT2, 16),
-                                     new BigInteger(RSA_COEFFICIENT, 16));
+        k = new RSAPrivateCrtKeySpec(new BigInteger(CertificatesToPlayWith.RSA_PUBLIC_MODULUS, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_PUBLIC_EXPONENT, 10),
+                                     new BigInteger(CertificatesToPlayWith.RSA_PRIVATE_EXPONENT, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_PRIME1, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_PRIME2, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_EXPONENT1, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_EXPONENT2, 16),
+                                     new BigInteger(CertificatesToPlayWith.RSA_COEFFICIENT, 16));
 
         PrivateKey pk = KeyFactory.getInstance("RSA").generatePrivate(k);
         KeyStore ks = KeyStore.getInstance("JKS");
@@ -129,9 +124,9 @@ public class TestSSLSocketFactory extends TestCase
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in1, in2, in3;
-        in1 = new ByteArrayInputStream(X509_FOO);
-        in2 = new ByteArrayInputStream(X509_INTERMEDIATE_CA);
-        in3 = new ByteArrayInputStream(X509_ROOT_CA);
+        in1 = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO);
+        in2 = new ByteArrayInputStream(CertificatesToPlayWith.X509_INTERMEDIATE_CA);
+        in3 = new ByteArrayInputStream(CertificatesToPlayWith.X509_ROOT_CA);
         X509Certificate[] chain = new X509Certificate[3];
         chain[0] = (X509Certificate) cf.generateCertificate(in1);
         chain[1] = (X509Certificate) cf.generateCertificate(in2);

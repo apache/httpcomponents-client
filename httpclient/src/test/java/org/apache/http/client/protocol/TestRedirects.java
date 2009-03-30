@@ -54,7 +54,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -70,7 +71,7 @@ import junit.framework.TestSuite;
  *
  * @version $Revision$
  */
-public class TestRedirects extends ServerTestBase {
+public class TestRedirects extends BasicServerTestBase {
 
     // ------------------------------------------------------------ Constructor
     public TestRedirects(final String testName) {
@@ -89,6 +90,13 @@ public class TestRedirects extends ServerTestBase {
         return new TestSuite(TestRedirects.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        localServer = new LocalTestServer(null, null);
+        localServer.registerDefaultHandlers();
+        localServer.start();
+    }
+    
     private class BasicRedirectService implements HttpRequestHandler {
         
         private int statuscode = HttpStatus.SC_MOVED_TEMPORARILY;

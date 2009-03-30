@@ -43,7 +43,7 @@ package org.apache.http.conn.ssl;
  *
  * @since 11-Dec-2006
  */
-public interface CertificatesToPlayWith {
+public class CertificatesToPlayWith {
 
     /**
      * CN=foo.com

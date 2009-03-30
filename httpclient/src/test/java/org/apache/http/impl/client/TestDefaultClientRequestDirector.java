@@ -69,7 +69,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.ClientConnAdapterMockup;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.mockup.SocketFactoryMockup;
 import org.apache.http.params.BasicHttpParams;
@@ -83,7 +84,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  * Unit tests for {@link DefaultRequestDirector}
  */
-public class TestDefaultClientRequestDirector extends ServerTestBase {
+public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
     public TestDefaultClientRequestDirector(final String testName) {
         super(testName);
@@ -96,6 +97,13 @@ public class TestDefaultClientRequestDirector extends ServerTestBase {
 
     public static Test suite() {
         return new TestSuite(TestDefaultClientRequestDirector.class);
+    }
+    
+    @Override
+    protected void setUp() throws Exception {
+        localServer = new LocalTestServer(null, null);
+        localServer.registerDefaultHandlers();
+        localServer.start();
     }
     
     /**

@@ -43,11 +43,12 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
-public class TestUriEscapes extends ServerTestBase {
+public class TestUriEscapes extends BasicServerTestBase {
 
     public TestUriEscapes(final String testName) {
         super(testName);
@@ -60,6 +61,13 @@ public class TestUriEscapes extends ServerTestBase {
 
     public static Test suite() {
         return new TestSuite(TestUriEscapes.class);
+    }
+    
+    @Override
+    protected void setUp() throws Exception {
+        localServer = new LocalTestServer(null, null);
+        localServer.registerDefaultHandlers();
+        localServer.start();
     }
     
     private class UriListeningService implements HttpRequestHandler {

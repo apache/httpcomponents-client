@@ -186,7 +186,7 @@ public class LocalTestServer {
         HttpParams params = new BasicHttpParams();
         params
             .setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
-                             5000)
+                             60000)
             .setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,
                              8 * 1024)
             .setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,

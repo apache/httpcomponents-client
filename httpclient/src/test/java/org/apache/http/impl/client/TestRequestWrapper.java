@@ -41,7 +41,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -52,7 +53,7 @@ import org.apache.http.protocol.HttpRequestHandler;
  * 
  * @version $Revision$
  */
-public class TestRequestWrapper extends ServerTestBase {
+public class TestRequestWrapper extends BasicServerTestBase {
 
     // ------------------------------------------------------------ Constructor
     public TestRequestWrapper(final String testName) {
@@ -71,6 +72,13 @@ public class TestRequestWrapper extends ServerTestBase {
         return new TestSuite(TestRequestWrapper.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        localServer = new LocalTestServer(null, null);
+        localServer.registerDefaultHandlers();
+        localServer.start();
+    }
+    
     private class SimpleService implements HttpRequestHandler {
         
         public SimpleService() {

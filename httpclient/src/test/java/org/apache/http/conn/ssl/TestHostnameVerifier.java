@@ -44,11 +44,8 @@ import junit.framework.TestSuite;
 
 /**
  * Unit tests for {@link X509HostnameVerifier}.
- *
- * @since 11-Dec-2006
  */
-public class TestHostnameVerifier extends TestCase
-      implements CertificatesToPlayWith {
+public class TestHostnameVerifier extends TestCase {
 
     public TestHostnameVerifier(String testName) {
         super(testName);
@@ -60,9 +57,7 @@ public class TestHostnameVerifier extends TestCase
     }
 
     public static Test suite() {
-        TestSuite ts = new TestSuite();
-        ts.addTestSuite(TestHostnameVerifier.class);
-        return ts;
+        return new TestSuite(TestHostnameVerifier.class);
     }
 
     public void testVerify() throws Exception {
@@ -72,7 +67,7 @@ public class TestHostnameVerifier extends TestCase
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
-        in = new ByteArrayInputStream(X509_FOO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO);
         x509 = (X509Certificate) cf.generateCertificate(in);
 
         DEFAULT.verify("foo.com", x509);
@@ -85,14 +80,14 @@ public class TestHostnameVerifier extends TestCase
         ALLOW_ALL.verify("a.foo.com", x509);
         ALLOW_ALL.verify("bar.com", x509);
 
-        in = new ByteArrayInputStream(X509_HANAKO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         DEFAULT.verify("\u82b1\u5b50.co.jp", x509);
         STRICT.verify("\u82b1\u5b50.co.jp", x509);
         exceptionPlease(DEFAULT, "a.\u82b1\u5b50.co.jp", x509);
         exceptionPlease(STRICT, "a.\u82b1\u5b50.co.jp", x509);
 
-        in = new ByteArrayInputStream(X509_FOO_BAR);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO_BAR);
         x509 = (X509Certificate) cf.generateCertificate(in);
         DEFAULT.verify("foo.com", x509);
         STRICT.verify("foo.com", x509);
@@ -103,7 +98,7 @@ public class TestHostnameVerifier extends TestCase
         exceptionPlease(DEFAULT, "a.bar.com", x509);
         exceptionPlease(STRICT, "a.bar.com", x509);
 
-        in = new ByteArrayInputStream(X509_FOO_BAR_HANAKO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         DEFAULT.verify("foo.com", x509);
         STRICT.verify("foo.com", x509);
@@ -123,21 +118,21 @@ public class TestHostnameVerifier extends TestCase
         exceptionPlease(DEFAULT, "a.\u82b1\u5b50.co.jp", x509);
         exceptionPlease(STRICT, "a.\u82b1\u5b50.co.jp", x509);
 
-        in = new ByteArrayInputStream(X509_NO_CNS_FOO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_NO_CNS_FOO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         DEFAULT.verify("foo.com", x509);
         STRICT.verify("foo.com", x509);
         exceptionPlease(DEFAULT, "a.foo.com", x509);
         exceptionPlease(STRICT, "a.foo.com", x509);
 
-        in = new ByteArrayInputStream(X509_NO_CNS_FOO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_NO_CNS_FOO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         DEFAULT.verify("foo.com", x509);
         STRICT.verify("foo.com", x509);
         exceptionPlease(DEFAULT, "a.foo.com", x509);
         exceptionPlease(STRICT, "a.foo.com", x509);
 
-        in = new ByteArrayInputStream(X509_THREE_CNS_FOO_BAR_HANAKO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_THREE_CNS_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         exceptionPlease(DEFAULT, "foo.com", x509);
         exceptionPlease(STRICT, "foo.com", x509);
@@ -152,7 +147,7 @@ public class TestHostnameVerifier extends TestCase
         exceptionPlease(DEFAULT, "a.\u82b1\u5b50.co.jp", x509);
         exceptionPlease(STRICT, "a.\u82b1\u5b50.co.jp", x509);
 
-        in = new ByteArrayInputStream(X509_WILD_FOO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         exceptionPlease(DEFAULT, "foo.com", x509);
         exceptionPlease(STRICT, "foo.com", x509);
@@ -163,7 +158,7 @@ public class TestHostnameVerifier extends TestCase
         DEFAULT.verify("a.b.foo.com", x509);
         exceptionPlease(STRICT, "a.b.foo.com", x509);
 
-        in = new ByteArrayInputStream(X509_WILD_CO_JP);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_CO_JP);
         x509 = (X509Certificate) cf.generateCertificate(in);
         // Silly test because no-one would ever be able to lookup an IP address
         // using "*.co.jp".
@@ -174,7 +169,7 @@ public class TestHostnameVerifier extends TestCase
         exceptionPlease(DEFAULT, "\u82b1\u5b50.co.jp", x509);
         exceptionPlease(STRICT, "\u82b1\u5b50.co.jp", x509);
 
-        in = new ByteArrayInputStream(X509_WILD_FOO_BAR_HANAKO);
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         // try the foo.com variations
         exceptionPlease(DEFAULT, "foo.com", x509);
@@ -211,7 +206,7 @@ public class TestHostnameVerifier extends TestCase
 
     public void testSubjectAlt() throws Exception {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        InputStream in = new ByteArrayInputStream(X509_MULTIPLE_SUBJECT_ALT);
+        InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
         
         X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;

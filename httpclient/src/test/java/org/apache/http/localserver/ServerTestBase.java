@@ -32,11 +32,8 @@ package org.apache.http.localserver;
 
 import java.net.Socket;
 
-import junit.framework.TestCase;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -45,8 +42,8 @@ import org.apache.http.impl.DefaultHttpClientConnection;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
@@ -60,10 +57,7 @@ import org.apache.http.protocol.RequestContent;
  * server. If you have some tests that require the server and others
  * that don't, split them in two different classes.
  */
-public abstract class ServerTestBase extends TestCase {
-
-    /** The local server for testing. */
-    protected LocalTestServer localServer;
+public abstract class ServerTestBase extends BasicServerTestBase {
 
     /** The available schemes. */
     protected SchemeRegistry supportedSchemes;
@@ -164,30 +158,6 @@ public abstract class ServerTestBase extends TestCase {
     protected void tearDown() throws Exception {
         localServer.stop();
     }
-
-
-    /**
-     * Obtains the address of the local test server.
-     *
-     * @return  the test server host, with a scheme name of "http"
-     */
-    protected HttpHost getServerHttp() {
-
-        return new HttpHost(LocalTestServer.TEST_SERVER_ADDR.getHostName(),
-                            localServer.getServicePort(),
-                            "http");
-    }
-
-
-    /**
-     * Obtains the default route to the local test server.
-     *
-     * @return the default route to the local test server
-     */
-    protected HttpRoute getDefaultRoute() {
-        return new HttpRoute(getServerHttp());
-    }
-    
 
     /**
      * Opens a connection to the given target using
