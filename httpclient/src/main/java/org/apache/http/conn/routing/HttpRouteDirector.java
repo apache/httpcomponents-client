@@ -31,17 +31,10 @@
 
 package org.apache.http.conn.routing;
 
-
-
 /**
  * Provides directions on establishing a route.
  * Implementations of this interface compare a planned route with
  * a tracked route and indicate the next step required.
- * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
@@ -80,8 +73,6 @@ public interface HttpRouteDirector {
      *          either the next step to perform, or success, or failure.
      *          0 is for success, a negative value for failure.
      */
-    public int nextStep(RouteInfo plan, RouteInfo fact)
-        ;
+    public int nextStep(RouteInfo plan, RouteInfo fact);
 
-
-} // interface HttpRouteDirector
+}

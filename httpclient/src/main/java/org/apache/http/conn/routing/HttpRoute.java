@@ -41,11 +41,6 @@ import org.apache.http.HttpHost;
  * The route for a request.
  * Instances of this class are unmodifiable and therefore suitable
  * for use as lookup keys.
- * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
@@ -274,13 +269,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final int getHopCount() {
         return proxyChain.length+1;
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getHopTarget(int hop) {
         if (hop < 0)
             throw new IllegalArgumentException
@@ -301,37 +294,31 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getProxyHost() {
         return (this.proxyChain.length == 0) ? null : this.proxyChain[0];
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final LayerType getLayerType() {
         return this.layered;
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
 
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isSecure() {
         return this.secure;
     }
@@ -441,5 +428,4 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         return super.clone();
     }
 
-
-} // class HttpRoute
+}

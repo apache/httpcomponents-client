@@ -35,22 +35,16 @@ import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
 
-
 /**
  * Read-only interface for route information.
  * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
- *
  * @since 4.0
  */
 public interface RouteInfo {
 
     /**
      * The tunnelling type of a route.
-     * Plain routes are established by connecting to the target or
+     * Plain routes are established by   connecting to the target or
      * the first proxy.
      * Tunnelled routes are established by connecting to the first proxy
      * and tunnelling through all proxies to the target.
@@ -73,16 +67,12 @@ public interface RouteInfo {
      */
     public enum LayerType  { PLAIN, LAYERED }
 
-
-
     /**
      * Obtains the target host.
      * 
      * @return the target host
      */
-    HttpHost getTargetHost()
-        ;
-
+    HttpHost getTargetHost();
 
     /**
      * Obtains the local address to connect from.
@@ -90,9 +80,7 @@ public interface RouteInfo {
      * @return  the local address,
      *          or <code>null</code>
      */
-    InetAddress getLocalAddress()
-        ;
-
+    InetAddress getLocalAddress();
 
     /**
      * Obtains the number of hops in this route.
@@ -101,9 +89,7 @@ public interface RouteInfo {
      *
      * @return  the number of hops in this route
      */
-    int getHopCount()
-        ;
-
+    int getHopCount();
 
     /**
      * Obtains the target of a hop in this route.
@@ -121,9 +107,7 @@ public interface RouteInfo {
      *  if the argument is negative or not less than
      *  {@link #getHopCount getHopCount()}
      */
-    HttpHost getHopTarget(int hop)
-        ;
-
+    HttpHost getHopTarget(int hop);
 
     /**
      * Obtains the first proxy host.
@@ -131,9 +115,7 @@ public interface RouteInfo {
      * @return the first proxy in the proxy chain, or
      *         <code>null</code> if this route is direct
      */
-    HttpHost getProxyHost()
-        ;
-
+    HttpHost getProxyHost();
 
     /**
      * Obtains the tunnel type of this route.
@@ -141,9 +123,7 @@ public interface RouteInfo {
      *
      * @return  the tunnelling type
      */
-    TunnelType getTunnelType()
-        ;
-
+    TunnelType getTunnelType();
 
     /**
      * Checks whether this route is tunnelled through a proxy.
@@ -153,9 +133,7 @@ public interface RouteInfo {
      *          one proxy,
      *          <code>false</code> otherwise
      */
-    boolean isTunnelled()
-        ;
-
+    boolean isTunnelled();
 
     /**
      * Obtains the layering type of this route.
@@ -164,9 +142,7 @@ public interface RouteInfo {
      *
      * @return  the layering type
      */
-    LayerType getLayerType()
-        ;
-
+    LayerType getLayerType();
 
     /**
      * Checks whether this route includes a layered protocol.
@@ -176,9 +152,7 @@ public interface RouteInfo {
      * @return  <code>true</code> if layered,
      *          <code>false</code> otherwise
      */
-    boolean isLayered()
-        ;
-
+    boolean isLayered();
 
     /**
      * Checks whether this route is secure.
@@ -186,8 +160,6 @@ public interface RouteInfo {
      * @return  <code>true</code> if secure,
      *          <code>false</code> otherwise
      */
-    boolean isSecure()
-        ;
+    boolean isSecure();
 
-
-} // interface RouteInfo
+}

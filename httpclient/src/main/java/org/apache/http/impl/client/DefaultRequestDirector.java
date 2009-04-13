@@ -599,15 +599,6 @@ public class DefaultRequestDirector implements RequestDirector {
     protected void establishRoute(HttpRoute route, HttpContext context)
         throws HttpException, IOException {
 
-        //@@@ how to handle CONNECT requests for tunnelling?
-        //@@@ refuse to send external CONNECT via director? special handling?
-
-        //@@@ should the request parameters already be used below?
-        //@@@ probably yes, but they're not linked yet
-        //@@@ will linking above cause problems with linking in reqExec?
-        //@@@ probably not, because the parent is replaced
-        //@@@ just make sure we don't link parameters to themselves
-
         HttpRouteDirector rowdy = new BasicRouteDirector();
         int step;
         do {

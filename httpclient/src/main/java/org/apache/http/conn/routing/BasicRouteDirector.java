@@ -33,23 +33,14 @@ package org.apache.http.conn.routing;
 
 import net.jcip.annotations.Immutable;
 
-
 /**
  * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.
  * This implementation is stateless and therefore thread-safe.
- * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
 @Immutable
 public class BasicRouteDirector implements HttpRouteDirector {
-
-    // public default constructor
-
 
     /**
      * Provides the next step.
@@ -178,5 +169,4 @@ public class BasicRouteDirector implements HttpRouteDirector {
         return COMPLETE;
     }
 
-
-} // class BasicRouteDirector
+}

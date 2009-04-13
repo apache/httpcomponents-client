@@ -36,8 +36,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
 
-
-
 /**
  * Encapsulates logic to compute a {@link HttpRoute} to a target host.
  * Implementations may for example be based on parameters, or on the
@@ -64,8 +62,6 @@ public interface HttpRoutePlanner {
      */        
     public HttpRoute determineRoute(HttpHost target,
                                     HttpRequest request,
-                                    HttpContext context)
-        throws HttpException
-        ;
+                                    HttpContext context) throws HttpException;
     
 }

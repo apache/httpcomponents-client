@@ -37,15 +37,9 @@ import net.jcip.annotations.NotThreadSafe;
 
 import org.apache.http.HttpHost;
 
-
 /**
  * Helps tracking the steps in establishing a route.
  * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
- *
  * @since 4.0
  */
 @NotThreadSafe
@@ -78,7 +72,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     /** Whether the route is secure. */
     private boolean secure;
 
-
     /**
      * Creates a new route tracker.
      * The target and origin need to be specified at creation time.
@@ -109,7 +102,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this(route.getTargetHost(), route.getLocalAddress());
     }
 
-
     /**
      * Tracks connecting to the target.
      *
@@ -123,7 +115,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.connected = true;
         this.secure = secure;
     }
-
 
     /**
      * Tracks connecting to the first proxy.
@@ -144,7 +135,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.secure     = secure;
     }
 
-
     /**
      * Tracks tunnelling to the target.
      *
@@ -161,7 +151,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.tunnelled = TunnelType.TUNNELLED;
         this.secure    = secure;
     }
-
 
     /**
      * Tracks tunnelling to a proxy in a proxy chain.
@@ -193,7 +182,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.secure     = secure;
     }
 
-
     /**
      * Tracks layering a protocol.
      *
@@ -211,21 +199,14 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.secure  = secure;
     }
 
-
-
-    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final InetAddress getLocalAddress() {
         return this.localAddress;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final int getHopCount() {
         int hops = 0;
         if (this.connected) {
@@ -237,8 +218,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         return hops;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getHopTarget(int hop) {
         if (hop < 0)
             throw new IllegalArgumentException
@@ -259,48 +238,33 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         return result;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final HttpHost getProxyHost() {
         return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isConnected() {
         return this.connected;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final LayerType getLayerType() {
         return this.layered;
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
-
-    // non-JavaDoc, see interface RouteInfo
     public final boolean isSecure() {
         return this.secure;
     }
-
 
     /**
      * Obtains the tracked route.
@@ -316,7 +280,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
                                  this.proxyChain, this.secure,
                                  this.tunnelled, this.layered);
     }
-
 
     /**
      * Compares this tracked route to another.
@@ -360,7 +323,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         return equal;
     }
 
-
     /**
      * Generates a hash code for this tracked route.
      * Route trackers are modifiable and should therefore not be used
@@ -392,7 +354,6 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
         return hc;
     }
-
 
     /**
      * Obtains a description of the tracked route.
@@ -437,5 +398,4 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         return super.clone();
     }
 
-
-} // class RouteTracker
+}

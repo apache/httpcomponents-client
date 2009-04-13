@@ -139,7 +139,6 @@ public abstract class AbstractPoolEntry {
             throw new IllegalArgumentException
                 ("Route must not be null.");
         }
-        //@@@ is context allowed to be null? depends on operator?
         if (params == null) {
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
@@ -153,8 +152,6 @@ public abstract class AbstractPoolEntry {
         // - update the tracking data
         // In this order, we can be sure that only a successful
         // opening of the connection will be tracked.
-
-        //@@@ verify route against planned route?
 
         this.tracker = new RouteTracker(route);
         final HttpHost proxy  = route.getProxyHost();
@@ -201,7 +198,6 @@ public abstract class AbstractPoolEntry {
                 ("Parameters must not be null.");
         }
 
-        //@@@ check for proxy in planned route?
         if ((this.tracker == null) || !this.tracker.isConnected()) {
             throw new IllegalStateException("Connection not open.");
         }
@@ -209,8 +205,6 @@ public abstract class AbstractPoolEntry {
             throw new IllegalStateException
                 ("Connection is already tunnelled.");
         }
-
-        // LOG.debug?
 
         this.connection.update(null, tracker.getTargetHost(),
                                secure, params);

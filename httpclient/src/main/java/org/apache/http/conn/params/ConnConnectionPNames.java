@@ -55,8 +55,7 @@ public interface ConnConnectionPNames {
      * <p>
      * This parameter expects a value of type {@link Integer}.
      * 0 disallows all garbage/empty lines before the status line.
-     * Use {@link java.lang.Integer#MAX_VALUE} for unlimited
-     * (default in lenient mode).
+     * Use {@link java.lang.Integer#MAX_VALUE} for unlimited number.
      * </p>
      */
     public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
