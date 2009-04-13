@@ -71,6 +71,7 @@ import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -134,6 +135,10 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 HTTP.DEFAULT_CONTENT_CHARSET);
         HttpProtocolParams.setUseExpectContinue(params, 
                 true);
+        HttpConnectionParams.setTcpNoDelay(params, 
+                Boolean.TRUE);
+        HttpConnectionParams.setSocketBufferSize(params, 
+                8192);
 
         // determine the release version from packaged version info
         final VersionInfo vi = VersionInfo.loadVersionInfo
