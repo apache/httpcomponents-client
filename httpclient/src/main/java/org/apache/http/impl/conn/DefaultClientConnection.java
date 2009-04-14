@@ -166,6 +166,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
+        if (buffersize == -1) {
+            buffersize = 8192;
+        }
         SessionInputBuffer inbuffer = super.createSessionInputBuffer(
                 socket, 
                 buffersize,
@@ -182,6 +185,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             final Socket socket,
             int buffersize,
             final HttpParams params) throws IOException {
+        if (buffersize == -1) {
+            buffersize = 8192;
+        }
         SessionOutputBuffer outbuffer = super.createSessionOutputBuffer(
                 socket,
                 buffersize,
