@@ -102,7 +102,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
 
     public int readLine(final CharArrayBuffer buffer) throws IOException {
         int l = this.in.readLine(buffer);
-        if (this.wire.enabled() && l > 0) {
+        if (this.wire.enabled() && l >= 0) {
             int pos = buffer.length() - l;
             String s = new String(buffer.buffer(), pos, l);
             this.wire.input(s + "[EOL]");
