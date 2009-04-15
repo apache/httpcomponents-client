@@ -35,6 +35,8 @@ import java.io.IOException;
 
 import net.jcip.annotations.ThreadSafe;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpResponseFactory;
@@ -56,6 +58,8 @@ import org.apache.http.util.CharArrayBuffer;
 @ThreadSafe // no public methods
 public class DefaultResponseParser extends AbstractMessageParser {
     
+    private final Log log = LogFactory.getLog(getClass());
+	
     private final HttpResponseFactory responseFactory;
     private final CharArrayBuffer lineBuf;
     private final int maxGarbageLines;
@@ -80,12 +84,12 @@ public class DefaultResponseParser extends AbstractMessageParser {
     @Override
     protected HttpMessage parseHead(
             final SessionInputBuffer sessionBuffer) throws IOException, HttpException {
-        // clear the buffer
-        this.lineBuf.clear();
         //read out the HTTP status string
         int count = 0;
         ParserCursor cursor = null;
         do {
+            // clear the buffer
+            this.lineBuf.clear();
             int i = sessionBuffer.readLine(this.lineBuf);
             if (i == -1 && count == 0) {
                 // The server just dropped connection on us
@@ -99,6 +103,9 @@ public class DefaultResponseParser extends AbstractMessageParser {
                 // Giving up
                 throw new ProtocolException("The server failed to respond with a " +
                         "valid HTTP response");
+            }
+            if (this.log.isDebugEnabled()) {
+            	this.log.debug("Garbage in response: " + this.lineBuf.toString());
             }
             count++;
         } while(true);

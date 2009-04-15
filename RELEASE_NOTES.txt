@@ -1,6 +1,10 @@
 Changes since 4.0 beta 2
 -------------------
 
+* Fixed problem with the default HTTP response parser failing to handle garbage 
+  preceding a valid HTTP response.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * NonRepeatableRequestExceptions now include the cause that the original
   request failed.
   Contributed by Sam Berlin <sberlin at apache.org>
