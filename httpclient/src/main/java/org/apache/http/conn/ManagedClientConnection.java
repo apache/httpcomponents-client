@@ -44,16 +44,9 @@ import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.routing.HttpRoute;
 
-
-
 /**
  * A client-side connection with advanced connection logic.
  * Instances are typically obtained from a connection manager.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$
  *
  * @since 4.0
  */
@@ -69,9 +62,7 @@ public interface ManagedClientConnection extends
      * @return  <code>true</code> if this connection is secure,
      *          <code>false</code> otherwise
      */
-    boolean isSecure()
-        ;
-
+    boolean isSecure();
 
     /**
      * Obtains the current route of this connection.
@@ -79,9 +70,7 @@ public interface ManagedClientConnection extends
      * @return  the route established so far, or
      *          <code>null</code> if not connected
      */
-    HttpRoute getRoute()
-        ;
-
+    HttpRoute getRoute();
 
     /**
      * Obtains the SSL session of the underlying connection, if any.
@@ -99,9 +88,7 @@ public interface ManagedClientConnection extends
      * @return  the underlying SSL session if available,
      *          <code>null</code> otherwise
      */
-    SSLSession getSSLSession()
-        ;
-
+    SSLSession getSSLSession();
 
     /**
      * Opens this connection according to the given route.
@@ -114,9 +101,7 @@ public interface ManagedClientConnection extends
      * @throws IOException      in case of a problem
      */
     void open(HttpRoute route, HttpContext context, HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Indicates that a tunnel to the target has been established.
@@ -136,9 +121,7 @@ public interface ManagedClientConnection extends
      * @throws IOException  in case of a problem
      */
     void tunnelTarget(boolean secure, HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Indicates that a tunnel to an intermediate proxy has been established.
@@ -161,9 +144,7 @@ public interface ManagedClientConnection extends
      * @throws IOException  in case of a problem
      */
     void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Layers a new protocol on top of a {@link #tunnelTarget tunnelled}
@@ -179,9 +160,7 @@ public interface ManagedClientConnection extends
      * @throws IOException      in case of a problem
      */
     void layerProtocol(HttpContext context, HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Marks this connection as being in a reusable communication state.
@@ -197,9 +176,7 @@ public interface ManagedClientConnection extends
      * A {@link #getRoute route} mismatch, the connection being closed,
      * or other circumstances might prevent reuse.
      */
-    void markReusable()
-        ;
-
+    void markReusable();
 
     /**
      * Marks this connection as not being in a reusable state.
@@ -214,9 +191,7 @@ public interface ManagedClientConnection extends
      * automatically unmark the state as non-reusable. It can then
      * be switched back using {@link #markReusable markReusable}.
      */
-    void unmarkReusable()
-        ;
-
+    void unmarkReusable();
 
     /**
      * Indicates whether this connection is in a reusable communication state.
@@ -227,8 +202,7 @@ public interface ManagedClientConnection extends
      *          a reusable communication state,
      *          <code>false</code> otherwise
      */
-    boolean isMarkedReusable()
-        ;
+    boolean isMarkedReusable();
 
     /** 
      * Assigns a state object to this connection. Connection managers may make 
@@ -236,16 +210,14 @@ public interface ManagedClientConnection extends
      *  
      * @param state The state object
      */
-    void setState(Object state)
-        ;
+    void setState(Object state);
     
     /**
      * Returns the state object associated with this connection.
      * 
      * @return The state object
      */
-    Object getState()
-        ;
+    Object getState();
     
     /**
      * Sets the duration that this connection can remain idle before it is
@@ -257,4 +229,4 @@ public interface ManagedClientConnection extends
      */
     void setIdleDuration(long duration, TimeUnit unit);
 
-} // interface ManagedClientConnection
+}

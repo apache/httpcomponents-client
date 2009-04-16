@@ -32,7 +32,6 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 
-
 /**
  * Interface for releasing a connection.
  * This can be implemented by various "trigger" objects which are
@@ -44,11 +43,6 @@ import java.io.IOException;
  * The methods in this interface can safely be called multiple times.
  * The first invocation releases the connection, subsequent calls
  * are ignored.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
@@ -66,20 +60,17 @@ public interface ConnectionReleaseTrigger {
      *             anyway.
      */
     void releaseConnection()
-        throws IOException
-        ;
+        throws IOException;
 
     /**
      * Releases the connection without the option of keep-alive.
      * This is a "hard" release that implies a shutdown of the connection.
-     * Use {@link #releaseConnection releaseConnection} for a graceful release.
+     * Use {@link #releaseConnection()} for a graceful release.
      *
      * @throws IOException      in case of an IO problem.
      *         The connection will be released anyway.
      */
     void abortConnection()
-        throws IOException
-        ;
+        throws IOException;
 
-
-} // interface ConnectionReleaseTrigger
+}

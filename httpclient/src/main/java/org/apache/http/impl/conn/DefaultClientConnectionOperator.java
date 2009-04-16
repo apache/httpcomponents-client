@@ -51,28 +51,28 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
 
-
 /**
- * Default implementation of a
- * {@link ClientConnectionOperator ClientConnectionOperator}.
- * It uses a {@link SchemeRegistry SchemeRegistry} to look up
- * {@link SocketFactory SocketFactory} objects.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
+ * Default implementation of a {@link ClientConnectionOperator}. It uses 
+ * a {@link SchemeRegistry} to look up {@link SocketFactory} objects.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_LINGER}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
+ * </ul>
  *
  * @since 4.0
  */
 @ThreadSafe
-public class DefaultClientConnectionOperator
-    implements ClientConnectionOperator {
-
+public class DefaultClientConnectionOperator implements ClientConnectionOperator {
 
     /** The scheme registry for looking up socket factories. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
-
 
     /**
      * Creates a new client connection operator for the given scheme registry.
@@ -87,14 +87,10 @@ public class DefaultClientConnectionOperator
         schemeRegistry = schemes;
     }
 
-
-    // non-javadoc, see interface ClientConnectionOperator
     public OperatedClientConnection createConnection() {
         return new DefaultClientConnection();
     }
 
-
-    // non-javadoc, see interface ClientConnectionOperator
     public void openConnection(OperatedClientConnection conn,
                                HttpHost target,
                                InetAddress local,
@@ -136,10 +132,8 @@ public class DefaultClientConnectionOperator
         }
         prepareSocket(sock, context, params);
         conn.openCompleted(sf.isSecure(sock), params);
-    } // openConnection
+    }
 
-
-    // non-javadoc, see interface ClientConnectionOperator
     public void updateSecureConnection(OperatedClientConnection conn,
                                        HttpHost target,
                                        HttpContext context,
@@ -155,7 +149,6 @@ public class DefaultClientConnectionOperator
             throw new IllegalArgumentException
                 ("Target host must not be null.");
         }
-        //@@@ is context allowed to be null?
         if (params == null) {
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
@@ -182,10 +175,7 @@ public class DefaultClientConnectionOperator
         }
         prepareSocket(sock, context, params);
         conn.update(sock, target, lsf.isSecure(sock), params);
-        //@@@ error handling: close the layered socket in case of exception?
-
-    } // updateSecureConnection
-
+    }
 
     /**
      * Performs standard initializations on a newly created socket.
@@ -200,9 +190,6 @@ public class DefaultClientConnectionOperator
                                  HttpParams params)
         throws IOException {
 
-        // context currently not used, but derived classes may need it
-        //@@@ is context allowed to be null?
-
         sock.setTcpNoDelay(HttpConnectionParams.getTcpNoDelay(params));
         sock.setSoTimeout(HttpConnectionParams.getSoTimeout(params));
 
@@ -210,9 +197,7 @@ public class DefaultClientConnectionOperator
         if (linger >= 0) {
             sock.setSoLinger(linger > 0, linger);
         }
+    }
 
-    } // prepareSocket
-
-
-} // class DefaultClientConnectionOperator
+}
 

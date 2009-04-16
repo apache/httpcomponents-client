@@ -33,15 +33,9 @@ package org.apache.http.conn;
 import java.io.InputStream;
 import java.io.IOException;
 
-
 /**
  * A watcher for {@link EofSensorInputStream EofSensorInputStream}.
  * Each stream will notify its watcher at most once.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
@@ -61,9 +55,7 @@ public interface EofSensorWatcher {
      *         wrapped stream alone, as if <code>false</code> was returned.
      */
     boolean eofDetected(InputStream wrapped)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Indicates that the {@link EofSensorInputStream stream} is closed.
@@ -81,9 +73,7 @@ public interface EofSensorWatcher {
      *         wrapped stream alone, as if <code>false</code> was returned.
      */
     boolean streamClosed(InputStream wrapped)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Indicates that the {@link EofSensorInputStream stream} is aborted.
@@ -104,8 +94,6 @@ public interface EofSensorWatcher {
      *         wrapped stream alone, as if <code>false</code> was returned.
      */
     boolean streamAbort(InputStream wrapped)
-        throws IOException
-        ;
+        throws IOException;
 
-
-} // interface EofSensorWatcher
+}

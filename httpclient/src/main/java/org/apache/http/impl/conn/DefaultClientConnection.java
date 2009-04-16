@@ -31,7 +31,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.io.IOException;
 import java.net.Socket;
 
@@ -51,14 +50,16 @@ import org.apache.http.io.SessionOutputBuffer;
 
 import org.apache.http.conn.OperatedClientConnection;
 
-
 /**
  * Default implementation of an operated client connection.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -85,24 +86,18 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         super();
     }
 
-
-    // non-javadoc, see interface OperatedClientConnection
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
-
-    // non-javadoc, see interface OperatedClientConnection
     public final boolean isSecure() {
         return this.connSecure;
     }
-
 
     @Override
     public final Socket getSocket() {
         return this.socket;
     }
-
 
     public void opening(Socket sock, HttpHost target) throws IOException {
         assertNotOpen();        
@@ -117,7 +112,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
-    
     public void openCompleted(boolean secure, HttpParams params) throws IOException {
         assertNotOpen();
         if (params == null) {
@@ -151,15 +145,13 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         if (sock != null)
             sock.close();
 
-    } // shutdown
-
+    }
     
     @Override
     public void close() throws IOException {
         log.debug("Connection closed");
         super.close();
     }
-
 
     @Override
     protected SessionInputBuffer createSessionInputBuffer(
@@ -179,7 +171,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         return inbuffer;
     }
 
-    
     @Override
     protected SessionOutputBuffer createSessionOutputBuffer(
             final Socket socket,
@@ -198,7 +189,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         return outbuffer;
     }
 
-    
     @Override
     protected HttpMessageParser createResponseParser(
             final SessionInputBuffer buffer,
@@ -209,8 +199,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             (buffer, null, responseFactory, params);
     }
 
-
-    // non-javadoc, see interface OperatedClientConnection
     public void update(Socket sock, HttpHost target,
                        boolean secure, HttpParams params)
         throws IOException {
@@ -231,9 +219,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
         targetHost = target;
         connSecure = secure;
-
-    } // update
-
+    }
 
     @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
@@ -248,7 +234,6 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         return response;
     }
 
-
     @Override
     public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
         super.sendRequestHeader(request);
@@ -261,4 +246,4 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
-} // class DefaultClientConnection
+}

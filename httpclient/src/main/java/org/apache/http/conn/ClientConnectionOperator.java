@@ -39,8 +39,6 @@ import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
-
-
 /**
  * Interface for opening {@link OperatedClientConnection connections}.
  * This interface encapsulates the logic to create sockets and to
@@ -52,24 +50,16 @@ import org.apache.http.protocol.HttpContext;
  * sockets. Creating a tunnelled connection through a proxy, however,
  * is not within the scope of the operator.
  *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
- *
  * @since 4.0
  */
 public interface ClientConnectionOperator {
-
 
     /**
      * Creates a new connection that can be operated.
      *
      * @return  a new, unopened connection for use with this operator
      */
-    OperatedClientConnection createConnection()
-        ;
-
+    OperatedClientConnection createConnection();
 
     /**
      * Opens a connection to the given target host.
@@ -88,9 +78,7 @@ public interface ClientConnectionOperator {
                         InetAddress local,
                         HttpContext context,
                         HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Updates a connection with a layered secure connection.
@@ -111,9 +99,7 @@ public interface ClientConnectionOperator {
                                 HttpHost target,
                                 HttpContext context,
                                 HttpParams params)
-        throws IOException
-        ;
+        throws IOException;
 
-
-} // interface ClientConnectionOperator
+}
 

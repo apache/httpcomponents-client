@@ -40,28 +40,20 @@ import net.jcip.annotations.NotThreadSafe;
  * Primarily used to auto-release an underlying
  * {@link ManagedClientConnection connection}
  * when the response body is consumed or no longer needed.
- *
  * <p>
  * This class is based on <code>AutoCloseInputStream</code> in HttpClient 3.1,
  * but has notable differences. It does not allow mark/reset, distinguishes
  * different kinds of event, and does not always close the underlying stream
  * on EOF. That decision is left to the {@link EofSensorWatcher watcher}.
- * </p>
  *
- * @see EofSensorWatcher EofSensorWatcher
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
+ * @see EofSensorWatcher
  *
  * @since 4.0
  */
 // don't use FilterInputStream as the base class, we'd have to
 // override markSupported(), mark(), and reset() to disable them
 @NotThreadSafe
-public class EofSensorInputStream extends InputStream
-    implements ConnectionReleaseTrigger {
+public class EofSensorInputStream extends InputStream implements ConnectionReleaseTrigger {
 
     /**
      * The wrapped input stream, while accessible.
@@ -69,7 +61,6 @@ public class EofSensorInputStream extends InputStream
      * becomes inaccessible.
      */
     protected InputStream wrappedStream;
-
 
     /**
      * Indicates whether this stream itself is closed.
@@ -85,7 +76,6 @@ public class EofSensorInputStream extends InputStream
 
     /** The watcher to be notified, if any. */
     private EofSensorWatcher eofWatcher;
-
 
     /**
      * Creates a new EOF sensor.
@@ -110,7 +100,6 @@ public class EofSensorInputStream extends InputStream
         eofWatcher = watcher;
     }
 
-
     /**
      * Checks whether the underlying stream can be read from.
      *
@@ -127,8 +116,6 @@ public class EofSensorInputStream extends InputStream
         return (wrappedStream != null);
     }
 
-
-    // non-javadoc, see base class InputStream
     @Override
     public int read() throws IOException {
         int l = -1;
@@ -146,8 +133,6 @@ public class EofSensorInputStream extends InputStream
         return l;
     }
 
-
-    // non-javadoc, see base class InputStream
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         int l = -1;
@@ -165,8 +150,6 @@ public class EofSensorInputStream extends InputStream
         return l;
     }
 
-
-    // non-javadoc, see base class InputStream
     @Override
     public int read(byte[] b) throws IOException {
         int l = -1;
@@ -183,8 +166,6 @@ public class EofSensorInputStream extends InputStream
         return l;
     }
 
-
-    // non-javadoc, see base class InputStream
     @Override
     public int available() throws IOException {
         int a = 0; // not -1
@@ -202,15 +183,12 @@ public class EofSensorInputStream extends InputStream
         return a;
     }
 
-
-    // non-javadoc, see base class InputStream
     @Override
     public void close() throws IOException {
         // tolerate multiple calls to close()
         selfClosed = true;
         checkClose();
     }
-
 
     /**
      * Detects EOF and notifies the watcher.
@@ -243,7 +221,6 @@ public class EofSensorInputStream extends InputStream
         }
     }
 
-
     /**
      * Detects stream close and notifies the watcher.
      * There's not much to detect since this is called by {@link #close close}.
@@ -269,7 +246,6 @@ public class EofSensorInputStream extends InputStream
             }
         }
     }
-
 
     /**
      * Detects stream abort and notifies the watcher.
@@ -299,12 +275,11 @@ public class EofSensorInputStream extends InputStream
         }
     }
 
-
     /**
      * Same as {@link #close close()}.
      */
     public void releaseConnection() throws IOException {
-        this.close();
+        close();
     }
 
     /**
@@ -320,5 +295,5 @@ public class EofSensorInputStream extends InputStream
         checkAbort();
     }
 
-} // class EOFSensorInputStream
+}
 

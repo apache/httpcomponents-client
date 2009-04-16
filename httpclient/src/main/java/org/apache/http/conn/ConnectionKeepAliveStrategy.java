@@ -1,7 +1,7 @@
 /*
- * $HeadURL: $
- * $Revision: $
- * $Date: $
+ * $HeadURL:$
+ * $Revision:$
+ * $Date:$
  *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -37,10 +37,6 @@ import org.apache.http.protocol.HttpContext;
 /**
  * Interface for deciding how long a connection can remain
  * idle before being reused.
- *
- *
- *
- * @version $Revision: $
  * 
  * @since 4.0
  */

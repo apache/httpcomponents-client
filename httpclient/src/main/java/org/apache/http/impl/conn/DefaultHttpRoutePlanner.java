@@ -48,13 +48,19 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 
 import org.apache.http.conn.params.ConnRouteParams;
 
-
 /**
- * Default implementation of an {@link HttpRoutePlanner}.
- * This implementation is based on
- * {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
- * It will not make use of any Java system properties,
- * nor of system or browser proxy settings.
+ * Default implementation of an {@link HttpRoutePlanner}. This implementation 
+ * is based on {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
+ * It will not make use of any Java system properties, nor of system or 
+ * browser proxy settings.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -63,7 +69,6 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 
     /** The scheme registry. */
     protected final SchemeRegistry schemeRegistry; // class is @ThreadSafe
-
 
     /**
      * Creates a new default route planner.
@@ -78,8 +83,6 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         schemeRegistry = schreg;
     }
 
-
-    // non-javadoc, see interface HttpRoutePlanner
     public HttpRoute determineRoute(HttpHost target,
                                     HttpRequest request,
                                     HttpContext context)
@@ -121,6 +124,5 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
         return route;
     }
-    
     
 }

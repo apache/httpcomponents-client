@@ -63,6 +63,13 @@ import org.apache.http.conn.params.ConnRouteParams;
  * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
  * though not the {@link
  * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -74,7 +81,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
 
     /** The proxy selector to use, or <code>null</code> for system default. */
     protected ProxySelector proxySelector;
-
 
     /**
      * Creates a new proxy selector route planner.
@@ -94,7 +100,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         proxySelector  = prosel;
     }
 
-
     /**
      * Obtains the proxy selector to use.
      *
@@ -103,7 +108,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     public ProxySelector getProxySelector() {
         return this.proxySelector;
     }
-
 
     /**
      * Sets the proxy selector to use.
@@ -115,9 +119,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         this.proxySelector = prosel;
     }
 
-
-
-    // non-javadoc, see interface HttpRoutePlanner
     public HttpRoute determineRoute(HttpHost target,
                                     HttpRequest request,
                                     HttpContext context)
@@ -159,7 +160,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         }
         return route;
     }
-
 
     /**
      * Determines a proxy for the given target.
@@ -211,7 +211,6 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         return result;
     }
 
-
     /**
      * Obtains a host from an {@link InetSocketAddress}.
      *
@@ -232,8 +231,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
  
     }
 
-
-    /*
+    /**
      * Chooses a proxy from a list of available proxies.
      * The default implementation just picks the first non-SOCKS proxy
      * from the list. If there are only SOCKS proxies,
@@ -247,8 +245,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * @param request   the request to be sent, never <code>null</code>
      * @param context   the context, or <code>null</code>
      *
-     * @return  a proxy of type {@link Proxy.Type#DIRECT DIRECT}
-     *          or {@link Proxy.Type#HTTP HTTP}, never <code>null</code>
+     * @return  a proxy type
      */
     protected Proxy chooseProxy(List<Proxy> proxies,
                                 HttpHost    target,
@@ -290,5 +287,5 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         return result;
     }
 
-} // class ProxySelectorRoutePlanner
+}
 

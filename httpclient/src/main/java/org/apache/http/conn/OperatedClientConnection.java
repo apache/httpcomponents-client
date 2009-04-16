@@ -39,22 +39,14 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpInetConnection;
 import org.apache.http.params.HttpParams;
 
-
 /**
  * A client-side connection that relies on outside logic to connect sockets to the 
  * appropriate hosts. It can be operated directly by an application, or through an
  * {@link ClientConnectionOperator operator}.
  *
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
- *
  * @since 4.0
  */
-public interface OperatedClientConnection
-    extends HttpClientConnection, HttpInetConnection {
+public interface OperatedClientConnection extends HttpClientConnection, HttpInetConnection {
 
     /**
      * Obtains the target host for this connection.
@@ -68,8 +60,7 @@ public interface OperatedClientConnection
      *
      * @return  the host to which this connection is opened
      */
-    HttpHost getTargetHost()
-        ;
+    HttpHost getTargetHost();
 
     /**
      * Indicates whether this connection is secure.
@@ -80,8 +71,7 @@ public interface OperatedClientConnection
      * @return  <code>true</code> if this connection is secure,
      *          <code>false</code> otherwise
      */
-    boolean isSecure()
-        ;
+    boolean isSecure();
 
     /**
      * Obtains the socket for this connection.
@@ -92,13 +82,7 @@ public interface OperatedClientConnection
      * @return  the socket for communicating with the
      *          {@link #getTargetHost target host}
      */
-    Socket getSocket()
-        ;
-
-
-    // There is no getParams(). For the moment, we
-    // do not require connections to store parameters.
-
+    Socket getSocket();
 
     /**
      * Signals that this connection is in the process of being open.
@@ -122,9 +106,7 @@ public interface OperatedClientConnection
      * @param target    the target host of this connection
      */
     void opening(Socket sock, HttpHost target)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Signals that the connection has been successfully open.
@@ -139,9 +121,7 @@ public interface OperatedClientConnection
      *                  to determine buffer sizes.
      */
     void openCompleted(boolean secure, HttpParams params)
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Updates this connection.
@@ -166,8 +146,6 @@ public interface OperatedClientConnection
      */
     void update(Socket sock, HttpHost target,
                 boolean secure, HttpParams params)
-        throws IOException
-        ;
+        throws IOException;
 
-
-} // interface OperatedClientConnection
+}
