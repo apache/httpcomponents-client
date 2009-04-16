@@ -75,7 +75,7 @@ public final class Scheme {
     /*
      *  This is used to cache the result of the toString() method
      *  Since the method always generates the same value, there's no
-     *  need to synchronize.
+     *  need to synchronize, and it does not affect immutability.
     */
 
 
