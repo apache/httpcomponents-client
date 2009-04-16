@@ -51,10 +51,10 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
 
 
     /** The connection to auto-release. */
-    protected ManagedClientConnection managedConn;
+    protected final ManagedClientConnection managedConn;
 
     /** Whether to keep the connection alive. */
-    protected boolean attemptReuse;
+    protected final boolean attemptReuse;
 
 
 
