@@ -220,7 +220,7 @@ public class TestHttpRoute extends TestCase {
         routes.add(routettt);
         assertEquals("some flagged routes are equal", 8, routes.size());
 
-        // we can't test hashCode in general due to it's dependency
+        // we can't test hashCode in general due to its dependency
         // on InetAddress and HttpHost, but we can check for the flags
         Set<Integer> routecodes = new HashSet<Integer>();
         routecodes.add(Integer.valueOf(routefff.hashCode()));

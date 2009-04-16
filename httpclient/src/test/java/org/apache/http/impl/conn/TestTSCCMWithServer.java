@@ -579,7 +579,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.markReusable();
         mgr.releaseConnection(conn, -1, null);
 
-        // We now have a manager with an open connection in it's pool.
+        // We now have a manager with an open connection in its pool.
         // We drop all potential hard reference to the manager and check
         // whether it is GCed. Internal references might prevent that
         // if set up incorrectly.

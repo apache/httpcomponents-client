@@ -51,7 +51,7 @@ import org.apache.http.conn.OperatedClientConnection;
  * The pool entry stores the underlying connection and tracks the
  * {@link HttpRoute route} established.
  * The adapter delegates methods for establishing the route to
- * it's pool entry.
+ * its pool entry.
  * <br/>
  * If the managed connections is released or revoked, the adapter
  * gets disconnected, but the pool entry still contains the

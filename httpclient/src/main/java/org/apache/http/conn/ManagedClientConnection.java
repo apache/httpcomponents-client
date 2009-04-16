@@ -187,7 +187,7 @@ public interface ManagedClientConnection extends
      * Marks this connection as being in a reusable communication state.
      * The checkpoints for reuseable communication states (in the absence
      * of pipelining) are before sending a request and after receiving
-     * the response in it's entirety.
+     * the response in its entirety.
      * The connection will automatically clear the checkpoint when
      * used for communication. A call to this method indicates that
      * the next checkpoint has been reached.
@@ -204,7 +204,7 @@ public interface ManagedClientConnection extends
     /**
      * Marks this connection as not being in a reusable state.
      * This can be used immediately before releasing this connection
-     * to prevent it's reuse. Reasons for preventing reuse include
+     * to prevent its reuse. Reasons for preventing reuse include
      * error conditions and the evaluation of a
      * {@link org.apache.http.ConnectionReuseStrategy reuse strategy}.
      * <br/>

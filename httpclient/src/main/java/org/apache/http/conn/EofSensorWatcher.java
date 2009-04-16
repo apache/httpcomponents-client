@@ -36,7 +36,7 @@ import java.io.IOException;
 
 /**
  * A watcher for {@link EofSensorInputStream EofSensorInputStream}.
- * Each stream will notify it's watcher at most once.
+ * Each stream will notify its watcher at most once.
  *
  *
  *
