@@ -136,7 +136,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         HttpProtocolParams.setUseExpectContinue(params, 
                 true);
         HttpConnectionParams.setTcpNoDelay(params, 
-                Boolean.TRUE);
+                true);
         HttpConnectionParams.setSocketBufferSize(params, 
                 8192);
 
