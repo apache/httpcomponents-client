@@ -126,6 +126,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
     
+    /**
+     * Creates a new BasicHttpParams object, and sets up the following:
+     * <ul>
+     * <li>Version: HttpVersion.HTTP_1_1</li>
+     * <li>ContentCharset: HTTP.DEFAULT_CONTENT_CHARSET</li>
+     * <li>UseExpectContinue: true</li>
+     * <li>NoTcpDelay: true</li>
+     * <li>SocketBufferSize: 8192</li>
+     * <li>UserAgent: Apache-HttpClient/release (java 1.5)</li>
+     * </ul>
+     */
     @Override
     protected HttpParams createHttpParams() {
         HttpParams params = new BasicHttpParams();
