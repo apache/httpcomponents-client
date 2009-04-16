@@ -40,9 +40,9 @@ import java.util.concurrent.locks.Lock;
  */
 public class AwaitThread extends Thread {
 
-    protected WaitingThread wait_object;
-    protected Lock          wait_lock;
-    protected Date          wait_deadline;
+    protected final WaitingThread wait_object;
+    protected final Lock          wait_lock;
+    protected final Date          wait_deadline;
 
     protected volatile boolean       waiting;
     protected volatile Throwable     exception;
