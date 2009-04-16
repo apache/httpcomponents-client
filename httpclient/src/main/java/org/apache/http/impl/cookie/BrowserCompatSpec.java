@@ -58,7 +58,7 @@ import org.apache.http.util.CharArrayBuffer;
 public class BrowserCompatSpec extends CookieSpecBase {
     
     /** Valid date patterns used per default */
-    protected static final String[] DATE_PATTERNS = new String[] {
+    private static final String[] DATE_PATTERNS = new String[] {
             DateUtils.PATTERN_RFC1123,
             DateUtils.PATTERN_RFC1036,
             DateUtils.PATTERN_ASCTIME,
@@ -187,6 +187,10 @@ public class BrowserCompatSpec extends CookieSpecBase {
 
     public Header getVersionHeader() {
         return null;
+    }
+
+    protected static String[] getDATE_PATTERNS() {
+        return DATE_PATTERNS.clone();
     }
     
 }

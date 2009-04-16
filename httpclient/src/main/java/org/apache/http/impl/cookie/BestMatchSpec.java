@@ -94,7 +94,7 @@ public class BestMatchSpec implements CookieSpec {
         if (this.netscape == null) {
             String[] patterns = this.datepatterns;
             if (patterns == null) {
-                patterns = BrowserCompatSpec.DATE_PATTERNS;
+                patterns = BrowserCompatSpec.getDATE_PATTERNS();
             }
             this.netscape = new NetscapeDraftSpec(patterns);
         }
