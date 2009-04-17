@@ -41,13 +41,8 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.http.HttpHost;
 
 /**
- * A set of supported protocol {@link Scheme schemes}.
+ * A set of supported protocol {@link Scheme}s.
  * Schemes are identified by lowercase names.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
  *
  * @since 4.0
  */
@@ -58,7 +53,6 @@ public final class SchemeRegistry {
     @GuardedBy("this")
     private final Map<String,Scheme> registeredSchemes;
 
-
     /**
      * Creates a new, empty scheme registry.
      */
@@ -66,7 +60,6 @@ public final class SchemeRegistry {
         super();
         registeredSchemes = new LinkedHashMap<String,Scheme>();
     }
-
 
     /**
      * Obtains a scheme by name.
@@ -87,7 +80,6 @@ public final class SchemeRegistry {
         return found;
     }
 
-
     /**
      * Obtains the scheme for a host.
      * Convenience method for <code>getScheme(host.getSchemeName())</pre>
@@ -105,7 +97,6 @@ public final class SchemeRegistry {
         }
         return getScheme(host.getSchemeName());
     }
-
 
     /**
      * Obtains a scheme by name, if registered.
@@ -125,7 +116,6 @@ public final class SchemeRegistry {
         return found;
     }
 
-
     /**
      * Registers a scheme.
      * The scheme can later be retrieved by its name
@@ -144,7 +134,6 @@ public final class SchemeRegistry {
         return old;
     }
 
-
     /**
      * Unregisters a scheme.
      *
@@ -162,7 +151,6 @@ public final class SchemeRegistry {
         Scheme gone = registeredSchemes.remove(name);
         return gone;
     }
-
 
     /**
      * Obtains the names of the registered schemes in their default order.
@@ -187,5 +175,5 @@ public final class SchemeRegistry {
         registeredSchemes.putAll(map);
     }
 
-} // class SchemeRegistry
+}
 

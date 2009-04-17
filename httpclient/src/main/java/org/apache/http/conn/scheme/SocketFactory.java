@@ -40,13 +40,8 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpParams;
 
 /**
- * A factory for creating and connecting sockets.
+ * A factory for creating, initializing and connecting sockets.
  * The factory encapsulates the logic for establishing a socket connection.
- * <br/>
- * Both {@link java.lang.Object#equals(java.lang.Object) Object.equals()}
- * and {@link java.lang.Object#hashCode() Object.hashCode()}
- * must be overridden for the correct operation of some connection managers.
- * 
  *
  * @since 4.0
  */
@@ -62,9 +57,7 @@ public interface SocketFactory {
      * @throws IOException if an I/O error occurs while creating the socket
      */
     Socket createSocket()
-        throws IOException
-        ;
-
+        throws IOException;
 
     /**
      * Connects a socket to the given host.
@@ -100,7 +93,6 @@ public interface SocketFactory {
         HttpParams params
     ) throws IOException, UnknownHostException, ConnectTimeoutException;
 
-
     /**
      * Checks whether a socket provides a secure connection.
      * The socket must be {@link #connectSocket connected}
@@ -114,7 +106,7 @@ public interface SocketFactory {
      * socket to a host in the same intranet ("trusted zone")
      * could be considered secure. On the other hand, a
      * TLS/SSL socket could be considered insecure based on
-     * the cypher suite chosen for the connection.
+     * the cipher suite chosen for the connection.
      *
      * @param sock      the connected socket to check
      *
@@ -131,7 +123,6 @@ public interface SocketFactory {
      *  value when called with an invalid socket argument.
      */
     boolean isSecure(Socket sock)
-        throws IllegalArgumentException
-        ;
+        throws IllegalArgumentException;
 
 }

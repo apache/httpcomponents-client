@@ -44,8 +44,13 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 /**
- * The default class for creating sockets.
- * 
+ * The default class for creating plain (unencrypted) sockets.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -80,12 +85,10 @@ public final class PlainSocketFactory implements SocketFactory {
         this(null);
     }
 
-    // non-javadoc, see interface org.apache.http.conn.SocketFactory
     public Socket createSocket() {
         return new Socket();
     }
 
-    // non-javadoc, see interface org.apache.http.conn.SocketFactory
     public Socket connectSocket(Socket sock, String host, int port, 
                                 InetAddress localAddress, int localPort,
                                 HttpParams params)
@@ -126,9 +129,7 @@ public final class PlainSocketFactory implements SocketFactory {
             throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
         return sock;
-
-    } // connectSocket
-
+    }
 
     /**
      * Checks whether a socket connection is secure.
@@ -152,9 +153,7 @@ public final class PlainSocketFactory implements SocketFactory {
         if (sock.isClosed()) {
             throw new IllegalArgumentException("Socket is closed.");
         }
-
         return false;
-
-    } // isSecure
+    }
 
 }

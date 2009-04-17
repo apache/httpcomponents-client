@@ -35,11 +35,19 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 /**
+ * Hostname to IP address resolver.
  *
  * @since 4.0
  */
 public interface HostNameResolver {
 
+	/**
+	 * Resolves given hostname to its IP address
+	 * 
+	 * @param hostname the hostname.
+	 * @return IP address.
+	 * @throws IOException
+	 */
     InetAddress resolve (String hostname) throws IOException;
 
 }

@@ -61,7 +61,7 @@ import java.security.UnrecoverableKeyException;
 
 /**
  * Layered socket factory for TLS/SSL connections, based on JSSE.
- *.
+ * 
  * <p>
  * SSLSocketFactory can be used to validate the identity of the HTTPS 
  * server against a list of trusted certificates and to authenticate to
@@ -70,7 +70,7 @@ import java.security.UnrecoverableKeyException;
  * 
  * <p>
  * SSLSocketFactory will enable server authentication when supplied with
- * a {@link KeyStore truststore} file containg one or several trusted
+ * a {@link KeyStore truststore} file containing one or several trusted
  * certificates. The client secure socket will reject the connection during
  * the SSL session handshake if the target HTTPS server attempts to
  * authenticate itself with a non-trusted certificate.
@@ -81,6 +81,15 @@ import java.security.UnrecoverableKeyException;
  *    <pre>
  *     keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
  *    </pre>
+ * </p>
+ * 
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
+ * </ul>
  * </p>
  * 
  * <p>

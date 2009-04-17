@@ -57,7 +57,6 @@ import javax.net.ssl.SSLSocket;
 /**
  * Abstract base class for all standard {@link X509HostnameVerifier} 
  * implementations.
- * 
  *
  * @since 4.0
  */
@@ -135,7 +134,6 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         verify(host, x509);
     }
 
-    @Deprecated
     public final boolean verify(String host, SSLSession session) {
         try {
             Certificate[] certs = session.getPeerCertificates();
