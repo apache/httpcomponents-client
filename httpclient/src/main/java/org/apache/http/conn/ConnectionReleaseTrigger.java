@@ -33,13 +33,11 @@ package org.apache.http.conn;
 import java.io.IOException;
 
 /**
- * Interface for releasing a connection.
- * This can be implemented by various "trigger" objects which are
- * associated with a connection, for example
- * a {@link EofSensorInputStream stream}
- * or an {@link BasicManagedEntity entity}
+ * Interface for releasing a connection. This can be implemented by various 
+ * "trigger" objects which are associated with a connection, for example
+ * a {@link EofSensorInputStream stream} or an {@link BasicManagedEntity entity}
  * or the {@link ManagedClientConnection connection} itself.
- * <br/>
+ * <p>
  * The methods in this interface can safely be called multiple times.
  * The first invocation releases the connection, subsequent calls
  * are ignored.

@@ -36,27 +36,19 @@ import java.io.IOException;
 import net.jcip.annotations.NotThreadSafe;
 
 /**
- * Basic implementation of {@link EofSensorWatcher EofSensorWatcher}.
- * The underlying connection is released on close or EOF.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
+ * Basic implementation of {@link EofSensorWatcher}. The underlying connection 
+ * is released on close or EOF.
  *
  * @since 4.0
  */
 @NotThreadSafe
 public class BasicEofSensorWatcher implements EofSensorWatcher {
 
-
     /** The connection to auto-release. */
     protected final ManagedClientConnection managedConn;
 
     /** Whether to keep the connection alive. */
     protected final boolean attemptReuse;
-
-
 
     /**
      * Creates a new watcher for auto-releasing a connection.
@@ -74,8 +66,6 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         attemptReuse = reuse;
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
     public boolean eofDetected(InputStream wrapped)
         throws IOException {
 
@@ -92,8 +82,6 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
     public boolean streamClosed(InputStream wrapped)
         throws IOException {
 
@@ -110,8 +98,6 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
     public boolean streamAbort(InputStream wrapped)
         throws IOException {
 
@@ -119,4 +105,4 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
-} // class BasicEofSensorWatcher
+}

@@ -33,6 +33,7 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.scheme.SocketFactory;
@@ -40,11 +41,10 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Interface for opening {@link OperatedClientConnection connections}.
- * This interface encapsulates the logic to create sockets and to
- * open or update the connection with the new socket.
- * Implementations will most likely make use of
- * {@link SocketFactory socket factories}.
+ * ClientConnectionOperator represents a strategy for creating 
+ * {@link OperatedClientConnection} instances and updating the underlying 
+ * {@link Socket} of those objects. Implementations will most likely make use 
+ * of {@link SocketFactory}s to create {@link Socket} instances.
  * <br/>
  * The methods in this interface allow the creation of plain and layered
  * sockets. Creating a tunnelled connection through a proxy, however,

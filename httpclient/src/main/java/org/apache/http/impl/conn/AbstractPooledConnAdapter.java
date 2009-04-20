@@ -30,7 +30,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.io.IOException;
 
 import org.apache.http.HttpHost;
@@ -39,8 +38,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.OperatedClientConnection;
-
-
 
 /**
  * Abstract adapter from pool {@link AbstractPoolEntry entries} to
@@ -52,18 +49,12 @@ import org.apache.http.conn.OperatedClientConnection;
  * will clear the tracked route in the pool entry and call the
  * respective method of the wrapped connection.
  *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
- *
  * @since 4.0
  */
 public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapter {
 
     /** The wrapped pool entry. */
     protected volatile AbstractPoolEntry poolEntry;
-
 
     /**
      * Creates a new connection adapter.
@@ -76,7 +67,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         super(manager, entry.connection);
         this.poolEntry = entry;
     }
-
 
     /**
      * Asserts that this adapter is still attached.
@@ -100,8 +90,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         poolEntry = null;
     }
 
-
-    // non-javadoc, see interface ManagedHttpConnection
     public HttpRoute getRoute() {
 
         assertAttached();
@@ -109,7 +97,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
             null : poolEntry.tracker.toRoute();
     }
 
-    // non-javadoc, see interface ManagedHttpConnection
     public void open(HttpRoute route,
                      HttpContext context, HttpParams params)
         throws IOException {
@@ -118,8 +105,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         poolEntry.open(route, context, params);
     }
 
-
-    // non-javadoc, see interface ManagedHttpConnection
     public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
 
@@ -127,8 +112,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         poolEntry.tunnelTarget(secure, params);
     }
 
-
-    // non-javadoc, see interface ManagedHttpConnection
     public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
         throws IOException {
 
@@ -136,8 +119,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         poolEntry.tunnelProxy(next, secure, params);
     }
 
-
-    // non-javadoc, see interface ManagedHttpConnection
     public void layerProtocol(HttpContext context, HttpParams params)
         throws IOException {
 
@@ -145,9 +126,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         poolEntry.layerProtocol(context, params);
     }
 
-
-
-    // non-javadoc, see interface HttpConnection        
     public void close() throws IOException {
         if (poolEntry != null)
             poolEntry.shutdownEntry();
@@ -158,7 +136,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         }
     }
 
-    // non-javadoc, see interface HttpConnection        
     public void shutdown() throws IOException {
         if (poolEntry != null)
             poolEntry.shutdownEntry();
@@ -169,19 +146,14 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         }
     }
 
-    
-    // non-javadoc, see interface ManagedClientConnection        
     public Object getState() {
         assertAttached();
         return poolEntry.getState();
     }
 
-
-    // non-javadoc, see interface ManagedClientConnection        
     public void setState(final Object state) {
         assertAttached();
         poolEntry.setState(state);
     }
-    
 
-} // class AbstractPooledConnAdapter
+}

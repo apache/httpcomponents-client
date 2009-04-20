@@ -30,7 +30,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.io.IOException;
 
 import org.apache.http.HttpHost;
@@ -41,8 +40,6 @@ import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.OperatedClientConnection;
 
-
-
 /**
  * A pool entry for use by connection manager implementations.
  * Pool entries work in conjunction with an
@@ -52,15 +49,10 @@ import org.apache.http.conn.OperatedClientConnection;
  * {@link HttpRoute route} established.
  * The adapter delegates methods for establishing the route to
  * its pool entry.
- * <br/>
+ * <p>
  * If the managed connections is released or revoked, the adapter
  * gets disconnected, but the pool entry still contains the
  * underlying connection and the established route.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$
  *
  * @since 4.0
  */
@@ -176,8 +168,7 @@ public abstract class AbstractPoolEntry {
             localTracker.connectProxy(proxy, this.connection.isSecure());
         }
 
-    } // open
-
+    }
 
     /**
      * Tracks tunnelling of the connection to the target.
@@ -209,9 +200,7 @@ public abstract class AbstractPoolEntry {
         this.connection.update(null, tracker.getTargetHost(),
                                secure, params);
         this.tracker.tunnelTarget(secure);
-
-    } // tunnelTarget
-
+    }
 
     /**
      * Tracks tunnelling of the connection to a chained proxy.
@@ -245,13 +234,9 @@ public abstract class AbstractPoolEntry {
             throw new IllegalStateException("Connection not open.");
         }
 
-        // LOG.debug?
-
         this.connection.update(null, next, secure, params);
         this.tracker.tunnelProxy(next, secure);
-
-    } // tunnelProxy
-
+    }
 
     /**
      * Layers a protocol on top of an established tunnel.
@@ -296,8 +281,7 @@ public abstract class AbstractPoolEntry {
 
         this.tracker.layerProtocol(this.connection.isSecure());
 
-    } // layerProtocol
-
+    }
 
     /**
      * Shuts down the entry.
@@ -310,6 +294,5 @@ public abstract class AbstractPoolEntry {
         state = null;
     }
 
-
-} // class AbstractPoolEntry
+}
 

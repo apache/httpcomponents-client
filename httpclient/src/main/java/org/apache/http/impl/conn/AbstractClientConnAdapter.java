@@ -30,7 +30,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
@@ -49,7 +48,6 @@ import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
 
-
 /**
  * Abstract adapter from {@link OperatedClientConnection operated} to
  * {@link ManagedClientConnection managed} client connections.
@@ -58,26 +56,20 @@ import org.apache.http.conn.ClientConnectionManager;
  * by derived classes. Operations for querying the connection state
  * are delegated to the wrapped connection if there is one, or
  * return a default value if there is none.
- * <br/>
+ * <p>
  * This adapter tracks the checkpoints for reusable communication states,
  * as indicated by {@link #markReusable markReusable} and queried by
  * {@link #isMarkedReusable isMarkedReusable}.
  * All send and receive operations will automatically clear the mark.
- * <br/>
+ * <p>
  * Connection release calls are delegated to the connection manager,
  * if there is one. {@link #abortConnection abortConnection} will
  * clear the reusability mark first. The connection manager is
  * expected to tolerate multiple calls to the release method.
  *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$ $Date$
- *
  * @since 4.0
  */
-public abstract class AbstractClientConnAdapter
-    implements ManagedClientConnection {
+public abstract class AbstractClientConnAdapter implements ManagedClientConnection {
 
     /** Thread that requested this connection. */
     private final Thread executionThread; 
@@ -163,7 +155,6 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    // non-javadoc, see interface HttpConnection
     public boolean isOpen() {
         OperatedClientConnection conn = getWrappedConnection();
         if (conn == null)
@@ -172,8 +163,6 @@ public abstract class AbstractClientConnAdapter
         return conn.isOpen();
     }
 
-
-    // non-javadoc, see interface HttpConnection
     public boolean isStale() {
         if (aborted)
             return true;
@@ -184,32 +173,24 @@ public abstract class AbstractClientConnAdapter
         return conn.isStale();
     }
 
-
-    // non-javadoc, see interface HttpConnection
     public void setSocketTimeout(int timeout) {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.setSocketTimeout(timeout);
     }
 
-
-    // non-javadoc, see interface HttpConnection
     public int getSocketTimeout() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getSocketTimeout();
     }
 
-
-    // non-javadoc, see interface HttpConnection
     public HttpConnectionMetrics getMetrics() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getMetrics();
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public void flush()
         throws IOException {
 
@@ -220,8 +201,6 @@ public abstract class AbstractClientConnAdapter
         conn.flush();
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public boolean isResponseAvailable(int timeout)
         throws IOException {
 
@@ -232,8 +211,6 @@ public abstract class AbstractClientConnAdapter
         return conn.isResponseAvailable(timeout);
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public void receiveResponseEntity(HttpResponse response)
         throws HttpException, IOException {
 
@@ -245,8 +222,6 @@ public abstract class AbstractClientConnAdapter
         conn.receiveResponseEntity(response);
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
 
@@ -258,8 +233,6 @@ public abstract class AbstractClientConnAdapter
         return conn.receiveResponseHeader();
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public void sendRequestEntity(HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
 
@@ -271,8 +244,6 @@ public abstract class AbstractClientConnAdapter
         conn.sendRequestEntity(request);
     }
 
-
-    // non-javadoc, see interface HttpClientConnection
     public void sendRequestHeader(HttpRequest request)
         throws HttpException, IOException {
 
@@ -284,44 +255,36 @@ public abstract class AbstractClientConnAdapter
         conn.sendRequestHeader(request);
     }
 
-
-    // non-javadoc, see interface HttpInetConnection
     public InetAddress getLocalAddress() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalAddress();
     }
 
-    // non-javadoc, see interface HttpInetConnection
     public int getLocalPort() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalPort();
     }
 
-
-    // non-javadoc, see interface HttpInetConnection
     public InetAddress getRemoteAddress() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemoteAddress();
     }
 
-    // non-javadoc, see interface HttpInetConnection
     public int getRemotePort() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemotePort();
     }
 
-    // non-javadoc, see interface ManagedClientConnection
     public boolean isSecure() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isSecure();
     }
 
-    // non-javadoc, see interface ManagedClientConnection
     public SSLSession getSSLSession() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -336,17 +299,14 @@ public abstract class AbstractClientConnAdapter
         return result;
     }
 
-    // non-javadoc, see interface ManagedClientConnection
     public void markReusable() {
         markedReusable = true;
     }
 
-    // non-javadoc, see interface ManagedClientConnection
     public void unmarkReusable() {
         markedReusable = false;
     }
 
-    // non-javadoc, see interface ManagedClientConnection
     public boolean isMarkedReusable() {
         return markedReusable;
     }
@@ -359,14 +319,12 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    // non-javadoc, see interface ConnectionReleaseTrigger
     public void releaseConnection() {
         if (connManager != null) {
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
-    // non-javadoc, see interface ConnectionReleaseTrigger
     public void abortConnection() {
         if (aborted) {
             return;
@@ -395,4 +353,4 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-} // class AbstractClientConnAdapter
+}

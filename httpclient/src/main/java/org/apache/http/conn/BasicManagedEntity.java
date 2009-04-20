@@ -39,17 +39,11 @@ import net.jcip.annotations.NotThreadSafe;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
 
-
 /**
  * An entity that releases a {@link ManagedClientConnection connection}.
  * A {@link ManagedClientConnection} will
  * typically <i>not</i> return a managed entity, but you can replace
  * the unmanaged entity in the response with a managed one.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
@@ -62,7 +56,6 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
     /** Whether to keep the connection alive. */
     protected final boolean attemptReuse;
-
 
     /**
      * Creates a new managed entity that can release a connection.
@@ -87,26 +80,18 @@ public class BasicManagedEntity extends HttpEntityWrapper
         this.attemptReuse = reuse;
     }
 
-
-    // non-javadoc, see interface HttpEntity
     @Override
     public boolean isRepeatable() {
         return false;
     }
 
-
-    // non-javadoc, see interface HttpEntity
     @Override
     public InputStream getContent() throws IOException {
-
         return new EofSensorInputStream(wrappedEntity.getContent(), this);
     }
 
-
-    // non-javadoc, see interface HttpEntity
     @Override
     public void consumeContent() throws IOException {
-
         if (managedConn == null)
             return;
 
@@ -121,26 +106,17 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
-    
-    // non-javadoc, see interface HttpEntity
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         super.writeTo(outstream);
         consumeContent();
     }
 
-
-    // non-javadoc, see interface ConnectionReleaseTrigger
-    public void releaseConnection()
-        throws IOException {
-
+    public void releaseConnection() throws IOException {
         this.consumeContent();
     }
 
-
-    // non-javadoc, see interface ConnectionReleaseTrigger
-    public void abortConnection()
-        throws IOException {
+    public void abortConnection() throws IOException {
 
         if (managedConn != null) {
             try {
@@ -151,11 +127,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
-    public boolean eofDetected(InputStream wrapped)
-        throws IOException {
-
+    public boolean eofDetected(InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
                 // there may be some cleanup required, such as
@@ -169,11 +141,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
-    public boolean streamClosed(InputStream wrapped)
-        throws IOException {
-
+    public boolean streamClosed(InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
                 // this assumes that closing the stream will
@@ -187,17 +155,12 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
-
-    // non-javadoc, see interface EofSensorWatcher
-    public boolean streamAbort(InputStream wrapped)
-        throws IOException {
-
+    public boolean streamAbort(InputStream wrapped) throws IOException {
         if (managedConn != null) {
             managedConn.abortConnection();
         }
         return false;
     }
-
 
     /**
      * Releases the connection gracefully.
@@ -219,4 +182,4 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
-} // class BasicManagedEntity
+}

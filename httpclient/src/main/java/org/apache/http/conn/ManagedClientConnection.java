@@ -53,7 +53,6 @@ import org.apache.http.conn.routing.HttpRoute;
 public interface ManagedClientConnection extends
     HttpClientConnection, HttpInetConnection, ConnectionReleaseTrigger {
 
-
     /**
      * Indicates whether this connection is secure.
      * The return value is well-defined only while the connection is open.
