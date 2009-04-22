@@ -58,10 +58,9 @@ import org.apache.http.params.HttpParams;
  * <li>connections are re-used only for the exact same route</li>
  * <li>connection limits are enforced per route rather than per host</li>
  * </ul>
- * Note that access to the pool datastructures is synchronized via the
+ * Note that access to the pool data structures is synchronized via the
  * {@link AbstractConnPool#poolLock poolLock} in the base class,
  * not via <code>synchronized</code> methods.
- *
  *
  * @since 4.0
  */
@@ -69,7 +68,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         
     private final Log log = LogFactory.getLog(getClass());
 
-    protected final HttpParams params;
+    private final HttpParams params;
     
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;

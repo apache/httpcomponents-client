@@ -56,9 +56,11 @@ import org.apache.http.conn.OperatedClientConnection;
  * The following parameters can be used to customize the behavior of this 
  * class: 
  * <ul>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
  * </ul>
  *
  * @since 4.0
@@ -223,7 +225,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
-        HttpResponse response = super.receiveResponseHeader();
+    	HttpResponse response = super.receiveResponseHeader();
+    	if (log.isDebugEnabled()) {
+            log.debug("Receiving response: " + response.getStatusLine());
+    	}
         if (headerLog.isDebugEnabled()) {
             headerLog.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();
@@ -236,6 +241,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     @Override
     public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
+    	if (log.isDebugEnabled()) {
+            log.debug("Sending request: " + request.getRequestLine());
+    	}
         super.sendRequestHeader(request);
         if (headerLog.isDebugEnabled()) {
             headerLog.debug(">> " + request.getRequestLine().toString());

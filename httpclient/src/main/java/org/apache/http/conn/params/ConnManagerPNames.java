@@ -30,11 +30,8 @@
 
 package org.apache.http.conn.params;
 
-
 /**
  * Parameter names for connection managers in HttpConn.
- *
- * @version $Revision$
  * 
  * @since 4.0
  */

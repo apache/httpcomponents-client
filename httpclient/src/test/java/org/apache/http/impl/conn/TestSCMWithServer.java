@@ -236,4 +236,26 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.shutdown();
     }
     
+    public void testAlreadyLeased() throws Exception {
+
+        HttpParams mgrpar = defaultParams.copy();
+        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
+
+        SingleClientConnManager mgr = createSCCM(mgrpar, null);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+
+        ManagedClientConnection conn =  mgr.getConnection(route, null);
+        mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
+        
+        mgr.getConnection(route, null);
+        try {
+            mgr.getConnection(route, null);
+            fail("IllegalStateException should have been thrown");
+        } catch (IllegalStateException ex) {
+            mgr.shutdown();
+        }
+    }
+
 }

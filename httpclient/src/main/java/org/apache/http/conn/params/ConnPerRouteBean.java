@@ -43,9 +43,6 @@ import org.apache.http.conn.routing.HttpRoute;
  * {@link org.apache.http.conn.ClientConnectionManager connection managers} for 
  * a fine-grained control of connections on a per route basis. 
  * 
- * 
- * @version $Revision$
- * 
  * @since 4.0
  */
 @NotThreadSafe // maxPerHostMap and defaultMax
@@ -112,5 +109,10 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.maxPerHostMap.clear();
         this.maxPerHostMap.putAll(map);
     }
+
+	@Override
+	public String toString() {
+		return this.maxPerHostMap.toString();
+	}
     
 }

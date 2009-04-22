@@ -30,16 +30,12 @@
 
 package org.apache.http.conn.params;
 
-
 /**
- * Parameter names for connections in HttpConn.
- *
- * @version $Revision$
+ * Parameter names for HTTP client connections.
  * 
  * @since 4.0
  */
 public interface ConnConnectionPNames {
-
 
     /**
      * Defines the maximum number of ignorable lines before we expect

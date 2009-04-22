@@ -33,8 +33,6 @@ package org.apache.http.conn.params;
 /**
  * Parameter names for routing in HttpConn.
  * 
- * @version $Revision$
- * 
  * @since 4.0
  */
 public interface ConnRoutePNames {
@@ -50,7 +48,6 @@ public interface ConnRoutePNames {
      */
     public static final String DEFAULT_PROXY = "http.route.default-proxy";
 
-
     /**
      * Parameter for the local address.
      * On machines with multiple network interfaces, this parameter
@@ -64,7 +61,6 @@ public interface ConnRoutePNames {
      * </p>
      */
     public static final String LOCAL_ADDRESS = "http.route.local-address";
-
 
     /**
      * Parameter for an forced route.

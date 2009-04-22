@@ -46,19 +46,32 @@ import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 
-
-
 /**
- * Manages a pool of {@link OperatedClientConnection client connections}.
+ * Manages a pool of {@link OperatedClientConnection client connections} and 
+ * is able to service connection requests from multiple execution threads. 
+ * Connections are pooled on a per route basis. A request for a route which 
+ * already the manager has persistent connections for available in the pool 
+ * will be services by leasing a connection from the pool rather than 
+ * creating a brand new connection.
  * <p>
- * This class is derived from <code>MultiThreadedHttpConnectionManager</code>
- * in HttpClient 3. See there for original authors.
- * </p>
+ * ThreadSafeClientConnManager maintains a maximum limit of connection on 
+ * a per route basis and in total. Per default this implementation will
+ * create no more than than 2 concurrent connections per given route 
+ * and no more 20 connections in total. For many real-world applications
+ * these limits may prove too constraining, especially if they use HTTP
+ * as a transport protocol for their services. Connection limits, however,
+ * can be adjusted using HTTP parameters.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_TOTAL_CONNECTIONS}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
+ * </ul>
  *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$ $Date$
+ * @see org.apache.http.conn.params.ConnPerRoute 
+ * @see org.apache.http.conn.params.ConnPerRouteBean
  *
  * @since 4.0
  */
@@ -75,8 +88,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /** The operator for opening and updating connections. */
     protected final ClientConnectionOperator connOperator;
     
-
-
     /**
      * Creates a new thread safe connection manager.
      *
@@ -94,15 +105,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.connOperator   = createConnectionOperator(schreg);
         this.connectionPool = createConnectionPool(params);
 
-    } // <constructor>
+    }
 
-    
     @Override
     protected void finalize() throws Throwable {
         shutdown();
         super.finalize();
     }
-
 
     /**
      * Hook for creating the connection pool.
@@ -118,7 +127,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         }
         return acp;
     }
-
 
     /**
      * Hook for creating the connection operator.
@@ -138,13 +146,10 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return new DefaultClientConnectionOperator(schreg);
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
 
-    
     public ClientConnectionRequest requestConnection(
             final HttpRoute route, 
             final Object state) {
@@ -178,8 +183,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         
     }
 
-    
-    // non-javadoc, see interface ClientConnectionManager
     public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
 
         if (!(conn instanceof BasicPooledConnAdapter)) {
@@ -228,13 +231,10 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         }
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
     public void shutdown() {
         log.debug("Shutting down");
         connectionPool.shutdown();
     }
-
 
     /**
      * Gets the total number of pooled connections for the given route.
@@ -250,7 +250,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(
                 route);
     }
-
 
     /**
      * Gets the total number of pooled connections.  This is the total number of 
@@ -268,8 +267,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return count;
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
@@ -284,6 +281,5 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         connectionPool.deleteClosedConnections();
     }
 
-
-} // class ThreadSafeClientConnManager
+}
 

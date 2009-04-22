@@ -40,9 +40,6 @@ import org.apache.http.params.HttpParams;
  * to client-side
  * {@link org.apache.http.conn.ClientConnectionManager connection managers}. 
  * 
- * 
- * @version $Revision$
- * 
  * @since 4.0
  *
  * @see ConnManagerPNames

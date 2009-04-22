@@ -30,7 +30,6 @@
 
 package org.apache.http.conn.params;
 
-
 import java.net.InetAddress;
 
 import net.jcip.annotations.Immutable;
@@ -39,14 +38,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.conn.routing.HttpRoute;
 
-
-
 /**
  * An adaptor for accessing route related parameters in {@link HttpParams}.
  * See {@link ConnRoutePNames} for parameter name definitions.
- * 
- * 
- * @version $Revision$
  * 
  * @since 4.0
  */
@@ -67,12 +61,10 @@ public class ConnRouteParams implements ConnRoutePNames {
      */
     public static final HttpRoute NO_ROUTE = new HttpRoute(NO_HOST); // Immutable
 
-
     /** Disabled default constructor. */
     private ConnRouteParams() {
         // no body
     }
-
 
     /**
      * Obtains the {@link ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}
@@ -98,7 +90,6 @@ public class ConnRouteParams implements ConnRoutePNames {
         return proxy;
     }
 
-
     /**
      * Sets the {@link ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}
      * parameter value.
@@ -116,7 +107,6 @@ public class ConnRouteParams implements ConnRoutePNames {
         }
         params.setParameter(DEFAULT_PROXY, proxy);
     }
-
 
     /**
      * Obtains the {@link ConnRoutePNames#FORCED_ROUTE FORCED_ROUTE}
@@ -142,7 +132,6 @@ public class ConnRouteParams implements ConnRoutePNames {
         return route;
     }
 
-
     /**
      * Sets the {@link ConnRoutePNames#FORCED_ROUTE FORCED_ROUTE}
      * parameter value.
@@ -160,7 +149,6 @@ public class ConnRouteParams implements ConnRoutePNames {
         }
         params.setParameter(FORCED_ROUTE, route);
     }
-
 
     /**
      * Obtains the {@link ConnRoutePNames#LOCAL_ADDRESS LOCAL_ADDRESS}
@@ -183,7 +171,6 @@ public class ConnRouteParams implements ConnRoutePNames {
         // no explicit unsetting
         return local;
     }
-
 
     /**
      * Sets the {@link ConnRoutePNames#LOCAL_ADDRESS LOCAL_ADDRESS}
