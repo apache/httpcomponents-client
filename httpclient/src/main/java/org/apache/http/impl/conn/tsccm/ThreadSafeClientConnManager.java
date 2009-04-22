@@ -109,8 +109,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     @Override
     protected void finalize() throws Throwable {
-        shutdown();
-        super.finalize();
+        try {
+            shutdown();
+        } finally {
+            super.finalize();
+        }
     }
 
     /**
