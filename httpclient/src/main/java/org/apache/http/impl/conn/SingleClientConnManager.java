@@ -34,6 +34,8 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ClientConnectionManager;
@@ -45,26 +47,21 @@ import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
 
-
 /**
- * A connection "manager" for a single connection.
- * This manager is good only for single-threaded use.
- * Allocation <i>always</i> returns the connection immediately,
- * even if it has not been released after the previous allocation.
- * In that case, a {@link #MISUSE_MESSAGE warning} is logged
- * and the previously issued connection is revoked.
+ * A connection manager for a single connection. This connection manager
+ * maintains only one active connection at a time. Even though this class
+ * is thread-safe it ought to be used by one execution thread only.
  * <p>
- * This class is derived from <code>SimpleHttpConnectionManager</code>
- * in HttpClient 3. See there for original authors.
- * </p>
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$
+ * SingleClientConnManager will make an effort to reuse the connection 
+ * for subsequent requests with the same {@link HttpRoute route}. 
+ * It will, however, close the existing connection and open it
+ * for the given route, if the route of the persistent connection does
+ * not match that of the connection request. If the connection has been 
+ * already been allocated {@link IllegalStateException} is thrown.
  *
  * @since 4.0
  */
+@ThreadSafe
 public class SingleClientConnManager implements ClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -76,10 +73,10 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
 
     /** The schemes supported by this connection manager. */
-    protected SchemeRegistry schemeRegistry; 
+    protected final SchemeRegistry schemeRegistry; 
     
     /** The operator for opening and updating connections. */
-    protected ClientConnectionOperator connOperator;
+    protected final ClientConnectionOperator connOperator;
 
     /** The one and only entry in this pool. */
     protected PoolEntry uniquePoolEntry;
@@ -99,9 +96,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
     /** Indicates whether this connection manager is shut down. */
     protected volatile boolean isShutDown;
 
-
-
-
     /**
      * Creates a new simple connection manager.
      *
@@ -111,7 +105,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
      */
     public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
-
         if (schreg == null) {
             throw new IllegalArgumentException
                 ("Scheme registry must not be null.");
@@ -123,9 +116,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         this.lastReleaseTime = -1L;
         this.alwaysShutDown  = false; //@@@ from params? as argument?
         this.isShutDown      = false;
-
-    } // <constructor>
-
+    }
 
     @Override
     protected void finalize() throws Throwable {
@@ -133,13 +124,10 @@ public class SingleClientConnManager implements ClientConnectionManager {
         super.finalize();
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
 
-    
     /**
      * Hook for creating the connection operator.
      * It is called by the constructor.
@@ -154,23 +142,18 @@ public class SingleClientConnManager implements ClientConnectionManager {
      */
     protected ClientConnectionOperator
         createConnectionOperator(SchemeRegistry schreg) {
-
         return new DefaultClientConnectionOperator(schreg);
     }
-
 
     /**
      * Asserts that this manager is not shut down.
      *
      * @throws IllegalStateException    if this manager is shut down
      */
-    protected final void assertStillUp()
-        throws IllegalStateException {
-
+    protected final void assertStillUp() throws IllegalStateException {
         if (this.isShutDown)
             throw new IllegalStateException("Manager is shut down.");
     }
-
 
     public final ClientConnectionRequest requestConnection(
             final HttpRoute route,
@@ -191,18 +174,15 @@ public class SingleClientConnManager implements ClientConnectionManager {
         };
     }
 
-
     /**
      * Obtains a connection.
-     * This method does not block.
      *
      * @param route     where the connection should point to
      *
      * @return  a connection that can be used to communicate
      *          along the given route
      */
-    public ManagedClientConnection getConnection(HttpRoute route, Object state) {
-
+    public synchronized ManagedClientConnection getConnection(HttpRoute route, Object state) {
         if (route == null) {
             throw new IllegalArgumentException("Route may not be null.");
         }
@@ -213,7 +193,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
 
         if (managedConn != null)
-            revokeConnection();
+            throw new IllegalStateException(MISUSE_MESSAGE);
 
         // check re-usability of the connection
         boolean recreate = false;
@@ -252,9 +232,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
         return managedConn;
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
-    public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
+    public synchronized void releaseConnection(
+    		ManagedClientConnection conn, 
+    		long validDuration, TimeUnit timeUnit) {
         assertStillUp();
 
         if (!(conn instanceof ConnAdapter)) {
@@ -292,7 +272,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 sca.shutdown();
             }
         } catch (IOException iox) {
-            //@@@ log as warning? let pass?
             if (log.isDebugEnabled())
                 log.debug("Exception shutting down released connection.",
                           iox);
@@ -305,17 +284,15 @@ public class SingleClientConnManager implements ClientConnectionManager {
             else
                 connectionExpiresTime = Long.MAX_VALUE;
         }
-    } // releaseConnection
+    }
     
-    public void closeExpiredConnections() {
+    public synchronized void closeExpiredConnections() {
         if(System.currentTimeMillis() >= connectionExpiresTime) {
             closeIdleConnections(0, TimeUnit.MILLISECONDS);
         }
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
-    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public synchronized void closeIdleConnections(long idletime, TimeUnit tunit) {
         assertStillUp();
 
         // idletime can be 0 or negative, no problem there
@@ -337,9 +314,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
-
-    // non-javadoc, see interface ClientConnectionManager
-    public void shutdown() {
+    public synchronized void shutdown() {
 
         this.isShutDown = true;
 
@@ -357,19 +332,14 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
-
     /**
-     * Revokes the currently issued connection.
-     * The adapter gets disconnected, the connection will be shut down.
+     * @deprecated no longer used
      */
+    @Deprecated
     protected void revokeConnection() {
         if (managedConn == null)
             return;
-
-        log.warn(MISUSE_MESSAGE);
-
         managedConn.detach();
-
         try {
             uniquePoolEntry.shutdown();
         } catch (IOException iox) {
@@ -378,7 +348,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
-    
     /**
      * The pool entry for this connection manager.
      */
@@ -395,29 +364,22 @@ public class SingleClientConnManager implements ClientConnectionManager {
         /**
          * Closes the connection in this pool entry.
          */
-        protected void close()
-            throws IOException {
-
+        protected void close() throws IOException {
             shutdownEntry();
             if (connection.isOpen())
                 connection.close();
         }
 
-
         /**
          * Shuts down the connection in this pool entry.
          */
-        protected void shutdown()
-            throws IOException {
-
+        protected void shutdown() throws IOException {
             shutdownEntry();
             if (connection.isOpen())
                 connection.shutdown();
         }
 
-    } // class PoolEntry
-
-
+    }
 
     /**
      * The connection adapter used by this manager.
@@ -438,5 +400,4 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     }
 
-
-} // class SingleClientConnManager
+}
