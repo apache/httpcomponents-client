@@ -106,6 +106,7 @@
                org.apache.http.entity.mime.content.*
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+            <Import-Package>!net.jcip.annotations,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
