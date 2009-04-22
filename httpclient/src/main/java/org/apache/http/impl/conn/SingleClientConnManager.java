@@ -34,6 +34,7 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import org.apache.commons.logging.Log;
@@ -82,12 +83,14 @@ public class SingleClientConnManager implements ClientConnectionManager {
     protected PoolEntry uniquePoolEntry;
 
     /** The currently issued managed connection, if any. */
+    @GuardedBy("this")
     protected ConnAdapter managedConn;
 
     /** The time of the last connection release, or -1. */
     protected long lastReleaseTime;
     
     /** The time the last released connection expires and shouldn't be reused. */
+    @GuardedBy("this")
     protected long connectionExpiresTime;
 
     /** Whether the connection should be shut down  on release. */
@@ -120,8 +123,11 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     @Override
     protected void finalize() throws Throwable {
-        shutdown();
-        super.finalize();
+        try {
+            shutdown();
+        } finally { // Make sure we call overridden method even if shutdown barfs
+            super.finalize();
+        }
     }
 
     public SchemeRegistry getSchemeRegistry() {
