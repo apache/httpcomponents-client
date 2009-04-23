@@ -72,14 +72,17 @@ public class SingleClientConnManager implements ClientConnectionManager {
     "Invalid use of SingleClientConnManager: connection still allocated.\n" +
     "Make sure to release the connection before allocating another one.";
 
-
     /** The schemes supported by this connection manager. */
     protected final SchemeRegistry schemeRegistry; 
     
     /** The operator for opening and updating connections. */
     protected final ClientConnectionOperator connOperator;
 
+    /** Whether the connection should be shut down  on release. */
+    protected final boolean alwaysShutDown;
+
     /** The one and only entry in this pool. */
+    @GuardedBy("this")
     protected PoolEntry uniquePoolEntry;
 
     /** The currently issued managed connection, if any. */
@@ -87,14 +90,12 @@ public class SingleClientConnManager implements ClientConnectionManager {
     protected ConnAdapter managedConn;
 
     /** The time of the last connection release, or -1. */
+    @GuardedBy("this")
     protected long lastReleaseTime;
     
     /** The time the last released connection expires and shouldn't be reused. */
     @GuardedBy("this")
     protected long connectionExpiresTime;
-
-    /** Whether the connection should be shut down  on release. */
-    protected boolean alwaysShutDown;
 
     /** Indicates whether this connection manager is shut down. */
     protected volatile boolean isShutDown;
@@ -342,7 +343,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @deprecated no longer used
      */
     @Deprecated
-    protected void revokeConnection() {
+    protected synchronized void revokeConnection() {
         if (managedConn == null)
             return;
         managedConn.detach();
