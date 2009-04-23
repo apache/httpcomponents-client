@@ -229,6 +229,9 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <comparisonVersion>4.0-beta1</comparisonVersion>
+        </configuration>
       </plugin>
 
     </plugins>
