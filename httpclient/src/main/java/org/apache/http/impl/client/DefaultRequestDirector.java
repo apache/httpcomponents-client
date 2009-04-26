@@ -96,12 +96,17 @@ import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
  * Default implementation of {@link RequestDirector}.
- * <br/>
- * This class replaces the <code>HttpMethodDirector</code> in HttpClient 3.
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#STALE_CONNECTION_CHECK}</li>
+ *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#MAX_REDIRECTS}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
+ * </ul>
  *
  * @since 4.0
  */

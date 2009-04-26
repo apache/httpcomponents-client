@@ -67,7 +67,6 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
  * <ul>
  *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_TOTAL_CONNECTIONS}</li>
  *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE}</li>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
  * </ul>
  *
  * @see org.apache.http.conn.params.ConnPerRoute 
