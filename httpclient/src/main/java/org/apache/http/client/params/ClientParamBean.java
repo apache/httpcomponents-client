@@ -42,6 +42,9 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
+ * This is a Java Bean class that can be used to wrap an instance of 
+ * {@link HttpParams} and manipulate HTTP client parameters using 
+ * Java Beans conventions.
  *
  * @since 4.0
  */

@@ -43,14 +43,18 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
+import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * RFC 2109 compliant cookie policy
- *
+ * RFC 2109 compliant {@link CookieSpec} implementation. This is an older
+ * version of the official HTTP state management specification superseded
+ * by RFC 2965.
+ * 
+ * @see RFC2965Spec
  * 
  * @since 4.0 
  */

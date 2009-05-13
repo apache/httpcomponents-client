@@ -34,9 +34,8 @@ package org.apache.http.cookie;
 import java.util.Date;
 
 /**
- * This interface represents a <code>SetCookie</code> response header sent by the 
+ * This interface represents a <code>Set-Cookie</code> response header sent by the 
  * origin server to the HTTP agent in order to maintain a conversational state.
- * 
  * 
  * @since 4.0
  */

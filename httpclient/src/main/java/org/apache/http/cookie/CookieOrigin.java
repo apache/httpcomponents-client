@@ -35,9 +35,8 @@ import java.util.Locale;
 import net.jcip.annotations.Immutable;
 
 /**
- * CookieOrigin class incapsulates details of an origin server that 
+ * CookieOrigin class encapsulates details of an origin server that 
  * are relevant when parsing, validating or matching HTTP cookies.
- * 
  * 
  * @since 4.0
  */

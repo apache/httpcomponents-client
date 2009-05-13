@@ -36,15 +36,15 @@ import java.util.List;
 import org.apache.http.cookie.Cookie;
 
 /**
- * Abstract cookie store.
- * 
+ * This interface represents an abstract store for {@link Cookie}
+ * objects.
  * 
  * @since 4.0
  */
 public interface CookieStore {
 
     /**
-     * Adds an {@link Cookie HTTP cookie}, replacing any existing equivalent cookies.
+     * Adds an {@link Cookie}, replacing any existing equivalent cookies.
      * If the given cookie has already expired it will not be added, but existing 
      * values will still be removed.
      * 
@@ -60,8 +60,8 @@ public interface CookieStore {
     List<Cookie> getCookies();
 
     /**
-     * Removes all of {@link Cookie cookies} in this store that have expired by 
-     * the specified {@link java.util.Date date}. 
+     * Removes all of {@link Cookie}s in this store that have expired by 
+     * the specified {@link java.util.Date}. 
      * 
      * @return true if any cookies were purged.
      */

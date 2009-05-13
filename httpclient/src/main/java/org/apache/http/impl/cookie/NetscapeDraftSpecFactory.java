@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.Collection;
+
 import net.jcip.annotations.Immutable;
 
 import org.apache.http.cookie.CookieSpec;
@@ -39,7 +41,14 @@ import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.params.HttpParams;
 
 /**
- * 
+ * {@link CookieSpecFactory} implementation that creates and initializes
+ * {@link NetscapeDraftSpec} instances.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -48,8 +57,15 @@ public class NetscapeDraftSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-            return new NetscapeDraftSpec(
-                    (String []) params.getParameter(CookieSpecPNames.DATE_PATTERNS));
+        	
+        	String[] patterns = null;
+        	Collection<?> param = (Collection<?>) params.getParameter(
+        			CookieSpecPNames.DATE_PATTERNS);
+        	if (param != null) {
+        		patterns = new String[param.size()];
+        		patterns = param.toArray(patterns);
+        	}
+            return new NetscapeDraftSpec(patterns);
         } else {
             return new NetscapeDraftSpec();
         }

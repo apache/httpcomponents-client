@@ -43,9 +43,8 @@ import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
 
 /**
- * 'Meta' cookie specification that selects a cookie policy depending
- * on the format of the cookie(s)
- * 
+ * 'Meta' cookie specification that picks up a cookie policy based on 
+ * the format of cookies sent with the HTTP response.
  *
  * @since 4.0
  */

@@ -38,12 +38,9 @@ import net.jcip.annotations.Immutable;
 
 /**
  * This cookie comparator can be used to compare identity of cookies.
- *  
  * <p>
  *  Cookies are considered identical if their names are equal and 
  *  their domain attributes match ignoring case.
- * </p>
- * 
  *
  * @since 4.0
  */

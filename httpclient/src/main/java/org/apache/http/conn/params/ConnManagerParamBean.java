@@ -37,9 +37,9 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * Allows for setting parameters relating to connection managers on
- * {@link HttpParams}.  This class ensures that the values set on the params
- * are type-safe. 
+ * This is a Java Bean class that can be used to wrap an instance of 
+ * {@link HttpParams} and manipulate connection manager parameters 
+ * using Java Beans conventions.
  *
  * @since 4.0
  */

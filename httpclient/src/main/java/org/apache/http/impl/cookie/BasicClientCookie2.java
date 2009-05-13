@@ -38,10 +38,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.apache.http.cookie.SetCookie2;
 
 /**
- * HTTP "magic-cookie" represents a piece of state information
- * that the HTTP agent and the target server can exchange to maintain 
- * a session as specified by RFC2965.
- * 
+ * Default implementation of {@link SetCookie2}.
  *
  * @since 4.0
  */

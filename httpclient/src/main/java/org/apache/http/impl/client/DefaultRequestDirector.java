@@ -101,8 +101,23 @@ import org.apache.http.protocol.HttpRequestExecutor;
  * class: 
  * <ul>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}</li>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#USE_EXPECT_CONTINUE}</li>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#WAIT_FOR_CONTINUE}</li>
+ *  <li>{@link org.apache.http.params.CoreProtocolPNames#USER_AGENT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_LINGER}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#STALE_CONNECTION_CHECK}</li>
  *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#COOKIE_POLICY}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#MAX_REDIRECTS}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>

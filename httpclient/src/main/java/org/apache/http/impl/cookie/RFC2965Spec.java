@@ -43,16 +43,16 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * <p>RFC 2965 specific cookie management functions.</p>
- * 
+ * RFC 2965 compliant {@link CookieSpec} implementation.
  *
- * @since 3.1
+ * @since 4.0
  */
 public class RFC2965Spec extends RFC2109Spec {
 

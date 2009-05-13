@@ -34,6 +34,7 @@ package org.apache.http.client.params;
 import net.jcip.annotations.Immutable;
 
 /**
+ * Standard cookie specifications supported by HttpClient. 
  *
  * @since 4.0
  */

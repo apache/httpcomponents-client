@@ -31,7 +31,7 @@
 package org.apache.http.conn.params;
 
 /**
- * Parameter names for routing in HttpConn.
+ * Parameter names for connection routing.
  * 
  * @since 4.0
  */

@@ -62,10 +62,15 @@ import org.apache.http.protocol.ExecutionContext;
 /**
  * Request interceptor that matches cookies available in the current
  * {@link CookieStore} to the request being executed and generates 
- * corresponding cookierequest headers.
- *
- *
- * @version $Revision$
+ * corresponding <code>Cookie</code> request headers.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#COOKIE_POLICY}</li>
+ * </ul>
  * 
  * @since 4.0
  */

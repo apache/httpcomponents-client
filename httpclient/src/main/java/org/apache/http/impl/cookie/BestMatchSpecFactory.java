@@ -31,6 +31,8 @@
 
 package org.apache.http.impl.cookie;
 
+import java.util.Collection;
+
 import net.jcip.annotations.Immutable;
 
 import org.apache.http.cookie.CookieSpec;
@@ -39,7 +41,15 @@ import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.params.HttpParams;
 
 /**
- * 
+ * {@link CookieSpecFactory} implementation that creates and initializes
+ * {@link BestMatchSpec} instances.
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
+ *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
+ * </ul>
  *
  * @since 4.0
  */
@@ -48,9 +58,18 @@ public class BestMatchSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-            return new BestMatchSpec(
-                    (String []) params.getParameter(CookieSpecPNames.DATE_PATTERNS), 
-                    params.getBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER, false));
+        	
+        	String[] patterns = null;
+        	Collection<?> param = (Collection<?>) params.getParameter(
+        			CookieSpecPNames.DATE_PATTERNS);
+        	if (param != null) {
+        		patterns = new String[param.size()];
+        		patterns = param.toArray(patterns);
+        	}
+        	boolean singleHeader = params.getBooleanParameter(
+        			CookieSpecPNames.SINGLE_COOKIE_HEADER, false);        	
+        	
+            return new BestMatchSpec(patterns, singleHeader);
         } else {
             return new BestMatchSpec();
         }

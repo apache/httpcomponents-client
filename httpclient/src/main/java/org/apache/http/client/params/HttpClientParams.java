@@ -37,9 +37,6 @@ import org.apache.http.params.HttpParams;
 /**
  * An adaptor for accessing HTTP client parameters in {@link HttpParams}.
  * 
- * 
- * @version $Revision$
- * 
  * @since 4.0
  */
 @Immutable

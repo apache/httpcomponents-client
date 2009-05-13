@@ -32,32 +32,30 @@
 package org.apache.http.cookie.params;
 
 /**
- * Parameter names for cookie specifications in HttpCookie.
- * 
- * 
- * @version $Revision$
+ * Parameter names for HTTP cookie management classes.
  * 
  * @since 4.0
  */
 public interface CookieSpecPNames {
 
     /**
-     * Parameter for the date patterns used for parsing.
+     * Defines valid date patterns to be used for parsing non-standard 
+     * <code>expires</code> attribute. Only required for compatibility 
+     * with non-compliant servers that still use <code>expires</code> 
+     * defined in the Netscape draft instead of the standard 
+     * <code>max-age</code> attribute.
      * <p>
      * This parameter expects a value of type {@link java.util.Collection}.
-     * The collection elements are of type {@link String}
-     * and must be compatible with the syntax of
-     * {@link java.text.SimpleDateFormat}.
+     * The collection elements must be of type {@link String} compatible 
+     * with the syntax of {@link java.text.SimpleDateFormat}.
      * </p>
      */
     public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
     
     /**
-     * Parameter for Cookie header formatting.
-     * Defines whether {@link org.apache.http.cookie.Cookie cookies}
-     * should be put on 
-     * a single {@link org.apache.http.Header request header}.
-     * If not, each cookie is formatted in a seperate Cookie header.
+     * Defines whether cookies should be forced into a single 
+     * <code>Cookie</code> request header. Otherwise, each cookie is formatted 
+     * as a separate <code>Cookie</code> header.
      * <p>
      * This parameter expects a value of type {@link Boolean}.
      * </p>

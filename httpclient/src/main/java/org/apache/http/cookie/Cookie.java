@@ -34,10 +34,10 @@ package org.apache.http.cookie;
 import java.util.Date;
 
 /**
- * HTTP "magic-cookie" represents a piece of state information
- * that the HTTP agent and the target server can exchange to maintain 
- * a session.
- * 
+ * Cookie interface represents a token or short packet of state information 
+ * (also referred to as "magic-cookie") that the HTTP agent and the target 
+ * server can exchange to maintain a session. In its simples form an HTTP 
+ * cookie is merely a name / value pair.
  * 
  * @since 4.0
  */
@@ -91,14 +91,17 @@ public interface Cookie {
     boolean isPersistent();
 
     /**
-     * Returns domain attribute of the cookie.
+     * Returns domain attribute of the cookie. The value of the Domain 
+     * attribute specifies the domain for which the cookie is valid.
      * 
-     * @return the value of the domain attribute
+     * @return the value of the domain attribute.
      */
     String getDomain();
 
     /**
-     * Returns the path attribute of the cookie
+     * Returns the path attribute of the cookie. The value of the Path 
+     * attribute specifies the subset of URLs on the origin server to which 
+     * this cookie applies.
      * 
      * @return The value of the path attribute.
      */

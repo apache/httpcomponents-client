@@ -31,7 +31,7 @@
 package org.apache.http.cookie;
 
 /**
- * Ths interface represents a cookie attribute handler responsible
+ * This interface represents a cookie attribute handler responsible
  * for parsing, validating, and matching a specific cookie attribute, 
  * such as path, domain, port, etc.
  *

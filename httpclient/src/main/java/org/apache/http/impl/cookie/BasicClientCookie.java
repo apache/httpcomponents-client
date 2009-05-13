@@ -42,12 +42,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
 
 /**
- * HTTP "magic-cookie" represents a piece of state information
- * that the HTTP agent and the target server can exchange to maintain 
- * a session.
- * 
- * 
- * @version $Revision$
+ * Default implementation of {@link SetCookie}.
  *
  * @since 4.0
  */

@@ -49,8 +49,9 @@ import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * Netscape cookie draft compliant cookie policy
- *
+ * This {@link CookieSpec} implementation conforms to the original draft 
+ * specification published by Netscape Communications. It should be avoided 
+ * unless absolutely necessary for compatibility with legacy code.
  * 
  * @since 4.0 
  */

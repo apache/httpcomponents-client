@@ -32,6 +32,7 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +113,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         return DEFAULT_SCHEME_PRIORITY;
     }
     
-    public AuthScheme selectScheme(
+	public AuthScheme selectScheme(
             final Map<String, Header> challenges, 
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
@@ -123,7 +124,8 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
         
-        List<?> authPrefs = (List<?>) context.getAttribute(
+        @SuppressWarnings("unchecked")
+        Collection<String> authPrefs = (Collection<String>) context.getAttribute(
                 ClientContext.AUTH_SCHEME_PREF);
         if (authPrefs == null) {
             authPrefs = getAuthPreferences();
@@ -135,8 +137,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         }
 
         AuthScheme authScheme = null;
-        for (int i = 0; i < authPrefs.size(); i++) {
-            String id = (String) authPrefs.get(i);
+        for (String id: authPrefs) {
             Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
 
             if (challenge != null) {

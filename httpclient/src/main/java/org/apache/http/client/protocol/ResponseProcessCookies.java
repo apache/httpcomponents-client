@@ -54,9 +54,6 @@ import org.apache.http.protocol.HttpContext;
 /**
  * Response interceptor that populates the current {@link CookieStore} with data 
  * contained in response cookies received in the given the HTTP response.
- *
- *
- * @version $Revision$
  * 
  * @since 4.0
  */
