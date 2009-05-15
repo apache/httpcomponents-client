@@ -34,34 +34,24 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 
 /**
- * <p>
  * This interface represents an abstract challenge-response oriented 
  * authentication scheme.
- * </p>
  * <p>
  * An authentication scheme should be able to support the following
  * functions:
  * <ul>
- *   <li>Parse and process the challenge sent by the targer server
+ *   <li>Parse and process the challenge sent by the target server
  *       in response to request for a protected resource
  *   <li>Provide its textual designation
  *   <li>Provide its parameters, if available
  *   <li>Provide the realm this authentication scheme is applicable to,
  *       if available
- *   <li>Generate authorization string for the given set of credentials,
- *       request method and URI as specificed in the HTTP request line
- *       in response to the actual authorization challenge
+ *   <li>Generate authorization string for the given set of credentials
+ *       and the HTTP request in response to the authorization challenge. 
  * </ul>
- * </p>
- * <p>
- * Authentication schemes may ignore method name and URI parameters
- * if they are not relevant for the given authentication mechanism
- * </p>
  * <p>
  * Authentication schemes may be stateful involving a series of 
- * challenge-response exchanges
- * </p>
- * 
+ * challenge-response exchanges.
  *
  * @since 4.0
  */

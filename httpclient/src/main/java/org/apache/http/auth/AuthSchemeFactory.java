@@ -34,12 +34,19 @@ package org.apache.http.auth;
 import org.apache.http.params.HttpParams;
 
 /**
- * 
+ * Factory for {@link AuthScheme} implementations. 
  *
  * @since 4.0
  */
 public interface AuthSchemeFactory {    
 
+	/**
+	 * Creates an instance of {@link AuthScheme} using given HTTP parameters.
+	 * 
+	 * @param params HTTP parameters.
+	 * 
+	 * @return auth scheme.
+	 */
     AuthScheme newInstance(HttpParams params);
 
 }

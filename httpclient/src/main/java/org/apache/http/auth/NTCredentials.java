@@ -37,10 +37,11 @@ import net.jcip.annotations.Immutable;
 
 import org.apache.http.util.LangUtils;
 
-/** {@link Credentials} specific to the Windows platform.
- *
+/** 
+ * {@link Credentials} implementation for Microsoft Windows platforms that includes 
+ * Windows specific attributes such as name of the domain the user belongs to.
  * 
- * @since 2.0
+ * @since 4.0
  */
 @Immutable
 public class NTCredentials implements Credentials {

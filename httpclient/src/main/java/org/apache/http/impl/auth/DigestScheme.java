@@ -51,24 +51,27 @@ import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
 /**
- * <p>
  * Digest authentication scheme as defined in RFC 2617.
  * Both MD5 (default) and MD5-sess are supported.
  * Currently only qop=auth or no qop is supported. qop=auth-int
  * is unsupported. If auth and auth-int are provided, auth is
  * used.
- * </p>
  * <p>
  * Credential charset is configured via the 
- * {@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET
- *        credential charset} parameter.
+ * {@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET} 
+ * parameter of the HTTP request.
+ * <p>
  * Since the digest username is included as clear text in the generated 
  * Authentication header, the charset of the username must be compatible
  * with the 
  * {@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET
  *        http element charset}.
- * </p>
- * 
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
+ * </ul>
  * 
  * @since 4.0
  */

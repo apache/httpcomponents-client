@@ -45,7 +45,15 @@ import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- *
+ * NTLM is a proprietary authentication scheme developed by Microsoft 
+ * and optimized for Windows platforms.
+ * <p>
+ * Please note that the NTLM scheme requires an external 
+ * {@link NTLMEngine} implementation to function!
+ * For details please refer to 
+ * <a href="http://hc.apache.org/httpcomponents-client/ntlm.html">
+ * this document</a>.
+ * 
  * @since 4.0
  */
 @NotThreadSafe

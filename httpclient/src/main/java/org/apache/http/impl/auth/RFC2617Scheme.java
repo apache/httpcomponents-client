@@ -43,9 +43,8 @@ import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Abstract authentication scheme class that lays foundation for all
- * RFC 2617 compliant authetication schemes and provides capabilities common 
+ * RFC 2617 compliant authentication schemes and provides capabilities common 
  * to all authentication schemes defined in RFC 2617.
- *
  *
  * @since 4.0
  */
@@ -57,7 +56,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     private Map<String, String> params;
 
     /**
-     * Default constructor for RFC2617 compliant authetication schemes.
+     * Default constructor for RFC2617 compliant authentication schemes.
      */
     public RFC2617Scheme() {
         super();

@@ -45,14 +45,16 @@ import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
 /**
- * <p>
  * Basic authentication scheme as defined in RFC 2617.
- * </p>
- * 
+ * <p>
+ * The following parameters can be used to customize the behavior of this 
+ * class: 
+ * <ul>
+ *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
+ * </ul>
  * 
  * @since 4.0
  */
-
 @NotThreadSafe
 public class BasicScheme extends RFC2617Scheme {
     
@@ -60,7 +62,7 @@ public class BasicScheme extends RFC2617Scheme {
     private boolean complete;
     
     /**
-     * Default constructor for the basic authetication scheme.
+     * Default constructor for the basic authentication scheme.
      */
     public BasicScheme() {
         super();
@@ -113,10 +115,10 @@ public class BasicScheme extends RFC2617Scheme {
     /**
      * Produces basic authorization header for the given set of {@link Credentials}.
      * 
-     * @param credentials The set of credentials to be used for athentication
+     * @param credentials The set of credentials to be used for authentication
      * @param request The request being authenticated
-     * @throws org.apache.http.auth.InvalidCredentialsException if authentication credentials
-     *         are not valid or not applicable for this authentication scheme
+     * @throws InvalidCredentialsException if authentication credentials are not 
+     *   valid or not applicable for this authentication scheme
      * @throws AuthenticationException if authorization string cannot 
      *   be generated due to an authentication failure
      * 

@@ -34,9 +34,6 @@ package org.apache.http.impl.auth;
  * Abstract NTLM authentication engine. The engine can be used to
  * generate Type1 messages and Type3 messages in response to a 
  * Type2 challenge.
- * <p/>
- * For details see <a href="http://davenport.sourceforge.net/ntlm.html">this resource</a>
- * 
  *
  * @since 4.0
  */

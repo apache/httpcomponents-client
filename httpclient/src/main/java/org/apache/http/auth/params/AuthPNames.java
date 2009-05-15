@@ -32,9 +32,7 @@
 package org.apache.http.auth.params;
 
 /**
- * Parameter names for HttpAuth.
- * 
- * @version $Revision$
+ * Parameter names for HTTP authentication classes.
  * 
  * @since 4.0
  */
@@ -45,11 +43,6 @@ public interface AuthPNames {
      * {@link org.apache.http.auth.Credentials}.
      * <p>
      * This parameter expects a value of type {@link String}.
-     * If not defined, then
-     * {@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET
-     *        HttpProtocolParams.HTTP_ELEMENT_CHARSET}
-     * should be used.
-     * </p>
      */
     public static final String CREDENTIAL_CHARSET = "http.auth.credential-charset"; 
 

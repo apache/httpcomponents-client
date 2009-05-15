@@ -43,11 +43,8 @@ import org.apache.http.params.HttpParams;
 
 /**
  * Authentication scheme registry that can be used to obtain the corresponding
- * authentication scheme implementation for a given type of authorization challenge. 
- * 
- *
- *
- * @version $Revision$
+ * authentication scheme implementation for a given type of authorization challenge.
+ *  
  * @since 4.0
  */
 @ThreadSafe

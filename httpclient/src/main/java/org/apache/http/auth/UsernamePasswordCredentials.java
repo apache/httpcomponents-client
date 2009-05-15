@@ -37,11 +37,8 @@ import net.jcip.annotations.Immutable;
 import org.apache.http.util.LangUtils;
 
 /**
- * Username and password {@link Credentials}
- *
- * 
- * @version $Revision$ $Date$
- * 
+ * Simple {@link Credentials} implementation based on a user name / password 
+ * pair.
  *
  * @since 4.0
  */

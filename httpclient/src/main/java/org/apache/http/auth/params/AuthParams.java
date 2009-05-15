@@ -37,11 +37,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
 /**
- * This class implements an adaptor around the {@link HttpParams} interface
- * to simplify manipulation of the HTTP authentication specific parameters.
- * 
- * 
- * @version $Revision$
+ * An adaptor for manipulating HTTP authentication parameters 
+ * in {@link HttpParams}.
  * 
  * @since 4.0
  *
@@ -55,15 +52,11 @@ public final class AuthParams {
     }
 
     /**
-     * Obtains the charset for encoding
-     * {@link org.apache.http.auth.Credentials}.
-     * If not configured,
-     * {@link HTTP#DEFAULT_PROTOCOL_CHARSET HTTP.DEFAULT_PROTOCOL_CHARSET}
-     * is used instead.
+     * Obtains the charset for encoding 
+     * {@link org.apache.http.auth.Credentials}.If not configured,
+     * {@link HTTP#DEFAULT_PROTOCOL_CHARSET}is used instead.
      * 
      * @return The charset
-     *
-     * @see AuthPNames#CREDENTIAL_CHARSET
      */
     public static String getCredentialCharset(final HttpParams params) {
         if (params == null) {
@@ -71,8 +64,6 @@ public final class AuthParams {
         }
         String charset = (String) params.getParameter
             (AuthPNames.CREDENTIAL_CHARSET);
-        //@@@ TODO: inconsistent with JavaDoc in AuthPNames,
-        //@@@ TODO: check HTTP_ELEMENT_CHARSET first, or fix JavaDocs
         if (charset == null) {
             charset = HTTP.DEFAULT_PROTOCOL_CHARSET;
         }

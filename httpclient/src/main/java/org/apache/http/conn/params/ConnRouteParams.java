@@ -39,8 +39,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
- * An adaptor for accessing route related parameters in {@link HttpParams}.
- * See {@link ConnRoutePNames} for parameter name definitions.
+ * An adaptor for manipulating HTTP routing parameters 
+ * in {@link HttpParams}.
  * 
  * @since 4.0
  */

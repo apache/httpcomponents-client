@@ -35,7 +35,7 @@ import net.jcip.annotations.Immutable;
 import org.apache.http.params.HttpParams;
 
 /**
- * An adaptor for accessing HTTP client parameters in {@link HttpParams}.
+ * An adaptor for manipulating HTTP client parameters in {@link HttpParams}.
  * 
  * @since 4.0
  */

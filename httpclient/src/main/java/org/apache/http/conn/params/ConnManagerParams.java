@@ -36,9 +36,8 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 
 /**
- * This class represents a collection of HTTP protocol parameters applicable
- * to client-side
- * {@link org.apache.http.conn.ClientConnectionManager connection managers}. 
+ * An adaptor for manipulating HTTP connection management 
+ * parameters in {@link HttpParams}.
  * 
  * @since 4.0
  *

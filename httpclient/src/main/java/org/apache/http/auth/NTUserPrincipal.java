@@ -37,8 +37,8 @@ import net.jcip.annotations.Immutable;
 
 import org.apache.http.util.LangUtils;
 
-/**  NT (MS Windows specific) user principal used for HTTP authentication
- *
+/** 
+ * Microsoft Windows specific user principal implementation.
  * 
  * @since 4.0
  */

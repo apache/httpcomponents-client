@@ -33,10 +33,9 @@ package org.apache.http.auth;
 import java.security.Principal;
 
 /**
- * User name and password based authentication credentials.
- * 
- * 
- * @version $Revision$ $Date$
+ * This interface represents a set of credentials consisting of a security 
+ * principal and a secret (password) that can be used to establish user
+ * identity
  *
  * @since 4.0
  */

@@ -38,7 +38,8 @@ import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * 
+ * {@link AuthSchemeFactory} implementation that creates and initializes
+ * {@link BasicScheme} instances.
  *
  * @since 4.0
  */
