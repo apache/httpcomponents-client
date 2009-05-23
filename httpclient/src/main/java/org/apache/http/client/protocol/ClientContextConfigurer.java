@@ -42,6 +42,7 @@ import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.protocol.HttpContext;
 
 /**
+ * Configuration facade for {@link HttpContext} instances.
  *
  * @since 4.0
  */
@@ -72,6 +73,10 @@ public class ClientContextConfigurer implements ClientContext {
         this.context.setAttribute(CREDS_PROVIDER, provider);
     }
 
+    /**
+     * @deprecated to be replaced with a special parameter in 4.1
+     */
+    @Deprecated
     public void setAuthSchemePref(final List<String> list) {
         this.context.setAttribute(AUTH_SCHEME_PREF, list);
     }

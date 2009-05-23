@@ -125,5 +125,10 @@ public abstract class AuthSchemeBase implements AuthScheme {
     public boolean isProxy() {
         return this.proxy;
     }
+
+    @Override
+    public String toString() {
+        return getSchemeName();
+    }
     
 }

@@ -193,4 +193,9 @@ public class BrowserCompatSpec extends CookieSpecBase {
         return DATE_PATTERNS.clone();
     }
     
+    @Override
+    public String toString() {
+        return "compatibility";
+    }
+    
 }

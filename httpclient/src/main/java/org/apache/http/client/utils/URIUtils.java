@@ -52,10 +52,6 @@ public class URIUtils {
          * {@link URI#URI(String, String, String, int, String, String, String)}
          * or any of the other URI multi-argument URI constructors.
          * 
-         * See <a
-         * href="https://issues.apache.org/jira/browse/HTTPCLIENT-730">HTTPCLIENT-730</a>
-         * for more information.
-         * 
          * @param scheme
          *            Scheme name
          * @param host

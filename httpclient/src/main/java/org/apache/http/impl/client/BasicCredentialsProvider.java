@@ -40,8 +40,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
 
 /**
- * Default implementation of {@link CredentialsProvider}
- * 
+ * Default implementation of {@link CredentialsProvider}.
  * 
  * @since 4.0
  */
@@ -59,16 +58,6 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         this.credMap = new HashMap<AuthScope, Credentials>();
     }
 
-    /** 
-     * Sets the {@link Credentials credentials} for the given authentication 
-     * scope. Any previous credentials for the given scope will be overwritten.
-     * 
-     * @param authscope the {@link AuthScope authentication scope}
-     * @param credentials the authentication {@link Credentials credentials} 
-     * for the given scope.
-     * 
-     * @see #getCredentials(AuthScope)
-     */
     public synchronized void setCredentials(
             final AuthScope authscope, 
             final Credentials credentials) {
@@ -110,14 +99,6 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return creds;
     }
     
-    /**
-     * Get the {@link Credentials credentials} for the given authentication scope.
-     *
-     * @param authscope the {@link AuthScope authentication scope}
-     * @return the credentials 
-     * 
-     * @see #setCredentials(AuthScope, Credentials)
-     */
     public synchronized Credentials getCredentials(final AuthScope authscope) {
         if (authscope == null) {
             throw new IllegalArgumentException("Authentication scope may not be null");
@@ -130,9 +111,6 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return credMap.toString();
     }
     
-    /**
-     * Clears all credentials.
-     */
     public synchronized void clear() {
         this.credMap.clear();
     }

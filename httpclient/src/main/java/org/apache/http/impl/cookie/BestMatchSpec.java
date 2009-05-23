@@ -208,4 +208,9 @@ public class BestMatchSpec implements CookieSpec {
         return getStrict().getVersionHeader();
     }
 
+    @Override
+    public String toString() {
+        return "best-match";
+    }
+    
 }

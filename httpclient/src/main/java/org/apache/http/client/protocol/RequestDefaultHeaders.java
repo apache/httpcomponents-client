@@ -45,9 +45,6 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Request interceptor that adds default request headers.
- *
- *
- * @version $Revision$
  * 
  * @since 4.0
  */

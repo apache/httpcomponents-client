@@ -63,11 +63,35 @@ public interface ClientContext {
      */
     public static final String COOKIE_STORE          = "http.cookie-store"; 
 
+    /**
+     * Attribute name of a {@link org.apache.http.auth.AuthSchemeRegistry} 
+     * object that represents the actual authentication scheme registry.
+     */
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.CredentialsProvider} 
+     * object that represents the actual crednetials provider.
+     */
     public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
+
+    /**
+     * Attribute name of a {@link org.apache.http.auth.AuthState} 
+     * object that represents the actual target authentication state.
+     */
     public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
+
+    /**
+     * Attribute name of a {@link org.apache.http.auth.AuthState} 
+     * object that represents the actual proxy authentication state.
+     */
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
+
+    /**
+     * RESERVED. DO NOT USE!!!
+     */
     public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
+    
     public static final String USER_TOKEN            = "http.user-token";
     
 }

@@ -248,5 +248,10 @@ public class RFC2965Spec extends RFC2109Spec {
         return new BufferedHeader(buffer);
     }
     
+    @Override
+    public String toString() {
+        return "rfc2965";
+    }
+    
 }
 

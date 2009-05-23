@@ -48,8 +48,8 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 
 /**
- *
- * @version $Revision$
+ * Generates authentication header for the proxy host, if required, 
+ * based on the actual state of the HTTP authentication context.   
  * 
  * @since 4.0
  */

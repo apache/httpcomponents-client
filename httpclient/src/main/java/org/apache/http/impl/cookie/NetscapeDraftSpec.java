@@ -177,4 +177,9 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         return null;
     }
     
+    @Override
+    public String toString() {
+        return "netscape";
+    }
+    
 }

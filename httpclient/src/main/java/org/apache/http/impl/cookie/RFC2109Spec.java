@@ -243,4 +243,9 @@ public class RFC2109Spec extends CookieSpecBase {
         return null;
     }
     
+    @Override
+    public String toString() {
+        return "rfc2109";
+    }
+    
 }
