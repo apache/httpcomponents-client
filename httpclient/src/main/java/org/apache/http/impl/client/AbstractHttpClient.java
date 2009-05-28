@@ -71,11 +71,67 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
- * Convenience base class for HTTP client implementations.
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$
+ * Base class for {@link HttpClient} implementations.
+ * <p>
+ * This class maintains a number of objects used during HTTP request execution 
+ * and provides a number of factory methods to instantiate those objects:
+ * <ul>
+ *   <li>{@link HttpRequestExecutor}</li> object used to transmit messages 
+ *    over HTTP connections. The {@link #createRequestExecutor()} must be
+ *    implemented by concrete super classes to instantiate this object.  
+ *   <li>{@link BasicHttpProcessor}</li> object to manage a list of protocol 
+ *    interceptors and apply cross-cutting protocol logic to all incoming 
+ *    and outgoing HTTP messages. The {@link #createHttpProcessor()} must be
+ *    implemented by concrete super classes to instantiate this object.
+ *   <li>{@link HttpRequestRetryHandler}</li> object used to decide whether
+ *    or not a failed HTTP request is safe to retry automatically.  
+ *    The {@link #createHttpRequestRetryHandler()} must be
+ *    implemented by concrete super classes to instantiate this object.
+ *   <li>{@link ClientConnectionManager}</li> object used to manage 
+ *    persistent HTTP connections.
+ *   <li>{@link ConnectionReuseStrategy}</li> object used to decide whether 
+ *    or not a HTTP connection can be kept alive and re-used for subsequent 
+ *    HTTP requests. The {@link #createConnectionReuseStrategy()} must be
+ *    implemented by concrete super classes to instantiate this object.
+ *   <li>{@link ConnectionKeepAliveStrategy}</li> object used to decide how
+ *    long a persistent HTTP connection can be kept alive.
+ *    The {@link #createConnectionKeepAliveStrategy()()} must be
+ *    implemented by concrete super classes to instantiate this object.
+ *   <li>{@link CookieSpecRegistry}</li> object used to maintain a list of 
+ *    supported cookie specifications. 
+ *    The {@link #createCookieSpecRegistry()} must be implemented by concrete 
+ *    super classes to instantiate this object.
+ *   <li>{@link CookieStore}</li> object used to maintain a collection of
+ *    cookies. The {@link #createCookieStore()} must be implemented by 
+ *    concrete super classes to instantiate this object.
+ *   <li>{@link AuthSchemeRegistry}</li> object used to maintain a list of 
+ *    supported authentication schemes. 
+ *    The {@link #createAuthSchemeRegistry()} must be implemented by concrete 
+ *    super classes to instantiate this object.
+ *   <li>{@link CredentialsProvider}</li> object used to maintain 
+ *    a collection user credentials. The {@link #createCredentialsProvider()} 
+ *    must be implemented by concrete super classes to instantiate 
+ *    this object.
+ *   <li>{@link AuthenticationHandler}</li> object used to authenticate
+ *    against the target host. 
+ *    The {@link #createTargetAuthenticationHandler()} must be implemented 
+ *    by concrete super classes to instantiate this object.
+ *   <li>{@link AuthenticationHandler}</li> object used to authenticate
+ *    against the proxy host. 
+ *    The {@link #createProxyAuthenticationHandler()} must be implemented 
+ *    by concrete super classes to instantiate this object.
+ *   <li>{@link HttpRoutePlanner}</li> object used to calculate a route
+ *    for establishing a connection to the target host. The route
+ *    may involve multiple intermediate hops. 
+ *    The {@link #createHttpRoutePlanner()} must be implemented 
+ *    by concrete super classes to instantiate this object.
+ *   <li>{@link RedirectHandler}</li> object used to determine if an HTTP 
+ *    request should be redirected to a new location in response to an HTTP 
+ *    response received from the target server. 
+ *    The {@link #createRedirectHandler()} must be implemented 
+ *    by concrete super classes to instantiate this object.
+ *   <li>{@link UserTokenHandler}</li>
+ * </ul> 
  *
  * @since 4.0
  */
@@ -458,8 +514,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpUriRequest request)
         throws IOException, ClientProtocolException {
 
@@ -503,15 +557,12 @@ public abstract class AbstractHttpClient implements HttpClient {
         return target;
     }
 
-    // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request)
         throws IOException, ClientProtocolException {
 
         return execute(target, request, (HttpContext) null);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public final HttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
         throws IOException, ClientProtocolException {
@@ -557,9 +608,8 @@ public abstract class AbstractHttpClient implements HttpClient {
         } catch(HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
-    } // execute
+    }
 
-    
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -608,8 +658,6 @@ public abstract class AbstractHttpClient implements HttpClient {
             (null, getParams(), req.getParams(), null);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpUriRequest request, 
             final ResponseHandler<? extends T> responseHandler) 
@@ -617,8 +665,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(request, responseHandler, null);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler, 
@@ -628,8 +674,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(target, request, responseHandler, context);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpHost target, 
             final HttpRequest request,
@@ -638,8 +682,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(target, request, responseHandler, null);
     }
 
-
-    // non-javadoc, see interface HttpClient
     public <T> T execute(
             final HttpHost target, 
             final HttpRequest request,
@@ -694,5 +736,4 @@ public abstract class AbstractHttpClient implements HttpClient {
         return result;
     }
 
-
-} // class AbstractHttpClient
+}

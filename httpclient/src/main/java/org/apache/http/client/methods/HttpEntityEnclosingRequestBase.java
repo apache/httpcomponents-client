@@ -38,10 +38,8 @@ import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.protocol.HTTP;
 
 /**
- * Basic implementation of an HTTP request that can be modified.
- *
- *
- * @version $Revision$
+ * Basic implementation of an entity enclosing HTTP request 
+ * that can be modified
  * 
  * @since 4.0
  */

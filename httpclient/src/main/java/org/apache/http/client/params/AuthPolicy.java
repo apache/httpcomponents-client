@@ -34,6 +34,7 @@ package org.apache.http.client.params;
 import net.jcip.annotations.Immutable;
 
 /**
+ * Standard authentication schemes supported by HttpClient. 
  *
  * @since 4.0
  */

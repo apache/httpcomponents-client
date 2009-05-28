@@ -40,6 +40,10 @@ import org.apache.http.protocol.HttpContext;
  * Encapsulates logic to compute a {@link HttpRoute} to a target host.
  * Implementations may for example be based on parameters, or on the
  * standard Java system properties.
+ * <p>
+ * Implementations of this interface must be thread-safe. Access to shared
+ * data must be synchronized as methods of this interface may be executed 
+ * from multiple threads.
  *
  * @since 4.0
  */

@@ -30,13 +30,8 @@
 
 package org.apache.http.client.params;
 
-
 /**
- * Parameter names for the HttpClient module.
- * This does not include parameters for informational units
- * HttpAuth, HttpCookie, or HttpConn.
- *
- * @version $Revision$
+ * Parameter names for HTTP client parameters.
  * 
  * @since 4.0
  */
@@ -51,11 +46,9 @@ public interface ClientPNames {
     public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
     
     /**
-     * Defines the factory to create a default {@link org.apache.http.conn.ClientConnectionManager}.
-     * <p>
-     * This parameters expects a value of type {@link org.apache.http.conn.ClientConnectionManagerFactory}.
-     * </p>
+     * @deprecated use #CONNECTION_MANAGER_FACTORY_CLASS_NAME
      */
+    @Deprecated
     public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory-object";
     
     /** 
@@ -110,7 +103,8 @@ public interface ClientPNames {
     public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
     
     /**
-     * Defines the virtual host name.
+     * Defines the virtual host name to be used in the <code>Host</code> 
+     * request header instead of the physical host name.
      * <p>
      * This parameter expects a value of type {@link org.apache.http.HttpHost}. 
      * </p>

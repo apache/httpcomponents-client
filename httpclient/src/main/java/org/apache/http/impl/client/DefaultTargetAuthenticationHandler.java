@@ -40,10 +40,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.protocol.HttpContext;
 
 /**
- *
+ * Default {@link AuthenticationHandler} implementation for target host 
+ * authentication.
+ * 
  * @since 4.0
  */
 @Immutable 

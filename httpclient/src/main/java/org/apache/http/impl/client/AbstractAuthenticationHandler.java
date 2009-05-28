@@ -57,6 +57,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
+ * Base class for {@link AuthenticationHandler} implementations.
  *
  * @since 4.0
  */

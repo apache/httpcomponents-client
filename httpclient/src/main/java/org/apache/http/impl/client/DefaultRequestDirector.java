@@ -124,9 +124,13 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
  *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#COOKIE_POLICY}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_AUTHENTICATION}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_REDIRECTS}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#MAX_REDIRECTS}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#ALLOW_CIRCULAR_REDIRECTS}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
  * </ul>
  *
  * @since 4.0

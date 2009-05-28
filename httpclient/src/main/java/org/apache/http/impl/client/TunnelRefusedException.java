@@ -37,7 +37,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 
 /**
- *
+ * Signals that the tunnel request was rejected by the proxy host.
+ * 
  * @since 4.0
  */
 @Immutable

@@ -42,6 +42,10 @@ import org.apache.http.conn.scheme.SchemeRegistry;
  * HTTP connections, manage persistent connections and synchronize access to 
  * persistent connections making sure that only one thread of execution can 
  * have access to a connection at a time.
+ * <p>
+ * Implementations of this interface must be thread-safe. Access to shared
+ * data must be synchronized as methods of this interface may be executed 
+ * from multiple threads.
  *
  * @since 4.0
  */

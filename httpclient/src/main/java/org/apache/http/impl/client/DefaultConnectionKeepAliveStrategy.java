@@ -46,9 +46,6 @@ import org.apache.http.protocol.HttpContext;
  * 
  * The default implementation looks solely at the 'Keep-Alive'
  * header's timeout token.
- *
- *
- * @version $Revision: $
  * 
  * @since 4.0
  */

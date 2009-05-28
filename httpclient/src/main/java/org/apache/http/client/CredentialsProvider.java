@@ -34,8 +34,12 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 
 /**
- * Abstract credentials provider.
- * 
+ * Abstract credentials provider that maintains a collection of user 
+ * credentials.
+ * <p>
+ * Implementations of this interface must be thread-safe. Access to shared
+ * data must be synchronized as methods of this interface may be executed 
+ * from multiple threads.
  * 
  * @since 4.0
  */

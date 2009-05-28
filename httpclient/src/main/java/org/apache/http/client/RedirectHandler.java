@@ -41,12 +41,10 @@ import org.apache.http.protocol.HttpContext;
  * A handler for determining if an HTTP request should be redirected to 
  * a new location in response to an HTTP response received from the target
  * server.
- * 
  * <p>
- * Classes implementing this interface must synchronize access to shared
- * data as methods of this interfrace may be executed from multiple threads 
- * </p>
- * 
+ * Implementations of this interface must be thread-safe. Access to shared
+ * data must be synchronized as methods of this interface may be executed 
+ * from multiple threads.
  *
  * @since 4.0
  */

@@ -46,17 +46,6 @@ import org.apache.http.protocol.HttpContext;
  * authentication challenges. The director may therefore generate and
  * send a sequence of requests in order to execute one initial request.
  *
- * <br/><b>Note:</b>
- * It is most likely that implementations of this interface will
- * allocate connections, and return responses that depend on those
- * connections for reading the response entity. Such connections
- * MUST be released, but that is out of the scope of a request director.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
- *
  * @since 4.0
  */
 public interface RequestDirector {
@@ -83,9 +72,7 @@ public interface RequestDirector {
      * @throws IOException              in case of an IO problem
      *                                     or if the connection was aborted
      */
-    HttpResponse execute(HttpHost target, HttpRequest request,
-                         HttpContext context)
-        throws HttpException, IOException
-        ;
+    HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context)
+        throws HttpException, IOException;
 
-} // class ClientRequestDirector
+}
