@@ -165,13 +165,13 @@ public class DefaultRequestDirector implements RequestDirector {
     protected final RedirectHandler redirectHandler;
     
     /** The target authentication handler. */
-    private final AuthenticationHandler targetAuthHandler;
+    protected final AuthenticationHandler targetAuthHandler;
     
     /** The proxy authentication handler. */
-    private final AuthenticationHandler proxyAuthHandler;
+    protected final AuthenticationHandler proxyAuthHandler;
     
     /** The user token handler. */
-    private final UserTokenHandler userTokenHandler;
+    protected final UserTokenHandler userTokenHandler;
     
     /** The HTTP parameters. */
     protected final HttpParams params;
@@ -179,13 +179,15 @@ public class DefaultRequestDirector implements RequestDirector {
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
+    protected final AuthState targetAuthState;
+    
+    protected final AuthState proxyAuthState;
+    
     private int redirectCount;
 
     private int maxRedirects;
     
-    private final AuthState targetAuthState;
-    
-    private final AuthState proxyAuthState;
+    private HttpHost virtualHost;
     
     public DefaultRequestDirector(
             final HttpRequestExecutor requestExec,
@@ -321,6 +323,9 @@ public class DefaultRequestDirector implements RequestDirector {
         origWrapper.setParams(params);
         HttpRoute origRoute = determineRoute(target, origWrapper, context);
 
+        virtualHost = (HttpHost) orig.getParams().getParameter(
+                ClientPNames.VIRTUAL_HOST);
+        
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute); 
 
         long timeout = ConnManagerParams.getTimeout(params);
@@ -397,8 +402,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 rewriteRequestURI(wrapper, route);
 
                 // Use virtual host if set
-                target = (HttpHost) wrapper.getParams().getParameter(
-                        ClientPNames.VIRTUAL_HOST);
+                target = virtualHost;
 
                 if (target == null) {
                     target = route.getTargetHost();
@@ -929,6 +933,9 @@ public class DefaultRequestDirector implements RequestDirector {
                         + maxRedirects + ") exceeded");
             }
             redirectCount++;
+            
+            // Virtual host cannot be used any longer
+            virtualHost = null;
             
             URI uri = this.redirectHandler.getLocationURI(response, context);
 
