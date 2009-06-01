@@ -51,6 +51,8 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -147,7 +149,16 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
-            port = conn.getRemotePort();
+
+            // Obtain the scheme registry
+            SchemeRegistry sr = (SchemeRegistry) context.getAttribute(
+                    ClientContext.AUTHSCHEME_REGISTRY);
+            if (sr != null) {
+                Scheme scheme = sr.get(targetHost.getSchemeName());
+                port = scheme.resolvePort(port);
+            } else {
+                port = conn.getRemotePort();
+            }
         }
         
         CookieOrigin cookieOrigin = new CookieOrigin(
