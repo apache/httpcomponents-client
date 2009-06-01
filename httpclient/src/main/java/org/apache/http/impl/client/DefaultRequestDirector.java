@@ -333,9 +333,9 @@ public class DefaultRequestDirector implements RequestDirector {
         int execCount = 0;
         
         boolean reuse = false;
-        HttpResponse response = null;
         boolean done = false;
         try {
+            HttpResponse response = null;
             while (!done) {
                 // In this loop, the RoutedRequest may be replaced by a
                 // followup request and route. The request and route passed
@@ -344,6 +344,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
                 RequestWrapper wrapper = roureq.getRequest();
                 HttpRoute route = roureq.getRoute();
+                response = null;
                 
                 // See if we have a user token bound to the execution context
                 Object userToken = context.getAttribute(ClientContext.USER_TOKEN);
@@ -471,7 +472,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
                         // If we have a direct route to the target host
                         // just re-open connection and re-try the request
-                        if (route.getHopCount() == 1) {
+                        if (!route.isTunnelled()) {
                             this.log.debug("Reopening the direct connection.");
                             managedConn.open(route, context, params);
                         } else {
