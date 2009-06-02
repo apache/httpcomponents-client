@@ -210,6 +210,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
     protected HttpContext createHttpContext() {
         HttpContext context = new BasicHttpContext();
         context.setAttribute(
+                ClientContext.SCHEME_REGISTRY, 
+                getConnectionManager().getSchemeRegistry());
+        context.setAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY, 
                 getAuthSchemes());
         context.setAttribute(

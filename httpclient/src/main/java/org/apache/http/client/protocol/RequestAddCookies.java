@@ -152,7 +152,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
             // Obtain the scheme registry
             SchemeRegistry sr = (SchemeRegistry) context.getAttribute(
-                    ClientContext.AUTHSCHEME_REGISTRY);
+                    ClientContext.SCHEME_REGISTRY);
             if (sr != null) {
                 Scheme scheme = sr.get(targetHost.getSchemeName());
                 port = scheme.resolvePort(port);
