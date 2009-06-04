@@ -533,12 +533,15 @@ public class DefaultRequestDirector implements RequestDirector {
                     }
                     roureq = followup;
                 }
-                
-                userToken = this.userTokenHandler.getUserToken(context);
-                context.setAttribute(ClientContext.USER_TOKEN, userToken);
-                if (managedConn != null) {
-                    managedConn.setState(userToken);
+
+                if (managedConn != null && userToken == null) {
+                    userToken = userTokenHandler.getUserToken(context);
+                    context.setAttribute(ClientContext.USER_TOKEN, userToken);
+                    if (userToken != null) {
+                        managedConn.setState(userToken);
+                    }
                 }
+                
             } // while not done
 
 

@@ -60,7 +60,8 @@ public interface ClientPNames {
     public static final String HANDLE_REDIRECTS = "http.protocol.handle-redirects";
 
     /**
-     * Defines whether relative redirects should be rejected.
+     * Defines whether relative redirects should be rejected. HTTP specification 
+     * requires the location value be an absolute URI.
      * <p>
      * This parameter expects a value of type {@link Boolean}.
      * </p>

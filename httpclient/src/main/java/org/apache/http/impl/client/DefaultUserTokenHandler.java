@@ -46,6 +46,16 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
+ * Default implementation of {@link UserTokenHandler}. This class will use 
+ * an instance of {@link Principal} as a state object for HTTP connections, 
+ * if it can be obtained from the given execution context. This helps ensure 
+ * persistent connections created with a particular user identity within 
+ * a particular security context can be reused by the same user only.
+ * <p>
+ * DefaultUserTokenHandler will use the user principle of connection
+ * based authentication schemes such as NTLM or that of the SSL session 
+ * with the client authentication turned on. If both are unavailable, 
+ * <code>null</code> token will be returned.   
  *
  * @since 4.0
  */

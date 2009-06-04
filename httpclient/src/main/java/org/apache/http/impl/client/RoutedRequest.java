@@ -35,22 +35,16 @@ import net.jcip.annotations.NotThreadSafe;
 
 import org.apache.http.conn.routing.HttpRoute;
 
-
 /**
  * A request with the route along which it should be sent.
- *
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
 @NotThreadSafe // RequestWrapper is @NotThreadSafe
 public class RoutedRequest {
 
-    private final RequestWrapper request; // @NotThreadSafe
-    private final HttpRoute route; // @Immutable
+    protected final RequestWrapper request; // @NotThreadSafe
+    protected final HttpRoute route; // @Immutable
 
     /**
      * Creates a new routed request.

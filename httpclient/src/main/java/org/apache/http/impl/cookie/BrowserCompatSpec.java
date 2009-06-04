@@ -57,8 +57,8 @@ import org.apache.http.util.CharArrayBuffer;
  */
 public class BrowserCompatSpec extends CookieSpecBase {
     
-    /** Valid date patterns used per default */
-    private static final String[] DATE_PATTERNS = new String[] {
+    @Deprecated
+    protected static final String[] DATE_PATTERNS = new String[] {
             DateUtils.PATTERN_RFC1123,
             DateUtils.PATTERN_RFC1036,
             DateUtils.PATTERN_ASCTIME,
@@ -75,6 +75,23 @@ public class BrowserCompatSpec extends CookieSpecBase {
             "EEE, dd-MM-yyyy HH:mm:ss z",                
         };
 
+    private static final String[] DEFAULT_DATE_PATTERNS = new String[] {
+        DateUtils.PATTERN_RFC1123,
+        DateUtils.PATTERN_RFC1036,
+        DateUtils.PATTERN_ASCTIME,
+        "EEE, dd-MMM-yyyy HH:mm:ss z",
+        "EEE, dd-MMM-yyyy HH-mm-ss z",
+        "EEE, dd MMM yy HH:mm:ss z",
+        "EEE dd-MMM-yyyy HH:mm:ss z",
+        "EEE dd MMM yyyy HH:mm:ss z",
+        "EEE dd-MMM-yyyy HH-mm-ss z",
+        "EEE dd-MMM-yy HH:mm:ss z",
+        "EEE dd MMM yy HH:mm:ss z",
+        "EEE,dd-MMM-yy HH:mm:ss z",
+        "EEE,dd-MMM-yyyy HH:mm:ss z",
+        "EEE, dd-MM-yyyy HH:mm:ss z",                
+    };
+    
     private final String[] datepatterns; 
     
     /** Default constructor */
@@ -83,7 +100,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         if (datepatterns != null) {
             this.datepatterns = datepatterns.clone();
         } else {
-            this.datepatterns = DATE_PATTERNS;
+            this.datepatterns = DEFAULT_DATE_PATTERNS;
         }
         registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new BasicDomainHandler());
@@ -189,10 +206,6 @@ public class BrowserCompatSpec extends CookieSpecBase {
         return null;
     }
 
-    protected static String[] getDATE_PATTERNS() {
-        return DATE_PATTERNS.clone();
-    }
-    
     @Override
     public String toString() {
         return "compatibility";

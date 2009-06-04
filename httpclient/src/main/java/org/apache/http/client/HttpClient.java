@@ -96,6 +96,11 @@ import org.apache.http.protocol.HttpContext;
  *         instream.close();
  *         
  *     }
+ *     
+ *     // When HttpClient instance is no longer needed, 
+ *     // shut down the connection manager to ensure
+ *     // immediate deallocation of all system resources
+ *     httpclient.getConnectionManager().shutdown();        
  * }
  * </PRE>
  *

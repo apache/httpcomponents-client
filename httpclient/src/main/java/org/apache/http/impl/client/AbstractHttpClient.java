@@ -71,10 +71,14 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 
 /**
- * Base class for {@link HttpClient} implementations.
- * <p>
- * This class maintains a number of objects used during HTTP request execution 
- * and provides a number of factory methods to instantiate those objects:
+ * Base class for {@link HttpClient} implementations. This class acts as 
+ * a facade to a number of special purpose handler or strategy 
+ * implementations responsible for handling of a particular aspect of 
+ * the HTTP protocol such as redirect or authentication handling or 
+ * making decision about connection persistence and keep alive duration. 
+ * This enables the users to selectively replace default implementation 
+ * of those aspects with custom, application specific ones. This class 
+ * also provides factory methods to instantiate those objects:
  * <ul>
  *   <li>{@link HttpRequestExecutor}</li> object used to transmit messages 
  *    over HTTP connections. The {@link #createRequestExecutor()} must be
@@ -130,8 +134,25 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *    response received from the target server. 
  *    The {@link #createRedirectHandler()} must be implemented 
  *    by concrete super classes to instantiate this object.
- *   <li>{@link UserTokenHandler}</li>
+ *   <li>{@link UserTokenHandler}</li> object used to determine if the 
+ *    execution context is user identity specific. 
+ *    The {@link #createUserTokenHandler()()} must be implemented by 
+ *    concrete super classes to instantiate this object.
  * </ul> 
+ * <p>
+ *   This class also maintains a list of protocol interceptors intended 
+ *   for processing outgoing requests and incoming responses and provides 
+ *   methods for managing those interceptors. New protocol interceptors can be 
+ *   introduced to the protocol processor chain or removed from it if needed. 
+ *   Internally protocol interceptors are stored in a simple 
+ *   {@link java.util.ArrayList}. They are executed in the same natural order 
+ *   as they are added to the list.
+ * <p>
+ *   AbstractHttpClient is thread safe. It is recommended that the same 
+ *   instance of this class is reused for multiple request executions. 
+ *   When an instance of DefaultHttpClient is no longer needed and is about 
+ *   to go out of scope the connection manager associated with it must be 
+ *   shut down by calling {@link ClientConnectionManager#shutdown()}!
  *
  * @since 4.0
  */

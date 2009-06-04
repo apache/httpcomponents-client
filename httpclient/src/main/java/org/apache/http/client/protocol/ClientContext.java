@@ -97,6 +97,10 @@ public interface ClientContext {
      */
     public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
     
+    /**
+     * Attribute name of a {@link java.lang.Object} object that represents 
+     * the actual user identity such as user {@link java.security.Principal}.
+     */
     public static final String USER_TOKEN            = "http.user-token";
     
 }

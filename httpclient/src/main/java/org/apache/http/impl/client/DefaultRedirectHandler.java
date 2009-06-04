@@ -52,14 +52,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 
-
 /**
  * Default implementation of {@link RedirectHandler}.
- * 
- *
- *
- * <!-- empty lines to avoid svn diff problems -->
- * @version $Revision$
  *
  * @since 4.0
  */
