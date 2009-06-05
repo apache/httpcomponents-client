@@ -90,15 +90,17 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * Creates a new thread safe connection manager.
      *
-     * @param params    the parameters for this manager
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> for the default registry
+     * @param params    the parameters for this manager.
+     * @param schreg    the scheme registry.
      */
     public ThreadSafeClientConnManager(HttpParams params,
                                        SchemeRegistry schreg) {
 
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        if (schreg == null) {
+            throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.schemeRegistry = schreg;
         this.connOperator   = createConnectionOperator(schreg);
@@ -138,7 +140,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * The default implementation here instantiates
      * {@link DefaultClientConnectionOperator DefaultClientConnectionOperator}.
      *
-     * @param schreg    the scheme registry to use, or <code>null</code>
+     * @param schreg    the scheme registry.
      *
      * @return  the connection operator to use
      */
