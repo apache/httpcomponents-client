@@ -121,7 +121,12 @@
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <aggregate>true</aggregate>
+          <source>1.5</source>
+          <links>
+            <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
+            <link>http://hc.apache.org/httpcomponents-core/httpcore/apidocs/</link>
+            <link>http://james.apache.org/mime4j/apidocs/</link>
+          </links>
         </configuration>
       </plugin>
       <plugin>
@@ -212,26 +217,6 @@
              </reports>
            </reportSet>
          </reportSets>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-javadoc-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-jxr-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>clirr-maven-plugin</artifactId>
-        <configuration>
-          <comparisonVersion>4.0-beta1</comparisonVersion>
-        </configuration>
       </plugin>
 
     </plugins>
