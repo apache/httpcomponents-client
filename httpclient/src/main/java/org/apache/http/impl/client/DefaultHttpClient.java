@@ -47,6 +47,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
+import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.client.protocol.RequestTargetAuthentication;
@@ -79,7 +80,6 @@ import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
@@ -98,7 +98,7 @@ import org.apache.http.util.VersionInfo;
  * <li>{@link RequestDefaultHeaders}</li>
  * <li>{@link RequestContent}</li>
  * <li>{@link RequestTargetHost}</li>
- * <li>{@link RequestConnControl}</li>
+ * <li>{@link RequestClientConnControl}</li>
  * <li>{@link RequestUserAgent}</li>
  * <li>{@link RequestExpectContinue}</li>
  * <li>{@link RequestAddCookies}</li>
@@ -328,7 +328,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new RequestContent());
         httpproc.addInterceptor(new RequestTargetHost());
         // Recommended protocol interceptors
-        httpproc.addInterceptor(new RequestConnControl());
+        httpproc.addInterceptor(new RequestClientConnControl());
         httpproc.addInterceptor(new RequestUserAgent());
         httpproc.addInterceptor(new RequestExpectContinue());
         // HTTP state management interceptors
