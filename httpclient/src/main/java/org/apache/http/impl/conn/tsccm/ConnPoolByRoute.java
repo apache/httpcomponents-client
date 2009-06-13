@@ -283,7 +283,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
                 if (log.isDebugEnabled()) {
                     log.debug("Total connections kept alive: " + freeConnections.size()); 
-                    log.debug("Total issued connections: " + issuedConnections.size()); 
+                    log.debug("Total issued connections: " + leasedConnections.size()); 
                     log.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
                 }
                 
@@ -381,7 +381,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             }
 
             // no longer issued, we keep a hard reference now
-            issuedConnections.remove(entry.getWeakRef());
+            leasedConnections.remove(entry);
 
             RouteSpecificPool rospl = getRoutePool(route, true);
 
@@ -448,7 +448,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         rospl.dropEntry();
                         numConnections--;
                     } else {
-                        issuedConnections.add(entry.getWeakRef());
+                        leasedConnections.add(entry);
                         done = true;
                     }
     
@@ -486,17 +486,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
 
         // the entry will create the connection when needed
-        BasicPoolEntry entry =
-            new BasicPoolEntry(op, rospl.getRoute(), refQueue);
+        BasicPoolEntry entry = new BasicPoolEntry(op, rospl.getRoute());
 
         poolLock.lock();
         try {
-
             rospl.createdEntry(entry);
             numConnections++;
-
-            issuedConnections.add(entry.getWeakRef());
-
+            leasedConnections.add(entry);
         } finally {
             poolLock.unlock();
         }

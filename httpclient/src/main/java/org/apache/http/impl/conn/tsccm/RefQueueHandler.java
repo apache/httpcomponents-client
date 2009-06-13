@@ -32,12 +32,12 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.lang.ref.Reference;
 
-
 /**
- * Callback handler for {@link RefQueueWorker RefQueueWorker}.
+ * @deprecated do not use
  *
  * @since 4.0
  */
+@Deprecated
 public interface RefQueueHandler {
 
     /**

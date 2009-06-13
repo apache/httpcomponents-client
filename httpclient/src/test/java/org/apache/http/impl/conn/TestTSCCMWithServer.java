@@ -493,65 +493,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
 
     /**
-     * Tests GC of an unreferenced connection.
-     */
-    public void testConnectionGC() throws Exception {
-        // 3.x: TestHttpConnectionManager.testReclaimUnusedConnection
-
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
-
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
-
-        HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
-
-        ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
-
-        // a new context is created for each testcase, no need to reset
-        Helper.execute(request, conn, target, 
-                httpExecutor, httpProcessor, defaultParams, httpContext);
-
-        // we leave the connection in mid-use
-        // it's not really re-usable, but it must be closed anyway
-        conn.markReusable();
-
-        // first check that we can't get another connection
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // We now drop the hard references to the connection and trigger GC.
-        WeakReference<ManagedClientConnection> wref = 
-            new WeakReference<ManagedClientConnection>(conn);
-        conn = null;
-        httpContext = null; // holds a reference to the connection
-
-        // Java does not guarantee that this will trigger the GC, but
-        // it does in the test environment. GC is asynchronous, so we
-        // need to give the garbage collector some time afterwards.
-        System.gc();
-        Thread.sleep(1000);
-
-        assertNull("connection not garbage collected", wref.get());
-        conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-        assertFalse("GCed connection not closed", conn.isOpen());
-
-        mgr.shutdown();
-    }
-
-
-    /**
      * Tests GC of an unreferenced connection manager.
      */
     public void testConnectionManagerGC() throws Exception {

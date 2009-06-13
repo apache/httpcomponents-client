@@ -41,7 +41,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,7 +49,6 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.IdleConnectionHandler;
-
 
 /**
  * An abstract connection pool.
@@ -60,7 +59,9 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  *
  * @since 4.0
  */
-@NotThreadSafe // unsynch access to refQueue, refWorker
+
+@ThreadSafe
+@SuppressWarnings("deprecation")
 public abstract class AbstractConnPool implements RefQueueHandler {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -70,17 +71,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     protected final Lock poolLock;
 
-
     /**
      * References to issued connections.
-     * Objects in this set are of class
-     * {@link BasicPoolEntryRef BasicPoolEntryRef},
-     * and point to the pool entry for the issued connection.
-     * GCed connections are detected by the missing pool entries.
      * Must hold poolLock when accessing.
      */
     @GuardedBy("poolLock")
-    protected Set<BasicPoolEntryRef> issuedConnections;
+    protected Set<BasicPoolEntry> leasedConnections;
 
     /** The handler for idle connections. Must hold poolLock when accessing. */
     @GuardedBy("poolLock")
@@ -90,66 +86,32 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     @GuardedBy("poolLock")
     protected int numConnections;
 
-    /**
-     * A reference queue to track loss of pool entries to GC.
-     * The same queue is used to track loss of the connection manager,
-     * so we cannot specialize the type.
-     */
-    // TODO - this needs to be synchronized, e.g. on Pool Lock
-    protected ReferenceQueue<Object> refQueue;
-
-    /** A worker (thread) to track loss of pool entries to GC. */
-    // TODO - this needs to be synchronized, e.g. on Pool Lock
-    private RefQueueWorker refWorker;
-
-
     /** Indicates whether this pool is shut down. */
     protected volatile boolean isShutDown;
+
+    @Deprecated
+    protected Set<BasicPoolEntryRef> issuedConnections;
+
+    @Deprecated
+    protected ReferenceQueue<Object> refQueue;
 
     /**
      * Creates a new connection pool.
      */
     protected AbstractConnPool() {
-        issuedConnections = new HashSet<BasicPoolEntryRef>();
+        leasedConnections = new HashSet<BasicPoolEntry>();
         idleConnHandler = new IdleConnectionHandler();
 
         boolean fair = false; //@@@ check parameters to decide
         poolLock = new ReentrantLock(fair);
     }
 
-
     /**
-     * Enables connection garbage collection (GC).
-     * This method must be called immediately after creating the
-     * connection pool. It is not possible to enable connection GC
-     * after pool entries have been created. Neither is it possible
-     * to disable connection GC.
-     *
-     * @throws IllegalStateException
-     *         if connection GC is already enabled, or if it cannot be
-     *         enabled because there already are pool entries
+     * @deprecated do not sue
      */
+    @Deprecated
     public void enableConnectionGC()
         throws IllegalStateException {
-
-        if (refQueue != null) { // TODO - this access is not guaranteed protected by the pool lock
-            throw new IllegalStateException("Connection GC already enabled.");
-        }
-        poolLock.lock();
-        try {
-            if (numConnections > 0) { //@@@ is this check sufficient?
-                throw new IllegalStateException("Pool already in use.");
-            }
-        } finally {
-            poolLock.unlock();
-        }
-
-        refQueue  = new ReferenceQueue<Object>();
-        refWorker = new RefQueueWorker(refQueue, this);
-        Thread t = new Thread(refWorker); //@@@ use a thread factory
-        t.setDaemon(true);
-        t.setName("RefQueueWorker@" + this);
-        t.start();
     }
 
 
@@ -200,45 +162,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     public abstract void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit)
         ;
 
-
-
-    // non-javadoc, see interface RefQueueHandler
+    @Deprecated
     public void handleReference(Reference<?> ref) {
-
-        poolLock.lock();
-        try {
-
-            if (ref instanceof BasicPoolEntryRef) {
-                // check if the GCed pool entry was still in use
-                //@@@ find a way to detect this without lookup
-                //@@@ flag in the BasicPoolEntryRef, to be reset when freed?
-                final boolean lost = issuedConnections.remove(ref);
-                if (lost) {
-                    final HttpRoute route =
-                        ((BasicPoolEntryRef)ref).getRoute();
-                    if (log.isDebugEnabled()) {
-                        log.debug("Connection garbage collected. " + route);
-                    }
-                    handleLostEntry(route);
-                }
-            }
-
-        } finally {
-            poolLock.unlock();
-        }
     }
 
-
-    /**
-     * Handles cleaning up for a lost pool entry with the given route.
-     * A lost pool entry corresponds to a connection that was
-     * garbage collected instead of being properly released.
-     *
-     * @param route     the route of the pool entry that was lost
-     */
-    protected abstract void handleLostEntry(HttpRoute route)
-        ;
-
+    @Deprecated
+    protected abstract void handleLostEntry(HttpRoute route);
 
     /**
      * Closes idle connections.
@@ -291,23 +220,13 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             if (isShutDown)
                 return;
 
-            // no point in monitoring GC anymore
-            if (refWorker != null)
-                refWorker.shutdown();
-
             // close all connections that are issued to an application
-            Iterator<BasicPoolEntryRef> iter = issuedConnections.iterator();
+            Iterator<BasicPoolEntry> iter = leasedConnections.iterator();
             while (iter.hasNext()) {
-                BasicPoolEntryRef per = iter.next();
+                BasicPoolEntry entry = iter.next();
                 iter.remove();
-                BasicPoolEntry entry = per.get();
-                if (entry != null) {
-                    closeConnection(entry.getConnection());
-                }
+                closeConnection(entry.getConnection());
             }
-
-            // remove all references to connections
-            //@@@ use this for shutting them down instead?
             idleConnHandler.removeAll();
 
             isShutDown = true;

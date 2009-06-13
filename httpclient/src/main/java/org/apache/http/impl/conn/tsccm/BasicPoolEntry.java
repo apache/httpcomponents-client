@@ -30,15 +30,12 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-
 import java.lang.ref.ReferenceQueue;
 
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.AbstractPoolEntry;
-
-
 
 /**
  * Basic implementation of a connection pool entry.
@@ -48,11 +45,17 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
 public class BasicPoolEntry extends AbstractPoolEntry {
 
     /**
-     * A weak reference to <code>this</code> used to detect GC of entries.
-     * Pool entries can only be GCed when they are allocated by an application
-     * and therefore not referenced with a hard link in the manager.
+     * @deprecated do not use
      */
-    private final BasicPoolEntryRef reference;
+    @Deprecated
+    public BasicPoolEntry(ClientConnectionOperator op,
+                          HttpRoute route,
+                          ReferenceQueue<Object> queue) {
+        super(op, route);
+        if (route == null) {
+            throw new IllegalArgumentException("HTTP route may not be null");
+        }
+    }
 
     /**
      * Creates a new pool entry.
@@ -63,13 +66,11 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      *                or <code>null</code>
      */
     public BasicPoolEntry(ClientConnectionOperator op,
-                          HttpRoute route,
-                          ReferenceQueue<Object> queue) {
+                          HttpRoute route) {
         super(op, route);
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
         }
-        this.reference = new BasicPoolEntryRef(this, queue);
     }
 
     protected final OperatedClientConnection getConnection() {
@@ -80,8 +81,9 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         return super.route;
     }
 
+    @Deprecated
     protected final BasicPoolEntryRef getWeakRef() {
-        return this.reference;
+        return null;
     }
 
     @Override
@@ -89,6 +91,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         super.shutdownEntry();
     }
 
-} // class BasicPoolEntry
+}
 
 

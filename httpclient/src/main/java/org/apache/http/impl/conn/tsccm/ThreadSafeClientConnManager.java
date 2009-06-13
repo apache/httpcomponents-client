@@ -123,13 +123,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return  the connection pool to use
      */
     protected AbstractConnPool createConnectionPool(final HttpParams params) {
-
-        AbstractConnPool acp = new ConnPoolByRoute(connOperator, params);
-        boolean conngc = true; //@@@ check parameters to decide
-        if (conngc) {
-            acp.enableConnectionGC();
-        }
-        return acp;
+        return new ConnPoolByRoute(connOperator, params);
     }
 
     /**

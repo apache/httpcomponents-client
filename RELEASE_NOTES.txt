@@ -1,6 +1,10 @@
 Changes since 4.0 beta 2
 -------------------
 
+* [HTTPCLIENT-841] Removed automatic connection release using garbage collection 
+  due to a memory leak
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-853] Fixed bug causing invalid cookie origin port to be selected 
   when the target is accessed on the default port and the connection is 
   established via a proxy.

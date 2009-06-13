@@ -42,8 +42,9 @@ import java.lang.ref.ReferenceQueue;
  * this worker. It will pick up the queued references and pass them
  * on to a handler for appropriate processing.
  *
- * @since 4.0
+ * @deprecated do not use
  */
+@Deprecated
 public class RefQueueWorker implements Runnable {
 
     /** The reference queue to monitor. */
