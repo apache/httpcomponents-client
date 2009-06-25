@@ -155,25 +155,21 @@
         <inherited>false</inherited>
         <configuration>
           <tasks>
-            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+            <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
-              <property name="package.zip" value="${pom.artifactId}-${pom.version}-bin.zip" />
+              <property name="package.name" value="${pom.artifactId}-${pom.version}-bin" />
             </ant>
-            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+            <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
-              <property name="package.zip" value="${pom.artifactId}-${pom.version}-osgi-bin.zip" />
+              <property name="package.name" value="${pom.artifactId}-${pom.version}-bin-with-dependencies" />
             </ant>
-            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+            <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
-              <property name="package.zip" value="${pom.artifactId}-${pom.version}-bin-with-dependencies.zip" />
+              <property name="package.name" value="${pom.artifactId}-${pom.version}-osgi-bin" />
             </ant>
-            <ant antfile="src/main/assembly/build.xml" target="fixzip">
+            <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
-              <property name="package.zip" value="${pom.artifactId}-${pom.version}-src.zip" />
-            </ant>
-            <ant antfile="src/main/assembly/build.xml" target="fixtar">
-              <property name="target" value="${project.build.directory}" />
-              <property name="package.tar" value="${pom.artifactId}-${pom.version}-bin-with-dependencies.tar.gz" />
+              <property name="package.name" value="${pom.artifactId}-${pom.version}-src" />
             </ant>
           </tasks>
         </configuration>
