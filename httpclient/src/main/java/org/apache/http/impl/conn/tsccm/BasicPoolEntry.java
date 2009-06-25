@@ -62,8 +62,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      *
      * @param op      the connection operator
      * @param route   the planned route for the connection
-     * @param queue   the reference queue for tracking GC of this entry,
-     *                or <code>null</code>
      */
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route) {
