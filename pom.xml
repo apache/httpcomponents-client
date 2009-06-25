@@ -39,7 +39,7 @@
   <groupId>org.apache.httpcomponents</groupId>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
-  <version>4.0-beta3-SNAPSHOT</version>
+  <version>4.0-SNAPSHOT</version>
   <description>Components to build client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
