@@ -925,7 +925,6 @@ public class DefaultRequestDirector implements RequestDirector {
         throws HttpException, IOException {
 
         HttpRoute route = roureq.getRoute();
-        HttpHost proxy = route.getProxyHost();
         RequestWrapper request = roureq.getRequest();
         
         HttpParams params = request.getParams();
@@ -947,6 +946,14 @@ public class DefaultRequestDirector implements RequestDirector {
                     uri.getHost(), 
                     uri.getPort(),
                     uri.getScheme());
+            
+            if (!route.getTargetHost().equals(newTarget)) {
+                targetAuthState.invalidate();
+                AuthScheme authScheme = proxyAuthState.getAuthScheme();
+                if (authScheme != null && authScheme.isConnectionBased()) {
+                    proxyAuthState.invalidate();
+                }
+            }
             
             HttpGet redirect = new HttpGet(uri);
             
@@ -1007,6 +1014,8 @@ public class DefaultRequestDirector implements RequestDirector {
             
             if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
+                HttpHost proxy = route.getProxyHost();
+                
                 this.log.debug("Proxy requested authentication");
                 Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
                         response, context);

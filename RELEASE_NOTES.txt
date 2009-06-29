@@ -1,8 +1,12 @@
 Changes since 4.0 beta 2
 -------------------
 
+* [HTTPCLIENT-856] Proxy NTLM authentication no longer fails on a redirect to
+  a different host.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-841] Removed automatic connection release using garbage collection 
-  due to a memory leak
+  due to a memory leak.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-853] Fixed bug causing invalid cookie origin port to be selected 
