@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   $HeadURL$
-   $Revision$
-   $Date$
-
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
    or more contributor license agreements.  See the NOTICE file
@@ -193,6 +189,59 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.agilejava.docbkx</groupId>
+        <artifactId>docbkx-maven-plugin</artifactId>
+        <version>2.0.8</version>
+        <executions>
+          <execution>
+            <goals>
+                <goal>generate-html</goal>
+                <goal>generate-pdf</goal>
+            </goals>
+            <phase>pre-site</phase>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.docbook</groupId>
+            <artifactId>docbook-xml</artifactId>
+            <version>4.4</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <includes>index.xml</includes>
+          <chunkedOutput>true</chunkedOutput>
+          <xincludeSupported>true</xincludeSupported>
+          <foCustomization>src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+          <htmlCustomization>src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
+          <htmlStylesheet>css/hc-tutorial.css</htmlStylesheet>
+          <entities>
+            <entity>
+              <name>version</name>
+              <value>${pom.version}</value>
+            </entity>
+          </entities>
+          <postProcess>
+            <copy todir="target/site/tutorial">
+              <fileset dir="target/docbkx">
+                <include name="**/*.html" />
+                <include name="**/*.pdf" />
+              </fileset>
+            </copy>
+            <copy todir="target/site/tutorial/html">
+              <fileset dir="src/docbkx/resources">
+                <include name="**/*.css" />
+                <include name="**/*.png" />
+                <include name="**/*.gif" />
+                <include name="**/*.jpg" />
+              </fileset>
+            </copy>
+            <move file="target/site/tutorial/pdf/index.pdf" tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" failonerror="false" />
+          </postProcess>
+        </configuration>
       </plugin>
 
     </plugins>

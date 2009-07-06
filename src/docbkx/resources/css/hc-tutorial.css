@@ -1,0 +1,309 @@
+/*
+   ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+   ====================================================================
+
+   This software consists of voluntary contributions made by many
+   individuals on behalf of the Apache Software Foundation.  For more
+   information on the Apache Software Foundation, please see
+   <http://www.apache.org/>.
+   ====================================================================
+   
+    Based on the CSS file for the Spring Reference Documentation.
+*/
+
+
+body {
+    text-align: justify;
+    margin-right: 2em;
+    margin-left: 2em;
+}
+
+a:active {
+    color: #003399;
+}
+
+a:visited {
+    color: #888888;
+}
+
+p {
+    font-family: Verdana, Arial, sans-serif;
+}
+
+dt {
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px;
+}
+
+p, dl, dt, dd, blockquote {
+    color: #000000;
+    margin-bottom: 3px;
+    margin-top: 3px;
+    padding-top: 0px;
+}
+
+ol, ul, p {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+p, blockquote {
+    font-size: 90%;
+}
+
+p.releaseinfo {
+    font-size: 100%;
+    font-weight: bold;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+    padding-top: 10px;
+}
+
+p.pubdate {
+    font-size: 120%;
+    font-weight: bold;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+}
+
+td {
+    font-size: 80%;
+}
+
+td, th, span {
+    color: #000000;
+}
+
+blockquote {
+    margin-right: 0px;
+}
+
+h1, h2, h3, h4, h6, H6 {
+    color: #000000;
+    font-weight: 500;
+    margin-top: 0px;
+    padding-top: 14px;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+    margin-bottom: 0px;
+}
+
+h2.title {
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+h2.subtitle {
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.firstname, .surname {
+    font-size: 12px;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 1px black;
+    empty-cells: hide;
+    margin: 10px 0px 30px 50px;
+    width: 90%;
+}
+
+div.table {
+    margin: 30px 0px 30px 0px;
+    border: 1px dashed gray;
+    padding: 10px;
+}
+
+div .table-contents table {
+    border: 1px solid black;
+}
+
+div.table > p.title {
+    padding-left: 10px;
+}
+
+td {
+    padding: 4pt;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+}
+
+div.warning TD {
+    text-align: justify;
+}
+
+h1 {
+    font-size: 150%;
+}
+
+h2 {
+    font-size: 110%;
+}
+
+h3 {
+    font-size: 100%;
+    font-weight: bold;
+}
+
+h4 {
+    font-size: 90%;
+    font-weight: bold;
+}
+
+h5 {
+    font-size: 90%;
+    font-style: italic;
+}
+
+h6 {
+    font-size: 100%;
+    font-style: italic;
+}
+
+tt {
+    font-size: 110%;
+    font-family: "Courier New", Courier, monospace;
+    color: #000000;
+}
+
+.navheader, .navfooter {
+    border: none;
+}
+
+pre {
+    font-size: 110%;
+    padding: 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #CCCCCC;
+    background-color: #f3f5e9;
+}
+
+ul, ol, li {
+    list-style: disc;
+}
+
+hr {
+    width: 100%;
+    height: 1px;
+    background-color: #CCCCCC;
+    border-width: 0px;
+    padding: 0px;
+}
+
+.variablelist {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin: 0;
+}
+
+.term {
+    font-weight: bold;
+}
+
+.mediaobject {
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.legalnotice {
+    font-family: Verdana, Arial, helvetica, sans-serif;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.sidebar {
+    float: right;
+    margin: 10px 0px 10px 30px;
+    padding: 10px 20px 20px 20px;
+    width: 33%;
+    border: 1px solid black;
+    background-color: #F4F4F4;
+    font-size: 14px;
+}
+
+.property {
+    font-family: "Courier New", Courier, monospace;
+}
+
+a code {
+    font-family: Verdana, Arial, monospace;
+    font-size: 12px;
+}
+
+td code {
+    font-size: 110%;
+}
+
+div.note * td,
+    div.tip * td,
+    div.warning * td,
+    div.calloutlist * td {
+    text-align: justify;
+    font-size: 100%;
+}
+
+.programlisting .interfacename,
+    .programlisting .literal,
+    .programlisting .classname {
+    font-size: 95%;
+}
+
+.title .interfacename,
+    .title .literal,
+    .title .classname {
+    font-size: 130%;
+}
+
+.programlisting * .lineannotation,
+    .programlisting * .lineannotation * {
+    color: blue;
+}
+
+.bannerLeft, .bannerRight {
+  font-size: xx-large;
+  font-weight: bold;
+}
+
+.bannerLeft img, .bannerRight img {
+  margin: 0px;
+}
+
+.bannerLeft img {
+  float:left;
+  text-shadow: #7CFC00;
+}
+
+.bannerRight img {
+  float:right;
+  text-shadow: #7CFC00;
+}
+
+.banner {
+  padding: 0px;
+}
+
+.banner img {
+  border: none;
+}
+
+.clear  {
+  clear:both;
+  visibility: hidden;
+}
