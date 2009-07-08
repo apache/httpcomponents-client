@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import net.jcip.annotations.Immutable;
@@ -173,12 +174,19 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
         // Find cookies matching the given origin
         List<Cookie> matchedCookies = new ArrayList<Cookie>();
+        Date now = new Date();
         for (Cookie cookie : cookies) {
-            if (cookieSpec.match(cookie, cookieOrigin)) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Cookie " + cookie + " match " + cookieOrigin);
+            if (cookie.getExpiryDate() == null || cookie.getExpiryDate().after(now)) {
+                if (cookieSpec.match(cookie, cookieOrigin)) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Cookie " + cookie + " match " + cookieOrigin);
+                    }
+                    matchedCookies.add(cookie);
                 }
-                matchedCookies.add(cookie);
+            } else {
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Cookie " + cookie + " expired");
+                }
             }
         }
         // Generate Cookie request headers

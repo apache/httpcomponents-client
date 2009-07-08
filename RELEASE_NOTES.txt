@@ -1,6 +1,9 @@
 Changes since 4.0 beta 2
 -------------------
 
+* HttpClient will no longer send expired cookies back to the origin server.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-856] Proxy NTLM authentication no longer fails on a redirect to
   a different host.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
