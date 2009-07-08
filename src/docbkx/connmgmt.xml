@@ -1,0 +1,806 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!-- 
+    ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+    ====================================================================
+-->
+<chapter>
+    <title>Connection management</title>
+    <para>HttpClient has a complete control over the process of connection initialization and
+        termination as well as I/O operations on active connections. However various aspects of
+        connection operations can be controlled using a number of parameters.</para>
+    <section>
+        <title>Connection parameters</title>
+        <para>These are parameters that can influence connection operations:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.socket.timeout':</title>
+                    <para>defines the socket timeout (<literal>SO_TIMEOUT</literal>) in
+                        milliseconds, which is the timeout for waiting for data or, put differently,
+                        a maximum period inactivity between two consecutive data packets). A timeout
+                        value of zero is interpreted as an infinite timeout. This parameter expects
+                        a value of type <classname>java.lang.Integer</classname>. If this parameter
+                        is not set read operations will not time out (infinite timeout).</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.tcp.nodelay':</title>
+                    <para>determines whether Nagle's algorithm is to be used. The Nagle's algorithm
+                        tries to conserve bandwidth by minimizing the number of segments that are
+                        sent. When applications wish to decrease network latency and increase
+                        performance, they can disable Nagle's algorithm (that is enable
+                            <literal>TCP_NODELAY</literal>. Data will be sent earlier, at the cost
+                        of an increase in bandwidth consumption. This parameter expects a value of
+                        type <classname>java.lang.Boolean</classname>. If this parameter is not,
+                            <literal>TCP_NODELAY</literal> will be enabled (no delay).</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.socket.buffer-size':</title>
+                    <para>determines the size of the internal socket buffer used to buffer data
+                        while receiving / transmitting HTTP messages. This parameter expects a value
+                        of type <classname>java.lang.Integer</classname>. If this parameter is not
+                        set HttpClient will allocate 8192 byte socket buffers.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.socket.linger':</title>
+                    <para>sets <literal>SO_LINGER</literal> with the specified linger time in
+                        seconds. The maximum timeout value is platform specific. Value 0 implies
+                        that the option is disabled. Value -1 implies that the JRE default is used.
+                        The setting only affects the socket close operation. If this parameter is
+                        not set value -1 (JRE default) will be assumed.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.connection.timeout':</title>
+                    <para>determines the timeout in milliseconds until a connection is established.
+                        A timeout value of zero is interpreted as an infinite timeout. This
+                        parameter expects a value of type <classname>java.lang.Integer</classname>.
+                        If this parameter is not set connect operations will not time out (infinite
+                        timeout).</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.connection.stalecheck':</title>
+                    <para>determines whether stale connection check is to be used. Disabling stale
+                        connection check may result in a noticeable performance improvement (the
+                        check can cause up to 30 millisecond overhead per request) at the risk of
+                        getting an I/O error when executing a request over a connection that has
+                        been closed at the server side. This parameter expects a value of type
+                            <classname>java.lang.Boolean</classname>. For performance critical
+                        operations the check should be disabled. If this parameter is not set the
+                        stale connection will be performed before each request execution.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.connection.max-line-length':</title>
+                    <para>determines the maximum line length limit. If set to a positive value, any
+                        HTTP line exceeding this limit will cause an
+                            <exceptionname>java.io.IOException</exceptionname>. A negative or zero
+                        value will effectively disable the check. This parameter expects a value of
+                        type <classname>java.lang.Integer</classname>. If this parameter is not set,
+                        no limit will be enforced.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.connection.max-header-count':</title>
+                    <para>determines the maximum HTTP header count allowed. If set to a positive
+                        value, the number of HTTP headers received from the data stream exceeding
+                        this limit will cause an <exceptionname>java.io.IOException</exceptionname>.
+                        A negative or zero value will effectively disable the check. This parameter
+                        expects a value of type <classname>java.lang.Integer</classname>. If this
+                        parameter is not set, no limit will be enforced.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.connection.max-status-line-garbage':</title>
+                    <para>defines the maximum number of ignorable lines before we expect a HTTP
+                        response's status line. With HTTP/1.1 persistent connections, the problem
+                        arises that broken scripts could return a wrong
+                            <literal>Content-Length</literal> (there are more bytes sent than
+                        specified). Unfortunately, in some cases, this cannot be detected after the
+                        bad response, but only before the next one. So HttpClient must be able to
+                        skip those surplus lines this way. This parameter expects a value of type
+                        java.lang.Integer. 0 disallows all garbage/empty lines before the status
+                        line. Use <constant>java.lang.Integer#MAX_VALUE</constant> for unlimited
+                        number. If this parameter is not set unlimited number will be
+                        assumed.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Connection persistence</title>
+        <para>The process of establishing a connection from one host to another is quite complex and
+            involves multiple packet exchanges between two endpoints, which can be quite time
+            consuming. The overhead of connection handshaking can be significant, especially for
+            small HTTP messages. One can achieve a much higher data throughput if open connections
+            can be re-used to execute multiple requests.</para>
+        <para>HTTP/1.1 states that HTTP connections can be re-used for multiple requests per
+            default. HTTP/1.0 compliant endpoints can also use similar mechanism to explicitly
+            communicate their preference to keep connection alive and use it for multiple requests.
+            HTTP agents can also keep idle connections alive for a certain period time in case a
+            connection to the same target host may be needed for subsequent requests. The ability to
+            keep connections alive is usually refered to as connection persistence. HttpClient fully
+            supports connection persistence.</para>
+    </section>
+    <section>
+        <title>HTTP connection routing</title>
+        <para>HttpClient is capable of establishing connections to the target host either directly
+            or via a route that may involve multiple intermediate connections also referred to as
+            hops. HttpClient differentiates connections of a route into plain, tunneled and layered.
+            The use of multiple intermediate proxies to tunnel connections to the target host is
+            referred to as proxy chaining.</para>
+        <para>Plain routes are established by connecting to the target or the first and only proxy.
+            Tunnelled routes are established by connecting to the first and tunnelling through a
+            chain of proxies to the target. Routes without a proxy cannot be tunnelled. Layered
+            routes are established by layering a protocol over an existing connection. Protocols can
+            only be layered over a tunnel to the target, or over a direct connection without
+            proxies.</para>
+        <section>
+            <title>Route computation</title>
+            <para><interfacename>RouteInfo</interfacename> interface represents information about a
+                definitive route to a target host involving one or more intermediate steps or hops.
+                    <classname>HttpRoute</classname> is a concrete implementation of
+                    <interfacename>RouteInfo</interfacename>, which cannot be changed (is
+                immutable). <classname>HttpTracker</classname> is a mutable
+                    <interfacename>RouteInfo</interfacename> implementation used internally by
+                HttpClient to track the remaining hops to the ultimate route target.
+                    <classname>HttpTracker</classname> can be updated after a successful execution
+                of the next hop towards the route target. <classname>HttpRouteDirector</classname>
+                is a helper class that can be used to compute the next step in a route. This class
+                is used internally by HttpClient.</para>
+            <para><interfacename>HttpRoutePlanner</interfacename> is an interface representing a
+                strategy to compute a complete route to a given target based on the execution
+                context. HttpClient ships with two default
+                    <interfacename>HttpRoutePlanner</interfacename> implementation.
+                    <classname>ProxySelectorRoutePlanner</classname> is based on
+                    <classname>java.net.ProxySelector</classname>. By default, it will pick up the
+                proxy settings of the JVM, either from system properties or from the browser running
+                the application. <classname>DefaultHttpRoutePlanner</classname> implementation does
+                not make use of any Java system properties, nor of system or browser proxy settings.
+                It computes routes based exclusively on HTTP parameters described below.</para>
+        </section>
+        <section>
+            <title>Secure HTTP connections</title>
+            <para>HTTP connections can be considered secure if information transmitted between two
+                connection endpoints cannot be read or tampered with by an unauthorized third party.
+                The SSL/TLS protocol is the most widely used technique to ensure HTTP transport
+                security. However, other encryption techniques could be employed as well. Usually,
+                HTTP transport is layered over the SSL/TLS encrypted connection.</para>
+        </section>
+    </section>
+    <section>
+        <title>HTTP route parameters</title>
+        <para>These are parameters that can influence route computation:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.route.default-proxy':</title>
+                    <para>defines a proxy host to be used by default route planners that do not make
+                        use of JRE settings. This parameter expects a value of type
+                            <classname>HttpHost</classname>. If this parameter is not set direct
+                        connections to the target will be attempted.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.route.local-address':</title>
+                    <para>defines a local address to be used by all default route planner. On
+                        machines with multiple network interfaces, this parameter can be used to
+                        select the network interface from which the connection originates. This
+                        parameter expects a value of type
+                            <classname>java.net.InetAddress</classname>. If this parameter is not
+                        set a default local address will be used automatically.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.route.forced-route':</title>
+                    <para>defines an forced route to be used by all default route planner. Instead
+                        of computing a route, the given forced route will be returned, even if it
+                        points to a completely different target host. This parameter expects a value
+                        of type <classname>HttpRoute</classname>.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Socket factories</title>
+        <para>HTTP connections make use of a <classname>java.net.Socket</classname> object
+            internally to handle transmission of data across the wire. They, however, rely on
+                <interfacename>SocketFactory</interfacename> interface to create, initialize and
+            connect sockets. This enables the users of HttpClient to provide application specific
+            socket initialization code at runtime. <classname>PlainSocketFactory</classname> is the
+            default factory for creating and initializing plain (unencrypted) sockets.</para>
+        <para>The process of creating a socket and that of connecting it to a host are decoupled, so
+            that the socket could be closed while being blocked in the connect operation.</para>
+        <programlisting><![CDATA[
+PlainSocketFactory sf = PlainSocketFactory.getSocketFactory();
+Socket socket = sf.createSocket();
+
+HttpParams params = new BasicHttpParams();
+params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 1000L);
+sf.connectSocket(socket, "locahost", 8080, null, -1, params);
+]]></programlisting>
+        <section>
+            <title>Secure socket layering</title>
+            <para><interfacename>LayeredSocketFactory</interfacename> is an extension of
+                    <interfacename>SocketFactory</interfacename> interface. Layered socket factories
+                are capable of creating sockets that are layered over an existing plain socket.
+                Socket layering is used primarily for creating secure sockets through proxies.
+                HttpClient ships with SSLSocketFactory that implements SSL/TLS layering. Please note
+                HttpClient does not use any custom encryption functionality. It is fully reliant on
+                standard Java Cryptography (JCE) and Secure Sockets (JSEE) extensions.</para>
+        </section>
+        <section>
+            <title>SSL/TLS customization</title>
+            <para>HttpClient makes use of SSLSocketFactory to create SSL connections.
+                    <classname>SSLSocketFactory</classname> allows for a high degree of
+                customization. It can take an instance of
+                    <interfacename>javax.net.ssl.SSLContext</interfacename> as a parameter and use
+                it to create custom configured SSL connections.</para>
+            <programlisting><![CDATA[
+TrustManager easyTrustManager = new X509TrustManager() {
+
+    @Override
+    public void checkClientTrusted(
+            X509Certificate[] chain,
+            String authType) throws CertificateException {
+        // Oh, I am easy!
+    }
+
+    @Override
+    public void checkServerTrusted(
+            X509Certificate[] chain,
+            String authType) throws CertificateException {
+        // Oh, I am easy!
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        return null;
+    }
+    
+};
+
+SSLContext sslcontext = SSLContext.getInstance("TLS");
+sslcontext.init(null, new TrustManager[] { easyTrustManager }, null);
+
+SSLSocketFactory sf = new SSLSocketFactory(sslcontext); 
+SSLSocket socket = (SSLSocket) sf.createSocket();
+socket.setEnabledCipherSuites(new String[] { "SSL_RSA_WITH_RC4_128_MD5" });
+
+HttpParams params = new BasicHttpParams();
+params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 1000L);
+sf.connectSocket(socket, "locahost", 443, null, -1, params);
+]]></programlisting>
+            <para>Customization of SSLSocketFactory implies a certain degree of familiarity with the
+                concepts of the SSL/TLS protocol, a detailed explanation of which is out of scope
+                for this document. Please refer to the <ulink
+                    url="http://java.sun.com/j2se/1.5.0/docs/guide/security/jsse/JSSERefGuide.html"
+                    >Java Secure Socket Extension</ulink> for a detailed description of
+                    <interfacename>javax.net.ssl.SSLContext</interfacename> and related
+                tools.</para>
+        </section>
+        <section>
+            <title>Hostname verification</title>
+            <para>In addition to the trust verification and the client authentication performed on
+                the SSL/TLS protocol level, HttpClient can optionally verify whether the target
+                hostname matches the names stored inside the server's X.509 certificate, once the
+                connection has been established. This verification can provide additional guarantees
+                of authenticity of the server trust material. X509HostnameVerifier interface
+                represents a strategy for hostname verification. HttpClient ships with three
+                X509HostnameVerifier. Important: hostname verification should not be confused with
+                SSL trust verification.</para>
+            <itemizedlist>
+                <listitem>
+                    <formalpara>
+                        <title><classname>StrictHostnameVerifier</classname>:</title>
+                        <para>The strict hostname verifier works the same way as Sun Java 1.4, Sun
+                            Java 5, Sun Java 6. It's also pretty close to IE6. This implementation
+                            appears to be compliant with RFC 2818 for dealing with wildcards. The
+                            hostname must match either the first CN, or any of the subject-alts. A
+                            wildcard can occur in the CN, and in any of the subject-alts.</para>
+                    </formalpara>
+                </listitem>
+                <listitem>
+                    <formalpara>
+                        <title><classname>BrowserCompatHostnameVerifier</classname>:</title>
+                        <para>The hostname verifier that works the same way as Curl and Firefox. The
+                            hostname must match either the first CN, or any of the subject-alts. A
+                            wildcard can occur in the CN, and in any of the subject-alts. The only
+                            difference between <classname>BrowserCompatHostnameVerifier</classname>
+                            and <classname>StrictHostnameVerifier</classname> is that a wildcard
+                            (such as "*.foo.com") with
+                                <classname>BrowserCompatHostnameVerifier</classname> matches all
+                            subdomains, including "a.b.foo.com".</para>
+                    </formalpara>
+                </listitem>
+                <listitem>
+                    <formalpara>
+                        <title><classname>AllowAllHostnameVerifier</classname>:</title>
+                        <para>This hostname verifier essentially turns hostname verification off.
+                            This implementation is a no-op, and never throws the
+                                <exceptionname>javax.net.ssl.SSLException</exceptionname>.</para>
+                    </formalpara>
+                </listitem>
+            </itemizedlist>
+            <para>Per default HttpClient uses <classname>BrowserCompatHostnameVerifier</classname>
+                implementation. One can specify a different hostname verifier implementation if
+                desired</para>
+            <programlisting><![CDATA[
+SSLSocketFactory sf = new SSLSocketFactory(SSLContext.getInstance("TLS"));
+sf.setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
+]]></programlisting>
+        </section>
+    </section>
+    <section>
+        <title>Protocol schemes</title>
+        <para><classname>Scheme</classname> class represents a protocol scheme such as "http" or
+            "https" and contains a number of protocol properties such as the default port and the
+            socket factory to be used to creating <classname>java.net.Socket</classname> instances
+            for the given protocol. <classname>SchemeRegistry</classname> class is used to maintain
+            a set of <classname>Scheme</classname>s HttpClient can choose from when trying to
+            establish a connection by a request URI:</para>
+        <programlisting><![CDATA[
+Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+
+SSLSocketFactory sf = new SSLSocketFactory(SSLContext.getInstance("TLS"));
+sf.setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
+Scheme https = new Scheme("https", sf, 443);
+
+SchemeRegistry sr = new SchemeRegistry();
+sr.register(http);
+sr.register(https);
+]]></programlisting>
+    </section>
+    <section>
+        <title>HttpClient proxy configuration</title>
+        <para>Even though HttpClient is aware of complex routing scemes and proxy chaining, it
+            supports only simple direct or one hop proxy connections out of the box.</para>
+        <para>The simplest way to tell HttpClient to connect to the target host via a proxy is by
+            setting the default proxy parameter:</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+HttpHost proxy = new HttpHost("someproxy", 8080);
+httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+]]></programlisting>
+        <para>One can also instruct HttpClient to use standard JRE proxy selector to obtain proxy
+            information:</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(
+        httpclient.getConnectionManager().getSchemeRegistry(),
+        ProxySelector.getDefault());  
+httpclient.setRoutePlanner(routePlanner);
+]]></programlisting>
+        <para>Alternatively, one can provide a custom <interfacename>RoutePlanner</interfacename>
+            implementation in order to have a complete control over the process of HTTP route
+            computation:</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+httpclient.setRoutePlanner(new HttpRoutePlanner() {
+
+    public HttpRoute determineRoute(
+            HttpHost target, 
+            HttpRequest request, 
+            HttpContext context) throws HttpException {
+        return new HttpRoute(target, null,  new HttpHost("someproxy", 8080), 
+                "https".equalsIgnoreCase(target.getSchemeName()));
+    }
+    
+});
+]]></programlisting>
+    </section>
+    <section>
+        <title>HTTP connection managers</title>
+        <section>
+            <title>Connection operators</title>
+            <para>Operated connections are client side connections whose underlying socket or its
+                state can be manipulated by an external entity, usually referred to as a connection
+                operator. <interfacename>OperatedClientConnection</interfacename> interface extends
+                    <interfacename>HttpClientConnection</interfacename> interface and define
+                additional methods to manage connection socket. The
+                    <interfacename>ClientConnectionOperator</interfacename> interface represents a
+                strategy for creating <interfacename>OperatedClientConnection</interfacename>
+                instances and updating the underlying socket of those objects. Implementations will
+                most likely make use <interfacename>SocketFactory</interfacename>s to create
+                    <classname>java.net.Socket</classname> instances. The
+                    <interfacename>ClientConnectionOperator</interfacename> interface enables the
+                users of HttpClient to provide a custom strategy for connection operators as well as
+                an ability to provide alternative implementation of the
+                    <interfacename>OperatedClientConnection</interfacename> interface.</para>
+        </section>
+        <section>
+            <title>Managed connections and connection managers</title>
+            <para>HTTP connections are complex, stateful, thread-unsafe objects which need to be
+                properly managed to function correctly. HTTP connections can only be used by one
+                execution thread at a time. HttpClient employs a special entity to manage access to
+                HTTP connections called HTTP connection manager and represented by the
+                    <interfacename>ClientConnectionManager</interfacename> interface. The purpose of
+                an HTTP connection manager is to serve as a factory for new HTTP connections, manage
+                persistent connections and synchronize access to persistent connections making sure
+                that only one thread can have access to a connection at a time.</para>
+            <para>Internally HTTP connection managers work with instances of
+                    <interfacename>OperatedClientConnection</interfacename>, but they hands out
+                instances of <interfacename>ManagedClientConnection</interfacename> to the service
+                consumers. <interfacename>ManagedClientConnection</interfacename> acts as a wrapper
+                for a <interfacename>OperatedClientConnection</interfacename> instance that manages
+                its state and controls all I/O operations on that connection. It also abstracts away
+                socket operations and provides convenience methods for opening and updating sockets
+                in order to establish a route.
+                    <interfacename>ManagedClientConnection</interfacename> instances are aware of
+                their link to the connection manager that spawned them and of the fact that they
+                must be returned back to the manager when no longer in use.
+                    <interfacename>ManagedClientConnection</interfacename> classes also implement
+                    <interfacename>ConnectionReleaseTrigger</interfacename> interface that can be
+                used to trigger the release of the connection back to the manager. Once the
+                connection release has been triggered the wrapped connection gets detached from the
+                    <interfacename>ManagedClientConnection</interfacename> wrapper and the
+                    <interfacename>OperatedClientConnection</interfacename> instance is returned
+                back to the manager. Even though the service consumer still holds a reference to the
+                    <interfacename>ManagedClientConnection</interfacename> instance, it is no longer
+                able to execute any I/O operation or change the state of the
+                    <interfacename>OperatedClientConnection</interfacename> either intentionally or
+                unintentionally.</para>
+            <para>This is an example of acquiring a connection from a connection manager:</para>
+            <programlisting><![CDATA[
+HttpParams params = new BasicHttpParams();
+Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+SchemeRegistry sr = new SchemeRegistry();
+sr.register(http);
+
+ClientConnectionManager connMrg = new SingleClientConnManager(params, sr);
+
+// Request new connection. This can be a long process
+ClientConnectionRequest connRequest = connMrg.requestConnection(
+        new HttpRoute(new HttpHost("localhost", 80)), null);
+
+// Wait for connection up to 10 sec
+ManagedClientConnection conn = connRequest.getConnection(10, TimeUnit.SECONDS);
+try {
+    // Do useful things with the connection.
+    // Release it when done.
+    conn.releaseConnection();
+} catch (IOException ex) {
+    // Abort connection upon an I/O error.
+    conn.abortConnection();
+    throw ex;
+}
+]]></programlisting>
+            <para>The connection request can be terminated prematurely by calling
+                    <methodname>ClientConnectionRequest#abortRequest()</methodname> if necessary.
+                This will unblock the thread blocked in the
+                    <methodname>ClientConnectionRequest#getConnection()</methodname> method.</para>
+            <para><classname>BasicManagedEntity</classname> wrapper class can be used to ensure
+                automatic release of the underlying connection once the response content has been
+                fully consumed. HttpClient uses this mechanism internally to achieve transparent
+                connection release for all responses obtained from
+                    <methodname>HttpClient#execute()</methodname> methods:</para>
+            <programlisting><![CDATA[
+ClientConnectionRequest connRequest = connMrg.requestConnection(
+        new HttpRoute(new HttpHost("localhost", 80)), null);
+ManagedClientConnection conn = connRequest.getConnection(10, TimeUnit.SECONDS);
+try {
+    BasicHttpRequest request = new BasicHttpRequest("GET", "/");
+    conn.sendRequestHeader(request);
+    HttpResponse response = conn.receiveResponseHeader();
+    conn.receiveResponseEntity(response);
+    HttpEntity entity = response.getEntity();
+    if (entity != null) {
+        BasicManagedEntity managedEntity = new BasicManagedEntity(entity, conn, true);
+        // Replace entity
+        response.setEntity(managedEntity);
+    }
+    // Do something useful with the response
+    // The connection will be released automatically 
+    // as soon as the response content has been consumed
+} catch (IOException ex) {
+    // Abort connection upon an I/O error.
+    conn.abortConnection();
+    throw ex;
+}
+]]></programlisting>
+        </section>
+        <section>
+            <title>Simple connection manager</title>
+            <para><classname>SingleClientConnManager</classname> is a simple connection manager that
+                maintains only one connection at a time. Even though this class is thread-safe it
+                ought to be used by one execution thread only.
+                    <classname>SingleClientConnManager</classname> will make an effort to reuse the
+                connection for subsequent requests with the same route. It will, however, close the
+                existing connection and open it for the given route, if the route of the persistent
+                connection does not match that of the connection request. If the connection has been
+                already been allocated
+                    <exceptionname>java.lang.IllegalStateException</exceptionname> is thrown.</para>
+            <para><classname>SingleClientConnManager</classname> is used by HttpClient per
+                default.</para>
+        </section>
+        <section>
+            <title>Pooling connection manager</title>
+            <para><classname>ThreadSafeClientConnManager</classname> is a more complex
+                implementation that manages a pool of client connections and is able to service
+                connection requests from multiple execution threads. Connections are pooled on a per
+                route basis. A request for a route which already the manager has persistent
+                connections for available in the pool will be services by leasing a connection from
+                the pool rather than creating a brand new connection.</para>
+            <para><classname>ThreadSafeClientConnManager</classname> maintains a maximum limit of
+                connection on a per route basis and in total. Per default this implementation will
+                create no more than than 2 concurrent connections per given route and no more 20
+                connections in total. For many real-world applications these limits may prove too
+                constraining, especially if they use HTTP as a transport protocol for their
+                services. Connection limits, however, can be adjusted using HTTP parameters.</para>
+            <para>This example shows how the connection pool parameters can be adjusted:</para>
+            <programlisting><![CDATA[
+HttpParams params = new BasicHttpParams();
+// Increase max total connection to 200
+ConnManagerParams.setMaxTotalConnections(params, 200);
+// Increase default max connection per route to 20
+ConnPerRouteBean connPerRoute = new ConnPerRouteBean(20);
+// Increase max connections for localhost:80 to 50
+HttpHost localhost = new HttpHost("locahost", 80);
+connPerRoute.setMaxForRoute(new HttpRoute(localhost), 50);
+ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+
+SchemeRegistry schemeRegistry = new SchemeRegistry();
+schemeRegistry.register(
+        new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+schemeRegistry.register(
+        new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+
+ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+HttpClient httpClient = new DefaultHttpClient(cm, params);
+]]></programlisting>
+        </section>
+        <section>
+            <title>Connection manager shutdown</title>
+            <para>When an HttpClient instance is no longer needed and is about to go out of scope it
+                is important to shut down its connection manager to ensure that all connections kept
+                alive by the manager get closed and system resources allocated by those connections
+                are released.</para>
+            <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+HttpGet httpget = new HttpGet("http://www.google.com/");
+HttpResponse response = httpclient.execute(httpget);
+HttpEntity entity = response.getEntity();
+System.out.println(response.getStatusLine());
+if (entity != null) {
+    entity.consumeContent();
+}
+httpclient.getConnectionManager().shutdown();
+]]></programlisting>
+        </section>
+    </section>
+    <section>
+        <title>Connection management parameters</title>
+        <para>These are parameters that be used to customize standard HTTP connection manager
+            implementations:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.conn-manager.timeout':</title>
+                    <para>defines the timeout in milliseconds used when retrieving an instance of
+                            <interfacename>ManagedClientConnection</interfacename> from the
+                            <interfacename>ClientConnectionManager</interfacename> This parameter
+                        expects a value of type <classname>java.lang.Long</classname>. If this
+                        parameter is not set connection requests will not time out (infinite
+                        timeout).</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.conn-manager.max-per-route':</title>
+                    <para>defines the maximum number of connections per route. This limit is
+                        interpreted by client connection managers and applies to individual manager
+                        instances. This parameter expects a value of type
+                            <interfacename>ConnPerRoute</interfacename>.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.conn-manager.max-total':</title>
+                    <para>defines the maximum number of connections in total. This limit is
+                        interpreted by client connection managers and applies to individual manager
+                        instances. This parameter expects a value of type
+                            <classname>java.lang.Integer</classname>.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Multithreaded request execution</title>
+        <para>When equipped with a pooling connection manager such as ThreadSafeClientConnManager
+            HttpClient can be used to execute multiple requests simultaneously using multiple
+            threads of execution.</para>
+        <para><classname>ThreadSafeClientConnManager</classname> will allocate connections based on
+            its configuration. If all connections for a given route have already been leased, a
+            request for connection will block until a connection is released back to the pool. One
+            can ensure the connection manager does not block indefinitely in the connection request
+            operation by setting <literal>'http.conn-manager.timeout'</literal> to a positive value.
+            If the connection request cannot be serviced within the given time period
+                <exceptionname>ConnectionPoolTimeoutException</exceptionname> will be thrown.</para>
+        <programlisting><![CDATA[
+HttpParams params = new BasicHttpParams();
+SchemeRegistry schemeRegistry = new SchemeRegistry();
+schemeRegistry.register(
+        new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+
+ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+HttpClient httpClient = new DefaultHttpClient(cm, params);
+
+// URIs to perform GETs on
+String[] urisToGet = {
+    "http://www.domain1.com/",
+    "http://www.domain2.com/",
+    "http://www.domain3.com/",
+    "http://www.domain4.com/"
+};
+
+// create a thread for each URI
+GetThread[] threads = new GetThread[urisToGet.length];
+for (int i = 0; i < threads.length; i++) {
+    HttpGet httpget = new HttpGet(urisToGet[i]);
+    threads[i] = new GetThread(httpClient, httpget);
+}
+
+// start the threads
+for (int j = 0; j < threads.length; j++) {
+    threads[j].start();
+}
+
+// join the threads
+for (int j = 0; j < threads.length; j++) {
+    threads[j].join();
+}
+
+]]></programlisting>
+        <programlisting><![CDATA[
+static class GetThread extends Thread {
+    
+    private final HttpClient httpClient;
+    private final HttpContext context;
+    private final HttpGet httpget;
+    
+    public GetThread(HttpClient httpClient, HttpGet httpget) {
+        this.httpClient = httpClient;
+        this.context = new BasicHttpContext();
+        this.httpget = httpget;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            HttpResponse response = this.httpClient.execute(this.httpget, this.context);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                // do something useful with the entity
+                // ...
+                // ensure the connection gets released to the manager
+                entity.consumeContent();
+            }
+        } catch (Exception ex) {
+            this.httpget.abort();
+        }
+    }
+   
+}
+]]></programlisting>
+    </section>
+    <section>
+        <title>Connection eviction policy</title>
+        <para>One of the major shortcoming of the classic blocking I/O model is that the network
+            socket can react to I/O events only when blocked in an I/O operation. When a connection
+            is released back to the manager, it can be kept alive however it is unable to monitor
+            the status of the socket and react to any I/O events. If the connection gets closed on
+            the server side, the client side connection is unable to detect the change in the
+            connection state and react appropriately by closing the socket on its end.</para>
+        <para>HttpClient tries to mitigate the problem by testing whether the connection is 'stale',
+            that is no longer valid because it was closed on the server side, prior to using the
+            connection for executing an HTTP request. The stale connection check is not 100%
+            reliable and adds 10 to 30 ms overhead to each request execution. The only feasible
+            solution that does not involve a one thread per socket model for idle connections is a
+            dedicated monitor thread used to evict connections that are considered expired due to a
+            long period of inactivity. The monitor thread can periodically call
+                <methodname>ClientConnectionManager#closeExpiredConnections()</methodname> method to
+            close all expired connections and evict closed connections from the pool. It can also
+            optionally call <methodname>ClientConnectionManager#closeIdleConnections()</methodname>
+            method to close all connections that have been idle over a given period of time.</para>
+        <programlisting><![CDATA[
+public static class IdleConnectionMonitorThread extends Thread {
+    
+    private final ClientConnectionManager connMgr;
+    private volatile boolean shutdown;
+    
+    public IdleConnectionMonitorThread(ClientConnectionManager connMgr) {
+        super();
+        this.connMgr = connMgr;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!shutdown) {
+                synchronized (this) {
+                    wait(5000);
+                    // Close expired connections
+                    connMgr.closeExpiredConnections();
+                    // Optionally, close connections
+                    // that have been idle longer than 30 sec
+                    connMgr.closeIdleConnections(30, TimeUnit.SECONDS);
+                }
+            }
+        } catch (InterruptedException ex) {
+            // terminate
+        }
+    }
+    
+    public void shutdown() {
+        shutdown = true;
+        synchronized (this) {
+            notifyAll();
+        }
+    }
+    
+}
+]]></programlisting>
+    </section>
+    <section>
+        <title>Connection keep alive strategy</title>
+        <para>The HTTP specification does not specify how long a persistent connection may be and
+            should be kept alive. Some HTTP servers use non-standard <literal>Keep-Alive</literal>
+            header to communicate to the client the period of time in seconds they intend to keep
+            the connection alive on the server side. HttpClient makes use of this information if
+            available. If the <literal>Keep-Alive</literal> header is not present in the response,
+            HttpClient assumes the connection can be kept alive indefinitely. However, many HTTP
+            servers out there are configured to drop persistent connections after a certain period
+            of inactivity in order to conserve system resources, quite often without informing the
+            client. In case the default strategy turns out to be too optimistic, one may want to
+            provide a custom keep-alive strategy.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+httpclient.setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
+
+    public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+        // Honor 'keep-alive' header
+        HeaderElementIterator it = new BasicHeaderElementIterator(
+                response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+        while (it.hasNext()) {
+            HeaderElement he = it.nextElement();
+            String param = he.getName(); 
+            String value = he.getValue();
+            if (value != null && param.equalsIgnoreCase("timeout")) {
+                try {
+                    return Long.parseLong(value) * 1000;
+                } catch(NumberFormatException ignore) {
+                }
+            }
+        }
+        HttpHost target = (HttpHost) context.getAttribute(
+                ExecutionContext.HTTP_TARGET_HOST);
+        if ("www.naughty-server.com".equalsIgnoreCase(target.getHostName())) {
+            // Keep alive for 5 seconds only
+            return 5 * 1000;
+        } else {
+            // otherwise keep alive for 30 seconds
+            return 30 * 1000;
+        }
+    }
+    
+});
+]]></programlisting>
+    </section>
+</chapter>

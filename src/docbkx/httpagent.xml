@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!-- 
+    ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+    ====================================================================
+-->
+<chapter>
+    <title>HTTP client service</title>
+    <section>
+        <title>HttpClient facade</title>
+        <para><interfacename>HttpClient</interfacename> interface represents the most essential
+            contract for HTTP request execution. It imposes no restrictions or particular details on
+            the request execution process and leaves the specifics of connection management, state
+            management, authentication and redirect handling up to individual implementations. This
+            should make it easier to decorate the interface with additional functionality such as
+            response content caching.</para>
+        <para><classname>DefaultHttpClient</classname> is the default implementation of the
+                <interfacename>HttpClient</interfacename> interface. This class acts as a facade to
+            a number of special purpose handler or strategy interface implementations responsible
+            for handling of a particular aspect of the HTTP protocol such as redirect or
+            authentication handling or making decision about connection persistence and keep alive
+            duration. This enables the users to selectively replace default implementation of those
+            aspects with custom, application specific ones.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+httpclient.setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+
+    @Override
+    public long getKeepAliveDuration(
+            HttpResponse response,
+            HttpContext context) {
+        long keepAlive = super.getKeepAliveDuration(response, context);
+        if (keepAlive == -1) {
+            // Keep connections alive 5 seconds if a keep-alive value 
+            // has not be explicitly set by the server 
+            keepAlive = 5000;
+        }
+        return keepAlive;
+    }
+    
+});
+]]></programlisting>
+        <para><classname>DefaultHttpClient</classname> also maintains a list of protocol
+            interceptors intended for processing outgoing requests and incoming responses and
+            provides methods for managing those interceptors. New protocol interceptors can be
+            introduced to the protocol processor chain or removed from it if needed. Internally
+            protocol interceptors are stored in a simple <classname>java.util.ArrayList</classname>.
+            They are executed in the same natural order as they are added to the list.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+httpclient.removeRequestInterceptorByClass(RequestUserAgent.class);
+httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
+
+    public void process(
+            HttpRequest request, HttpContext context)
+            throws HttpException, IOException {
+        request.setHeader(HTTP.USER_AGENT, "My-own-client");
+    }
+    
+});
+]]></programlisting>
+        <para><classname>DefaultHttpClient</classname> is thread safe. It is recommended that the
+            same instance of this class is reused for multiple request executions. When an instance
+            of <classname>DefaultHttpClient</classname> is no longer needed and is about to go out
+            of scope the connection manager associated with it must be shut down by calling the
+                <methodname>ClientConnectionManager#shutdown()</methodname> method.</para>
+        <programlisting><![CDATA[
+HttpClient httpclient = new DefaultHttpClient();
+// Do something useful
+httpclient.getConnectionManager().shutdown();
+]]></programlisting>
+    </section>
+    <section>
+        <title>HttpClient parameters</title>
+        <para>These are parameters that be used to customize the behaviour of the default HttpClient
+            implementation:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.handle-redirects':</title>
+                    <para>defines whether redirects should be handled automatically. This parameter
+                        expects a value of type <classname>java.lang.Boolean</classname>. If this
+                        parameter is not HttpClient will handle redirects automatically.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.reject-relative-redirect':</title>
+                    <para>defines whether relative redirects should be rejected. HTTP specification
+                        requires the location value be an absolute URI. This parameter expects a
+                        value of type <classname>java.lang.Boolean</classname>. If this parameter is
+                        not set relative redirects will be allowed.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.max-redirects':</title>
+                    <para>defines the maximum number of redirects to be followed. The limit on
+                        number of redirects is intended to prevent infinite loops caused by broken
+                        server side scripts. This parameter expects a value of type
+                            <classname>java.lang.Integer</classname>. If this parameter is not set
+                        no more than 100 redirects will be allowed.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.allow-circular-redirects':</title>
+                    <para>defines whether circular redirects (redirects to the same location) should
+                        be allowed. The HTTP spec is not sufficiently clear whether circular
+                        redirects are permitted, therefore optionally they can be enabled. This
+                        parameter expects a value of type <classname>java.lang.Boolean</classname>.
+                        If this parameter is not set circular redirects will be disallowed.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.connection-manager.factory-class-name':</title>
+                    <para>defines the class name of the default
+                            <interfacename>ClientConnectionManager</interfacename> implementation.
+                        This parameter expects a value of type
+                            <classname>java.lang.String</classname>. If this parameter is not set
+                            <classname>SingleClientConnManager</classname> will be used per
+                        default.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.virtual-host':</title>
+                    <para>defines the virtual host name to be used in the <literal>Host</literal>
+                        header instead of the physical host name. This parameter expects a value of
+                        type <classname>HttpHost</classname>. If this parameter is not set name or
+                        IP address of the target host will be used.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.default-headers':</title>
+                    <para>defines the request headers to be sent per default with each request. This
+                        parameter expects a value of type
+                            <interfacename>java.util.Collection</interfacename> containing
+                            <interfacename>Header</interfacename> objects.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.default-host':</title>
+                    <para>defines the default host. The default value will be used if the target
+                        host is not explicitly specified in the request URI (relative URIs). This
+                        parameter expects a value of type <classname>HttpHost</classname>.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Automcatic redirect handling</title>
+        <para>HttpClient handles all types of redirects automatically, except those explicitly
+            prohibited by the HTTP specification as requiring user intervention. Redirects on
+                <literal>POST</literal> and <literal>PUT</literal> requests are converted to
+                <literal>GET</literal> requests as required by the HTTP specification.</para>
+    </section>
+    <section>
+        <title>HTTP client and execution context</title>
+        <para>The <classname>DefaultHttpClient</classname> treats HTTP requests as immutable objects
+            that are never supposed to change in the course of request execution. Instead, it
+            creates a private mutable copy of the original request object, whose properties can be
+            updated depending on the execution context. Therefore the final request properties such
+            as the target host and request URI can be determined by examining the content of the
+            local HTTP context after the request has been executed.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+HttpContext localContext = new BasicHttpContext();
+HttpGet httpget = new HttpGet("http://localhost:8080/"); 
+HttpResponse response = httpclient.execute(httpget, localContext);
+HttpHost target = (HttpHost) localContext.getAttribute(
+        ExecutionContext.HTTP_TARGET_HOST);
+HttpUriRequest req = (HttpUriRequest) localContext.getAttribute(
+        ExecutionContext.HTTP_REQUEST);
+
+System.out.println("Target host: " + target);
+System.out.println("Final request URI: " + req.getURI());
+System.out.println("Final request method: " + req.getMethod());
+]]></programlisting>
+    </section>
+</chapter>

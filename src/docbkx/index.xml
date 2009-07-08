@@ -62,5 +62,10 @@
 
     <xi:include href="preface.xml"/>
     <xi:include href="fundamentals.xml"/>
-
+    <xi:include href="connmgmt.xml"/>
+    <xi:include href="statemgmt.xml"/>
+    <xi:include href="authentication.xml"/>
+    <xi:include href="httpagent.xml"/>
+    <xi:include href="advanced.xml"/>
+    
 </book>

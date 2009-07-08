@@ -48,7 +48,7 @@
             <listitem>
                 <para>
                     Client-side HTTP transport library based on <ulink 
-                        url="http://hc.apache.org/httpcomponents-core/index.html/">HttpCore</ulink>
+                        url="http://hc.apache.org/httpcomponents-core/index.html">HttpCore</ulink>
                 </para>
             </listitem>
             <listitem>

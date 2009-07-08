@@ -503,54 +503,42 @@ byte[] response = httpclient.execute(httpget, handler);
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.connection</literal>
-                    </title>
+                    <title>'http.connection':</title>
                     <para><interfacename>HttpConnection</interfacename> instance representing the
                         actual connection to the target server.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.target_host</literal>
-                    </title>
+                    <title>'http.target_host':</title>
                     <para><classname>HttpHost</classname> instance representing the connection
                         target.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.proxy_host</literal>
-                    </title>
+                    <title>'http.proxy_host':</title>
                     <para><classname>HttpHost</classname> instance representing the connection
                         proxy, if used</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.request</literal>
-                    </title>
+                    <title>'http.request':</title>
                     <para><interfacename>HttpRequest</interfacename> instance representing the
                         actual HTTP request.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.response</literal>
-                    </title>
+                    <title>'http.response':</title>
                     <para><interfacename>HttpResponse</interfacename> instance representing the
                         actual HTTP response.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.request_sent</literal>
-                    </title>
+                    <title>'http.request_sent':</title>
                     <para><classname>java.lang.Boolean</classname> object representing the flag
                         indicating whether the actual request has been fully transmitted to the
                         connection target.</para>
@@ -889,9 +877,7 @@ null
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.version</literal>
-                    </title>
+                    <title>'http.protocol.version':</title>
                     <para>defines HTTP protocol version used if not set explicitly on the request
                         object. This parameter expects a value of type
                             <interfacename>ProtocolVersion</interfacename>. If this parameter is not
@@ -900,9 +886,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.element-charset</literal>
-                    </title>
+                    <title>'http.protocol.element-charset':</title>
                     <para>defines the charset to be used for encoding HTTP protocol elements. This
                         parameter expects a value of type <classname>java.lang.String</classname>.
                         If this parameter is not set <literal>US-ASCII</literal> will be
@@ -911,9 +895,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.content-charset</literal>
-                    </title>
+                    <title>'http.protocol.content-charset':</title>
                     <para>defines the charset to be used per default for content body coding. This
                         parameter expects a value of type <classname>java.lang.String</classname>.
                         If this parameter is not set <literal>ISO-8859-1</literal> will be
@@ -922,9 +904,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.useragent</literal>
-                    </title>
+                    <title>'http.useragent':</title>
                     <para>defines the content of the <literal>User-Agent</literal> header. This
                         parameter expects a value of type <classname>java.lang.String</classname>.
                         If this parameter is not set, HttpClient will automatically generate a value
@@ -933,9 +913,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.strict-transfer-encoding</literal>
-                    </title>
+                    <title>'http.protocol.strict-transfer-encoding':</title>
                     <para>defines whether responses with an invalid
                             <literal>Transfer-Encoding</literal> header should be rejected. This
                         parameter expects a value of type <classname>java.lang.Boolean</classname>.
@@ -945,9 +923,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.expect-continue</literal>
-                    </title>
+                    <title>'http.protocol.expect-continue':</title>
                     <para>activates <literal>Expect: 100-Continue</literal> handshake for the entity
                         enclosing methods. The purpose of the <literal>Expect:
                             100-Continue</literal> handshake is to allow the client that is sending
@@ -966,9 +942,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>
-                        <literal>http.protocol.wait-for-continue</literal>
-                    </title>
+                    <title>'http.protocol.wait-for-continue':</title>
                     <para>defines the maximum period of time in milliseconds the client should spend
                         waiting for a <literal>100-continue</literal> response. This parameter
                         expects a value of type <classname>java.lang.Integer</classname>. If this

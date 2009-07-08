@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!-- 
+    ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+    ====================================================================
+-->
+<chapter>
+    <title>HTTP authentication</title>
+    <para>HttpClient provides full support for authentication schemes defined by the HTTP standard
+        specification. HttpClient's authentication framework can also be extended to support
+        non-standard authentication schemes such as <literal>NTLM</literal> and
+            <literal>SPNEGO</literal>.</para>
+    <section>
+        <title>User credentials</title>
+        <para>Any process of user authentication requires a set of credentials that can be used to
+            establish user identity. In the simplest form user crednetials can be just a user name /
+            password pair. <classname>UsernamePasswordCredentials</classname> represents a set of
+            credentials consisting of a security principal and a password in clear text. This
+            implementation is sufficient for standard authentication schemes defined by the HTTP
+            standard specification.</para>
+        <programlisting><![CDATA[
+UsernamePasswordCredentials creds = new UsernamePasswordCredentials("user", "pwd");
+System.out.println(creds.getUserPrincipal().getName());
+System.out.println(creds.getPassword());
+        ]]></programlisting>
+        <para>stdout &gt;</para>
+        <programlisting><![CDATA[
+user
+pwd
+]]></programlisting>
+        <para><classname>NTCredentials</classname> is a Microsoft Windows specific implementation
+            that includes in addition to the user name / password pair a set of additional Windows
+            specific attributes such as a name of the user domain, as in Microsoft Windows network
+            the same user can belong to multiple domains with a different set of
+            authorizations.</para>
+        <programlisting><![CDATA[
+NTCredentials creds = new NTCredentials("user", "pwd", "workstation", "domain");
+System.out.println(creds.getUserPrincipal().getName());
+System.out.println(creds.getPassword());
+]]></programlisting>
+        <para>stdout &gt;</para>
+        <programlisting><![CDATA[
+DOMAIN/user
+pwd
+]]></programlisting>
+    </section>
+    <section>
+        <title>Authentication schemes</title>
+        <para>The <interfacename>AuthScheme</interfacename> interface represents an abstract
+            challenge-response oriented authentication scheme. An authentication scheme is expected
+            to support the following functions:</para>
+        <itemizedlist>
+            <listitem>
+                <para>Parse and process the challenge sent by the target server in response to
+                    request for a protected resource.</para>
+            </listitem>
+            <listitem>
+                <para>Provide properties of the processed challenge: the authentication scheme type
+                    and its parameters, such the realm this authentication scheme is applicable to,
+                    if available</para>
+            </listitem>
+            <listitem>
+                <para>Generate authorization string for the given set of credentials and the HTTP
+                    request in response to the actual authorization challenge.</para>
+            </listitem>
+        </itemizedlist>
+        <para>Please note authentication schemes may be stateful involving a series of
+            challenge-response exchanges.</para>
+        <para>HttpClient ships with several <interfacename>AuthScheme</interfacename>
+            implementations:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>Basic:</title>
+                    <para>Basic authentication scheme as defined in RFC 2617. This authentication
+                        scheme is insecure, as the credentials are transmitted in clear text.
+                        Despite its insecurity Basic authentication scheme is perfectly adequate if
+                        used in combination with the TLS/SSL encryption.</para>
+                </formalpara>
+                <formalpara>
+                    <title>Digest</title>
+                    <para>Digest authentication scheme as defined in RFC 2617. Digest authentication
+                        scheme is significantly more secure than Basic and can be a good choice for
+                        those applications that do not want the overhead of full transport security
+                        through TLS/SSL encryption.</para>
+                </formalpara>
+                <formalpara>
+                    <title>NTLM:</title>
+                    <para>NTLM is a proprietary authentication scheme developed by Microsoft and
+                        optimized for Windows platforms. NTLM is believed to be more secure than
+                        Digest. This scheme is supported only partially and requires an external
+                        NTLM engine. For details please refer to the
+                            <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient
+                        distributions.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>HTTP authentication parameters</title>
+        <para>These are parameters that be used to customize HTTP authentication process and
+            behaviour of individual authentication schemes:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.handle-authentication':</title>
+                    <para>defines whether authentication should be handled automatically. This
+                        parameter expects a value of type <classname>java.lang.Boolean</classname>.
+                        If this parameter is not set HttpClient will handle authentication
+                        automatically.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.auth.credential-charset':</title>
+                    <para>defines the charset to be used when encoding user credentials. This
+                        parameter expects a value of type <literal>java.lang.String</literal>. If
+                        this parameter is not set <literal>US-ASCII</literal> will be used.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Authentication scheme registry</title>
+        <para>HttpClient maintains a registry of available authentication scheme using
+                <classname>AuthSchemeRegistry</classname> class. The following schemes are
+            registered per default:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>Basic:</title>
+                    <para>Basic authentication scheme</para>
+                </formalpara>
+                <formalpara>
+                    <title>Digest:</title>
+                    <para>Digest authentication scheme</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+        <para>Please note <literal>NTLM</literal> scheme is <emphasis>NOT</emphasis> registered per
+            default. For details on how to enable <literal>NTLM</literal> support please refer to
+            the <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient
+            distributions.</para>
+    </section>
+    <section>
+        <title>Credentials provider</title>
+        <para>Credentials providers are intended to maintain a set of user credentials and to be
+            able to produce user credentials for a particular authentication scope. Authentication
+            scope consists of a host name, a port number, a realm name and an authentication scheme
+            name. When registering credentials with the credentials provider one can provide a wild
+            card (any host, any port, any realm, any scheme) instead of a concrete attribute value.
+            The credentials provider is then expected to be able to find the closest match for a
+            particular scope if the direct match cannot be found.</para>
+        <para>HttpClient can work with any physical representation of a credentials provider that
+            implements the <interfacename>CredentialsProvider</interfacename> interface. The default
+                <interfacename>CredentialsProvider</interfacename> implementation called
+                <classname>BasicCredentialsProvider</classname> is a simple implementation backed by
+            a <classname>java.util.HashMap</classname>.</para>
+        <programlisting><![CDATA[
+CredentialsProvider credsProvider = new BasicCredentialsProvider();
+credsProvider.setCredentials(
+    new AuthScope("somehost", AuthScope.ANY_PORT), 
+    new UsernamePasswordCredentials("u1", "p1"));
+credsProvider.setCredentials(
+    new AuthScope("somehost", 8080), 
+    new UsernamePasswordCredentials("u2", "p2"));
+credsProvider.setCredentials(
+    new AuthScope("otherhost", 8080, AuthScope.ANY_REALM, "ntlm"), 
+    new UsernamePasswordCredentials("u3", "p3"));
+
+System.out.println(credsProvider.getCredentials(
+    new AuthScope("somehost", 80, "realm", "basic")));
+System.out.println(credsProvider.getCredentials(
+    new AuthScope("somehost", 8080, "realm", "basic")));
+System.out.println(credsProvider.getCredentials(
+    new AuthScope("otherhost", 8080, "realm", "basic")));
+System.out.println(credsProvider.getCredentials(
+    new AuthScope("otherhost", 8080, null, "ntlm")));
+]]></programlisting>
+        <para>stdout &gt;</para>
+        <programlisting><![CDATA[
+[principal: u1]
+[principal: u2]
+null
+[principal: u3]
+]]></programlisting>
+    </section>
+    <section>
+        <title>HTTP authentication and execution context</title>
+        <para>HttpClient relies on the <classname>AuthState</classname> class to keep track of
+            detailed information about the state of the authentication process. HttpClient creates
+            two instances of <classname>AuthState</classname> in the course of HTTP request
+            execution: one for target host authentication and another one for proxy authentication.
+            In case the target server or the proxy require user authentication the respective
+                <classname>AuthScope</classname> instance will be populated with the
+                <classname>AuthScope</classname>, <interfacename>AuthScheme</interfacename> and
+                <interfacename>Crednetials</interfacename> used during the authentication process.
+            The <classname>AuthState</classname> can be examined in order to find out what kind of
+            authentication was requested, whether a matching
+                <interfacename>AuthScheme</interfacename> implementation was found and whether the
+            credentials provider managed to find user credentials for the given authentication
+            scope.</para>
+        <para>In the course of HTTP request execution HttpClient adds the following authentication
+            related objects to the execution context:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.authscheme-registry':</title>
+                    <para><classname>AuthSchemeRegistry</classname> instance representing the actual
+                        authentication scheme registry. The value of this attribute set in the local
+                        context takes precedence over the default one.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.auth.credentials-provider':</title>
+                    <para><interfacename>CookieSpec</interfacename> instance representing the actual
+                        credentials provider. The value of this attribute set in the local context
+                        takes precedence over the default one.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.auth.target-scope':</title>
+                    <para><classname>AuthState</classname> instance representing the actual target
+                        authentication state. The value of this attribute set in the local context
+                        takes precedence over the default one.</para>
+                </formalpara>
+                <formalpara>
+                    <title>'http.auth.proxy-scope':</title>
+                    <para><classname>AuthState</classname> instance representing the actual proxy
+                        authentication state. The value of this attribute set in the local context
+                        takes precedence over the default one.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+        <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
+            the HTTP authentication context prior to request execution or examine its state after
+            the request has been executed:</para>
+        <programlisting><![CDATA[
+HttpClient httpclient = new DefaultHttpClient();
+HttpContext localContext = new BasicHttpContext();
+HttpGet httpget = new HttpGet("http://localhost:8080/"); 
+HttpResponse response = httpclient.execute(httpget, localContext);
+
+AuthState proxyAuthState = (AuthState) localContext.getAttribute(
+    ClientContext.PROXY_AUTH_STATE);
+System.out.println("Proxy auth scope: " + proxyAuthState.getAuthScope());
+System.out.println("Proxy auth scheme: " + proxyAuthState.getAuthScheme());
+System.out.println("Proxy auth credentials: " + proxyAuthState.getCredentials());
+AuthState targetAuthState = (AuthState) localContext.getAttribute(
+    ClientContext.TARGET_AUTH_STATE);
+System.out.println("Target auth scope: " + targetAuthState.getAuthScope());
+System.out.println("Target auth scheme: " + targetAuthState.getAuthScheme());
+System.out.println("Target auth credentials: " + targetAuthState.getCredentials());
+]]></programlisting>
+    </section>
+    <section>
+        <title>Preemptive authentication</title>
+        <para>HttpClient does not support preemptive authentication out of the box, because if
+            misused or used incorrectly the preemptive authentication can lead to significant
+            security issues, such as sending user credentials in clear text to an unauthorized third
+            party. Therefore, users are expected to evaluate potential benefits of preemptive
+            authentication versus security risks in the context of their specific application
+            environment and are required to add support for preemptive authentication using standard
+            HttpClient extension mechanisms such as protocol interceptors.</para>
+        <para>This is an example of a simple protocol interceptor that preemptively introduces an
+            instance of <classname>BasicScheme</classname> to the execution context, if no
+            authentication has been attempted yet. Please note that this interceptor must be added
+            to the protocol processing chain before the standard authentication interceptors.</para>
+        <programlisting><![CDATA[
+HttpRequestInterceptor preemptiveAuth = new HttpRequestInterceptor() {
+    
+    public void process(
+            final HttpRequest request, 
+            final HttpContext context) throws HttpException, IOException {
+        
+        AuthState authState = (AuthState) context.getAttribute(
+                ClientContext.TARGET_AUTH_STATE);
+        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
+                ClientContext.CREDS_PROVIDER);
+        HttpHost targetHost = (HttpHost) context.getAttribute(
+                ExecutionContext.HTTP_TARGET_HOST);
+        
+        // If not auth scheme has been initialized yet
+        if (authState.getAuthScheme() == null) {
+            AuthScope authScope = new AuthScope(
+                    targetHost.getHostName(), 
+                    targetHost.getPort());
+            // Obtain credentials matching the target host
+            Credentials creds = credsProvider.getCredentials(authScope);
+            // If found, generate BasicScheme preemptively
+            if (creds != null) {
+                authState.setAuthScheme(new BasicScheme());
+                authState.setCredentials(creds);
+            }
+        }
+    }
+    
+};
+
+DefaultHttpClient httpclient = new DefaultHttpClient();
+// Add as the very first interceptor in the protocol chain
+httpclient.addRequestInterceptor(preemptiveAuth, 0);
+]]></programlisting>
+    </section>
+</chapter>

@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!-- 
+    ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+    ====================================================================
+-->
+<chapter>
+    <title>HTTP state management</title>
+    <para>Originally HTTP was designed as a stateless, request / response oriented protocol that
+        made no special provisions for stateful sessions spanning across several logically related
+        request / response exchanges. As HTTP protocol grew in popularity and adoption more and more
+        systems began to use it for applications it was never intended for, for instance as a
+        transport for e-commerce applications. Thus, the support for state management became a
+        necessity.</para>
+    <para>Netscape Communications, at that time a leading developer of web client and server
+        software, implemented support for HTTP state management in their products based on a
+        proprietary specification. Later, Netscape tried to standardise the mechanism by publishing
+        a specification draft. Those efforts contributed to the formal specification defined through
+        the RFC standard track. However, state management in a significant number of applications is
+        still largely based on the Netscape draft and is incompatible with the official
+        specification. All major developers of web browsers felt compelled to retain compatibility
+        with those applications greatly contributing to the fragmentation of standards
+        compliance.</para>
+    <section>
+        <title>HTTP cookies</title>
+        <para>Cookie is a token or short packet of state information that the HTTP agent and the
+            target server can exchange to maintain a session. Netscape engineers used to refer to it
+            as as a "magic cookie" and the name stuck.</para>
+        <para>HttpClient uses <interfacename>Cookie</interfacename> interface to represent an
+            abstract cookie token. In its simples form an HTTP cookie is merely a name / value pair.
+            Usually an HTTP cookie also contains a number of attributes such as version, a domain
+            for which is valid, a path that specifies the subset of URLs on the origin server to
+            which this cookie applies, and maximum period of time the cookie is valid for.</para>
+        <para><interfacename>SetCookie</interfacename> interface represents a
+                <literal>Set-Cookie</literal> response header sent by the origin server to the HTTP
+            agent in order to maintain a conversational state.
+                <interfacename>SetCookie2</interfacename> interface extends SetCookie with
+                <literal>Set-Cookie2</literal> specific methods.</para>
+        <para><interfacename>ClientCookie</interfacename> interface extends
+                <interfacename>Cookie</interfacename> interface with additional client specific
+            functionality such ability to retrieve original cookie attributes exactly as they were
+            specified by the origin server. This is important for generating the
+                <literal>Cookie</literal> header because some cookie specifications require that the
+                <literal>Cookie</literal> header should include certain attributes only if they were
+            specified in the <literal>Set-Cookie</literal> or <literal>Set-Cookie2</literal>
+            header.</para>
+        <section>
+            <title>Cookie versions</title>
+            <para>Cookies compatible with Netscape draft specification but non-compliant with the
+                official specification are considered to be of version 0. Standard compliant cookies
+                are expected to have version 1. HttpClient may handle cookies differently depending
+                on the version.</para>
+            <para>Here is an example of re-creating a Netscape cookie:</para>
+            <programlisting><![CDATA[
+BasicClientCookie netscapeCookie = new BasicClientCookie("name", "value");
+netscapeCookie.setVersion(0);
+netscapeCookie.setDomain(".mycompany.com");
+netscapeCookie.setPath("/");
+]]></programlisting>
+            <para>Here is an example of re-creating a standard cookie. Please note that standard
+                compliant cookie must retain all attributes as sent by the origin server:</para>
+            <programlisting><![CDATA[
+BasicClientCookie stdCookie = new BasicClientCookie("name", "value");
+stdCookie.setVersion(1);
+stdCookie.setDomain(".mycompany.com");
+stdCookie.setPath("/");
+stdCookie.setSecure(true);
+// Set attributes EXACTLY as sent by the server 
+stdCookie.setAttribute(ClientCookie.VERSION_ATTR, "1");
+stdCookie.setAttribute(ClientCookie.DOMAIN_ATTR, ".mycompany.com");
+]]></programlisting>
+            <para>Here is an example of re-creating a <literal>Set-Cookie2</literal> compliant
+                cookie. Please note that standard compliant cookie must retain all attributes as
+                sent by the origin server:</para>
+            <programlisting><![CDATA[
+BasicClientCookie2 stdCookie = new BasicClientCookie2("name", "value");
+stdCookie.setVersion(1);
+stdCookie.setDomain(".mycompany.com");
+stdCookie.setPorts(new int[] {80,8080});
+stdCookie.setPath("/");
+stdCookie.setSecure(true);
+// Set attributes EXACTLY as sent by the server 
+stdCookie.setAttribute(ClientCookie.VERSION_ATTR, "1");
+stdCookie.setAttribute(ClientCookie.DOMAIN_ATTR, ".mycompany.com");
+stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
+]]></programlisting>
+        </section>
+    </section>
+    <section>
+        <title>Cookie specifications</title>
+        <para><interfacename>CookieSpec</interfacename> interface represents a cookie management
+            specification. Cookie management specification is expected to enforce:</para>
+        <itemizedlist>
+            <listitem>
+                <para>rules of parsing <literal>Set-Cookie</literal> and optionally
+                        <literal>Set-Cookie2</literal> headers.</para>
+            </listitem>
+            <listitem>
+                <para>rules of validation of parsed cookies.</para>
+            </listitem>
+            <listitem>
+                <para>formatting of <literal>Cookie</literal> header for a given host, port and path
+                    of origin.</para>
+            </listitem>
+        </itemizedlist>
+        <para>HttpClient ships with several <interfacename>CookieSpec</interfacename>
+            implementations:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>Netscape draft:</title>
+                    <para>This specification conforms to the original draft specification published
+                        by Netscape Communications. It should be avoided unless absolutely necessary
+                        for compatibility with legacy code.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>RFC 2109:</title>
+                    <para>Older version of the official HTTP state management specification
+                        superseded by RFC 2965.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>RFC 2965:</title>
+                    <para>The official HTTP state management specification.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Browser compatibility:</title>
+                    <para>This implementations strives to closely mimic (mis)behavior of common web
+                        browser applications such as Microsoft Internet Explorer and Mozilla
+                        FireFox.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Best match:</title>
+                    <para>'Meta' cookie specification that picks up a cookie policy based on the
+                        format of cookies sent with the HTTP response. It basically aggregates all
+                        above implementations into one class.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+        <para>It is strongly recommended to use the <literal>Best Match</literal> policy and let
+            HttpClient pick up an appropriate compliance level at runtime based on the execution
+            context.</para>
+    </section>
+    <section>
+        <title>HTTP cookie and state management parameters</title>
+        <para>These are parameters that be used to customize HTTP state management and behaviour of
+            individual cookie specifications:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.cookie-datepatterns':</title>
+                    <para>defines valid date patterns to be used for parsing non-standard
+                            <literal>expires</literal> attribute. Only required for compatibility
+                        with non-compliant servers that still use <literal>expires</literal> defined
+                        in the Netscape draft instead of the standard <literal>max-age</literal>
+                        attribute. This parameter expects a value of type
+                            <interfacename>java.util.Collection</interfacename>. The collection
+                        elements must be of type <classname>java.lang.String</classname> compatible
+                        with the syntax of <classname>java.text.SimpleDateFormat</classname>. If
+                        this parameter is not set the choice of a default value is
+                            <interfacename>CookieSpec</interfacename> implementation specific.
+                        Please note this parameter applies</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.single-cookie-header':</title>
+                    <para>defines whether cookies should be forced into a single
+                            <literal>Cookie</literal> request header. Otherwise, each cookie is
+                        formatted as a separate <literal>Cookie</literal> header. This parameter
+                        expects a value of type <classname>java.lang.Boolean</classname>. If this
+                        parameter is not set the choice of a default value is CookieSpec
+                        implementation specific. Please note this parameter applies to strict cookie
+                        specifications (RFC 2109 and RFC 2965) only. Browser compatibility and
+                        netscape draft policies will always put all cookies into one request
+                        header.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.protocol.cookie-policy':</title>
+                    <para>defines the name of a cookie specification to be used for HTTP state
+                        management. This parameter expects a value of type
+                            <classname>java.lang.String</classname>. If this parameter is not set
+                        valid date patterns are <interfacename>CookieSpec</interfacename>
+                        implementation specific.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Cookie specification registry</title>
+        <para>HttpClient maintains a registry of available cookie specifications using
+                <classname>CookieSpecRegistry</classname> class. The following specifications are
+            registered per default:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>compatibility:</title>
+                    <para> Browser compatibility (lenient policy).</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>netscape:</title>
+                    <para>Netscape draft.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>rfc2109:</title>
+                    <para>RFC 2109 (outdated strict policy).</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>rfc2965:</title>
+                    <para>RFC 2965 (standard conformant strict policy).</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>best-match:</title>
+                    <para>Best match meta-policy.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Choosing cookie policy</title>
+        <para>Cookie policy can be set at the HTTP client and overridden on the HTTP request level
+            if required.</para>
+        <programlisting><![CDATA[
+HttpClient httpclient = new DefaultHttpClient();
+// force strict cookie policy per default
+httpclient.getParams().setParameter(
+        ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
+
+HttpGet httpget = new HttpGet("http://www.broken-server.com/");
+// Override the default policy for this request
+httpget.getParams().setParameter(
+        ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
+]]></programlisting>
+    </section>
+    <section>
+        <title>Custom cookie policy</title>
+        <para>In order to implement a custom cookie policy one should create a custom implementation
+            of <interfacename>CookieSpec</interfacename> interface, create a
+                <interfacename>CookieSpecFactory</interfacename> implementation to create and
+            initialize instances of the custom specification and register the factory with
+            HttpClient. Once the custom specification has been registered, it can be activated the
+            same way as the standard cookie specifications.</para>
+        <programlisting><![CDATA[
+CookieSpecFactory csf = new CookieSpecFactory() {
+    public CookieSpec newInstance(HttpParams params) {
+        return new BrowserCompatSpec() {   
+            @Override
+            public void validate(Cookie cookie, CookieOrigin origin)
+            throws MalformedCookieException {
+                // Oh, I am easy
+            }		
+        };
+    }	
+};
+
+DefaultHttpClient httpclient = new DefaultHttpClient();
+httpclient.getCookieSpecs().register("easy", csf);
+httpclient.getParams().setParameter(
+     ClientPNames.COOKIE_POLICY, "easy");
+]]></programlisting>
+    </section>
+    <section>
+        <title>Cookie persistence</title>
+        <para>HttpClient can work with any physical representation of a persistent cookie store that
+            implements the <interfacename>CookieStore</interfacename> interface. The default
+                <interfacename>CookieStore</interfacename> implementation called
+                <classname>BasicClientCookie</classname> is a simple implementation backed by a
+                <classname>java.util.ArrayList</classname>. Cookies stored in an
+                <classname>BasicClientCookie</classname> object are lost when the container object
+            get garbage collected. Users can provide more complex implementations if
+            necessary.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+// Create a local instance of cookie store
+CookieStore cookieStore = new MyCookieStore();
+// Populate cookies if needed
+BasicClientCookie cookie = new BasicClientCookie("name", "value");
+cookie.setVersion(0);
+cookie.setDomain(".mycompany.com");
+cookie.setPath("/");
+cookieStore.addCookie(cookie);
+// Set the store 
+httpclient.setCookieStore(cookieStore);
+]]></programlisting>
+    </section>
+    <section>
+        <title>HTTP state management and execution context</title>
+        <para>In the course of HTTP request execution HttpClient adds the following state management
+            related objects to the execution context:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <title>'http.cookiespec-registry':</title>
+                    <para><classname>CookieSpecRegistry</classname> instance representing the actual
+                        cookie specification registry. The value of this attribute set in the local
+                        context takes precedence over the default one.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.cookie-spec':</title>
+                    <para><interfacename>CookieSpec</interfacename> instance representing the actual
+                        cookie specification.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.cookie-origin':</title>
+                    <para><classname>CookieOrigin</classname> instance representing the actual
+                        details of the origin server.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.cookie-store':</title>
+                    <para><interfacename>CookieStore</interfacename> instance represents the actual
+                        cookie store. The value of this attribute set in the local context takes
+                        precedence over the default one.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
+        <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
+            the HTTP state management context prior to request execution or examine its state after
+            the request has been executed:</para>
+        <programlisting><![CDATA[
+HttpClient httpclient = new DefaultHttpClient();
+HttpContext localContext = new BasicHttpContext();
+HttpGet httpget = new HttpGet("http://localhost:8080/"); 
+HttpResponse response = httpclient.execute(httpget, localContext);
+
+CookieOrigin cookieOrigin = (CookieOrigin) localContext.getAttribute(
+        ClientContext.COOKIE_ORIGIN);
+System.out.println("Cookie origin: " + cookieOrigin);
+CookieSpec cookieSpec = (CookieSpec) localContext.getAttribute(
+        ClientContext.COOKIE_SPEC);
+System.out.println("Cookie spec used: " + cookieSpec);
+]]></programlisting>
+    </section>
+    <section>
+        <title>Per user / thread state management</title>
+        <para>One can use an individual local execution context in order to implement per user (or
+            per thread) state management. Cookie specification registry and cookie store defined in
+            the local context will take precedence over the default ones set at the HTTP client
+            level.</para>
+        <programlisting><![CDATA[
+HttpClient httpclient = new DefaultHttpClient();
+// Create a local instance of cookie store
+CookieStore cookieStore = new BasicCookieStore();
+// Create local HTTP context
+HttpContext localContext = new BasicHttpContext();
+// Bind custom cookie store to the local context
+localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+HttpGet httpget = new HttpGet("http://www.google.com/"); 
+// Pass local context as a parameter
+HttpResponse response = httpclient.execute(httpget, localContext);
+]]></programlisting>
+    </section>
+</chapter>
