@@ -420,7 +420,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         
     }
     
-    private static class ConnMan2 implements ClientConnectionManager {
+    static class ConnMan2 implements ClientConnectionManager {
         
         private ManagedClientConnection allocatedConnection;
         private ManagedClientConnection releasedConnection;
@@ -490,7 +490,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         }
     }
     
-    private static class ConMan implements ClientConnectionManager {
+    static class ConMan implements ClientConnectionManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
         
