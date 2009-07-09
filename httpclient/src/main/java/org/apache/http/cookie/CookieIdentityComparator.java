@@ -67,6 +67,17 @@ public class CookieIdentityComparator implements Serializable, Comparator<Cookie
             }
             res = d1.compareToIgnoreCase(d2);
         }
+        if (res == 0) {
+            String p1 = c1.getPath();
+            if (p1 == null) {
+                p1 = "/";
+            }
+            String p2 = c2.getPath();
+            if (p2 == null) {
+                p2 = "/";
+            }
+            res = p1.compareTo(p2);
+        }
         return res;
     }
 

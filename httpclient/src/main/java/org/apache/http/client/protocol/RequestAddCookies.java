@@ -176,7 +176,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         List<Cookie> matchedCookies = new ArrayList<Cookie>();
         Date now = new Date();
         for (Cookie cookie : cookies) {
-            if (cookie.getExpiryDate() == null || cookie.getExpiryDate().after(now)) {
+            if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Cookie " + cookie + " match " + cookieOrigin);

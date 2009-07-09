@@ -116,4 +116,42 @@ public class TestCookieIdentityComparator extends TestCase {
         assertTrue(comparator.compare(c3, c4) == 0);
     }
 
+    public void testCookieIdentityComparasionByNameDomainAndPath() {
+        CookieIdentityComparator comparator = new CookieIdentityComparator(); 
+        BasicClientCookie c1 = new BasicClientCookie("name", "value1");
+        c1.setDomain("www.domain.com");
+        c1.setPath("/whatever");
+        BasicClientCookie c2 = new BasicClientCookie("name", "value2"); 
+        c2.setDomain("www.domain.com");
+        c2.setPath("/whatever");
+        assertTrue(comparator.compare(c1, c2) == 0);
+        
+        BasicClientCookie c3 = new BasicClientCookie("name", "value1"); 
+        c3.setDomain("www.domain.com");
+        c3.setPath("/whatever");
+        BasicClientCookie c4 = new BasicClientCookie("name", "value2"); 
+        c4.setDomain("domain.com");
+        c4.setPath("/whatever-not");
+        assertFalse(comparator.compare(c3, c4) == 0);
+    }
+
+    public void testCookieIdentityComparasionByNameDomainAndNullPath() {
+        CookieIdentityComparator comparator = new CookieIdentityComparator(); 
+        BasicClientCookie c1 = new BasicClientCookie("name", "value1");
+        c1.setDomain("www.domain.com");
+        c1.setPath("/");
+        BasicClientCookie c2 = new BasicClientCookie("name", "value2"); 
+        c2.setDomain("www.domain.com");
+        c2.setPath(null);
+        assertTrue(comparator.compare(c1, c2) == 0);
+        
+        BasicClientCookie c3 = new BasicClientCookie("name", "value1"); 
+        c3.setDomain("www.domain.com");
+        c3.setPath("/whatever");
+        BasicClientCookie c4 = new BasicClientCookie("name", "value2"); 
+        c4.setDomain("domain.com");
+        c4.setPath(null);
+        assertFalse(comparator.compare(c3, c4) == 0);
+    }
+
 }

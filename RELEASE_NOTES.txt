@@ -1,6 +1,10 @@
 Changes since 4.0 beta 2
 -------------------
 
+* [HTTPCLIENT-859] CookieIdentityComparator now takes path attribute into 
+  consideration when comparing cookies.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * HttpClient will no longer send expired cookies back to the origin server.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
