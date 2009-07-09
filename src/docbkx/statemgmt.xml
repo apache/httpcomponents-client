@@ -21,7 +21,7 @@
     under the License.
     ====================================================================
 -->
-<chapter>
+<chapter id="statemgmt">
     <title>HTTP state management</title>
     <para>Originally HTTP was designed as a stateless, request / response oriented protocol that
         made no special provisions for stateful sessions spanning across several logically related

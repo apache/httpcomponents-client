@@ -21,7 +21,7 @@
     under the License.
     ====================================================================
 -->
-<chapter>
+<chapter id="connmgmt">
     <title>Connection management</title>
     <para>HttpClient has a complete control over the process of connection initialization and
         termination as well as I/O operations on active connections. However various aspects of

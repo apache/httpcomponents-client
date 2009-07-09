@@ -21,7 +21,7 @@
     under the License.
     ====================================================================
 -->
-<chapter>
+<chapter id="authentication">
     <title>HTTP authentication</title>
     <para>HttpClient provides full support for authentication schemes defined by the HTTP standard
         specification. HttpClient's authentication framework can also be extended to support

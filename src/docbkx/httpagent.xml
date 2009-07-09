@@ -21,7 +21,7 @@
     under the License.
     ====================================================================
 -->
-<chapter>
+<chapter id="httpagent">
     <title>HTTP client service</title>
     <section>
         <title>HttpClient facade</title>

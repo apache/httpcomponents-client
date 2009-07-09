@@ -21,7 +21,7 @@
     under the License.
     ====================================================================
 -->
-<chapter>
+<chapter id="advanced">
     <title>Advanced topics</title>
     <section>
         <title>Custom client connections</title>
