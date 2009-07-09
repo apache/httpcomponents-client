@@ -49,6 +49,12 @@ HttpClient Overview
     service clients, or systems that leverage or extend the HTTP protocol for distributed 
     communication.
 
+Documentation
+
+    * HttpClient Tutorial ( {{{tutorial/html}HTML}} / {{{tutorial/pdf/httpclient-tutorial.pdf}PDF}} )
+    
+    * Some examples of HttpClient in action can be found {{{examples.html}here}}
+    
 Features
 
     * Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1
@@ -91,25 +97,6 @@ Features
 
     * Source code is freely available under the Apache License.
 
-Modules
-
-    HttpClient currently is a single module that comprises code for 
-    authentication, cookies, connection management, and the client itself.
-    It may be changed to a more modular structure in the future.
-
-* HttpClient module
-
-    The {{{httpclient/index.html}HttpClient}} module is a full-featured, standards compliant HTTP 
-    client built on top of {{{/httpcomponents-core/index.html}HttpCore}}. HttpClient requires 
-    a Java 5.0 compatible runtime.
-
-* HttpMime module
-
-    The {{{httpmime/index.html}HttpMime}} module extends 
-    {{{http://james.apache.org/mime4j/index.html}mime4j}} library with some HTTP specific
-    functionality and integrates it with the HttpComponents framework. HttpMime requires 
-    a Java 5.0 compatible runtime and HttpClient module with its dependencies.
-
 Standards Compliance
 
     HttpClient strives to conform to the following specifications endorsed by the Internet 
@@ -125,8 +112,3 @@ Standards Compliance
     * {{{http://www.ietf.org/rfc/rfc2109.txt}RFC 2109}} HTTP State Management Mechanism (Cookies)
     
     * {{{http://www.ietf.org/rfc/rfc2965.txt}RFC 2965}} HTTP State Management Mechanism (Cookies v2)
-    
-
-Examples
-
-    Some examples of HttpClient components in action can be found {{{examples.html}here}}.

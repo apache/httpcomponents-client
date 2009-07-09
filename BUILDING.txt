@@ -25,7 +25,44 @@ mvn package
 
 The resultant packages can be found in the target folders of their respective modules
 
-module-client/target/httpclient-<VERSION>.jar
-module-httpmime/target/httpmime-<VERSION>.jar
+httpclient/target/httpclient-<VERSION>.jar
+httpmime/target/httpmime-<VERSION>.jar
+httpclient-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version
+
+(4) Building documentation 
+
+Execute the following command in order to generate javadoc:
+
+mvn javadoc:javadoc
+
+Execute the following command in order to generate the tutorial in html and pdf formats
+
+mvn docbkx:generate-pdf docbkx:generate-html
+
+(5) Building distribution assemblies 
+
+Execute the following command in order to build the distribution assemblies
+
+mvn package assembly:assembly
+
+(6) Fix EOL in source files
+
+Fix the archive files so the source files have the correct EOL settings:
+
+mvn antrun:run
+
+(7) Building project web site 
+
+Execute the following command in order to generate the project web site:
+
+mvn site -Dclover.license=<path>/clover.license
+
+where <path> is a full path to Clover license file
+
+ASF committers can obtain a copy of Clover license donated to the ASF from the SVN repository
+at the following location:
+
+https://svn.apache.org/repos/private/committers/donated-licenses/clover
+
