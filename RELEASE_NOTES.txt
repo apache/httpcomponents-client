@@ -1,4 +1,65 @@
-Changes since 4.0 beta 2
+Release 4.0
+-------------------
+
+HttpClient 4.0 represents a complete, ground-up redesign and almost a complete
+rewrite of the HttpClient 3.x codeline. This release finally addresses several
+design flaws that existed since the 1.0 release and could not be fixed without
+a major code overhaul and breaking API compatibility.
+
+
+Architectural changes
+---------------------
+
+* Redesign of the HttpClient internals addressing all known major 
+  architectural shortcomings of the 3.x codeline.
+
+* Cleaner, more flexible and expressive API.
+
+* More modular structure.
+
+* Better performance and smaller memory footprint due to a more efficient HTTP 
+  transport based on HttpCore. 
+
+* Implementation of cross-cutting HTTP protocol aspects through protocol 
+  interceptors.
+
+* Improved connection management, better handling of persistent connections,
+  support for stateful connections
+
+* Pluggable redirect and authentication handlers.   
+
+* Improved support for sending requests via a proxy or a chain of proxies 
+
+* More flexible SSL context customization 
+
+* Reduced intermediate garbage in the process of generating HTTP requests 
+  and parsing HTTP responses 
+
+
+Important notes
+-------------------
+
+* Future releases of HttpMime module may be binary incompatible with this 
+  release due to possible API changes in Apache Mime4J. Apache Mime4J is
+  still being actively developed and its API is considered unstable.
+  
+* HttpClient 4.0 is not fully binary compatible with 4.0 BETA1 release.
+  Some protected variables in connection management class have been
+  made final in order to help ensure their thread safety: 
+
+	org.apache.http.conn.BasicEofSensorWatcher#attemptReuse
+	org.apache.http.conn.BasicEofSensorWatcher#managedConn
+	org.apache.http.impl.conn.DefaultClientConnectionOperator#schemeRegistry
+	org.apache.http.impl.conn.DefaultHttpRoutePlanner#schemeRegistry
+	org.apache.http.impl.conn.ProxySelectorRoutePlanner#schemeRegistry
+	org.apache.http.impl.conn.SingleClientConnManager#alwaysShutDown
+	org.apache.http.impl.conn.SingleClientConnManager#connOperator
+	org.apache.http.impl.conn.SingleClientConnManager#schemeRegistry
+	org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager#connOperator
+	org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager#schemeRegistry
+	
+
+Bug fixes since 4.0 BETA2 release 
 -------------------
 
 * [HTTPCLIENT-859] CookieIdentityComparator now takes path attribute into 
