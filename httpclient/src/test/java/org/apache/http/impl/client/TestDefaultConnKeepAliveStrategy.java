@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -45,7 +42,6 @@ import org.apache.http.protocol.HttpContext;
 /**
  *  Simple tests for {@link DefaultConnectionKeepAliveStrategy}.
  * 
- * @version $Revision$
  */
 public class TestDefaultConnKeepAliveStrategy extends TestCase {
 

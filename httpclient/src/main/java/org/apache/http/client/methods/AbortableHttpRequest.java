@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -46,8 +42,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
  *
  *
  * <!-- empty lines to avoid svn diff problems -->
- * @version   $Revision$
- *
  * @since 4.0
  */
 public interface AbortableHttpRequest {

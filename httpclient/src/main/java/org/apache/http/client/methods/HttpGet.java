@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -48,8 +44,6 @@ import net.jcip.annotations.NotThreadSafe;
  * process, unless that text happens to be the output of the process.
  * </blockquote>
  * </p>
- * 
- * @version $Revision$
  * 
  * @since 4.0
  */

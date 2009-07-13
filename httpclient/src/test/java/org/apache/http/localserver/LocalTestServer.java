@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -72,7 +68,6 @@ import org.apache.http.protocol.ResponseServer;
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->
- * @version $Revision$
  */
 public class LocalTestServer {
 

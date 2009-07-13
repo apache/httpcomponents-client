@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -48,8 +44,6 @@ import org.apache.http.protocol.HTTP;
  * the state of the original request.
  *
  *
- * @version $Revision$
- * 
  * @since 4.0
  */
 @NotThreadSafe // e.g. [gs]etEntity()

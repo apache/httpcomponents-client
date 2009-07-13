@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -50,7 +47,6 @@ import org.apache.http.message.BasicHeader;
  * Test cases for RFC2109 cookie spec
  *
  * 
- * @version $Revision$
  */
 public class TestCookieRFC2109Spec extends TestCase {
 

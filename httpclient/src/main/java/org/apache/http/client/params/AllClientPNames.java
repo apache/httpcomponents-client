@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -51,8 +47,6 @@ import org.apache.http.conn.params.ConnRoutePNames;
  * When referring to parameter names, you should use the interfaces
  * in which the respective constants are actually defined.
  *
- * @version $Revision$
- * 
  * @since 4.0
  */
 public interface AllClientPNames extends

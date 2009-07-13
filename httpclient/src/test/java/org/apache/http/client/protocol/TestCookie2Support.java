@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -62,7 +59,6 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  * Cookie2 support tests.
  *
- * @version $Revision$
  */
 public class TestCookie2Support extends BasicServerTestBase {
 

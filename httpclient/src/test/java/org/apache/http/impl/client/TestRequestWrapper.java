@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -51,7 +48,6 @@ import org.apache.http.protocol.HttpRequestHandler;
 /**
  *  Simple tests for {@link RequestWrapper}.
  * 
- * @version $Revision$
  */
 public class TestRequestWrapper extends BasicServerTestBase {
 

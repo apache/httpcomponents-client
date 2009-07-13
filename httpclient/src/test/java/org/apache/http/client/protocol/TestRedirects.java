@@ -1,7 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
  * ====================================================================
  *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -69,7 +66,6 @@ import junit.framework.TestSuite;
 /**
  * Redirection test cases.
  *
- * @version $Revision$
  */
 public class TestRedirects extends BasicServerTestBase {
 
