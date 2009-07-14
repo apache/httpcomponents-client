@@ -64,7 +64,6 @@ import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.AbortableHttpRequest;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
@@ -950,9 +949,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     proxyAuthState.invalidate();
                 }
             }
-            
-            HttpGet redirect = new HttpGet(uri);
-            
+
+            HttpRedirect redirect = new HttpRedirect(request.getMethod(), uri); 
             HttpRequest orig = request.getOriginal();
             redirect.setHeaders(orig.getAllHeaders());
             

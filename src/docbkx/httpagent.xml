@@ -172,9 +172,10 @@ httpclient.getConnectionManager().shutdown();
     <section>
         <title>Automcatic redirect handling</title>
         <para>HttpClient handles all types of redirects automatically, except those explicitly
-            prohibited by the HTTP specification as requiring user intervention. Redirects on
-                <literal>POST</literal> and <literal>PUT</literal> requests are converted to
-                <literal>GET</literal> requests as required by the HTTP specification.</para>
+            prohibited by the HTTP specification as requiring user intervention. <literal>See
+                Other</literal> (status code 303) redirects on <literal>POST</literal> and
+                <literal>PUT</literal> requests are converted to <literal>GET</literal> requests as
+            required by the HTTP specification.</para>
     </section>
     <section>
         <title>HTTP client and execution context</title>

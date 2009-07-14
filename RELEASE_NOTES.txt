@@ -62,6 +62,10 @@ Important notes
 Bug fixes since 4.0 BETA2 release 
 -------------------
 
+* [HTTPCLIENT-860] HttpClient no longer converts redirects of PUT/POST to GET 
+  for status codes 301, 302, 307, as required by the HTTP spec.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-859] CookieIdentityComparator now takes path attribute into 
   consideration when comparing cookies.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

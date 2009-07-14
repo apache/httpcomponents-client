@@ -42,6 +42,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.params.HttpParams;
@@ -70,12 +72,18 @@ public class DefaultRedirectHandler implements RedirectHandler {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
+        
         int statusCode = response.getStatusLine().getStatusCode();
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
         case HttpStatus.SC_MOVED_PERMANENTLY:
-        case HttpStatus.SC_SEE_OTHER:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
+            HttpRequest request = (HttpRequest) context.getAttribute(
+                    ExecutionContext.HTTP_REQUEST);
+            String method = request.getRequestLine().getMethod();
+            return method.equalsIgnoreCase(HttpGet.METHOD_NAME) 
+                || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
+        case HttpStatus.SC_SEE_OTHER:
             return true;
         default:
             return false;
