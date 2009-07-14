@@ -54,6 +54,7 @@
             <include>LICENSE.txt</include>
             <include>NOTICE.txt</include>
             <include>RELEASE_NOTES.txt</include>
+            <include>NTLM_SUPPORT.txt</include>
           </includes>
         </fileSet>
         <!-- Javadocs -->

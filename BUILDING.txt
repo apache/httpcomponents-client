@@ -35,7 +35,7 @@ where <VERSION> is the release version
 
 Execute the following command in order to generate javadoc:
 
-mvn javadoc:javadoc
+mvn javadoc:aggregate
 
 Execute the following command in order to generate the tutorial in html and pdf formats
 
