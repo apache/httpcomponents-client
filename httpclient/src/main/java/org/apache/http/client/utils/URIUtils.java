@@ -28,6 +28,7 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Stack;
 
 import net.jcip.annotations.Immutable;
 
@@ -171,8 +172,8 @@ public class URIUtils {
     }
 
     /**
-     * Resolves a URI reference against a base URI. Work-around for bug in
-     * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
+     * Resolves a URI reference against a base URI. Work-around for bugs in
+     * java.net.URI (e.g. <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
      *
      * @param baseURI the base URI
      * @param reference the URI reference
@@ -185,7 +186,11 @@ public class URIUtils {
         if (reference == null) {
             throw new IllegalArgumentException("Reference URI may nor be null");
         }
-        boolean emptyReference = reference.toString().length() == 0;
+        String s = reference.toString();
+        if (s.startsWith("?")) {
+            return resolveReferenceStartingWithQueryString(baseURI, reference);
+        }
+        boolean emptyReference = s.length() == 0;
         if (emptyReference) {
             reference = URI.create("#");
         }
@@ -195,7 +200,60 @@ public class URIUtils {
             resolved = URI.create(resolvedString.substring(0,
                 resolvedString.indexOf('#')));
         }
-        return resolved;
+        return removeDotSegments(resolved);
+    }
+
+    /**
+     * Resolves a reference starting with a query string.
+     * 
+     * @param baseURI the base URI
+     * @param reference the URI reference starting with a query string
+     * @return the resulting URI
+     */
+    private static URI resolveReferenceStartingWithQueryString(
+            final URI baseURI, final URI reference) {
+        String baseUri = baseURI.toString();
+        baseUri = baseUri.indexOf('?') > -1 ?
+            baseUri.substring(0, baseUri.indexOf('?')) : baseUri;
+        return URI.create(baseUri + reference.toString());
+    }
+
+    /**
+     * Removes dot segments according to RFC 3986, section 5.2.4
+     * 
+     * @param uri the original URI
+     * @return the URI without dot segments
+     */
+    private static URI removeDotSegments(URI uri) {
+        String path = uri.getPath();
+        if ((path == null) || (path.indexOf("/.") == -1)) {
+            // No dot segments to remove
+            return uri;
+        }
+        String[] inputSegments = path.split("/");
+        Stack<String> outputSegments = new Stack<String>();
+        for (int i = 0; i < inputSegments.length; i++) {
+            if ((inputSegments[i].length() == 0)
+                || (".".equals(inputSegments[i]))) {
+                // Do nothing
+            } else if ("..".equals(inputSegments[i])) {
+                if (!outputSegments.isEmpty()) {
+                    outputSegments.pop();
+                }
+            } else {
+                outputSegments.push(inputSegments[i]);
+            }
+        }
+        StringBuffer outputBuffer = new StringBuffer();
+        for (String outputSegment : outputSegments) {
+            outputBuffer.append('/').append(outputSegment);
+        }
+        try {
+            return new URI(uri.getScheme(), uri.getAuthority(),
+                outputBuffer.toString(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
