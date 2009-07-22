@@ -95,7 +95,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *    implemented by concrete super classes to instantiate this object.
  *   <li>{@link ConnectionKeepAliveStrategy}</li> object used to decide how
  *    long a persistent HTTP connection can be kept alive.
- *    The {@link #createConnectionKeepAliveStrategy()()} must be
+ *    The {@link #createConnectionKeepAliveStrategy()} must be
  *    implemented by concrete super classes to instantiate this object.
  *   <li>{@link CookieSpecRegistry}</li> object used to maintain a list of 
  *    supported cookie specifications. 
@@ -132,7 +132,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *    by concrete super classes to instantiate this object.
  *   <li>{@link UserTokenHandler}</li> object used to determine if the 
  *    execution context is user identity specific. 
- *    The {@link #createUserTokenHandler()()} must be implemented by 
+ *    The {@link #createUserTokenHandler()} must be implemented by 
  *    concrete super classes to instantiate this object.
  * </ul> 
  * <p>
