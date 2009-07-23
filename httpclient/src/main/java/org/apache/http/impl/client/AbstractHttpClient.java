@@ -32,6 +32,7 @@ import java.net.URI;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -158,51 +159,67 @@ public abstract class AbstractHttpClient implements HttpClient {
     private final Log log = LogFactory.getLog(getClass());
 
     /** The parameters. */
+    @GuardedBy("this")
     private HttpParams defaultParams;
 
     /** The request executor. */
+    @GuardedBy("this")
     private HttpRequestExecutor requestExec;
 
     /** The connection manager. */
+    @GuardedBy("this")
     private ClientConnectionManager connManager;
 
     /** The connection re-use strategy. */
+    @GuardedBy("this")
     private ConnectionReuseStrategy reuseStrategy;
     
     /** The connection keep-alive strategy. */
+    @GuardedBy("this")
     private ConnectionKeepAliveStrategy keepAliveStrategy;
 
     /** The cookie spec registry. */
+    @GuardedBy("this")
     private CookieSpecRegistry supportedCookieSpecs;
 
     /** The authentication scheme registry. */
+    @GuardedBy("this")
     private AuthSchemeRegistry supportedAuthSchemes;
     
     /** The HTTP processor. */
+    @GuardedBy("this")
     private BasicHttpProcessor httpProcessor;
 
     /** The request retry handler. */
+    @GuardedBy("this")
     private HttpRequestRetryHandler retryHandler;
 
     /** The redirect handler. */
+    @GuardedBy("this")
     private RedirectHandler redirectHandler;
 
     /** The target authentication handler. */
+    @GuardedBy("this")
     private AuthenticationHandler targetAuthHandler;
 
     /** The proxy authentication handler. */
+    @GuardedBy("this")
     private AuthenticationHandler proxyAuthHandler;
 
     /** The cookie store. */
+    @GuardedBy("this")
     private CookieStore cookieStore;
 
     /** The credentials provider. */
+    @GuardedBy("this")
     private CredentialsProvider credsProvider;
     
     /** The route planner. */
+    @GuardedBy("this")
     private HttpRoutePlanner routePlanner;
 
     /** The user token handler. */
+    @GuardedBy("this")
     private UserTokenHandler userTokenHandler;
 
 
