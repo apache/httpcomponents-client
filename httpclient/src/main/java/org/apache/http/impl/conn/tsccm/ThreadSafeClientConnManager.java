@@ -75,13 +75,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     private final Log log = LogFactory.getLog(getClass());
 
     /** The schemes supported by this connection manager. */
-    protected final SchemeRegistry schemeRegistry; 
+    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
     
     /** The pool of connections being managed. */
     protected final AbstractConnPool connectionPool;
 
     /** The operator for opening and updating connections. */
-    protected final ClientConnectionOperator connOperator;
+    protected final ClientConnectionOperator connOperator; // DefaultClientConnectionOperator is @ThreadSafe
     
     /**
      * Creates a new thread safe connection manager.
@@ -137,7 +137,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     protected ClientConnectionOperator
         createConnectionOperator(SchemeRegistry schreg) {
 
-        return new DefaultClientConnectionOperator(schreg);
+        return new DefaultClientConnectionOperator(schreg);// @ThreadSafe
     }
 
     public SchemeRegistry getSchemeRegistry() {
