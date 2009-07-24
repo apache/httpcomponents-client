@@ -26,6 +26,8 @@
 
 package org.apache.http.impl.auth;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.auth.AUTH;
@@ -44,6 +46,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@NotThreadSafe // proxy
 public abstract class AuthSchemeBase implements AuthScheme {
 
     /**

@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieSpec;
 
@@ -42,6 +44,7 @@ import org.apache.http.cookie.CookieSpec;
  * 
  * @since 4.0 
  */
+@NotThreadSafe // HashMap is not thread-safe
 public abstract class AbstractCookieSpec implements CookieSpec {
     
     /**

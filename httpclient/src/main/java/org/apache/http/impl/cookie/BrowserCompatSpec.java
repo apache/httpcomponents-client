@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -51,6 +53,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0 
  */
+@NotThreadSafe // superclass is @NotThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
     
     @Deprecated

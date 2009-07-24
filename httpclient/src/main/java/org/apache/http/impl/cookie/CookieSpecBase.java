@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.cookie.Cookie;
@@ -44,6 +46,7 @@ import org.apache.http.cookie.MalformedCookieException;
  * 
  * @since 4.0 
  */
+@NotThreadSafe // AbstractCookieSpec is not thread-safe
 public abstract class CookieSpecBase extends AbstractCookieSpec {
     
     protected static String getDefaultPath(final CookieOrigin origin) {

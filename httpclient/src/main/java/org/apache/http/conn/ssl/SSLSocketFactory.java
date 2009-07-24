@@ -144,7 +144,7 @@ import java.security.UnrecoverableKeyException;
  *
  * @since 4.0
  */
-@NotThreadSafe
+@NotThreadSafe // [gs]etHostNameVerifier
 public class SSLSocketFactory implements LayeredSocketFactory {
 
     public static final String TLS   = "TLS";

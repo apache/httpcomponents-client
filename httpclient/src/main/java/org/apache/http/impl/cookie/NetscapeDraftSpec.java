@@ -30,7 +30,7 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.jcip.annotations.Immutable;
+import net.jcip.annotations.NotThreadSafe;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
@@ -52,7 +52,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @since 4.0 
  */
-@Immutable
+@NotThreadSafe // superclass is @NotThreadSafe
 public class NetscapeDraftSpec extends CookieSpecBase {
 
     protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss z";

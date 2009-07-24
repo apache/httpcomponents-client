@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.HeaderElement;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueParser;
@@ -44,6 +46,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@NotThreadSafe // AuthSchemeBase, params
 public abstract class RFC2617Scheme extends AuthSchemeBase {
 
     /**

@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
@@ -50,6 +52,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@NotThreadSafe // superclass is @NotThreadSafe
 public class RFC2965Spec extends RFC2109Spec {
 
     /** 

@@ -30,6 +30,8 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.net.Socket;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -61,6 +63,7 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  */
+@NotThreadSafe // connSecure, targetHost
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection {
 

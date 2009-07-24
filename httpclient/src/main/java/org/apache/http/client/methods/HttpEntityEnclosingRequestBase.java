@@ -27,6 +27,8 @@
 
 package org.apache.http.client.methods;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -39,6 +41,7 @@ import org.apache.http.protocol.HTTP;
  * 
  * @since 4.0
  */
+@NotThreadSafe // HttpRequestBase is @NotThreadSafe
 public abstract class HttpEntityEnclosingRequestBase 
     extends HttpRequestBase implements HttpEntityEnclosingRequest {
     
