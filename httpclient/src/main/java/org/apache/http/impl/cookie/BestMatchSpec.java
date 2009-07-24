@@ -29,6 +29,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.List;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.cookie.Cookie;
@@ -44,19 +46,21 @@ import org.apache.http.cookie.SetCookie2;
  *
  * @since 4.0
  */
+@NotThreadSafe // CookieSpec fields are @NotThreadSafe
 public class BestMatchSpec implements CookieSpec {
 
     private final String[] datepatterns;
     private final boolean oneHeader;
     
-    private RFC2965Spec strict;
-    private RFC2109Spec obsoleteStrict;
-    private BrowserCompatSpec compat;
-    private NetscapeDraftSpec netscape;
+    // Cached values of CookieSpec instances
+    private RFC2965Spec strict; // @NotThreadSafe
+    private RFC2109Spec obsoleteStrict; // @NotThreadSafe
+    private BrowserCompatSpec compat; // @NotThreadSafe
+    private NetscapeDraftSpec netscape; // @NotThreadSafe
 
     public BestMatchSpec(final String[] datepatterns, boolean oneHeader) {
         super();
-        this.datepatterns = datepatterns;
+        this.datepatterns = datepatterns.clone();
         this.oneHeader = oneHeader;
     }
 
