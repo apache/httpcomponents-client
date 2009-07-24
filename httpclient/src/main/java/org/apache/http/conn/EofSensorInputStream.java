@@ -71,7 +71,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     private boolean selfClosed;
 
     /** The watcher to be notified, if any. */
-    private EofSensorWatcher eofWatcher;
+    private final EofSensorWatcher eofWatcher;
 
     /**
      * Creates a new EOF sensor.
