@@ -70,10 +70,10 @@ public class ConnPoolByRoute extends AbstractConnPool {
     protected final ClientConnectionOperator operator;
     
     /** The list of free connections */
-    protected Queue<BasicPoolEntry> freeConnections;
+    protected final Queue<BasicPoolEntry> freeConnections;
 
     /** The list of WaitingThreads waiting for a connection */
-    protected Queue<WaitingThread> waitingThreads;
+    protected final Queue<WaitingThread> waitingThreads;
 
     /**
      * A map of route-specific pools.
