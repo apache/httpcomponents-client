@@ -60,7 +60,7 @@ public class BestMatchSpec implements CookieSpec {
 
     public BestMatchSpec(final String[] datepatterns, boolean oneHeader) {
         super();
-        this.datepatterns = datepatterns.clone();
+        this.datepatterns = datepatterns == null ? null : datepatterns.clone();
         this.oneHeader = oneHeader;
     }
 
