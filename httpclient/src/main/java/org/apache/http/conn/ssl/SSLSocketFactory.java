@@ -178,7 +178,9 @@ public class SSLSocketFactory implements LayeredSocketFactory {
     private final SSLContext sslcontext;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
     private final HostNameResolver nameResolver;
-    private X509HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+    
+    // volatile is needed to guarantee thread-safety of the setter/getter methods under all usage scenarios
+    private volatile X509HostnameVerifier hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
     public SSLSocketFactory(
         String algorithm, 
