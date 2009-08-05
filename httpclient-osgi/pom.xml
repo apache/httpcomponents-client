@@ -91,19 +91,23 @@
             <Bundle-Name>Apache ${pom.name}</Bundle-Name>
             <Bundle-SymbolicName>${pom.groupId}.httpclient</Bundle-SymbolicName>
             <_exportcontents>
-               org.apache.http.cookie.*, 
-               org.apache.http.impl.cookie.*, 
-               org.apache.http.auth.*, 
-               org.apache.http.impl.auth.*, 
-               org.apache.http.conn.*, 
-               org.apache.http.impl.conn.*, 
-               org.apache.http.client.*, 
-               org.apache.http.impl.client.*,
-               org.apache.http.entity.mime.*, 
-               org.apache.http.entity.mime.content.*
+            org.apache.http.cookie.*;version=${project.version},
+            org.apache.http.impl.cookie.*;version=${project.version},
+            org.apache.http.auth.*;version=${project.version},
+            org.apache.http.impl.auth.*;version=${project.version},
+            org.apache.http.conn.*;version=${project.version},
+            org.apache.http.impl.conn.*;version=${project.version},
+            org.apache.http.client.*;version=${project.version},
+            org.apache.http.impl.client.*;version=${project.version},
+            org.apache.http.entity.mime.*;version=${project.version},
+            org.apache.http.entity.mime.content.*;version=${project.version}
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
-            <Import-Package>!net.jcip.annotations,*</Import-Package>
+            <Import-Package>
+            !net.jcip.annotations,
+            org.apache.commons.logging;version=${commons-logging.version},
+            *
+            </Import-Package>
           </instructions>
         </configuration>
       </plugin>
