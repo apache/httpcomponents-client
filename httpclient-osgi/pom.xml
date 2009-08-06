@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.0</version>
+    <version>4.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient-osgi</artifactId>
   <name>HttpClient OSGi bundle</name>
