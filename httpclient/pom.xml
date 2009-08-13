@@ -170,7 +170,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
-          <comparisonVersion>4.0-beta1</comparisonVersion>
+          <comparisonVersion>4.0</comparisonVersion>
         </configuration>
       </plugin>
 
