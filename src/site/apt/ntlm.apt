@@ -34,7 +34,7 @@ NTLM support in HttpClient
     out of the box and probably never will. The reasons for that are legal rather than
     technical.
 
-* Background
+* {Background}
 
     NTLM is a proprietary authentication scheme developed by Microsoft and optimized for
     Windows operating system.
@@ -54,7 +54,7 @@ NTLM support in HttpClient
     commercial users of open-source NTLM implementations liable for the use of Microsoft
     intellectual property.
 
-* Enabling NTLM support in HttpClient 4.x
+* {Enabling NTLM support in HttpClient 4.x}
 
     The good news is HttpClient is fully NTLM capable right out of the box.
     HttpClient ships with the NTLM  authentication scheme, which, if configured
@@ -78,7 +78,7 @@ public interface NTLMEngine {
 }
 ----------------------------------------
 
-* Using Samba JCIFS as an NTLM engine
+* {Using Samba JCIFS as an NTLM engine}
 
     Follow these instructions to build an NTLMEngine implementation using JCIFS library
 
@@ -171,7 +171,7 @@ httpclient.getCredentialsProvider().setCredentials(
     * You are done.
 
 
-* Why this code is not distributed with HttpClient 
+* {Why this code is not distributed with HttpClient} 
 
     JCIFS is licensed under the Lesser General Public License (LGPL). This license 
     is not compatible with the Apache Licenses under which all Apache Software is 

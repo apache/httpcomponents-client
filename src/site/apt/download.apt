@@ -36,13 +36,13 @@ HttpClient Downloads
     {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
     {{{http://www.apache.org/licenses/LICENSE-2.0.html}License}}
 
-Dependency management with Maven
+{Dependency management with Maven}
 
     If you are using {{{http://maven.apache.org}Maven}} for your project, you can create a dependency 
     in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
     by adding the following block to the dependency descriptor:
 
-* HttpComponents Client
+* {HttpComponents Client}
 
 -------------------------
   <dependency>
@@ -53,7 +53,7 @@ Dependency management with Maven
   </dependency>
 -------------------------
 
-* HttpComponents HttpMime
+* {HttpComponents HttpMime}
 
 -------------------------
   <dependency>

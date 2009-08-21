@@ -30,7 +30,7 @@
 
 Client HTTP Programming Primer
 
-* About
+* {About}
 
     This document is intended for people who suddenly have to or want to implement
     an application that automates something usually done with a browser,
@@ -52,7 +52,7 @@ Client HTTP Programming Primer
     It is merely a way for us to reduce the noise on the mailing list without
     just leaving the newbies out in the cold.
 
-* Scenario
+* {Scenario}
 
     Let's assume that you have some kind of repetitive, web-based task that
     you want to automate. Something like:
@@ -71,7 +71,7 @@ Client HTTP Programming Primer
     into a sample application. So this document is all bla-bla, and you will
     have to work out the details - all the details - yourself. Such is life.
 
-* Caveat
+* {Caveat}
 
     This scenario describes a hobbyist usage of HTTP, in other words:
     <<a bad practice>>. Web sites are designed for user interaction, not
@@ -107,13 +107,13 @@ Client HTTP Programming Primer
     that the provider will not change without notice.
 
 
-* Not a Browser
+* {Not a Browser}
 
     HttpClient is not a browser. Here's the difference.
 
     <<Browser>>
 
-[images/browser.png] Browser
+[images/browser.png] {Browser}
 
     The figure shows some of the components you will find in a browser.
     To the left, there is the user interface. The browser needs a rendering
@@ -148,7 +148,7 @@ Client HTTP Programming Primer
 
     <<HTTP Client>>
 
-[images/httpclient.png] HTTP Client
+[images/httpclient.png] {HTTP Client}
 
     The figure shows some of the components you will find in a browser,
     and highlights the scope of HttpClient. The primary responsibility
@@ -168,24 +168,24 @@ Client HTTP Programming Primer
     tolerance for flaws in server behavior, but there are limits to the
     deviations HttpClient can handle.
 
-* Terminology
+* {Terminology}
 
     This section introduces some important terms you have to know to
     understand the rest of this document.
 
-    <<<HTTP Message>>>
+    <<<{HTTP Message}>>>
     
     consists of a header section and an optional entity. There are two kinds 
     of messages, requests and responses. They differ in the format of the 
     first line, but both can have header fields and an optional entity.
 
-    <<<HTTP Request>>> 
+    <<<{HTTP Request}>>> 
     
     is sent from a client to a server. The first line includes the URI for 
     which the request is sent, and a method that the server should execute 
     for the client.
 
-    <<<HTTP Response>>>
+    <<<{HTTP Response}>>>
     
     is sent from a server to a client in response to a request. The first
     line includes a status code that tells about success or failure of
@@ -193,13 +193,13 @@ Client HTTP Programming Primer
     and 404 for not found. Other protocols based on HTTP can define
     additional status codes.
 
-    <<<Method>>>
+    <<<{Method}>>>
     
     is an operation requested from the server. HTTP defines a set of
     operations, the most frequent being GET and POST. Other protocols
     based on HTTP can define additional methods.
 
-    <<<Header Fields>>>
+    <<<{Header Fields}>>>
     
     are name-value pairs, where both name and value are text. The name of
     a header field is not case sensitive. Multiple values can be assigned
@@ -210,7 +210,7 @@ Client HTTP Programming Primer
     meant for exclusive use with either requests or responses, still others
     are meant for use only with an entity.
 
-    <<<Entity>>>
+    <<<{Entity}>>>
     
     is data sent with an HTTP message. For example, a response can contain
     the page or image you are downloading as an entity, or a request can
@@ -218,7 +218,7 @@ Client HTTP Programming Primer
     The entity of an HTTP message can have an arbitrary data format, which
     is usually specified as a MIME type in a header field.
 
-    <<<Session>>>
+    <<<{Session}>>>
     
     is a series of requests from a single source to a server. The server
     can keep session data, and needs to recognize the session to which
@@ -229,7 +229,7 @@ Client HTTP Programming Primer
     that it is you and your session for which more results are requested,
     and not me and my session. That's because I searched for something else.
 
-    <<<Cookies>>>
+    <<<{Cookies}>>>
     
     are the preferred way for servers to track sessions. The server supplies
     a piece of data, called a cookie, in response to a request. The server
@@ -239,9 +239,9 @@ Client HTTP Programming Primer
     which session a request belongs by looking at the cookie. If the cookie
     is missing from a request, the server will not respond as expected.
 
-* Step by Step 
+* {Step by Step}
 
-** GET the Login Page
+** {GET the Login Page}
 
     Create and execute a GET request for the login page.
     Just use the link you would type into the browser as the URL.
@@ -274,7 +274,7 @@ Client HTTP Programming Primer
     If you can't get the login page, get the home page instead now.
     Get the login page in the next step, when you establish the session.
 
-** Establish the Session
+** {Establish the Session}
 
     Create and execute another GET request for a page.
     You can simply request the login page again, or some other page
@@ -358,7 +358,7 @@ Client HTTP Programming Primer
     instructions in step 5 for POST requests apply for GET requests as well.
     It's even simpler with GET, since you don't have an entity.
 
-** Analyze the Form
+** {Analyze the Form}
 
     Now it is time to analyze the form defined in the HTML markup of the page.
     A form in HTML is a set of name-value-pairs called parameters, where some
@@ -369,9 +369,9 @@ Client HTTP Programming Primer
     Look for the <form> tag in the page source. There may be several forms in
     the page, but they can not be nested. Locate the form you want to submit.
     Locate the matching </form> tag. Everything in between the two may be
-    relevant. Let's start with the attributes of the <form> tag:
+    relevant. Let's start with the {attributes of the <form> tag}:
 
-    <<<method=>>>
+    <<<{method}=>>>
  
     specifies the method used for submitting the form. If it is GET or
     not specified at all, then you need to create a GET request. The parameters
@@ -380,7 +380,7 @@ Client HTTP Programming Primer
     of the request, also referred to as the request body.
     How to do that is discussed in step 5.
 
-    <<<action=>>>
+    <<<{action}=>>>
  
     specifies the URL to which the request has to be sent. Do not try to
     get this URL from the address bar of your browser! A browser will
@@ -389,7 +389,7 @@ Client HTTP Programming Primer
     It is possible that the URL includes a query string that specifies
     some parameters. If so, keep that in mind.
 
-    <<<enctype=>>>
+    <<<{enctype}=>>>
  
     specifies the MIME type for the entity of the request generated by the
     form. The two common cases are url-encoded (default) and multipart-mime.
@@ -398,7 +398,7 @@ Client HTTP Programming Primer
     This attribute is only used for the POST method. If the method is GET,
     the parameters will always be url-encoded, but not in an entity.
 
-    <<<accept-charset=>>>
+    <<<{accept-charset}=>>>
     
     specifies the character set that the browser should allow for user input.
     It will not be discussed here, but you will have to consider this value
@@ -500,7 +500,7 @@ Client HTTP Programming Primer
     that behavior.
 
 
-** Analyze the Form, Again
+** {Analyze the Form, Again}
 
     After you have determined the action URL and name-value-pairs of
     a form, you should exit the program you used to get the HTML source,
@@ -525,7 +525,7 @@ Client HTTP Programming Primer
     application accordingly.
 
 
-** POST the Form
+** {POST the Form}
 
     After analyzing the form, it is time to create a request that matches
     what a browser would generate. If the method is GET, just add the
@@ -582,33 +582,33 @@ Client HTTP Programming Primer
     can not be set explicitly. Other header fields are used to indicate
     capabilities which a browser has, but your application probably has not.
     For these, the request from your application has to and should differ.
-    Here is a possibly incomplete list of headers that need special consideration:
+    Here is a possibly incomplete {list of headers that need special consideration}:
 
-    <<<Host:>>>
+    <<<{Host}:>>>
 
     controlled by HttpClient. The value is usually obtained from the URL
     you are posting to. It is possible to set a different value, called
     a "virtual host".
 
-    <<<Content-Type:>>>
+    <<<{Content-Type}:>>>
     
-    <<<Content-Length:>>>
+    <<<{Content-Length}:>>>
     
-    <<<Transfer-Encoding:>>>
+    <<<{Transfer-Encoding}:>>>
     
     controlled by HttpClient. The values are obtained from the request entity.
 
-    <<<Connection:>>>
+    <<<{Connection}:>>>
     
     usually controlled by HttpClient to handle connection keep-alive.
     Leave it alone or set the value to "close".
 
-    <<<Content-Encoding:>>>
+    <<<{Content-Encoding}:>>>
     
     used to indicate the capability to process compressed responses.
     Do not set this, unless you are prepared to implement decompression.
 
-** Follow Redirects
+** {Follow Redirects}
 
     It is quite common for servers to respond with a 303 or 307 status code
     to a POST request. These redirects indicate that your application has to
@@ -630,7 +630,7 @@ Client HTTP Programming Primer
     than two redirects in succession, something probably is fishy.
 
 
-** Logout
+** {Logout}
 
     Your application can send as many GET and POST requests and follow as many
     redirects as is required. But you should remember that there is a session
@@ -640,7 +640,7 @@ Client HTTP Programming Primer
     server prevents multiple logins with the same user ID and your application
     has to run repeatedly, logout may even be required.
 
-* Further Reading
+* {Further Reading}
 
     ReferenceMaterials: a list of technical specifications for HTTP and related 
     stuff.

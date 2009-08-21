@@ -45,13 +45,13 @@ HttpClient Overview
     service clients, or systems that leverage or extend the HTTP protocol for distributed 
     communication.
 
-Documentation
+{Documentation}
 
     * HttpClient Tutorial ( {{{tutorial/html}HTML}} / {{{tutorial/pdf/httpclient-tutorial.pdf}PDF}} )
     
     * Some examples of HttpClient in action can be found {{{examples.html}here}}
     
-Features
+{Features}
 
     * Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1
  
@@ -93,7 +93,7 @@ Features
 
     * Source code is freely available under the Apache License.
 
-Standards Compliance
+{Standards Compliance}
 
     HttpClient strives to conform to the following specifications endorsed by the Internet 
     Engineering Task Force (IETF) and the internet at large:

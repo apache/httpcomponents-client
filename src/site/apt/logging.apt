@@ -57,7 +57,7 @@ Logging Practices
     HttpClient performs three different kinds of logging: the standard context logging used within 
     each class, HTTP header logging and full wire logging.            
 
-* Context Logging
+* {Context Logging}
 
     Context logging contains information about the internal operation of HttpClient as it performs 
     HTTP requests.  Each class has its own log named according to the class's fully qualified name. 
@@ -66,24 +66,24 @@ Logging Practices
     it is possible to configure context logging for all classes using the single log named 
     <<<org.apache.http.impl.client>>>.
 
-* Wire Logging
+* {Wire Logging}
 
     The wire log is used to log all data transmitted to and from servers when executing HTTP 
     requests. The wire log uses the {{{org.apache.http.wire}}} logging category. This log should 
     only be enabled to debug problems, as it will produce an extremely large amount of log data.
     
-* HTTP header Logging
+* {HTTP header Logging}
 
     Because the content of HTTP requests is usually less important for debugging than the HTTP 
     headers, the {{{org.apache.http.headers}}} logging category for capturing HTTP headers only.
 
-* Configuration Examples
+* {Configuration Examples}
 
     <<<Commons Logging>>> can delegate to a variety of loggers for processing the actual output. 
     Below are configuration examples for <<<Commons Logging>>>, <<<Log4j>>> and 
     <<<java.util.logging>>>.
 
-** Commons Logging Examples
+** {Commons Logging Examples}
 
     <<<Commons Logging>>> comes with a basic logger called <<<SimpleLog>>>. This logger writes all 
     logged messages to <<<System.err>>>. The following examples show how to configure 
@@ -126,7 +126,7 @@ Logging Practices
 -Dorg.apache.commons.logging.simplelog.log.org.apache.http.client=DEBUG
 --------------------------------------
 
-** Log4j Examples
+** {Log4j Examples}
 
     The simplest way to configure <<<Log4j>>> is via a <<<log4j.properties>>> file. <<<Log4j>>> 
     will automatically read and configure itself using a file named <<<log4j.properties>>> when 
@@ -194,7 +194,7 @@ log4j.logger.org.apache.http.client=DEBUG
     {{{http://logging.apache.org/log4j/docs/manual.html}
     http://logging.apache.org/log4j/docs/manual.html}}.
 
-** java.util.logging Examples
+** {java.util.logging Examples}
 
     Since JDK 1.4 there has been a package 
     {{{http://java.sun.com/j2se/1.4.2/docs/api/java/util/logging/package-summary.html}
@@ -236,7 +236,7 @@ java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
 java.util.logging.ConsoleHandler.level = ALL
 
 org.apache.http.level = FINEST
-org.apache.http.wire.level = ERROR
+org.apache.http.wire.level = SEVERE
 --------------------------------------
     
     * Enable full wire + context logging
