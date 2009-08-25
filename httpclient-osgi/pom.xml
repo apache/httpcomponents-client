@@ -104,7 +104,6 @@
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
             <Import-Package>
-            !net.jcip.annotations,
             org.apache.commons.logging;version=${commons-logging.version},
             *
             </Import-Package>
