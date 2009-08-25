@@ -27,7 +27,7 @@
 
 package org.apache.http.conn.ssl;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.HostNameResolver;

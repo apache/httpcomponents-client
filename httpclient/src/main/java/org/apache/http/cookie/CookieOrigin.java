@@ -28,7 +28,7 @@ package org.apache.http.cookie;
 
 import java.util.Locale;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * CookieOrigin class encapsulates details of an origin server that 

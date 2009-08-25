@@ -28,7 +28,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;

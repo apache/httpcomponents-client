@@ -30,7 +30,7 @@ package org.apache.http.client.protocol;
 import java.io.IOException;
 import java.util.Collection;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;

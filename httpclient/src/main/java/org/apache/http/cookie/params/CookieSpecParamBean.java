@@ -29,7 +29,7 @@ package org.apache.http.cookie.params;
 
 import java.util.Collection;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;

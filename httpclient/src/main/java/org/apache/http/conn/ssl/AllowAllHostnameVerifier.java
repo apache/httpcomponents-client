@@ -27,7 +27,7 @@
 
 package org.apache.http.conn.ssl;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * The ALLOW_ALL HostnameVerifier essentially turns hostname verification

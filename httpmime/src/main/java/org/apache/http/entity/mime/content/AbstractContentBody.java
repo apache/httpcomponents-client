@@ -30,7 +30,7 @@ package org.apache.http.entity.mime.content;
 import java.util.Collections;
 import java.util.Map;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.james.mime4j.message.Entity;
 import org.apache.james.mime4j.message.SingleBody;

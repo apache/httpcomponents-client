@@ -26,7 +26,7 @@
 
 package org.apache.http.conn.params;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;

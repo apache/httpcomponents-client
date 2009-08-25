@@ -27,7 +27,7 @@
 
 package org.apache.http.impl.client;
 
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpVersion;

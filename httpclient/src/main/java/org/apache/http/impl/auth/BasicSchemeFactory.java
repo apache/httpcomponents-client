@@ -27,7 +27,7 @@
 
 package org.apache.http.impl.auth;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;

@@ -23,30 +23,24 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.annotation;
 
-package org.apache.http.client;
-
-import org.apache.http.annotation.Immutable;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Signals a non 2xx HTTP response.
- *
- * @since 4.0
+ * This annotation can be applied to a class to indicate that it is not 
+ * thread-safe and therefore should not be accessed concurrently.
+ * <p>
+ * Based on code developed by Brian Goetz and Tim Peierls and concepts
+ * published in 'Java Concurrency in Practice' by Brian Goetz, Tim Peierls,
+ * Joshua Bloch, Joseph Bowbeer, David Holmes and Doug Lea.
  */
-@Immutable
-public class HttpResponseException extends ClientProtocolException {
-    
-    private static final long serialVersionUID = -7186627969477257933L;
-
-    private final int statusCode;
-    
-    public HttpResponseException(int statusCode, final String s) {
-        super(s);
-        this.statusCode = statusCode;
-    }
-
-    public int getStatusCode() {
-        return this.statusCode;
-    }
-    
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.SOURCE)
+public @interface NotThreadSafe {
 }

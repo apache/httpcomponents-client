@@ -28,7 +28,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Locale;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;

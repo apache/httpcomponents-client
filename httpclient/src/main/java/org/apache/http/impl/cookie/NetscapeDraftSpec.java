@@ -30,7 +30,7 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;

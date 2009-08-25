@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;

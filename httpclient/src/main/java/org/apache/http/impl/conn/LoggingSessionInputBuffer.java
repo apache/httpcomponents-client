@@ -28,7 +28,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionInputBuffer;

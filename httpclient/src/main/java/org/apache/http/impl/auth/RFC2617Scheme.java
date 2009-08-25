@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.auth.MalformedChallengeException;

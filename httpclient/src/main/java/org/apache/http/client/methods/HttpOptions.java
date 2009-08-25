@@ -31,7 +31,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;

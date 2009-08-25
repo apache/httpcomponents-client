@@ -31,7 +31,7 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.LinkedList;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

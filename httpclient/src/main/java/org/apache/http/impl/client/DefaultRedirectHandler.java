@@ -30,7 +30,7 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

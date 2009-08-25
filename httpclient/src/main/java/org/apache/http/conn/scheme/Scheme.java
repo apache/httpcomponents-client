@@ -28,7 +28,7 @@ package org.apache.http.conn.scheme;
 
 import java.util.Locale;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.util.LangUtils;
 

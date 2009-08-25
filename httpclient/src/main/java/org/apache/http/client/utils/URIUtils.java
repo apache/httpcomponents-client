@@ -30,7 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Stack;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpHost;
 

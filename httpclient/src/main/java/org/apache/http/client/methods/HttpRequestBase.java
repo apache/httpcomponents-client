@@ -32,7 +32,7 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;

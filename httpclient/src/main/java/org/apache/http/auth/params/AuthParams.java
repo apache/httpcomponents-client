@@ -27,7 +27,7 @@
 
 package org.apache.http.auth.params;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;

@@ -29,7 +29,7 @@ package org.apache.http.client.entity;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;

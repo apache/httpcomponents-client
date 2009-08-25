@@ -37,7 +37,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Parses the list from <a href="http://publicsuffix.org/">publicsuffix.org</a>

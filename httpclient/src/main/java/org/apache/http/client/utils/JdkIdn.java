@@ -33,7 +33,7 @@ package org.apache.http.client.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Uses the java.net.IDN class through reflection.

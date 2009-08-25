@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;

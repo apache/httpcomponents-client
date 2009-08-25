@@ -26,7 +26,7 @@
 
 package org.apache.http.auth;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 
 /**

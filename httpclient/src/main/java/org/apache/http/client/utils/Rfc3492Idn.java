@@ -32,7 +32,7 @@ package org.apache.http.client.utils;
 
 import java.util.StringTokenizer;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Implementation from pseudo code in RFC 3492.

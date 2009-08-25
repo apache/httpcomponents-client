@@ -35,7 +35,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.protocol.HTTP;

@@ -30,7 +30,7 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;

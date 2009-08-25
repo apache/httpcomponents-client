@@ -33,7 +33,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpConnectionParams;

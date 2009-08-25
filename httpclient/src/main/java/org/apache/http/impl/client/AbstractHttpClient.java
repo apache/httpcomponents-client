@@ -31,8 +31,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.lang.reflect.UndeclaredThrowableException;
 
-import net.jcip.annotations.ThreadSafe;
-import net.jcip.annotations.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.GuardedBy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

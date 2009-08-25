@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.client;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;

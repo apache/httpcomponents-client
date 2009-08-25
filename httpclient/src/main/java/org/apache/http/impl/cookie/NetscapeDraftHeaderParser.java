@@ -30,7 +30,7 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;

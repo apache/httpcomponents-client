@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and 

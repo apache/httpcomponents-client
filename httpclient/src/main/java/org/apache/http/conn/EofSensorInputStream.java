@@ -29,7 +29,7 @@ package org.apache.http.conn;
 import java.io.InputStream;
 import java.io.IOException;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * A stream wrapper that triggers actions on {@link #close close()} and EOF.

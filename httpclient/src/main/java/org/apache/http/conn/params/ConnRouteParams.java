@@ -28,7 +28,7 @@ package org.apache.http.conn.params;
 
 import java.net.InetAddress;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;

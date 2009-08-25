@@ -36,7 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;

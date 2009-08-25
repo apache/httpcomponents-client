@@ -26,7 +26,7 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 // TODO - only called from ConnPoolByRoute currently; consider adding it as nested class
 /** 

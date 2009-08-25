@@ -29,7 +29,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.cookie.SetCookie2;
 

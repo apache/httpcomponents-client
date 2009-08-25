@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieSpec;

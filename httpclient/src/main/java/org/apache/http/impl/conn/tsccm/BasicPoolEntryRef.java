@@ -30,7 +30,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.routing.HttpRoute;
 

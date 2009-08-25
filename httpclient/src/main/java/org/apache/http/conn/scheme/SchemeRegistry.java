@@ -31,8 +31,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpHost;
 

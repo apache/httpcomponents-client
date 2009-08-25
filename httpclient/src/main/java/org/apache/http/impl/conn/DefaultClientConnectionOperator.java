@@ -32,7 +32,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.InetAddress;
 
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;

@@ -33,8 +33,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;

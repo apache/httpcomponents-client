@@ -30,7 +30,7 @@ package org.apache.http.impl.conn;
 
 import java.net.InetAddress;
 
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;

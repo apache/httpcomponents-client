@@ -30,7 +30,7 @@ package org.apache.http.conn;
 import java.io.InputStream;
 import java.io.IOException;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * Basic implementation of {@link EofSensorWatcher}. The underlying connection 

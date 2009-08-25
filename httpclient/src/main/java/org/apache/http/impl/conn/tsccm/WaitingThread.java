@@ -30,7 +30,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * Represents a thread waiting for a connection.

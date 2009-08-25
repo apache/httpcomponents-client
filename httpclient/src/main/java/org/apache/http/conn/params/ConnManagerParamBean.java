@@ -27,7 +27,7 @@
 
 package org.apache.http.conn.params;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;

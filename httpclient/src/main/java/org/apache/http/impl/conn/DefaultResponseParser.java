@@ -29,7 +29,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
-import net.jcip.annotations.ThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

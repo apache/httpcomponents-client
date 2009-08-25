@@ -29,7 +29,7 @@ package org.apache.http.conn.ssl;
 
 import javax.net.ssl.SSLException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * The Strict HostnameVerifier works the same way as Sun Java 1.4, Sun

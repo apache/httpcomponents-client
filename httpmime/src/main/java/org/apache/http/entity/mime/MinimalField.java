@@ -27,7 +27,7 @@
 
 package org.apache.http.entity.mime;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.james.mime4j.parser.Field;
 import org.apache.james.mime4j.util.ByteSequence;

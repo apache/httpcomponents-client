@@ -27,7 +27,7 @@
 
 package org.apache.http.auth;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Constants and static helpers related to the HTTP authentication.

@@ -29,7 +29,7 @@ package org.apache.http.client.params;
 
 import java.util.Collection;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;

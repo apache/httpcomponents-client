@@ -29,7 +29,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.Collection;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;

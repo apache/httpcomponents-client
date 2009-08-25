@@ -26,7 +26,7 @@
 
 package org.apache.http.impl.auth;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;

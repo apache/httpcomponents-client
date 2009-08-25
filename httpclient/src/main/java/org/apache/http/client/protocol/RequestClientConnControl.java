@@ -29,7 +29,7 @@ package org.apache.http.client.protocol;
 
 import java.io.IOException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;

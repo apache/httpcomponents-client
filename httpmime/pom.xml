@@ -55,6 +55,11 @@
       <version>${httpcore.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${pom.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.james</groupId>
       <artifactId>apache-mime4j</artifactId>
       <version>${mime4j.version}</version>
@@ -69,17 +74,6 @@
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>net.jcip</groupId>
-        <artifactId>jcip-annotations</artifactId>
-        <version>1.0</version>
-        <!-- 
-            Annotations are only _required_ during a build.
-            They are not needed at run-time.
-            Provided means that the dependency is not transitive.
-         -->
-        <scope>provided</scope>
     </dependency>
   </dependencies>
 

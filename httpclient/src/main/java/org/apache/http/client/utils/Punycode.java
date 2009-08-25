@@ -30,7 +30,7 @@
 
 package org.apache.http.client.utils;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Facade that provides conversion between Unicode and Punycode domain names.

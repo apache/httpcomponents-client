@@ -29,7 +29,7 @@ package org.apache.http.entity.mime;
 
 import java.nio.charset.Charset;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.james.mime4j.field.FieldName;
 import org.apache.james.mime4j.util.CharsetUtil;

@@ -29,7 +29,7 @@ package org.apache.http.conn.params;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.conn.routing.HttpRoute;
 

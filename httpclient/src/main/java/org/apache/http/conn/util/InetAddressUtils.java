@@ -29,7 +29,7 @@ package org.apache.http.conn.util;
 
 import java.util.regex.Pattern;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * A collection of utilities relating to InetAddresses.

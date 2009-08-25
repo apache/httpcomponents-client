@@ -29,7 +29,7 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * HTTP GET method.

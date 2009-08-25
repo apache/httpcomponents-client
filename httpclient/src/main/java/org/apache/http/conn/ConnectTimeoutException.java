@@ -29,7 +29,7 @@ package org.apache.http.conn;
 
 import java.io.InterruptedIOException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * A timeout while connecting to an HTTP server or waiting for an

@@ -29,7 +29,7 @@ package org.apache.http.impl.cookie;
 
 import java.util.StringTokenizer;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;

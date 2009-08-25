@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

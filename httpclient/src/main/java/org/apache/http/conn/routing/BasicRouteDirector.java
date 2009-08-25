@@ -27,7 +27,7 @@
 
 package org.apache.http.conn.routing;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.

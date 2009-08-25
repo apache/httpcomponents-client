@@ -34,7 +34,7 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;

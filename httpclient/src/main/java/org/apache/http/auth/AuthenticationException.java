@@ -26,7 +26,7 @@
 
 package org.apache.http.auth;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.ProtocolException;
 

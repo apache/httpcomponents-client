@@ -29,7 +29,7 @@ package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpHost;
 

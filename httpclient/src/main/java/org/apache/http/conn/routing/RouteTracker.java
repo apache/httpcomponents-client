@@ -29,7 +29,7 @@ package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HttpHost;
 

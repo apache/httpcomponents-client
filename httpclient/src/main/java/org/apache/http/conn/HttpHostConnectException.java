@@ -28,7 +28,7 @@ package org.apache.http.conn;
 
 import java.net.ConnectException;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpHost;
 

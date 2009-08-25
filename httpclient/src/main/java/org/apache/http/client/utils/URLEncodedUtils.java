@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-import net.jcip.annotations.Immutable;
+import org.apache.http.annotation.Immutable;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;

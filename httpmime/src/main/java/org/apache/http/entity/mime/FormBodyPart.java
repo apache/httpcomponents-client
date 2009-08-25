@@ -27,7 +27,7 @@
 
 package org.apache.http.entity.mime;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.james.mime4j.descriptor.ContentDescriptor;
