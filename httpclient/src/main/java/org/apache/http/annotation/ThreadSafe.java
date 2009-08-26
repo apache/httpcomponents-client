@@ -32,9 +32,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be applied to a class to indicate that it is 
- * thread-safe and therefore can be accessed concurrently by multiple
- * threads.
+ * The class to which this annotation is applied is thread-safe.  This means that
+ * no sequences of accesses (reads and writes to public fields, calls to public methods)
+ * may put the object into an invalid state, regardless of the interleaving of those actions
+ * by the runtime, and without requiring any additional synchronization or coordination on the
+ * part of the caller.
+ * @see NotThreadSafe
  * <p>
  * Based on code developed by Brian Goetz and Tim Peierls and concepts
  * published in 'Java Concurrency in Practice' by Brian Goetz, Tim Peierls,
@@ -42,6 +45,6 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS) // The original version used RUNTIME
 public @interface ThreadSafe {
 }
