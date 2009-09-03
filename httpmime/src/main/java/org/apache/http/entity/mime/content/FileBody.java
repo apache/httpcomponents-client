@@ -45,13 +45,39 @@ import org.apache.http.entity.mime.MIME;
 public class FileBody extends AbstractContentBody {
 
     private final File file;
-    
-    public FileBody(final File file, final String mimeType) {
+    private final String filename;
+    private final String charset;
+
+    /**
+     * @since 4.1
+     */
+    public FileBody(final File file,
+                    final String filename,
+                    final String mimeType,
+                    final String charset) {
         super(mimeType);
         if (file == null) {
             throw new IllegalArgumentException("File may not be null");
         }
         this.file = file;
+        if (filename != null)
+            this.filename = filename;
+        else
+            this.filename = file.getName();
+        this.charset = charset;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public FileBody(final File file,
+                    final String mimeType,
+                    final String charset) {
+        this(file, null, mimeType, charset);
+    }
+
+    public FileBody(final File file, final String mimeType) {
+        this(file, mimeType, null);
     }
     
     public FileBody(final File file) {
@@ -93,7 +119,7 @@ public class FileBody extends AbstractContentBody {
     }
 
     public String getCharset() {
-        return null;
+        return charset;
     }
 
     public long getContentLength() {
@@ -101,7 +127,7 @@ public class FileBody extends AbstractContentBody {
     }
     
     public String getFilename() {
-        return this.file.getName();
+        return filename;
     }
     
     public File getFile() {

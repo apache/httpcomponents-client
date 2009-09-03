@@ -240,7 +240,7 @@ public class TestMultipartForm extends TestCase {
         } finally {
             writer.close();
         }
-        
+
         HttpMultipart multipart = new HttpMultipart("form-data");
         multipart.setParent(message);
         FormBodyPart p1 = new FormBodyPart(
@@ -248,33 +248,48 @@ public class TestMultipartForm extends TestCase {
                 new FileBody(tmpfile));
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
+                new FileBody(tmpfile, "test-file", "text/plain", "ANSI_X3.4-1968"));
+        FormBodyPart p3 = new FormBodyPart(
+                "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-        
+
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
-        
-        multipart.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        
+        multipart.addBodyPart(p3);
+
+        multipart.setMode(HttpMultipartMode.STRICT);
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
-        
+
         String expected = 
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"; " +
+                "filename=\"test-file\"\r\n" +
+            "Content-Type: text/plain; charset=ANSI_X3.4-1968\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field3\"; " +
                 "filename=\"file.tmp\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
             "--foo--\r\n";
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
-        
+
         tmpfile.delete();
     }
 
