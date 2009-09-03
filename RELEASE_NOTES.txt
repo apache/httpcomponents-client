@@ -1,3 +1,10 @@
+Changes since 4.0
+-------------------
+
+* [HTTPCLIENT-834] Transparent content encoding support.
+  Contributed by James Abley <james.abley at gmail.com>
+
+
 Release 4.0
 -------------------
 
