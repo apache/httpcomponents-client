@@ -1,8 +1,4 @@
 /*
- * $HeadURL$
- * $Revision$
- * $Date$
- *
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -284,7 +280,7 @@ public class TestContentCodings extends ServerTestBase {
         client.execute(getServerHttp(), request);
 
         assertTrue("Client which added the new custom protocol interceptor to handle gzip responses " +
-        		"was unaffected.",
+                "was unaffected.",
                 clientSawGzip[0]);
 
         client.getConnectionManager().shutdown();
