@@ -43,6 +43,7 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.field.Fields;
+import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.Message;
 
 /**
@@ -121,11 +122,18 @@ public class MultipartEntity implements HttpEntity {
         return buffer.toString();
     }
 
-    public void addPart(final String name, final ContentBody contentBody) {
-        this.multipart.addBodyPart(new FormBodyPart(name, contentBody));
+    /**
+     * @since 4.1
+     */
+    public void addPart(final BodyPart bodyPart) {
+        this.multipart.addBodyPart(bodyPart);
         this.dirty = true;
     }
-  
+
+    public void addPart(final String name, final ContentBody contentBody) {
+        addPart(new FormBodyPart(name, contentBody));
+    }
+
     public boolean isRepeatable() {
         List<?> parts = this.multipart.getBodyParts();
         for (Iterator<?> it = parts.iterator(); it.hasNext(); ) {
