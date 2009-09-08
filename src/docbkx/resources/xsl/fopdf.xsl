@@ -122,6 +122,9 @@
     <!-- Show only Sections up to level 3 in the TOCs -->
     <xsl:param name="toc.section.depth">2</xsl:param>
 
+    <!-- Show titles in bookmarks pane -->
+    <xsl:param name="fop1.extensions">1</xsl:param>
+
     <!-- Dot and Whitespace as separator in TOC between Label and Title-->
     <xsl:param name="autotoc.label.separator" select="'.  '"/>
 
