@@ -82,20 +82,25 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
 
     /**
      * Signals that this connection is in the process of being open.
-     * <br/>
-     * By calling this method, you can provide the connection with
-     * the unconnected socket that will be connected before
-     * {@link #openCompleted} is called. This allows 
-     * the connection to close that socket if
+     * <p>
+     * By calling this method, the connection can be re-initialized
+     * with a new Socket instance before {@link #openCompleted} is called. 
+     * This enabled the connection to close that socket if
      * {@link org.apache.http.HttpConnection#shutdown shutdown}
-     * is called before it is open. Closing the unconnected socket
+     * is called before it is fully open. Closing an unconnected socket
      * will interrupt a thread that is blocked on the connect.
      * Otherwise, that thread will either time out on the connect,
      * or it returns successfully and then opens this connection
      * which was just shut down.
-     * <br/>
-     * You also must call {@link #openCompleted} in order to complete
-     * the process
+     * <p>
+     * This method can be called multiple times if the connection 
+     * is layered over another protocol. <b>Note:</b> This method 
+     * will <i>not</i> close the previously used socket. It is 
+     * the caller's responsibility to close that socket if it is 
+     * no longer required.
+     * <p>
+     * The caller must invoke {@link #openCompleted} in order to complete
+     * the process.
      *
      * @param sock      the unconnected socket which is about to
      *                  be connected.

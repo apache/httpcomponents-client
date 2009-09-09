@@ -120,9 +120,13 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         conn.opening(sock, target);
 
         try {
-            sock = sf.connectSocket(sock, target.getHostName(),
+            Socket connsock = sf.connectSocket(sock, target.getHostName(),
                     schm.resolvePort(target.getPort()),
                     local, 0, params);
+            if (sock != connsock) {
+                sock = connsock;
+                conn.opening(sock, target);
+            }
         } catch (ConnectException ex) {
             throw new HttpHostConnectException(target, ex);
         }
