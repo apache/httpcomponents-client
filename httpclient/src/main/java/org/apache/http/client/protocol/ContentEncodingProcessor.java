@@ -21,11 +21,8 @@
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */
-
-package org.apache.http.impl.client;
+*/
+package org.apache.http.client.protocol;
 
 import java.io.IOException;
 
@@ -37,6 +34,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.client.entity.DeflateDecompressingEntity;
+import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -50,7 +49,8 @@ import org.apache.http.protocol.HttpContext;
  * 
  * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5
  */
-class ContentEncodingProcessor implements HttpResponseInterceptor, HttpRequestInterceptor {
+public class ContentEncodingProcessor 
+                    implements HttpResponseInterceptor, HttpRequestInterceptor {
 
     /**
      * {@inheritDoc}

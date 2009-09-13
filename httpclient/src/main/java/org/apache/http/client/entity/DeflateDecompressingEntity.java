@@ -21,11 +21,8 @@
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */
-
-package org.apache.http.impl.client;
+*/
+package org.apache.http.client.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +44,7 @@ import org.apache.http.entity.HttpEntityWrapper;
  * <code>deflate</code> streams. We handle both types in here, since that's what is seen on the 
  * internet. Moral - prefer <code>gzip</code>!
  */
-class DeflateDecompressingEntity extends HttpEntityWrapper {
+public class DeflateDecompressingEntity extends HttpEntityWrapper {
 
     /**
      * Creates a new {@link DeflateDecompressingEntity} which will wrap the specified 

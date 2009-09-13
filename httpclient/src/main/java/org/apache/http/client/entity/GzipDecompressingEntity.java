@@ -21,11 +21,8 @@
  * This software consists of voluntary contributions made by many
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */
-
-package org.apache.http.impl.client;
+*/
+package org.apache.http.client.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +35,7 @@ import org.apache.http.entity.HttpEntityWrapper;
 /**
  * {@link HttpEntityWrapper} for handling gzip Content Coded responses.
  */
-class GzipDecompressingEntity extends HttpEntityWrapper {
+public class GzipDecompressingEntity extends HttpEntityWrapper {
 
     /**
      * Creates a new {@link GzipDecompressingEntity} which will wrap the specified 
