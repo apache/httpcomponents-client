@@ -94,6 +94,8 @@ pwd
                         Despite its insecurity Basic authentication scheme is perfectly adequate if
                         used in combination with the TLS/SSL encryption.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>Digest</title>
                     <para>Digest authentication scheme as defined in RFC 2617. Digest authentication
@@ -101,6 +103,8 @@ pwd
                         those applications that do not want the overhead of full transport security
                         through TLS/SSL encryption.</para>
                 </formalpara>
+            <listitem>
+            </listitem>
                 <formalpara>
                     <title>NTLM:</title>
                     <para>NTLM is a proprietary authentication scheme developed by Microsoft and
@@ -126,6 +130,8 @@ pwd
                         If this parameter is not set HttpClient will handle authentication
                         automatically.</para>
                 </formalpara>
+            <listitem>
+            </listitem>
                 <formalpara>
                     <title>'http.auth.credential-charset':</title>
                     <para>defines the charset to be used when encoding user credentials. This
@@ -146,6 +152,8 @@ pwd
                     <title>Basic:</title>
                     <para>Basic authentication scheme</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>Digest:</title>
                     <para>Digest authentication scheme</para>
@@ -225,18 +233,24 @@ null
                         authentication scheme registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.auth.credentials-provider':</title>
                     <para><interfacename>CookieSpec</interfacename> instance representing the actual
                         credentials provider. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.auth.target-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual target
                         authentication state. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.auth.proxy-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual proxy

@@ -52,8 +52,31 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Kerberos auth example.
- * <p>
- * <b>krb5.conf</b>
+ * 
+ * <p>Takes one arguement args[0] = 'http://examplehost/path/'</p>
+ * <h5>Information</h5>
+ * <p>For the best compatibility use Java >= 1.6 as it supports SPNEGO authentication more 
+      completely.</p>
+ * <p><em>NegotiateSchemeFactory</em></p>
+ * <p>Has three custom methods</p>
+ * <p><em>setStripPort(boolean)</em> - default is false, with strip the port off the Kerberos
+ * service name if true. Found useful with JbossNegotiation. Java >= 1.5</p>
+ * 
+ * <p>Below are for Java 1.5.</p>
+ * 
+ * <p><em>setSpnegoCreate(boolean)</em> - defaults to false, try to create an SPNEGO token via
+ * the token set in setSpengoGenerator. TODO - merge logic so just setSpengoGenerator</p>
+ * 
+ * <p><em>setSpengoGenerator(new SpnegoTokenGenerator())</em> - default is null, class to use to wrap
+ * kerberos token. An example is in contrib - <em>org.apache.http.contrib.auth.BouncySpnegoTokenGenerator</em>.
+ * Requires use of <a href="http://www.bouncycastle.org/java.html">bouncy castle libs</a>
+ * </p>
+ * 
+ * <h6>Addtional Config Files</h6>
+ * <p>Two files control how Java uses/configures Kerberos. Very basic examples are below. There
+ * is a large amount of information on the web.</p>
+ * <p><a href="http://java.sun.com/j2se/1.5.0/docs/guide/security/jaas/spec/com/sun/security/auth/module/Krb5LoginModule.html">http://java.sun.com/j2se/1.5.0/docs/guide/security/jaas/spec/com/sun/security/auth/module/Krb5LoginModule.html</a>
+ * <p><b>krb5.conf</b></p>
  * <pre>
  * [libdefaults]
  *     default_realm = AD.EXAMPLE.NET
@@ -122,19 +145,22 @@ public class ClientKerberosAuthentication {
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
+        /* NegotiateSchemeFactory creates the NegotiateScheme instance to be use for each request
+         * if using Java 5/6 and IIS7 you can just use the defaults. JbossNegotiate use setStripPort(true),
+         * or add service names with ports to kerberos DB. JbossNegotiate needs Java 6 or a SpengoGenerator.
+         */
+        NegotiateSchemeFactory negotiateFact = new NegotiateSchemeFactory();
+//        negotiateFact.setStripPort(false);
+//        negotiateFact.setSpnegoCreate(true);
+//        negotiateFact.setSpengoGenerator(new BouncySpnegoTokenGenerator());
+        
         AuthSchemeRegistry authSchemeRegistry = httpclient.getAuthSchemes();
         authSchemeRegistry.unregister("basic");
         authSchemeRegistry.unregister("digest");
         authSchemeRegistry.unregister("NTLM");
-        
-        NegotiateSchemeFactory negotiateFact = new NegotiateSchemeFactory();
-        negotiateFact.setStripPort(false);
-        negotiateFact.setSpnegoCreate(false);
-//        negotiateFact.setSpengoGenerator(new BouncySpnegoTokenGenerator());
-        
         authSchemeRegistry.register("Negotiate", negotiateFact);
-        //        authSchemeRegistry.register("NTLM", new NTLMSchemeFactory());
-        //        authSchemeRegistry.register("Basic", new BasicSchemeFactory());
+//        authSchemeRegistry.register("NTLM", new NTLMSchemeFactory());
+//        authSchemeRegistry.register("Basic", new BasicSchemeFactory());
         httpclient.setAuthSchemes(authSchemeRegistry);
 
         Credentials use_jaas_creds = new Credentials() {

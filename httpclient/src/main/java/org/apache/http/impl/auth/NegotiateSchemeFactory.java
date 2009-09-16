@@ -40,7 +40,7 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
         negotiateScheme.setStripPort(stripPort);
         negotiateScheme.setSpnegoCreate(spnegoCreate);
         negotiateScheme.setSpengoGenerator(spengoGenerator);
-        return new NegotiateScheme();
+        return negotiateScheme;
     }
 
     public NegotiateSchemeFactory(){
