@@ -26,14 +26,17 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.client.protocol.ContentEncodingProcessor;
+import org.apache.http.client.protocol.RequestAcceptEncoding;
+import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 
 /**
- * {@link DefaultHttpClient} sub-class which includes a {@link ContentEncodingProcessor} 
+ * {@link DefaultHttpClient} sub-class which includes a {@link RequestAcceptEncoding} 
  * for the request and response.
+ * 
+ * @since 4.1
  */
 public class ContentEncodingHttpClient extends DefaultHttpClient {
 
@@ -68,9 +71,9 @@ public class ContentEncodingHttpClient extends DefaultHttpClient {
     protected BasicHttpProcessor createHttpProcessor() {
         BasicHttpProcessor result = super.createHttpProcessor();
         
-        ContentEncodingProcessor ceProcessor = new ContentEncodingProcessor();
-        result.addRequestInterceptor(ceProcessor);
-        result.addResponseInterceptor(ceProcessor);
+        result.addRequestInterceptor(new RequestAcceptEncoding());
+        result.addResponseInterceptor(new ResponseContentEncoding());
+        
         return result;
     }
     

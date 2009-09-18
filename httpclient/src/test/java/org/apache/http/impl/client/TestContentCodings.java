@@ -54,7 +54,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.ContentEncodingProcessor;
+import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -322,7 +322,7 @@ public class TestContentCodings extends ServerTestBase {
         AbstractHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
 
-        client.removeRequestInterceptorByClass(ContentEncodingProcessor.class);
+        client.removeRequestInterceptorByClass(RequestAcceptEncoding.class);
         
         HttpResponse response = client.execute(getServerHttp(), request);
         
