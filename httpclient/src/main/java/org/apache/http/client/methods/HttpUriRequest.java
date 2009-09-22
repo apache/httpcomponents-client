@@ -51,6 +51,15 @@ public interface HttpUriRequest extends HttpRequest {
     /**
      * Returns the URI this request uses, such as
      * <code>http://example.org/path/to/file</code>.
+     * 
+     * Note that this is the original URI, and is
+     * unaffected by redirects.
+     * 
+     * To find the final URI after any redirects have been processed,
+     * please see the section entitled 
+     * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
+     * in the 
+     * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html">HttpClient Tutorial</a>
      */
     URI getURI();
     
