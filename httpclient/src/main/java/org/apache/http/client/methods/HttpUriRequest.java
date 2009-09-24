@@ -52,8 +52,8 @@ public interface HttpUriRequest extends HttpRequest {
      * Returns the URI this request uses, such as
      * <code>http://example.org/path/to/file</code>.
      * 
-     * Note that this is the original URI, and is
-     * unaffected by redirects.
+     * Implementations are encouraged to return
+     * the URI that was initially requested.
      * 
      * To find the final URI after any redirects have been processed,
      * please see the section entitled 
