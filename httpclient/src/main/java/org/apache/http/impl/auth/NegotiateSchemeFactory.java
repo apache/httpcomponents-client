@@ -1,11 +1,12 @@
 /*
  * ====================================================================
  *
- *  Copyright 2002-2009 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,7 +21,7 @@
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
- *
+ * 
  */
 
 package org.apache.http.impl.auth;
@@ -29,6 +30,12 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
 
+/**
+ * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication 
+ * scheme factory.
+ * 
+ * @since 4.1
+ */
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
     
     private boolean stripPort = false; // strip port off kerb name
