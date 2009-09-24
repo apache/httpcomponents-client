@@ -74,6 +74,12 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         return HttpProtocolParams.getVersion(getParams());
     }
 
+    /**
+     * Returns the original request URI. 
+     * <p>
+     * Please note URI remains unchanged in the course of request execution and 
+     * is not updated if the request is redirected to another location.
+     */
     public URI getURI() {
         return this.uri;
     }
