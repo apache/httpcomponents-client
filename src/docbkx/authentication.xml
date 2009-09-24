@@ -103,8 +103,8 @@ pwd
                         those applications that do not want the overhead of full transport security
                         through TLS/SSL encryption.</para>
                 </formalpara>
-            <listitem>
             </listitem>
+            <listitem>
                 <formalpara>
                     <title>NTLM:</title>
                     <para>NTLM is a proprietary authentication scheme developed by Microsoft and
@@ -130,8 +130,8 @@ pwd
                         If this parameter is not set HttpClient will handle authentication
                         automatically.</para>
                 </formalpara>
-            <listitem>
             </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.auth.credential-charset':</title>
                     <para>defines the charset to be used when encoding user credentials. This
@@ -139,7 +139,41 @@ pwd
                         this parameter is not set <literal>US-ASCII</literal> will be used.</para>
                 </formalpara>
             </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.auth.target-scheme-pref':</title>
+                    <para>Defines the order of preference for supported
+                            <interfacename>AuthScheme</interfacename>s when authenticating with the
+                        target host. This parameter expects a value of type
+                            <interface>java.util.Collection</interface>. The collection is expected
+                        to contain <classname>java.lang.String</classname> instances representing a
+                        name of an authentication scheme as returned by
+                            <methodname>AuthScheme#getSchemeName()</methodname></para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.auth.proxy-scheme-pref':</title>
+                    <para>Defines the order of preference for supported
+                            <interfacename>AuthScheme</interfacename>s when authenticating with the
+                        proxy host. This parameter expects a value of type
+                            <interface>java.util.Collection</interface>. The collection is expected
+                        to contain <classname>java.lang.String</classname> instances representing a
+                        name of an authentication scheme as returned by
+                            <methodname>AuthScheme#getSchemeName()</methodname></para>
+                </formalpara>
+            </listitem>
         </itemizedlist>
+        <para>For example, one can force HttpClient to use a different order of preference for
+            authentication schemes</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient(ccm, params);
+// Choose BASIC over DIGEST for proxy authentication
+List<String> authpref = new ArrayList<String>();
+authpref.add(AuthPolicy.BASIC);
+authpref.add(AuthPolicy.DIGEST);
+httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
+]]></programlisting>
     </section>
     <section>
         <title>Authentication scheme registry</title>
@@ -332,44 +366,59 @@ httpclient.addRequestInterceptor(preemptiveAuth, 0);
 
     <section>
         <title><literal>SPNEGO</literal>/Kerberos Authentication</title>
-        <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
-<emphasis>Nego</emphasis>tiation Mechanism) is designed to allow for authentication
-to services when neither end knows what the other can use/provide. It is most
-commonly used to do Kerberos authentication. It can wrap other mechanisms, however
-the current version in HTTPClient is designed solely with Kerberos in mind. The image below shows a simple authentication process.
-        </para>
+        <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
+            <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
+            <emphasis>Nego</emphasis>tiation Mechanism) is designed to allow for authentication to
+            services when neither end knows what the other can use/provide. It is most commonly used
+            to do Kerberos authentication. It can wrap other mechanisms, however the current version
+            in HTTPClient is designed solely with Kerberos in mind. The image below shows a simple
+            authentication process. </para>
         <mediaobject>
             <imageobject>
-                <imagedata fileref=".//images/SPNEGO_cropped.png" />
+                <imagedata fileref=".//images/SPNEGO_cropped.png"/>
             </imageobject>
         </mediaobject>
-      	<sidebar>
-        <para>1. Client Web Browser does HTTP GET for resource.</para>
-        <para>2. Web server returns HTTP 401 status and a header: &quot;WWW-Authenticate: Negotiate</para>
-        <para>3. Client generates a NegTokenInit, base64 encodes it, and resubmits the GET with an Authorization header: &quot;Authorization: Negotiate &lt;base64 encoding&gt;&quot;.</para>
-        <para>4. Server decodes the NegTokenInit, extracts the supported MechTypes (only Kerberos V5 in our case), ensures it is one of the expected ones, and then extracts the MechToken (Kerberos Token) and authenticates it.</para>
-        <para>4a. If more processing is required another HTTP 401 is returned to the client with more data in the the WWW-Authenticate header. Client takes the info and generates another token passing this back in the Authorization header.... until complete.</para>
-        <para>5. When the client has been authenticated the Web server should return the HTTP 200 status, a final WWW-Authenticate header and the page content.</para>
+        <sidebar>
+            <para>1. Client Web Browser does HTTP GET for resource.</para>
+            <para>2. Web server returns HTTP 401 status and a header: &quot;WWW-Authenticate:
+                Negotiate</para>
+            <para>3. Client generates a NegTokenInit, base64 encodes it, and resubmits the GET with
+                an Authorization header: &quot;Authorization: Negotiate &lt;base64
+                encoding&gt;&quot;.</para>
+            <para>4. Server decodes the NegTokenInit, extracts the supported MechTypes (only
+                Kerberos V5 in our case), ensures it is one of the expected ones, and then extracts
+                the MechToken (Kerberos Token) and authenticates it.</para>
+            <para>4a. If more processing is required another HTTP 401 is returned to the client with
+                more data in the the WWW-Authenticate header. Client takes the info and generates
+                another token passing this back in the Authorization header.... until
+                complete.</para>
+            <para>5. When the client has been authenticated the Web server should return the HTTP
+                200 status, a final WWW-Authenticate header and the page content.</para>
         </sidebar>
         <section>
             <title>HTTPClient Implementation</title>
 
             <para>Supports Sun Java versions 1.5 and up.</para>
-            <para>The JRE provides the supporting classes to do nearly all the kerberos and SPNEGO token handling. This means that a lot of the setup
-is for the GSS classes. The NegotiateScheme is a simple class to handle marshalling the tokens and reading and writing the correct headers.</para>
+            <para>The JRE provides the supporting classes to do nearly all the kerberos and SPNEGO
+                token handling. This means that a lot of the setup is for the GSS classes. The
+                NegotiateScheme is a simple class to handle marshalling the tokens and reading and
+                writing the correct headers.</para>
         </section>
         <section>
             <title>Usage.</title>
 
-            <para>The best way to start is to grab the KerberosHttpClient.java file in examples and try and get it to work.
-There are a lot of issues that can happen but if lucky it'll work without too much problem. It should also
-provide some output to debug with.</para>
+            <para>The best way to start is to grab the KerberosHttpClient.java file in examples and
+                try and get it to work. There are a lot of issues that can happen but if lucky it'll
+                work without too much problem. It should also provide some output to debug
+                with.</para>
 
-            <para>In windows it should default to using the logged in credentials, this
-can be overridden by using 'kinit' e.g. <literal>$JAVA_HOME\bin\kinit testuser@AD.EXAMPLE.NET</literal>, which is very
-helpful for testing and debugging issues. Remove the cache file created to revert back to the windows
-Kerberos cache.</para>
-            <para>Make sure to list domain_realms in the krb5.conf file. This is a major source of problems.</para>
+            <para>In windows it should default to using the logged in credentials, this can be
+                overridden by using 'kinit' e.g. <literal>$JAVA_HOME\bin\kinit
+                    testuser@AD.EXAMPLE.NET</literal>, which is very helpful for testing and
+                debugging issues. Remove the cache file created to revert back to the windows
+                Kerberos cache.</para>
+            <para>Make sure to list domain_realms in the krb5.conf file. This is a major source of
+                problems.</para>
         </section>
         <section>
             <title>NegotiateSchemeFactory Class</title>
@@ -379,35 +428,44 @@ Kerberos cache.</para>
         <section>
             <title>setStripPort(boolean)</title>
 
-            <para>Strips the port off service names e.g. HTTP/webserver.ad.example.net:8080 -> HTTP/webserver.ad.example.net</para>
+            <para>Strips the port off service names e.g. HTTP/webserver.ad.example.net:8080 ->
+                HTTP/webserver.ad.example.net</para>
 
             <para>Found it useful when using JbossNegotiation.</para>
         </section>
         <section>
             <title> setSpnegoCreate(boolean)</title>
 
-            <para>If using Java 1.5 or a Kerberos ticket an attempt will be made to wrap it up into a SPNEGO token. Again for JbossNegotiation. II7 accepts plain Kerberos tickets.</para>
+            <para>If using Java 1.5 or a Kerberos ticket an attempt will be made to wrap it up into
+                a SPNEGO token. Again for JbossNegotiation. II7 accepts plain Kerberos
+                tickets.</para>
         </section>
         <section>
             <title>setSpengoGenerator(SpnegoTokenGenerator)</title>
 
-            <para>Inject a custom SpnegoTokenGenerator class to do the Kerberos to SPNEGO token wrapping. BouncySpnegoTokenGenerator example
-is provided. This requires the BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html">"http://www.bouncycastle.org/java.html"</ulink>
-</para>
+            <para>Inject a custom SpnegoTokenGenerator class to do the Kerberos to SPNEGO token
+                wrapping. BouncySpnegoTokenGenerator example is provided. This requires the
+                BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html"
+                    >"http://www.bouncycastle.org/java.html"</ulink>
+            </para>
         </section>
         <section>
             <title>GSS/Java Kerberos Setup.</title>
 
-            <para>This documentation assumes you are using windows but much of the informationapplies to Unix as well.</para>
-            <para>The org.ietf.jgss classes have lots of possible configuration parameters,
-mainly in the krb5.conf/krb5.ini file. Some more info on the format at
-<ulink url="http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html">http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html</ulink>.</para>
+            <para>This documentation assumes you are using windows but much of the
+                informationapplies to Unix as well.</para>
+            <para>The org.ietf.jgss classes have lots of possible configuration parameters, mainly
+                in the krb5.conf/krb5.ini file. Some more info on the format at <ulink
+                    url="http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html"
+                    >http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html</ulink>.</para>
         </section>
         <section>
             <title>login.conf file</title>
 
-            <para>The following configuration is a basic setup that works in Windows XP against both IIS7 and JbossNegotiate modules.</para>
-            <para>The system property that can be use to point to the login.conf file is <emphasis>java.security.auth.login.config</emphasis>.</para>
+            <para>The following configuration is a basic setup that works in Windows XP against both
+                IIS7 and JbossNegotiate modules.</para>
+            <para>The system property that can be use to point to the login.conf file is
+                    <emphasis>java.security.auth.login.config</emphasis>.</para>
             <para>Sample usage...</para>
             <programlisting>System.setProperty("java.security.auth.login.config", "login.conf");</programlisting>
 
@@ -432,7 +490,7 @@ com.sun.security.jgss.accept {
             <para>If unspecified the system default will be used. Override with...</para>
             <programlisting>System.setProperty("java.security.krb5.conf", "krb5.conf");</programlisting>
             <para>Example file contents...</para>
-            
+
             <programlisting><![CDATA[
 [libdefaults]
     default_realm = AD.EXAMPLE.NET

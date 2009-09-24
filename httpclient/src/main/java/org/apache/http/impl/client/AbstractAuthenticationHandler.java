@@ -35,18 +35,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -64,9 +64,10 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     
     private static final List<String> DEFAULT_SCHEME_PRIORITY = 
         Collections.unmodifiableList(Arrays.asList(new String[] {
-            "ntlm",
-            "digest",
-            "basic"
+                AuthPolicy.SPNEGO,
+                AuthPolicy.NTLM,
+                AuthPolicy.DIGEST,
+                AuthPolicy.BASIC
     }));
     
     public AbstractAuthenticationHandler() {
@@ -106,11 +107,31 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         return map;
     }
     
+    /**
+     * Returns default list of auth scheme names in their order of preference.
+     * 
+     * @return list of auth scheme names
+     */
     protected List<String> getAuthPreferences() {
         return DEFAULT_SCHEME_PRIORITY;
     }
     
-	public AuthScheme selectScheme(
+    /**
+     * Returns default list of auth scheme names in their order of preference
+     * based on the HTTP response and the current execution context.
+     * 
+     * @param response HTTP response.
+     * @param context HTTP execution context.
+     * 
+     * @since 4.1
+     */
+    protected List<String> getAuthPreferences(
+            final HttpResponse response, 
+            final HttpContext context) {
+        return getAuthPreferences();
+    }
+    
+    public AuthScheme selectScheme(
             final Map<String, Header> challenges, 
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
@@ -121,11 +142,9 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
         
-        @SuppressWarnings("unchecked")
-        Collection<String> authPrefs = (Collection<String>) context.getAttribute(
-                ClientContext.AUTH_SCHEME_PREF);
+        Collection<String> authPrefs = getAuthPreferences(response, context);
         if (authPrefs == null) {
-            authPrefs = getAuthPreferences();
+            authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
         
         if (this.log.isDebugEnabled()) {

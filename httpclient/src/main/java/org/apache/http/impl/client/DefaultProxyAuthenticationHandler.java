@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.client;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.annotation.Immutable;
@@ -36,6 +37,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.protocol.HttpContext;
 
@@ -72,4 +74,18 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
         return parseChallenges(headers);
     }
 
+    @Override
+    protected List<String> getAuthPreferences(
+            final HttpResponse response, 
+            final HttpContext context) {
+        @SuppressWarnings("unchecked")
+        List<String> authpref = (List<String>) response.getParams().getParameter(
+                AuthPNames.PROXY_AUTH_PREF);
+        if (authpref != null) {
+            return authpref;
+        } else {
+            return super.getAuthPreferences(response, context);
+        }
+    }
+    
 }

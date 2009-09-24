@@ -1,6 +1,10 @@
 Changes since 4.0
 -------------------
 
+* Added parameters to define the order of preference for supported auth 
+  schemes for target host and proxy authentication.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-875] DefaultClientConnectionOperator#openConnection doesn't 
   update the connection state if the connection socket changed after 
   the call to SocketFactory#connectSocket().
