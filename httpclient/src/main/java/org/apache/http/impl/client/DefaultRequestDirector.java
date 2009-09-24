@@ -449,7 +449,10 @@ public class DefaultRequestDirector implements RequestDirector {
                         
                     } catch (IOException ex) {
                         this.log.debug("Closing the connection.");
-                        managedConn.close();
+                        try {
+                            managedConn.close();
+                        } catch (IOException ignore) {
+                        }
                         if (retryHandler.retryRequest(ex, execCount, context)) {
                             if (this.log.isInfoEnabled()) {
                                 this.log.info("I/O exception ("+ ex.getClass().getName() + 
