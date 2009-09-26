@@ -50,8 +50,8 @@ public class ClientWithResponseHandler {
         // Create a response handler
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httpget, responseHandler);
+        System.out.println("----------------------------------------");
         System.out.println(responseBody);
-        
         System.out.println("----------------------------------------");
 
         // When HttpClient instance is no longer needed, 

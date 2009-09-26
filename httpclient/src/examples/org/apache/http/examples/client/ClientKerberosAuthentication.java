@@ -41,8 +41,7 @@ import org.apache.http.util.EntityUtils;
 /**
  * Kerberos auth example.
  * 
- * <p>Takes one arguement args[0] = 'http://examplehost/path/'</p>
- * <h5>Information</h5>
+ * <p><b>Information</b></p>
  * <p>For the best compatibility use Java >= 1.6 as it supports SPNEGO authentication more 
       completely.</p>
  * <p><em>NegotiateSchemeFactory</em></p>
@@ -60,7 +59,7 @@ import org.apache.http.util.EntityUtils;
  * Requires use of <a href="http://www.bouncycastle.org/java.html">bouncy castle libs</a>
  * </p>
  * 
- * <h6>Addtional Config Files</h6>
+ * <p><b>Addtional Config Files</b></p>
  * <p>Two files control how Java uses/configures Kerberos. Very basic examples are below. There
  * is a large amount of information on the web.</p>
  * <p><a href="http://java.sun.com/j2se/1.5.0/docs/guide/security/jaas/spec/com/sun/security/auth/module/Krb5LoginModule.html">http://java.sun.com/j2se/1.5.0/docs/guide/security/jaas/spec/com/sun/security/auth/module/Krb5LoginModule.html</a>
@@ -98,6 +97,29 @@ import org.apache.http.util.EntityUtils;
  *   com.sun.security.auth.module.Krb5LoginModule required client=TRUE useTicketCache=true debug=true;
  *};
  * </pre>
+ * <p><b>Windows specific configuration</b></p>
+ * <p>
+ * The registry key <em>allowtgtsessionkey</em> should be added, and set correctly, to allow 
+ * session keys to be sent in the Kerberos Ticket-Granting Ticket.
+ * </p>
+ * <p>
+ * On the Windows Server 2003 and Windows 2000 SP4, here is the required registry setting:
+ * </p>
+ * <pre>
+ * HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\Parameters
+ *   Value Name: allowtgtsessionkey
+ *   Value Type: REG_DWORD
+ *   Value: 0x01 
+ * </pre>
+ * <p>
+ * Here is the location of the registry setting on Windows XP SP2:
+ * </p>
+ * <pre>
+ * HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\
+ *   Value Name: allowtgtsessionkey
+ *   Value Type: REG_DWORD
+ *   Value: 0x01
+ * </pre>
  * 
  * @since 4.1
  */
@@ -110,27 +132,6 @@ public class ClientKerberosAuthentication {
         System.setProperty("sun.security.krb5.debug", "true");
         System.setProperty("javax.security.auth.useSubjectCredsOnly","false");
         
-        /*        
-         * Below is helpful on windows.
-         * Solution 2: You need to update the Windows registry to disable this new feature. 
-         * The registry key allowtgtsessionkey should be added--and set correctly--to allow 
-         * session keys to be sent in the Kerberos Ticket-Granting Ticket.
-         * 
-         * On the Windows Server 2003 and Windows 2000 SP4, here is the required registry setting:
-         *
-         * HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\Parameters
-         *   Value Name: allowtgtsessionkey
-         *   Value Type: REG_DWORD
-         *   Value: 0x01 
-         *
-         * Here is the location of the registry setting on Windows XP SP2:
-         *
-         * HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\
-         *   Value Name: allowtgtsessionkey
-         *   Value Type: REG_DWORD
-         *   Value: 0x01
-         */
-
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         /* 
