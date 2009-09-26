@@ -115,6 +115,19 @@ pwd
                         distributions.</para>
                 </formalpara>
             </listitem>
+            <listitem>
+                <formalpara>
+                    <title>SPNEGO/Kerberos:</title>
+                    <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
+                            <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
+                        <emphasis>Nego</emphasis>tiation Mechanism) is a <literal>GSSAPI</literal>
+                        "pseudo mechanism" that is used to negotiate one of a number of possible
+                        real mechanisms. SPNEGO's most visible use is in Microsoft's <literal>HTTP
+                            Negotiate</literal> authentication extension. The negotiable
+                        sub-mechanisms include NTLM and Kerberos supported by Active Directory.
+                        Presently HttpClient supports Kerberos sub-mechanism only. </para>
+                </formalpara>
+            </listitem>
         </itemizedlist>
     </section>
     <section>
@@ -146,9 +159,8 @@ pwd
                             <interfacename>AuthScheme</interfacename>s when authenticating with the
                         target host. This parameter expects a value of type
                             <interface>java.util.Collection</interface>. The collection is expected
-                        to contain <classname>java.lang.String</classname> instances representing a
-                        name of an authentication scheme as returned by
-                            <methodname>AuthScheme#getSchemeName()</methodname></para>
+                        to contain <classname>java.lang.String</classname> instances representing
+                        an id of an authentication scheme.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -158,9 +170,8 @@ pwd
                             <interfacename>AuthScheme</interfacename>s when authenticating with the
                         proxy host. This parameter expects a value of type
                             <interface>java.util.Collection</interface>. The collection is expected
-                        to contain <classname>java.lang.String</classname> instances representing a
-                        name of an authentication scheme as returned by
-                            <methodname>AuthScheme#getSchemeName()</methodname></para>
+                        to contain <classname>java.lang.String</classname> instances representing
+                        an id of an authentication scheme.</para>
                 </formalpara>
             </listitem>
         </itemizedlist>
@@ -194,10 +205,13 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
                 </formalpara>
             </listitem>
         </itemizedlist>
-        <para>Please note <literal>NTLM</literal> scheme is <emphasis>NOT</emphasis> registered per
-            default. For details on how to enable <literal>NTLM</literal> support please refer to
-            the <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient
-            distributions.</para>
+        <para>Please note <literal>NTLM</literal> and <literal>SPNEGO</literal> schemes are
+                <emphasis>NOT</emphasis> registered per default. For details on how to enable
+                <literal>NTLM</literal> support please refer to the
+                <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient distributions.
+                <literal>SPNEGO</literal> setup tends to be system specific and must be properly
+            configured in order to be functional. See section on <link linkend="spnego">SPNEGO
+            authentication </link> for details.</para>
     </section>
     <section>
         <title>Credentials provider</title>
@@ -364,112 +378,86 @@ httpclient.addRequestInterceptor(preemptiveAuth, 0);
 ]]></programlisting>
     </section>
 
-    <section>
+    <section id="spnego">
         <title><literal>SPNEGO</literal>/Kerberos Authentication</title>
         <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
             <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
             <emphasis>Nego</emphasis>tiation Mechanism) is designed to allow for authentication to
             services when neither end knows what the other can use/provide. It is most commonly used
             to do Kerberos authentication. It can wrap other mechanisms, however the current version
-            in HTTPClient is designed solely with Kerberos in mind. The image below shows a simple
-            authentication process. </para>
-        <mediaobject>
-            <imageobject>
-                <imagedata fileref=".//images/SPNEGO_cropped.png"/>
-            </imageobject>
-        </mediaobject>
+            in HttpClient is designed solely with Kerberos in mind. </para>
         <sidebar>
-            <para>1. Client Web Browser does HTTP GET for resource.</para>
-            <para>2. Web server returns HTTP 401 status and a header: &quot;WWW-Authenticate:
-                Negotiate</para>
-            <para>3. Client generates a NegTokenInit, base64 encodes it, and resubmits the GET with
-                an Authorization header: &quot;Authorization: Negotiate &lt;base64
-                encoding&gt;&quot;.</para>
-            <para>4. Server decodes the NegTokenInit, extracts the supported MechTypes (only
-                Kerberos V5 in our case), ensures it is one of the expected ones, and then extracts
-                the MechToken (Kerberos Token) and authenticates it.</para>
-            <para>4a. If more processing is required another HTTP 401 is returned to the client with
-                more data in the the WWW-Authenticate header. Client takes the info and generates
-                another token passing this back in the Authorization header.... until
-                complete.</para>
-            <para>5. When the client has been authenticated the Web server should return the HTTP
-                200 status, a final WWW-Authenticate header and the page content.</para>
+            <orderedlist numeration="arabic">
+                <listitem>
+                    <para>Client Web Browser does HTTP GET for resource.</para>
+                </listitem>
+                <listitem>
+                    <para>Web server returns HTTP 401 status and a header:
+                            <literal>WWW-Authenticate: Negotiate</literal></para>
+                </listitem>
+                <listitem>
+                    <para>Client generates a <literal>NegTokenInit</literal>, base64 encodes it, and
+                        resubmits the <literal>GET</literal> with an Authorization header:
+                            <literal>Authorization: Negotiate &lt;base64
+                            encoding&gt;</literal>.</para>
+                </listitem>
+                <listitem>
+                    <para>Server decodes the <literal>NegTokenInit</literal>, extracts the supported
+                            <literal>MechTypes</literal> (only Kerberos V5 in our case), ensures it
+                        is one of the expected ones, and then extracts the
+                            <literal>MechToken</literal> (Kerberos Token) and authenticates
+                        it.</para>
+                    <para>If more processing is required another HTTP 401 is returned to the client
+                        with more data in the the <literal>WWW-Authenticate</literal> header. Client
+                        takes the info and generates another token passing this back in the
+                            <literal>Authorization</literal> header until complete.</para>
+                </listitem>
+                <listitem>
+                    <para>When the client has been authenticated the Web server should return the
+                        HTTP 200 status, a final <literal>WWW-Authenticate</literal> header and the
+                        page content.</para>
+                </listitem>
+            </orderedlist>
         </sidebar>
         <section>
-            <title>HTTPClient Implementation</title>
-
-            <para>Supports Sun Java versions 1.5 and up.</para>
-            <para>The JRE provides the supporting classes to do nearly all the kerberos and SPNEGO
-                token handling. This means that a lot of the setup is for the GSS classes. The
-                NegotiateScheme is a simple class to handle marshalling the tokens and reading and
-                writing the correct headers.</para>
-        </section>
-        <section>
-            <title>Usage.</title>
-
-            <para>The best way to start is to grab the KerberosHttpClient.java file in examples and
-                try and get it to work. There are a lot of issues that can happen but if lucky it'll
-                work without too much problem. It should also provide some output to debug
-                with.</para>
+            <title><literal>SPNEGO</literal> support in HttpClient</title>
+            <para><literal>SPNEGO</literal> authentication scheme is compatible with Sun Java
+                versions 1.5 and up.</para>
+            <para>The Sun JRE provides the supporting classes to do nearly all the kerberos and
+                    <literal>SPNEGO</literal> token handling. This means that a lot of the setup is
+                for the GSS classes. The <classname>NegotiateScheme</classname> is a simple class to
+                handle marshalling the tokens and reading and writing the correct headers.</para>
+            <para>The best way to start is to grab the <literal>KerberosHttpClient.java</literal>
+                file in examples and try and get it to work. There are a lot of issues that can
+                happen but if lucky it'll work without too much problem. It should also provide some
+                output to debug with.</para>
 
             <para>In windows it should default to using the logged in credentials, this can be
                 overridden by using 'kinit' e.g. <literal>$JAVA_HOME\bin\kinit
                     testuser@AD.EXAMPLE.NET</literal>, which is very helpful for testing and
                 debugging issues. Remove the cache file created to revert back to the windows
                 Kerberos cache.</para>
-            <para>Make sure to list domain_realms in the krb5.conf file. This is a major source of
-                problems.</para>
+            <para>Make sure to list <literal>domain_realms</literal> in the
+                    <literal>krb5.conf</literal> file. This is a major source of problems.</para>
         </section>
         <section>
-            <title>NegotiateSchemeFactory Class</title>
-
-            <para>NegotiateScheme has a few class properties that can be set.</para>
-        </section>
-        <section>
-            <title>setStripPort(boolean)</title>
-
-            <para>Strips the port off service names e.g. HTTP/webserver.ad.example.net:8080 ->
-                HTTP/webserver.ad.example.net</para>
-
-            <para>Found it useful when using JbossNegotiation.</para>
-        </section>
-        <section>
-            <title> setSpnegoCreate(boolean)</title>
-
-            <para>If using Java 1.5 or a Kerberos ticket an attempt will be made to wrap it up into
-                a SPNEGO token. Again for JbossNegotiation. II7 accepts plain Kerberos
-                tickets.</para>
-        </section>
-        <section>
-            <title>setSpengoGenerator(SpnegoTokenGenerator)</title>
-
-            <para>Inject a custom SpnegoTokenGenerator class to do the Kerberos to SPNEGO token
-                wrapping. BouncySpnegoTokenGenerator example is provided. This requires the
-                BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html"
-                    >"http://www.bouncycastle.org/java.html"</ulink>
-            </para>
-        </section>
-        <section>
-            <title>GSS/Java Kerberos Setup.</title>
-
-            <para>This documentation assumes you are using windows but much of the
-                informationapplies to Unix as well.</para>
-            <para>The org.ietf.jgss classes have lots of possible configuration parameters, mainly
-                in the krb5.conf/krb5.ini file. Some more info on the format at <ulink
+            <title>GSS/Java Kerberos Setup</title>
+            <para>This documentation assumes you are using windows but much of the information
+                applies to Unix as well.</para>
+            <para>The <classname>org.ietf.jgss</classname> classes have lots of possible
+                configuration parameters, mainly in the
+                    <literal>krb5.conf</literal>/<literal>krb5.ini</literal> file. Some more info on
+                the format at <ulink
                     url="http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html"
                     >http://web.mit.edu/kerberos/krb5-1.4/krb5-1.4.1/doc/krb5-admin/krb5.conf.html</ulink>.</para>
         </section>
         <section>
-            <title>login.conf file</title>
-
+            <title><literal>login.conf</literal> file</title>
             <para>The following configuration is a basic setup that works in Windows XP against both
-                IIS7 and JbossNegotiate modules.</para>
-            <para>The system property that can be use to point to the login.conf file is
-                    <emphasis>java.security.auth.login.config</emphasis>.</para>
-            <para>Sample usage...</para>
-            <programlisting>System.setProperty("java.security.auth.login.config", "login.conf");</programlisting>
-
-            <para>Example file contents...</para>
+                    <literal>IIS7</literal> and <literal>JbossNegotiate</literal> modules.</para>
+            <para>The system property <literal>java.security.auth.login.config</literal> can be use
+                to point at the <literal>login.conf</literal> file.</para>
+            <para><literal>login.conf</literal> content may look like the following:</para>
             <programlisting><![CDATA[
 com.sun.security.jgss.login {
   com.sun.security.auth.module.Krb5LoginModule required client=TRUE useTicketCache=true;
@@ -486,11 +474,11 @@ com.sun.security.jgss.accept {
 </programlisting>
         </section>
         <section>
-            <title>krb5.conf/krb5.ini file</title>
-            <para>If unspecified the system default will be used. Override with...</para>
-            <programlisting>System.setProperty("java.security.krb5.conf", "krb5.conf");</programlisting>
-            <para>Example file contents...</para>
-
+            <title><literal>krb5.conf</literal> / <literal>krb5.ini</literal> file</title>
+            <para>If unspecified the system default will be used. Override if needed by the setting
+                system property <literal>java.security.krb5.conf</literal> to point at a custom
+                    <literal>krb5.conf</literal> file.</para>
+            <para><literal>krb5.conf</literal> content may look like the following:</para>
             <programlisting><![CDATA[
 [libdefaults]
     default_realm = AD.EXAMPLE.NET
@@ -506,30 +494,76 @@ ad.example.net=AD.EXAMPLE.NET
 </programlisting>
         </section>
         <section>
-            <title>Windows Specific help</title>
-            <para>To allow windows to use the current users tickets do ...</para>
-            <para>System.setProperty("javax.security.auth.useSubjectCredsOnly","false");</para>
-            <para>and ...</para>
+            <title>Windows Specific configuration</title>
+            <para>To allow windows to use the current users tickets system property
+                    <literal>javax.security.auth.useSubjectCredsOnly</literal> must be set to
+                    <literal>false</literal> and Windows registry key
+                    <literal>allowtgtsessionkey</literal> should be added and set correctly to allow
+                session keys to be sent in the Kerberos Ticket-Granting Ticket.</para>
+            <para>On the Windows Server 2003 and Windows 2000 SP4, here is the required registry
+                setting:</para>
             <programlisting><![CDATA[
-Solution 2: You need to update the Windows registry to disable this new feature.
-The registry key allowtgtsessionkey should be added and set correctly to allow
-session keys to be sent in the Kerberos Ticket-Granting Ticket.
-
-On the Windows Server 2003 and Windows 2000 SP4, here is the required registry setting:
-
 HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\Parameters
 Value Name: allowtgtsessionkey
 Value Type: REG_DWORD
 Value: 0x01
-
-Here is the location of the registry setting on Windows XP SP2:
-
+]]>
+            </programlisting>
+            <para>Here is the location of the registry setting on Windows XP SP2:</para>
+            <programlisting><![CDATA[
 HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\
 Value Name: allowtgtsessionkey
 Value Type: REG_DWORD
 Value: 0x01
 ]]>
-</programlisting>
+            </programlisting>
+        </section>
+        <section>
+            <title>Activating and customizing <literal>SPNEGO</literal> authentication
+                scheme</title>
+            <para>Please note <literal>SPNEGO</literal> authentication scheme is NOT active per
+                default! </para>
+            <para>In order to activate <literal>SPNEGO</literal> support an instance of
+                    <classname>NegotiateSchemeFactory</classname> class must be created and
+                registered with the authentication scheme registry of HttpClient. </para>
+            <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
+httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
+]]>
+            </programlisting>
+            <para>There are several methods that can be used to customize the behaviour of
+                    <classname>NegotiateSchemeFactory</classname>. </para>
+            <section>
+                <title>
+                    <methodname>setStripPort</methodname>
+                </title>
+                <para>Strips the port off service names e.g.
+                        <literal>HTTP/webserver.ad.example.net:8080</literal> ->
+                        <literal>HTTP/webserver.ad.example.net</literal></para>
+                <para>Found it useful when using JbossNegotiation.</para>
+            </section>
+            <section>
+                <title>
+                    <methodname>setSpnegoCreate</methodname>
+                </title>
+                <para>If using Java 1.5 or a Kerberos ticket an attempt will be made to wrap it up
+                    into a <literal>SPNEGO</literal> token. Again for JbossNegotiation. II7 accepts
+                    plain Kerberos tickets.</para>
+            </section>
+            <section>
+                <title>
+                    <methodname>setSpengoGenerator</methodname>
+                </title>
+                <para>Use this method to inject a custom
+                        <interfacename>SpnegoTokenGenerator</interfacename> class to do the Kerberos
+                    to <literal>SPNEGO</literal> token wrapping.
+                        <classname>BouncySpnegoTokenGenerator</classname> implementation is provided
+                    as unsupported contribution from the contrib package. This requires the
+                    BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html"
+                        >"http://www.bouncycastle.org/java.html"</ulink>
+                </para>
+            </section>
         </section>
     </section>
 
