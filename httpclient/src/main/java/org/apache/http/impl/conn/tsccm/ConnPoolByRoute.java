@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -60,14 +62,16 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@ThreadSafe
 public class ConnPoolByRoute extends AbstractConnPool {
         
     private final Log log = LogFactory.getLog(getClass());
 
-    private final HttpParams params;
-    
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;
+
+    /** Connections per route lookup */
+    protected final ConnPerRoute connPerRoute;
     
     /** The list of free connections */
     protected final Queue<BasicPoolEntry> freeConnections;
@@ -80,24 +84,47 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * Keys are of class {@link HttpRoute},
      * values of class {@link RouteSpecificPool}.
      */
+    @GuardedBy("poolLock")
     protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
 
+    @GuardedBy("poolLock")
+    protected volatile int maxTotalConnections;
+    
     /**
      * Creates a new connection pool, managed by route.
+     * 
+     * @since 4.1
      */
-    public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
+    public ConnPoolByRoute(
+            final ClientConnectionOperator operator, 
+            final ConnPerRoute connPerRoute,
+            int maxTotalConnections) {
         super();
         if (operator == null) {
             throw new IllegalArgumentException("Connection operator may not be null");
         }
+        if (connPerRoute == null) {
+            throw new IllegalArgumentException("Connections per route may not be null");
+        }
         this.operator = operator;
-        this.params = params;
-        
-        freeConnections = createFreeConnQueue();
-        waitingThreads  = createWaitingThreadQueue();
-        routeToPool     = createRouteToPoolMap();
+        this.connPerRoute = connPerRoute;
+        this.maxTotalConnections = maxTotalConnections;
+        this.freeConnections = createFreeConnQueue();
+        this.waitingThreads  = createWaitingThreadQueue();
+        this.routeToPool     = createRouteToPoolMap();
     }
 
+    /**
+     * Creates a new connection pool, managed by route.
+     * 
+     * @deprecated use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute)}
+     */
+    @Deprecated
+    public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
+        this(operator, 
+                ConnManagerParams.getMaxConnectionsPerRoute(params),
+                ConnManagerParams.getMaxTotalConnections(params));
+    }
 
     /**
      * Creates the queue for {@link #freeConnections}.
@@ -139,8 +166,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the new pool
      */
     protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
-        ConnPerRoute connPerRoute = ConnManagerParams.getMaxConnectionsPerRoute(params);
-        return new RouteSpecificPool(route, connPerRoute.getMaxForRoute(route));
+        return new RouteSpecificPool(route, this.connPerRoute.getMaxForRoute(route));
     }
 
 
@@ -255,8 +281,6 @@ public class ConnPoolByRoute extends AbstractConnPool {
                                    WaitingThreadAborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
-        int maxTotalConnections = ConnManagerParams.getMaxTotalConnections(params);
-        
         Date deadline = null;
         if (timeout > 0) {
             deadline = new Date
@@ -685,6 +709,26 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
     }
 
+    /**
+     * since 4.1
+     */
+    public void setMaxTotalConnections(int max) {
+        poolLock.lock();
+        try {
+            maxTotalConnections = max;
+        } finally {
+            poolLock.unlock();
+        }
+    }
+    
+
+    /**
+     * since 4.1
+     */
+    public int getMaxTotalConnections() {
+        return maxTotalConnections;
+    }
+    
 
 } // class ConnPoolByRoute
 

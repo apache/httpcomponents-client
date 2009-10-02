@@ -39,8 +39,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -50,7 +48,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-
 
 /**
  * Tests for <code>ThreadSafeClientConnManager</code> that do not require
@@ -98,14 +95,10 @@ public class TestTSCCMNoServer extends TestCase {
      *
      * @return  a connection manager to test
      */
-    public ThreadSafeClientConnManager createTSCCM(HttpParams params,
-                                                   SchemeRegistry schreg) {
-        if (params == null)
-            params = createDefaultParams();
+    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
         if (schreg == null)
             schreg = createSchemeRegistry();
-
-        return new ThreadSafeClientConnManager(params, schreg);
+        return new ThreadSafeClientConnManager(schreg);
     }
 
 
@@ -139,37 +132,28 @@ public class TestTSCCMNoServer extends TestCase {
 
 
     public void testConstructor() {
-        HttpParams     params = createDefaultParams();
         SchemeRegistry schreg = createSchemeRegistry();
 
-        ThreadSafeClientConnManager mgr =
-            new ThreadSafeClientConnManager(params, schreg);
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(schreg);
         assertNotNull(mgr);
         mgr.shutdown();
         mgr = null;
 
         try {
-            mgr = new ThreadSafeClientConnManager(null, schreg);
-            fail("null parameters not detected");
+            mgr = new ThreadSafeClientConnManager(null);
+            fail("null parameter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         } finally {
             if (mgr != null)
                 mgr.shutdown();
         }
-        mgr = null;
-
-        mgr = new ThreadSafeClientConnManager(params, schreg);
-        assertNotNull(mgr);
-        mgr.shutdown();
-        mgr = null;
-
     } // testConstructor
 
 
     public void testGetConnection() 
             throws InterruptedException, ConnectionPoolTimeoutException {
-        ThreadSafeClientConnManager mgr = createTSCCM(null, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -198,11 +182,9 @@ public class TestTSCCMNoServer extends TestCase {
     public void testMaxConnTotal() 
             throws InterruptedException, ConnectionPoolTimeoutException {
 
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
-        ConnManagerParams.setMaxTotalConnections(params, 2);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(2);
+        mgr.setDefaultMaxPerRoute(1);
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
         HttpRoute route1 = new HttpRoute(target1, null, false);
@@ -247,16 +229,11 @@ public class TestTSCCMNoServer extends TestCase {
         HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
         HttpRoute route3 = new HttpRoute(target3, null, false);
         
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxTotalConnections(params, 100);
-        
-        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(1);
-        connPerRoute.setMaxForRoute(route2, 2);
-        connPerRoute.setMaxForRoute(route3, 3);
-        
-        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(100);
+        mgr.setDefaultMaxPerRoute(1);
+        mgr.setMaxForRoute(route2, 2);
+        mgr.setMaxForRoute(route3, 3);
 
         // route 3, limit 3
         ManagedClientConnection conn1 =
@@ -318,11 +295,9 @@ public class TestTSCCMNoServer extends TestCase {
 
     public void testReleaseConnection() throws Exception {
 
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
-        ConnManagerParams.setMaxTotalConnections(params, 3);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(3);
+        mgr.setDefaultMaxPerRoute(1);
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
         HttpRoute route1 = new HttpRoute(target1, null, false);
@@ -389,7 +364,7 @@ public class TestTSCCMNoServer extends TestCase {
     public void testDeleteClosedConnections()
             throws InterruptedException, ConnectionPoolTimeoutException {
         
-        ThreadSafeClientConnManager mgr = createTSCCM(null, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -421,11 +396,9 @@ public class TestTSCCMNoServer extends TestCase {
     public void testShutdown() throws Exception {
         // 3.x: TestHttpConnectionManager.testShutdown
 
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
+        mgr.setDefaultMaxPerRoute(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -469,10 +442,8 @@ public class TestTSCCMNoServer extends TestCase {
     public void testInterruptThread() throws Exception {
         // 3.x: TestHttpConnectionManager.testWaitingThreadInterrupted
 
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -517,10 +488,8 @@ public class TestTSCCMNoServer extends TestCase {
     public void testReusePreference() throws Exception {
         // 3.x: TestHttpConnectionManager.testHostReusePreference
 
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
         HttpRoute route1 = new HttpRoute(target1, null, false);
@@ -557,10 +526,8 @@ public class TestTSCCMNoServer extends TestCase {
     }
     
     public void testAbortAfterRequestStarts() throws Exception {
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -598,15 +565,12 @@ public class TestTSCCMNoServer extends TestCase {
     }
     
     public void testAbortBeforeRequestStarts() throws Exception {
-        HttpParams params = createDefaultParams();
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
         
-
         // get the only connection, then start an extra thread
         ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
         ClientConnectionRequest request = mgr.requestConnection(route, null);

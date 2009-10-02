@@ -29,7 +29,8 @@ package org.apache.http.conn.params;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.conn.routing.HttpRoute;
 
@@ -41,14 +42,16 @@ import org.apache.http.conn.routing.HttpRoute;
  * 
  * @since 4.0
  */
-@NotThreadSafe // maxPerHostMap and defaultMax
+@ThreadSafe
 public final class ConnPerRouteBean implements ConnPerRoute {
 
     /** The default maximum number of connections allowed per host */
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 2;   // Per RFC 2616 sec 8.1.4
     
+    @GuardedBy("this")
     private final Map<HttpRoute, Integer> maxPerHostMap;
     
+    @GuardedBy("this")
     private int defaultMax;
     
     public ConnPerRouteBean(int defaultMax) {
@@ -61,11 +64,19 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this(DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
     }
     
-    public int getDefaultMax() {
+    @Deprecated
+    public synchronized int getDefaultMax() {
         return this.defaultMax;
     }
 
-    public void setDefaultMaxPerRoute(int max) {
+    /**
+     * @since 4.1
+     */
+    public synchronized int getDefaultMaxPerRoute() {
+        return this.defaultMax;
+    }
+
+    public synchronized void setDefaultMaxPerRoute(int max) {
         if (max < 1) {
             throw new IllegalArgumentException
                 ("The maximum must be greater than 0.");
@@ -73,7 +84,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.defaultMax = max;
     }
 
-    public void setMaxForRoute(final HttpRoute route, int max) {
+    public synchronized void setMaxForRoute(final HttpRoute route, int max) {
         if (route == null) {
             throw new IllegalArgumentException
                 ("HTTP route may not be null.");
@@ -85,7 +96,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.maxPerHostMap.put(route, Integer.valueOf(max));
     }
 
-    public int getMaxForRoute(final HttpRoute route) {
+    public synchronized int getMaxForRoute(final HttpRoute route) {
         if (route == null) {
             throw new IllegalArgumentException
                 ("HTTP route may not be null.");
@@ -98,7 +109,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         }
     }
     
-    public void setMaxForRoutes(final Map<HttpRoute, Integer> map) {
+    public synchronized void setMaxForRoutes(final Map<HttpRoute, Integer> map) {
         if (map == null) {
             return;
         }
@@ -106,9 +117,9 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.maxPerHostMap.putAll(map);
     }
 
-	@Override
-	public String toString() {
-		return this.maxPerHostMap.toString();
-	}
+    @Override
+    public synchronized String toString() {
+        return this.maxPerHostMap.toString();
+    }
     
 }

@@ -173,7 +173,7 @@ public class ManagerConnectProxy {
 
     private final static ClientConnectionManager createManager() {
 
-        return new ThreadSafeClientConnManager(getParams(), supportedSchemes);
+        return new ThreadSafeClientConnManager(supportedSchemes);
     }
 
 

@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
@@ -57,31 +59,27 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
  * these limits may prove too constraining, especially if they use HTTP
  * as a transport protocol for their services. Connection limits, however,
  * can be adjusted using HTTP parameters.
- * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
- * <ul>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_TOTAL_CONNECTIONS}</li>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE}</li>
- * </ul>
- *
- * @see org.apache.http.conn.params.ConnPerRoute 
- * @see org.apache.http.conn.params.ConnPerRouteBean
  *
  * @since 4.0
  */
+@ThreadSafe
 public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Log log;
 
     /** The schemes supported by this connection manager. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
     
-    /** The pool of connections being managed. */
+    @Deprecated
     protected final AbstractConnPool connectionPool;
+
+    /** The pool of connections being managed. */
+    protected final ConnPoolByRoute pool;
 
     /** The operator for opening and updating connections. */
     protected final ClientConnectionOperator connOperator; // DefaultClientConnectionOperator is @ThreadSafe
+    
+    protected final ConnPerRouteBean connPerRoute;
     
     /**
      * Creates a new thread safe connection manager.
@@ -89,21 +87,41 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @param params    the parameters for this manager.
      * @param schreg    the scheme registry.
      */
-    public ThreadSafeClientConnManager(HttpParams params,
-                                       SchemeRegistry schreg) {
-
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+    public ThreadSafeClientConnManager(final SchemeRegistry schreg) {
+        super();
         if (schreg == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
+        this.log = LogFactory.getLog(getClass());
         this.schemeRegistry = schreg;
-        this.connOperator   = createConnectionOperator(schreg);
-        this.connectionPool = createConnectionPool(params);
-
+        this.connPerRoute = new ConnPerRouteBean();
+        this.connOperator = createConnectionOperator(schreg);
+        this.pool = createConnectionPool() ;
+        this.connectionPool = this.pool;
     }
 
+    /**
+     * Creates a new thread safe connection manager.
+     *
+     * @param params    the parameters for this manager.
+     * @param schreg    the scheme registry.
+     * 
+     * @deprecated use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
+     */
+    @Deprecated
+    public ThreadSafeClientConnManager(HttpParams params,
+                                       SchemeRegistry schreg) {
+        if (schreg == null) {
+            throw new IllegalArgumentException("Scheme registry may not be null");
+        }
+        this.log = LogFactory.getLog(getClass());
+        this.schemeRegistry = schreg;
+        this.connPerRoute = new ConnPerRouteBean();
+        this.connOperator = createConnectionOperator(schreg);
+        this.pool = (ConnPoolByRoute) createConnectionPool(params) ;
+        this.connectionPool = this.pool;
+    }
+    
     @Override
     protected void finalize() throws Throwable {
         try {
@@ -117,9 +135,22 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * Hook for creating the connection pool.
      *
      * @return  the connection pool to use
+     * 
+     * @deprecated use {@link #createConnectionPool(ConnPerRouteBean)}
      */
     protected AbstractConnPool createConnectionPool(final HttpParams params) {
         return new ConnPoolByRoute(connOperator, params);
+    }
+
+    /**
+     * Hook for creating the connection pool.
+     *
+     * @return  the connection pool to use
+     * 
+     * @since 4.1
+     */
+    protected ConnPoolByRoute createConnectionPool() {
+        return new ConnPoolByRoute(connOperator, connPerRoute, 20);
     }
 
     /**
@@ -148,7 +179,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
             final HttpRoute route, 
             final Object state) {
         
-        final PoolEntryRequest poolRequest = connectionPool.requestPoolEntry(
+        final PoolEntryRequest poolRequest = pool.requestPoolEntry(
                 route, state);
         
         return new ClientConnectionRequest() {
@@ -220,14 +251,14 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
             }
             hca.detach();
             if (entry != null) {
-                connectionPool.freeEntry(entry, reusable, validDuration, timeUnit);
+                pool.freeEntry(entry, reusable, validDuration, timeUnit);
             }
         }
     }
 
     public void shutdown() {
         log.debug("Shutting down");
-        connectionPool.shutdown();
+        pool.shutdown();
     }
 
     /**
@@ -240,9 +271,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @return  the total number of pooled connections for that route
      */
-    public int getConnectionsInPool(HttpRoute route) {
-        return ((ConnPoolByRoute)connectionPool).getConnectionsInPool(
-                route);
+    public int getConnectionsInPool(final HttpRoute route) {
+        return pool.getConnectionsInPool(route);
     }
 
     /**
@@ -254,25 +284,68 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
-        int count;
-        connectionPool.poolLock.lock();
-        count = connectionPool.numConnections; //@@@
-        connectionPool.poolLock.unlock();
-        return count;
+        pool.poolLock.lock();
+        try {
+            return pool.numConnections;
+        } finally {
+            pool.poolLock.unlock();
+        }
     }
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
         }
-        connectionPool.closeIdleConnections(idleTimeout, tunit);
-        connectionPool.deleteClosedConnections();
+        pool.closeIdleConnections(idleTimeout, tunit);
+        pool.deleteClosedConnections();
     }
     
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
-        connectionPool.closeExpiredConnections();
-        connectionPool.deleteClosedConnections();
+        pool.closeExpiredConnections();
+        pool.deleteClosedConnections();
+    }
+
+    /**
+     * since 4.1
+     */
+    public int getMaxTotalConnections() {
+        return pool.getMaxTotalConnections();
+    }
+    
+    /**
+     * since 4.1
+     */
+    public void setMaxTotalConnections(int max) {
+        pool.setMaxTotalConnections(max);
+    }
+    
+    /**
+     * @since 4.1
+     */
+    public int getDefaultMaxPerRoute() {
+        return connPerRoute.getDefaultMaxPerRoute();
+    }
+
+    /**
+     * @since 4.1
+     */
+    public void setDefaultMaxPerRoute(int max) {
+        connPerRoute.setDefaultMaxPerRoute(max);
+    }
+
+    /**
+     * @since 4.1
+     */
+    public int getMaxForRoute(final HttpRoute route) {
+        return connPerRoute.getMaxForRoute(route);
+    }
+    
+    /**
+     * @since 4.1
+     */
+    public void setMaxForRoute(final HttpRoute route, int max) {
+        connPerRoute.setMaxForRoute(route, max);
     }
 
 }

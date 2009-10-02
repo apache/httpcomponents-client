@@ -42,8 +42,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.MalformedChunkCodingException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BasicHttpEntity;
@@ -51,7 +49,6 @@ import org.apache.http.impl.DefaultHttpServerConnection;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -72,27 +69,21 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         return new TestSuite(TestConnectionAutoRelease.class);
     }
 
-    public ThreadSafeClientConnManager createTSCCM(HttpParams params,
-                                                   SchemeRegistry schreg) {
-        if (params == null)
-            params = defaultParams;
+    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
         if (schreg == null)
             schreg = supportedSchemes;
-        return new ThreadSafeClientConnManager(params, schreg);
+        return new ThreadSafeClientConnManager(schreg);
     }
 
     public void testReleaseOnEntityConsumeContent() throws Exception {
-        HttpParams params = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections
-            (params, 1);
-        ConnManagerParams.setMaxConnectionsPerRoute
-            (params, new ConnPerRouteBean(1));
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setDefaultMaxPerRoute(1);
+        mgr.setMaxTotalConnections(1);
 
         // Zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
         
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr); 
 
         // Get some random data
         HttpGet httpget = new HttpGet("/random/20000"); 
@@ -124,17 +115,14 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     }
     
     public void testReleaseOnEntityWriteTo() throws Exception {
-        HttpParams params = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections
-            (params, 1);
-        ConnManagerParams.setMaxConnectionsPerRoute
-            (params, new ConnPerRouteBean(1));
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setDefaultMaxPerRoute(1);
+        mgr.setMaxTotalConnections(1);
 
         // Zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
         
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr); 
 
         // Get some random data
         HttpGet httpget = new HttpGet("/random/20000"); 
@@ -167,17 +155,14 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     }
     
     public void testReleaseOnAbort() throws Exception {
-        HttpParams params = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections
-            (params, 1);
-        ConnManagerParams.setMaxConnectionsPerRoute
-            (params, new ConnPerRouteBean(1));
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setDefaultMaxPerRoute(1);
+        mgr.setMaxTotalConnections(1);
 
         // Zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
         
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr); 
 
         // Get some random data
         HttpGet httpget = new HttpGet("/random/20000"); 
@@ -242,17 +227,14 @@ public class TestConnectionAutoRelease extends ServerTestBase {
             
         });
         
-        HttpParams params = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections
-            (params, 1);
-        ConnManagerParams.setMaxConnectionsPerRoute
-            (params, new ConnPerRouteBean(1));
-        ThreadSafeClientConnManager mgr = createTSCCM(params, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setDefaultMaxPerRoute(1);
+        mgr.setMaxTotalConnections(1);
 
         // Zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
         
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr); 
 
         // Get some random data
         HttpGet httpget = new HttpGet("/dropdead"); 

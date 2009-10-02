@@ -1,6 +1,11 @@
 Changes since 4.0
 -------------------
 
+* Simplified configuration of connection managers. Total connection maximum
+  and maximum connection per route limits can be set using methods of 
+  the class instead of HTTP parameters.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * Added parameters to define the order of preference for supported auth 
   schemes for target host and proxy authentication.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

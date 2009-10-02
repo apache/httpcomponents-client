@@ -102,9 +102,21 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @param params    the parameters for this manager
      * @param schreg    the scheme registry, or
      *                  <code>null</code> for the default registry
+     *                  
+     * @deprecated use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
+    @Deprecated
     public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
+        this(schreg);
+    }
+    /**
+     * Creates a new simple connection manager.
+     *
+     * @param schreg    the scheme registry, or
+     *                  <code>null</code> for the default registry
+     */
+    public SingleClientConnManager(final SchemeRegistry schreg) {
         if (schreg == null) {
             throw new IllegalArgumentException
                 ("Scheme registry must not be null.");
@@ -236,8 +248,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     public synchronized void releaseConnection(
-    		ManagedClientConnection conn, 
-    		long validDuration, TimeUnit timeUnit) {
+            ManagedClientConnection conn, 
+            long validDuration, TimeUnit timeUnit) {
         assertStillUp();
 
         if (!(conn instanceof ConnAdapter)) {

@@ -74,6 +74,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
     }
 
     /** The default maximum number of connections allowed per host */
+    @Deprecated
     private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
         
         public int getMaxForRoute(HttpRoute route) {
@@ -89,8 +90,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @param connPerRoute lookup interface for maximum number of connections allowed 
      *        per route
      * 
+     * @deprecated do not use
+     * 
      * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
+    @Deprecated
     public static void setMaxConnectionsPerRoute(final HttpParams params,
                                                 final ConnPerRoute connPerRoute) {
         if (params == null) {
@@ -107,8 +111,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * 
      * @return lookup interface for maximum number of connections allowed per route.
      * 
+     * @deprecated do not use
+     * 
      * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
+    @Deprecated
     public static ConnPerRoute getMaxConnectionsPerRoute(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException
@@ -128,8 +135,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @param params HTTP parameters
      * @param maxTotalConnections The maximum number of connections allowed.
      * 
+     * @deprecated do not use
+     * 
      * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
+    @Deprecated
     public static void setMaxTotalConnections(
             final HttpParams params,
             int maxTotalConnections) {
@@ -147,8 +157,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @return The maximum number of connections allowed.
      * 
+     * @deprecated do not use
+     * 
      * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
+    @Deprecated
     public static int getMaxTotalConnections(
             final HttpParams params) {
         if (params == null) {

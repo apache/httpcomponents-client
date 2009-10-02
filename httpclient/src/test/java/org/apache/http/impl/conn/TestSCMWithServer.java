@@ -38,12 +38,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
 
@@ -72,14 +70,10 @@ public class TestSCMWithServer extends ServerTestBase {
      *
      * @return  a connection manager to test
      */
-    public SingleClientConnManager createSCCM(HttpParams params,
-                                              SchemeRegistry schreg) {
-        if (params == null)
-            params = defaultParams;
+    public SingleClientConnManager createSCCM(SchemeRegistry schreg) {
         if (schreg == null)
             schreg = supportedSchemes;
-
-        return new SingleClientConnManager(params, schreg);
+        return new SingleClientConnManager(schreg);
     }
     
     /**
@@ -87,10 +81,7 @@ public class TestSCMWithServer extends ServerTestBase {
      * a connection was aborted.
      */
     public void testOpenAfterAbort() throws Exception {
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        SingleClientConnManager mgr = createSCCM(mgrpar, null);
+        SingleClientConnManager mgr = createSCCM(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -112,10 +103,7 @@ public class TestSCMWithServer extends ServerTestBase {
      */
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        SingleClientConnManager mgr = createSCCM(mgrpar, null);
+        SingleClientConnManager mgr = createSCCM(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -207,10 +195,7 @@ public class TestSCMWithServer extends ServerTestBase {
 
     public void testCloseExpiredConnections() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        SingleClientConnManager mgr = createSCCM(mgrpar, null);
+        SingleClientConnManager mgr = createSCCM(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -235,10 +220,7 @@ public class TestSCMWithServer extends ServerTestBase {
     
     public void testAlreadyLeased() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        SingleClientConnManager mgr = createSCCM(mgrpar, null);
+        SingleClientConnManager mgr = createSCCM(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);

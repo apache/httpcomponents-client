@@ -51,11 +51,13 @@ public class ConnManagerParamBean extends HttpAbstractParamBean {
     }
 
     /** @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS */
+    @Deprecated
     public void setMaxTotalConnections (final int maxConnections) {
         params.setIntParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxConnections);
     }
     
     /** @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE */
+    @Deprecated
     public void setConnectionsPerRoute(final ConnPerRouteBean connPerRoute) {
         params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, connPerRoute);
     }

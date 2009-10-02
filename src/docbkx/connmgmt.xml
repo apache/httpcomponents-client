@@ -459,12 +459,10 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
                 unintentionally.</para>
             <para>This is an example of acquiring a connection from a connection manager:</para>
             <programlisting><![CDATA[
-HttpParams params = new BasicHttpParams();
 Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
 SchemeRegistry sr = new SchemeRegistry();
 sr.register(http);
-
-ClientConnectionManager connMrg = new SingleClientConnManager(params, sr);
+ClientConnectionManager connMrg = new SingleClientConnManager(sr);
 
 // Request new connection. This can be a long process
 ClientConnectionRequest connRequest = connMrg.requestConnection(
@@ -546,24 +544,22 @@ try {
                 services. Connection limits, however, can be adjusted using HTTP parameters.</para>
             <para>This example shows how the connection pool parameters can be adjusted:</para>
             <programlisting><![CDATA[
-HttpParams params = new BasicHttpParams();
-// Increase max total connection to 200
-ConnManagerParams.setMaxTotalConnections(params, 200);
-// Increase default max connection per route to 20
-ConnPerRouteBean connPerRoute = new ConnPerRouteBean(20);
-// Increase max connections for localhost:80 to 50
-HttpHost localhost = new HttpHost("locahost", 80);
-connPerRoute.setMaxForRoute(new HttpRoute(localhost), 50);
-ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
-
 SchemeRegistry schemeRegistry = new SchemeRegistry();
 schemeRegistry.register(
-        new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+         new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 schemeRegistry.register(
-        new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+         new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 
-ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
-HttpClient httpClient = new DefaultHttpClient(cm, params);
+ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+// Increase max total connection to 200
+cm.setMaxTotalConnections(200);
+// Increase default max connection per route to 20
+cm.setDefaultMaxPerRoute(20);
+// Increase max connections for localhost:80 to 50
+HttpHost localhost = new HttpHost("locahost", 80);
+cm.setMaxForRoute(new HttpRoute(localhost), 50);
+ 
+HttpClient httpClient = new DefaultHttpClient(cm);
 ]]></programlisting>
         </section>
         <section>
@@ -601,24 +597,6 @@ httpclient.getConnectionManager().shutdown();
                         timeout).</para>
                 </formalpara>
             </listitem>
-            <listitem>
-                <formalpara>
-                    <title>'http.conn-manager.max-per-route':</title>
-                    <para>defines the maximum number of connections per route. This limit is
-                        interpreted by client connection managers and applies to individual manager
-                        instances. This parameter expects a value of type
-                            <interfacename>ConnPerRoute</interfacename>.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>'http.conn-manager.max-total':</title>
-                    <para>defines the maximum number of connections in total. This limit is
-                        interpreted by client connection managers and applies to individual manager
-                        instances. This parameter expects a value of type
-                            <classname>java.lang.Integer</classname>.</para>
-                </formalpara>
-            </listitem>
         </itemizedlist>
     </section>
     <section>
@@ -634,13 +612,12 @@ httpclient.getConnectionManager().shutdown();
             If the connection request cannot be serviced within the given time period
                 <exceptionname>ConnectionPoolTimeoutException</exceptionname> will be thrown.</para>
         <programlisting><![CDATA[
-HttpParams params = new BasicHttpParams();
 SchemeRegistry schemeRegistry = new SchemeRegistry();
 schemeRegistry.register(
         new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 
-ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
-HttpClient httpClient = new DefaultHttpClient(cm, params);
+ClientConnectionManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+HttpClient httpClient = new DefaultHttpClient(cm);
 
 // URIs to perform GETs on
 String[] urisToGet = {

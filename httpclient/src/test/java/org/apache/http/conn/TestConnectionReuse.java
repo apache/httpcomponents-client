@@ -44,8 +44,6 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnManagerParams;
-import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -110,16 +108,14 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        ConnManagerParams.setMaxTotalConnections(params, 5);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, 
-                new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));
         
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
-                params, supportedSchemes);
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        mgr.setMaxTotalConnections(5);
+        mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
 
@@ -182,16 +178,14 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        ConnManagerParams.setMaxTotalConnections(params, 5);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, 
-                new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));
         
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
-                params, supportedSchemes);
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        mgr.setMaxTotalConnections(5);
+        mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
 
@@ -244,16 +238,14 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        ConnManagerParams.setMaxTotalConnections(params, 5);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, 
-                new ConnPerRouteBean(5));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));
         
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
-                params, supportedSchemes);
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        mgr.setMaxTotalConnections(5);
+        mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
 
@@ -307,16 +299,14 @@ public class TestConnectionReuse extends TestCase {
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, 
-                new ConnPerRouteBean(1));
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", sf, 80));
         
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(
-                params, supportedSchemes);
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        mgr.setMaxTotalConnections(1);
+        mgr.setDefaultMaxPerRoute(1);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");

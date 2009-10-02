@@ -134,8 +134,6 @@ import org.apache.http.util.VersionInfo;
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
  *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE}</li>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#MAX_TOTAL_CONNECTIONS}</li>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
  *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
@@ -155,7 +153,6 @@ import org.apache.http.util.VersionInfo;
 @ThreadSafe
 public class DefaultHttpClient extends AbstractHttpClient {
 
-
     /**
      * Creates a new HTTP client from parameters and a connection manager.
      *
@@ -166,6 +163,15 @@ public class DefaultHttpClient extends AbstractHttpClient {
             final ClientConnectionManager conman,
             final HttpParams params) {
         super(conman, params);
+    }
+    
+    
+    /**
+     * @since 4.1
+     */
+    public DefaultHttpClient(
+            final ClientConnectionManager conman) {
+        super(conman, null);
     }
     
        
@@ -241,7 +247,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         if (factory != null) {
             connManager = factory.newInstance(params, registry);
         } else {
-            connManager = new SingleClientConnManager(getParams(), registry); 
+            connManager = new SingleClientConnManager(registry); 
         }
         
         return connManager;

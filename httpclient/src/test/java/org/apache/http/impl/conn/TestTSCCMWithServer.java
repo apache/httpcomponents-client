@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
@@ -53,8 +52,6 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -68,7 +65,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-
 
 /**
  * Tests for <code>ThreadSafeClientConnManager</code> that do require
@@ -114,14 +110,10 @@ public class TestTSCCMWithServer extends ServerTestBase {
      *
      * @return  a connection manager to test
      */
-    public ThreadSafeClientConnManager createTSCCM(HttpParams params,
-                                                   SchemeRegistry schreg) {
-        if (params == null)
-            params = defaultParams;
+    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
         if (schreg == null)
             schreg = supportedSchemes;
-
-        return new ThreadSafeClientConnManager(params, schreg);
+        return new ThreadSafeClientConnManager(schreg);
     }
 
 
@@ -134,12 +126,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final int COUNT = 8; // adjust to execute more requests
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections
-            (mgrpar, COUNT/2);
-        ConnManagerParams.setMaxConnectionsPerRoute
-            (mgrpar, new ConnPerRouteBean(COUNT/2));
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(COUNT/2);
+        mgr.setDefaultMaxPerRoute(COUNT/2);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -209,10 +198,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
      */
     public void testReleaseConnection() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -296,10 +283,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
      */
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -400,10 +385,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
     public void testCloseExpiredConnections() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -443,10 +426,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
      */
     public void testReleaseConnectionOnAbort() throws Exception {
 
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -495,7 +476,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public void testConnectionManagerGC() throws Exception {
         // 3.x: TestHttpConnectionManager.testDroppedThread
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null, null);
+        ThreadSafeClientConnManager mgr = createTSCCM(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -539,16 +520,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
     
     public void testAbortDuringConnecting() throws Exception {
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-        
         final CountDownLatch connectLatch = new CountDownLatch(1);        
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, registry);
+        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -603,16 +582,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
     
     public void testAbortBeforeSocketCreate() throws Exception {
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-        
         final CountDownLatch connectLatch = new CountDownLatch(1);        
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, registry);
+        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -669,16 +646,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
     
     public void testAbortAfterSocketConnect() throws Exception {
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-        
         final CountDownLatch connectLatch = new CountDownLatch(1);        
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(mgrpar, registry);
+        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        mgr.setMaxTotalConnections(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -740,13 +715,10 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
     
     public void testAbortAfterOperatorOpen() throws Exception {
-        HttpParams mgrpar = defaultParams.copy();
-        ConnManagerParams.setMaxTotalConnections(mgrpar, 1);
-        
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final AtomicReference<StallingOperator> operatorRef = new AtomicReference<StallingOperator>();
         
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(mgrpar, supportedSchemes) {
+        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes) {
             @Override
             protected ClientConnectionOperator createConnectionOperator(
                     SchemeRegistry schreg) {
@@ -754,6 +726,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
                 return operatorRef.get();
             }
         };
+        mgr.setMaxTotalConnections(1);
         assertNotNull(operatorRef.get());
 
         final HttpHost target = getServerHttp();

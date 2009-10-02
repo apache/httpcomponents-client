@@ -36,11 +36,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.params.BasicHttpParams;
 
 public class TestConnPoolByRoute extends ServerTestBase {
 
@@ -64,11 +62,8 @@ public class TestConnPoolByRoute extends ServerTestBase {
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 supportedSchemes);
         
-        BasicHttpParams params = new BasicHttpParams(); 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
-        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
-        
-        ConnPoolByRoute connPool = new ConnPoolByRoute(operator, params);
+        ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
         try {
             // Allocate max possible entries
             PoolEntryRequest r1 = connPool.requestPoolEntry(route, null);
@@ -111,11 +106,8 @@ public class TestConnPoolByRoute extends ServerTestBase {
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 supportedSchemes);
         
-        BasicHttpParams params = new BasicHttpParams(); 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
-        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
-        
-        ConnPoolByRoute connPool = new ConnPoolByRoute(operator, params);
+        ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
         try {
             // Allocate max possible entries
             PoolEntryRequest r1 = connPool.requestPoolEntry(route, null);

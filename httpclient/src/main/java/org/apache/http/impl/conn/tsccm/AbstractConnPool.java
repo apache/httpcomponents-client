@@ -60,7 +60,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
 @SuppressWarnings("deprecation")
 public abstract class AbstractConnPool implements RefQueueHandler {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Log log;
 
     /**
      * The global lock for this pool.
@@ -95,11 +95,11 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * Creates a new connection pool.
      */
     protected AbstractConnPool() {
-        leasedConnections = new HashSet<BasicPoolEntry>();
-        idleConnHandler = new IdleConnectionHandler();
-
-        boolean fair = false; //@@@ check parameters to decide
-        poolLock = new ReentrantLock(fair);
+        super();
+        this.log = LogFactory.getLog(getClass());
+        this.leasedConnections = new HashSet<BasicPoolEntry>();
+        this.idleConnHandler = new IdleConnectionHandler();
+        this.poolLock = new ReentrantLock();
     }
 
     /**

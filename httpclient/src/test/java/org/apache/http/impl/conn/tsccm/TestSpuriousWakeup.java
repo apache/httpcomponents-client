@@ -35,7 +35,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
@@ -44,16 +43,9 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.params.ConnManagerParams;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.conn.params.ConnPerRoute;
 
-// test imports
 import org.apache.http.impl.conn.GetConnThread;
-
-
 
 /**
  * Tests for spurious wakeups in <code>WaitingThread</code>.
@@ -93,8 +85,11 @@ public class TestSpuriousWakeup extends TestCase {
         protected WaitingThread newestWT;
 
 
-        public XConnPoolByRoute(ClientConnectionOperator operator, HttpParams params) {
-            super(operator, params);
+        public XConnPoolByRoute(
+                final ClientConnectionOperator operator, 
+                final ConnPerRoute connPerRoute,
+                int maxTotalConnections) {
+            super(operator, connPerRoute, maxTotalConnections);
         }
 
         @Override
@@ -118,13 +113,13 @@ public class TestSpuriousWakeup extends TestCase {
         protected XConnPoolByRoute extendedCPBR;
 
 
-        public XTSCCM(HttpParams params, SchemeRegistry schreg) {
-            super(params, schreg);
+        public XTSCCM(SchemeRegistry schreg) {
+            super(schreg);
         }
 
         @Override
-        protected AbstractConnPool createConnectionPool(HttpParams params) {
-            extendedCPBR = new XConnPoolByRoute(connOperator, params);
+        protected ConnPoolByRoute createConnectionPool() {
+            extendedCPBR = new XConnPoolByRoute(connOperator, connPerRoute, 20);
             // no connection GC required
             return extendedCPBR;
         }
@@ -134,21 +129,15 @@ public class TestSpuriousWakeup extends TestCase {
 
 
     public void testSpuriousWakeup() throws Exception {
-
-        // parameters with connection limit 1
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(1));
-        ConnManagerParams.setMaxTotalConnections(params, 1);
-
         SchemeRegistry schreg = new SchemeRegistry();
         SocketFactory sf = PlainSocketFactory.getSocketFactory();
         schreg.register(new Scheme("http", sf, 80));
 
-        XTSCCM mgr = new XTSCCM(params, schreg);
-
+        XTSCCM mgr = new XTSCCM(schreg);
         try {
+            mgr.setMaxTotalConnections(1);
+            mgr.setDefaultMaxPerRoute(1);
+            
             // take out the only connection
             ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE, null);
             ManagedClientConnection conn = connRequest.getConnection(0, null);

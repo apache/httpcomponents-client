@@ -152,7 +152,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         
-        SingleClientConnManager conMan = new SingleClientConnManager(new BasicHttpParams(), registry);
+        SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
@@ -192,7 +192,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         
-        SingleClientConnManager conMan = new SingleClientConnManager(new BasicHttpParams(), registry);
+        SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -240,7 +240,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         
         CountDownLatch connLatch = new CountDownLatch(1);
         CountDownLatch awaitLatch = new CountDownLatch(1);
-        ConnMan4 conMan = new ConnMan4(new BasicHttpParams(), registry, connLatch, awaitLatch);
+        ConnMan4 conMan = new ConnMan4(registry, connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
@@ -297,7 +297,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         
-        ConnMan3 conMan = new ConnMan3(new BasicHttpParams(), registry);
+        ConnMan3 conMan = new ConnMan3(registry);
         DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         HttpGet httpget = new HttpGet("/a");
 
@@ -351,9 +351,9 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
         
-        public ConnMan4(HttpParams params, SchemeRegistry schreg,
+        public ConnMan4(SchemeRegistry schreg,
                 CountDownLatch connLatch, CountDownLatch awaitLatch) {
-            super(params, schreg);
+            super(schreg);
             this.connLatch = connLatch;
             this.awaitLatch = awaitLatch;
         }
@@ -398,8 +398,8 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         private ManagedClientConnection allocatedConnection;
         private ManagedClientConnection releasedConnection;
         
-        public ConnMan3(HttpParams params, SchemeRegistry schreg) {
-            super(params, schreg);
+        public ConnMan3(SchemeRegistry schreg) {
+            super(schreg);
         }
         
         @Override

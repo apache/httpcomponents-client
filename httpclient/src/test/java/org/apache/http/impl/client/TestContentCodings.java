@@ -37,9 +37,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.Deflater;
-
-/* Don't use Java 6 functionality, even in tests. */
-//import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.http.Header;
@@ -51,12 +48,10 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -64,9 +59,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -192,15 +184,13 @@ public class TestContentCodings extends ServerTestBase {
          */
         int clients = 100;
 
-        HttpParams params = new BasicHttpParams();
-        ConnManagerParams.setMaxTotalConnections(params, clients);
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 
-        ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
-        final HttpClient httpClient = new DefaultHttpClient(cm, params);
+        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+        cm.setMaxTotalConnections(clients);
+        
+        final HttpClient httpClient = new DefaultHttpClient(cm);
 
         ExecutorService executor = Executors.newFixedThreadPool(clients);
 
