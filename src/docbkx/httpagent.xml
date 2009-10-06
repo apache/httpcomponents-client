@@ -201,4 +201,44 @@ System.out.println("Final request URI: " + req.getURI());
 System.out.println("Final request method: " + req.getMethod());
 ]]></programlisting>
     </section>
+  <section>
+    <title>Compressed response content</title>
+    <para>
+      The <classname>ContentEncodingHttpClient</classname> is a simple sub-class of
+      <classname>DefaultHttpClient</classname> which adds support indicating to servers that it will 
+      support <literal>gzip</literal> and <literal>deflate</literal> compressed responses. It does 
+      this via the existing published APIs of <link linkend="protocol_interceptors">HTTP Protocol 
+      Interceptors </link>. Depending on the type of response (text will compress well versus 
+      images, which are typically already well-compressed), this can speed up responses due to the 
+      smaller amount of network traffic involved, along with saving bandwidth, which can be 
+      important in mobile environments. The <classname>RequestAcceptEncoding</classname>
+      and <classname>ResponseContentEncoding</classname> interceptors used as also part of the 
+      published API and can be used by other <interfacename>DefaultHttpClient</interfacename>
+      implementations. These provide transparent handling of <literal>gzip</literal> and 
+      <literal>deflate</literal> encoding, so it will not be apparent to clients that this 
+      processing has happened.
+    </para>
+    <programlisting><![CDATA[
+ContentEncodingHttpClient httpclient = new ContentEncodingHttpClient();
+HttpGet httpget = new HttpGet("http://www.yahoo.com/");
+HttpResponse response = httpclient.execute(httpget);
+
+Header h = rsp.getFirstHeader("Content-Encoding");
+if (h != null) {
+    System.out.println("----------------------------------------");
+    System.out.println("Response is " + h.getValue() + " encoded");
+    System.out.println("----------------------------------------");
+}
+]]></programlisting>
+    <para>
+      One can also add the <classname>RequestAcceptEncoding</classname> and 
+      <classname>ResponseContentEncoding</classname> interceptors to an instance of the 
+      <classname>DefaultHttpClient</classname>, if desired.
+    </para>
+    <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+httpclient.addRequestInterceptor(new RequestAcceptEncoding());
+httpclient.addResponseInterceptor(new ResponseContentEncoding());
+]]></programlisting>
+  </section>
 </chapter>

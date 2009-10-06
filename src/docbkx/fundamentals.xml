@@ -703,7 +703,7 @@ httpclient.setHttpRequestRetryHandler(myRetryHandler);
             blocked in an I/O operation is guaranteed to unblock by throwing a
                 <exceptionname>InterruptedIOException</exceptionname></para>
     </section>
-    <section>
+    <section id="protocol_interceptors">
         <title>HTTP protocol interceptors</title>
         <para>HTTP protocol interceptor is a routine that implements a specific aspect of the HTTP
             protocol. Usually protocol interceptors are expected to act upon one specific header or
