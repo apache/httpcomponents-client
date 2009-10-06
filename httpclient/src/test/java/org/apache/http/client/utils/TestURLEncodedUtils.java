@@ -118,6 +118,9 @@ public class TestURLEncodedUtils extends TestCase {
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
         assertTrue(URLEncodedUtils.isEncoded(entity));
 
+        entity.setContentType(URLEncodedUtils.CONTENT_TYPE + "; charset=US-ASCII");
+        assertTrue(URLEncodedUtils.isEncoded(entity));
+
         entity.setContentType("text/test");
         assertFalse(URLEncodedUtils.isEncoded(entity));
     }

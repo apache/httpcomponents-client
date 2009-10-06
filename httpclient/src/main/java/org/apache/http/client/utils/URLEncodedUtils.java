@@ -40,6 +40,7 @@ import java.util.Scanner;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -113,8 +114,18 @@ public class URLEncodedUtils {
      * <code>application/x-www-form-urlencoded</code>.
      */
     public static boolean isEncoded (final HttpEntity entity) {
-        final Header contentType = entity.getContentType();
-        return (contentType != null && contentType.getValue().equalsIgnoreCase(CONTENT_TYPE));
+        Header h = entity.getContentType();
+        if (h != null) {
+            HeaderElement[] elems = h.getElements();
+            if (elems.length > 0) {
+                String contentType = elems[0].getName();
+                return contentType.equalsIgnoreCase(CONTENT_TYPE);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
