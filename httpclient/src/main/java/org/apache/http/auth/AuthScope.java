@@ -251,7 +251,7 @@ public class AuthScope {
      */
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         if (this.scheme != null) {
             buffer.append(this.scheme.toUpperCase(Locale.ENGLISH));
             buffer.append(' ');

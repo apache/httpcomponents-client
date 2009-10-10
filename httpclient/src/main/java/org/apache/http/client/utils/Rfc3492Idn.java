@@ -71,7 +71,7 @@ public class Rfc3492Idn implements Idn {
     }
 
     public String toUnicode(String punycode) {
-        StringBuffer unicode = new StringBuffer(punycode.length());
+        StringBuilder unicode = new StringBuilder(punycode.length());
         StringTokenizer tok = new StringTokenizer(punycode, ".");
         while (tok.hasMoreTokens()) {
             String t = tok.nextToken();
@@ -86,7 +86,7 @@ public class Rfc3492Idn implements Idn {
         int n = initial_n;
         int i = 0;
         int bias = initial_bias;
-        StringBuffer output = new StringBuffer(input.length());
+        StringBuilder output = new StringBuilder(input.length());
         int lastdelim = input.lastIndexOf(delimiter);
         if (lastdelim != -1) {
             output.append(input.subSequence(0, lastdelim));

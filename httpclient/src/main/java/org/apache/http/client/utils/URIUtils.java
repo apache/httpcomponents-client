@@ -244,7 +244,7 @@ public class URIUtils {
                 outputSegments.push(inputSegments[i]);
             }
         }
-        StringBuffer outputBuffer = new StringBuffer();
+        StringBuilder outputBuffer = new StringBuilder();
         for (String outputSegment : outputSegments) {
             outputBuffer.append('/').append(outputSegment);
         }
