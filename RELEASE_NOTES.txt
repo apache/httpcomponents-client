@@ -1,6 +1,9 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-523] Support for SPNEGO authentication scheme.
+  Contributed by Matthew Stevenson <mavricknzwork at yahoo.com>
+
 * Simplified configuration of connection managers. Total connection maximum
   and maximum connection per route limits can be set using methods of 
   the class instead of HTTP parameters.

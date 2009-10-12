@@ -67,10 +67,6 @@ public class NegotiateScheme implements AuthScheme {
      * Probably a debatable addition.
     */
     private boolean stripPort = false;
-    /* spnegoCreate is used to generate an SPNEGO wrapper around
-     * for JDKs < 1.6.
-     */
-    private boolean spnegoCreate = false;
     
     private SpnegoTokenGenerator spengoGenerator = null;
     
@@ -217,9 +213,9 @@ public class NegotiateScheme implements AuthScheme {
              * IIS accepts Kerberos and SPNEGO tokens. Some other servers Jboss, Glassfish?
              * seem to only accept SPNEGO. Below wraps Kerberos into SPNEGO token.
              */
-            if(isSpnegoCreate() && negotiationOid.toString().equals(KERBEROS_OID)
-                    && spengoGenerator != null )
+            if (spengoGenerator != null && negotiationOid.toString().equals(KERBEROS_OID)) {
                 token = spengoGenerator.generateSpnegoDERObject(token);
+            }
 
             if (log.isDebugEnabled()) {
                 log.info("got token, sending " + token.length + " bytes to server");
@@ -323,24 +319,6 @@ public class NegotiateScheme implements AuthScheme {
             log.debug("Will NOT strip ports off Service Names e.g. HTTP/server:8080 -> HTTP/server");
         }
         stripPort = stripport;
-    }
-
-    /**
-     * Sould an attempt be made to wrap Kerberos ticket up as an SPNEGO token.
-     * Use only with Java <= 1.5
-     * @return
-     */
-    public boolean isSpnegoCreate() {
-        return spnegoCreate;
-    }
-
-    /**
-     * Set to true if an attempt should be made to wrap Kerberos ticket up as an SPNEGO token.
-     * Use only with Java <= 1.5
-     * @param spnegocreate - set to true do attempt SPNEGO wrapping 
-     */
-    public void setSpnegoCreate(boolean spnegocreate) {
-        spnegoCreate = spnegocreate;
     }
 
     /**

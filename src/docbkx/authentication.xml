@@ -422,7 +422,8 @@ httpclient.addRequestInterceptor(preemptiveAuth, 0);
         <section>
             <title><literal>SPNEGO</literal> support in HttpClient</title>
             <para><literal>SPNEGO</literal> authentication scheme is compatible with Sun Java
-                versions 1.5 and up.</para>
+                versions 1.5 and up. However the use of Java >= 1.6 is strongly recommended as it 
+                supports <literal>SPNEGO</literal> authentication more completely.</para>
             <para>The Sun JRE provides the supporting classes to do nearly all the kerberos and
                     <literal>SPNEGO</literal> token handling. This means that a lot of the setup is
                 for the GSS classes. The <classname>NegotiateScheme</classname> is a simple class to
@@ -454,7 +455,7 @@ httpclient.addRequestInterceptor(preemptiveAuth, 0);
         <section>
             <title><literal>login.conf</literal> file</title>
             <para>The following configuration is a basic setup that works in Windows XP against both
-                    <literal>IIS7</literal> and <literal>JbossNegotiate</literal> modules.</para>
+                    <literal>IIS</literal> and <literal>JBoss Negotiation</literal> modules.</para>
             <para>The system property <literal>java.security.auth.login.config</literal> can be use
                 to point at the <literal>login.conf</literal> file.</para>
             <para><literal>login.conf</literal> content may look like the following:</para>
@@ -536,24 +537,16 @@ httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
                     <classname>NegotiateSchemeFactory</classname>. </para>
             <section>
                 <title>
-                    <methodname>setStripPort</methodname>
+                    <methodname>#setStripPort(boolean)</methodname>
                 </title>
                 <para>Strips the port off service names e.g.
                         <literal>HTTP/webserver.ad.example.net:8080</literal> ->
                         <literal>HTTP/webserver.ad.example.net</literal></para>
-                <para>Found it useful when using JbossNegotiation.</para>
+                <para>Found it useful when authenticating against JBoss Negotiation.</para>
             </section>
             <section>
                 <title>
-                    <methodname>setSpnegoCreate</methodname>
-                </title>
-                <para>If using Java 1.5 or a Kerberos ticket an attempt will be made to wrap it up
-                    into a <literal>SPNEGO</literal> token. Again for JbossNegotiation. II7 accepts
-                    plain Kerberos tickets.</para>
-            </section>
-            <section>
-                <title>
-                    <methodname>setSpengoGenerator</methodname>
+                    <methodname>#setSpengoGenerator(SpnegoTokenGenerator)</methodname>
                 </title>
                 <para>Use this method to inject a custom
                         <interfacename>SpnegoTokenGenerator</interfacename> class to do the Kerberos
@@ -561,7 +554,9 @@ httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
                         <classname>BouncySpnegoTokenGenerator</classname> implementation is provided
                     as unsupported contribution from the contrib package. This requires the
                     BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html"
-                        >"http://www.bouncycastle.org/java.html"</ulink>
+                        >"http://www.bouncycastle.org/java.html"</ulink>. Found especially useful 
+                    when using Java 1.5 that is known to provide only a limited support for 
+                    <literal>SPNEGO</literal> authentication.    
                 </para>
             </section>
         </section>

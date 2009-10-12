@@ -39,13 +39,11 @@ import org.apache.http.params.HttpParams;
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
     
     private boolean stripPort = false; // strip port off kerb name
-    private boolean spnegoCreate = false; // generate an SPNEGO wrapper for JDKs < 1.6.
     private SpnegoTokenGenerator spengoGenerator = null;
     
     public AuthScheme newInstance(final HttpParams params) {
         NegotiateScheme negotiateScheme = new NegotiateScheme();
         negotiateScheme.setStripPort(stripPort);
-        negotiateScheme.setSpnegoCreate(spnegoCreate);
         negotiateScheme.setSpengoGenerator(spengoGenerator);
         return negotiateScheme;
     }
@@ -60,14 +58,6 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
 
     public boolean isStripPort() {
         return stripPort;
-    }
-
-    public void setSpnegoCreate(boolean spnegoCreate) {
-        this.spnegoCreate = spnegoCreate;
-    }
-
-    public boolean isSpnegoCreate() {
-        return spnegoCreate;
     }
 
     public void setSpengoGenerator(SpnegoTokenGenerator spengoGenerator) {
