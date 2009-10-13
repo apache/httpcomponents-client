@@ -1,6 +1,11 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-832] Distinguish cookie format errors from violations of restrictions 
+  imposed by a cookie specification. In the latter case 
+  CookieRestrictionViolationException will be thrown.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-523] Support for SPNEGO authentication scheme.
   Contributed by Matthew Stevenson <mavricknzwork at yahoo.com>
 

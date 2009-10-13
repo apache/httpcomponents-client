@@ -30,6 +30,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
@@ -70,7 +71,7 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
             throw new IllegalArgumentException("Cookie may not be null");
         }
         if (cookie.getVersion() < 0) {
-            throw new MalformedCookieException("Cookie version may not be negative");
+            throw new CookieRestrictionViolationException("Cookie version may not be negative");
         }
     }
     

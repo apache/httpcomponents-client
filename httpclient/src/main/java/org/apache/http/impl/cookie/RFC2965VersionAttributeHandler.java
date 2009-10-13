@@ -33,6 +33,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.cookie.SetCookie2;
@@ -84,7 +85,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
         if (cookie instanceof SetCookie2) {
             if (cookie instanceof ClientCookie 
                     && !((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {
-                throw new MalformedCookieException(
+                throw new CookieRestrictionViolationException(
                         "Violates RFC 2965. Version attribute is required.");
             }
         }

@@ -31,6 +31,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
@@ -59,7 +60,7 @@ public class BasicPathHandler implements CookieAttributeHandler {
     public void validate(final Cookie cookie, final CookieOrigin origin) 
             throws MalformedCookieException {
         if (!match(cookie, origin)) {
-            throw new MalformedCookieException(
+            throw new CookieRestrictionViolationException(
                 "Illegal path attribute \"" + cookie.getPath() 
                 + "\". Path of origin: \"" + origin.getPath() + "\"");
         }

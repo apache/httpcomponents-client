@@ -39,6 +39,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
@@ -116,10 +117,10 @@ public class RFC2109Spec extends CookieSpecBase {
         }
         String name = cookie.getName();
         if (name.indexOf(' ') != -1) {
-            throw new MalformedCookieException("Cookie name may not contain blanks");
+            throw new CookieRestrictionViolationException("Cookie name may not contain blanks");
         }
         if (name.startsWith("$")) {
-            throw new MalformedCookieException("Cookie name may not start with $");
+            throw new CookieRestrictionViolationException("Cookie name may not start with $");
         }
         super.validate(cookie, origin);
     }

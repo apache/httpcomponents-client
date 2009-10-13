@@ -33,6 +33,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 
 /**
@@ -58,14 +59,14 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
 
             if (isSpecialDomain(domain)) {
                 if (domainParts < 2) {
-                    throw new MalformedCookieException("Domain attribute \""
+                    throw new CookieRestrictionViolationException("Domain attribute \""
                         + domain 
                         + "\" violates the Netscape cookie specification for "
                         + "special domains");
                 }
             } else {
                 if (domainParts < 3) {
-                    throw new MalformedCookieException("Domain attribute \""
+                    throw new CookieRestrictionViolationException("Domain attribute \""
                         + domain 
                         + "\" violates the Netscape cookie specification");
                 }            

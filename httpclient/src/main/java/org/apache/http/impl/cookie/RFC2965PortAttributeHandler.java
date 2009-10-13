@@ -35,6 +35,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.cookie.SetCookie2;
@@ -133,7 +134,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
         if (cookie instanceof ClientCookie 
                 && ((ClientCookie) cookie).containsAttribute(ClientCookie.PORT_ATTR)) {
             if (!portMatch(port, cookie.getPorts())) {
-                throw new MalformedCookieException(
+                throw new CookieRestrictionViolationException(
                         "Port attribute violates RFC 2965: "
                         + "Request port not found in cookie's port list.");
             }

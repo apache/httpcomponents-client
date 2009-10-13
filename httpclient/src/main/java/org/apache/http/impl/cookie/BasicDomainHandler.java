@@ -31,6 +31,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 
@@ -75,7 +76,7 @@ public class BasicDomainHandler implements CookieAttributeHandler {
         String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {
-            throw new MalformedCookieException("Cookie domain may not be null");
+            throw new CookieRestrictionViolationException("Cookie domain may not be null");
         }
         if (host.contains(".")) {
             // Not required to have at least two dots.  RFC 2965.
@@ -87,14 +88,14 @@ public class BasicDomainHandler implements CookieAttributeHandler {
                     domain = domain.substring(1, domain.length());
                 }
                 if (!host.equals(domain)) { 
-                    throw new MalformedCookieException(
+                    throw new CookieRestrictionViolationException(
                         "Illegal domain attribute \"" + domain 
                         + "\". Domain of origin: \"" + host + "\"");
                 }
             }
         } else {
             if (!host.equals(domain)) {
-                throw new MalformedCookieException(
+                throw new CookieRestrictionViolationException(
                     "Illegal domain attribute \"" + domain 
                     + "\". Domain of origin: \"" + host + "\"");
             }
