@@ -40,9 +40,9 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 
@@ -75,7 +75,7 @@ public class OperatorConnectProxy {
         // Prepare parameters.
         // Since this example doesn't use the full core framework,
         // only few parameters are actually required.
-        HttpParams params = new BasicHttpParams();
+        HttpParams params = new SyncBasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setUseExpectContinue(params, false);
 

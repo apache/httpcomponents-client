@@ -46,10 +46,10 @@ import org.apache.http.HttpServerConnection;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.impl.DefaultHttpServerConnection;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
@@ -64,10 +64,6 @@ import org.apache.http.protocol.ResponseServer;
 /**
  * Local HTTP server for tests that require one.
  * Based on the <code>ElementalHttpServer</code> example in HttpCore.
- * 
- *
- *
- * <!-- empty lines to avoid 'svn diff' problems -->
  */
 public class LocalTestServer {
 
@@ -178,7 +174,7 @@ public class LocalTestServer {
      * @return  default parameters
      */
     protected HttpParams newDefaultParams() {
-        HttpParams params = new BasicHttpParams();
+        HttpParams params = new SyncBasicHttpParams();
         params
             .setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
                              60000)

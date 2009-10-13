@@ -27,7 +27,6 @@
 
 package org.apache.http.examples.conn;
 
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -44,13 +43,11 @@ import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-
-
 
 /**
  * How to open a secure connection through a proxy using
@@ -59,45 +56,42 @@ import org.apache.http.protocol.BasicHttpContext;
  * The message exchange, both subsequently and for tunnelling,
  * should not be used as a template.
  *
- *
- *
  * @since 4.0
  */
 public class ManagerConnectProxy {
-
-    /**
-     * The default parameters.
-     * Instantiated in {@link #setup setup}.
-     */
-    private static HttpParams defaultParameters = null;
-
-    /**
-     * The scheme registry.
-     * Instantiated in {@link #setup setup}.
-     */
-    private static SchemeRegistry supportedSchemes;
-
 
     /**
      * Main entry point to this example.
      *
      * @param args      ignored
      */
-    public final static void main(String[] args)
-        throws Exception {
+    public final static void main(String[] args) throws Exception {
 
         // make sure to use a proxy that supports CONNECT
-        final HttpHost target =
-            new HttpHost("issues.apache.org", 443, "https");
-        final HttpHost proxy =
-            new HttpHost("127.0.0.1", 8666, "http");
+        HttpHost target = new HttpHost("issues.apache.org", 443, "https");
+        HttpHost proxy = new HttpHost("127.0.0.1", 8666, "http");
 
-        setup(); // some general setup
+        // Register the "http" and "https" protocol schemes, they are
+        // required by the default operator to look up socket factories.
+        SchemeRegistry supportedSchemes = new SchemeRegistry();
+        SocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", sf, 80));
+        sf = SSLSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("https", sf, 80));
 
-        ClientConnectionManager clcm = createManager();
+        // Prepare parameters.
+        // Since this example doesn't use the full core framework,
+        // only few parameters are actually required.
+        HttpParams params = new SyncBasicHttpParams();
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setUseExpectContinue(params, false);
 
-        HttpRequest req = createRequest(target);
-        HttpContext ctx = createContext();
+        ClientConnectionManager clcm = new ThreadSafeClientConnManager(supportedSchemes);
+
+        HttpRequest req = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
+        req.addHeader("Host", target.getHostName());
+
+        HttpContext ctx = new BasicHttpContext();
 
         System.out.println("preparing route to " + target + " via " + proxy);
         HttpRoute route = new HttpRoute
@@ -109,9 +103,12 @@ public class ManagerConnectProxy {
         ManagedClientConnection conn = connRequest.getConnection(0, null);
         try {
             System.out.println("opening connection");
-            conn.open(route, ctx, getParams());
+            conn.open(route, ctx, params);
 
-            HttpRequest connect = createConnect(target);
+            String authority = target.getHostName() + ":" + target.getPort();
+            HttpRequest connect = new BasicHttpRequest("CONNECT", authority, HttpVersion.HTTP_1_1);
+            connect.addHeader("Host", authority);
+                
             System.out.println("opening tunnel to " + target);
             conn.sendRequestHeader(connect);
             // there is no request entity
@@ -120,7 +117,11 @@ public class ManagerConnectProxy {
             System.out.println("receiving confirmation for tunnel");
             HttpResponse connected = conn.receiveResponseHeader();
             System.out.println("----------------------------------------");
-            printResponseHeader(connected);
+            System.out.println(connected.getStatusLine());
+            Header[] headers = connected.getAllHeaders();
+            for (int i = 0; i < headers.length; i++) {
+                System.out.println(headers[i]);
+            }
             System.out.println("----------------------------------------");
             int status = connected.getStatusLine().getStatusCode();
             if ((status < 200) || (status > 299)) {
@@ -130,10 +131,10 @@ public class ManagerConnectProxy {
             System.out.println("receiving response body (ignored)");
             conn.receiveResponseEntity(connected);
 
-            conn.tunnelTarget(false, getParams());
+            conn.tunnelTarget(false, params);
 
             System.out.println("layering secure connection");
-            conn.layerProtocol(ctx, getParams());
+            conn.layerProtocol(ctx, params);
 
             // finally we have the secure connection and can send the request
 
@@ -146,7 +147,11 @@ public class ManagerConnectProxy {
             HttpResponse rsp = conn.receiveResponseHeader();
 
             System.out.println("----------------------------------------");
-            printResponseHeader(rsp);
+            System.out.println(rsp.getStatusLine());
+            headers = rsp.getAllHeaders();
+            for (int i = 0; i < headers.length; i++) {
+                System.out.println(headers[i]);
+            }
             System.out.println("----------------------------------------");
 
             System.out.println("closing connection");
@@ -158,9 +163,9 @@ public class ManagerConnectProxy {
                 System.out.println("shutting down connection");
                 try {
                     conn.shutdown();
-                } catch (Exception x) {
+                } catch (Exception ex) {
                     System.out.println("problem during shutdown");
-                    x.printStackTrace(System.out);
+                    ex.printStackTrace();
                 }
             }
 
@@ -168,108 +173,7 @@ public class ManagerConnectProxy {
             clcm.releaseConnection(conn, -1, null);
         }
 
-    } // main
-
-
-    private final static ClientConnectionManager createManager() {
-
-        return new ThreadSafeClientConnManager(supportedSchemes);
     }
 
-
-    /**
-     * Performs general setup.
-     * This should be called only once.
-     */
-    private final static void setup() {
-
-        // Register the "http" and "https" protocol schemes, they are
-        // required by the default operator to look up socket factories.
-        supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
-        sf = SSLSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("https", sf, 80));
-
-        // Prepare parameters.
-        // Since this example doesn't use the full core framework,
-        // only few parameters are actually required.
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        defaultParameters = params;
-
-    } // setup
-
-
-    private final static HttpParams getParams() {
-        return defaultParameters;
-    }
-
-
-    /**
-     * Creates a request to tunnel a connection.
-     * In a real application, request interceptors should be used
-     * to add the required headers.
-     *
-     * @param target    the target server for the tunnel
-     *
-     * @return  a CONNECT request without an entity
-     */
-    private final static HttpRequest createConnect(HttpHost target) {
-
-        // see RFC 2817, section 5.2
-        final String authority = target.getHostName()+":"+target.getPort();
-
-        HttpRequest req = new BasicHttpRequest
-            ("CONNECT", authority, HttpVersion.HTTP_1_1);
-
-        req.addHeader("Host", authority);
-
-        return req;
-    }
-
-
-    /**
-     * Creates a request to execute in this example.
-     * In a real application, request interceptors should be used
-     * to add the required headers.
-     *
-     * @param target    the target server for the request
-     *
-     * @return  a request without an entity
-     */
-    private final static HttpRequest createRequest(HttpHost target) {
-
-        HttpRequest req = new BasicHttpRequest
-            ("OPTIONS", "*", HttpVersion.HTTP_1_1);
-
-        req.addHeader("Host", target.getHostName());
-
-        return req;
-    }
-
-
-    /**
-     * Creates a context for executing a request.
-     * Since this example doesn't really use the execution framework,
-     * the context can be left empty.
-     *
-     * @return  a new, empty context
-     */
-    private final static HttpContext createContext() {
-        return new BasicHttpContext(null);
-    }
-
-
-    private final static void printResponseHeader(HttpResponse rsp) {
-
-        System.out.println(rsp.getStatusLine());
-        Header[] headers = rsp.getAllHeaders();
-        for (int i=0; i<headers.length; i++) {
-            System.out.println(headers[i]);
-        }
-    }
-
-} // class ManagerConnectProxy
+}
 

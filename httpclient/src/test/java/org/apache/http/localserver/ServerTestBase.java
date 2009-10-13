@@ -36,15 +36,14 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.impl.DefaultHttpClientConnection;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
-
 
 /**
  * Base class for tests using {@link LocalTestServer LocalTestServer}.
@@ -104,7 +103,7 @@ public abstract class ServerTestBase extends BasicServerTestBase {
     protected void setUp() throws Exception {
 
         if (defaultParams == null) {
-            defaultParams = new BasicHttpParams();
+            defaultParams = new SyncBasicHttpParams();
             HttpProtocolParams.setVersion
                 (defaultParams, HttpVersion.HTTP_1_1);
             HttpProtocolParams.setContentCharset

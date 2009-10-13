@@ -67,10 +67,10 @@ import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
@@ -187,7 +187,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
     
     @Override
     protected HttpParams createHttpParams() {
-        HttpParams params = new BasicHttpParams();
+        HttpParams params = new SyncBasicHttpParams();
         HttpProtocolParams.setVersion(params, 
                 HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, 

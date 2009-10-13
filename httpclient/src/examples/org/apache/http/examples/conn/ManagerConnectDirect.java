@@ -27,7 +27,6 @@
 
 package org.apache.http.examples.conn;
 
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -43,13 +42,11 @@ import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-
-
 
 /**
  * How to open a direct connection using
@@ -58,41 +55,38 @@ import org.apache.http.protocol.BasicHttpContext;
  * The subsequent message exchange in this example should not
  * be used as a template.
  *
- *
- *
  * @since 4.0
  */
 public class ManagerConnectDirect {
-
-    /**
-     * The default parameters.
-     * Instantiated in {@link #setup setup}.
-     */
-    private static HttpParams defaultParameters = null;
-
-    /**
-     * The scheme registry.
-     * Instantiated in {@link #setup setup}.
-     */
-    private static SchemeRegistry supportedSchemes;
-
 
     /**
      * Main entry point to this example.
      *
      * @param args      ignored
      */
-    public final static void main(String[] args)
-        throws Exception {
+    public final static void main(String[] args) throws Exception {
 
-        final HttpHost target = new HttpHost("jakarta.apache.org", 80, "http");
+        HttpHost target = new HttpHost("www.apache.org", 80, "http");
 
-        setup(); // some general setup
+        // Register the "http" protocol scheme, it is required
+        // by the default operator to look up socket factories.
+        SchemeRegistry supportedSchemes = new SchemeRegistry();
+        SocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", sf, 80));
 
-        ClientConnectionManager clcm = createManager();
+        // Prepare parameters.
+        // Since this example doesn't use the full core framework,
+        // only few parameters are actually required.
+        HttpParams params = new SyncBasicHttpParams();
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setUseExpectContinue(params, false);
 
-        HttpRequest req = createRequest(target);
-        HttpContext ctx = createContext();
+        ClientConnectionManager clcm = new ThreadSafeClientConnManager(supportedSchemes);
+
+        HttpRequest req = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
+        req.addHeader("Host", target.getHostName());
+        
+        HttpContext ctx = new BasicHttpContext();
 
         System.out.println("preparing route to " + target);
         HttpRoute route = new HttpRoute
@@ -103,7 +97,7 @@ public class ManagerConnectDirect {
         ManagedClientConnection conn = connRequest.getConnection(0, null);
         try {
             System.out.println("opening connection");
-            conn.open(route, ctx, getParams());
+            conn.open(route, ctx, params);
 
             System.out.println("sending request");
             conn.sendRequestHeader(req);
@@ -130,9 +124,9 @@ public class ManagerConnectDirect {
                 System.out.println("shutting down connection");
                 try {
                     conn.shutdown();
-                } catch (Exception x) {
+                } catch (Exception ex) {
                     System.out.println("problem during shutdown");
-                    x.printStackTrace(System.out);
+                    ex.printStackTrace();
                 }
             }
 
@@ -140,73 +134,7 @@ public class ManagerConnectDirect {
             clcm.releaseConnection(conn, -1, null);
         }
 
-    } // main
-
-
-    private final static ClientConnectionManager createManager() {
-
-        return new ThreadSafeClientConnManager(supportedSchemes);
     }
 
-
-    /**
-     * Performs general setup.
-     * This should be called only once.
-     */
-    private final static void setup() {
-
-        // Register the "http" protocol scheme, it is required
-        // by the default operator to look up socket factories.
-        supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
-
-        // Prepare parameters.
-        // Since this example doesn't use the full core framework,
-        // only few parameters are actually required.
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        defaultParameters = params;
-
-    } // setup
-
-
-    private final static HttpParams getParams() {
-        return defaultParameters;
-    }
-
-
-    /**
-     * Creates a request to execute in this example.
-     * In a real application, request interceptors should be used
-     * to add the required headers.
-     *
-     * @param target    the target server for the request
-     *
-     * @return  a request without an entity
-     */
-    private final static HttpRequest createRequest(HttpHost target) {
-
-        HttpRequest req = new BasicHttpRequest
-            ("OPTIONS", "*", HttpVersion.HTTP_1_1);
-
-        req.addHeader("Host", target.getHostName());
-
-        return req;
-    }
-
-
-    /**
-     * Creates a context for executing a request.
-     * Since this example doesn't really use the execution framework,
-     * the context can be left empty.
-     *
-     * @return  a new, empty context
-     */
-    private final static HttpContext createContext() {
-        return new BasicHttpContext(null);
-    }
-
-} // class ManagerConnectDirect
+}
 
