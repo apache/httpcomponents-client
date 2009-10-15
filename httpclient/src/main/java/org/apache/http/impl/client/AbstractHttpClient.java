@@ -66,6 +66,7 @@ import org.apache.http.protocol.DefaultedHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.ImmutableHttpProcessor;
 
 /**
  * Base class for {@link HttpClient} implementations. This class acts as 
@@ -186,10 +187,13 @@ public abstract class AbstractHttpClient implements HttpClient {
     @GuardedBy("this")
     private AuthSchemeRegistry supportedAuthSchemes;
     
-    /** The HTTP processor. */
+    /** The HTTP protocol processor and its immutable copy. */
     @GuardedBy("this")
-    private BasicHttpProcessor httpProcessor;
+    private BasicHttpProcessor mutableProcessor;
 
+    @GuardedBy("this")
+    private ImmutableHttpProcessor protocolProcessor;
+    
     /** The request retry handler. */
     @GuardedBy("this")
     private HttpRequestRetryHandler retryHandler;
@@ -482,25 +486,31 @@ public abstract class AbstractHttpClient implements HttpClient {
     
     
     protected synchronized final BasicHttpProcessor getHttpProcessor() {
-        if (httpProcessor == null) {
-            httpProcessor = createHttpProcessor();
+        if (mutableProcessor == null) {
+            mutableProcessor = createHttpProcessor();
         }
-        return httpProcessor;
+        return mutableProcessor;
     }
 
 
-    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp) {
-        getHttpProcessor().addInterceptor(itcp);
-    }
-
-
-    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
-        getHttpProcessor().addInterceptor(itcp, index);
-    }
-
-
-    public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
-        return getHttpProcessor().getResponseInterceptor(index);
+    private synchronized final HttpProcessor getProtocolProcessor() {
+        if (protocolProcessor == null) {
+            // Get mutable HTTP processor
+            BasicHttpProcessor proc = getHttpProcessor();
+            // and create an immutable copy of it
+            int reqc = proc.getRequestInterceptorCount();
+            HttpRequestInterceptor[] reqinterceptors = new HttpRequestInterceptor[reqc];
+            for (int i = 0; i < reqc; i++) {
+                reqinterceptors[i] = proc.getRequestInterceptor(i);
+            }
+            int resc = proc.getResponseInterceptorCount();
+            HttpResponseInterceptor[] resinterceptors = new HttpResponseInterceptor[resc];
+            for (int i = 0; i < resc; i++) {
+                resinterceptors[i] = proc.getResponseInterceptor(i);
+            }
+            protocolProcessor = new ImmutableHttpProcessor(reqinterceptors, resinterceptors);
+        }
+        return protocolProcessor;
     }
 
 
@@ -509,23 +519,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized void clearResponseInterceptors() {
-        getHttpProcessor().clearResponseInterceptors();
-    }
-
-
-    public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
-        getHttpProcessor().removeResponseInterceptorByClass(clazz);
-    }
-
-    
-    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
-        getHttpProcessor().addInterceptor(itcp);
-    }
-
-
-    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
-        getHttpProcessor().addInterceptor(itcp, index);
+    public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
+        return getHttpProcessor().getResponseInterceptor(index);
     }
 
 
@@ -539,13 +534,51 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp) {
+        getHttpProcessor().addInterceptor(itcp);
+        protocolProcessor = null;
+    }
+
+
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
+        getHttpProcessor().addInterceptor(itcp, index);
+        protocolProcessor = null;
+    }
+
+
+    public synchronized void clearResponseInterceptors() {
+        getHttpProcessor().clearResponseInterceptors();
+        protocolProcessor = null;
+    }
+
+
+    public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
+        getHttpProcessor().removeResponseInterceptorByClass(clazz);
+        protocolProcessor = null;
+    }
+
+    
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
+        getHttpProcessor().addInterceptor(itcp);
+        protocolProcessor = null;
+    }
+
+
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
+        getHttpProcessor().addInterceptor(itcp, index);
+        protocolProcessor = null;
+    }
+
+
     public synchronized void clearRequestInterceptors() {
         getHttpProcessor().clearRequestInterceptors();
+        protocolProcessor = null;
     }
 
 
     public synchronized void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
+        protocolProcessor = null;
     }
 
     public final HttpResponse execute(HttpUriRequest request)
@@ -628,7 +661,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getConnectionReuseStrategy(),
                     getConnectionKeepAliveStrategy(),
                     getRoutePlanner(),
-                    getHttpProcessor().copy(),
+                    getProtocolProcessor(),
                     getHttpRequestRetryHandler(),
                     getRedirectHandler(),
                     getTargetAuthenticationHandler(),
