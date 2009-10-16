@@ -335,7 +335,7 @@ if (entity != null) {
                 static methods to more easily read the content or information from an entity.
                 Instead of reading the <classname>java.io.InputStream</classname> directly, one can
                 retrieve the whole content body in a string / byte array by using the methods from
-                this class. However, the use of <interfacename>HttpEntity</interfacename> is
+                this class. However, the use of <classname>EntityUtils</classname> is
                 strongly discouraged unless the response entities originate from a trusted HTTP
                 server and are known to be of limited length.</para>
             <programlisting><![CDATA[
