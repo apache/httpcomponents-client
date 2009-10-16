@@ -83,8 +83,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     /** The reusability marker. */
     private volatile boolean markedReusable;
 
-    /** True if the connection has been aborted. */
-    private volatile boolean aborted;
+    /** True if the connection has been shut down or released. */
+    private volatile boolean shutdown;
     
     /** The duration this is valid for while idle (in ms). */
     private volatile long duration;
@@ -104,7 +104,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         connManager = mgr;
         wrappedConnection = conn;
         markedReusable = false;
-        aborted = false;
+        shutdown = false;
         duration = Long.MAX_VALUE;
     } // <constructor>
 
@@ -133,7 +133,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      * @throws InterruptedIOException   if the connection has been aborted
      */
     protected final void assertNotAborted() throws InterruptedIOException {
-        if (aborted) {
+        if (shutdown) {
             throw new InterruptedIOException("Connection has been shut down.");
         }
     }
@@ -160,7 +160,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public boolean isStale() {
-        if (aborted)
+        if (shutdown)
             return true;
         OperatedClientConnection conn = getWrappedConnection();
         if (conn == null)
@@ -316,16 +316,17 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public void releaseConnection() {
+        shutdown = true;
         if (connManager != null) {
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
     public void abortConnection() {
-        if (aborted) {
+        if (shutdown) {
             return;
         }
-        aborted = true;
+        shutdown = true;
         unmarkReusable();
         try {
             shutdown();
@@ -345,7 +346,9 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         // manager if #abortConnection() is called from the main execution 
         // thread while there is no blocking I/O operation.
         if (executionThread.equals(Thread.currentThread())) {
-            releaseConnection();
+            if (connManager != null) {
+                connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
+            }
         }
     }
 

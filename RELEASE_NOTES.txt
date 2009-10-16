@@ -1,6 +1,11 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-881] Fixed race condition in AbstractClientConnAdapter that makes it
+  possible for an aborted connection to be returned to the pool.
+  Contributed by Tim Boemker <tboemker at elynx.com> and 
+  Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-832] Distinguish cookie format errors from violations of restrictions 
   imposed by a cookie specification. In the latter case 
   CookieRestrictionViolationException will be thrown.
