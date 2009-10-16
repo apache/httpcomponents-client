@@ -80,6 +80,7 @@ import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -559,6 +560,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
             return response;
             
+        } catch (ConnectionShutdownException ex) {
+            throw new InterruptedIOException("Connection has been shut down");
         } catch (HttpException ex) {
             abortConnection();
             throw ex;

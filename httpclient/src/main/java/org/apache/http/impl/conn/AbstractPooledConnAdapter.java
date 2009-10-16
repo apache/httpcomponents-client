@@ -72,7 +72,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      */
     protected final void assertAttached() {
         if (poolEntry == null) {
-            throw new IllegalStateException("Adapter is detached.");
+            throw new ConnectionShutdownException();
         }
     }
 
@@ -87,7 +87,6 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public HttpRoute getRoute() {
-
         assertAttached();
         return (poolEntry.tracker == null) ?
             null : poolEntry.tracker.toRoute();
@@ -96,35 +95,36 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     public void open(HttpRoute route,
                      HttpContext context, HttpParams params)
         throws IOException {
-
+        assertNotAborted();
         assertAttached();
         poolEntry.open(route, context, params);
     }
 
     public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
-
+        assertNotAborted();
         assertAttached();
         poolEntry.tunnelTarget(secure, params);
     }
 
     public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
         throws IOException {
-
+        assertNotAborted();
         assertAttached();
         poolEntry.tunnelProxy(next, secure, params);
     }
 
     public void layerProtocol(HttpContext context, HttpParams params)
         throws IOException {
-
+        assertNotAborted();
         assertAttached();
         poolEntry.layerProtocol(context, params);
     }
 
     public void close() throws IOException {
-        if (poolEntry != null)
-            poolEntry.shutdownEntry();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry != null)
+            entry.shutdownEntry();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {
@@ -133,8 +133,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public void shutdown() throws IOException {
-        if (poolEntry != null)
-            poolEntry.shutdownEntry();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry != null)
+            entry.shutdownEntry();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {

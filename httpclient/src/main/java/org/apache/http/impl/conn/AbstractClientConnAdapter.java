@@ -129,7 +129,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      */
     protected final void assertNotAborted() throws InterruptedIOException {
         if (shutdown) {
-            throw new InterruptedIOException("Connection has been shut down.");
+            throw new InterruptedIOException("Connection has been shut down");
         }
     }
 
@@ -142,7 +142,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     protected final void assertValid(
             final OperatedClientConnection wrappedConn) {
         if (wrappedConn == null) {
-            throw new IllegalStateException("No wrapped connection.");
+            throw new ConnectionShutdownException();
         }
     }
 
