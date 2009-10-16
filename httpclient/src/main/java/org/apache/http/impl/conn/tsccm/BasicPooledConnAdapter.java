@@ -26,12 +26,9 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.conn.AbstractPoolEntry;
 import org.apache.http.impl.conn.AbstractPooledConnAdapter;
-
-
 
 /**
  * A connection wrapper and callback handler.
@@ -72,7 +69,6 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
     }
 
 
-    // non-javadoc, see base class
     @Override
     protected void detach() {
         // override needed only to make method visible in this package

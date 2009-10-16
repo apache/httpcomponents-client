@@ -108,7 +108,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      * Detaches this adapter from the wrapped connection.
      * This adapter becomes useless.
      */
-    protected void detach() {
+    protected synchronized void detach() {
         wrappedConnection = null;
         connManager = null; // base class attribute
         duration = Long.MAX_VALUE;
@@ -310,7 +310,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
-    public void releaseConnection() {
+    public synchronized void releaseConnection() {
         if (shutdown) {
             return;
         }
@@ -320,7 +320,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
-    public void abortConnection() {
+    public synchronized void abortConnection() {
         if (shutdown) {
             return;
         }

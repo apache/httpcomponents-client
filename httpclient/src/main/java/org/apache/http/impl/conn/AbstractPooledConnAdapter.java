@@ -81,9 +81,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * This adapter becomes useless.
      */
     @Override
-    protected void detach() {
-        super.detach();
+    protected synchronized void detach() {
         poolEntry = null;
+        super.detach();
     }
 
     public HttpRoute getRoute() {
