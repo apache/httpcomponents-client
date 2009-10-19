@@ -561,7 +561,10 @@ public class DefaultRequestDirector implements RequestDirector {
             return response;
             
         } catch (ConnectionShutdownException ex) {
-            throw new InterruptedIOException("Connection has been shut down");
+            InterruptedIOException ioex = new InterruptedIOException(
+                    "Connection has been shut down");
+            ioex.initCause(ex);
+            throw ioex;
         } catch (HttpException ex) {
             abortConnection();
             throw ex;

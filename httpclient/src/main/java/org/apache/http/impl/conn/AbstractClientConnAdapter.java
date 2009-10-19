@@ -81,7 +81,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     private volatile boolean markedReusable;
 
     /** True if the connection has been shut down or released. */
-    private volatile boolean shutdown;
+    private volatile boolean released;
     
     /** The duration this is valid for while idle (in ms). */
     private volatile long duration;
@@ -100,7 +100,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         connManager = mgr;
         wrappedConnection = conn;
         markedReusable = false;
-        shutdown = false;
+        released = false;
         duration = Long.MAX_VALUE;
     }
 
@@ -123,25 +123,32 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
     
     /**
-     * Asserts that the connection has not been aborted.
-     *
-     * @throws InterruptedIOException   if the connection has been aborted
+     * @deprecated use {@link #assertValid(OperatedClientConnection)}
      */
+    @Deprecated
     protected final void assertNotAborted() throws InterruptedIOException {
-        if (shutdown) {
+        if (isReleased()) {
             throw new InterruptedIOException("Connection has been shut down");
         }
     }
 
     /**
-     * Asserts that there is a wrapped connection to delegate to.
+     * @since 4.1
+     * @return value of released flag
+     */
+    protected boolean isReleased() {
+        return released;
+    }
+    
+    /**
+     * Asserts that there is a valid wrapped connection to delegate to.
      *
-     * @throws IllegalStateException    if there is no wrapped connection
+     * @throws ConnectionShutdownException if there is no wrapped connection
      *                                  or connection has been aborted
      */
     protected final void assertValid(
-            final OperatedClientConnection wrappedConn) {
-        if (wrappedConn == null) {
+            final OperatedClientConnection wrappedConn) throws ConnectionShutdownException {
+        if (isReleased() || wrappedConn == null) {
             throw new ConnectionShutdownException();
         }
     }
@@ -155,7 +162,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public boolean isStale() {
-        if (shutdown)
+        if (isReleased())
             return true;
         OperatedClientConnection conn = getWrappedConnection();
         if (conn == null)
@@ -182,66 +189,46 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.getMetrics();
     }
 
-    public void flush()
-        throws IOException {
-
-        assertNotAborted();
+    public void flush() throws IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         conn.flush();
     }
 
-    public boolean isResponseAvailable(int timeout)
-        throws IOException {
-
-        assertNotAborted();
+    public boolean isResponseAvailable(int timeout) throws IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         return conn.isResponseAvailable(timeout);
     }
 
     public void receiveResponseEntity(HttpResponse response)
         throws HttpException, IOException {
-
-        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         conn.receiveResponseEntity(response);
     }
 
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
-
-        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         return conn.receiveResponseHeader();
     }
 
     public void sendRequestEntity(HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
-
-        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         conn.sendRequestEntity(request);
     }
 
     public void sendRequestHeader(HttpRequest request)
         throws HttpException, IOException {
-
-        assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-        
         unmarkReusable();
         conn.sendRequestHeader(request);
     }
@@ -311,20 +298,20 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public synchronized void releaseConnection() {
-        if (shutdown) {
+        if (released) {
             return;
         }
-        shutdown = true;
+        released = true;
         if (connManager != null) {
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
     public synchronized void abortConnection() {
-        if (shutdown) {
+        if (released) {
             return;
         }
-        shutdown = true;
+        released = true;
         unmarkReusable();
         try {
             shutdown();

@@ -51,27 +51,22 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
         markReusable();
     }
 
-
     @Override
     protected ClientConnectionManager getManager() {
         // override needed only to make method visible in this package
         return super.getManager();
     }
 
-
-    /**
-     * Obtains the pool entry.
-     *
-     * @return  the pool entry, or <code>null</code> if detached
-     */
+    @Override
     protected AbstractPoolEntry getPoolEntry() {
-        return super.poolEntry;
+        // override needed only to make method visible in this package
+        return super.getPoolEntry();
     }
-
 
     @Override
     protected void detach() {
         // override needed only to make method visible in this package
         super.detach();
     }
+
 }

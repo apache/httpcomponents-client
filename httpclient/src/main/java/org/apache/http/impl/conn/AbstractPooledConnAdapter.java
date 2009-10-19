@@ -63,12 +63,32 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         super(manager, entry.connection);
         this.poolEntry = entry;
     }
+    
+    /**
+     * Obtains the pool entry.
+     *
+     * @return  the pool entry, or <code>null</code> if detached
+     */
+    protected AbstractPoolEntry getPoolEntry() {
+        return this.poolEntry;
+    }
 
     /**
-     * Asserts that this adapter is still attached.
+     * Asserts that there is a valid pool entry.
      *
-     * @throws IllegalStateException
-     *      if it is {@link #detach detach}ed
+     * @throws ConnectionShutdownException if there is no pool entry
+     *                                  or connection has been aborted
+     *                                  
+     * @see #assertValid(OperatedClientConnection)                                  
+     */
+    protected void assertValid(final AbstractPoolEntry entry) {
+        if (isReleased() || entry == null) {
+            throw new ConnectionShutdownException();
+        }
+    }
+    
+    /**
+     * @deprecated use {@link #assertValid(AbstractPoolEntry)}
      */
     protected final void assertAttached() {
         if (poolEntry == null) {
@@ -87,42 +107,42 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public HttpRoute getRoute() {
-        assertAttached();
-        return (poolEntry.tracker == null) ?
-            null : poolEntry.tracker.toRoute();
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        return (entry.tracker == null) ? null : entry.tracker.toRoute();
     }
 
     public void open(HttpRoute route,
                      HttpContext context, HttpParams params)
         throws IOException {
-        assertNotAborted();
-        assertAttached();
-        poolEntry.open(route, context, params);
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        entry.open(route, context, params);
     }
 
     public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
-        assertNotAborted();
-        assertAttached();
-        poolEntry.tunnelTarget(secure, params);
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        entry.tunnelTarget(secure, params);
     }
 
     public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
         throws IOException {
-        assertNotAborted();
-        assertAttached();
-        poolEntry.tunnelProxy(next, secure, params);
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        entry.tunnelProxy(next, secure, params);
     }
 
     public void layerProtocol(HttpContext context, HttpParams params)
         throws IOException {
-        assertNotAborted();
-        assertAttached();
-        poolEntry.layerProtocol(context, params);
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        entry.layerProtocol(context, params);
     }
 
     public void close() throws IOException {
-        AbstractPoolEntry entry = poolEntry;
+        AbstractPoolEntry entry = getPoolEntry();
         if (entry != null)
             entry.shutdownEntry();
 
@@ -133,7 +153,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public void shutdown() throws IOException {
-        AbstractPoolEntry entry = poolEntry;
+        AbstractPoolEntry entry = getPoolEntry();
         if (entry != null)
             entry.shutdownEntry();
 
@@ -144,13 +164,15 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public Object getState() {
-        assertAttached();
-        return poolEntry.getState();
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        return entry.getState();
     }
 
     public void setState(final Object state) {
-        assertAttached();
-        poolEntry.setState(state);
+        AbstractPoolEntry entry = getPoolEntry();
+        assertValid(entry);
+        entry.setState(state);
     }
 
 }
