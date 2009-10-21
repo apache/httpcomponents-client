@@ -189,37 +189,38 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
             throw new IllegalArgumentException
                 ("Connection not obtained from this manager.");
         }
-
-        try {
-            // make sure that the response has been read completely
-            if (hca.isOpen() && !hca.isMarkedReusable()) {
-                // In MTHCM, there would be a call to
-                // SimpleHttpConnectionManager.finishLastResponse(conn);
-                // Consuming the response is handled outside in 4.0.
-
-                // make sure this connection will not be re-used
-                // Shut down rather than close, we might have gotten here
-                // because of a shutdown trigger.
-                // Shutdown of the adapter also clears the tracked route.
-                hca.shutdown();
-            }
-        } catch (IOException iox) {
-            //@@@ log as warning? let pass?
-            if (log.isDebugEnabled())
-                log.debug("Exception shutting down released connection.",
-                          iox);
-        } finally {
+        synchronized (hca) {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
-            boolean reusable = hca.isMarkedReusable();
-            if (log.isDebugEnabled()) {
-                if (reusable) {
-                    log.debug("Released connection is reusable.");
-                } else {
-                    log.debug("Released connection is not reusable.");
-                }
+            if (entry == null) {
+                return;
             }
-            hca.detach();
-            if (entry != null) {
+            try {
+                // make sure that the response has been read completely
+                if (hca.isOpen() && !hca.isMarkedReusable()) {
+                    // In MTHCM, there would be a call to
+                    // SimpleHttpConnectionManager.finishLastResponse(conn);
+                    // Consuming the response is handled outside in 4.0.
+
+                    // make sure this connection will not be re-used
+                    // Shut down rather than close, we might have gotten here
+                    // because of a shutdown trigger.
+                    // Shutdown of the adapter also clears the tracked route.
+                    hca.shutdown();
+                }
+            } catch (IOException iox) {
+                if (log.isDebugEnabled())
+                    log.debug("Exception shutting down released connection.",
+                              iox);
+            } finally {
+                boolean reusable = hca.isMarkedReusable();
+                if (log.isDebugEnabled()) {
+                    if (reusable) {
+                        log.debug("Released connection is reusable.");
+                    } else {
+                        log.debug("Released connection is not reusable.");
+                    }
+                }
+                hca.detach();
                 connectionPool.freeEntry(entry, reusable, validDuration, timeUnit);
             }
         }

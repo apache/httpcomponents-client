@@ -67,9 +67,6 @@ import org.apache.http.conn.ClientConnectionManager;
  */
 public abstract class AbstractClientConnAdapter implements ManagedClientConnection {
 
-    /** Thread that requested this connection. */
-    private final Thread executionThread; 
-    
     /**
      * The connection manager, if any.
      * This attribute MUST NOT be final, so the adapter can be detached
@@ -83,8 +80,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     /** The reusability marker. */
     private volatile boolean markedReusable;
 
-    /** True if the connection has been aborted. */
-    private volatile boolean aborted;
+    /** True if the connection has been shut down or released. */
+    private volatile boolean released;
     
     /** The duration this is valid for while idle (in ms). */
     private volatile long duration;
@@ -100,20 +97,18 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     protected AbstractClientConnAdapter(ClientConnectionManager mgr,
                                         OperatedClientConnection conn) {
         super();
-        executionThread = Thread.currentThread();
         connManager = mgr;
         wrappedConnection = conn;
         markedReusable = false;
-        aborted = false;
+        released = false;
         duration = Long.MAX_VALUE;
-    } // <constructor>
-
+    }
 
     /**
      * Detaches this adapter from the wrapped connection.
      * This adapter becomes useless.
      */
-    protected void detach() {
+    protected synchronized void detach() {
         wrappedConnection = null;
         connManager = null; // base class attribute
         duration = Long.MAX_VALUE;
@@ -127,14 +122,9 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return connManager;
     }
     
-    /**
-     * Asserts that the connection has not been aborted.
-     *
-     * @throws InterruptedIOException   if the connection has been aborted
-     */
     protected final void assertNotAborted() throws InterruptedIOException {
-        if (aborted) {
-            throw new InterruptedIOException("Connection has been shut down.");
+        if (released) {
+            throw new InterruptedIOException("Connection has been shut down");
         }
     }
 
@@ -145,9 +135,9 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      *                                  or connection has been aborted
      */
     protected final void assertValid(
-            final OperatedClientConnection wrappedConn) {
+            final OperatedClientConnection wrappedConn) throws IllegalStateException {
         if (wrappedConn == null) {
-            throw new IllegalStateException("No wrapped connection.");
+            throw new IllegalStateException("No wrapped connection");
         }
     }
 
@@ -160,7 +150,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public boolean isStale() {
-        if (aborted)
+        if (released)
             return true;
         OperatedClientConnection conn = getWrappedConnection();
         if (conn == null)
@@ -187,66 +177,52 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.getMetrics();
     }
 
-    public void flush()
-        throws IOException {
-
+    public void flush() throws IOException {
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         conn.flush();
     }
 
-    public boolean isResponseAvailable(int timeout)
-        throws IOException {
-
+    public boolean isResponseAvailable(int timeout) throws IOException {
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         return conn.isResponseAvailable(timeout);
     }
 
     public void receiveResponseEntity(HttpResponse response)
         throws HttpException, IOException {
-
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         conn.receiveResponseEntity(response);
     }
 
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
-
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         return conn.receiveResponseHeader();
     }
 
     public void sendRequestEntity(HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
-
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-
         unmarkReusable();
         conn.sendRequestEntity(request);
     }
 
     public void sendRequestHeader(HttpRequest request)
         throws HttpException, IOException {
-
         assertNotAborted();
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-        
         unmarkReusable();
         conn.sendRequestHeader(request);
     }
@@ -315,37 +291,28 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
-    public void releaseConnection() {
+    public synchronized void releaseConnection() {
+        if (released) {
+            return;
+        }
+        released = true;
         if (connManager != null) {
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
-    public void abortConnection() {
-        if (aborted) {
+    public synchronized void abortConnection() {
+        if (released) {
             return;
         }
-        aborted = true;
+        released = true;
         unmarkReusable();
         try {
             shutdown();
         } catch (IOException ignore) {
         }
-        // Usually #abortConnection() is expected to be called from 
-        // a helper thread in order to unblock the main execution thread 
-        // blocked in an I/O operation. It may be unsafe to call 
-        // #releaseConnection() from the helper thread, so we have to rely
-        // on an IOException thrown by the closed socket on the main thread 
-        // to trigger the release of the connection back to the 
-        // connection manager.
-        // 
-        // However, if this method is called from the main execution thread 
-        // it should be safe to release the connection immediately. Besides, 
-        // this also helps ensure the connection gets released back to the 
-        // manager if #abortConnection() is called from the main execution 
-        // thread while there is no blocking I/O operation.
-        if (executionThread.equals(Thread.currentThread())) {
-            releaseConnection();
+        if (connManager != null) {
+            connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 

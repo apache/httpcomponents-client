@@ -1,3 +1,17 @@
+
+Changes since 4.0
+-------------------
+
+* [HTTPCLIENT-881] Fixed race condition in AbstractClientConnAdapter that makes it
+  possible for an aborted connection to be returned to the pool.
+  Contributed by Tim Boemker <tboemker at elynx.com> and 
+  Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-866] Removed dependency on jcip-annotations.jar.
+  Contributed by Oleg Kalnichevski <olegk at apache.org> 
+  and Sebastian Bazley <sebb at apache.org>
+
+
 Release 4.0
 -------------------
 

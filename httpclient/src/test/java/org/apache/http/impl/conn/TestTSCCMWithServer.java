@@ -76,20 +76,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class TestTSCCMWithServer extends ServerTestBase {
 
-    // Server-based tests not ported from 3.x TestHttpConnectionManager
-    //
-    // testWriteRequestReleaseConnection
-    //      This tests auto-release in case of an I/O error while writing.
-    //      It's a test of the execution framework, not of the manager.
-    // testConnectMethodFailureRelease
-    //      This tests method.fakeResponse() and auto-release. It's a
-    //      test of a 3.x specific hack and the execution framework.
-    // testResponseAutoRelease
-    //      Auto-release is not part of the connection manager anymore.
-    // testMaxConnectionsPerServer
-    //      Connection limits are already tested without a server.
-
-
     public TestTSCCMWithServer(String testName) {
         super(testName);
     }
@@ -582,18 +568,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
         assertFalse(conn.isOpen());
         assertEquals(0, localServer.getAcceptedConnectionCount());
         
-        // check that there are no connections available
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection();
-        
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn2.isOpen());
@@ -647,18 +621,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
         
         assertFalse(conn.isOpen());
         assertEquals(0, localServer.getAcceptedConnectionCount());
-        
-        // check that there are no connections available
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -718,18 +680,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
             Thread.sleep(100);
         }
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
-        // check that there are no connections available
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -796,18 +746,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
             Thread.sleep(100);
         }
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
-        // check that there are no connections available
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // return it back to the manager
-        ((AbstractClientConnAdapter) conn).releaseConnection();
         
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);

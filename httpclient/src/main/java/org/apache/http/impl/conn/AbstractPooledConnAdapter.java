@@ -69,7 +69,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      *
      * @throws IllegalStateException
      *      if it is {@link #detach detach}ed
+     * @deprecated
      */
+    @Deprecated
     protected final void assertAttached() {
         if (poolEntry == null) {
             throw new IllegalStateException("Adapter is detached.");
@@ -81,50 +83,65 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * This adapter becomes useless.
      */
     @Override
-    protected void detach() {
+    protected synchronized void detach() {
         super.detach();
         poolEntry = null;
     }
 
     public HttpRoute getRoute() {
-
-        assertAttached();
-        return (poolEntry.tracker == null) ?
-            null : poolEntry.tracker.toRoute();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        return (entry.tracker == null) ?
+            null : entry.tracker.toRoute();
     }
 
     public void open(HttpRoute route,
                      HttpContext context, HttpParams params)
         throws IOException {
-
-        assertAttached();
-        poolEntry.open(route, context, params);
+        assertNotAborted();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        entry.open(route, context, params);
     }
 
     public void tunnelTarget(boolean secure, HttpParams params)
         throws IOException {
-
-        assertAttached();
-        poolEntry.tunnelTarget(secure, params);
+        assertNotAborted();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        entry.tunnelTarget(secure, params);
     }
 
     public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
         throws IOException {
-
-        assertAttached();
-        poolEntry.tunnelProxy(next, secure, params);
+        assertNotAborted();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        entry.tunnelProxy(next, secure, params);
     }
 
     public void layerProtocol(HttpContext context, HttpParams params)
         throws IOException {
-
-        assertAttached();
-        poolEntry.layerProtocol(context, params);
+        assertNotAborted();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        entry.layerProtocol(context, params);
     }
 
     public void close() throws IOException {
-        if (poolEntry != null)
-            poolEntry.shutdownEntry();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry != null)
+            entry.shutdownEntry();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {
@@ -133,8 +150,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public void shutdown() throws IOException {
-        if (poolEntry != null)
-            poolEntry.shutdownEntry();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry != null)
+            entry.shutdownEntry();
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {
@@ -143,13 +161,19 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     public Object getState() {
-        assertAttached();
-        return poolEntry.getState();
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        return entry.getState();
     }
 
     public void setState(final Object state) {
-        assertAttached();
-        poolEntry.setState(state);
+        AbstractPoolEntry entry = poolEntry;
+        if (entry == null) {
+            throw new IllegalStateException("Adapter is detached.");
+        }
+        entry.setState(state);
     }
 
 }
