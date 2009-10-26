@@ -951,6 +951,11 @@ public class DefaultRequestDirector implements RequestDirector {
                     uri.getPort(),
                     uri.getScheme());
             
+            // Unset auth scope
+            targetAuthState.setAuthScope(null);
+            proxyAuthState.setAuthScope(null);
+            
+            // Invalidate auth states if redirecting to another host
             if (!route.getTargetHost().equals(newTarget)) {
                 targetAuthState.invalidate();
                 AuthScheme authScheme = proxyAuthState.getAuthScheme();
