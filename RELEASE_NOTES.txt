@@ -1,6 +1,9 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-882] Auth state is not correctly updated if a successful NTLM 
   authentication results in a redirect. This is a minor bug as HttpClient manages
   to recover from the problem automatically.

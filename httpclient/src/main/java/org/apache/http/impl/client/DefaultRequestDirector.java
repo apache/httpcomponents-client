@@ -380,7 +380,9 @@ public class DefaultRequestDirector implements RequestDirector {
                 // Reopen connection if needed
                 if (!managedConn.isOpen()) {
                     managedConn.open(route, context, params);
-                } 
+                } else {
+                    managedConn.setSocketTimeout(HttpConnectionParams.getSoTimeout(params));
+                }
                 
                 try {
                     establishRoute(route, context);
