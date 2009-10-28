@@ -109,10 +109,9 @@ pwd
                     <title>NTLM:</title>
                     <para>NTLM is a proprietary authentication scheme developed by Microsoft and
                         optimized for Windows platforms. NTLM is believed to be more secure than
-                        Digest. This scheme is supported only partially and requires an external
-                        NTLM engine. For details please refer to the
-                            <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient
-                        distributions.</para>
+                        Digest. This scheme is requires an external NTLM engine to be functional. 
+                        For details please refer to the <literal>NTLM_SUPPORT.txt</literal> document 
+                        included with HttpClient distributions.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -206,12 +205,12 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
             </listitem>
         </itemizedlist>
         <para>Please note <literal>NTLM</literal> and <literal>SPNEGO</literal> schemes are
-                <emphasis>NOT</emphasis> registered per default. For details on how to enable
-                <literal>NTLM</literal> support please refer to the
-                <literal>NTLM_SUPPORT.txt</literal> document included with HttpClient distributions.
-                <literal>SPNEGO</literal> setup tends to be system specific and must be properly
-            configured in order to be functional. See section on <link linkend="spnego">SPNEGO
-            authentication </link> for details.</para>
+                <emphasis>NOT</emphasis> registered per default. The <literal>NTLM</literal> cannot
+            be enabled per default due to licensing and legal reasons. For details on how to 
+            enable <literal>NTLM</literal> support please see <link linkend="ntlm">this</link>
+            section. <literal>SPNEGO</literal> setup tends to be system specific and must be 
+            properly configured in order to be functional. See <link linkend="spnego">this </link> 
+            section for details. </para>
     </section>
     <section>
         <title>Credentials provider</title>
@@ -376,6 +375,71 @@ DefaultHttpClient httpclient = new DefaultHttpClient();
 // Add as the very first interceptor in the protocol chain
 httpclient.addRequestInterceptor(preemptiveAuth, 0);
 ]]></programlisting>
+    </section>
+
+    <section id="ntlm">
+        <title>NTLM Authentication</title>
+        <para>Currently HttpClient does not provide support for the NTLM authentication scheme out
+            of the box and probably never will. The reasons for that are legal rather than 
+            technical. However, NTLM authentication can be enabled by using an external 
+            <literal>NTLM</literal> engine such as <ulink url="http://jcifs.samba.org/">JCIFS
+            </ulink> library developed by the <ulink url="http://www.samba.org/">Samba</ulink>
+            project as a part of their Windows interoperability suite of programs. For details 
+            please refer to the <literal>NTLM_SUPPORT.txt</literal> document included with 
+            HttpClient distributions.
+        </para>
+        <section>
+            <title>NTLM connection persistence</title>
+            <para><literal>NTLM</literal> authentication scheme is significantly more expensive
+                in terms of computational overhead and performance impact than the standard 
+                <literal>Basic</literal> and <literal>Digest</literal> schemes. This is likely to be
+                one of the main reasons why Microsoft chose to make <literal>NTLM</literal> 
+                authentication scheme stateful. That is, once authenticated, the user identity is 
+                associated with that connection for its entire life span. The stateful nature of 
+                <literal>NTLM</literal> connections makes connection persistence more complex, as 
+                for the obvious reason persistent <literal>NTLM</literal> connections may not be 
+                re-used by users with a different user identity. The standard connection managers 
+                shipped with HttpClient are fully capable of managing stateful connections. However, 
+                it is critically important that logically related requests within the same session 
+                use the same execution context in order to make them aware of the current user 
+                identity. Otherwise, HttpClient will end up creating a new HTTP connection for each 
+                HTTP request against <literal>NTLM</literal> protected resources. For detailed 
+                discussion on stateful HTTP connections please refer to 
+                <link linkend="stateful_conn">this </link> section. </para>
+            <para>As <literal>NTLM</literal> connections are stateful it is generally recommended
+                to trigger <literal>NTLM</literal> authentication using a relatively cheap method,
+                such as <literal>GET</literal> or <literal>HEAD</literal>, and re-use the same 
+                connection to execute more expensive methods, especially those enclose a request
+                entity, such as <literal>POST</literal> or <literal>PUT</literal>. </para>
+            <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+NTCredentials creds = new NTCredentials("user", "pwd", "myworkstation", "microsoft.com");
+httpclient.getCredentialsProvider().setCredentials(AuthScope.ANY, creds);
+
+HttpHost target = new HttpHost("www.microsoft.com", 80, "http");
+
+// Make sure the same context is used to execute logically related requests
+HttpContext localContext = new BasicHttpContext();
+
+// Execute a cheap method first. This will trigger NTLM authentication
+HttpGet httpget = new HttpGet("/ntlm-protected/info");
+HttpResponse response1 = httpclient.execute(target, httpget, localContext);
+HttpEntity entity1 = response1.getEntity();
+if (entity1 != null) {
+    entity1.consumeContent();
+}
+
+// Execute an expensive method next reusing the same context (and connection)
+HttpPost httppost = new HttpPost("/ntlm-protected/form");
+httppost.setEntity(new StringEntity("lots and lots of data"));
+HttpResponse response2 = httpclient.execute(target, httppost, localContext);
+HttpEntity entity2 = response2.getEntity();
+if (entity2 != null) {
+    entity2.consumeContent();
+}
+]]></programlisting>
+        </section>
     </section>
 
     <section id="spnego">

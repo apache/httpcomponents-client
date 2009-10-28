@@ -120,7 +120,7 @@ class MyClientConnManager extends SingleClientConnManager {
             </listitem>
         </itemizedlist>
     </section>
-    <section>
+    <section id="stateful_conn">
         <title>Stateful HTTP connections</title>
         <para>While HTTP specification assumes that session state information is always embedded in
             HTTP messages in the form of HTTP cookies and therefore HTTP connections are always
