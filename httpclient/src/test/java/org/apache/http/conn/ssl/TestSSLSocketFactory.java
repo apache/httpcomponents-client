@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -100,6 +101,24 @@ public class TestSSLSocketFactory extends TestCase {
         
     }
     
+    private KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException {
+        String algo = KeyManagerFactory.getDefaultAlgorithm();
+        try {
+            return KeyManagerFactory.getInstance(algo);
+        } catch (NoSuchAlgorithmException ex) {
+            return KeyManagerFactory.getInstance("SunX509");
+        }
+    }
+    
+    private TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException {
+        String algo = TrustManagerFactory.getDefaultAlgorithm();
+        try {
+            return TrustManagerFactory.getInstance(algo);
+        } catch (NoSuchAlgorithmException ex) {
+            return TrustManagerFactory.getInstance("SunX509");
+        }
+    }
+    
     public void testCreateSocket() throws Exception {
         String password = "changeit";
         char[] pwd = password.toCharArray();
@@ -131,13 +150,11 @@ public class TestSSLSocketFactory extends TestCase {
         ks.setKeyEntry("RSA_KEY", pk, pwd, chain);
         ks.setCertificateEntry("CERT", chain[2]); // Let's trust ourselves. :-)
 
-        KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory
-                .getDefaultAlgorithm());
+        KeyManagerFactory kmfactory = createKeyManagerFactory();
         kmfactory.init(ks, pwd);
         KeyManager[] keymanagers = kmfactory.getKeyManagers();
             
-        TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
-                TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory tmfactory = createTrustManagerFactory();
         tmfactory.init(ks);
         TrustManager[] trustmanagers = tmfactory.getTrustManagers();
         
