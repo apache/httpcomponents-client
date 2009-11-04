@@ -40,6 +40,7 @@ import java.util.Scanner;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -96,13 +97,28 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
         List <NameValuePair> result = Collections.emptyList();
-        if (isEncoded(entity)) {
-            final String content = EntityUtils.toString(entity);
-            final Header encoding = entity.getContentEncoding();
+        
+        String contentType = null;
+        String charset = null;
+        
+        Header h = entity.getContentType();
+        if (h != null) {
+            HeaderElement[] elems = h.getElements();
+            if (elems.length > 0) {
+                HeaderElement elem = elems[0];
+                contentType = elem.getName();
+                NameValuePair param = elem.getParameterByName("charset");
+                if (param != null) {
+                    charset = param.getValue();
+                }
+            }
+        }
+        
+        if (contentType != null && contentType.equalsIgnoreCase(CONTENT_TYPE)) {
+            final String content = EntityUtils.toString(entity, HTTP.ASCII);
             if (content != null && content.length() > 0) {
                 result = new ArrayList <NameValuePair>();
-                parse(result, new Scanner(content), 
-                        encoding != null ? encoding.getValue() : null);
+                parse(result, new Scanner(content), charset);
             }
         }
         return result;
@@ -113,8 +129,18 @@ public class URLEncodedUtils {
      * <code>application/x-www-form-urlencoded</code>.
      */
     public static boolean isEncoded (final HttpEntity entity) {
-        final Header contentType = entity.getContentType();
-        return (contentType != null && contentType.getValue().equalsIgnoreCase(CONTENT_TYPE));
+        Header h = entity.getContentType();
+        if (h != null) {
+            HeaderElement[] elems = h.getElements();
+            if (elems.length > 0) {
+                String contentType = elems[0].getName();
+                return contentType.equalsIgnoreCase(CONTENT_TYPE);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
