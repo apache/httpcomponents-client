@@ -38,6 +38,7 @@ import junit.framework.TestSuite;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 
 public class TestURLEncodedUtils extends TestCase {
   
@@ -110,6 +111,45 @@ public class TestURLEncodedUtils extends TestCase {
 
         entity.setContentType("text/test");
         assertTrue(URLEncodedUtils.parse(entity).isEmpty());
+    }
+
+    static final int SWISS_GERMAN_HELLO [] = {
+        0x47, 0x72, 0xFC, 0x65, 0x7A, 0x69, 0x5F, 0x7A, 0xE4, 0x6D, 0xE4
+    };
+        
+    static final int RUSSIAN_HELLO [] = {
+        0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438, 
+        0x432, 0x435, 0x442 
+    }; 
+    
+    private static String constructString(int [] unicodeChars) {
+        StringBuffer buffer = new StringBuffer();
+        if (unicodeChars != null) {
+            for (int i = 0; i < unicodeChars.length; i++) {
+                buffer.append((char)unicodeChars[i]); 
+            }
+        }
+        return buffer.toString();
+    }
+
+    public void testParseUTF8Entity () throws Exception {
+        String ru_hello = constructString(RUSSIAN_HELLO);
+        String ch_hello = constructString(SWISS_GERMAN_HELLO);
+        List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        parameters.add(new BasicNameValuePair("russian", ru_hello));
+        parameters.add(new BasicNameValuePair("swiss", ch_hello));
+        
+        String s = URLEncodedUtils.format(parameters, HTTP.UTF_8);
+        
+        assertEquals("russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
+        		"&swiss=Gr%C3%BCezi_z%C3%A4m%C3%A4", s);
+        
+        StringEntity entity = new StringEntity(s, HTTP.UTF_8);
+        entity.setContentType(URLEncodedUtils.CONTENT_TYPE + HTTP.CHARSET_PARAM + HTTP.UTF_8);
+        List <NameValuePair> result = URLEncodedUtils.parse(entity);
+        assertEquals(2, result.size());
+        assertNameValuePair(result.get(0), "russian", ru_hello);
+        assertNameValuePair(result.get(1), "swiss", ch_hello);
     }
 
     public void testIsEncoded () throws Exception {

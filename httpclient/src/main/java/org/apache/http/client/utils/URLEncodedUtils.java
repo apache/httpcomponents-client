@@ -97,13 +97,28 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
         List <NameValuePair> result = Collections.emptyList();
-        if (isEncoded(entity)) {
-            final String content = EntityUtils.toString(entity);
-            final Header encoding = entity.getContentEncoding();
+        
+        String contentType = null;
+        String charset = null;
+        
+        Header h = entity.getContentType();
+        if (h != null) {
+            HeaderElement[] elems = h.getElements();
+            if (elems.length > 0) {
+                HeaderElement elem = elems[0];
+                contentType = elem.getName();
+                NameValuePair param = elem.getParameterByName("charset");
+                if (param != null) {
+                    charset = param.getValue();
+                }
+            }
+        }
+        
+        if (contentType != null && contentType.equalsIgnoreCase(CONTENT_TYPE)) {
+            final String content = EntityUtils.toString(entity, HTTP.ASCII);
             if (content != null && content.length() > 0) {
                 result = new ArrayList <NameValuePair>();
-                parse(result, new Scanner(content), 
-                        encoding != null ? encoding.getValue() : null);
+                parse(result, new Scanner(content), charset);
             }
         }
         return result;
