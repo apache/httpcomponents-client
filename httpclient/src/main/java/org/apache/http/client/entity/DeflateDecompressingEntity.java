@@ -45,7 +45,7 @@ import org.apache.http.entity.HttpEntityWrapper;
  * <code>deflate</code> streams. We handle both types in here, since that's what is seen on the 
  * internet. Moral - prefer <code>gzip</code>!
  */
-public class DeflateDecompressingEntity extends HttpEntityWrapper {
+public class DeflateDecompressingEntity extends DecompressingEntity {
 
     /**
      * Creates a new {@link DeflateDecompressingEntity} which will wrap the specified 

@@ -322,6 +322,52 @@ public class TestContentCodings extends ServerTestBase {
 
         client.getConnectionManager().shutdown();
     }
+
+    /**
+     * Test that the returned {@link HttpEntity} in the response correctly overrides 
+     * {@link HttpEntity#writeTo(OutputStream)} for gzip-encoding.
+     * 
+     * @throws Exception
+     */
+    public void testHttpEntityWriteToForGzip() throws Exception {
+        final String entityText = "Hello, this is some plain text coming back.";
+
+        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+
+        DefaultHttpClient client = createHttpClient();
+        HttpGet request = new HttpGet("/some-resource");
+        HttpResponse response = client.execute(getServerHttp(), request);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        response.getEntity().writeTo(out);
+        
+        assertEquals(entityText, out.toString("utf-8"));
+
+        client.getConnectionManager().shutdown();
+    }
+    
+    /**
+     * Test that the returned {@link HttpEntity} in the response correctly overrides 
+     * {@link HttpEntity#writeTo(OutputStream)} for deflate-encoding.
+     * 
+     * @throws Exception
+     */
+    public void testHttpEntityWriteToForDeflate() throws Exception {
+        final String entityText = "Hello, this is some plain text coming back.";
+
+        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
+
+        DefaultHttpClient client = createHttpClient();
+        HttpGet request = new HttpGet("/some-resource");
+        HttpResponse response = client.execute(getServerHttp(), request);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        response.getEntity().writeTo(out);
+        
+        assertEquals(entityText, out.toString("utf-8"));
+
+        client.getConnectionManager().shutdown();
+    }
     
     /**
      * Creates a new {@link HttpRequestHandler} that will attempt to provide a deflate stream 
