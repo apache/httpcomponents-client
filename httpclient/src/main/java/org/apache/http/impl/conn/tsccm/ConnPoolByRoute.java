@@ -117,7 +117,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     /**
      * Creates a new connection pool, managed by route.
      * 
-     * @deprecated use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute)}
+     * @deprecated use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute, int)}
      */
     @Deprecated
     public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {

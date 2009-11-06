@@ -89,8 +89,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
     /**
      * Helper to instantiate a <code>ThreadSafeClientConnManager</code>.
      *
-     * @param params    the parameters, or
-     *                  <code>null</code> to use defaults
      * @param schreg    the scheme registry, or
      *                  <code>null</code> to use defaults
      *

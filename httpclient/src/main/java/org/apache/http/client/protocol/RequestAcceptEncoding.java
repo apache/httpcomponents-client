@@ -37,7 +37,7 @@ import org.apache.http.protocol.HttpContext;
  * <p>
  * Instances of this class are stateless, therefore they're thread-safe and immutable.
  * 
- * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5
+ * @see "http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5"
  * 
  * @since 4.1
  */

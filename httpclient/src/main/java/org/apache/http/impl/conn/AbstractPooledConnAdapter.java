@@ -90,6 +90,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     /**
      * @deprecated use {@link #assertValid(AbstractPoolEntry)}
      */
+    @Deprecated
     protected final void assertAttached() {
         if (poolEntry == null) {
             throw new ConnectionShutdownException();

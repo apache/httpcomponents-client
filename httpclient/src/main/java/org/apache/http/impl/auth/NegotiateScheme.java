@@ -324,7 +324,7 @@ public class NegotiateScheme implements AuthScheme {
     /**
      * Inject the class to be used to generate an SPNEGO token from a Kerberos ticket.
      * Use only with Java <= 1.5 , tested against Jboss Negotiate.
-     * @param spengoGenerator - An SpnegoTokenGenerator implementation Class
+     * @param SpengoGenerator - An SpnegoTokenGenerator implementation Class
      */
     public void setSpengoGenerator(SpnegoTokenGenerator SpengoGenerator) {
         this.spengoGenerator = SpengoGenerator;

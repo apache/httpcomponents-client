@@ -63,8 +63,6 @@ public class TestSCMWithServer extends ServerTestBase {
     /**
      * Helper to instantiate a <code>SingleClientConnManager</code>.
      *
-     * @param params    the parameters, or
-     *                  <code>null</code> to use defaults
      * @param schreg    the scheme registry, or
      *                  <code>null</code> to use defaults
      *

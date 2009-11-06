@@ -84,7 +84,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * Creates a new thread safe connection manager.
      *
-     * @param params    the parameters for this manager.
      * @param schreg    the scheme registry.
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg) {
@@ -138,6 +137,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * 
      * @deprecated use {@link #createConnectionPool(ConnPerRouteBean)}
      */
+    @Deprecated
     protected AbstractConnPool createConnectionPool(final HttpParams params) {
         return new ConnPoolByRoute(connOperator, params);
     }
