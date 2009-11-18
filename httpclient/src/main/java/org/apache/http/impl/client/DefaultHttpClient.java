@@ -43,10 +43,12 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestAddCookies;
+import org.apache.http.client.protocol.RequestAuthCache;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.client.protocol.RequestTargetAuthentication;
+import org.apache.http.client.protocol.ResponseAuthCache;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
@@ -337,6 +339,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new RequestAddCookies());
         httpproc.addInterceptor(new ResponseProcessCookies());
         // HTTP authentication interceptors
+        httpproc.addInterceptor(new RequestAuthCache());
+        httpproc.addInterceptor(new ResponseAuthCache());
         httpproc.addInterceptor(new RequestTargetAuthentication());
         httpproc.addInterceptor(new RequestProxyAuthentication());
         return httpproc;

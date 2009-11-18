@@ -1,6 +1,12 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-872] HttpClient can now persist authentication data between request 
+  executions as long as they share the same execution context. It has also become
+  much easier to make HttpClient authenticate preemptively by pre-populating 
+  authentication data cache.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
   entities that specify a charset.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

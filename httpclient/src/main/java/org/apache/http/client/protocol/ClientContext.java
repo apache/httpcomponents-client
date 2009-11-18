@@ -72,9 +72,15 @@ public interface ClientContext {
 
     /**
      * Attribute name of a {@link org.apache.http.client.CredentialsProvider} 
-     * object that represents the actual crednetials provider.
+     * object that represents the actual credentials provider.
      */
     public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.AuthCache} object 
+     * that represents the auth scheme cache.
+     */
+    public static final String AUTH_CACHE            = "http.auth.auth-cache"; 
 
     /**
      * Attribute name of a {@link org.apache.http.auth.AuthState} 

@@ -102,13 +102,13 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return matchCredentials(this.credMap, authscope);
     }
 
+    public synchronized void clear() {
+        this.credMap.clear();
+    }
+    
     @Override
     public String toString() {
         return credMap.toString();
-    }
-    
-    public synchronized void clear() {
-        this.credMap.clear();
     }
     
 }

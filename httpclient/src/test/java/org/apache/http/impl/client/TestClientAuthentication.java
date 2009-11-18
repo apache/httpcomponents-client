@@ -50,6 +50,7 @@ import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -246,6 +247,69 @@ public class TestClientAuthentication extends BasicServerTestBase {
             assertNotNull(cause);
             assertTrue(cause instanceof NonRepeatableRequestException);
         }
+    }
+
+    static class TestTargetAuthenticationHandler extends DefaultTargetAuthenticationHandler {
+
+        private int count;
+        
+        public TestTargetAuthenticationHandler() {
+            super();
+            this.count = 0;
+        }
+        
+        @Override
+        public boolean isAuthenticationRequested(
+                final HttpResponse response, 
+                final HttpContext context) {
+            boolean res = super.isAuthenticationRequested(response, context);
+            if (res == true) {
+                synchronized (this) {
+                    this.count++;
+                }                
+            }
+            return res;
+        }
+        
+        public int getCount() {
+            synchronized (this) {
+                return this.count;
+            }                
+        }
+        
+    }
+    
+    public void testBasicAuthenticationCredentialsCaching() throws Exception {
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+        
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY, 
+                new UsernamePasswordCredentials("test", "test"));
+        
+        TestTargetAuthenticationHandler authHandler = new TestTargetAuthenticationHandler();        
+        
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.setCredentialsProvider(credsProvider);
+        httpclient.setTargetAuthenticationHandler(authHandler);
+        
+        HttpContext context = new BasicHttpContext();
+        
+        HttpGet httpget = new HttpGet("/");
+        
+        HttpResponse response1 = httpclient.execute(getServerHttp(), httpget, context);
+        HttpEntity entity1 = response1.getEntity();
+        assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        assertNotNull(entity1);
+        entity1.consumeContent();
+
+        HttpResponse response2 = httpclient.execute(getServerHttp(), httpget, context);
+        HttpEntity entity2 = response1.getEntity();
+        assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        assertNotNull(entity2);
+        entity1.consumeContent();
+        
+        assertEquals(1, authHandler.getCount());
     }
 
 }

@@ -305,6 +305,14 @@ null
                         takes precedence over the default one.</para>
                 </formalpara>
             </listitem>
+            <listitem>
+                <formalpara>
+                    <title>'http.auth.auth-cache':</title>
+                    <para><interfacename>AuthCache</interfacename> instance representing the actual
+                        authentication data cache. The value of this attribute set in the local 
+                        context takes precedence over the default one.</para>
+                </formalpara>
+            </listitem>
         </itemizedlist>
         <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
             the HTTP authentication context prior to request execution or examine its state after
@@ -328,52 +336,50 @@ System.out.println("Target auth credentials: " + targetAuthState.getCredentials(
 ]]></programlisting>
     </section>
     <section>
+        <title>Caching of authentication data</title>
+        <para>As of version 4.1 HttpClient automatically caches information about hosts it 
+            successfully authenticated with. Please note that one must use the same execution 
+            context to execute logically related requests in order for cached authentication data
+            to propagate from one request to another. Authentication data will be lost as soon as 
+            the execution context goes out of scope.</para>
+    </section>
+    <section>
         <title>Preemptive authentication</title>
         <para>HttpClient does not support preemptive authentication out of the box, because if
             misused or used incorrectly the preemptive authentication can lead to significant
             security issues, such as sending user credentials in clear text to an unauthorized third
             party. Therefore, users are expected to evaluate potential benefits of preemptive
             authentication versus security risks in the context of their specific application
-            environment and are required to add support for preemptive authentication using standard
-            HttpClient extension mechanisms such as protocol interceptors.</para>
-        <para>This is an example of a simple protocol interceptor that preemptively introduces an
-            instance of <classname>BasicScheme</classname> to the execution context, if no
-            authentication has been attempted yet. Please note that this interceptor must be added
-            to the protocol processing chain before the standard authentication interceptors.</para>
+            environment.</para>
+        <para>Nonethess one can configure HttpClient to authenticate preemptively by prepopulating
+            the authentication data cache.</para>
         <programlisting><![CDATA[
-HttpRequestInterceptor preemptiveAuth = new HttpRequestInterceptor() {
-    
-    public void process(
-            final HttpRequest request, 
-            final HttpContext context) throws HttpException, IOException {
-        
-        AuthState authState = (AuthState) context.getAttribute(
-                ClientContext.TARGET_AUTH_STATE);
-        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
-                ClientContext.CREDS_PROVIDER);
-        HttpHost targetHost = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
-        
-        // If not auth scheme has been initialized yet
-        if (authState.getAuthScheme() == null) {
-            AuthScope authScope = new AuthScope(
-                    targetHost.getHostName(), 
-                    targetHost.getPort());
-            // Obtain credentials matching the target host
-            Credentials creds = credsProvider.getCredentials(authScope);
-            // If found, generate BasicScheme preemptively
-            if (creds != null) {
-                authState.setAuthScheme(new BasicScheme());
-                authState.setCredentials(creds);
-            }
-        }
-    }
-    
-};
+HttpHost targetHost = new HttpHost("localhost", 80, "http"); 
 
 DefaultHttpClient httpclient = new DefaultHttpClient();
-// Add as the very first interceptor in the protocol chain
-httpclient.addRequestInterceptor(preemptiveAuth, 0);
+
+httpclient.getCredentialsProvider().setCredentials(
+        new AuthScope(targetHost.getHostName(), targetHost.getPort()), 
+        new UsernamePasswordCredentials("username", "password"));
+
+// Create AuthCache instance
+AuthCache authCache = new BasicAuthCache();
+// Generate BASIC scheme object and add it to the local auth cache
+BasicScheme basicAuth = new BasicScheme();
+authCache.put(targetHost, basicAuth);
+
+// Add AuthCache to the execution context
+BasicHttpContext localcontext = new BasicHttpContext();
+localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
+
+HttpGet httpget = new HttpGet("/");
+for (int i = 0; i < 3; i++) {
+    HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
+    HttpEntity entity = response.getEntity();
+    if (entity != null) {
+        entity.consumeContent();
+    }
+}
 ]]></programlisting>
     </section>
 

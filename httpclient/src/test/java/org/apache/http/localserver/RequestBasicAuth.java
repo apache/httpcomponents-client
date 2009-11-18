@@ -47,6 +47,8 @@ public class RequestBasicAuth implements HttpRequestInterceptor {
             final HttpRequest request, 
             final HttpContext context) throws HttpException, IOException {
         
+        context.removeAttribute("creds");
+
         String auth = null;
         
         Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
