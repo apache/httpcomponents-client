@@ -1,6 +1,9 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-889] 'expect: continue' handshake disabled per default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-862] Extended client's redirect handling interface to allow 
   control of the content of the redirect.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

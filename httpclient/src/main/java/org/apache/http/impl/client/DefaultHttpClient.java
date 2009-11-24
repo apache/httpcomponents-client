@@ -194,8 +194,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, 
                 HTTP.DEFAULT_CONTENT_CHARSET);
-        HttpProtocolParams.setUseExpectContinue(params, 
-                true);
         HttpConnectionParams.setTcpNoDelay(params, 
                 true);
         HttpConnectionParams.setSocketBufferSize(params, 
