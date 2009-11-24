@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.util.LangUtils;
 
@@ -55,8 +56,11 @@ public class RouteSpecificPool {
     /** The route this pool is for. */
     protected final HttpRoute route; //Immutable
 
-    /** the maximum number of entries allowed for this pool */
+    @Deprecated
     protected final int maxEntries;
+    
+    /** Connections per route */
+    protected final ConnPerRoute connPerRoute;
     
     /**
      * The list of free entries.
@@ -73,20 +77,39 @@ public class RouteSpecificPool {
 
 
     /**
-     * Creates a new route-specific pool.
-     *
-     * @param route the route for which to pool
-     * @param maxEntries the maximum number of entries allowed for this pool
+     * @Deprecated use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
      */
+    @Deprecated
     public RouteSpecificPool(HttpRoute route, int maxEntries) {
         this.route = route;
         this.maxEntries = maxEntries;
+        this.connPerRoute = new ConnPerRoute() {
+            public int getMaxForRoute(HttpRoute route) {
+                return RouteSpecificPool.this.maxEntries;
+            }
+        };
         this.freeEntries = new LinkedList<BasicPoolEntry>();
         this.waitingThreads = new LinkedList<WaitingThread>();
         this.numEntries = 0;
     }
 
 
+    /**
+     * Creates a new route-specific pool.
+     *
+     * @param route the route for which to pool
+     * @param maxEntries the maximum number of entries allowed for this pool
+     */
+    public RouteSpecificPool(HttpRoute route, ConnPerRoute connPerRoute) {
+        this.route = route;
+        this.connPerRoute = connPerRoute;
+        this.maxEntries = connPerRoute.getMaxForRoute(route);
+        this.freeEntries = new LinkedList<BasicPoolEntry>();
+        this.waitingThreads = new LinkedList<WaitingThread>();
+        this.numEntries = 0;
+    }
+
+    
     /**
      * Obtains the route for which this pool is specific.
      *
@@ -126,7 +149,7 @@ public class RouteSpecificPool {
      * @return capacity
      */
     public int getCapacity() {
-        return maxEntries - numEntries;
+        return connPerRoute.getMaxForRoute(route) - numEntries;
     }
     
     

@@ -166,7 +166,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the new pool
      */
     protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
-        return new RouteSpecificPool(route, this.connPerRoute.getMaxForRoute(route));
+        return new RouteSpecificPool(route, this.connPerRoute);
     }
 
 
