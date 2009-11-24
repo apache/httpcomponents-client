@@ -41,9 +41,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.CircularRedirectException;
-import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.params.HttpParams;
@@ -51,27 +52,25 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 
 /**
- * Default implementation of {@link RedirectHandler}.
+ * Default implementation of {@link RedirectStrategy}.
  *
- * @since 4.0
- * 
- * @deprecated use {@link DefaultRedirectStrategy}.
+ * @since 4.1
  */
 @Immutable
-@Deprecated
-public class DefaultRedirectHandler implements RedirectHandler {
+public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
     
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
-    public DefaultRedirectHandler() {
+    public DefaultRedirectStrategy() {
         super();
     }
     
-    public boolean isRedirectRequested(
-            final HttpResponse response,
-            final HttpContext context) {
+    public boolean isRedirected(
+            final HttpRequest request,
+            final HttpResponse response, 
+            final HttpContext context) throws ProtocolException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
@@ -81,8 +80,6 @@ public class DefaultRedirectHandler implements RedirectHandler {
         case HttpStatus.SC_MOVED_TEMPORARILY:
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
-            HttpRequest request = (HttpRequest) context.getAttribute(
-                    ExecutionContext.HTTP_REQUEST);
             String method = request.getRequestLine().getMethod();
             return method.equalsIgnoreCase(HttpGet.METHOD_NAME) 
                 || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
@@ -94,6 +91,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
     }
  
     public URI getLocationURI(
+            final HttpRequest request,
             final HttpResponse response, 
             final HttpContext context) throws ProtocolException {
         if (response == null) {
@@ -134,10 +132,6 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 throw new IllegalStateException("Target host not available " +
                         "in the HTTP context");
             }
-            
-            HttpRequest request = (HttpRequest) context.getAttribute(
-                    ExecutionContext.HTTP_REQUEST);
-            
             try {
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
@@ -183,4 +177,17 @@ public class DefaultRedirectHandler implements RedirectHandler {
         return uri;
     }
 
+    public HttpUriRequest getRedirect(
+            final HttpRequest request,
+            final HttpResponse response, 
+            final HttpContext context) throws ProtocolException {
+        URI uri = getLocationURI(request, response, context);
+        String method = request.getRequestLine().getMethod();
+        if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
+            return new HttpHead(uri);
+        } else {
+            return new HttpGet(uri);
+        }
+    }
+    
 }

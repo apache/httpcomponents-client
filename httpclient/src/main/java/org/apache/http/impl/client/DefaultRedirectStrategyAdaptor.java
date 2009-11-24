@@ -29,35 +29,49 @@ package org.apache.http.impl.client;
 
 import java.net.URI;
 
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpRequestBase;
-
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * Redirect request (can be either GET or HEAD).
- *  
- * @since 4.0
+ * @since 4.1
  */
-@NotThreadSafe
-class HttpRedirect extends HttpRequestBase {
+@Immutable
+@Deprecated
+class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 
-    private String method;
+    private final org.apache.http.client.RedirectHandler handler;
     
-    public HttpRedirect(final String method, final URI uri) {
+    @Deprecated
+    public DefaultRedirectStrategyAdaptor(final org.apache.http.client.RedirectHandler handler) {
         super();
-        if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
-            this.method = HttpHead.METHOD_NAME;
-        } else {
-            this.method = HttpGet.METHOD_NAME;
-        }
-        setURI(uri);
+        this.handler = handler;
     }
-
-    @Override
-    public String getMethod() {
-        return this.method;
+    
+    public boolean isRedirected(
+            final HttpRequest request,
+            final HttpResponse response, 
+            final HttpContext context) throws ProtocolException {
+        return this.handler.isRedirectRequested(response, context);
+    }
+ 
+    public HttpUriRequest getRedirect(
+            final HttpRequest request,
+            final HttpResponse response, 
+            final HttpContext context) throws ProtocolException {
+        URI uri = this.handler.getLocationURI(response, context);
+        String method = request.getRequestLine().getMethod();
+        if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
+            return new HttpHead(uri);
+        } else {
+            return new HttpGet(uri);
+        }
     }
     
 }

@@ -1,6 +1,10 @@
 Changes since 4.0
 -------------------
 
+* [HTTPCLIENT-862] Extended client's redirect handling interface to allow 
+  control of the content of the redirect.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-872] HttpClient can now persist authentication data between request 
   executions as long as they share the same execution context. It has also become
   much easier to make HttpClient authenticate preemptively by pre-populating 

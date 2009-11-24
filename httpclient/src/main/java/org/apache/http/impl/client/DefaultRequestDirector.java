@@ -56,14 +56,15 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.RedirectException;
-import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.AbortableHttpRequest;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
@@ -158,7 +159,11 @@ public class DefaultRequestDirector implements RequestDirector {
     protected final HttpRequestRetryHandler retryHandler;
     
     /** The redirect handler. */
-    protected final RedirectHandler redirectHandler;
+    @Deprecated
+    protected final org.apache.http.client.RedirectHandler redirectHandler = null;
+    
+    /** The redirect strategy. */
+    protected final RedirectStrategy redirectStrategy;
     
     /** The target authentication handler. */
     protected final AuthenticationHandler targetAuthHandler;
@@ -184,7 +189,8 @@ public class DefaultRequestDirector implements RequestDirector {
     private int maxRedirects;
     
     private HttpHost virtualHost;
-    
+
+    @Deprecated
     public DefaultRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -193,7 +199,29 @@ public class DefaultRequestDirector implements RequestDirector {
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
-            final RedirectHandler redirectHandler,
+            final org.apache.http.client.RedirectHandler redirectHandler,
+            final AuthenticationHandler targetAuthHandler,
+            final AuthenticationHandler proxyAuthHandler,
+            final UserTokenHandler userTokenHandler,
+            final HttpParams params) {
+        this(requestExec, conman, reustrat, kastrat, rouplan, httpProcessor, retryHandler,
+                new DefaultRedirectStrategyAdaptor(redirectHandler), 
+                targetAuthHandler, proxyAuthHandler, userTokenHandler, params);
+    }    
+    
+    
+    /**
+     * @since 4.1
+     */
+    public DefaultRequestDirector(
+            final HttpRequestExecutor requestExec,
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
+            final HttpRoutePlanner rouplan,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final RedirectStrategy redirectStrategy,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
             final UserTokenHandler userTokenHandler,
@@ -227,9 +255,9 @@ public class DefaultRequestDirector implements RequestDirector {
             throw new IllegalArgumentException
                 ("HTTP request retry handler may not be null.");
         }
-        if (redirectHandler == null) {
+        if (redirectStrategy == null) {
             throw new IllegalArgumentException
-                ("Redirect handler may not be null.");
+                ("Redirect strategy may not be null.");
         }
         if (targetAuthHandler == null) {
             throw new IllegalArgumentException
@@ -254,7 +282,7 @@ public class DefaultRequestDirector implements RequestDirector {
         this.routePlanner      = rouplan;
         this.httpProcessor     = httpProcessor;
         this.retryHandler      = retryHandler;
-        this.redirectHandler   = redirectHandler;
+        this.redirectStrategy  = redirectStrategy;
         this.targetAuthHandler = targetAuthHandler;
         this.proxyAuthHandler  = proxyAuthHandler;
         this.userTokenHandler  = userTokenHandler; 
@@ -810,7 +838,6 @@ public class DefaultRequestDirector implements RequestDirector {
             }
         }
 
-        @SuppressWarnings("null")
         int status = response.getStatusLine().getStatusCode(); // can't be null
 
         if (status > 299) {
@@ -936,7 +963,7 @@ public class DefaultRequestDirector implements RequestDirector {
         
         HttpParams params = request.getParams();
         if (HttpClientParams.isRedirecting(params) && 
-                this.redirectHandler.isRedirectRequested(response, context)) {
+                this.redirectStrategy.isRedirected(request, response, context)) {
 
             if (redirectCount >= maxRedirects) {
                 throw new RedirectException("Maximum redirects ("
@@ -947,7 +974,11 @@ public class DefaultRequestDirector implements RequestDirector {
             // Virtual host cannot be used any longer
             virtualHost = null;
             
-            URI uri = this.redirectHandler.getLocationURI(response, context);
+            HttpUriRequest redirect = redirectStrategy.getRedirect(request, response, context); 
+            HttpRequest orig = request.getOriginal();
+            redirect.setHeaders(orig.getAllHeaders());
+            
+            URI uri = redirect.getURI();
 
             HttpHost newTarget = new HttpHost(
                     uri.getHost(), 
@@ -967,10 +998,6 @@ public class DefaultRequestDirector implements RequestDirector {
                 }
             }
 
-            HttpRedirect redirect = new HttpRedirect(request.getMethod(), uri); 
-            HttpRequest orig = request.getOriginal();
-            redirect.setHeaders(orig.getAllHeaders());
-            
             RequestWrapper wrapper = new RequestWrapper(redirect);
             wrapper.setParams(params);
             

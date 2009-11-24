@@ -47,13 +47,13 @@ import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -127,10 +127,10 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
  *    may involve multiple intermediate hops. 
  *    The {@link #createHttpRoutePlanner()} must be implemented 
  *    by concrete super classes to instantiate this object.
- *   <li>{@link RedirectHandler}</li> object used to determine if an HTTP 
+ *   <li>{@link RedirectStrategy}</li> object used to determine if an HTTP 
  *    request should be redirected to a new location in response to an HTTP 
  *    response received from the target server. 
- *    The {@link #createRedirectHandler()} must be implemented 
+ *    The {@link #createRedirectStrategy()} must be implemented 
  *    by concrete super classes to instantiate this object.
  *   <li>{@link UserTokenHandler}</li> object used to determine if the 
  *    execution context is user identity specific. 
@@ -200,7 +200,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     /** The redirect handler. */
     @GuardedBy("this")
-    private RedirectHandler redirectHandler;
+    private RedirectStrategy redirectStrategy;
 
     /** The target authentication handler. */
     @GuardedBy("this")
@@ -270,9 +270,15 @@ public abstract class AbstractHttpClient implements HttpClient {
     protected abstract HttpRequestRetryHandler createHttpRequestRetryHandler();
 
     
-    protected abstract RedirectHandler createRedirectHandler();
+    @Deprecated
+    protected abstract org.apache.http.client.RedirectHandler createRedirectHandler();
 
+    /**
+     * @since 4.1
+     */
+    protected abstract RedirectStrategy createRedirectStrategy();
     
+
     protected abstract AuthenticationHandler createTargetAuthenticationHandler();
 
     
@@ -392,16 +398,32 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized final RedirectHandler getRedirectHandler() {
-        if (redirectHandler == null) {
-            redirectHandler = createRedirectHandler();
-        }
-        return redirectHandler;
+    @Deprecated
+    public synchronized final org.apache.http.client.RedirectHandler getRedirectHandler() {
+        return createRedirectHandler();
     }
 
 
-    public synchronized void setRedirectHandler(final RedirectHandler redirectHandler) {
-        this.redirectHandler = redirectHandler;
+    @Deprecated
+    public synchronized void setRedirectHandler(final org.apache.http.client.RedirectHandler redirectHandler) {
+        this.redirectStrategy = new DefaultRedirectStrategyAdaptor(redirectHandler);
+    }
+
+    /**
+     * @since 4.1
+     */
+    public synchronized final RedirectStrategy getRedirectStrategy() {
+        if (redirectStrategy == null) {
+            redirectStrategy = createRedirectStrategy();
+        }
+        return redirectStrategy;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public synchronized void setRedirectStrategy(final RedirectStrategy redirectStrategy) {
+        this.redirectStrategy = redirectStrategy;
     }
 
 
@@ -677,6 +699,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
     }
 
+    @Deprecated
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -685,7 +708,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
-            final RedirectHandler redirectHandler,
+            final org.apache.http.client.RedirectHandler redirectHandler,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
             final UserTokenHandler stateHandler,
@@ -705,6 +728,36 @@ public abstract class AbstractHttpClient implements HttpClient {
                 params);
     }
 
+    /**
+     * @since 4.1
+     */
+    protected RequestDirector createClientRequestDirector(
+            final HttpRequestExecutor requestExec,
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
+            final HttpRoutePlanner rouplan,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final RedirectStrategy redirectStrategy,
+            final AuthenticationHandler targetAuthHandler,
+            final AuthenticationHandler proxyAuthHandler,
+            final UserTokenHandler stateHandler,
+            final HttpParams params) {
+        return new DefaultRequestDirector(
+                requestExec,
+                conman,
+                reustrat,
+                kastrat,
+                rouplan,
+                httpProcessor,
+                retryHandler,
+                redirectStrategy,
+                targetAuthHandler,
+                proxyAuthHandler,
+                stateHandler,
+                params);
+    }
     /**
      * Obtains parameters for executing a request.
      * The default implementation in this class creates a new

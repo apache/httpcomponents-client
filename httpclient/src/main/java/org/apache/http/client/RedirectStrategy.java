@@ -27,14 +27,14 @@
 
 package org.apache.http.client;
 
-import java.net.URI;
-
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * A handler for determining if an HTTP request should be redirected to 
+ * A strategy for determining if an HTTP request should be redirected to 
  * a new location in response to an HTTP response received from the target
  * server.
  * <p>
@@ -42,36 +42,40 @@ import org.apache.http.protocol.HttpContext;
  * data must be synchronized as methods of this interface may be executed 
  * from multiple threads.
  *
- * @since 4.0
- * 
- * @deprecated use {@link RedirectStrategy}
+ * @since 4.1
  */
-@Deprecated
-public interface RedirectHandler {
+public interface RedirectStrategy {
 
     /**
      * Determines if a request should be redirected to a new location
      * given the response from the target server.
      * 
+     * @param request the executed request
      * @param response the response received from the target server
      * @param context the context for the request execution
      * 
      * @return <code>true</code> if the request should be redirected, <code>false</code>
      * otherwise
      */
-    boolean isRedirectRequested(HttpResponse response, HttpContext context);
+    boolean isRedirected(
+            HttpRequest request,
+            HttpResponse response, 
+            HttpContext context) throws ProtocolException;
     
     /**
-     * Determines the location request is expected to be redirected to 
-     * given the response from the target server and the current request
-     * execution context.
+     * Determines the redirect location given the response from the target 
+     * server and the current request execution context and generates a new 
+     * request to be sent to the location.
      * 
+     * @param request the executed request
      * @param response the response received from the target server
      * @param context the context for the request execution
      * 
-     * @return redirect URI 
+     * @return redirected request 
      */
-    URI getLocationURI(HttpResponse response, HttpContext context)
-            throws ProtocolException;
-
+    HttpUriRequest getRedirect(
+            HttpRequest request,
+            HttpResponse response, 
+            HttpContext context) throws ProtocolException;
+    
 }

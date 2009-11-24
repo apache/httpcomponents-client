@@ -36,7 +36,7 @@ import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.RedirectHandler;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
@@ -354,8 +354,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-    protected RedirectHandler createRedirectHandler() {
+    @Deprecated
+    protected org.apache.http.client.RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
+    }
+
+    /**
+     * @since 4.1
+     */
+    @Override
+    protected RedirectStrategy createRedirectStrategy() {
+        return new DefaultRedirectStrategy();
     }
 
 
