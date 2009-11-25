@@ -90,21 +90,33 @@
             <Bundle-Name>Apache ${pom.name}</Bundle-Name>
             <Bundle-SymbolicName>${pom.groupId}.httpclient</Bundle-SymbolicName>
             <_exportcontents>
-            org.apache.http.cookie.*;version=${project.version},
-            org.apache.http.impl.cookie.*;version=${project.version},
             org.apache.http.auth.*;version=${project.version},
-            org.apache.http.impl.auth.*;version=${project.version},
+            org.apache.http.cookie.*;version=${project.version},
             org.apache.http.conn.*;version=${project.version},
-            org.apache.http.impl.conn.*;version=${project.version},
             org.apache.http.client.*;version=${project.version},
-            org.apache.http.impl.client.*;version=${project.version},
             org.apache.http.entity.mime.*;version=${project.version},
-            org.apache.http.entity.mime.content.*;version=${project.version}
+            org.apache.http.impl.auth.*;version=${project.version},
+            org.apache.http.impl.cookie.*;version=${project.version},
+            org.apache.http.impl.conn.*;version=${project.version},
+            org.apache.http.impl.client.*;version=${project.version}
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
             <Import-Package>
+            javax.crypto,
+            javax.crypto.spec,
+            javax.net.ssl,javax.security.auth.x500,
+            org.ietf.jgss,
             org.apache.commons.logging;version=${commons-logging.version},
-            *
+            org.apache.http;version=${httpcore.version},
+            org.apache.http.entity;version=${httpcore.version},
+            org.apache.http.io;version=${httpcore.version},
+            org.apache.http.message;version=${httpcore.version},
+            org.apache.http.params;version=${httpcore.version},
+            org.apache.http.protocol;version=${httpcore.version},
+            org.apache.http.util;version=${httpcore.version},
+            org.apache.http.impl;version=${httpcore.version},
+            org.apache.http.impl.entity;version=${httpcore.version},
+            org.apache.http.impl.io;version=${httpcore.version}
             </Import-Package>
           </instructions>
         </configuration>
