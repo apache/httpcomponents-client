@@ -1,5 +1,11 @@
+Release 4.0.1
+-------------------
 
-Changes since 4.0
+This is a bug fix release that addresses a number of issues discovered since 
+the previous stable release. None of the fixed bugs is considered critical. 
+Most notably this release eliminates eliminates dependency on JCIP annotations.
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
