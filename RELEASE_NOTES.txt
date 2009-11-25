@@ -1,4 +1,24 @@
-Changes since 4.0
+Release 4.1
+-------------------
+
+HttpClient 4.1 ALPHA1 builds on the stable 4.0 release and adds several 
+functionality improvements and new features.
+
+* Simplified configuration of connection managers.
+
+* Persistence of authentication data between request executions within 
+  the same execution context.
+
+* Support for SPNEGO/Kerberos authentication scheme
+
+* Support for transparent content encoding. Please note transparent content 
+  encoding is not enabled per default in order to avoid conflicts with
+  already existing custom content encoding solutions.
+  
+Please note all methods and classes added in this release and marked as
+4.1 are API unstable and can change in the future 4.1 ALPHA releases.
+  
+Changelog
 -------------------
 
 * [HTTPCLIENT-889] 'expect: continue' handshake disabled per default.
@@ -14,22 +34,8 @@ Changes since 4.0
   authentication data cache.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
-  entities that specify a charset.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
 * [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-882] Auth state is not correctly updated if a successful NTLM 
-  authentication results in a redirect. This is a minor bug as HttpClient 
-  manages to recover from the problem automatically.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-881] Fixed race condition in AbstractClientConnAdapter that makes
-  it possible for an aborted connection to be returned to the pool.
-  Contributed by Tim Boemker <tboemker at elynx.com> and 
-  Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-832] Distinguish cookie format errors from violations of 
   restrictions imposed by a cookie specification. In the latter case 
@@ -55,6 +61,37 @@ Changes since 4.0
 
 * [HTTPCLIENT-834] Transparent content encoding support.
   Contributed by James Abley <james.abley at gmail.com>
+
+Release 4.0.1
+-------------------
+
+This is a bug fix release that addresses a number of issues discovered since 
+the previous stable release. None of the fixed bugs is considered critical. 
+Most notably this release eliminates eliminates dependency on JCIP annotations.
+
+Changelog
+-------------------
+
+* [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
+  entities that specify a charset.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-882] Auth state is now correctly updated if a successful NTLM 
+  authentication results in a redirect. This is a minor bug as HttpClient 
+  manages to recover from the problem automatically.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-881] Fixed race condition in AbstractClientConnAdapter that makes
+  it possible for an aborted connection to be returned to the pool.
+  Contributed by Tim Boemker <tboemker at elynx.com> and 
+  Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-866] Removed dependency on jcip-annotations.jar.
+  Contributed by Oleg Kalnichevski <olegk at apache.org> 
+  and Sebastian Bazley <sebb at apache.org>
 
 
 Release 4.0
