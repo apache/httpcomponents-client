@@ -130,8 +130,6 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
  *   <li>{@link RedirectStrategy}</li> object used to determine if an HTTP 
  *    request should be redirected to a new location in response to an HTTP 
  *    response received from the target server. 
- *    The {@link #createRedirectStrategy()} must be implemented 
- *    by concrete super classes to instantiate this object.
  *   <li>{@link UserTokenHandler}</li> object used to determine if the 
  *    execution context is user identity specific. 
  *    The {@link #createUserTokenHandler()} must be implemented by 
@@ -273,11 +271,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     @Deprecated
     protected abstract org.apache.http.client.RedirectHandler createRedirectHandler();
 
-    /**
-     * @since 4.1
-     */
-    protected abstract RedirectStrategy createRedirectStrategy();
-    
 
     protected abstract AuthenticationHandler createTargetAuthenticationHandler();
 
@@ -296,7 +289,6 @@ public abstract class AbstractHttpClient implements HttpClient {
     
     protected abstract UserTokenHandler createUserTokenHandler();
 
-    
     // non-javadoc, see interface HttpClient
     public synchronized final HttpParams getParams() {
         if (defaultParams == null) {
@@ -412,9 +404,10 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @since 4.1
      */
+    @SuppressWarnings("deprecation")
     public synchronized final RedirectStrategy getRedirectStrategy() {
         if (redirectStrategy == null) {
-            redirectStrategy = createRedirectStrategy();
+            redirectStrategy = new DefaultRedirectStrategyAdaptor(createRedirectHandler());
         }
         return redirectStrategy;
     }
@@ -685,7 +678,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getRoutePlanner(),
                     getProtocolProcessor(),
                     getHttpRequestRetryHandler(),
-                    getRedirectHandler(),
+                    getRedirectStrategy(),
                     getTargetAuthenticationHandler(),
                     getProxyAuthenticationHandler(),
                     getUserTokenHandler(),
