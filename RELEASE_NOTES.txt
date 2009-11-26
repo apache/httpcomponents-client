@@ -76,6 +76,10 @@ Changelog
   entities that specify a charset.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
+* [HTTPCLIENT-884] UrlEncodedFormEntity now sets charset on the Content-Type 
+  header.
+  Contributed by Jared Jacobs <jmjacobs at cs.stanford.edu>  
+  
 * [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
