@@ -32,7 +32,7 @@ HttpClient Downloads
 
     The latest release available for download:
 
-    {{{http://hc.apache.org/downloads.cgi}4.0}} - 
+    {{{http://hc.apache.org/downloads.cgi}Release packages}} - 
     {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
     {{{http://www.apache.org/licenses/LICENSE-2.0.html}License}}
 
@@ -42,24 +42,46 @@ HttpClient Downloads
     in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
     by adding the following block to the dependency descriptor:
 
-* {HttpComponents Client}
+* {HttpComponents Client 4.0.1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.0</version>
+    <version>4.0.1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime}
+* {HttpComponents HttpMime 4.0.1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.0</version>
+    <version>4.0.1</version>
+    <scope>compile</scope>
+  </dependency>
+-------------------------
+
+* {HttpComponents Client 4.1-alpha1 (development branch)}
+
+-------------------------
+  <dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.1-alpha1</version>
+    <scope>compile</scope>
+  </dependency>
+-------------------------
+
+* {HttpComponents HttpMime 4.1-alpha1 (development branch)}
+
+-------------------------
+  <dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpmime</artifactId>
+    <version>4.1-alpha1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
