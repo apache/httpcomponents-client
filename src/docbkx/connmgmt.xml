@@ -40,6 +40,8 @@
                         a value of type <classname>java.lang.Integer</classname>. If this parameter
                         is not set read operations will not time out (infinite timeout).</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.tcp.nodelay':</title>
                     <para>determines whether Nagle's algorithm is to be used. The Nagle's algorithm
@@ -51,6 +53,8 @@
                         type <classname>java.lang.Boolean</classname>. If this parameter is not,
                             <literal>TCP_NODELAY</literal> will be enabled (no delay).</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.socket.buffer-size':</title>
                     <para>determines the size of the internal socket buffer used to buffer data
@@ -58,6 +62,8 @@
                         of type <classname>java.lang.Integer</classname>. If this parameter is not
                         set HttpClient will allocate 8192 byte socket buffers.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.socket.linger':</title>
                     <para>sets <literal>SO_LINGER</literal> with the specified linger time in
@@ -66,6 +72,8 @@
                         The setting only affects the socket close operation. If this parameter is
                         not set value -1 (JRE default) will be assumed.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.connection.timeout':</title>
                     <para>determines the timeout in milliseconds until a connection is established.
@@ -74,6 +82,8 @@
                         If this parameter is not set connect operations will not time out (infinite
                         timeout).</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.connection.stalecheck':</title>
                     <para>determines whether stale connection check is to be used. Disabling stale
@@ -85,6 +95,8 @@
                         operations the check should be disabled. If this parameter is not set the
                         stale connection will be performed before each request execution.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.connection.max-line-length':</title>
                     <para>determines the maximum line length limit. If set to a positive value, any
@@ -94,6 +106,8 @@
                         type <classname>java.lang.Integer</classname>. If this parameter is not set,
                         no limit will be enforced.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.connection.max-header-count':</title>
                     <para>determines the maximum HTTP header count allowed. If set to a positive
@@ -103,6 +117,8 @@
                         expects a value of type <classname>java.lang.Integer</classname>. If this
                         parameter is not set, no limit will be enforced.</para>
                 </formalpara>
+            </listitem>
+            <listitem>
                 <formalpara>
                     <title>'http.connection.max-status-line-garbage':</title>
                     <para>defines the maximum number of ignorable lines before we expect a HTTP
