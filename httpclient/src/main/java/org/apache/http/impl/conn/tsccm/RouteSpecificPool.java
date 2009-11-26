@@ -77,7 +77,7 @@ public class RouteSpecificPool {
 
 
     /**
-     * @Deprecated use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
+     * @deprecated use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
      */
     @Deprecated
     public RouteSpecificPool(HttpRoute route, int maxEntries) {
@@ -98,7 +98,7 @@ public class RouteSpecificPool {
      * Creates a new route-specific pool.
      *
      * @param route the route for which to pool
-     * @param maxEntries the maximum number of entries allowed for this pool
+     * @param connPerRoute the connections per route configuration
      */
     public RouteSpecificPool(HttpRoute route, ConnPerRoute connPerRoute) {
         this.route = route;
