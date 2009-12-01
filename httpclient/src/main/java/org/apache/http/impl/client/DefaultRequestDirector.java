@@ -135,7 +135,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
 @NotThreadSafe // e.g. managedConn
 public class DefaultRequestDirector implements RequestDirector {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Log log;
     
     /** The connection manager. */
     protected final ClientConnectionManager connManager;
@@ -204,7 +204,8 @@ public class DefaultRequestDirector implements RequestDirector {
             final AuthenticationHandler proxyAuthHandler,
             final UserTokenHandler userTokenHandler,
             final HttpParams params) {
-        this(requestExec, conman, reustrat, kastrat, rouplan, httpProcessor, retryHandler,
+        this(LogFactory.getLog(DefaultRequestDirector.class),
+                requestExec, conman, reustrat, kastrat, rouplan, httpProcessor, retryHandler,
                 new DefaultRedirectStrategyAdaptor(redirectHandler), 
                 targetAuthHandler, proxyAuthHandler, userTokenHandler, params);
     }    
@@ -214,6 +215,7 @@ public class DefaultRequestDirector implements RequestDirector {
      * @since 4.1
      */
     public DefaultRequestDirector(
+            final Log log,
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
             final ConnectionReuseStrategy reustrat,
@@ -227,6 +229,10 @@ public class DefaultRequestDirector implements RequestDirector {
             final UserTokenHandler userTokenHandler,
             final HttpParams params) {
 
+        if (log == null) {
+            throw new IllegalArgumentException
+                ("Log may not be null.");
+        }
         if (requestExec == null) {
             throw new IllegalArgumentException
                 ("Request executor may not be null.");
@@ -275,6 +281,7 @@ public class DefaultRequestDirector implements RequestDirector {
             throw new IllegalArgumentException
                 ("HTTP parameters may not be null");
         }
+        this.log               = log;
         this.requestExec       = requestExec;
         this.connManager       = conman;
         this.reuseStrategy     = reustrat;
