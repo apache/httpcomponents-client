@@ -5,8 +5,15 @@ This is a bug fix release that addresses a number of issues discovered since
 the previous stable release. None of the fixed bugs is considered critical. 
 Most notably this release eliminates eliminates dependency on JCIP annotations.
 
+This release is also expected to improve performance by 5 to 10% due to
+elimination of unnecessary Log object lookups by short-lived components.
+
 Changelog
 -------------------
+
+* [HTTPCLIENT-895] Eliminated Log object lookups by short-lived components 
+  impairing performance.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
   entities that specify a charset.
