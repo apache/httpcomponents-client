@@ -14,7 +14,10 @@ functionality improvements and new features.
 * Support for transparent content encoding. Please note transparent content 
   encoding is not enabled per default in order to avoid conflicts with
   already existing custom content encoding solutions.
-  
+
+* 5 to 10% performance increase due to elimination of unnecessary Log object 
+  lookups by short-lived components.
+
 Please note all methods and classes added in this release and marked as
 4.1 are API unstable and can change in the future 4.1 ALPHA releases.
   
@@ -69,8 +72,15 @@ This is a bug fix release that addresses a number of issues discovered since
 the previous stable release. None of the fixed bugs is considered critical. 
 Most notably this release eliminates eliminates dependency on JCIP annotations.
 
+This release is also expected to improve performance by 5 to 10% due to
+elimination of unnecessary Log object lookups by short-lived components.
+
 Changelog
 -------------------
+
+* [HTTPCLIENT-895] Eliminated Log lookups in short lived objects impairing 
+  performance.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
   entities that specify a charset.

@@ -738,6 +738,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final UserTokenHandler stateHandler,
             final HttpParams params) {
         return new DefaultRequestDirector(
+                log,
                 requestExec,
                 conman,
                 reustrat,
