@@ -33,7 +33,7 @@
     <delete dir="${tmp.dir}" />
     <unzip src="${zip.file}" dest="${tmp.dir}"/>
     <fixcrlf srcdir="${tmp.dir}" eol="crlf" eof="remove" fixlast="false"
-        includes="**/*.txt, **/*.xml, **/*.properties, **/*.java, **/*.html, **/*.css" />
+        includes="**/*.txt, **/*.xml, **/*.properties, **/*.java, **/*.html, **/*.css, **/*.apt, **/*.py, **/*.svg, **/*.xsl" />
     <zip destfile="${zip.file}" basedir="${tmp.dir}" duplicate="preserve" />
     <delete dir="${tmp.dir}" />
   </target>  
@@ -46,10 +46,10 @@
     <gunzip src="${gz.file}" dest="${tar.file}"/>
     <untar src="${tar.file}" dest="${tmp.dir}"/>
     <fixcrlf srcdir="${tmp.dir}" eol="lf" eof="remove" fixlast="false"
-        includes="**/*.txt, **/*.xml, **/*.properties, **/*.java, **/*.html, **/*.css" />
+        includes="**/*.txt, **/*.xml, **/*.properties, **/*.java, **/*.html, **/*.css, **/*.apt, **/*.py, **/*.svg, **/*.xsl" />
     <tar destfile="${tar.file}" basedir="${tmp.dir}" longfile="gnu"/>
     <gzip src="${tar.file}" destfile="${gz.file}"/>
-  	<delete file="${tar.file}"/>
+      <delete file="${tar.file}"/>
     <delete dir="${tmp.dir}"/>
   </target>  
 

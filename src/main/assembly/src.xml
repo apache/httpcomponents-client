@@ -41,6 +41,7 @@
             <exclude>**/target/**</exclude>
             <exclude>**/local/**</exclude>
             <exclude>**/lib/**</exclude>
+            <exclude>*.rdf</exclude>
           </excludes>
         </fileSet>
     </fileSets>
