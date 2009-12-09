@@ -6,10 +6,6 @@
          xmlns:asfext="http://projects.apache.org/ns/asfext#"
          xmlns:foaf="http://xmlns.com/foaf/0.1/">
 <!--
-   $HeadURL$
-   $Revision$
-   $Date$
-
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
    or more contributor license agreements.  See the NOTICE file
@@ -88,6 +84,21 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
         <name>httpcomponents-client-4.0-beta2</name>
         <created>2008-12-20</created>
         <revision>4.0-beta2</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0</name>
+        <created>2009-08-14</created>
+        <revision>4.0</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.0.1</name>
+        <created>2009-12-12</created>
+        <revision>4.0.1</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.1-alpha1</name>
+        <created>2009-12-12</created>
+        <revision>4.1-alpha1</revision>
       </Version>
     </release>
 
