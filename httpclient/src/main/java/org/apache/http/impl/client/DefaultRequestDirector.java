@@ -1005,7 +1005,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 }
             }
 
-            RequestWrapper wrapper = new RequestWrapper(redirect);
+            RequestWrapper wrapper = wrapRequest(redirect);
             wrapper.setParams(params);
             
             HttpRoute newRoute = determineRoute(newTarget, wrapper, context);
