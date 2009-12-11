@@ -92,12 +92,12 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
       </Version>
       <Version>
         <name>httpcomponents-client-4.0.1</name>
-        <created>2009-12-12</created>
+        <created>2009-12-11</created>
         <revision>4.0.1</revision>
       </Version>
       <Version>
         <name>httpcomponents-client-4.1-alpha1</name>
-        <created>2009-12-12</created>
+        <created>2009-12-11</created>
         <revision>4.1-alpha1</revision>
       </Version>
     </release>
