@@ -33,6 +33,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
@@ -40,6 +41,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 
@@ -90,7 +92,14 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         }
         if (authState.getAuthScope() != null || !authScheme.isConnectionBased()) {
             try {
-                request.addHeader(authScheme.authenticate(creds, request));
+                Header header;
+                if (authScheme instanceof ContextAwareAuthScheme) {
+                    header = ((ContextAwareAuthScheme) authScheme).authenticate(
+                            creds, request, context);
+                } else {
+                    header = authScheme.authenticate(creds, request);
+                }
+                request.addHeader(header);
             } catch (AuthenticationException ex) {
                 if (this.log.isErrorEnabled()) {
                     this.log.error("Proxy authentication error: " + ex.getMessage());
