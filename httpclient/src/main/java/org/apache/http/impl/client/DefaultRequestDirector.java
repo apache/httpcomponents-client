@@ -183,6 +183,8 @@ public class DefaultRequestDirector implements RequestDirector {
     protected final AuthState targetAuthState;
     
     protected final AuthState proxyAuthState;
+
+    private int execCount;
     
     private int redirectCount;
 
@@ -297,6 +299,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
         this.managedConn       = null;
         
+        this.execCount = 0;
         this.redirectCount = 0;
         this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
         this.targetAuthState = new AuthState();
@@ -361,8 +364,6 @@ public class DefaultRequestDirector implements RequestDirector {
 
         long timeout = ConnManagerParams.getTimeout(params);
         
-        int execCount = 0;
-        
         boolean reuse = false;
         boolean done = false;
         try {
@@ -412,15 +413,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     ((AbortableHttpRequest) orig).setReleaseTrigger(managedConn);
                 }
 
-                // Reopen connection if needed
-                if (!managedConn.isOpen()) {
-                    managedConn.open(route, context, params);
-                } else {
-                    managedConn.setSocketTimeout(HttpConnectionParams.getSoTimeout(params));
-                }
-                
                 try {
-                    establishRoute(route, context);
+                    tryConnect(roureq, context);
                 } catch (TunnelRefusedException ex) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage());
@@ -459,68 +453,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 // Run request protocol interceptors
                 requestExec.preProcess(wrapper, httpProcessor, context);
                 
-                boolean retrying = true;
-                Exception retryReason = null;
-                while (retrying) {
-                    // Increment total exec count (with redirects)
-                    execCount++;
-                    // Increment exec count for this particular request
-                    wrapper.incrementExecCount();
-                    if (wrapper.getExecCount() > 1 && !wrapper.isRepeatable()) {
-                        this.log.debug("Cannot retry non-repeatable request");
-                        if (retryReason != null) {
-                            throw new NonRepeatableRequestException("Cannot retry request " +
-                                "with a non-repeatable request entity.  The cause lists the " +
-                                "reason the original request failed.", retryReason);
-                        } else {
-                            throw new NonRepeatableRequestException("Cannot retry request " +
-                                    "with a non-repeatable request entity.");
-                        }
-                    }
-                    
-                    try {
-                        if (this.log.isDebugEnabled()) {
-                            this.log.debug("Attempt " + execCount + " to execute request");
-                        }
-                        response = requestExec.execute(wrapper, managedConn, context);
-                        retrying = false;
-                        
-                    } catch (IOException ex) {
-                        this.log.debug("Closing the connection.");
-                        try {
-                            managedConn.close();
-                        } catch (IOException ignore) {
-                        }
-                        if (retryHandler.retryRequest(ex, execCount, context)) {
-                            if (this.log.isInfoEnabled()) {
-                                this.log.info("I/O exception ("+ ex.getClass().getName() + 
-                                        ") caught when processing request: "
-                                        + ex.getMessage());
-                            }
-                            if (this.log.isDebugEnabled()) {
-                                this.log.debug(ex.getMessage(), ex);
-                            }
-                            this.log.info("Retrying request");
-                            retryReason = ex;
-                        } else {
-                            throw ex;
-                        }
-
-                        // If we have a direct route to the target host
-                        // just re-open connection and re-try the request
-                        if (!route.isTunnelled()) {
-                            this.log.debug("Reopening the direct connection.");
-                            managedConn.open(route, context, params);
-                        } else {
-                            // otherwise give up
-                            this.log.debug("Proxied connection. Need to start over.");
-                            retrying = false;
-                        }
-                        
-                    }
-
-                }
-                
+                response = tryExecute(roureq, context);
                 if (response == null) {
                     // Need to start over
                     continue;
@@ -614,6 +547,120 @@ public class DefaultRequestDirector implements RequestDirector {
         }
     } // execute
 
+    /**
+     * Establish connection either directly or through a tunnel and retry in case of 
+     * a recoverable I/O failure
+     */
+    private void tryConnect(
+            final RoutedRequest req, final HttpContext context) throws HttpException, IOException {
+        HttpRoute route = req.getRoute();
+        
+        boolean retrying = true;
+        while (retrying) {
+            // Increment total exec count
+            execCount++;
+            try {
+                if (!managedConn.isOpen()) {
+                    managedConn.open(route, context, params);
+                } else {
+                    managedConn.setSocketTimeout(HttpConnectionParams.getSoTimeout(params));
+                }
+                establishRoute(route, context);
+                retrying = false;                
+            } catch (IOException ex) {
+                try {
+                    managedConn.close();
+                } catch (IOException ignore) {
+                }
+                if (retryHandler.retryRequest(ex, execCount, context)) {
+                    if (this.log.isInfoEnabled()) {
+                        this.log.info("I/O exception ("+ ex.getClass().getName() + 
+                                ") caught when connecting to the target host: "
+                                + ex.getMessage());
+                    }
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug(ex.getMessage(), ex);
+                    }
+                    this.log.info("Retrying connect");
+                } else {
+                    throw ex;
+                }
+            }
+        }        
+    }
+    
+    /**
+     * Execute request and retry in case of a recoverable I/O failure
+     */
+    private HttpResponse tryExecute(
+            final RoutedRequest req, final HttpContext context) throws HttpException, IOException {
+        RequestWrapper wrapper = req.getRequest();
+        HttpRoute route = req.getRoute();
+        HttpResponse response = null;
+        
+        boolean retrying = true;
+        Exception retryReason = null;
+        while (retrying) {
+            // Increment total exec count (with redirects)
+            execCount++;
+            // Increment exec count for this particular request
+            wrapper.incrementExecCount();
+            if (wrapper.getExecCount() > 1 && !wrapper.isRepeatable()) {
+                this.log.debug("Cannot retry non-repeatable request");
+                if (retryReason != null) {
+                    throw new NonRepeatableRequestException("Cannot retry request " +
+                        "with a non-repeatable request entity.  The cause lists the " +
+                        "reason the original request failed.", retryReason);
+                } else {
+                    throw new NonRepeatableRequestException("Cannot retry request " +
+                            "with a non-repeatable request entity.");
+                }
+            }
+            
+            try {
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Attempt " + execCount + " to execute request");
+                }
+                response = requestExec.execute(wrapper, managedConn, context);
+                retrying = false;
+                
+            } catch (IOException ex) {
+                this.log.debug("Closing the connection.");
+                try {
+                    managedConn.close();
+                } catch (IOException ignore) {
+                }
+                if (retryHandler.retryRequest(ex, execCount, context)) {
+                    if (this.log.isInfoEnabled()) {
+                        this.log.info("I/O exception ("+ ex.getClass().getName() + 
+                                ") caught when processing request: "
+                                + ex.getMessage());
+                    }
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug(ex.getMessage(), ex);
+                    }
+                    this.log.info("Retrying request");
+                    retryReason = ex;
+                } else {
+                    throw ex;
+                }
+
+                // If we have a direct route to the target host
+                // just re-open connection and re-try the request
+                if (!route.isTunnelled()) {
+                    this.log.debug("Reopening the direct connection.");
+                    managedConn.open(route, context, params);
+                } else {
+                    // otherwise give up
+                    this.log.debug("Proxied connection. Need to start over.");
+                    retrying = false;
+                }
+                
+            }
+        }
+        return response;
+    }
+    
     /**
      * Returns the connection back to the connection manager
      * and prepares for retrieving a new connection during

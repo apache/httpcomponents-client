@@ -1,3 +1,11 @@
+Changes since 4.1 ALPHA1
+-------------------
+
+* [HTTPCLIENT-902] HttpRequestRetryHandler not called on I/O exceptions
+  thrown when opening a new connection.
+  Contributed by Olivier Lamy <olamy at apache.org> and 
+  Oleg Kalnichevski <olegk at apache.org>
+
 Release 4.1 ALPHA1
 -------------------
 
