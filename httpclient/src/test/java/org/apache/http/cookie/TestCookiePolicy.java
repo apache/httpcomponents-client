@@ -27,6 +27,7 @@
 
 package org.apache.http.cookie;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -83,9 +84,10 @@ public class TestCookiePolicy extends TestCase {
         names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(3, names.size());
-        assertEquals(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH), names.get(0));
-        assertEquals(NETSCAPE.toLowerCase(Locale.ENGLISH), names.get(1));
-        assertEquals(RFC_2109.toLowerCase(Locale.ENGLISH), names.get(2));
+        HashSet<String> m = new HashSet<String>(names);
+        assertTrue(m.contains(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH)));
+        assertTrue(m.contains(NETSCAPE.toLowerCase(Locale.ENGLISH)));
+        assertTrue(m.contains(RFC_2109.toLowerCase(Locale.ENGLISH)));
 
         registry.unregister(NETSCAPE); 
         registry.unregister(NETSCAPE); 

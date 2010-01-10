@@ -28,12 +28,11 @@
 package org.apache.http.cookie;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.params.HttpParams;
@@ -49,12 +48,11 @@ import org.apache.http.params.HttpParams;
 @ThreadSafe
 public final class CookieSpecRegistry {
 
-    @GuardedBy("this")
-    private final Map<String,CookieSpecFactory> registeredSpecs;
+    private final ConcurrentHashMap<String,CookieSpecFactory> registeredSpecs;
     
     public CookieSpecRegistry() {
         super();
-        this.registeredSpecs = new LinkedHashMap<String,CookieSpecFactory>();
+        this.registeredSpecs = new ConcurrentHashMap<String,CookieSpecFactory>();
     }
     
     /**
@@ -68,7 +66,7 @@ public final class CookieSpecRegistry {
      * 
      * @see #getCookieSpec(String)
      */
-    public synchronized void register(final String name, final CookieSpecFactory factory) {
+    public void register(final String name, final CookieSpecFactory factory) {
          if (name == null) {
              throw new IllegalArgumentException("Name may not be null");
          }
@@ -83,7 +81,7 @@ public final class CookieSpecRegistry {
      * 
      * @param id the identifier of the {@link CookieSpec cookie specification} to unregister
      */
-    public synchronized void unregister(final String id) {
+    public void unregister(final String id) {
          if (id == null) {
              throw new IllegalArgumentException("Id may not be null");
          }
@@ -101,7 +99,7 @@ public final class CookieSpecRegistry {
      * 
      * @throws IllegalStateException if a policy with the given name cannot be found
      */
-    public synchronized CookieSpec getCookieSpec(final String name, final HttpParams params) 
+    public CookieSpec getCookieSpec(final String name, final HttpParams params) 
         throws IllegalStateException {
 
         if (name == null) {
@@ -124,21 +122,21 @@ public final class CookieSpecRegistry {
      * 
      * @throws IllegalStateException if a policy with the given name cannot be found
      */
-    public synchronized CookieSpec getCookieSpec(final String name) 
+    public CookieSpec getCookieSpec(final String name) 
         throws IllegalStateException {
         return getCookieSpec(name, null);
     } 
 
     /**
-     * Obtains a list containing names of all registered {@link CookieSpec cookie 
-     * specs} in their default order.
+     * Obtains a list containing the names of all registered {@link CookieSpec cookie 
+     * specs}.
      * 
      * Note that the DEFAULT policy (if present) is likely to be the same
      * as one of the other policies, but does not have to be.
      * 
      * @return list of registered cookie spec names
      */
-    public synchronized List<String> getSpecNames(){
+    public List<String> getSpecNames(){
         return new ArrayList<String>(registeredSpecs.keySet()); 
     }
     
@@ -148,7 +146,7 @@ public final class CookieSpecRegistry {
      * 
      * @param map cookie specs
      */
-    public synchronized void setItems(final Map<String, CookieSpecFactory> map) {
+    public void setItems(final Map<String, CookieSpecFactory> map) {
         if (map == null) {
             return;
         }
