@@ -27,12 +27,11 @@
 package org.apache.http.auth;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.params.HttpParams;
@@ -46,12 +45,11 @@ import org.apache.http.params.HttpParams;
 @ThreadSafe
 public final class AuthSchemeRegistry {
 
-    @GuardedBy("this")
-    private final Map<String,AuthSchemeFactory> registeredSchemes;
+    private final ConcurrentHashMap<String,AuthSchemeFactory> registeredSchemes;
     
     public AuthSchemeRegistry() {
         super();
-        this.registeredSchemes = new LinkedHashMap<String,AuthSchemeFactory>();
+        this.registeredSchemes = new ConcurrentHashMap<String,AuthSchemeFactory>();
     }
     
     /**
@@ -69,7 +67,7 @@ public final class AuthSchemeRegistry {
      * 
      * @see #getAuthScheme
      */
-    public synchronized void register(
+    public void register(
             final String name, 
             final AuthSchemeFactory factory) {
          if (name == null) {
@@ -87,7 +85,7 @@ public final class AuthSchemeRegistry {
      * 
      * @param name the identifier of the class to unregister
      */
-    public synchronized void unregister(final String name) {
+    public void unregister(final String name) {
          if (name == null) {
              throw new IllegalArgumentException("Name may not be null");
          }
@@ -105,7 +103,7 @@ public final class AuthSchemeRegistry {
      * 
      * @throws IllegalStateException if a scheme with the given name cannot be found
      */
-    public synchronized AuthScheme getAuthScheme(final String name, final HttpParams params) 
+    public AuthScheme getAuthScheme(final String name, final HttpParams params) 
         throws IllegalStateException {
 
         if (name == null) {
@@ -120,12 +118,12 @@ public final class AuthSchemeRegistry {
     } 
 
     /**
-     * Obtains a list containing names of all registered {@link AuthScheme authentication 
-     * schemes} in their default order.
+     * Obtains a list containing the names of all registered {@link AuthScheme authentication 
+     * schemes}
      * 
      * @return list of registered scheme names
      */
-    public synchronized List<String> getSchemeNames() {
+    public List<String> getSchemeNames() {
         return new ArrayList<String>(registeredSchemes.keySet()); 
     } 
  
@@ -135,7 +133,7 @@ public final class AuthSchemeRegistry {
      * 
      * @param map authentication schemes
      */
-    public synchronized void setItems(final Map<String, AuthSchemeFactory> map) {
+    public void setItems(final Map<String, AuthSchemeFactory> map) {
         if (map == null) {
             return;
         }

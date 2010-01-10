@@ -27,11 +27,10 @@
 package org.apache.http.conn.scheme;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpHost;
@@ -46,15 +45,14 @@ import org.apache.http.HttpHost;
 public final class SchemeRegistry {
 
     /** The available schemes in this registry. */
-    @GuardedBy("this")
-    private final Map<String,Scheme> registeredSchemes;
+    private final ConcurrentHashMap<String,Scheme> registeredSchemes;
 
     /**
      * Creates a new, empty scheme registry.
      */
     public SchemeRegistry() {
         super();
-        registeredSchemes = new LinkedHashMap<String,Scheme>();
+        registeredSchemes = new ConcurrentHashMap<String,Scheme>();
     }
 
     /**
@@ -67,7 +65,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if the scheme with the given name is not registered
      */
-    public synchronized final Scheme getScheme(String name) {
+    public final Scheme getScheme(String name) {
         Scheme found = get(name);
         if (found == null) {
             throw new IllegalStateException
@@ -87,7 +85,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if a scheme with the respective name is not registered
      */
-    public synchronized final Scheme getScheme(HttpHost host) {
+    public final Scheme getScheme(HttpHost host) {
         if (host == null) {
             throw new IllegalArgumentException("Host must not be null.");
         }
@@ -102,7 +100,7 @@ public final class SchemeRegistry {
      * @return  the scheme, or
      *          <code>null</code> if there is none by this name
      */
-    public synchronized final Scheme get(String name) {
+    public final Scheme get(String name) {
         if (name == null)
             throw new IllegalArgumentException("Name must not be null.");
 
@@ -122,7 +120,7 @@ public final class SchemeRegistry {
      * @return  the scheme previously registered with that name, or
      *          <code>null</code> if none was registered
      */
-    public synchronized final Scheme register(Scheme sch) {
+    public final Scheme register(Scheme sch) {
         if (sch == null)
             throw new IllegalArgumentException("Scheme must not be null.");
 
@@ -138,7 +136,7 @@ public final class SchemeRegistry {
      * @return  the unregistered scheme, or
      *          <code>null</code> if there was none
      */
-    public synchronized final Scheme unregister(String name) {
+    public final Scheme unregister(String name) {
         if (name == null)
             throw new IllegalArgumentException("Name must not be null.");
 
@@ -149,11 +147,11 @@ public final class SchemeRegistry {
     }
 
     /**
-     * Obtains the names of the registered schemes in their default order.
+     * Obtains the names of the registered schemes.
      *
      * @return  List containing registered scheme names.
      */
-    public synchronized final List<String> getSchemeNames() {
+    public final List<String> getSchemeNames() {
         return new ArrayList<String>(registeredSchemes.keySet());
     }
 
@@ -163,7 +161,7 @@ public final class SchemeRegistry {
      * 
      * @param map protocol schemes
      */
-    public synchronized void setItems(final Map<String, Scheme> map) {
+    public void setItems(final Map<String, Scheme> map) {
         if (map == null) {
             return;
         }
