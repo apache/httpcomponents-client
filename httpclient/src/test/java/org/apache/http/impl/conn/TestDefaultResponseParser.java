@@ -104,7 +104,7 @@ public class TestDefaultResponseParser extends TestCase {
     		"\r\n"; 
     	
     	HttpParams params = new BasicHttpParams();
-    	params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, 2);
+    	params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.valueOf(2));
     	SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
     	HttpMessageParser parser = new DefaultResponseParser(
     			inbuffer, 
