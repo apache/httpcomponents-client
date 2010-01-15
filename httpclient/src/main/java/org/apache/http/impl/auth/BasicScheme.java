@@ -34,6 +34,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BufferedHeader;

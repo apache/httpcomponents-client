@@ -110,7 +110,7 @@ public class TestContentCodings extends ServerTestBase {
      * to return RFC1950 streams for <code>deflate</code> content coding.
      * 
      * @throws Exception
-     * @see {@link DeflateDecompressingEntity}
+     * @see DeflateDecompressingEntity
      */
     public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
@@ -132,7 +132,7 @@ public class TestContentCodings extends ServerTestBase {
      * to return RFC1951 streams for <code>deflate</code> content coding.
      * 
      * @throws Exception
-     * @see {@link DeflateDecompressingEntity}
+     * @see DeflateDecompressingEntity
      */
     public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
