@@ -328,7 +328,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         }
     }
     
-   private class BasicRedirectService implements HttpRequestHandler {
+   private static class BasicRedirectService implements HttpRequestHandler {
         private int statuscode = HttpStatus.SC_SEE_OTHER;
         private int port;
 
@@ -584,7 +584,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         
     }
 
-    private class SimpleService implements HttpRequestHandler {
+    private static class SimpleService implements HttpRequestHandler {
         
         public SimpleService() {
             super();

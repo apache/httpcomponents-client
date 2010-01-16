@@ -75,7 +75,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
         localServer.start();
     }
     
-    private class SimpleService implements HttpRequestHandler {
+    private static class SimpleService implements HttpRequestHandler {
         
         public SimpleService() {
             super();

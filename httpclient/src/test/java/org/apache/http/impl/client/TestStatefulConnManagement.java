@@ -69,7 +69,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         return new TestSuite(TestStatefulConnManagement.class);
     }
     
-    private class SimpleService implements HttpRequestHandler {
+    private static class SimpleService implements HttpRequestHandler {
         
         public SimpleService() {
             super();

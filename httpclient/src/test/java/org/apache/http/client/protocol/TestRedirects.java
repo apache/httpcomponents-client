@@ -93,7 +93,7 @@ public class TestRedirects extends BasicServerTestBase {
         localServer.start();
     }
     
-    private class BasicRedirectService implements HttpRequestHandler {
+    private static class BasicRedirectService implements HttpRequestHandler {
         
         private int statuscode = HttpStatus.SC_MOVED_TEMPORARILY;
         private String host = null;
@@ -133,7 +133,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
-    private class CircularRedirectService implements HttpRequestHandler {
+    private static class CircularRedirectService implements HttpRequestHandler {
 
         public CircularRedirectService() {
             super();
@@ -157,7 +157,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
-    private class RelativeRedirectService implements HttpRequestHandler {
+    private static class RelativeRedirectService implements HttpRequestHandler {
         
         public RelativeRedirectService() {
             super();
@@ -182,7 +182,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
-    private class RelativeRedirectService2 implements HttpRequestHandler {
+    private static class RelativeRedirectService2 implements HttpRequestHandler {
         
         public RelativeRedirectService2() {
             super();
@@ -207,7 +207,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
-    private class BogusRedirectService implements HttpRequestHandler {
+    private static class BogusRedirectService implements HttpRequestHandler {
         private String url;
         
         public BogusRedirectService(String redirectUrl) {

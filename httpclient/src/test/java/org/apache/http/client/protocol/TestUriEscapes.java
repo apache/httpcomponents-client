@@ -67,7 +67,7 @@ public class TestUriEscapes extends BasicServerTestBase {
         localServer.start();
     }
     
-    private class UriListeningService implements HttpRequestHandler {
+    private static class UriListeningService implements HttpRequestHandler {
         
         private volatile String requestedUri;
 
