@@ -144,18 +144,6 @@ public abstract class ServerTestBase extends BasicServerTestBase {
 
 
     /**
-     * Unprepares the local server for testing.
-     * This stops the test server. All helper objects, including the
-     * test server, remain stored in the attributes for the next test.
-     *
-     * @see #setUp setUp()
-     */
-    @Override
-    protected void tearDown() throws Exception {
-        localServer.stop();
-    }
-
-    /**
      * Opens a connection to the given target using
      * {@link #defaultParams default parameters}.
      * Maps to {@link #connectTo(HttpHost,HttpParams)
