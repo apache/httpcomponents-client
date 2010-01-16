@@ -132,7 +132,7 @@ public class TestRouteTracker extends TestCase {
 
         rt = null;
         try {
-            rt = new RouteTracker(null, LOCAL41);
+            new RouteTracker(null, LOCAL41);
             fail("null target not detected");
         } catch (IllegalArgumentException iax) {
             // expected
@@ -188,7 +188,7 @@ public class TestRouteTracker extends TestCase {
 
         rt = null;
         try {
-            rt = new RouteTracker(null);
+            new RouteTracker(null);
             fail("null route not detected");
         } catch (NullPointerException npx) {
             // expected

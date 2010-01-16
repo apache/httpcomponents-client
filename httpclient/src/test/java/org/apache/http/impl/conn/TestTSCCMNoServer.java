@@ -164,7 +164,7 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.releaseConnection(conn, -1, null);
 
         try {
-            conn = getConnection(mgr, null);
+            getConnection(mgr, null);
             fail("null route not detected");
         } catch (IllegalArgumentException iax) {
             // expected
@@ -208,7 +208,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // there should be a connection available now
         try {
-            conn2 = getConnection(mgr, route2, 100L, TimeUnit.MILLISECONDS);
+            getConnection(mgr, route2, 100L, TimeUnit.MILLISECONDS);
         } catch (ConnectionPoolTimeoutException cptx) {
             cptx.printStackTrace();
             fail("connection should have been available: " + cptx);
@@ -429,7 +429,7 @@ public class TestTSCCMNoServer extends TestCase {
 
         // the manager is down, we should not be able to get a connection
         try {
-            conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
+            getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
             fail("shut-down manager does not raise exception");
         } catch (IllegalStateException isx) {
             // expected

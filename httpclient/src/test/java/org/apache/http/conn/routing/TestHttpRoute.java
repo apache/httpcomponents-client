@@ -281,7 +281,7 @@ public class TestHttpRoute extends TestCase {
         }
 
         try {
-            route = new HttpRoute(TARGET1, null, chain4, false,
+            new HttpRoute(TARGET1, null, chain4, false,
                                   TunnelType.PLAIN, LayerType.PLAIN);
             fail("invalid proxy chain (4) not detected");
         } catch (IllegalArgumentException iax) {
@@ -566,7 +566,7 @@ public class TestHttpRoute extends TestCase {
 
         // this constructor REQUIRES a proxy to be specified
         try {
-            route = new HttpRoute(TARGET1, LOCAL61, null, false);
+            new HttpRoute(TARGET1, LOCAL61, null, false);
             fail("missing proxy not detected");
         } catch (IllegalArgumentException iax) {
             // expected
