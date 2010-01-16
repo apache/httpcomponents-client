@@ -27,8 +27,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.annotation.NotThreadSafe;
@@ -118,11 +118,10 @@ public class IdleConnectionHandler {
         if (log.isDebugEnabled()) {
             log.debug("Checking for connections, idle timeout: "  + idleTimeout);
         }
-        Iterator<HttpConnection> connectionIter = connectionToTimes.keySet().iterator();
-        
-        while (connectionIter.hasNext()) {
-            HttpConnection conn = connectionIter.next();
-            TimeValues times = connectionToTimes.get(conn);
+
+        for (Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
+            HttpConnection conn = entry.getKey();
+            TimeValues times = entry.getValue();
             long connectionTime = times.timeAdded;
             if (connectionTime <= idleTimeout) {
                 if (log.isDebugEnabled()) {
@@ -143,13 +142,10 @@ public class IdleConnectionHandler {
         if (log.isDebugEnabled()) {
             log.debug("Checking for expired connections, now: "  + now);
         }
-        
-        Iterator<HttpConnection> connectionIter =
-            connectionToTimes.keySet().iterator();
-        
-        while (connectionIter.hasNext()) {
-            HttpConnection conn = connectionIter.next();
-            TimeValues times = connectionToTimes.get(conn);
+
+        for (Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
+            HttpConnection conn = entry.getKey();
+            TimeValues times = entry.getValue();
             if(times.timeExpires <= now) {
                 if (log.isDebugEnabled()) {
                     log.debug("Closing connection, expired @: "  + times.timeExpires);
@@ -160,7 +156,7 @@ public class IdleConnectionHandler {
                     log.debug("I/O error closing connection", ex);
                 }
             }
-        }        
+        }
     }
     
     private static class TimeValues {
