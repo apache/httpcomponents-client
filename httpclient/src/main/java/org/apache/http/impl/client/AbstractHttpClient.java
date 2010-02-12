@@ -624,17 +624,21 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(determineTarget(request), request, context);
     }
 
-    private HttpHost determineTarget(HttpUriRequest request) {
+    private HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
 
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
-            target = new HttpHost(
-                    requestURI.getHost(),
-                    requestURI.getPort(),
-                    requestURI.getScheme());
+            String host = requestURI.getHost();
+            int port = requestURI.getPort();
+            String scheme = requestURI.getScheme();
+            if (host == null) {
+                throw new ClientProtocolException(
+                        "URI does not specify a valid host name: " + requestURI);
+            }
+            target = new HttpHost(host, port, scheme);
         }
         return target;
     }
