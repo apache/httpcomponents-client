@@ -1,8 +1,12 @@
 Changes since 4.1 ALPHA1
 -------------------
 
+* [HTTPCLIENT-914] Upgraded Commons Codec dependency to version 1.4
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-903] Use ConcurrentHashMap instead of [Linked]HashMap for thread-safety
   Improve performance of AuthSchemeRegistry, CookieSpecRegistry and SchemeRegistry classes.
+  Contributed by Sebastian Bazley <sebb at apache.org>
   
 * [HTTPCLIENT-902] HttpRequestRetryHandler not called on I/O exceptions
   thrown when opening a new connection.
