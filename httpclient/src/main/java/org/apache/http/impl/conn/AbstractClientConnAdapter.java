@@ -43,6 +43,7 @@ import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Abstract adapter from {@link OperatedClientConnection operated} to
@@ -65,7 +66,8 @@ import org.apache.http.conn.ClientConnectionManager;
  *
  * @since 4.0
  */
-public abstract class AbstractClientConnAdapter implements ManagedClientConnection {
+public abstract class AbstractClientConnAdapter 
+                            implements ManagedClientConnection, HttpContext {
 
     /**
      * The connection manager, if any.
@@ -322,4 +324,32 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
+    public synchronized Object getAttribute(final String id) {
+        OperatedClientConnection conn = getWrappedConnection();
+        assertValid(conn);
+        if (conn instanceof HttpContext) {
+            return ((HttpContext) conn).getAttribute(id);
+        } else {
+            return null;
+        }
+    }
+
+    public synchronized Object removeAttribute(final String id) {
+        OperatedClientConnection conn = getWrappedConnection();
+        assertValid(conn);
+        if (conn instanceof HttpContext) {
+            return ((HttpContext) conn).removeAttribute(id);
+        } else {
+            return null;
+        }
+    }
+
+    public synchronized void setAttribute(final String id, final Object obj) {
+        OperatedClientConnection conn = getWrappedConnection();
+        assertValid(conn);
+        if (conn instanceof HttpContext) {
+            ((HttpContext) conn).setAttribute(id, obj);
+        }
+    }
+    
 }

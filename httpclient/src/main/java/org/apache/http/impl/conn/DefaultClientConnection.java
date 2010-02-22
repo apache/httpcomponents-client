@@ -29,6 +29,8 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.annotation.NotThreadSafe;
 
@@ -41,6 +43,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
@@ -65,7 +68,7 @@ import org.apache.http.conn.OperatedClientConnection;
  */
 @NotThreadSafe // connSecure, targetHost
 public class DefaultClientConnection extends SocketHttpClientConnection
-    implements OperatedClientConnection {
+    implements OperatedClientConnection, HttpContext {
 
     private final Log log = LogFactory.getLog(getClass());
     private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
@@ -83,8 +86,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     /** True if this connection was shutdown. */
     private volatile boolean shutdown;
 
+    /** connection specific attributes */
+    private final Map<String, Object> attributes;
+    
     public DefaultClientConnection() {
         super();
+        this.attributes = new HashMap<String, Object>();
     }
 
     public final HttpHost getTargetHost() {
@@ -251,6 +258,18 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 headerLog.debug(">> " + header.toString());
             }
         }
+    }
+
+    public Object getAttribute(final String id) {
+        return this.attributes.get(id);
+    }
+
+    public Object removeAttribute(final String id) {
+        return this.attributes.remove(id);
+    }
+
+    public void setAttribute(final String id, final Object obj) {
+        this.attributes.put(id, obj);
     }
 
 }
