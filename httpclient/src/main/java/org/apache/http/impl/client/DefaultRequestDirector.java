@@ -1033,7 +1033,10 @@ public class DefaultRequestDirector implements RequestDirector {
             redirect.setHeaders(orig.getAllHeaders());
             
             URI uri = redirect.getURI();
-
+            if (uri.getHost() == null) {
+                throw new ProtocolException("Redirect URI does not specify a valid host name: " + uri);
+            }
+            
             HttpHost newTarget = new HttpHost(
                     uri.getHost(), 
                     uri.getPort(),
