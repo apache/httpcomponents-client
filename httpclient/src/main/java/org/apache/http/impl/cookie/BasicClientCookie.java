@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.cookie;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -43,7 +44,9 @@ import org.apache.http.cookie.SetCookie;
  * @since 4.0
  */
 @NotThreadSafe
-public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable {
+public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Serializable {
+
+    private static final long serialVersionUID = -3869795591041535538L;
 
     /**
      * Default Constructor taking a name and a value. The value may be null.

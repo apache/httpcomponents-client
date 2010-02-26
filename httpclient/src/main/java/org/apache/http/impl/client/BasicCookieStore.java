@@ -26,6 +26,7 @@
 
 package org.apache.http.impl.client;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,7 +48,9 @@ import org.apache.http.cookie.CookieIdentityComparator;
  * @since 4.0
  */
 @ThreadSafe
-public class BasicCookieStore implements CookieStore {
+public class BasicCookieStore implements CookieStore, Serializable {
+
+    private static final long serialVersionUID = -1113466491038527240L;
 
     @GuardedBy("this")
     private final ArrayList<Cookie> cookies;

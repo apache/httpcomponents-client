@@ -26,6 +26,7 @@
 
 package org.apache.http.auth;
 
+import java.io.Serializable;
 import java.security.Principal;
 import java.util.Locale;
 
@@ -39,8 +40,10 @@ import org.apache.http.util.LangUtils;
  * @since 4.0
  */
 @Immutable
-public class NTUserPrincipal implements Principal {
+public class NTUserPrincipal implements Principal, Serializable {
 
+    private static final long serialVersionUID = -6870169797924406894L;
+    
     private final String username;
     private final String domain;
     private final String ntname;

@@ -26,6 +26,7 @@
 
 package org.apache.http.auth;
 
+import java.io.Serializable;
 import java.security.Principal;
 import java.util.Locale;
 
@@ -40,7 +41,9 @@ import org.apache.http.util.LangUtils;
  * @since 4.0
  */
 @Immutable
-public class NTCredentials implements Credentials {
+public class NTCredentials implements Credentials, Serializable {
+
+    private static final long serialVersionUID = -7385699315228907265L;
 
     /** The user principal  */
     private final NTUserPrincipal principal;

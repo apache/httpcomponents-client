@@ -26,6 +26,7 @@
 
 package org.apache.http.auth;
 
+import java.io.Serializable;
 import java.security.Principal;
 
 import org.apache.http.annotation.Immutable;
@@ -34,12 +35,13 @@ import org.apache.http.util.LangUtils;
 
 /**
  * Basic user principal used for HTTP authentication
- *
  * 
  * @since 4.0
  */
 @Immutable
-public final class BasicUserPrincipal implements Principal {
+public final class BasicUserPrincipal implements Principal, Serializable {
+
+    private static final long serialVersionUID = -2266305184969850467L;
 
     private final String username;
     

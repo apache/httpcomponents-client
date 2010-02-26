@@ -26,6 +26,7 @@
 
 package org.apache.http.auth;
 
+import java.io.Serializable;
 import java.security.Principal;
 
 import org.apache.http.annotation.Immutable;
@@ -39,7 +40,9 @@ import org.apache.http.util.LangUtils;
  * @since 4.0
  */
 @Immutable
-public class UsernamePasswordCredentials implements Credentials {
+public class UsernamePasswordCredentials implements Credentials, Serializable {
+
+    private static final long serialVersionUID = 243343858802739403L;
 
     private final BasicUserPrincipal principal;
     private final String password;

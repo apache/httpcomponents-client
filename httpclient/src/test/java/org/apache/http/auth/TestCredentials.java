@@ -27,6 +27,11 @@
 
 package org.apache.http.auth;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -205,4 +210,31 @@ public class TestCredentials extends TestCase {
         assertTrue(creds9.equals(creds7));
         
     }
+
+    public void testUsernamePasswordCredentialsSerialization() throws Exception {
+        UsernamePasswordCredentials orig = new UsernamePasswordCredentials("name", "pwd"); 
+        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        outstream.writeObject(orig);
+        outstream.close();
+        byte[] raw = outbuffer.toByteArray();
+        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        UsernamePasswordCredentials clone = (UsernamePasswordCredentials) instream.readObject();
+        assertEquals(orig, clone);
+    }
+    
+    public void testNTCredentialsSerialization() throws Exception {
+        NTCredentials orig = new NTCredentials("name", "pwd", "somehost", "domain"); 
+        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        outstream.writeObject(orig);
+        outstream.close();
+        byte[] raw = outbuffer.toByteArray();
+        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        NTCredentials clone = (NTCredentials) instream.readObject();
+        assertEquals(orig, clone);
+    }
+    
 }

@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA1
 -------------------
 
+* [HTTPCLIENT-916] UsernamePasswordCredentials, NTUserPrincipal, 
+  BasicClientCookie, BasicClientCookie2 and BasicCookieStore made Serializable.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-914] Upgraded Commons Codec dependency to version 1.4
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
