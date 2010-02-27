@@ -26,9 +26,9 @@
 
 package org.apache.http.impl.client;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.auth.AuthScope;
@@ -43,18 +43,17 @@ import org.apache.http.client.CredentialsProvider;
 @ThreadSafe
 public class BasicCredentialsProvider implements CredentialsProvider {
 
-    @GuardedBy("this")
-    private final HashMap<AuthScope, Credentials> credMap;
+    private final ConcurrentHashMap<AuthScope, Credentials> credMap;
 
     /**
      * Default constructor.
      */
     public BasicCredentialsProvider() {
         super();
-        this.credMap = new HashMap<AuthScope, Credentials>();
+        this.credMap = new ConcurrentHashMap<AuthScope, Credentials>();
     }
 
-    public synchronized void setCredentials(
+    public void setCredentials(
             final AuthScope authscope, 
             final Credentials credentials) {
         if (authscope == null) {
@@ -72,7 +71,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
      * 
      */
     private static Credentials matchCredentials(
-            final HashMap<AuthScope, Credentials> map, 
+            final Map<AuthScope, Credentials> map, 
             final AuthScope authscope) {
         // see if we get a direct hit
         Credentials creds = map.get(authscope);
@@ -95,14 +94,14 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return creds;
     }
     
-    public synchronized Credentials getCredentials(final AuthScope authscope) {
+    public Credentials getCredentials(final AuthScope authscope) {
         if (authscope == null) {
             throw new IllegalArgumentException("Authentication scope may not be null");
         }
         return matchCredentials(this.credMap, authscope);
     }
 
-    public synchronized void clear() {
+    public void clear() {
         this.credMap.clear();
     }
     
