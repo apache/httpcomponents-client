@@ -57,7 +57,7 @@ mvn antrun:run
 
 Execute the following command in order to generate the project web site:
 
-mvn site -Dclover.license=<path>/clover.license
+mvn site -Dmaven.clover.licenseLocation=<path>/clover.license
 
 where <path> is a full path to Clover license file
 
