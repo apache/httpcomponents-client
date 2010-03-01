@@ -282,9 +282,9 @@ CookieSpecFactory csf = new CookieSpecFactory() {
             public void validate(Cookie cookie, CookieOrigin origin)
             throws MalformedCookieException {
                 // Oh, I am easy
-            }		
+            }
         };
-    }	
+    }
 };
 
 DefaultHttpClient httpclient = new DefaultHttpClient();
