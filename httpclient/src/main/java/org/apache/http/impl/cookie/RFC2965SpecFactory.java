@@ -50,21 +50,21 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class RFC2965SpecFactory implements CookieSpecFactory {    
+public class RFC2965SpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-        	
-        	String[] patterns = null;
-        	Collection<?> param = (Collection<?>) params.getParameter(
-        			CookieSpecPNames.DATE_PATTERNS);
-        	if (param != null) {
-        		patterns = new String[param.size()];
-        		patterns = param.toArray(patterns);
-        	}
-        	boolean singleHeader = params.getBooleanParameter(
-        			CookieSpecPNames.SINGLE_COOKIE_HEADER, false);        	
-        	
+
+            String[] patterns = null;
+            Collection<?> param = (Collection<?>) params.getParameter(
+                    CookieSpecPNames.DATE_PATTERNS);
+            if (param != null) {
+                patterns = new String[param.size()];
+                patterns = param.toArray(patterns);
+            }
+            boolean singleHeader = params.getBooleanParameter(
+                    CookieSpecPNames.SINGLE_COOKIE_HEADER, false);
+
             return new RFC2965Spec(patterns, singleHeader);
         } else {
             return new RFC2965Spec();

@@ -49,18 +49,18 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class NetscapeDraftSpecFactory implements CookieSpecFactory {    
+public class NetscapeDraftSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-        	
-        	String[] patterns = null;
-        	Collection<?> param = (Collection<?>) params.getParameter(
-        			CookieSpecPNames.DATE_PATTERNS);
-        	if (param != null) {
-        		patterns = new String[param.size()];
-        		patterns = param.toArray(patterns);
-        	}
+
+            String[] patterns = null;
+            Collection<?> param = (Collection<?>) params.getParameter(
+                    CookieSpecPNames.DATE_PATTERNS);
+            if (param != null) {
+                patterns = new String[param.size()];
+                patterns = param.toArray(patterns);
+            }
             return new NetscapeDraftSpec(patterns);
         } else {
             return new NetscapeDraftSpec();

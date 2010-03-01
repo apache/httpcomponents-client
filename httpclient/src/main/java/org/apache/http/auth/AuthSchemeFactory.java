@@ -34,15 +34,15 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
-public interface AuthSchemeFactory {    
+public interface AuthSchemeFactory {
 
-	/**
-	 * Creates an instance of {@link AuthScheme} using given HTTP parameters.
-	 * 
-	 * @param params HTTP parameters.
-	 * 
-	 * @return auth scheme.
-	 */
+    /**
+     * Creates an instance of {@link AuthScheme} using given HTTP parameters.
+     * 
+     * @param params HTTP parameters.
+     * 
+     * @return auth scheme.
+     */
     AuthScheme newInstance(HttpParams params);
 
 }

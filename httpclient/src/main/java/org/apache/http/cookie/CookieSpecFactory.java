@@ -34,15 +34,15 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
-public interface CookieSpecFactory {    
+public interface CookieSpecFactory {
 
-	/**
-	 * Creates an instance of {@link CookieSpec} using given HTTP parameters.
-	 * 
-	 * @param params HTTP parameters.
-	 * 
-	 * @return cookie spec.
-	 */
+    /**
+     * Creates an instance of {@link CookieSpec} using given HTTP parameters.
+     * 
+     * @param params HTTP parameters.
+     * 
+     * @return cookie spec.
+     */
     CookieSpec newInstance(HttpParams params);
 
 }

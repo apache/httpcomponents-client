@@ -64,7 +64,7 @@ import org.apache.http.util.CharArrayBuffer;
 public class DefaultResponseParser extends AbstractMessageParser {
     
     private final Log log = LogFactory.getLog(getClass());
-	
+
     private final HttpResponseFactory responseFactory;
     private final CharArrayBuffer lineBuf;
     private final int maxGarbageLines;
@@ -110,7 +110,7 @@ public class DefaultResponseParser extends AbstractMessageParser {
                         "valid HTTP response");
             }
             if (this.log.isDebugEnabled()) {
-            	this.log.debug("Garbage in response: " + this.lineBuf.toString());
+                this.log.debug("Garbage in response: " + this.lineBuf.toString());
             }
             count++;
         } while(true);

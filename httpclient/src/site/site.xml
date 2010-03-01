@@ -47,7 +47,7 @@
       <item name="Download" href="../download.html"/>
       <item name="Examples" href="../examples.html"/>
     </menu>
-		<menu ref="modules" />
-		<menu ref="reports"/>      
+    <menu ref="modules" />
+    <menu ref="reports"/>      
   </body>
 </project>

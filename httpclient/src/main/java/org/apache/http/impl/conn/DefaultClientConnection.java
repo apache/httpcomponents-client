@@ -82,13 +82,13 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /** Whether this connection is secure. */
     private boolean connSecure;
-    
+
     /** True if this connection was shutdown. */
     private volatile boolean shutdown;
 
     /** connection specific attributes */
     private final Map<String, Object> attributes;
-    
+
     public DefaultClientConnection() {
         super();
         this.attributes = new HashMap<String, Object>();
@@ -108,10 +108,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     public void opening(Socket sock, HttpHost target) throws IOException {
-        assertNotOpen();        
+        assertNotOpen();
         this.socket = sock;
         this.targetHost = target;
-        
+
         // Check for shutdown after assigning socket, so that 
         if (this.shutdown) {
             sock.close(); // allow this to throw...
@@ -147,14 +147,14 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public void shutdown() throws IOException {
         log.debug("Connection shut down");
         shutdown = true;
-        
-        super.shutdown();        
+
+        super.shutdown();
         Socket sock = this.socket; // copy volatile attribute
         if (sock != null)
             sock.close();
 
     }
-    
+
     @Override
     public void close() throws IOException {
         log.debug("Connection closed");
@@ -231,10 +231,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
-    	HttpResponse response = super.receiveResponseHeader();
-    	if (log.isDebugEnabled()) {
+        HttpResponse response = super.receiveResponseHeader();
+        if (log.isDebugEnabled()) {
             log.debug("Receiving response: " + response.getStatusLine());
-    	}
+        }
         if (headerLog.isDebugEnabled()) {
             headerLog.debug("<< " + response.getStatusLine().toString());
             Header[] headers = response.getAllHeaders();
@@ -247,9 +247,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     @Override
     public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
-    	if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Sending request: " + request.getRequestLine());
-    	}
+        }
         super.sendRequestHeader(request);
         if (headerLog.isDebugEnabled()) {
             headerLog.debug(">> " + request.getRequestLine().toString());

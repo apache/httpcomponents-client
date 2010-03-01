@@ -67,8 +67,8 @@ public final class DateUtils {
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
     private static final String[] DEFAULT_PATTERNS = new String[] {
-    	PATTERN_RFC1036,
-    	PATTERN_RFC1123,
+        PATTERN_RFC1036,
+        PATTERN_RFC1123,
         PATTERN_ASCTIME
     };
 

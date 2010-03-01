@@ -62,98 +62,98 @@ public class TestDefaultResponseParser extends TestCase {
     public static Test suite() {
         return new TestSuite(TestDefaultResponseParser.class);
     }
-    
+
     public void testResponseParsingWithSomeGarbage() throws Exception {
-    	String s = 
-    		"garbage\r\n" + 
-    		"garbage\r\n" + 
-    		"more garbage\r\n" + 
-    		"HTTP/1.1 200 OK\r\n" + 
-    		"header1: value1\r\n" + 
-    		"header2: value2\r\n" + 
-    		"\r\n"; 
-    	
-    	HttpParams params = new BasicHttpParams();
-    	SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
-    	HttpMessageParser parser = new DefaultResponseParser(
-    			inbuffer, 
-    			BasicLineParser.DEFAULT,
-    			new DefaultHttpResponseFactory(),
-    			params);
-    	
-    	HttpResponse response = (HttpResponse) parser.parse();
-    	assertNotNull(response);
-    	assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
-    	assertEquals(200, response.getStatusLine().getStatusCode());
-    	
-    	Header[] headers = response.getAllHeaders();
-    	assertNotNull(headers);
-    	assertEquals(2, headers.length);
-    	assertEquals("header1", headers[0].getName());
-    	assertEquals("header2", headers[1].getName());
+        String s = 
+            "garbage\r\n" + 
+            "garbage\r\n" + 
+            "more garbage\r\n" + 
+            "HTTP/1.1 200 OK\r\n" + 
+            "header1: value1\r\n" + 
+            "header2: value2\r\n" + 
+            "\r\n"; 
+
+        HttpParams params = new BasicHttpParams();
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        HttpMessageParser parser = new DefaultResponseParser(
+                inbuffer, 
+                BasicLineParser.DEFAULT,
+                new DefaultHttpResponseFactory(),
+                params);
+
+        HttpResponse response = (HttpResponse) parser.parse();
+        assertNotNull(response);
+        assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
+        assertEquals(200, response.getStatusLine().getStatusCode());
+
+        Header[] headers = response.getAllHeaders();
+        assertNotNull(headers);
+        assertEquals(2, headers.length);
+        assertEquals("header1", headers[0].getName());
+        assertEquals("header2", headers[1].getName());
     }
 
     public void testResponseParsingWithTooMuchGarbage() throws Exception {
-    	String s = 
-    		"garbage\r\n" + 
-    		"garbage\r\n" + 
-    		"more garbage\r\n" + 
-    		"HTTP/1.1 200 OK\r\n" + 
-    		"header1: value1\r\n" + 
-    		"header2: value2\r\n" + 
-    		"\r\n"; 
-    	
-    	HttpParams params = new BasicHttpParams();
-    	params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.valueOf(2));
-    	SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
-    	HttpMessageParser parser = new DefaultResponseParser(
-    			inbuffer, 
-    			BasicLineParser.DEFAULT,
-    			new DefaultHttpResponseFactory(),
-    			params);
-    	
-    	try {
-        	parser.parse();
-        	fail("ProtocolException should have been thrown");
-    	} catch (ProtocolException ex) {
-    	}
+        String s = 
+            "garbage\r\n" + 
+            "garbage\r\n" + 
+            "more garbage\r\n" + 
+            "HTTP/1.1 200 OK\r\n" + 
+            "header1: value1\r\n" + 
+            "header2: value2\r\n" + 
+            "\r\n"; 
+
+        HttpParams params = new BasicHttpParams();
+        params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.valueOf(2));
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        HttpMessageParser parser = new DefaultResponseParser(
+                inbuffer, 
+                BasicLineParser.DEFAULT,
+                new DefaultHttpResponseFactory(),
+                params);
+
+        try {
+            parser.parse();
+            fail("ProtocolException should have been thrown");
+        } catch (ProtocolException ex) {
+        }
     }
 
     public void testResponseParsingNoResponse() throws Exception {
-    	HttpParams params = new BasicHttpParams();
-    	SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params); 
-    	HttpMessageParser parser = new DefaultResponseParser(
-    			inbuffer, 
-    			BasicLineParser.DEFAULT,
-    			new DefaultHttpResponseFactory(),
-    			params);
-    	
-    	try {
-        	parser.parse();
-        	fail("NoHttpResponseException should have been thrown");
-    	} catch (NoHttpResponseException ex) {
-    	}
+        HttpParams params = new BasicHttpParams();
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params); 
+        HttpMessageParser parser = new DefaultResponseParser(
+                inbuffer, 
+                BasicLineParser.DEFAULT,
+                new DefaultHttpResponseFactory(),
+                params);
+
+        try {
+            parser.parse();
+            fail("NoHttpResponseException should have been thrown");
+        } catch (NoHttpResponseException ex) {
+        }
     }
-    
+
     public void testResponseParsingOnlyGarbage() throws Exception {
-    	String s = 
-    		"garbage\r\n" + 
-    		"garbage\r\n" + 
-    		"more garbage\r\n" + 
-    		"a lot more garbage\r\n";
-    	HttpParams params = new BasicHttpParams();
-    	SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
-    	HttpMessageParser parser = new DefaultResponseParser(
-    			inbuffer, 
-    			BasicLineParser.DEFAULT,
-    			new DefaultHttpResponseFactory(),
-    			params);
-    	
-    	try {
-        	parser.parse();
-        	fail("ProtocolException should have been thrown");
-    	} catch (ProtocolException ex) {
-    	}
+        String s = 
+            "garbage\r\n" + 
+            "garbage\r\n" + 
+            "more garbage\r\n" + 
+            "a lot more garbage\r\n";
+        HttpParams params = new BasicHttpParams();
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        HttpMessageParser parser = new DefaultResponseParser(
+                inbuffer, 
+                BasicLineParser.DEFAULT,
+                new DefaultHttpResponseFactory(),
+                params);
+
+        try {
+            parser.parse();
+            fail("ProtocolException should have been thrown");
+        } catch (ProtocolException ex) {
+        }
     }
-    
+
 }

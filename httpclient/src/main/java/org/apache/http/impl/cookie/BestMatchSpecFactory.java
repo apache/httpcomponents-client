@@ -54,17 +54,17 @@ public class BestMatchSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-        	
-        	String[] patterns = null;
-        	Collection<?> param = (Collection<?>) params.getParameter(
-        			CookieSpecPNames.DATE_PATTERNS);
-        	if (param != null) {
-        		patterns = new String[param.size()];
-        		patterns = param.toArray(patterns);
-        	}
-        	boolean singleHeader = params.getBooleanParameter(
-        			CookieSpecPNames.SINGLE_COOKIE_HEADER, false);        	
-        	
+            
+            String[] patterns = null;
+            Collection<?> param = (Collection<?>) params.getParameter(
+                    CookieSpecPNames.DATE_PATTERNS);
+            if (param != null) {
+                patterns = new String[param.size()];
+                patterns = param.toArray(patterns);
+            }
+            boolean singleHeader = params.getBooleanParameter(
+                    CookieSpecPNames.SINGLE_COOKIE_HEADER, false);
+            
             return new BestMatchSpec(patterns, singleHeader);
         } else {
             return new BestMatchSpec();
