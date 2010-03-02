@@ -58,6 +58,7 @@
       <item name="HttpClient" href="httpclient/index.html"/>
       <item name="HttpMime" href="httpmime/index.html"/>
     </menu>
-    <menu ref="reports"/>      
+    <!-- Reports don't really apply at this level; in particular the dependecy report is misleading -->
+    <!-- menu ref="reports"/-->
   </body>
 </project>
