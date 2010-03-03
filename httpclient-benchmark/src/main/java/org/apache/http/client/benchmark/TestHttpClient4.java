@@ -27,28 +27,31 @@ package org.apache.http.client.benchmark;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.params.SyncBasicHttpParams;
+import org.apache.http.util.VersionInfo;
 
-public class TestHttpClient4 {
+public class TestHttpClient4 implements TestHttpAgent {
 
-    public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
-            System.exit(-1);
-        }
-        String targetURI = args[0];
-        int n = Integer.parseInt(args[1]);
-       
-        BasicHttpParams params = new BasicHttpParams();
+    private final HttpClient httpclient;
+    
+    public TestHttpClient4() {
+        super();
+        HttpParams params = new SyncBasicHttpParams();
         params.setParameter(HttpProtocolParams.PROTOCOL_VERSION,
                 HttpVersion.HTTP_1_1);
         params.setBooleanParameter(HttpProtocolParams.USE_EXPECT_CONTINUE,
@@ -58,24 +61,21 @@ public class TestHttpClient4 {
         params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
        
-        DefaultHttpClient httpclient = new DefaultHttpClient(params);
-       
-        HttpGet httpget = new HttpGet(targetURI);
+        this.httpclient = new DefaultHttpClient(params);
+    }
 
-        byte[] buffer = new byte[4096];
-       
-        long startTime;
-        long finishTime;
+    public Stats execute(final HttpUriRequest request, int n) throws Exception {
+        Stats stats = new Stats();
+        
         int successCount = 0;
         int failureCount = 0;
-        String serverName = "unknown";
-        long total = 0;
         long contentLen = 0;
         long totalContentLen = 0;
-       
-        startTime = System.currentTimeMillis();
+        
+        byte[] buffer = new byte[4096];
+        
         for (int i = 0; i < n; i++) {
-            HttpResponse response = httpclient.execute(httpget);
+            HttpResponse response = this.httpclient.execute(request);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 InputStream instream = entity.getContent();
@@ -84,14 +84,13 @@ public class TestHttpClient4 {
                     if (instream != null) {
                         int l = 0;
                         while ((l = instream.read(buffer)) != -1) {
-                            total += l;
                             contentLen += l;
                         }
                     }
                     successCount++;
                     totalContentLen += contentLen;
                 } catch (IOException ex) {
-                    httpget.abort();
+                    request.abort();
                     failureCount++;
                 } finally {
                     instream.close();
@@ -99,40 +98,49 @@ public class TestHttpClient4 {
             }
             Header header = response.getFirstHeader("Server");
             if (header != null) {
-                serverName = header.getValue();
+                stats.setServerName(header.getValue());
             }
         }
-        finishTime = System.currentTimeMillis();
+        stats.setSuccessCount(successCount);
+        stats.setFailureCount(failureCount);
+        stats.setContentLen(contentLen);
+        stats.setTotalContentLen(totalContentLen);
+        return stats;
+    }    
+    
+    public Stats get(final URI target, int n) throws Exception {
+        HttpGet httpget = new HttpGet(target);
+        return execute(httpget, n);
+    }
+    
+    public Stats post(final URI target, byte[] content, int n) throws Exception {
+        HttpPost httppost = new HttpPost(target);
+        httppost.setEntity(new ByteArrayEntity(content));
+        return execute(httppost, n);
+    }
+    
+    public String getClientName() {
+        VersionInfo vinfo = VersionInfo.loadVersionInfo("org.apache.http.client", 
+                Thread.currentThread().getContextClassLoader());
+        return "Apache HttpClient 4 (ver: " + 
+            ((vinfo != null) ? vinfo.getRelease() : VersionInfo.UNAVAILABLE) + ")";
+    }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.out.println("Usage: <target URI> <no of requests>");
+            System.exit(-1);
+        }
+        URI targetURI = new URI(args[0]);
+        int n = Integer.parseInt(args[1]);
+        
+        TestHttpClient4 test = new TestHttpClient4(); 
+        
+        long startTime = System.currentTimeMillis();
+        Stats stats = test.get(targetURI, n);
+        long finishTime = System.currentTimeMillis();
        
-        float totalTimeSec = (float) (finishTime - startTime) / 1000;
-        float reqsPerSec = (float) successCount / totalTimeSec;
-        float timePerReqMs = (float) (finishTime - startTime) / (float) successCount;
-       
-        System.out.print("Server Software:\t");
-        System.out.println(serverName);
-        System.out.println();
-        System.out.print("Document URI:\t\t");
-        System.out.println(targetURI);
-        System.out.print("Document Length:\t");
-        System.out.print(contentLen);
-        System.out.println(" bytes");
-        System.out.println();
-        System.out.print("Time taken for tests:\t");
-        System.out.print(totalTimeSec);
-        System.out.println(" seconds");
-        System.out.print("Complete requests:\t");
-        System.out.println(successCount);
-        System.out.print("Failed requests:\t");
-        System.out.println(failureCount);
-        System.out.print("Content transferred:\t");
-        System.out.print(total);
-        System.out.println(" bytes");
-        System.out.print("Requests per second:\t");
-        System.out.print(reqsPerSec);
-        System.out.println(" [#/sec] (mean)");
-        System.out.print("Time per request:\t");
-        System.out.print(timePerReqMs);
-        System.out.println(" [ms] (mean)");
+        Stats.printStats(targetURI, startTime, finishTime, stats);
     }
    
 } 
