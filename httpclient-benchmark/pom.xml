@@ -55,6 +55,11 @@
       <version>${pom.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.1-alpha2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
@@ -104,6 +109,23 @@
           <optimize>${maven.compile.optimize}</optimize>
           <showDeprecations>${maven.compile.deprecation}</showDeprecations>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <executions>
+          <execution>
+            <id>test-run</id>
+            <phase>test</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.apache.http.client.benchmark.Benchmark</mainClass>        
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

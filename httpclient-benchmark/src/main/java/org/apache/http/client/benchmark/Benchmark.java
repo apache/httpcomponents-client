@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.util.Random;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -76,8 +75,10 @@ public class Benchmark {
        };
 
        byte[] content = new byte[contentLen];
-       Random rnd = new Random();
-       rnd.nextBytes(content);
+       int r = Math.abs(content.hashCode());
+       for (int i = 0; i < content.length; i++) {
+           content[i] = (byte) ((r + i) % 96 + 32);
+       }
 
        URI target1 = new URI("http", null, "localhost", port, "/rnd", "c=" + contentLen, null);
        URI target2 = new URI("http", null, "localhost", port, "/echo", null, null);
@@ -174,6 +175,7 @@ public class Benchmark {
            InputStream instream = request.getInputStream();
            if (instream != null) {
                IO.copy(instream, buffer);
+               buffer.flush();
            }
            byte[] content = buffer.getBuf();
            
