@@ -26,19 +26,28 @@
 package org.apache.http.client.benchmark;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 
-public class TestHttpJRE implements TestHttpAgent {
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.server.Server;
 
-    public TestHttpJRE() {
+public class TestJettyHttpClient implements TestHttpAgent {
+
+    private final HttpClient client;
+    
+    public TestJettyHttpClient() {
         super();
+        this.client = new HttpClient();
+        this.client.setConnectorType(HttpClient.CONNECTOR_SOCKET);
+        this.client.setRequestBufferSize(8 * 1024);
+        this.client.setResponseBufferSize(8 * 1024);
     }
     
-    public void init() {
+    public void init() throws Exception {
+        this.client.start();
     }
 
     public Stats execute(final URI targetURI, byte[] content, int n) throws Exception {
@@ -47,52 +56,36 @@ public class TestHttpJRE implements TestHttpAgent {
         
         int successCount = 0;
         int failureCount = 0;
-        long contentLen = 0;
         long totalContentLen = 0;
         
-        byte[] buffer = new byte[4096];
-        
-        URL url = targetURI.toURL();
         for (int i = 0; i < n; i++) {
-            HttpURLConnection c = (HttpURLConnection) url.openConnection();
-            
+            SimpleHttpExchange exchange = new SimpleHttpExchange();
+            exchange.setURL(targetURI.toASCIIString());
+
             if (content != null) {
-                c.setRequestMethod("POST");
-                c.setFixedLengthStreamingMode(content.length);
-                c.setUseCaches (false);
-                c.setDoInput(true);
-                c.setDoOutput(true);
-                OutputStream out = c.getOutputStream();
-                out.write(content);
-                out.flush ();
-                out.close();
+                exchange.setMethod("POST");
+                exchange.setRequestContent(new ByteArrayBuffer(content));
             }
-            InputStream instream = c.getInputStream();
+            
             try {
-                contentLen = 0;
-                if (instream != null) {
-                    int l = 0;
-                    while ((l = instream.read(buffer)) != -1) {
-                        contentLen += l;
-                    }
-                }
-                if (c.getResponseCode() == 200) {
+                this.client.send(exchange);
+                exchange.waitForDone();
+                if (exchange.status == 200) {
                     successCount++;
                 } else {
                     failureCount++;
                 }
-                totalContentLen += contentLen;
+                stats.setContentLen(exchange.contentLen);
+                totalContentLen += exchange.contentLen;
             } catch (IOException ex) {
                 failureCount++;
             }
-            String s = c.getHeaderField("Server");
-            if (s != null) {
-                stats.setServerName(s);
+            if (exchange.server != null) {
+                stats.setServerName(exchange.server);
             }
         }
         stats.setSuccessCount(successCount);
         stats.setFailureCount(failureCount);
-        stats.setContentLen(contentLen);
         stats.setTotalContentLen(totalContentLen);
         return stats;
     }
@@ -106,7 +99,7 @@ public class TestHttpJRE implements TestHttpAgent {
     }
     
     public String getClientName() {
-        return "JRE HTTP " + System.getProperty("java.version");
+        return "Jetty " + Server.getVersion();
     }
 
     public static void main(String[] args) throws Exception {
@@ -117,7 +110,7 @@ public class TestHttpJRE implements TestHttpAgent {
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
 
-        TestHttpJRE test = new TestHttpJRE(); 
+        TestJettyHttpClient test = new TestJettyHttpClient(); 
         
         long startTime = System.currentTimeMillis();
         Stats stats = test.get(targetURI, n);
@@ -125,5 +118,35 @@ public class TestHttpJRE implements TestHttpAgent {
        
         Stats.printStats(targetURI, startTime, finishTime, stats);
     }
-   
+
+    static class SimpleHttpExchange extends HttpExchange {
+        
+        private final Buffer serverHeader = new ByteArrayBuffer("Server");
+        
+        long contentLen = 0;
+        int status = 0;
+        String server;
+        
+        protected void onResponseStatus(
+                final Buffer version, int status, final Buffer reason) throws IOException {
+            this.status = status;
+            super.onResponseStatus(version, status, reason);
+        }
+        
+        @Override
+        protected void onResponseHeader(final Buffer name, final Buffer value) throws IOException {
+            super.onResponseHeader(name, value);
+            if (name.equalsIgnoreCase(this.serverHeader)) {
+                this.server = value.toString("ASCII"); 
+            }
+        }
+
+        @Override
+        protected void onResponseContent(final Buffer content) throws IOException {
+            this.contentLen += content.length();
+            super.onResponseContent(content);
+        }
+        
+    };
+    
 } 

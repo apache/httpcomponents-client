@@ -53,6 +53,9 @@ public class TestHttpClient3 implements TestHttpAgent {
                 .setStaleCheckingEnabled(false);
     }
 
+    public void init() {
+    }
+
     public Stats execute(final HttpMethod httpmethod, int n) throws Exception {
 
         Stats stats = new Stats();

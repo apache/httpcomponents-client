@@ -64,6 +64,9 @@ public class TestHttpClient4 implements TestHttpAgent {
         this.httpclient = new DefaultHttpClient(params);
     }
 
+    public void init() {
+    }
+
     public Stats execute(final HttpUriRequest request, int n) throws Exception {
         Stats stats = new Stats();
         

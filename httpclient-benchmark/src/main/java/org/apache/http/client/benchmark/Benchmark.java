@@ -71,9 +71,14 @@ public class Benchmark {
                new TestHttpClient3(),
                new TestHttpJRE(),
                new TestHttpCore(),
-               new TestHttpClient4()
+               new TestHttpClient4(),
+               new TestJettyHttpClient()
        };
 
+       for (TestHttpAgent agent: agents) {
+           agent.init();
+       }
+       
        byte[] content = new byte[contentLen];
        int r = Math.abs(content.hashCode());
        for (int i = 0; i < content.length; i++) {

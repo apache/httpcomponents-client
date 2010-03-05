@@ -91,6 +91,9 @@ public class TestHttpCore implements TestHttpAgent {
         this.connStrategy = new DefaultConnectionReuseStrategy();
     }
     
+    public void init() {
+    }
+
     public Stats execute(
             final HttpHost targetHost, final HttpRequest request, int n) throws Exception {
         

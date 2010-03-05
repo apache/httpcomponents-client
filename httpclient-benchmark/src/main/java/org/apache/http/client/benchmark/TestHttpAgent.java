@@ -29,6 +29,8 @@ import java.net.URI;
 
 public interface TestHttpAgent {
 
+    void init() throws Exception;
+    
     String getClientName();
     
     Stats get(URI target, int count) throws Exception;
