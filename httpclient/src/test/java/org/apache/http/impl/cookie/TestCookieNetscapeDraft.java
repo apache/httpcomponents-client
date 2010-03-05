@@ -30,6 +30,7 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -188,6 +189,7 @@ public class TestCookieNetscapeDraft extends TestCase {
         assertEquals(1, cookies.size());
         Cookie cookie = cookies.get(0);
         Calendar c = Calendar.getInstance();
+        c.setTimeZone(TimeZone.getTimeZone("GMT"));
         c.setTime(cookie.getExpiryDate());
         int year = c.get(Calendar.YEAR);
         assertEquals(2070, year);
