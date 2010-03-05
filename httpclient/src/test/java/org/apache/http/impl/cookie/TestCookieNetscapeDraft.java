@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import junit.framework.Test;
@@ -44,8 +45,6 @@ import org.apache.http.message.BasicHeader;
 
 /**
  * Test cases for Netscape cookie draft
- *
- * 
  */
 public class TestCookieNetscapeDraft extends TestCase {
 
@@ -166,10 +165,44 @@ public class TestCookieNetscapeDraft extends TestCase {
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
-        header = new BasicHeader("Set-Cookie", 
+        assertNotNull(cookies);
+        assertEquals(1, cookies.size());
+        Cookie cookie = cookies.get(0);
+        Calendar c = Calendar.getInstance();
+        c.setTime(cookie.getExpiryDate());
+        int year = c.get(Calendar.YEAR);
+        assertEquals(2070, year);
+    }
+
+    /**
+     * Expire attribute with two digit year.
+     */
+    public void testNetscapeCookieExpireAttributeTwoDigitYear() throws Exception {
+        CookieSpec cookiespec = new NetscapeDraftSpec();
+        Header header = new BasicHeader("Set-Cookie", 
+            "name=value; path=/; domain=.mydomain.com; expires=Thursday, 01-Jan-70 00:00:10 GMT; comment=no_comment");
+        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        List<Cookie> cookies = cookiespec.parse(header, origin);
+        cookiespec.validate(cookies.get(0), origin);
+        assertNotNull(cookies);
+        assertEquals(1, cookies.size());
+        Cookie cookie = cookies.get(0);
+        Calendar c = Calendar.getInstance();
+        c.setTime(cookie.getExpiryDate());
+        int year = c.get(Calendar.YEAR);
+        assertEquals(2070, year);
+    }
+
+    /**
+     * Invalid expire attribute.
+     */
+    public void testNetscapeCookieInvalidExpireAttribute() throws Exception {
+        CookieSpec cookiespec = new NetscapeDraftSpec();
+        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        Header header = new BasicHeader("Set-Cookie", 
             "name=value; path=/; domain=.mydomain.com; expires=Thu 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         try {
-            cookies = cookiespec.parse(header, origin);
+            List<Cookie> cookies = cookiespec.parse(header, origin);
             cookiespec.validate(cookies.get(0), origin);
             fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {

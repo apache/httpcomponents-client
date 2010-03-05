@@ -55,7 +55,7 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe // superclass is @NotThreadSafe
 public class NetscapeDraftSpec extends CookieSpecBase {
 
-    protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss z";
+    protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yy HH:mm:ss z";
     
     private final String[] datepatterns; 
     
