@@ -34,6 +34,8 @@ import org.apache.http.entity.HttpEntityWrapper;
 
 /**
  * Common base class for decompressing {@link HttpEntity} implementations.
+ * 
+ * @since 4.1
  */
 abstract class DecompressingEntity extends HttpEntityWrapper {
 

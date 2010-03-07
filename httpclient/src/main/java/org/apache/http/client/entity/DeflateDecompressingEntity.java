@@ -44,6 +44,10 @@ import org.apache.http.entity.HttpEntityWrapper;
  * confusing that <code>deflate</code> in HTTP 1.1 means <code>zlib</code> streams rather than 
  * <code>deflate</code> streams. We handle both types in here, since that's what is seen on the 
  * internet. Moral - prefer <code>gzip</code>!
+ * 
+ * @see GzipDecompressingEntity
+ * 
+ * @since 4.1
  */
 public class DeflateDecompressingEntity extends DecompressingEntity {
 
