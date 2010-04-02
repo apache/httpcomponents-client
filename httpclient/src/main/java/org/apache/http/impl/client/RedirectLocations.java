@@ -28,13 +28,16 @@
 package org.apache.http.impl.client;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.http.annotation.NotThreadSafe;
 
 /**
- * A collection of URIs that were used as redirects.
+ * This class represents a collection of {@link URI}s used as redirect locations.
  *
  * @since 4.0
  */
@@ -42,31 +45,55 @@ import org.apache.http.annotation.NotThreadSafe;
 public class RedirectLocations {
 
     private final Set<URI> uris;
+    private final List<URI> log;
     
     public RedirectLocations() {
         super();
         this.uris = new HashSet<URI>();
+        this.log = new ArrayList<URI>();
     }
     
     /**
-     * Returns true if this collection contains the given URI.
+     * Test if the URI is present in the collection.
      */
     public boolean contains(final URI uri) {
         return this.uris.contains(uri);
     }
     
     /**
-     * Adds a new URI to the list of redirects.
+     * Adds a new URI to the collection.
      */
     public void add(final URI uri) {
         this.uris.add(uri);
+        this.log.add(uri);
     }
 
     /**
-     * Removes a URI from the list of redirects.
+     * Removes a URI from the collection.
      */
     public boolean remove(final URI uri) {
-        return this.uris.remove(uri);
+        boolean removed = this.uris.remove(uri);
+        if (removed) {
+            Iterator<URI> it = this.log.iterator();
+            while (it.hasNext()) {
+                URI current = it.next();
+                if (current.equals(uri)) {
+                    it.remove();
+                }
+            }
+        }
+        return removed;
+    }
+    
+    /**
+     * Returns all redirect {@Link URI}s in the order they were added to the collection.
+     * 
+     * @return list of all URIs
+     * 
+     * @since 4.1
+     */
+    public List<URI> getAll() {
+        return new ArrayList<URI>(this.log);
     }
 
 }
