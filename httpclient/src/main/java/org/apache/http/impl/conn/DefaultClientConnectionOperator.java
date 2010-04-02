@@ -39,10 +39,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SocketFactory;
@@ -102,8 +104,6 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             throw new IllegalArgumentException
                 ("Target host must not be null.");
         }
-        // local address may be null
-        //@@@ is context allowed to be null?
         if (params == null) {
             throw new IllegalArgumentException
                 ("Parameters must not be null.");
@@ -113,21 +113,57 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 ("Connection must not be open.");
         }
 
-        final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        final SocketFactory sf = schm.getSocketFactory();
-
-        Socket sock = sf.createSocket();
-        conn.opening(sock, target);
-
-        try {
-            sock = sf.connectSocket(sock, target.getHostName(),
-                    schm.resolvePort(target.getPort()),
-                    local, 0, params);
-        } catch (ConnectException ex) {
-            throw new HttpHostConnectException(target, ex);
+        SocketFactory sf = null;
+        LayeredSocketFactory layeredsf = null;
+        
+        Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        sf = schm.getSocketFactory();
+        if (sf instanceof LayeredSocketFactory) {
+            layeredsf = (LayeredSocketFactory) sf;
+            sf = PlainSocketFactory.getSocketFactory();
         }
-        prepareSocket(sock, context, params);
-        conn.openCompleted(sf.isSecure(sock), params);
+
+        InetAddress[] addresses = InetAddress.getAllByName(target.getHostName());
+        for (int i = 0; i < addresses.length; i++) {
+            InetAddress address = addresses[i];
+            boolean last = i == addresses.length;
+            Socket sock = sf.createSocket();
+            conn.opening(sock, target);
+            try {
+                Socket connsock = sf.connectSocket(
+                        sock, 
+                        address.getHostAddress(),
+                        schm.resolvePort(target.getPort()),
+                        local, 0, params);
+                if (sock != connsock) {
+                    sock = connsock;
+                    conn.opening(sock, target);
+                }
+                if (layeredsf != null) {
+                    connsock = layeredsf.createSocket(
+                            sock, 
+                            address.getHostAddress(),
+                            schm.resolvePort(target.getPort()),
+                            true);
+                    if (sock != connsock) {
+                        sock = connsock;
+                        conn.opening(sock, target);
+                    }
+                    sf = layeredsf;
+                }
+                prepareSocket(sock, context, params);
+                conn.openCompleted(sf.isSecure(sock), params);
+                break;
+            } catch (ConnectException ex) {
+                if (last) {
+                    throw new HttpHostConnectException(target, ex);
+                }
+            } catch (ConnectTimeoutException ex) {
+                if (last) {
+                    throw ex;
+                }
+            }
+        }
     }
 
     public void updateSecureConnection(OperatedClientConnection conn,
