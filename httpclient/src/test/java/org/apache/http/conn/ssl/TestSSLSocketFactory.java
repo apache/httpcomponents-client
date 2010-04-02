@@ -161,7 +161,7 @@ public class TestSSLSocketFactory extends TestCase {
         SSLContext sslcontext = SSLContext.getInstance("TLSv1");
         sslcontext.init(keymanagers, trustmanagers, null);
         
-        LocalTestServer server = new LocalTestServer(null, null, null, sslcontext);
+        LocalTestServer server = new LocalTestServer(null, null, null, null, sslcontext);
         server.registerDefaultHandlers();
         server.start();
         try {
