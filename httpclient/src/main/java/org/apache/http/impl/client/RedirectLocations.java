@@ -44,37 +44,37 @@ import org.apache.http.annotation.NotThreadSafe;
 @NotThreadSafe // HashSet is not synch.
 public class RedirectLocations {
 
-    private final Set<URI> uris;
-    private final List<URI> log;
+    private final Set<URI> unique;
+    private final List<URI> all;
     
     public RedirectLocations() {
         super();
-        this.uris = new HashSet<URI>();
-        this.log = new ArrayList<URI>();
+        this.unique = new HashSet<URI>();
+        this.all = new ArrayList<URI>();
     }
     
     /**
      * Test if the URI is present in the collection.
      */
     public boolean contains(final URI uri) {
-        return this.uris.contains(uri);
+        return this.unique.contains(uri);
     }
     
     /**
      * Adds a new URI to the collection.
      */
     public void add(final URI uri) {
-        this.uris.add(uri);
-        this.log.add(uri);
+        this.unique.add(uri);
+        this.all.add(uri);
     }
 
     /**
      * Removes a URI from the collection.
      */
     public boolean remove(final URI uri) {
-        boolean removed = this.uris.remove(uri);
+        boolean removed = this.unique.remove(uri);
         if (removed) {
-            Iterator<URI> it = this.log.iterator();
+            Iterator<URI> it = this.all.iterator();
             while (it.hasNext()) {
                 URI current = it.next();
                 if (current.equals(uri)) {
@@ -93,7 +93,7 @@ public class RedirectLocations {
      * @since 4.1
      */
     public List<URI> getAll() {
-        return new ArrayList<URI>(this.log);
+        return new ArrayList<URI>(this.all);
     }
 
 }
