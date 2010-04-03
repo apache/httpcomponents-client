@@ -61,7 +61,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
     
-    private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
+    public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     public DefaultRedirectStrategy() {
         super();
@@ -110,12 +110,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             this.log.debug("Redirect requested to location '" + location + "'");
         }
 
-        URI uri;
-        try {
-            uri = new URI(location);            
-        } catch (URISyntaxException ex) {
-            throw new ProtocolException("Invalid redirect URI: " + location, ex);
-        }
+        URI uri = createLocationURI(location);
 
         HttpParams params = response.getParams();
         // rfc2616 demands the location value be a complete URI
@@ -175,6 +170,17 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         }
         
         return uri;
+    }
+    
+    /**
+     * @since 4.1
+     */
+    protected URI createLocationURI(final String location) throws ProtocolException {
+        try {
+            return new URI(location);
+        } catch (URISyntaxException ex) {
+            throw new ProtocolException("Invalid redirect URI: " + location, ex);
+        }
     }
 
     public HttpUriRequest getRedirect(
