@@ -27,6 +27,8 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 
+import org.apache.http.HttpHost;
+
 import junit.framework.Assert;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -51,6 +53,39 @@ public class TestURIUtils extends TestCase {
 
     public static Test suite() {
         return new TestSuite(TestURIUtils.class);
+    }
+
+    public void testRewite00() throws Exception {
+        URI uri = URI.create("http://thishost/stuff");
+        HttpHost target = new HttpHost("thathost", -1);
+        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(uri, target).toString());
+    }
+
+    public void testRewite01() throws Exception {
+        URI uri = URI.create("http://thishost/stuff");
+        Assert.assertEquals("/stuff", URIUtils.rewriteURI(uri, null).toString());
+    }
+
+    public void testRewite02() throws Exception {
+        URI uri = URI.create("http://thishost//");
+        Assert.assertEquals("/", URIUtils.rewriteURI(uri, null).toString());
+    }
+
+    public void testRewite03() throws Exception {
+        URI uri = URI.create("http://thishost//stuff///morestuff");
+        Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(uri, null).toString());
+    }
+
+    public void testRewite04() throws Exception {
+        URI uri = URI.create("http://thishost/stuff#crap");
+        HttpHost target = new HttpHost("thathost", -1);
+        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(uri, target, true).toString());
+    }
+
+    public void testRewite05() throws Exception {
+        URI uri = URI.create("http://thishost/stuff#crap");
+        HttpHost target = new HttpHost("thathost", -1);
+        Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(uri, target, false).toString());
     }
 
     public void testResolve00() {

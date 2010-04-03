@@ -134,7 +134,7 @@ public class URIUtils {
                     target.getSchemeName(), 
                     target.getHostName(), 
                     target.getPort(), 
-                    uri.getRawPath(), 
+                    normalizePath(uri.getRawPath()), 
                     uri.getRawQuery(), 
                     dropFragment ? null : uri.getRawFragment());
         } else {
@@ -142,10 +142,31 @@ public class URIUtils {
                     null, 
                     null, 
                     -1, 
-                    uri.getRawPath(), 
+                    normalizePath(uri.getRawPath()), 
                     uri.getRawQuery(), 
                     dropFragment ? null : uri.getRawFragment());
         }
+    }
+    
+    private static String normalizePath(final String path) {
+        if (path == null) {
+            return null;
+        }
+        StringBuilder buffer = new StringBuilder(path.length());
+        boolean gotslash = false;
+        for (int i = 0; i < path.length(); i++) {
+            char ch = path.charAt(i);
+            if (ch == '/') {
+                if (!gotslash) {
+                    buffer.append(ch);
+                    gotslash = true;
+                }
+            } else {
+                buffer.append(ch);
+                gotslash = false;
+            }
+        }
+        return buffer.toString();
     }
     
     /**
