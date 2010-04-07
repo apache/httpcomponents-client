@@ -168,10 +168,9 @@ public class TestSSLSocketFactory extends TestCase {
             
             TestX509HostnameVerifier hostnameVerifier = new TestX509HostnameVerifier();
             
-            SSLSocketFactory socketFactory = new SSLSocketFactory(sslcontext);
-            socketFactory.setHostnameVerifier(hostnameVerifier);
+            SSLSocketFactory socketFactory = new SSLSocketFactory(sslcontext, hostnameVerifier);
             
-            Scheme https = new Scheme("https", socketFactory, 443); 
+            Scheme https = new Scheme("https", 443, socketFactory); 
             DefaultHttpClient httpclient = new DefaultHttpClient();
             httpclient.getConnectionManager().getSchemeRegistry().register(https);
             

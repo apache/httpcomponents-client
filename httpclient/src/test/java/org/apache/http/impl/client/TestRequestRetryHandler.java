@@ -48,7 +48,7 @@ public class TestRequestRetryHandler extends TestCase {
             throws Exception {
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         ClientConnectionManager connManager = new ThreadSafeClientConnManager(schemeRegistry);
 
         assertOnRetry(connManager);
@@ -58,14 +58,14 @@ public class TestRequestRetryHandler extends TestCase {
             throws Exception {
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         ClientConnectionManager connManager = new SingleClientConnManager(schemeRegistry);
         assertOnRetry(connManager);
     }
 
     protected void assertOnRetry(ClientConnectionManager connManager) throws Exception {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
         DefaultHttpClient client = new DefaultHttpClient(connManager);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();

@@ -39,6 +39,7 @@ import java.util.Arrays;
 
 import org.apache.http.annotation.Immutable;
 
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -51,7 +52,11 @@ import org.apache.http.params.HttpParams;
  * {@link #createSocket()} method.
  *
  * @since 4.0
+ * 
+ * @deprecated Do not use. For multihome support socket factories must implement
+ * {@link SchemeSocketFactory} interface.
  */
+@Deprecated
 @Immutable
 public final class MultihomePlainSocketFactory implements SocketFactory {
 

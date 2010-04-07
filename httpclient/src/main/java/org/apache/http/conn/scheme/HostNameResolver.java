@@ -34,7 +34,10 @@ import java.net.InetAddress;
  * Hostname to IP address resolver.
  *
  * @since 4.0
+ * 
+ * @deprecated Do not use
  */
+@Deprecated
 public interface HostNameResolver {
 
     /**

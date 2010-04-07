@@ -86,7 +86,7 @@ public class RedirectLocations {
     }
     
     /**
-     * Returns all redirect {@Link URI}s in the order they were added to the collection.
+     * Returns all redirect {@link URI}s in the order they were added to the collection.
      * 
      * @return list of all URIs
      * 

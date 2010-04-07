@@ -27,26 +27,25 @@
 
 package org.apache.http.mockup;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.params.HttpParams;
-
-
 
 /**
  * {@link SocketFactory} mockup implementation.
  */
-public class SocketFactoryMockup implements SocketFactory {
+public class SocketFactoryMockup implements SchemeSocketFactory {
 
     /* A default instance of this mockup. */
-    public final static SocketFactory INSTANCE =
-        new SocketFactoryMockup("INSTANCE");
+    public final static SchemeSocketFactory INSTANCE = new SocketFactoryMockup("INSTANCE");
 
     /** The name of this mockup socket factory. */
     protected final String mockup_name;
-
 
     public SocketFactoryMockup(String name) {
         mockup_name = (name != null) ? name : String.valueOf(hashCode());
@@ -59,14 +58,15 @@ public class SocketFactoryMockup implements SocketFactory {
         return "SocketFactoryMockup." + mockup_name;
     }
 
-
     public Socket createSocket() {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
 
-    public Socket connectSocket(Socket sock, String host, int port,
-                                InetAddress localAddress, int localPort,
-                                HttpParams params) {
+    public Socket connectSocket(
+            Socket sock, 
+            InetSocketAddress remoteAddress,
+            InetSocketAddress localAddress, 
+            HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
 
@@ -74,4 +74,5 @@ public class SocketFactoryMockup implements SocketFactory {
         // no way that the argument is from *this* factory...
         throw new IllegalArgumentException("I'm a mockup!");
     }
+
 }

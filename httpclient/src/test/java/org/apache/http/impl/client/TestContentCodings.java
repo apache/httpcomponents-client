@@ -185,7 +185,7 @@ public class TestContentCodings extends ServerTestBase {
         int clients = 100;
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         cm.setMaxTotalConnections(clients);

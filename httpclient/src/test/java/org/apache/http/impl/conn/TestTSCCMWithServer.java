@@ -30,6 +30,7 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -56,7 +57,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
@@ -505,8 +506,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
     
     public void testAbortDuringConnecting() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);        
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
+        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
+                connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
+        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
@@ -555,8 +557,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
     
     public void testAbortBeforeSocketCreate() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);        
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
+        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
+                connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
+        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
@@ -607,8 +610,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
     
     public void testAbortAfterSocketConnect() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);        
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", stallingSocketFactory, 80);
+        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
+                connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
+        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
@@ -780,24 +784,27 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
     }
     
-    private static class StallingSocketFactory extends LatchSupport implements SocketFactory {
-        private final SocketFactory delegate;
+    private static class StallingSocketFactory extends LatchSupport implements SchemeSocketFactory {
+        
+        private final SchemeSocketFactory delegate;
 
-        public StallingSocketFactory(CountDownLatch continueLatch,
-                WaitPolicy waitPolicy, SocketFactory delegate) {
+        public StallingSocketFactory(
+                final CountDownLatch continueLatch,
+                final WaitPolicy waitPolicy, 
+                final SchemeSocketFactory delegate) {
             super(continueLatch, waitPolicy);
             this.delegate = delegate;
         }
 
-        public Socket connectSocket(Socket sock, String host, int port,
-                InetAddress localAddress, int localPort, HttpParams params)
-                throws IOException, UnknownHostException,
-                ConnectTimeoutException {
+        public Socket connectSocket(
+                final Socket sock,
+                final InetSocketAddress remoteAddress, 
+                final InetSocketAddress localAddress, 
+                final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
             if(waitPolicy == WaitPolicy.BEFORE_CONNECT)
                 latch();
             
-            Socket socket = delegate.connectSocket(sock, host, port, localAddress,
-                    localPort, params);
+            Socket socket = delegate.connectSocket(sock, remoteAddress, localAddress, params);
             
             if(waitPolicy == WaitPolicy.AFTER_CONNECT)
                 latch();

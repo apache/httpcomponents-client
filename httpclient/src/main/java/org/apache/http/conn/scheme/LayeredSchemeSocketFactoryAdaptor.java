@@ -25,36 +25,28 @@
  *
  */
 
-package org.apache.http.mockup;
+package org.apache.http.conn.scheme;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
-import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
-
-/**
- * {@link LayeredSocketFactory} mockup implementation.
- */
-public class SecureSocketFactoryMockup extends SocketFactoryMockup 
+@Deprecated
+class LayeredSchemeSocketFactoryAdaptor extends SchemeSocketFactoryAdaptor 
     implements LayeredSchemeSocketFactory {
 
-    /* A default instance of this mockup. */
-    public final static LayeredSchemeSocketFactory INSTANCE = new SecureSocketFactoryMockup("INSTANCE");
-
-    public SecureSocketFactoryMockup(String name) {
-        super(name);
+    private final LayeredSocketFactory factory;
+    
+    LayeredSchemeSocketFactoryAdaptor(final LayeredSocketFactory factory) {
+        super(factory);
+        this.factory = factory;
     }
 
-    // don't implement equals and hashcode, all instances are different!
-
-    @Override
-    public String toString() {
-        return "SecureSocketFactoryMockup." + mockup_name;
-    }
-
-
-    public Socket createLayeredSocket(Socket socket, String host, int port,
-                                      boolean autoClose) {
-        throw new UnsupportedOperationException("I'm a mockup!");
+    public Socket createLayeredSocket(
+            final Socket socket, 
+            final String target, int port, 
+            boolean autoClose) throws IOException, UnknownHostException {
+        return this.factory.createSocket(socket, target, port, autoClose);
     }
     
 }

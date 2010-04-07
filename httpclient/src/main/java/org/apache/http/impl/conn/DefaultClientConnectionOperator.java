@@ -29,6 +29,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.InetAddress;
 
@@ -42,14 +43,14 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 
 /**
  * Default implementation of a {@link ClientConnectionOperator}. It uses 
- * a {@link SchemeRegistry} to look up {@link SocketFactory} objects.
+ * a {@link SchemeRegistry} to look up {@link SchemeSocketFactory} objects.
  * <p>
  * The following parameters can be used to customize the behavior of this 
  * class: 
@@ -113,16 +114,21 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 ("Connection must not be open.");
         }
 
-        final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        final SocketFactory sf = schm.getSocketFactory();
+        Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        SchemeSocketFactory sf = schm.getSchemeSocketFactory();
 
         Socket sock = sf.createSocket();
         conn.opening(sock, target);
 
+        InetAddress address = InetAddress.getByName(target.getHostName());
+        int port = schm.resolvePort(target.getPort());
+        InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+        InetSocketAddress localAddress = null;
+        if (local != null) {
+            localAddress = new InetSocketAddress(local, 0);
+        }
         try {
-            Socket connsock = sf.connectSocket(sock, target.getHostName(),
-                    schm.resolvePort(target.getPort()),
-                    local, 0, params);
+            Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
             if (sock != connsock) {
                 sock = connsock;
                 conn.opening(sock, target);
@@ -159,17 +165,17 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        if (!(schm.getSocketFactory() instanceof LayeredSocketFactory)) {
+        if (!(schm.getSchemeSocketFactory() instanceof LayeredSchemeSocketFactory)) {
             throw new IllegalArgumentException
                 ("Target scheme (" + schm.getName() +
                  ") must have layered socket factory.");
         }
 
-        final LayeredSocketFactory lsf = (LayeredSocketFactory) schm.getSocketFactory();
-        final Socket sock; 
+        LayeredSchemeSocketFactory lsf = (LayeredSchemeSocketFactory) schm.getSchemeSocketFactory();
+        Socket sock; 
         try {
-            sock = lsf.createSocket
-                (conn.getSocket(), target.getHostName(), target.getPort(), true);
+            sock = lsf.createLayeredSocket(
+                    conn.getSocket(), target.getHostName(), target.getPort(), true);
         } catch (ConnectException ex) {
             throw new HttpHostConnectException(target, ex);
         }

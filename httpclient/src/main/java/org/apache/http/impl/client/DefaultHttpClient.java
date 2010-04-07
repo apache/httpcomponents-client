@@ -221,9 +221,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
     protected ClientConnectionManager createClientConnectionManager() {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(
-                new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+                new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         registry.register(
-                new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+                new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 
         ClientConnectionManager connManager = null;     
         HttpParams params = getParams();

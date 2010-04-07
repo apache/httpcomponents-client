@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.net.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -48,11 +47,8 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
 
 import org.apache.http.mockup.ProxySelectorMockup;
-
-
 
 /**
  * Tests for <code>ProxySelectorRoutePlanner</code>.
@@ -81,8 +77,7 @@ public class TestProxySelRoutePlanner extends TestCase {
     public SchemeRegistry createSchemeRegistry() {
 
         SchemeRegistry schreg = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        schreg.register(new Scheme("http", sf, 80));
+        schreg.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
         return schreg;
     }

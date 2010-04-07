@@ -43,7 +43,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
@@ -122,8 +121,7 @@ public class TestTSCCMNoServer extends TestCase {
     public SchemeRegistry createSchemeRegistry() {
 
         SchemeRegistry schreg = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        schreg.register(new Scheme("http", sf, 80));
+        schreg.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
         return schreg;
     }

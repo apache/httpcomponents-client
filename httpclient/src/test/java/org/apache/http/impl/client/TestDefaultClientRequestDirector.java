@@ -150,7 +150,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         
         CountDownLatch releaseLatch = new CountDownLatch(1);
         SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
@@ -190,7 +190,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         this.localServer.register("*", new BasicService());
         
         SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
@@ -236,7 +236,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         this.localServer.register("*", new BasicRedirectService(port));
         
         SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         CountDownLatch connLatch = new CountDownLatch(1);
         CountDownLatch awaitLatch = new CountDownLatch(1);
@@ -295,7 +295,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         this.localServer.register("*", new ThrowingService());
 
         SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         ConnMan3 conMan = new ConnMan3(registry);
         DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
@@ -474,7 +474,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         public SchemeRegistry getSchemeRegistry() {
             SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", new SocketFactoryMockup(null), 80));
+            registry.register(new Scheme("http", 80, new SocketFactoryMockup(null)));
             return registry;
         }
 
@@ -549,7 +549,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         public SchemeRegistry getSchemeRegistry() {
             SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", new SocketFactoryMockup(null), 80));
+            registry.register(new Scheme("http", 80, new SocketFactoryMockup(null)));
             return registry;
         }
 

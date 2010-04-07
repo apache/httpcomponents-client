@@ -50,7 +50,7 @@ public class TestScheme extends TestCase {
     }
     
     public void testPortResolution() {
-        Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+        Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         assertEquals(80, http.resolvePort(0));
         assertEquals(80, http.resolvePort(-1));
         assertEquals(8080, http.resolvePort(8080));

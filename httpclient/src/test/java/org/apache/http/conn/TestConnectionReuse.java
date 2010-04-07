@@ -47,7 +47,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.LocalTestServer;
@@ -110,8 +110,8 @@ public class TestConnectionReuse extends TestCase {
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", 80, sf));
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
@@ -180,8 +180,8 @@ public class TestConnectionReuse extends TestCase {
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", 80, sf));
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
@@ -240,8 +240,8 @@ public class TestConnectionReuse extends TestCase {
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", 80, sf));
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
@@ -301,8 +301,8 @@ public class TestConnectionReuse extends TestCase {
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
         
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", 80, sf));
         
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(1);

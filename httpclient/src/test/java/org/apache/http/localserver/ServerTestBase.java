@@ -27,6 +27,8 @@
 
 package org.apache.http.localserver;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.http.HttpHost;
@@ -34,7 +36,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.impl.DefaultHttpClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -116,8 +118,8 @@ public abstract class ServerTestBase extends BasicServerTestBase {
 
         if (supportedSchemes == null) {
             supportedSchemes = new SchemeRegistry();
-            SocketFactory sf = PlainSocketFactory.getSocketFactory();
-            supportedSchemes.register(new Scheme("http", sf, 80));
+            SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+            supportedSchemes.register(new Scheme("http", 80, sf));
         }
 
         if (httpProcessor == null) {
@@ -179,8 +181,9 @@ public abstract class ServerTestBase extends BasicServerTestBase {
         int port = schm.resolvePort(target.getPort());
 
         DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
-        Socket sock = schm.getSocketFactory().connectSocket
-            (null, target.getHostName(), port, null, 0, params);
+        InetSocketAddress address = new InetSocketAddress(
+                InetAddress.getByName(target.getHostName()), port); 
+        Socket sock = schm.getSchemeSocketFactory().connectSocket(null, address, null, params);
         conn.bind(sock, params);
 
         return conn;

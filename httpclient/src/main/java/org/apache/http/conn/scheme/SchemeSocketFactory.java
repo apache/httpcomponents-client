@@ -28,7 +28,7 @@
 package org.apache.http.conn.scheme;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -36,41 +36,33 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpParams;
 
 /**
- * A factory for creating, initializing and connecting sockets.
- * The factory encapsulates the logic for establishing a socket connection.
+ * A factory for creating, initializing and connecting sockets. The factory encapsulates the logic 
+ * for establishing a socket connection.
  *
- * @since 4.0
- * 
- * @deprecated use {@link SchemeSocketFactory}
+ * @since 4.1
  */
-@Deprecated
-public interface SocketFactory {
+public interface SchemeSocketFactory {
 
     /**
-     * Creates a new, unconnected socket.
-     * The socket should subsequently be passed to
-     * {@link #connectSocket connectSocket}.
+     * Creates a new, unconnected socket. The socket should subsequently be passed to
+     * {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}.
      *
      * @return  a new socket
      * 
      * @throws IOException if an I/O error occurs while creating the socket
      */
-    Socket createSocket()
-        throws IOException;
+    Socket createSocket() throws IOException;
 
     /**
-     * Connects a socket to the given host.
+     * Connects a socket to the target host with the given remote address.
      * 
      * @param sock      the socket to connect, as obtained from
-     *                  {@link #createSocket createSocket}.
+     *                  {@link #createSocket() createSocket}.
      *                  <code>null</code> indicates that a new socket
      *                  should be created and connected.
-     * @param host      the host to connect to
-     * @param port      the port to connect to on the host
+     * @param remoteAddress the remote address to connect to
      * @param localAddress the local address to bind the socket to, or
      *                  <code>null</code> for any
-     * @param localPort the port on the local machine,
-     *                  0 or a negative number for any
      * @param params    additional {@link HttpParams parameters} for connecting
      * 
      * @return  the connected socket. The returned object may be different
@@ -85,27 +77,19 @@ public interface SocketFactory {
      */
     Socket connectSocket(
         Socket sock,
-        String host, 
-        int port, 
-        InetAddress localAddress, 
-        int localPort,
-        HttpParams params
-    ) throws IOException, UnknownHostException, ConnectTimeoutException;
+        InetSocketAddress remoteAddress, 
+        InetSocketAddress localAddress, 
+        HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException;
 
     /**
-     * Checks whether a socket provides a secure connection.
-     * The socket must be {@link #connectSocket connected}
-     * by this factory.
-     * The factory will <i>not</i> perform I/O operations
-     * in this method.
-     * <br/>
-     * As a rule of thumb, plain sockets are not secure and
-     * TLS/SSL sockets are secure. However, there may be
-     * application specific deviations. For example, a plain
-     * socket to a host in the same intranet ("trusted zone")
-     * could be considered secure. On the other hand, a
-     * TLS/SSL socket could be considered insecure based on
-     * the cipher suite chosen for the connection.
+     * Checks whether a socket provides a secure connection. The socket must be 
+     * {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams) connected}
+     * by this factory. The factory will <i>not</i> perform I/O operations in this method.
+     * <p>
+     * As a rule of thumb, plain sockets are not secure and TLS/SSL sockets are secure. However, 
+     * there may be application specific deviations. For example, a plain socket to a host in the 
+     * same intranet ("trusted zone") could be considered secure. On the other hand, a TLS/SSL 
+     * socket could be considered insecure based on the cipher suite chosen for the connection.
      *
      * @param sock      the connected socket to check
      *
@@ -121,7 +105,6 @@ public interface SocketFactory {
      *  check these conditions, they may simply return a default
      *  value when called with an invalid socket argument.
      */
-    boolean isSecure(Socket sock)
-        throws IllegalArgumentException;
+    boolean isSecure(Socket sock) throws IllegalArgumentException;
 
 }

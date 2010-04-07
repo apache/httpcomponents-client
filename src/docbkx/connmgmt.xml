@@ -236,7 +236,7 @@
         <title>Socket factories</title>
         <para>HTTP connections make use of a <classname>java.net.Socket</classname> object
             internally to handle transmission of data across the wire. They, however, rely on
-                <interfacename>SocketFactory</interfacename> interface to create, initialize and
+            <interfacename>SchemeSocketFactory</interfacename> interface to create, initialize and 
             connect sockets. This enables the users of HttpClient to provide application specific
             socket initialization code at runtime. <classname>PlainSocketFactory</classname> is the
             default factory for creating and initializing plain (unencrypted) sockets.</para>
@@ -248,17 +248,19 @@ Socket socket = sf.createSocket();
 
 HttpParams params = new BasicHttpParams();
 params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 1000L);
-sf.connectSocket(socket, "locahost", 8080, null, -1, params);
+InetSocketAddress address = new InetSocketAddress("locahost", 8080);
+sf.connectSocket(socket, address, null, params);
 ]]></programlisting>
         <section>
             <title>Secure socket layering</title>
-            <para><interfacename>LayeredSocketFactory</interfacename> is an extension of
-                    <interfacename>SocketFactory</interfacename> interface. Layered socket factories
-                are capable of creating sockets that are layered over an existing plain socket.
+            <para><interfacename>LayeredSchemeSocketFactory</interfacename> is an extension of
+                <interfacename>SchemeSocketFactory</interfacename> interface. Layered socket 
+                factories are capable of creating sockets layered over an existing plain socket. 
                 Socket layering is used primarily for creating secure sockets through proxies.
-                HttpClient ships with SSLSocketFactory that implements SSL/TLS layering. Please note
-                HttpClient does not use any custom encryption functionality. It is fully reliant on
-                standard Java Cryptography (JCE) and Secure Sockets (JSEE) extensions.</para>
+                HttpClient ships with <classname>SSLSocketFactory</classname> that implements 
+                SSL/TLS layering. Please note HttpClient does not use any custom encryption 
+                functionality. It is fully reliant on standard Java Cryptography (JCE) and Secure 
+                Sockets (JSEE) extensions.</para>
         </section>
         <section>
             <title>SSL/TLS customization</title>
@@ -300,7 +302,8 @@ socket.setEnabledCipherSuites(new String[] { "SSL_RSA_WITH_RC4_128_MD5" });
 
 HttpParams params = new BasicHttpParams();
 params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 1000L);
-sf.connectSocket(socket, "locahost", 443, null, -1, params);
+InetSocketAddress address = new InetSocketAddress("locahost", 443);
+sf.connectSocket(socket, address, null, params);
 ]]></programlisting>
             <para>Customization of SSLSocketFactory implies a certain degree of familiarity with the
                 concepts of the SSL/TLS protocol, a detailed explanation of which is out of scope
@@ -357,8 +360,9 @@ sf.connectSocket(socket, "locahost", 443, null, -1, params);
                 implementation. One can specify a different hostname verifier implementation if
                 desired</para>
             <programlisting><![CDATA[
-SSLSocketFactory sf = new SSLSocketFactory(SSLContext.getInstance("TLS"));
-sf.setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
+SSLSocketFactory sf = new SSLSocketFactory(
+    SSLContext.getInstance("TLS"),
+    SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
 ]]></programlisting>
         </section>
     </section>
@@ -371,11 +375,12 @@ sf.setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
             a set of <classname>Scheme</classname>s HttpClient can choose from when trying to
             establish a connection by a request URI:</para>
         <programlisting><![CDATA[
-Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 
-SSLSocketFactory sf = new SSLSocketFactory(SSLContext.getInstance("TLS"));
-sf.setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
-Scheme https = new Scheme("https", sf, 443);
+SSLSocketFactory sf = new SSLSocketFactory(
+        SSLContext.getInstance("TLS"),
+        SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
+Scheme https = new Scheme("https", 443, sf);
 
 SchemeRegistry sr = new SchemeRegistry();
 sr.register(http);
@@ -434,7 +439,7 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
                     <interfacename>ClientConnectionOperator</interfacename> interface represents a
                 strategy for creating <interfacename>OperatedClientConnection</interfacename>
                 instances and updating the underlying socket of those objects. Implementations will
-                most likely make use <interfacename>SocketFactory</interfacename>s to create
+                most likely make use <interfacename>SchemeSocketFactory</interfacename>s to create
                     <classname>java.net.Socket</classname> instances. The
                     <interfacename>ClientConnectionOperator</interfacename> interface enables the
                 users of HttpClient to provide a custom strategy for connection operators as well as
@@ -475,7 +480,7 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
                 unintentionally.</para>
             <para>This is an example of acquiring a connection from a connection manager:</para>
             <programlisting><![CDATA[
-Scheme http = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 SchemeRegistry sr = new SchemeRegistry();
 sr.register(http);
 ClientConnectionManager connMrg = new SingleClientConnManager(sr);
@@ -562,9 +567,9 @@ try {
             <programlisting><![CDATA[
 SchemeRegistry schemeRegistry = new SchemeRegistry();
 schemeRegistry.register(
-         new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+         new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 schemeRegistry.register(
-         new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+         new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 
 ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
 // Increase max total connection to 200
@@ -630,7 +635,7 @@ httpclient.getConnectionManager().shutdown();
         <programlisting><![CDATA[
 SchemeRegistry schemeRegistry = new SchemeRegistry();
 schemeRegistry.register(
-        new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
 ClientConnectionManager cm = new ThreadSafeClientConnManager(schemeRegistry);
 HttpClient httpClient = new DefaultHttpClient(cm);

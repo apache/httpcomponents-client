@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
 import org.apache.http.annotation.Immutable;
 
@@ -50,14 +51,14 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 @Immutable
-public final class PlainSocketFactory implements SocketFactory {
+public final class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
 
     /**
      * The default factory.
      */
-    private static final
-        PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
+    private static final PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
 
     private final HostNameResolver nameResolver;
     
@@ -71,58 +72,48 @@ public final class PlainSocketFactory implements SocketFactory {
         return DEFAULT_FACTORY;
     }
 
+    @Deprecated
     public PlainSocketFactory(final HostNameResolver nameResolver) {
         super();
         this.nameResolver = nameResolver;
     }
 
-
     public PlainSocketFactory() {
-        this(null);
+        super();
+        this.nameResolver = null;
     }
 
     public Socket createSocket() {
         return new Socket();
     }
 
-    public Socket connectSocket(Socket sock, String host, int port, 
-                                InetAddress localAddress, int localPort,
-                                HttpParams params)
-        throws IOException {
-
-        if (host == null) {
-            throw new IllegalArgumentException("Target host may not be null.");
+    /**
+     * @since 4.1
+     */
+    public Socket connectSocket(
+            final Socket socket, 
+            final InetSocketAddress remoteAddress, 
+            final InetSocketAddress localAddress,
+            final HttpParams params) throws IOException, ConnectTimeoutException {
+        if (remoteAddress == null) {
+            throw new IllegalArgumentException("Remote address may not be null");
         }
         if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null.");
+            throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-
-        if (sock == null)
+        Socket sock = socket;
+        if (sock == null) {
             sock = createSocket();
-
-        if ((localAddress != null) || (localPort > 0)) {
-
-            // we need to bind explicitly
-            if (localPort < 0)
-                localPort = 0; // indicates "any"
-
-            InetSocketAddress isa =
-                new InetSocketAddress(localAddress, localPort);
-            sock.bind(isa);
         }
-
+        if (localAddress != null) {
+            sock.bind(localAddress);
+        }
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
-
-        InetSocketAddress remoteAddress;
-        if (this.nameResolver != null) {
-            remoteAddress = new InetSocketAddress(this.nameResolver.resolve(host), port); 
-        } else {
-            remoteAddress = new InetSocketAddress(host, port);            
-        }
         try {
             sock.connect(remoteAddress, timeout);
         } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
+            throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/" 
+                    + remoteAddress.getAddress() + " timed out");
         }
         return sock;
     }
@@ -150,6 +141,33 @@ public final class PlainSocketFactory implements SocketFactory {
             throw new IllegalArgumentException("Socket is closed.");
         }
         return false;
+    }
+
+    /**
+     * @deprecated Use {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}
+     */
+    @Deprecated
+    public Socket connectSocket(
+            final Socket socket, 
+            final String host, int port, 
+            final InetAddress localAddress, int localPort, 
+            final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+        InetSocketAddress local = null;
+        if (localAddress != null || localPort > 0) {
+            // we need to bind explicitly
+            if (localPort < 0) {
+                localPort = 0; // indicates "any"
+            }
+            local = new InetSocketAddress(localAddress, localPort);
+        }
+        InetAddress remoteAddress;
+        if (this.nameResolver != null) {
+            remoteAddress = this.nameResolver.resolve(host);
+        } else {
+            remoteAddress = InetAddress.getByName(host);
+        }
+        InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
+        return connectSocket(socket, remote, local, params);
     }
 
 }

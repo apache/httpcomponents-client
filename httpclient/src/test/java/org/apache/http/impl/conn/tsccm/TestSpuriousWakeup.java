@@ -42,7 +42,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.params.ConnPerRoute;
 
 import org.apache.http.impl.conn.GetConnThread;
@@ -130,8 +130,8 @@ public class TestSpuriousWakeup extends TestCase {
 
     public void testSpuriousWakeup() throws Exception {
         SchemeRegistry schreg = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        schreg.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        schreg.register(new Scheme("http", 80, sf));
 
         XTSCCM mgr = new XTSCCM(schreg);
         try {

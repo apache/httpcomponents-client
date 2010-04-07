@@ -135,7 +135,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @return  the connection pool to use
      * 
-     * @deprecated use {@link #createConnectionPool(ConnPerRouteBean)}
+     * @deprecated use {@link #createConnectionPool()}
      */
     @Deprecated
     protected AbstractConnPool createConnectionPool(final HttpParams params) {

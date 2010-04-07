@@ -33,20 +33,15 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.util.LangUtils;
 
 /**
- * Encapsulates specifics of a protocol scheme such as "http" or "https".
- * Schemes are identified by lowercase names.
- * Supported schemes are typically collected in a
- * {@link SchemeRegistry SchemeRegistry}.
- *
+ * Encapsulates specifics of a protocol scheme such as "http" or "https". Schemes are identified 
+ * by lowercase names. Supported schemes are typically collected in a {@link SchemeRegistry 
+ * SchemeRegistry}.
  * <p>
- * For example, to configure support for "https://" URLs,
- * you could write code like the following:
- * </p>
+ * For example, to configure support for "https://" URLs, you could write code like the following:
  * <pre>
- * Scheme https = new Scheme("https", new MySecureSocketFactory(), 443);
+ * Scheme https = new Scheme("https", 443, new MySecureSocketFactory());
  * SchemeRegistry.DEFAULT.register(https);
  * </pre>
- *
  *
  * @since 4.0
  */
@@ -57,14 +52,13 @@ public final class Scheme {
     private final String name;
     
     /** The socket factory for this scheme */
-    private final SocketFactory socketFactory;
+    private final SchemeSocketFactory socketFactory;
     
     /** The default port for this scheme */
     private final int defaultPort;
     
     /** Indicates whether this scheme allows for layered connections */
     private final boolean layered;
-
 
     /** A string representation, for {@link #toString toString}. */
     private String stringRep;
@@ -74,6 +68,34 @@ public final class Scheme {
      *  need to synchronize, and it does not affect immutability.
     */
 
+    /**
+     * Creates a new scheme.
+     * Whether the created scheme allows for layered connections
+     * depends on the class of <code>factory</code>.
+     *
+     * @param name      the scheme name, for example "http".
+     *                  The name will be converted to lowercase.
+     * @param port      the default port for this scheme
+     * @param factory   the factory for creating sockets for communication
+     *                  with this scheme
+     * 
+     * @since 4.1
+     */
+    public Scheme(final String name, final int port, final SchemeSocketFactory factory) {
+        if (name == null) {
+            throw new IllegalArgumentException("Scheme name may not be null");
+        }
+        if ((port <= 0) || (port > 0xffff)) {
+            throw new IllegalArgumentException("Port is invalid: " + port);
+        }
+        if (factory == null) {
+            throw new IllegalArgumentException("Socket factory may not be null");
+        }
+        this.name = name.toLowerCase(Locale.ENGLISH);
+        this.socketFactory = factory;
+        this.defaultPort = port;
+        this.layered = factory instanceof LayeredSchemeSocketFactory;
+    }
 
     /**
      * Creates a new scheme.
@@ -85,7 +107,10 @@ public final class Scheme {
      * @param factory   the factory for creating sockets for communication
      *                  with this scheme
      * @param port      the default port for this scheme
+     * 
+     * @deprecated Use {@link #Scheme(String, int, SchemeSocketFactory)}
      */
+    @Deprecated
     public Scheme(final String name,
                   final SocketFactory factory,
                   final int port) {
@@ -104,11 +129,16 @@ public final class Scheme {
         }
 
         this.name = name.toLowerCase(Locale.ENGLISH);
-        this.socketFactory = factory;
+        if (factory instanceof LayeredSocketFactory) {
+            this.socketFactory = new LayeredSchemeSocketFactoryAdaptor(
+                    (LayeredSocketFactory) factory);
+            this.layered = true;
+        } else {
+            this.socketFactory = new SchemeSocketFactoryAdaptor(factory);
+            this.layered = false;
+        }
         this.defaultPort = port;
-        this.layered = (factory instanceof LayeredSocketFactory);
     }
-
 
     /**
      * Obtains the default port.
@@ -126,11 +156,35 @@ public final class Scheme {
      * {@link LayeredSocketFactory LayeredSocketFactory}.
      *
      * @return  the socket factory for this scheme
+     * 
+     * @deprecated Use {@link #getSchemeSocketFactory()}
      */
+    @Deprecated
     public final SocketFactory getSocketFactory() {
-        return socketFactory;
+        if (this.socketFactory instanceof SchemeSocketFactoryAdaptor) {
+            return ((SchemeSocketFactoryAdaptor) this.socketFactory).getFactory();
+        } else {
+            if (this.layered) {
+                return new LayeredSocketFactoryAdaptor(
+                        (LayeredSchemeSocketFactory) this.socketFactory);
+            } else {
+                return new SocketFactoryAdaptor(this.socketFactory);
+            }
+        }
     }
 
+    /**
+     * Obtains the socket factory.
+     * If this scheme is {@link #isLayered layered}, the factory implements
+     * {@link LayeredSocketFactory LayeredSchemeSocketFactory}.
+     *
+     * @return  the socket factory for this scheme
+     * 
+     * @since 4.1
+     */
+    public final SchemeSocketFactory getSchemeSocketFactory() {
+        return this.socketFactory;
+    }
 
     /**
      * Obtains the scheme name.
@@ -141,7 +195,6 @@ public final class Scheme {
         return name;
     }
 
-
     /**
      * Indicates whether this scheme allows for layered connections.
      *
@@ -151,7 +204,6 @@ public final class Scheme {
     public final boolean isLayered() {
         return layered;
     }
-
 
     /**
      * Resolves the correct port for this scheme.
@@ -165,7 +217,6 @@ public final class Scheme {
     public final int resolvePort(int port) {
         return port <= 0 ? defaultPort : port;
     }
-
 
     /**
      * Return a string representation of this object.
@@ -184,34 +235,21 @@ public final class Scheme {
         return stringRep;
     }
 
-
-    /**
-     * Compares this scheme to an object.
-     *
-     * @param obj       the object to compare with
-     *
-     * @return  <code>true</code> iff the argument is equal to this scheme
-     */
     @Override
     public final boolean equals(Object obj) {
         if (obj == null) return false;
         if (this == obj) return true;
-        if (!(obj instanceof Scheme)) return false;
+        if (obj instanceof Scheme) {
+            Scheme that = (Scheme) obj;
+            return this.name.equals(that.name) 
+                && this.defaultPort == that.defaultPort
+                && this.layered == that.layered
+                && this.socketFactory.equals(that.socketFactory);
+        } else {
+            return false;
+        }
+    }
 
-        Scheme s = (Scheme) obj;
-        return (name.equals(s.name) &&
-                defaultPort == s.defaultPort &&
-                layered == s.layered &&
-                socketFactory.equals(s.socketFactory)
-                );
-    } // equals
-
-
-    /**
-     * Obtains a hash code for this scheme.
-     *
-     * @return  the hash code
-     */
     @Override
     public int hashCode() {
         int hash = LangUtils.HASH_SEED;
@@ -222,4 +260,4 @@ public final class Scheme {
         return hash;
     }
 
-} // class Scheme
+}
