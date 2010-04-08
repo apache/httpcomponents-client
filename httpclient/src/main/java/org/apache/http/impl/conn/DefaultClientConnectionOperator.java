@@ -32,7 +32,10 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpHost;
@@ -40,6 +43,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
@@ -49,8 +53,18 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
 
 /**
- * Default implementation of a {@link ClientConnectionOperator}. It uses 
- * a {@link SchemeRegistry} to look up {@link SchemeSocketFactory} objects.
+ * Default implementation of a {@link ClientConnectionOperator}. It uses a {@link SchemeRegistry} 
+ * to look up {@link SchemeSocketFactory} objects.
+ * <p>
+ * This connection operator is multihome network aware and will attempt to retry failed connects 
+ * against all known IP addresses sequentially until the connect is successful or all known 
+ * addresses fail to respond. Please note the same 
+ * {@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT} value will be used 
+ * for each connection attempt, so in the worst case the total elapsed time before timeout
+ * can be <code>CONNECTION_TIMEOUT * n</code> where <code>n</code> is the number of IP addresses
+ * of the given host. One can disable multihome support by overriding 
+ * the {@link #resolveHostname(String)} method and returning only one IP address for the given
+ * host name.
  * <p>
  * The following parameters can be used to customize the behavior of this 
  * class: 
@@ -58,6 +72,7 @@ import org.apache.http.conn.scheme.SchemeSocketFactory;
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_LINGER}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
@@ -68,6 +83,8 @@ import org.apache.http.conn.scheme.SchemeSocketFactory;
 @ThreadSafe
 public class DefaultClientConnectionOperator implements ClientConnectionOperator {
 
+    private final Log log = LogFactory.getLog(getClass());
+
     /** The scheme registry for looking up socket factories. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
@@ -76,92 +93,97 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      *
      * @param schemes   the scheme registry
      */
-    public DefaultClientConnectionOperator(SchemeRegistry schemes) {
+    public DefaultClientConnectionOperator(final SchemeRegistry schemes) {
         if (schemes == null) {
-            throw new IllegalArgumentException
-                ("Scheme registry must not be null.");
+            throw new IllegalArgumentException("Scheme registry amy not be null");
         }
-        schemeRegistry = schemes;
+        this.schemeRegistry = schemes;
     }
 
     public OperatedClientConnection createConnection() {
         return new DefaultClientConnection();
     }
 
-    public void openConnection(OperatedClientConnection conn,
-                               HttpHost target,
-                               InetAddress local,
-                               HttpContext context,
-                               HttpParams params)
-        throws IOException {
-
+    public void openConnection(
+            final OperatedClientConnection conn,
+            final HttpHost target,
+            final InetAddress local,
+            final HttpContext context,
+            final HttpParams params) throws IOException {
         if (conn == null) {
-            throw new IllegalArgumentException
-                ("Connection must not be null.");
+            throw new IllegalArgumentException("Connection may not be null");
         }
         if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host must not be null.");
+            throw new IllegalArgumentException("Target host may not be null");
         }
-        // local address may be null
-        //@@@ is context allowed to be null?
         if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
+            throw new IllegalArgumentException("Parameters may not be null");
         }
         if (conn.isOpen()) {
-            throw new IllegalArgumentException
-                ("Connection must not be open.");
+            throw new IllegalStateException("Connection must not be open");
         }
 
         Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
         SchemeSocketFactory sf = schm.getSchemeSocketFactory();
 
-        Socket sock = sf.createSocket();
-        conn.opening(sock, target);
-
-        InetAddress address = InetAddress.getByName(target.getHostName());
+        InetAddress[] addresses = resolveHostname(target.getHostName());
         int port = schm.resolvePort(target.getPort());
-        InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
-        InetSocketAddress localAddress = null;
-        if (local != null) {
-            localAddress = new InetSocketAddress(local, 0);
-        }
-        try {
-            Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
-            if (sock != connsock) {
-                sock = connsock;
-                conn.opening(sock, target);
+        for (int i = 0; i < addresses.length; i++) {
+            InetAddress address = addresses[i];
+            boolean last = i == addresses.length;
+            
+            Socket sock = sf.createSocket();
+            conn.opening(sock, target);
+
+            InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+            InetSocketAddress localAddress = null;
+            if (local != null) {
+                localAddress = new InetSocketAddress(local, 0);
             }
-        } catch (ConnectException ex) {
-            throw new HttpHostConnectException(target, ex);
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Connecting to " + remoteAddress);
+            }
+            try {
+                Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
+                if (sock != connsock) {
+                    sock = connsock;
+                    conn.opening(sock, target);
+                }
+                prepareSocket(sock, context, params);
+                conn.openCompleted(sf.isSecure(sock), params);
+                return;
+            } catch (ConnectException ex) {
+                if (last) {
+                    throw new HttpHostConnectException(target, ex);
+                }
+            } catch (ConnectTimeoutException ex) {
+                if (last) {
+                    throw ex;
+                }
+            }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Connect to " + remoteAddress + " timed out. " +
+                		"Connection will be retried using another IP address");
+            }
         }
-        prepareSocket(sock, context, params);
-        conn.openCompleted(sf.isSecure(sock), params);
     }
 
-    public void updateSecureConnection(OperatedClientConnection conn,
-                                       HttpHost target,
-                                       HttpContext context,
-                                       HttpParams params)
-        throws IOException {
-
-
+    public void updateSecureConnection(
+            final OperatedClientConnection conn,
+            final HttpHost target,
+            final HttpContext context,
+            final HttpParams params) throws IOException {
         if (conn == null) {
-            throw new IllegalArgumentException
-                ("Connection must not be null.");
+            throw new IllegalArgumentException("Connection may not be null");
         }
         if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host must not be null.");
+            throw new IllegalArgumentException("Target host may not be null");
         }
         if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
+            throw new IllegalArgumentException("Parameters may not be null");
         }
         if (!conn.isOpen()) {
-            throw new IllegalArgumentException
-                ("Connection must be open.");
+            throw new IllegalStateException("Connection must be open");
         }
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
@@ -192,10 +214,10 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      *
      * @throws IOException      in case of an IO problem
      */
-    protected void prepareSocket(Socket sock, HttpContext context,
-                                 HttpParams params)
-        throws IOException {
-
+    protected void prepareSocket(
+            final Socket sock, 
+            final HttpContext context,
+            final HttpParams params) throws IOException {
         sock.setTcpNoDelay(HttpConnectionParams.getTcpNoDelay(params));
         sock.setSoTimeout(HttpConnectionParams.getSoTimeout(params));
 
@@ -205,5 +227,19 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
     }
 
+    /**
+     * Resolves the given host name to an array of corresponding IP addresses, based on the 
+     * configured name service on the system.
+     * 
+     * @param host host name to resolve
+     * @return array of IP addresses
+     * @exception  UnknownHostException  if no IP address for the host could be determined. 
+     * 
+     * @since 4.1
+     */
+    protected InetAddress[] resolveHostname(final String host) throws UnknownHostException {
+        return InetAddress.getAllByName(host);
+    }
+    
 }
 
