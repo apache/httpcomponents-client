@@ -30,10 +30,14 @@ import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ContextAwareAuthScheme;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -47,7 +51,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @NotThreadSafe // proxy
-public abstract class AuthSchemeBase implements AuthScheme {
+public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
     /**
      * Flag whether authenticating against a proxy.
@@ -109,6 +113,15 @@ public abstract class AuthSchemeBase implements AuthScheme {
         }
         
         parseChallenge(buffer, pos, buffer.length());
+    }
+
+    
+    @SuppressWarnings("deprecation")
+    public Header authenticate(
+            final Credentials credentials, 
+            final HttpRequest request, 
+            final HttpContext context) throws AuthenticationException {
+        return authenticate(credentials, request);
     }
 
     protected abstract void parseChallenge(

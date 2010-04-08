@@ -35,6 +35,8 @@ import org.apache.http.protocol.HttpContext;
  * that requires access to {@link HttpContext} in order to 
  * generate an authorization string.
  *
+ * TODO: Fix AuthScheme interface in the next major version
+ * 
  * @since 4.1
  */
 

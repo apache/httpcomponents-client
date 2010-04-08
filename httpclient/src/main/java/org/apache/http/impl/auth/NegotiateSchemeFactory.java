@@ -26,6 +26,7 @@
 
 package org.apache.http.impl.auth;
 
+import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
@@ -36,32 +37,32 @@ import org.apache.http.params.HttpParams;
  * 
  * @since 4.1
  */
+@Immutable
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
     
-    private boolean stripPort = false; // strip port off kerb name
-    private SpnegoTokenGenerator spengoGenerator = null;
+    private final SpnegoTokenGenerator spengoGenerator;
+    private final boolean stripPort;
     
-    public AuthScheme newInstance(final HttpParams params) {
-        NegotiateScheme negotiateScheme = new NegotiateScheme();
-        negotiateScheme.setStripPort(stripPort);
-        negotiateScheme.setSpengoGenerator(spengoGenerator);
-        return negotiateScheme;
+    public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
+        super();
+        this.spengoGenerator = spengoGenerator;
+        this.stripPort = stripPort;
     }
 
-    public NegotiateSchemeFactory(){
-        super();
+    public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator) {
+        this(spengoGenerator, false);
     }
     
-    public void setStripPort(boolean stripPort) {
-        this.stripPort = stripPort;
+    public NegotiateSchemeFactory() {
+        this(null, false);
+    }
+    
+    public AuthScheme newInstance(final HttpParams params) {
+        return new NegotiateScheme(this.spengoGenerator, this.stripPort);
     }
 
     public boolean isStripPort() {
         return stripPort;
-    }
-
-    public void setSpengoGenerator(SpnegoTokenGenerator spengoGenerator) {
-        this.spengoGenerator = spengoGenerator;
     }
 
     public SpnegoTokenGenerator getSpengoGenerator() {

@@ -60,6 +60,7 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         super();
     }
     
+    @SuppressWarnings("deprecation")
     public void process(final HttpRequest request, final HttpContext context) 
             throws HttpException, IOException {
         if (request == null) {

@@ -603,21 +603,17 @@ NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
 httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 ]]>
             </programlisting>
-            <para>There are several methods that can be used to customize the behaviour of
+            <para>There are several options that can be used to customize the behaviour of
                     <classname>NegotiateSchemeFactory</classname>. </para>
             <section>
-                <title>
-                    <methodname>#setStripPort(boolean)</methodname>
-                </title>
+                <title>Strip port</title>
                 <para>Strips the port off service names e.g.
                         <literal>HTTP/webserver.ad.example.net:8080</literal> ->
                         <literal>HTTP/webserver.ad.example.net</literal></para>
                 <para>Found it useful when authenticating against JBoss Negotiation.</para>
             </section>
             <section>
-                <title>
-                    <methodname>#setSpengoGenerator(SpnegoTokenGenerator)</methodname>
-                </title>
+                <title>Custom <literal>SPNEGO</literal> token generator</title>
                 <para>Use this method to inject a custom
                         <interfacename>SpnegoTokenGenerator</interfacename> class to do the Kerberos
                     to <literal>SPNEGO</literal> token wrapping.

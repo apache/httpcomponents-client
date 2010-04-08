@@ -48,7 +48,10 @@ import org.apache.http.HttpRequest;
  * <p>
  * Authentication schemes may be stateful involving a series of 
  * challenge-response exchanges.
- *
+ * <p>
+ * IMPORTANT: implementations of this interface MUST also implement {@link ContextAwareAuthScheme}
+ * interface in order to remain API compatible with newer versions of HttpClient.  
+ * 
  * @since 4.0
  */
 
@@ -117,7 +120,10 @@ public interface AuthScheme {
      *   be generated due to an authentication failure
      * 
      * @return the authorization string
+     * 
+     * @deprecated Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
+    @Deprecated
     Header authenticate(Credentials credentials, HttpRequest request) 
             throws AuthenticationException;
     

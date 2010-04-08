@@ -31,13 +31,17 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
@@ -50,7 +54,7 @@ import org.ietf.jgss.Oid;
  * 
  * @since 4.1
  */
-public class NegotiateScheme implements AuthScheme {
+public class NegotiateScheme implements ContextAwareAuthScheme {
     
     private static final int UNINITIATED         = 0;
     private static final int INITIATED           = 1;
@@ -60,17 +64,15 @@ public class NegotiateScheme implements AuthScheme {
     private static final String SPNEGO_OID        = "1.3.6.1.5.5.2";
     private static final String KERBEROS_OID        = "1.2.840.113554.1.2.2";
     
-    private final Log log;
+    private final Log log = LogFactory.getLog(getClass());
     
-    /* stripPort removes ports from the generated Service Name.
-     * Helpful if you don't/can't have all SN:port combo's in AD/Directory.
-     * Probably a debatable addition.
-    */
-    private boolean stripPort = false;
+    private final SpnegoTokenGenerator spengoGenerator;
     
-    private SpnegoTokenGenerator spengoGenerator = null;
+    private final boolean stripPort;
     
-    private GSSContext context = null;
+    private boolean proxy;
+    
+    private GSSContext gssContext = null;
 
     /** Authentication process state */
     private int state;
@@ -84,73 +86,21 @@ public class NegotiateScheme implements AuthScheme {
      * Default constructor for the Negotiate authentication scheme.
      * 
      */
-    public NegotiateScheme() {
+    public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
         super();
-        log = LogFactory.getLog(getClass());
-        state = UNINITIATED;
+        this.state = UNINITIATED;
+        this.spengoGenerator = spengoGenerator;
+        this.stripPort = stripPort;
     }
 
-    /**
-     * Init GSSContext for negotiation.
-     * 
-     * @param server servername only (e.g: radar.it.su.se)
-     */
-    protected void init(String server) throws GSSException {
-        if (log.isDebugEnabled()) {
-            log.debug("init " + server);
-        }
-        /* Using the SPNEGO OID is the correct method.
-         * Kerberos v5 works for IIS but not JBoss. Unwrapping
-         * the initial token when using SPNEGO OID looks like what is
-         * described here... 
-         * 
-         * http://msdn.microsoft.com/en-us/library/ms995330.aspx
-         * 
-         * Another helpful URL...
-         * 
-         * http://publib.boulder.ibm.com/infocenter/wasinfo/v7r0/index.jsp?topic=/com.ibm.websphere.express.doc/info/exp/ae/tsec_SPNEGO_token.html
-         * 
-         * Unfortunately SPNEGO is JRE >=1.6.
-         */
-        
-        /** Try SPNEGO by default, fall back to Kerberos later if error */
-        negotiationOid  = new Oid(SPNEGO_OID);
-        
-        boolean tryKerberos = false;
-        try{
-            GSSManager manager = GSSManager.getInstance();
-            GSSName serverName = manager.createName("HTTP/"+server, null); 
-            context = manager.createContext(
-                    serverName.canonicalize(negotiationOid), negotiationOid, null,
-                    GSSContext.DEFAULT_LIFETIME);
-            context.requestMutualAuth(true); 
-            context.requestCredDeleg(true);
-        } catch (GSSException ex){
-            // BAD MECH means we are likely to be using 1.5, fall back to Kerberos MECH.
-            // Rethrow any other exception.
-            if (ex.getMajor() == GSSException.BAD_MECH ){
-                log.debug("GSSException BAD_MECH, retry with Kerberos MECH");
-                tryKerberos = true;
-            } else {
-                throw ex;
-            }
-            
-        }
-        if (tryKerberos){
-            /* Kerberos v5 GSS-API mechanism defined in RFC 1964.*/
-            log.debug("Using Kerberos MECH " + KERBEROS_OID);
-            negotiationOid  = new Oid(KERBEROS_OID);
-            GSSManager manager = GSSManager.getInstance();
-            GSSName serverName = manager.createName("HTTP/"+server, null); 
-            context = manager.createContext(
-                    serverName.canonicalize(negotiationOid), negotiationOid, null,
-                    GSSContext.DEFAULT_LIFETIME);
-            context.requestMutualAuth(true); 
-            context.requestCredDeleg(true);
-        }
-        state = INITIATED;
+    public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator) {
+        this(spengoGenerator, false);
     }
-
+    
+    public NegotiateScheme() {
+        this(null, false);
+    }
+    
     /**
      * Tests if the Negotiate authentication process has been completed.
      * 
@@ -171,6 +121,13 @@ public class NegotiateScheme implements AuthScheme {
         return "Negotiate";
     }
 
+    @Deprecated
+    public Header authenticate(
+            final Credentials credentials,
+            final HttpRequest request) throws AuthenticationException {
+        return authenticate(credentials, request, null);
+    }
+    
     /**
      * Produces Negotiate authorization Header based on token created by 
      * processChallenge.
@@ -184,30 +141,96 @@ public class NegotiateScheme implements AuthScheme {
      * 
      * @return an Negotiate authorisation Header
      */
-
-    public Header authenticate(Credentials credentials,
-            HttpRequest request) throws AuthenticationException {
+    public Header authenticate(
+            final Credentials credentials,
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
+        if (request == null) {
+            throw new IllegalArgumentException("HTTP request may not be null"); 
+        }
         if (state == UNINITIATED) {
             throw new IllegalStateException(
                     "Negotiation authentication process has not been initiated");
         }
-
         try {
-
-            if (context==null) {
-                if (isStripPort()) {
-                    init( (request.getLastHeader("Host")).getValue().replaceAll(":[0-9]+$", "") );
-                } else {
-                    init( (request.getLastHeader("Host")).getValue());
-                }
+            String key = null;
+            if (isProxy()) {
+                key = ExecutionContext.HTTP_PROXY_HOST;
+            } else {
+                key = ExecutionContext.HTTP_TARGET_HOST;
             }
+            HttpHost host = (HttpHost) context.getAttribute(key);
+            if (host == null) {
+                throw new AuthenticationException("Authentication host is not set " +
+                        "in the execution context");
+            }
+            String authServer;
+            if (!this.stripPort && host.getPort() > 0) {
+                authServer = host.toHostString();
+            } else {
+                authServer = host.getHostName();
+            }
+            
+            if (log.isDebugEnabled()) {
+                log.debug("init " + authServer);
+            }
+            /* Using the SPNEGO OID is the correct method.
+             * Kerberos v5 works for IIS but not JBoss. Unwrapping
+             * the initial token when using SPNEGO OID looks like what is
+             * described here... 
+             * 
+             * http://msdn.microsoft.com/en-us/library/ms995330.aspx
+             * 
+             * Another helpful URL...
+             * 
+             * http://publib.boulder.ibm.com/infocenter/wasinfo/v7r0/index.jsp?topic=/com.ibm.websphere.express.doc/info/exp/ae/tsec_SPNEGO_token.html
+             * 
+             * Unfortunately SPNEGO is JRE >=1.6.
+             */
+            
+            /** Try SPNEGO by default, fall back to Kerberos later if error */
+            negotiationOid  = new Oid(SPNEGO_OID);
+            
+            boolean tryKerberos = false;
+            try {
+                GSSManager manager = GSSManager.getInstance();
+                GSSName serverName = manager.createName("HTTP/" + authServer, null); 
+                gssContext = manager.createContext(
+                        serverName.canonicalize(negotiationOid), negotiationOid, null,
+                        GSSContext.DEFAULT_LIFETIME);
+                gssContext.requestMutualAuth(true); 
+                gssContext.requestCredDeleg(true);
+            } catch (GSSException ex){
+                // BAD MECH means we are likely to be using 1.5, fall back to Kerberos MECH.
+                // Rethrow any other exception.
+                if (ex.getMajor() == GSSException.BAD_MECH ){
+                    log.debug("GSSException BAD_MECH, retry with Kerberos MECH");
+                    tryKerberos = true;
+                } else {
+                    throw ex;
+                }
+                
+            }
+            if (tryKerberos){
+                /* Kerberos v5 GSS-API mechanism defined in RFC 1964.*/
+                log.debug("Using Kerberos MECH " + KERBEROS_OID);
+                negotiationOid  = new Oid(KERBEROS_OID);
+                GSSManager manager = GSSManager.getInstance();
+                GSSName serverName = manager.createName("HTTP/" + authServer, null); 
+                gssContext = manager.createContext(
+                        serverName.canonicalize(negotiationOid), negotiationOid, null,
+                        GSSContext.DEFAULT_LIFETIME);
+                gssContext.requestMutualAuth(true); 
+                gssContext.requestCredDeleg(true);
+            }
+            state = INITIATED;
             
             // HTTP 1.1 issue:
             // Mutual auth will never complete to do 200 instead of 401 in 
             // return from server. "state" will never reach ESTABLISHED
             // but it works anyway
 
-            token = context.initSecContext(token, 0, token.length);
+            token = gssContext.initSecContext(token, 0, token.length);
             
             /* 
              * IIS accepts Kerberos and SPNEGO tokens. Some other servers Jboss, Glassfish?
@@ -218,7 +241,7 @@ public class NegotiateScheme implements AuthScheme {
             }
 
             if (log.isDebugEnabled()) {
-                log.info("got token, sending " + token.length + " bytes to server");
+                log.debug("got token, sending " + token.length + " bytes to server");
             }
         } catch (GSSException gsse) {
             state = FAILED;
@@ -283,11 +306,19 @@ public class NegotiateScheme implements AuthScheme {
      * Processes the Negotiate challenge.
      *  
      */
-    public void processChallenge(Header header) throws MalformedChallengeException {
+    public void processChallenge(final Header header) throws MalformedChallengeException {
         if (log.isDebugEnabled()) {
             log.debug("Challenge header: " + header);
         }
+        String authheader = header.getName();
         String challenge = header.getValue();
+        if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
+            this.proxy = false;
+        } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
+            this.proxy = true;
+        } else {
+            throw new MalformedChallengeException("Unexpected header name: " + authheader);
+        }
         
         if (challenge.startsWith("Negotiate")) {
             if(isComplete() == false)
@@ -303,31 +334,9 @@ public class NegotiateScheme implements AuthScheme {
             }
         }
     }
-
-    public boolean isStripPort() {
-        return stripPort;
-    }
-
-    /**
-     * Strips the port off the Kerberos service name e.g. HTTP/webserver.ad.net:8080 -> HTTP/webserver.ad.net
-     * @param stripport
-     */
-    public void setStripPort(boolean stripport) {
-        if (stripport){
-            log.debug("Will strip ports off Service Names e.g. HTTP/server:8080 -> HTTP/server");
-        } else{
-            log.debug("Will NOT strip ports off Service Names e.g. HTTP/server:8080 -> HTTP/server");
-        }
-        stripPort = stripport;
-    }
-
-    /**
-     * Inject the class to be used to generate an SPNEGO token from a Kerberos ticket.
-     * Use only with Java <= 1.5 , tested against Jboss Negotiate.
-     * @param SpengoGenerator - An SpnegoTokenGenerator implementation Class
-     */
-    public void setSpengoGenerator(SpnegoTokenGenerator SpengoGenerator) {
-        this.spengoGenerator = SpengoGenerator;
+    
+    public boolean isProxy() {
+        return this.proxy;
     }
     
 }
