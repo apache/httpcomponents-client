@@ -52,6 +52,35 @@ public class StringBody extends AbstractContentBody {
     private final byte[] content;
     private final Charset charset;
     
+    /**
+     * @since 4.1
+     */
+    public static StringBody create(
+            final String text, 
+            final String mimeType, 
+            final Charset charset) throws IllegalArgumentException {
+        try {
+            return new StringBody(text, mimeType, charset);
+        } catch (UnsupportedEncodingException ex) {
+            throw new IllegalArgumentException("Charset " + charset + " is not supported", ex);
+        }
+    }
+    
+    /**
+     * @since 4.1
+     */
+    public static StringBody create(
+            final String text, final Charset charset) throws IllegalArgumentException {
+        return create(text, null, charset);
+    }
+    
+    /**
+     * @since 4.1
+     */
+    public static StringBody create(final String text) throws IllegalArgumentException {
+        return create(text, null, null);
+    }
+    
     public StringBody(
             final String text, 
             final String mimeType, 
@@ -67,7 +96,7 @@ public class StringBody extends AbstractContentBody {
         this.charset = charset;
     }
     
-    public StringBody(final String text, Charset charset) throws UnsupportedEncodingException {
+    public StringBody(final String text, final Charset charset) throws UnsupportedEncodingException {
         this(text, "text/plain", charset);
     }
     
