@@ -92,7 +92,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
     }
 
     public void testRequestURIRewriting() throws Exception {
-        int port = this.localServer.getServicePort();
+        int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
         
         DefaultHttpClient client = new DefaultHttpClient(); 
@@ -117,7 +117,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
     }
 
     public void testRequestURIRewritingEmptyPath() throws Exception {
-        int port = this.localServer.getServicePort();
+        int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
         
         DefaultHttpClient client = new DefaultHttpClient(); 

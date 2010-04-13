@@ -90,7 +90,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         int workerCount = 5;
         int requestCount = 5;
         
-        int port = this.localServer.getServicePort();
+        int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
         HttpHost target = new HttpHost("localhost", port);

@@ -24,46 +24,41 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.conn.ssl;
 
-package org.apache.http.localserver;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-import java.net.InetSocketAddress;
-
-import junit.framework.TestCase;
-
-import org.apache.http.HttpHost;
+import javax.net.ssl.X509TrustManager;
 
 /**
- * Base class for tests using {@link LocalTestServer}. The server will not be started 
- * per default. 
+ * @since 4.1
  */
-public abstract class BasicServerTestBase extends TestCase {
-
-    /** The local server for testing. */
-    protected LocalTestServer localServer;
-
-    protected BasicServerTestBase(String testName) {
-        super(testName);
+class TrustManagerDecorator implements X509TrustManager {
+    
+    private final X509TrustManager trustManager;
+    private final TrustStrategy trustStrategy;
+    
+    TrustManagerDecorator(final X509TrustManager trustManager, final TrustStrategy trustStrategy) {
+        super();
+        this.trustManager = trustManager;
+        this.trustStrategy = trustStrategy;
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        if (localServer != null) {
-            localServer.stop();
+    public void checkClientTrusted(
+            final X509Certificate[] chain, final String authType) throws CertificateException {
+        this.trustManager.checkClientTrusted(chain, authType);
+    }
+
+    public void checkServerTrusted(
+            final X509Certificate[] chain, final String authType) throws CertificateException {
+        if (!this.trustStrategy.isTrusted(chain, authType)) {
+            this.trustManager.checkServerTrusted(chain, authType);
         }
     }
 
-    /**
-     * Obtains the address of the local test server.
-     *
-     * @return  the test server host, with a scheme name of "http"
-     */
-    protected HttpHost getServerHttp() {
-        InetSocketAddress address = localServer.getServiceAddress();
-        return new HttpHost(
-                address.getHostName(),
-                address.getPort(),
-                "http");
+    public X509Certificate[] getAcceptedIssuers() {
+        return this.trustManager.getAcceptedIssuers();
     }
-
+    
 }

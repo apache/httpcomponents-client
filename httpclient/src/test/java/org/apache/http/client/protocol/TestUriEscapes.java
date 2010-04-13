@@ -27,6 +27,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -88,8 +89,9 @@ public class TestUriEscapes extends BasicServerTestBase {
     }
     
     private void doTest(String uri, boolean relative) throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         UriListeningService listener = new UriListeningService();
         this.localServer.register("*", listener);
         

@@ -130,7 +130,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         int port = schm.resolvePort(target.getPort());
         for (int i = 0; i < addresses.length; i++) {
             InetAddress address = addresses[i];
-            boolean last = i == addresses.length;
+            boolean last = i == addresses.length - 1;
             
             Socket sock = sf.createSocket();
             conn.opening(sock, target);

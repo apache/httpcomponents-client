@@ -32,7 +32,7 @@ import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 
-import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLException;
 
 import org.apache.http.annotation.Immutable;
 
@@ -107,7 +107,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // Connection refused 
             return false;
         }
-        if (exception instanceof SSLHandshakeException) {
+        if (exception instanceof SSLException) {
             // SSL handshake exception
             return false;
         }

@@ -95,7 +95,7 @@ public class TestDigestScheme extends TestCase {
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
@@ -112,7 +112,7 @@ public class TestDigestScheme extends TestCase {
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
@@ -131,7 +131,7 @@ public class TestDigestScheme extends TestCase {
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
@@ -148,7 +148,7 @@ public class TestDigestScheme extends TestCase {
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
         Credentials cred = new UsernamePasswordCredentials("username","password");
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
@@ -168,7 +168,7 @@ public class TestDigestScheme extends TestCase {
 
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge1);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 
@@ -180,7 +180,7 @@ public class TestDigestScheme extends TestCase {
         assertEquals("786f500303eac1478f3c2865e676ed68", table.get("response"));
 
         authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge2);
-        AuthScheme authscheme2 = new DigestScheme();
+        DigestScheme authscheme2 = new DigestScheme();
         authscheme2.processChallenge(authChallenge);
         authResponse = authscheme2.authenticate(cred2, request);
 
@@ -214,8 +214,8 @@ public class TestDigestScheme extends TestCase {
         
         Credentials cred = new UsernamePasswordCredentials(username, password);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
-
-        AuthScheme authscheme = new DigestScheme();
+        
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
         String response = authResponse.getValue();
@@ -260,7 +260,7 @@ public class TestDigestScheme extends TestCase {
 
         HttpRequest request = new BasicHttpRequest("Simple", "/");
 
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
 

@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,8 +41,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.HttpException;
 import org.apache.http.HttpResponseFactory;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpServerConnection;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpResponseFactory;
@@ -54,9 +54,11 @@ import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.HttpRequestHandlerRegistry;
 import org.apache.http.protocol.HttpService;
+import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
@@ -80,34 +82,22 @@ public class LocalTestServer {
     /** The request handler registry. */
     private final HttpRequestHandlerRegistry handlerRegistry;
 
-    /** The server-side connection re-use strategy. */
-    private final ConnectionReuseStrategy reuseStrategy;
-
-    /** The response factory */
-    private final HttpResponseFactory responseFactory;
-    
-    /**
-     * The HTTP processor.
-     * If the interceptors are thread safe and the list is not
-     * modified during operation, the processor is thread safe.
-     */
-    private final BasicHttpProcessor httpProcessor;
-
-    /** The server parameters. */
-    private final HttpParams serverParams;
+    private final HttpService httpservice;
 
     /** Optional SSL context */
     private final SSLContext sslcontext;
     
     /** The server socket, while being served. */
-    protected volatile ServerSocket servicedSocket;
+    private volatile ServerSocket servicedSocket;
 
     /** The request listening thread, while listening. */
-    protected volatile Thread listenerThread;
+    private volatile ListenerThread listenerThread;
+
+    /** Set of active worker threads */
+    private final Set<Worker> workers;
     
     /** The number of connections this accepted. */
     private final AtomicInteger acceptedConnections = new AtomicInteger(0);
-
 
     /**
      * Creates a new test server.
@@ -126,20 +116,32 @@ public class LocalTestServer {
      *                   SSL/TLS transport security
      */
     public LocalTestServer(
-            BasicHttpProcessor proc, 
-            ConnectionReuseStrategy reuseStrat,
-            HttpResponseFactory responseFactory,
-            HttpParams params, 
-            SSLContext sslcontext) {
+            final BasicHttpProcessor proc, 
+            final ConnectionReuseStrategy reuseStrat,
+            final HttpResponseFactory responseFactory,
+            final HttpParams params, 
+            final SSLContext sslcontext) {
         super();
         this.handlerRegistry = new HttpRequestHandlerRegistry();
-        this.reuseStrategy = (reuseStrat != null) ? reuseStrat: newConnectionReuseStrategy();
-        this.responseFactory = (responseFactory != null) ? responseFactory: newHttpResponseFactory();
-        this.httpProcessor = (proc != null) ? proc : newProcessor();
-        this.serverParams = (params != null) ? params : newDefaultParams();
+        this.workers = Collections.synchronizedSet(new HashSet<Worker>());
+        this.httpservice = new HttpService(
+            proc != null ? proc : newProcessor(), 
+            reuseStrat != null ? reuseStrat: newConnectionReuseStrategy(), 
+            responseFactory != null ? responseFactory: newHttpResponseFactory(), 
+            handlerRegistry, 
+            null, 
+            params != null ? params : newDefaultParams());
         this.sslcontext = sslcontext;
     }
 
+    /**
+     * Creates a new test server with SSL/TLS encryption.
+     *
+     * @param sslcontext SSL context
+     */
+    public LocalTestServer(final SSLContext sslcontext) {
+        this(null, null, null, null, sslcontext);
+    }
 
     /**
      * Creates a new test server.
@@ -162,15 +164,14 @@ public class LocalTestServer {
      *
      * @return  a protocol processor for server-side use
      */
-    protected BasicHttpProcessor newProcessor() {
-
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
-
-        return httpproc;
+    protected HttpProcessor newProcessor() {
+        return new ImmutableHttpProcessor(
+                new HttpResponseInterceptor[] {
+                        new ResponseDate(),
+                        new ResponseServer(),
+                        new ResponseContent(),
+                        new ResponseConnControl()
+                });
     }
 
 
@@ -182,14 +183,10 @@ public class LocalTestServer {
     protected HttpParams newDefaultParams() {
         HttpParams params = new SyncBasicHttpParams();
         params
-            .setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
-                             60000)
-            .setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,
-                             8 * 1024)
-            .setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,
-                                 false)
-            .setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,
-                                 true)
+            .setIntParameter(CoreConnectionPNames.SO_TIMEOUT, 60000)
+            .setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE, 8 * 1024)
+            .setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false)
+            .setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, true)
             .setParameter(CoreProtocolPNames.ORIGIN_SERVER,
                           "LocalTestServer/1.1");
         return params;
@@ -252,10 +249,9 @@ public class LocalTestServer {
      * to obtain the port number afterwards.
      */
     public void start() throws Exception {
-        if (servicedSocket != null)
-            throw new IllegalStateException
-                (this.toString() + " already running");
-
+        if (servicedSocket != null) {
+            throw new IllegalStateException(this.toString() + " already running");
+        }
         ServerSocket ssock;
         if (sslcontext != null) {
             SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
@@ -268,7 +264,7 @@ public class LocalTestServer {
         ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;
 
-        listenerThread = new Thread(new RequestListener());
+        listenerThread = new ListenerThread();
         listenerThread.setDaemon(false);
         listenerThread.start();
     }
@@ -277,23 +273,20 @@ public class LocalTestServer {
      * Stops this test server.
      */
     public void stop() throws Exception {
-        if (servicedSocket == null)
+        if (servicedSocket == null) {
             return; // not running
-
-        try {
-            servicedSocket.close();
-        } catch (IOException iox) {
-            System.out.println("error stopping " + this);
-            iox.printStackTrace(System.out);
-        } finally {
-            servicedSocket = null;
         }
-
-        if (listenerThread != null) {
-            listenerThread.interrupt();
+        ListenerThread t = listenerThread;
+        if (t != null) {
+            t.shutdown();
+        }
+        synchronized (workers) {
+            for (Iterator<Worker> it = workers.iterator(); it.hasNext(); ) {
+                Worker worker = it.next();
+                worker.shutdown();
+            }
         }
     }
-
 
     public void awaitTermination(long timeMs) throws InterruptedException {
         if (listenerThread != null) {
@@ -313,158 +306,107 @@ public class LocalTestServer {
         return sb.toString();
     }
 
-
-    /**
-     * Obtains the port this server is servicing.
-     *
-     * @return  the service port
-     */
-    public int getServicePort() {
-        ServerSocket ssock = servicedSocket; // avoid synchronization
-        if (ssock == null)
-            throw new IllegalStateException("not running");
-
-        return ssock.getLocalPort();
-    }
-
-
-    /**
-     * Obtains the hostname of the server.
-     *
-     * @return  the hostname
-     */
-    public String getServiceHostName() {
-        ServerSocket ssock = servicedSocket; // avoid synchronization
-        if (ssock == null)
-            throw new IllegalStateException("not running");
-
-        return ((InetSocketAddress) ssock.getLocalSocketAddress()).getHostName();
-    }
-
-
     /**
      * Obtains the local address the server is listening on
      *  
      * @return the service address
      */
-    public SocketAddress getServiceAddress() {
+    public InetSocketAddress getServiceAddress() {
         ServerSocket ssock = servicedSocket; // avoid synchronization
-        if (ssock == null)
+        if (ssock == null) {
             throw new IllegalStateException("not running");
-
-        return ssock.getLocalSocketAddress();
+        }
+        return (InetSocketAddress) ssock.getLocalSocketAddress();
     }
 
     /**
      * The request listener.
      * Accepts incoming connections and launches a service thread.
      */
-    public class RequestListener implements Runnable {
+    class ListenerThread extends Thread {
 
-        /** The workers launched from here. */
-        private Set<Thread> workerThreads =
-            Collections.synchronizedSet(new HashSet<Thread>());
-
+        private volatile Exception exception;
+        
+        ListenerThread() {
+            super();
+        }
 
         public void run() {
-
             try {
-                while ((servicedSocket != null) &&
-                       (listenerThread == Thread.currentThread()) &&
-                       !Thread.interrupted()) {
-                    try {
-                        accept();
-                    } catch (Exception e) {
-                        ServerSocket ssock = servicedSocket;
-                        if ((ssock != null) && !ssock.isClosed()) {
-                            System.out.println
-                                (LocalTestServer.this.toString() +
-                                 " could not accept");
-                            e.printStackTrace(System.out);
-                        }
-                        // otherwise ignore the exception silently
-                        break;
-                    }
+                while (!interrupted()) {
+                    Socket socket = servicedSocket.accept();
+                    acceptedConnections.incrementAndGet();
+                    DefaultHttpServerConnection conn = new DefaultHttpServerConnection();
+                    conn.bind(socket, httpservice.getParams());
+                    // Start worker thread
+                    Worker worker = new Worker(conn);
+                    workers.add(worker);
+                    worker.setDaemon(true);
+                    worker.start();
                 }
+            } catch (Exception ex) {
+                this.exception = ex;
             } finally {
-                cleanup();
-            }
-        }
-
-        protected void accept() throws IOException {
-            // Set up HTTP connection
-            Socket socket = servicedSocket.accept();
-            acceptedConnections.incrementAndGet();
-            DefaultHttpServerConnection conn =
-                new DefaultHttpServerConnection();
-            conn.bind(socket, serverParams);
-
-            // Set up the HTTP service
-            HttpService httpService = new HttpService(
-                httpProcessor, 
-                reuseStrategy, 
-                responseFactory, 
-                handlerRegistry, 
-                null, 
-                serverParams);
-
-            // Start worker thread
-            Thread t = new Thread(new Worker(httpService, conn));
-            workerThreads.add(t);
-            t.setDaemon(true);
-            t.start();
-
-        } // accept
-
-
-        protected void cleanup() {
-            Thread[] threads = workerThreads.toArray(new Thread[0]);
-            for (int i=0; i<threads.length; i++) {
-                if (threads[i] != null)
-                    threads[i].interrupt();
-            }
-        }
-
-
-        /**
-         * A worker for serving incoming requests.
-         */
-        public class Worker implements Runnable {
-
-            private final HttpService httpservice;
-            private final HttpServerConnection conn;
-        
-            public Worker(
-                final HttpService httpservice, 
-                final HttpServerConnection conn) {
-
-                this.httpservice = httpservice;
-                this.conn = conn;
-            }
-
-
-            public void run() {
-                HttpContext context = new BasicHttpContext(null);
                 try {
-                    while ((servicedSocket != null) &&
-                           this.conn.isOpen() && !Thread.interrupted()) {
-                        this.httpservice.handleRequest(this.conn, context);
-                    }
-                } catch (IOException ex) {
-                    // ignore silently
-                } catch (HttpException ex) {
-                    // ignore silently
-                } finally {
-                    workerThreads.remove(Thread.currentThread());
-                    try {
-                        this.conn.shutdown();
-                    } catch (IOException ignore) {}
+                    servicedSocket.close();
+                } catch (IOException ignore) {
                 }
             }
+        }
+        
+        public void shutdown() {
+            interrupt();
+            try {
+                servicedSocket.close();
+            } catch (IOException ignore) {
+            }
+        }
 
-        } // class Worker
+        public Exception getException() {
+            return this.exception;
+        }
 
-    } // class RequestListener
+    }
 
+    class Worker extends Thread {
+
+        private final HttpServerConnection conn;
     
-} // class LocalTestServer
+        private volatile Exception exception;
+
+        public Worker(final HttpServerConnection conn) {
+            this.conn = conn;
+        }
+
+        public void run() {
+            HttpContext context = new BasicHttpContext();
+            try {
+                while (this.conn.isOpen() && !Thread.interrupted()) {
+                    httpservice.handleRequest(this.conn, context);
+                }
+            } catch (Exception ex) {
+                this.exception = ex;
+            } finally {
+                workers.remove(this);
+                try {
+                    this.conn.shutdown();
+                } catch (IOException ignore) {
+                }
+            }
+        }
+        
+        public void shutdown() {
+            interrupt();
+            try {
+                this.conn.shutdown();
+            } catch (IOException ignore) {
+            }
+        }
+
+        public Exception getException() {
+            return this.exception;
+        }
+
+    }
+    
+}

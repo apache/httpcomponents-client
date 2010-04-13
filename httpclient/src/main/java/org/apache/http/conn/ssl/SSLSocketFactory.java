@@ -43,6 +43,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -57,29 +59,24 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
 /**
- * Layered socket factory for TLS/SSL connections, based on JSSE.
- * 
+ * Layered socket factory for TLS/SSL connections.
  * <p>
- * SSLSocketFactory can be used to validate the identity of the HTTPS 
- * server against a list of trusted certificates and to authenticate to
- * the HTTPS server using a private key. 
- * </p>
- * 
+ * SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of 
+ * trusted certificates and to authenticate to the HTTPS server using a private key. 
  * <p>
- * SSLSocketFactory will enable server authentication when supplied with
- * a {@link KeyStore truststore} file containing one or several trusted
- * certificates. The client secure socket will reject the connection during
- * the SSL session handshake if the target HTTPS server attempts to
- * authenticate itself with a non-trusted certificate.
- * </p>
- * 
+ * SSLSocketFactory will enable server authentication when supplied with 
+ * a {@link KeyStore trust-store} file containing one or several trusted certificates. The client 
+ * secure socket will reject the connection during the SSL session handshake if the target HTTPS 
+ * server attempts to authenticate itself with a non-trusted certificate.
  * <p>
- * Use JDK keytool utility to import a trusted certificate and generate a truststore file:    
+ * Use JDK keytool utility to import a trusted certificate and generate a trust-store file:    
  *    <pre>
  *     keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
  *    </pre>
- * </p>
- * 
+ * <p>
+ * In special cases the standard trust verification process can be bypassed by using a custom 
+ * {@link TrustStrategy}. This interface is primarily intended for allowing self-signed 
+ * certificates to be accepted as trusted without having to add them to the trust-store file.
  * <p>
  * The following parameters can be used to customize the behavior of this 
  * class: 
@@ -87,27 +84,23 @@ import java.security.UnrecoverableKeyException;
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
  * </ul>
- * </p>
- * 
  * <p>
  * SSLSocketFactory will enable client authentication when supplied with
- * a {@link KeyStore keystore} file containg a private key/public certificate
+ * a {@link KeyStore key-store} file containing a private key/public certificate
  * pair. The client secure socket will use the private key to authenticate
  * itself to the target HTTPS server during the SSL session handshake if
  * requested to do so by the server.
  * The target HTTPS server will in its turn verify the certificate presented
  * by the client in order to establish client's authenticity
- * </p>
- * 
  * <p>
- * Use the following sequence of actions to generate a keystore file
+ * Use the following sequence of actions to generate a key-store file
  * </p>
  *   <ul>
  *     <li>
  *      <p>
  *      Use JDK keytool utility to generate a new key
  *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
- *      For simplicity use the same password for the key as that of the keystore
+ *      For simplicity use the same password for the key as that of the key-store
  *      </p>
  *     </li>
  *     <li>
@@ -177,42 +170,60 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         return DEFAULT_FACTORY;
     }
     
-    private final SSLContext sslcontext;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
     private final HostNameResolver nameResolver;
     // TODO: make final
     private volatile X509HostnameVerifier hostnameVerifier;
 
+    private static SSLContext createSSLContext(
+            String algorithm, 
+            final KeyStore keystore, 
+            final String keystorePassword, 
+            final KeyStore truststore,
+            final SecureRandom random,
+            final TrustStrategy trustStrategy) 
+                throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
+        if (algorithm == null) {
+            algorithm = TLS;
+        }
+        KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
+                KeyManagerFactory.getDefaultAlgorithm());
+        kmfactory.init(keystore, keystorePassword != null ? keystorePassword.toCharArray(): null);
+        KeyManager[] keymanagers =  kmfactory.getKeyManagers(); 
+        TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
+        tmfactory.init(keystore);
+        TrustManager[] trustmanagers = tmfactory.getTrustManagers();
+        if (trustmanagers != null && trustStrategy != null) {
+            for (int i = 0; i < trustmanagers.length; i++) {
+                TrustManager tm = trustmanagers[i];
+                if (tm instanceof X509TrustManager) {
+                    trustmanagers[i] = new TrustManagerDecorator(
+                            (X509TrustManager) tm, trustStrategy);
+                }
+            }
+        }
+        
+        SSLContext sslcontext = SSLContext.getInstance(algorithm);
+        sslcontext.init(keymanagers, trustmanagers, random);
+        return sslcontext;
+    }
+    
     /**
      * @deprecated Use {@link #SSLSocketFactory(String, KeyStore, String, KeyStore, SecureRandom, X509HostnameVerifier)}
      */
     @Deprecated
     public SSLSocketFactory(
-        String algorithm, 
-        final KeyStore keystore, 
-        final String keystorePassword, 
-        final KeyStore truststore,
-        final SecureRandom random,
-        final HostNameResolver nameResolver) 
-        throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
-    {
-        super();
-        if (algorithm == null) {
-            algorithm = TLS;
-        }
-        KeyManager[] keymanagers = null;
-        if (keystore != null) {
-            keymanagers = createKeyManagers(keystore, keystorePassword);
-        }
-        TrustManager[] trustmanagers = null;
-        if (truststore != null) {
-            trustmanagers = createTrustManagers(truststore);
-        }
-        this.sslcontext = SSLContext.getInstance(algorithm);
-        this.sslcontext.init(keymanagers, trustmanagers, random);
-        this.socketfactory = this.sslcontext.getSocketFactory();
-        this.hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
-        this.nameResolver = nameResolver;
+            final String algorithm, 
+            final KeyStore keystore, 
+            final String keystorePassword, 
+            final KeyStore truststore,
+            final SecureRandom random,
+            final HostNameResolver nameResolver) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(createSSLContext(
+                algorithm, keystore, keystorePassword, truststore, random, null), 
+                nameResolver);
     }
 
     /**
@@ -225,69 +236,67 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
             final KeyStore truststore,
             final SecureRandom random,
             final X509HostnameVerifier hostnameVerifier) 
-                throws NoSuchAlgorithmException, KeyManagementException, 
-                        KeyStoreException, UnrecoverableKeyException {
-            super();
-            if (algorithm == null) {
-                algorithm = TLS;
-            }
-            KeyManager[] keymanagers = null;
-            if (keystore != null) {
-                keymanagers = createKeyManagers(keystore, keystorePassword);
-            }
-            TrustManager[] trustmanagers = null;
-            if (truststore != null) {
-                trustmanagers = createTrustManagers(truststore);
-            }
-            this.sslcontext = SSLContext.getInstance(algorithm);
-            this.sslcontext.init(keymanagers, trustmanagers, random);
-            this.socketfactory = this.sslcontext.getSocketFactory();
-            this.hostnameVerifier = hostnameVerifier;
-            this.nameResolver = null;
-        }
-
-    public SSLSocketFactory(
-            final KeyStore keystore, 
-            final String keystorePassword, 
-            final KeyStore truststore) 
-            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
-    {
-        this(TLS, keystore, keystorePassword, truststore, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-    }
-
-    public SSLSocketFactory(final KeyStore keystore, final String keystorePassword) 
-            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
-    {
-        this(TLS, keystore, keystorePassword, null, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-    }
-
-    public SSLSocketFactory(final KeyStore truststore) 
-            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException
-    {
-        this(TLS, null, null, truststore, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-    }
-
-    /**
-     * @deprecated Use {@link #SSLSocketFactory(SSLContext)}
-     */
-    @Deprecated
-    public SSLSocketFactory(final SSLContext sslContext, final HostNameResolver nameResolver) {
-        super();
-        this.sslcontext = sslContext;
-        this.socketfactory = this.sslcontext.getSocketFactory();
-        this.hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
-        this.nameResolver = nameResolver;
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(createSSLContext(
+                algorithm, keystore, keystorePassword, truststore, random, null),
+                hostnameVerifier);
     }
 
     /**
      * @since 4.1
      */
-    public SSLSocketFactory(final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
-        super();
-        this.sslcontext = sslContext;
-        this.socketfactory = this.sslcontext.getSocketFactory();
-        this.hostnameVerifier = hostnameVerifier;
-        this.nameResolver = null;
+    public SSLSocketFactory(
+            String algorithm, 
+            final KeyStore keystore, 
+            final String keystorePassword, 
+            final KeyStore truststore,
+            final SecureRandom random,
+            final TrustStrategy trustStrategy,
+            final X509HostnameVerifier hostnameVerifier) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(createSSLContext(
+                algorithm, keystore, keystorePassword, truststore, random, trustStrategy),
+                hostnameVerifier);
+    }
+
+    public SSLSocketFactory(
+            final KeyStore keystore, 
+            final String keystorePassword, 
+            final KeyStore truststore) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(TLS, keystore, keystorePassword, truststore, null, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+    }
+
+    public SSLSocketFactory(
+            final KeyStore keystore, 
+            final String keystorePassword) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException{
+        this(TLS, keystore, keystorePassword, null, null, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+    }
+
+    public SSLSocketFactory(
+            final KeyStore truststore) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(TLS, null, null, truststore, null, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+    }
+
+    /**
+     * @since 4.1
+     */
+    public SSLSocketFactory(
+            final TrustStrategy trustStrategy,
+            final X509HostnameVerifier hostnameVerifier) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(TLS, null, null, null, null, trustStrategy, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.1
+     */
+    public SSLSocketFactory(
+            final TrustStrategy trustStrategy) 
+                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        this(TLS, null, null, null, null, trustStrategy, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     public SSLSocketFactory(final SSLContext sslContext) {
@@ -295,39 +304,35 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
     }
 
     /**
-     * Creates the default SSL socket factory.
-     * This constructor is used exclusively to instantiate the factory for
-     * {@link #getSocketFactory getSocketFactory}.
+     * @deprecated Use {@link #SSLSocketFactory(SSLContext)}
      */
-    private SSLSocketFactory() {
+    @Deprecated
+    public SSLSocketFactory(
+            final SSLContext sslContext, final HostNameResolver nameResolver) {
         super();
-        this.sslcontext = null;
-        this.socketfactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+        this.socketfactory = sslContext.getSocketFactory();
+        this.hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+        this.nameResolver = nameResolver;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public SSLSocketFactory(
+            final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
+        super();
+        this.socketfactory = sslContext.getSocketFactory();
+        this.hostnameVerifier = hostnameVerifier;
         this.nameResolver = null;
     }
 
-    private static KeyManager[] createKeyManagers(final KeyStore keystore, final String password)
-        throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        if (keystore == null) {
-            throw new IllegalArgumentException("Keystore may not be null");
-        }
-        KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
-            KeyManagerFactory.getDefaultAlgorithm());
-        kmfactory.init(keystore, password != null ? password.toCharArray(): null);
-        return kmfactory.getKeyManagers(); 
+    private SSLSocketFactory() {
+        super();
+        this.socketfactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+        this.hostnameVerifier = null;
+        this.nameResolver = null;
     }
-
-    private static TrustManager[] createTrustManagers(final KeyStore keystore)
-        throws KeyStoreException, NoSuchAlgorithmException { 
-        if (keystore == null) {
-            throw new IllegalArgumentException("Keystore may not be null");
-        }
-        TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
-            TrustManagerFactory.getDefaultAlgorithm());
-        tmfactory.init(keystore);
-        return tmfactory.getTrustManagers();
-    }
-
+    
     @SuppressWarnings("cast")
     public Socket createSocket() throws IOException {
         // the cast makes sure that the factory is working as expected

@@ -24,46 +24,22 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.conn.ssl;
 
-package org.apache.http.localserver;
-
-import java.net.InetSocketAddress;
-
-import junit.framework.TestCase;
-
-import org.apache.http.HttpHost;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
- * Base class for tests using {@link LocalTestServer}. The server will not be started 
- * per default. 
+ * A trust strategy that accepts self-signed certificates as trusted. Verification of all other 
+ * certificates is done by the trust manager configured in the SSL context.
+ * 
+ * @since 4.1
  */
-public abstract class BasicServerTestBase extends TestCase {
-
-    /** The local server for testing. */
-    protected LocalTestServer localServer;
-
-    protected BasicServerTestBase(String testName) {
-        super(testName);
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        if (localServer != null) {
-            localServer.stop();
-        }
-    }
-
-    /**
-     * Obtains the address of the local test server.
-     *
-     * @return  the test server host, with a scheme name of "http"
-     */
-    protected HttpHost getServerHttp() {
-        InetSocketAddress address = localServer.getServiceAddress();
-        return new HttpHost(
-                address.getHostName(),
-                address.getPort(),
-                "http");
+public class TrustSelfSignedStrategy implements TrustStrategy {
+    
+    public boolean isTrusted(
+            final X509Certificate[] chain, final String authType) throws CertificateException {
+        return chain.length == 1;
     }
 
 }

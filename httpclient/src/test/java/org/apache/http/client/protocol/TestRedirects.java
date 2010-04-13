@@ -27,6 +27,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -235,8 +236,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect300() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_MULTIPLE_CHOICES));
         
@@ -259,8 +261,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect301() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_PERMANENTLY));
         
@@ -287,8 +290,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect302() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_TEMPORARILY));
         
@@ -315,8 +319,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect303() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_SEE_OTHER));
         
@@ -343,8 +348,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect304() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_NOT_MODIFIED));
         
@@ -367,8 +373,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect305() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_USE_PROXY));
         
@@ -391,8 +398,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testBasicRedirect307() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BasicRedirectService(host, port, HttpStatus.SC_TEMPORARY_REDIRECT));
         
@@ -452,8 +460,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testPostNoRedirect() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", new BasicRedirectService(host, port));
 
         DefaultHttpClient client = new DefaultHttpClient(); 
@@ -477,8 +486,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testPostRedirectSeeOther() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = "localhost";
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", new BasicRedirectService(host, port, 
                 HttpStatus.SC_SEE_OTHER));
 
@@ -503,8 +513,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testRelativeRedirect() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = this.localServer.getServiceHostName();
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", new RelativeRedirectService());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
@@ -532,8 +543,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testRelativeRedirect2() throws Exception {
-        int port = this.localServer.getServicePort();
-        String host = this.localServer.getServiceHostName();
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", new RelativeRedirectService2());
 
         DefaultHttpClient client = new DefaultHttpClient(); 
@@ -594,8 +606,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testRejectInvalidRedirectLocation() throws Exception {
-        String host = "localhost";
-        int port = this.localServer.getServicePort();
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
         this.localServer.register("*", 
                 new BogusRedirectService("http://"+ host +":"+ port +"/newlocation/?p=I have spaces"));
 
@@ -613,8 +626,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testRedirectWithCookie() throws Exception {
-        String host = "localhost";
-        int port = this.localServer.getServicePort();
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
 
         this.localServer.register("*", 
                 new BasicRedirectService(host, port));
@@ -625,7 +639,7 @@ public class TestRedirects extends BasicServerTestBase {
         client.setCookieStore(cookieStore);
         
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        cookie.setDomain("localhost");
+        cookie.setDomain(host);
         cookie.setPath("/");
         
         cookieStore.addCookie(cookie);
@@ -651,8 +665,9 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     public void testDefaultHeadersRedirect() throws Exception {
-        String host = "localhost";
-        int port = this.localServer.getServicePort();
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
 
         this.localServer.register("*", 
                 new BasicRedirectService(host, port));
