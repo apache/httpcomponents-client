@@ -35,10 +35,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.entity.mime.MIME;
 
@@ -46,7 +42,6 @@ import org.apache.http.entity.mime.MIME;
  *
  * @since 4.0
  */
-@NotThreadSafe // parent is @NotThreadSafe
 public class StringBody extends AbstractContentBody {
 
     private final byte[] content;
@@ -118,7 +113,6 @@ public class StringBody extends AbstractContentBody {
         writeTo(out);
     }
 
-    @Override
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");
@@ -138,13 +132,6 @@ public class StringBody extends AbstractContentBody {
 
     public String getCharset() {
         return this.charset.name();
-    }
-
-    @Override
-    public Map<String, String> getContentTypeParameters() {
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("charset", this.charset.name());
-        return map;
     }
 
     public long getContentLength() {

@@ -44,10 +44,6 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.james.mime4j.field.Fields;
-import org.apache.james.mime4j.message.BodyPart;
-import org.apache.james.mime4j.message.Header;
-import org.apache.james.mime4j.message.Message;
 
 public class TestMultipartForm extends TestCase {
 
@@ -68,65 +64,8 @@ public class TestMultipartForm extends TestCase {
         return new TestSuite(TestMultipartForm.class);
     }
 
-    public void testMultipartFormLowLevel() throws Exception {
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; boundary=foo"));
-        message.setHeader(header);
-        
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
-        BodyPart p1 = new BodyPart();
-        Header h1 = new Header();
-        h1.addField(Fields.contentType("text/plain"));
-        p1.setHeader(h1);
-        p1.setBody(new StringBody("this stuff"));
-        BodyPart p2 = new BodyPart();
-        Header h2 = new Header();
-        h2.addField(Fields.contentType("text/plain"));
-        p2.setHeader(h2);
-        p2.setBody(new StringBody("that stuff"));
-        BodyPart p3 = new BodyPart();
-        Header h3 = new Header();
-        h3.addField(Fields.contentType("text/plain"));
-        p3.setHeader(h3);
-        p3.setBody(new StringBody("all kind of stuff"));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
-        multipart.addBodyPart(p3);
-        
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        multipart.writeTo(out);
-        out.close();
-        
-        String expected = 
-            "--foo\r\n" +
-            "Content-Type: text/plain\r\n" +
-            "\r\n" +
-            "this stuff\r\n" +
-            "--foo\r\n" +
-            "Content-Type: text/plain\r\n" +
-            "\r\n" +
-            "that stuff\r\n" +
-            "--foo\r\n" +
-            "Content-Type: text/plain\r\n" +
-            "\r\n" +
-            "all kind of stuff\r\n" +
-            "--foo--\r\n";
-        String s = out.toString("US-ASCII");
-        assertEquals(expected, s);
-        assertEquals(s.length(), multipart.getTotalLength());
-    }
-    
     public void testMultipartFormStringParts() throws Exception {
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; boundary=foo"));
-        message.setHeader(header);
-        
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
+        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody("this stuff"));
@@ -173,11 +112,6 @@ public class TestMultipartForm extends TestCase {
     }
 
     public void testMultipartFormBinaryParts() throws Exception {
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; boundary=foo"));
-        message.setHeader(header);
-
         File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
         Writer writer = new FileWriter(tmpfile);
@@ -187,8 +121,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
+        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -227,11 +160,6 @@ public class TestMultipartForm extends TestCase {
     }
 
     public void testMultipartFormBrowserCompatible() throws Exception {
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; boundary=foo"));
-        message.setHeader(header);
-
         File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
         Writer writer = new FileWriter(tmpfile);
@@ -241,8 +169,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
+        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -316,11 +243,6 @@ public class TestMultipartForm extends TestCase {
         String s1 = constructString(SWISS_GERMAN_HELLO);
         String s2 = constructString(RUSSIAN_HELLO);
 
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; charset=UTF-8; boundary=foo"));
-        message.setHeader(header);
-
         File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
         Writer writer = new FileWriter(tmpfile);
@@ -330,8 +252,7 @@ public class TestMultipartForm extends TestCase {
             writer.close();
         }
         
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
+        HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
@@ -371,13 +292,7 @@ public class TestMultipartForm extends TestCase {
         String s1 = constructString(SWISS_GERMAN_HELLO);
         String s2 = constructString(RUSSIAN_HELLO);
         
-        Message message = new Message();
-        Header header = new Header();
-        header.addField(Fields.contentType("multipart/form-data; boundary=foo"));
-        message.setHeader(header);
-        
-        HttpMultipart multipart = new HttpMultipart("form-data");
-        multipart.setParent(message);
+        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody(s1, Charset.forName("ISO-8859-1")));

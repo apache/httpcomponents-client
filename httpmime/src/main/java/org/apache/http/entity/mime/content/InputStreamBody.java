@@ -31,15 +31,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.entity.mime.MIME;
 
 /**
  *
  * @since 4.0
  */
-@NotThreadSafe // parent is @NotThreadSafe
 public class InputStreamBody extends AbstractContentBody {
 
     private final InputStream in;
@@ -70,7 +67,6 @@ public class InputStreamBody extends AbstractContentBody {
         writeTo(out);
     }
 
-    @Override
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");

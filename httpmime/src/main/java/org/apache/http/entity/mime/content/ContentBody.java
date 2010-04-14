@@ -27,15 +27,17 @@
 
 package org.apache.http.entity.mime.content;
 
-import org.apache.james.mime4j.descriptor.ContentDescriptor;
-import org.apache.james.mime4j.message.Body;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  *
  * @since 4.0
  */
-public interface ContentBody extends Body, ContentDescriptor {
+public interface ContentBody extends ContentDescriptor {
 
     String getFilename();
+    
+    void writeTo(OutputStream out) throws IOException;
     
 }

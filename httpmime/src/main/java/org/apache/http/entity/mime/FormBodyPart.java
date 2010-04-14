@@ -27,25 +27,21 @@
 
 package org.apache.http.entity.mime;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.james.mime4j.descriptor.ContentDescriptor;
-import org.apache.james.mime4j.message.BodyPart;
-import org.apache.james.mime4j.message.Header;
 
 /**
  * An extension of the mime4j standard {@link BodyPart} class that 
  * automatically populates the header with standard fields based 
  * on the content description of the enclosed body.
- * 
  *
  * @since 4.0
  */
-@NotThreadSafe // Entity is @NotThreadSafe
-public class FormBodyPart extends BodyPart {
+public class FormBodyPart {
 
     private final String name;
+    private final Header header;
+
+    private ContentBody body;
     
     public FormBodyPart(final String name, final ContentBody body) {
         super();
@@ -56,11 +52,9 @@ public class FormBodyPart extends BodyPart {
             throw new IllegalArgumentException("Body may not be null");
         }
         this.name = name;
+        this.body = body;
+        this.header = new Header();
         
-        Header header = new Header();
-        setHeader(header);
-        setBody(body);
-
         generateContentDisp(body);
         generateContentType(body);
         generateTransferEncoding(body);
@@ -68,6 +62,21 @@ public class FormBodyPart extends BodyPart {
     
     public String getName() {
         return this.name;
+    }
+    
+    public ContentBody getBody() {
+        return this.body;
+    }
+    
+    public Header getHeader() {
+        return this.header;
+    }
+
+    public void addField(final String name, final String value) {
+        if (name == null) {
+            throw new IllegalArgumentException("Field name may not be null");
+        }
+        this.header.addField(new MinimalField(name, value));
     }
     
     protected void generateContentDisp(final ContentBody body) {
@@ -83,26 +92,22 @@ public class FormBodyPart extends BodyPart {
         addField(MIME.CONTENT_DISPOSITION, buffer.toString());
     }
     
-    protected void generateContentType(final ContentDescriptor desc) {
-        if (desc.getMimeType() != null) {
+    protected void generateContentType(final ContentBody body) {
+        if (body.getMimeType() != null) {
             StringBuilder buffer = new StringBuilder();
-            buffer.append(desc.getMimeType());
-            if (desc.getCharset() != null) {
+            buffer.append(body.getMimeType());
+            if (body.getCharset() != null) {
                 buffer.append("; charset=");
-                buffer.append(desc.getCharset());
+                buffer.append(body.getCharset());
             }
             addField(MIME.CONTENT_TYPE, buffer.toString());
         }
     }
     
-    protected void generateTransferEncoding(final ContentDescriptor desc) {
-        if (desc.getTransferEncoding() != null) {
-            addField(MIME.CONTENT_TRANSFER_ENC, desc.getTransferEncoding());
+    protected void generateTransferEncoding(final ContentBody body) {
+        if (body.getTransferEncoding() != null) {
+            addField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding());
         }
     }
 
-    private void addField(final String name, final String value) {
-        getHeader().addField(new MinimalField(name, value));
-    }
-    
 }

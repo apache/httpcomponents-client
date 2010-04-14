@@ -27,30 +27,21 @@
 
 package org.apache.http.entity.mime;
 
-import org.apache.http.annotation.Immutable;
-
-import org.apache.james.mime4j.parser.Field;
-import org.apache.james.mime4j.util.ByteSequence;
-import org.apache.james.mime4j.util.ContentUtil;
-
 /**
  * Minimal implementation of {@link Field}.
  *
  * @since 4.0
  */
-@Immutable
-public class MinimalField implements Field {
+//@Immutable
+public class MinimalField {
 
     private final String name;
     private final String value;
 
-    private ByteSequence raw; // cache, recreated on demand
-    
     MinimalField(final String name, final String value) {
         super();
         this.name = name;
         this.value = value;
-        this.raw = null;
     }
     
     public String getName() {
@@ -59,13 +50,6 @@ public class MinimalField implements Field {
 
     public String getBody() {
         return this.value;
-    }
-
-    public ByteSequence getRaw() {
-        if (this.raw == null) {
-            this.raw = ContentUtil.encode(toString());
-        }
-        return this.raw;
     }
 
     @Override

@@ -31,29 +31,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
-
-import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-import org.apache.james.mime4j.field.Fields;
-import org.apache.james.mime4j.message.BodyPart;
-import org.apache.james.mime4j.message.Message;
 
 /**
- * Multipart/form coded HTTP entity consisting of multiple
- * body parts. 
- * 
+ * Multipart/form coded HTTP entity consisting of multiple body parts. 
  *
  * @since 4.0
  */
-@ThreadSafe
 public class MultipartEntity implements HttpEntity {
 
     /**
@@ -63,7 +53,6 @@ public class MultipartEntity implements HttpEntity {
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             .toCharArray();
     
-    private final Message message;
     private final HttpMultipart multipart;
     private final Header contentType;
     
@@ -72,25 +61,21 @@ public class MultipartEntity implements HttpEntity {
     
     public MultipartEntity(
             HttpMultipartMode mode, 
-            final String boundary,
-            final Charset charset) {
+            String boundary,
+            Charset charset) {
         super();
-        this.multipart = new HttpMultipart("form-data");
+        if (boundary == null) {
+            boundary = generateBoundary();
+        }
+        this.multipart = new HttpMultipart("form-data", charset, boundary);
         this.contentType = new BasicHeader(
                 HTTP.CONTENT_TYPE,
                 generateContentType(boundary, charset));
         this.dirty = true;
-        
-        this.message = new Message();
-        org.apache.james.mime4j.message.Header header = 
-          new org.apache.james.mime4j.message.Header();
-        this.message.setHeader(header);
-        this.multipart.setParent(message);
         if (mode == null) {
             mode = HttpMultipartMode.STRICT;
         }
         this.multipart.setMode(mode);
-        this.message.getHeader().addField(Fields.contentType(this.contentType.getValue()));
     }
 
     public MultipartEntity(final HttpMultipartMode mode) {
@@ -106,15 +91,7 @@ public class MultipartEntity implements HttpEntity {
             final Charset charset) {
         StringBuilder buffer = new StringBuilder();
         buffer.append("multipart/form-data; boundary=");
-        if (boundary != null) {
-            buffer.append(boundary);
-        } else {
-            Random rand = new Random();
-            int count = rand.nextInt(11) + 30; // a random size from 30 to 40
-            for (int i = 0; i < count; i++) {
-                buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
-            }
-        }
+        buffer.append(boundary);
         if (charset != null) {
             buffer.append("; charset=");
             buffer.append(charset.name());
@@ -122,10 +99,17 @@ public class MultipartEntity implements HttpEntity {
         return buffer.toString();
     }
 
-    /**
-     * @since 4.1
-     */
-    public void addPart(final BodyPart bodyPart) {
+    protected String generateBoundary() {
+        StringBuilder buffer = new StringBuilder();
+        Random rand = new Random();
+        int count = rand.nextInt(11) + 30; // a random size from 30 to 40
+        for (int i = 0; i < count; i++) {
+            buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
+        }
+        return buffer.toString();
+    }
+
+    public void addPart(final FormBodyPart bodyPart) {
         this.multipart.addBodyPart(bodyPart);
         this.dirty = true;
     }
@@ -135,10 +119,8 @@ public class MultipartEntity implements HttpEntity {
     }
 
     public boolean isRepeatable() {
-        List<?> parts = this.multipart.getBodyParts();
-        for (Iterator<?> it = parts.iterator(); it.hasNext(); ) {
-            FormBodyPart part = (FormBodyPart) it.next();
-            ContentBody body = (ContentBody) part.getBody();
+        for (FormBodyPart part: this.multipart.getBodyParts()) {
+            ContentBody body = part.getBody();
             if (body.getContentLength() < 0) {
                 return false;
             }

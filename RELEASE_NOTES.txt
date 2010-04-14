@@ -1,5 +1,13 @@
-Changes since 4.1 ALPHA1
+Release 4.1 ALPHA2
 -------------------
+
+* Dropped dependency on Mime4j for HttpMime. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Extended SSLSocketFactory with a mechanism to bypass the standard certificate 
+  trust verification (primarily to simplify dealing with self-signed 
+  certificates) 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-916] UsernamePasswordCredentials, NTUserPrincipal, 
   BasicClientCookie, BasicClientCookie2 and BasicCookieStore made Serializable.
@@ -8,8 +16,9 @@ Changes since 4.1 ALPHA1
 * [HTTPCLIENT-914] Upgraded Commons Codec dependency to version 1.4
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-903] Use ConcurrentHashMap instead of [Linked]HashMap for thread-safety
-  Improve performance of AuthSchemeRegistry, CookieSpecRegistry and SchemeRegistry classes.
+* [HTTPCLIENT-903] Use ConcurrentHashMap instead of [Linked]HashMap for 
+  thread-safety. Improve performance of AuthSchemeRegistry, CookieSpecRegistry 
+  and SchemeRegistry classes.
   Contributed by Sebastian Bazley <sebb at apache.org>
   
 * [HTTPCLIENT-902] HttpRequestRetryHandler not called on I/O exceptions

@@ -29,6 +29,7 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -37,7 +38,6 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.james.mime4j.util.CharsetUtil;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -66,7 +66,7 @@ public class TestMultipartFormHttpEntity extends TestCase {
         MultipartEntity entity = new MultipartEntity(
                 HttpMultipartMode.BROWSER_COMPATIBLE,
                 "whatever",
-                CharsetUtil.getCharset("UTF-8"));
+                Charset.forName("UTF-8"));
 
         assertNull(entity.getContentEncoding());
         assertNotNull(entity.getContentType());

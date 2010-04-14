@@ -63,7 +63,6 @@ public class TestMultipartContentBody extends TestCase {
         Charset defCharset = Charset.defaultCharset();
         
         assertEquals(defCharset.name(), b1.getCharset());
-        assertEquals(defCharset.name(), b1.getContentTypeParameters().get("charset"));
         
         assertNull(b1.getFilename());
         assertEquals("text/plain", b1.getMimeType());
@@ -75,7 +74,6 @@ public class TestMultipartContentBody extends TestCase {
         StringBody b2 = new StringBody("more text", "text/other", MIME.DEFAULT_CHARSET);
         assertEquals(9, b2.getContentLength());
         assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());
-        assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getContentTypeParameters().get("charset"));
         
         assertNull(b2.getFilename());
         assertEquals("text/other", b2.getMimeType());

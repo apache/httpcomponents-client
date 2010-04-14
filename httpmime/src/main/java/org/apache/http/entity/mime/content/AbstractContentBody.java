@@ -27,27 +27,16 @@
 
 package org.apache.http.entity.mime.content;
 
-import java.util.Collections;
-import java.util.Map;
-
-import org.apache.http.annotation.NotThreadSafe;
-
-import org.apache.james.mime4j.message.Entity;
-import org.apache.james.mime4j.message.SingleBody;
-
 /**
  *
  * @since 4.0
  */
-@NotThreadSafe // setParent() also SingleBody and Entity are not T-S
-public abstract class AbstractContentBody extends SingleBody implements ContentBody {
+public abstract class AbstractContentBody implements ContentBody {
 
     private final String mimeType;
     private final String mediaType;
     private final String subType;
     
-    private Entity parent = null;
-
     public AbstractContentBody(final String mimeType) {
         super();
         if (mimeType == null) {
@@ -64,16 +53,6 @@ public abstract class AbstractContentBody extends SingleBody implements ContentB
         }
     }
 
-    @Override
-    public Entity getParent() {
-        return this.parent;
-    }
-
-    @Override
-    public void setParent(final Entity parent) {
-        this.parent = parent;
-    }
-
     public String getMimeType() {
         return this.mimeType;
     }
@@ -86,12 +65,4 @@ public abstract class AbstractContentBody extends SingleBody implements ContentB
         return this.subType;
     }
 
-    public Map<String, String> getContentTypeParameters() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public void dispose() {
-    }
-    
 }

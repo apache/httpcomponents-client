@@ -33,63 +33,83 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.protocol.HTTP;
-import org.apache.james.mime4j.field.ContentTypeField;
-import org.apache.james.mime4j.field.FieldName;
-import org.apache.james.mime4j.message.Body;
-import org.apache.james.mime4j.message.BodyPart;
-import org.apache.james.mime4j.message.Entity;
-import org.apache.james.mime4j.message.Header;
-import org.apache.james.mime4j.message.MessageWriter;
-import org.apache.james.mime4j.message.Multipart;
-import org.apache.james.mime4j.parser.Field;
-import org.apache.james.mime4j.util.ByteArrayBuffer;
-import org.apache.james.mime4j.util.ByteSequence;
-import org.apache.james.mime4j.util.CharsetUtil;
+import org.apache.http.util.ByteArrayBuffer;
 
 /**
- * An extension of the mime4j standard {@link Multipart} class, which is
- * capable of operating either in the strict (fully RFC 822, RFC 2045, 
- * RFC 2046 compliant) or the browser compatible modes.
- * 
+ * An extension of the mime4j standard {@link Multipart} class, which is capable of operating 
+ * either in the strict (fully RFC 822, RFC 2045, RFC 2046 compliant) or the browser compatible 
+ * modes.
  *
  * @since 4.0
  */
-@NotThreadSafe // parent is @NotThreadSafe
-public class HttpMultipart extends Multipart {
+public class HttpMultipart {
 
-    private static ByteArrayBuffer encode(Charset charset, String string) {
+    private static ByteArrayBuffer encode(
+            final Charset charset, final String string) {
         ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
         ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
         bab.append(encoded.array(), encoded.position(), encoded.remaining());
         return bab;
     }
     
-    private static void writeBytes(ByteArrayBuffer b, OutputStream out) throws IOException {
+    private static void writeBytes(
+            final ByteArrayBuffer b, final OutputStream out) throws IOException {
         out.write(b.buffer(), 0, b.length());
     }
     
-    private static void writeBytes(ByteSequence b, OutputStream out) throws IOException {
-        if (b instanceof ByteArrayBuffer) {
-            writeBytes((ByteArrayBuffer) b, out);
-        } else {
-            out.write(b.toByteArray());
-        }
+    private static void writeBytes(
+            final String s, final Charset charset, final OutputStream out) throws IOException {
+        ByteArrayBuffer b = encode(charset, s);
+        writeBytes(b, out);
     }
     
+    private static void writeBytes(
+            final String s, final OutputStream out) throws IOException {
+        ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
+        writeBytes(b, out);
+    }
+
+    private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
     private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
     private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
     
+
+    private final String subType;
+    private final Charset charset;
+    private final String boundary;
+    private final List<FormBodyPart> parts;
+    
     private HttpMultipartMode mode;
     
-    public HttpMultipart(final String subType) {
-        super(subType);
+    public HttpMultipart(final String subType, final Charset charset, final String boundary) {
+        super();
+        if (subType == null) {
+            throw new IllegalArgumentException("Multipart subtype may not be null");
+        }
+        if (boundary == null) {
+            throw new IllegalArgumentException("Multipart boundary may not be null");
+        }
+        this.subType = subType;
+        this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
+        this.boundary = boundary;
+        this.parts = new ArrayList<FormBodyPart>();
         this.mode = HttpMultipartMode.STRICT;
+    }
+
+    public HttpMultipart(final String subType, final String boundary) {
+        this(subType, null, boundary);
+    }
+
+    public String getSubType() {
+        return this.subType;
+    }
+
+    public Charset getCharset() {
+        return this.charset;
     }
     
     public HttpMultipartMode getMode() {
@@ -100,32 +120,19 @@ public class HttpMultipart extends Multipart {
         this.mode = mode;
     }
 
-    protected Charset getCharset() {
-        Entity e = getParent();
-        ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
-                FieldName.CONTENT_TYPE);
-        Charset charset = null;
-        
-        switch (this.mode) {
-        case STRICT:
-            charset = MIME.DEFAULT_CHARSET;
-            break;
-        case BROWSER_COMPATIBLE:
-            if (cField.getCharset() != null) {
-                charset = CharsetUtil.getCharset(cField.getCharset());
-            } else {
-                charset = CharsetUtil.getCharset(HTTP.DEFAULT_CONTENT_CHARSET);
-            }
-            break;
+    public List<FormBodyPart> getBodyParts() {
+        return this.parts;
+    }
+
+    public void addBodyPart(final FormBodyPart part) {
+        if (part == null) {
+            return;
         }
-        return charset;
+        this.parts.add(part);
     }
     
-    protected String getBoundary() {
-        Entity e = getParent();
-        ContentTypeField cField = (ContentTypeField) e.getHeader().getField(
-                FieldName.CONTENT_TYPE);
-        return cField.getBoundary();
+    public String getBoundary() {
+        return this.boundary;
     }
 
     private void doWriteTo(
@@ -133,83 +140,44 @@ public class HttpMultipart extends Multipart {
         final OutputStream out, 
         boolean writeContent) throws IOException {
         
-        List<BodyPart> bodyParts = getBodyParts();
-        Charset charset = getCharset();
+        ByteArrayBuffer boundary = encode(this.charset, getBoundary());
+        for (FormBodyPart part: this.parts) {
+            writeBytes(TWO_DASHES, out);
+            writeBytes(boundary, out);
+            writeBytes(CR_LF, out);
 
-        ByteArrayBuffer boundary = encode(charset, getBoundary());
-        
-        switch (mode) {
-        case STRICT:
-            String preamble = getPreamble();
-            if (preamble != null && preamble.length() != 0) {
-                ByteArrayBuffer b = encode(charset, preamble);
-                writeBytes(b, out);
-                writeBytes(CR_LF, out);
-            }
+            Header header = part.getHeader();
 
-            for (int i = 0; i < bodyParts.size(); i++) {
-                writeBytes(TWO_DASHES, out);
-                writeBytes(boundary, out);
-                writeBytes(CR_LF, out);
-
-                BodyPart part = bodyParts.get(i);
-                Header header = part.getHeader();
-                
-                List<Field> fields = header.getFields();
-                for (Field field: fields) {
-                    writeBytes(field.getRaw(), out);
+            switch (mode) {
+            case STRICT:
+                for (MinimalField field: header) {
+                    writeBytes(field.getName(), out);
+                    writeBytes(FIELD_SEP, out);
+                    writeBytes(field.getBody(), out);
                     writeBytes(CR_LF, out);
                 }
+                break;
+            case BROWSER_COMPATIBLE:
+                // Only write Content-Disposition 
+                // Use content charset
+                MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
+                writeBytes(cd.getName(), this.charset, out);
+                writeBytes(FIELD_SEP, out);
+                writeBytes(cd.getBody(), this.charset, out);
                 writeBytes(CR_LF, out);
-                if (writeContent) {
-                    MessageWriter.DEFAULT.writeBody(part.getBody(), out);
-                }
-                writeBytes(CR_LF, out);
+                break;
             }
-            writeBytes(TWO_DASHES, out);
-            writeBytes(boundary, out);
-            writeBytes(TWO_DASHES, out);
             writeBytes(CR_LF, out);
-            String epilogue = getEpilogue();
-            if (epilogue != null && epilogue.length() != 0) {
-                ByteArrayBuffer b = encode(charset, epilogue);
-                writeBytes(b, out);
-                writeBytes(CR_LF, out);
-            }
-            break;
-        case BROWSER_COMPATIBLE:
 
-            // (1) Do not write preamble and epilogue
-            // (2) Only write Content-Disposition 
-            // (3) Use content charset
-            
-            for (int i = 0; i < bodyParts.size(); i++) {
-                writeBytes(TWO_DASHES, out);
-                writeBytes(boundary, out);
-                writeBytes(CR_LF, out);
-                BodyPart part = bodyParts.get(i);
-                
-                Field cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
-                
-                StringBuilder s = new StringBuilder();
-                s.append(cd.getName());
-                s.append(": ");
-                s.append(cd.getBody());
-                writeBytes(encode(charset, s.toString()), out);
-                writeBytes(CR_LF, out);
-                writeBytes(CR_LF, out);
-                if (writeContent) {
-                    MessageWriter.DEFAULT.writeBody(part.getBody(), out);
-                }
-                writeBytes(CR_LF, out);
+            if (writeContent) {
+                part.getBody().writeTo(out);
             }
-
-            writeBytes(TWO_DASHES, out);
-            writeBytes(boundary, out);
-            writeBytes(TWO_DASHES, out);
             writeBytes(CR_LF, out);
-            break;
         }
+        writeBytes(TWO_DASHES, out);
+        writeBytes(boundary, out);
+        writeBytes(TWO_DASHES, out);
+        writeBytes(CR_LF, out);
     }
 
     /**
@@ -237,24 +205,16 @@ public class HttpMultipart extends Multipart {
      *   otherwise.
      */
     public long getTotalLength() {
-        List<?> bodyParts = getBodyParts();
-
         long contentLen = 0;
-        for (int i = 0; i < bodyParts.size(); i++) {
-            BodyPart part = (BodyPart) bodyParts.get(i);
-            Body body = part.getBody();
-            if (body instanceof ContentBody) {
-                long len = ((ContentBody) body).getContentLength();
-                if (len >= 0) {
-                    contentLen += len;
-                } else {
-                    return -1;
-                }
+        for (FormBodyPart part: this.parts) {
+            ContentBody body = part.getBody();
+            long len = ((ContentBody) body).getContentLength();
+            if (len >= 0) {
+                contentLen += len;
             } else {
                 return -1;
             }
         }
-            
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             doWriteTo(this.mode, out, false);
