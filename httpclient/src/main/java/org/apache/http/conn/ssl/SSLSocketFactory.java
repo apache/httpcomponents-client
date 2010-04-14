@@ -83,6 +83,7 @@ import java.security.UnrecoverableKeyException;
  * <ul>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_REUSEADDR}</li>
  * </ul>
  * <p>
  * SSLSocketFactory will enable client authentication when supplied with
@@ -355,6 +356,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         }
         SSLSocket sslsock = (SSLSocket) (sock != null ? sock : createSocket());
         if (localAddress != null) {
+            sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sslsock.bind(localAddress);
         }
 

@@ -47,6 +47,7 @@ import org.apache.http.params.HttpParams;
  * class: 
  * <ul>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
+ *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_REUSEADDR}</li>
  * </ul>
  *
  * @since 4.0
@@ -106,6 +107,7 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
             sock = createSocket();
         }
         if (localAddress != null) {
+            sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sock.bind(localAddress);
         }
         int timeout = HttpConnectionParams.getConnectionTimeout(params);
