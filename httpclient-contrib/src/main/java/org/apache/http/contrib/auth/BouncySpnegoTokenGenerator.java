@@ -44,26 +44,28 @@ import org.bouncycastle.asn1.util.ASN1Dump;
 
 /**
  * Takes Kerberos ticket and wraps into a SPNEGO token. Leaving some optional fields out.
- * Uses bouncycastle libs need a bcprov.jar
  */
 public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
-    private static final Log LOG = LogFactory.getLog(BouncySpnegoTokenGenerator.class);
+
+    private final Log log = LogFactory.getLog(getClass());
+
+    private final DERObjectIdentifier spnegoOid;
+    private final DERObjectIdentifier kerbOid;
     
-    private DERObjectIdentifier spnegoOid = new DERObjectIdentifier("1.3.6.1.5.5.2");
-    private DERObjectIdentifier kerbOid = new DERObjectIdentifier("1.2.840.113554.1.2.2");
+    public BouncySpnegoTokenGenerator() {
+        super();
+        this.spnegoOid = new DERObjectIdentifier("1.3.6.1.5.5.2");
+        this.kerbOid = new DERObjectIdentifier("1.2.840.113554.1.2.2");
+    }
 
     public byte [] generateSpnegoDERObject(byte [] kerbTicket) throws IOException {
-        LOG.debug("enter: generateSpnegoDERObject(byte [] kerbTicket)");
         DEROctetString ourKerberosTicket = new DEROctetString(kerbTicket);
         
         DERSequence kerbOidSeq = new DERSequence(kerbOid);
         DERTaggedObject tagged0 = new DERTaggedObject(0, kerbOidSeq);
-//        DERBitString bits = new DERBitString(new byte[]{0x01});
-//        DERTaggedObject tagged1 = new DERTaggedObject(1, bits);
         DERTaggedObject tagged2 = new DERTaggedObject(2, ourKerberosTicket);
         ASN1EncodableVector v = new ASN1EncodableVector();
         v.add(tagged0);
-//        v.add(tagged1);
         v.add(tagged2);
         DERSequence seq = new DERSequence(v);
         DERTaggedObject taggedSpnego = new DERTaggedObject(0, seq);
@@ -90,8 +92,14 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
         byte[] app = out.toByteArray();
         ASN1InputStream in = new ASN1InputStream(app);
 
-        if( LOG.isDebugEnabled() ){
-            dumpToken(app);
+        if (log.isDebugEnabled() ){
+            int skip = 12;
+            byte [] manipBytes = new byte[app.length - skip];
+            for(int i=skip; i < app.length; i++){
+                manipBytes[i-skip] = app[i];
+            }
+            ASN1InputStream ourSpnego = new ASN1InputStream( manipBytes );
+            log.debug(ASN1Dump.dumpAsString(ourSpnego.readObject()));
         }
         
         return in.readObject().getDEREncoded();
@@ -116,16 +124,6 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
             out.write((byte) length);
         }
         return out.toByteArray();
-    }
-    
-    protected void dumpToken(byte [] token) throws IOException{
-        int skip = 12;
-        byte [] manipBytes = new byte[token.length - skip];
-        for(int i=skip; i < token.length; i++){
-            manipBytes[i-skip] = token[i];
-        }
-        ASN1InputStream ourSpnego = new ASN1InputStream( manipBytes );
-        System.out.println(ASN1Dump.dumpAsString( ourSpnego.readObject() ) );
     }
     
 }
