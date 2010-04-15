@@ -28,11 +28,10 @@
 package org.apache.http.entity.mime;
 
 /**
- * Minimal implementation of {@link Field}.
+ * Minimal MIME field.
  *
  * @since 4.0
  */
-//@Immutable
 public class MinimalField {
 
     private final String name;

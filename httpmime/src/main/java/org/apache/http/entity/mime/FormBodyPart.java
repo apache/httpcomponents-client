@@ -30,9 +30,9 @@ package org.apache.http.entity.mime;
 import org.apache.http.entity.mime.content.ContentBody;
 
 /**
- * An extension of the mime4j standard {@link BodyPart} class that 
- * automatically populates the header with standard fields based 
- * on the content description of the enclosed body.
+ * FormBodyPart class represents a content body that can be used as a part of multipart encoded
+ * entities. This class automatically populates the header with standard fields based on 
+ * the content description of the enclosed body.
  *
  * @since 4.0
  */

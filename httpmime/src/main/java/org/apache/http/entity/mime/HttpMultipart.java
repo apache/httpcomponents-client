@@ -40,9 +40,9 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.util.ByteArrayBuffer;
 
 /**
- * An extension of the mime4j standard {@link Multipart} class, which is capable of operating 
- * either in the strict (fully RFC 822, RFC 2045, RFC 2046 compliant) or the browser compatible 
- * modes.
+ * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is 
+ * capable of operating either in the strict (RFC 822, RFC 2045, RFC 2046 compliant) or 
+ * the browser compatible modes.
  *
  * @since 4.0
  */

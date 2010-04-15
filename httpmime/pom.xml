@@ -170,7 +170,6 @@
           <links>
             <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core/httpcore/apidocs/</link>
-            <link>http://james.apache.org/mime4j/apidocs/</link>
           </links>
         </configuration>
         <reportSets>
