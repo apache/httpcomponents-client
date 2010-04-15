@@ -95,8 +95,7 @@ public class AWSScheme implements AuthScheme {
 
         String signature = calculateRFC2104HMAC(toSign.toString(), credentials.getPassword());
 
-        String headerValue = NAME + " " + credentials.getUserPrincipal().getName() + ":"
-                + signature;
+        String headerValue = NAME + " " + credentials.getUserPrincipal().getName() + ":" + signature.trim();
 
         return new BasicHeader("Authorization", headerValue);
     }
