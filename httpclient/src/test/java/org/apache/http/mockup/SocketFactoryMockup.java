@@ -37,7 +37,7 @@ import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * {@link SocketFactory} mockup implementation.
+ * {@link SchemeSocketFactory} mockup implementation.
  */
 public class SocketFactoryMockup implements SchemeSocketFactory {
 
