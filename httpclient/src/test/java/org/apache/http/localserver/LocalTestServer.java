@@ -245,8 +245,6 @@ public class LocalTestServer {
 
     /**
      * Starts this test server.
-     * Use {@link #getServicePort getServicePort}
-     * to obtain the port number afterwards.
      */
     public void start() throws Exception {
         if (servicedSocket != null) {
@@ -331,6 +329,7 @@ public class LocalTestServer {
             super();
         }
 
+        @Override
         public void run() {
             try {
                 while (!interrupted()) {
@@ -378,6 +377,7 @@ public class LocalTestServer {
             this.conn = conn;
         }
 
+        @Override
         public void run() {
             HttpContext context = new BasicHttpContext();
             try {
