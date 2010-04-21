@@ -100,7 +100,7 @@ public class TestConnectionReuse extends TestCase {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = (InetSocketAddress) this.localServer.getServiceAddress();
+        InetSocketAddress saddress = this.localServer.getServiceAddress();
         
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
@@ -170,7 +170,7 @@ public class TestConnectionReuse extends TestCase {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = (InetSocketAddress) this.localServer.getServiceAddress();
+        InetSocketAddress saddress = this.localServer.getServiceAddress();
         
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
@@ -230,7 +230,7 @@ public class TestConnectionReuse extends TestCase {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = (InetSocketAddress) this.localServer.getServiceAddress();
+        InetSocketAddress saddress = this.localServer.getServiceAddress();
         
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
@@ -291,7 +291,7 @@ public class TestConnectionReuse extends TestCase {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = (InetSocketAddress) this.localServer.getServiceAddress();
+        InetSocketAddress saddress = this.localServer.getServiceAddress();
         
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
