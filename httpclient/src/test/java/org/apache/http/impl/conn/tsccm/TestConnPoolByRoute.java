@@ -61,15 +61,15 @@ public class TestConnPoolByRoute extends ServerTestBase {
 
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 supportedSchemes);
-        
-        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
+
+        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3);
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
         try {
             // Allocate max possible entries
             PoolEntryRequest r1 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e1 = r1.getPoolEntry(10, TimeUnit.SECONDS);
             assertNotNull(e1);
-            
+
             PoolEntryRequest r2 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e2 = r2.getPoolEntry(10, TimeUnit.SECONDS);
             assertNotNull(e2);
@@ -93,7 +93,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
             PoolEntryRequest r5 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e5 = r5.getPoolEntry(10, TimeUnit.SECONDS);
             assertNotNull(e5);
-            
+
         } finally {
             connPool.shutdown();
         }
@@ -105,8 +105,8 @@ public class TestConnPoolByRoute extends ServerTestBase {
 
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 supportedSchemes);
-        
-        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3); 
+
+        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3);
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
         try {
             // Allocate max possible entries
@@ -142,7 +142,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
             assertNotNull(e4.getState());
             assertNotNull(e5.getState());
             assertNotNull(e6.getState());
-            
+
             // Check whether we got the same objects
             assertTrue(e4 == e2);
             assertTrue(e5 == e3);
@@ -160,7 +160,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
             // Make sure we got a closed connection and a stateless entry back
             assertFalse(e7.getConnection().isOpen());
             assertNull(e7.getState());
-            
+
         } finally {
             connPool.shutdown();
         }

@@ -57,13 +57,13 @@ public class TestNetscapeDraftHeaderParser extends TestCase {
 
     public void testNetscapeCookieParsing() throws Exception {
         NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
-        
-        String s = 
+
+        String s =
             "name  = value; test; test1 =  stuff,with,commas   ; test2 =  \"stuff; stuff\"; test3=\"stuff";
         CharArrayBuffer buffer = new CharArrayBuffer(16);
         buffer.append(s);
         ParserCursor cursor = new ParserCursor(0, s.length());
-        
+
         HeaderElement he = parser.parseHeader(buffer, cursor);
         assertEquals("name", he.getName());
         assertEquals("value", he.getValue());

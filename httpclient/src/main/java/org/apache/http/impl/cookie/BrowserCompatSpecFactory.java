@@ -40,8 +40,8 @@ import org.apache.http.params.HttpParams;
  * {@link CookieSpecFactory} implementation that creates and initializes
  * {@link BrowserCompatSpec} instances.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
  * </ul>
@@ -49,7 +49,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class BrowserCompatSpecFactory implements CookieSpecFactory {    
+public class BrowserCompatSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {

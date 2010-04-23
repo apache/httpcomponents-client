@@ -75,19 +75,19 @@ public class TestMultipartForm extends TestCase {
         FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new StringBody("all kind of stuff"));
-        
+
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
         multipart.addBodyPart(p3);
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
-        
-        String expected = 
+
+        String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
-            "Content-Type: text/plain; charset=" + 
+            "Content-Type: text/plain; charset=" +
                 Charset.defaultCharset() + "\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
@@ -100,7 +100,7 @@ public class TestMultipartForm extends TestCase {
             "that stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field3\"\r\n" +
-            "Content-Type: text/plain; charset=" + 
+            "Content-Type: text/plain; charset=" +
                 Charset.defaultCharset() + "\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
@@ -120,7 +120,7 @@ public class TestMultipartForm extends TestCase {
         } finally {
             writer.close();
         }
-        
+
         HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -128,14 +128,14 @@ public class TestMultipartForm extends TestCase {
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-        
+
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
-        
+
         String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
@@ -155,7 +155,7 @@ public class TestMultipartForm extends TestCase {
         String s = out.toString("US-ASCII");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
-        
+
         tmpfile.delete();
     }
 
@@ -190,7 +190,7 @@ public class TestMultipartForm extends TestCase {
         multipart.writeTo(out);
         out.close();
 
-        String expected = 
+        String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
@@ -223,17 +223,17 @@ public class TestMultipartForm extends TestCase {
     static final int SWISS_GERMAN_HELLO [] = {
         0x47, 0x72, 0xFC, 0x65, 0x7A, 0x69, 0x5F, 0x7A, 0xE4, 0x6D, 0xE4
     };
-        
+
     static final int RUSSIAN_HELLO [] = {
-        0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438, 
-        0x432, 0x435, 0x442 
-    }; 
-    
+        0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438,
+        0x432, 0x435, 0x442
+    };
+
     private static String constructString(int [] unicodeChars) {
         StringBuilder buffer = new StringBuilder();
         if (unicodeChars != null) {
             for (int i = 0; i < unicodeChars.length; i++) {
-                buffer.append((char)unicodeChars[i]); 
+                buffer.append((char)unicodeChars[i]);
             }
         }
         return buffer.toString();
@@ -251,7 +251,7 @@ public class TestMultipartForm extends TestCase {
         } finally {
             writer.close();
         }
-        
+
         HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -259,17 +259,17 @@ public class TestMultipartForm extends TestCase {
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"));
-        
+
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
-        
+
         multipart.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
-        
-        String expected = 
+
+        String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + s1 + ".tmp\"\r\n" +
@@ -284,14 +284,14 @@ public class TestMultipartForm extends TestCase {
         String s = out.toString("UTF-8");
         assertEquals(expected, s);
         assertEquals(-1, multipart.getTotalLength());
-        
+
         tmpfile.delete();
     }
 
     public void testMultipartFormStringPartsMultiCharsets() throws Exception {
         String s1 = constructString(SWISS_GERMAN_HELLO);
         String s2 = constructString(RUSSIAN_HELLO);
-        
+
         HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
@@ -299,17 +299,17 @@ public class TestMultipartForm extends TestCase {
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new StringBody(s2, Charset.forName("KOI8-R")));
-        
+
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
-        
+
         ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         multipart.writeTo(out1);
         out1.close();
-        
+
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
 
-        out2.write(( 
+        out2.write((
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
@@ -329,7 +329,7 @@ public class TestMultipartForm extends TestCase {
 
         byte[] actual = out1.toByteArray();
         byte[] expected = out2.toByteArray();
-        
+
         assertEquals(expected.length, actual.length);
         for (int i = 0; i < actual.length; i++) {
             assertEquals(expected[i], actual[i]);

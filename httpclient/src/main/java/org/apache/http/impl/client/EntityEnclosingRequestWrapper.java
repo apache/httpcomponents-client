@@ -36,8 +36,8 @@ import org.apache.http.ProtocolException;
 import org.apache.http.protocol.HTTP;
 
 /**
- * A wrapper class for {@link HttpEntityEnclosingRequest}s that can 
- * be used to change properties of the current request without 
+ * A wrapper class for {@link HttpEntityEnclosingRequest}s that can
+ * be used to change properties of the current request without
  * modifying the original object.
  * </p>
  * This class is also capable of resetting the request headers to
@@ -47,12 +47,12 @@ import org.apache.http.protocol.HTTP;
  * @since 4.0
  */
 @NotThreadSafe // e.g. [gs]etEntity()
-public class EntityEnclosingRequestWrapper extends RequestWrapper 
+public class EntityEnclosingRequestWrapper extends RequestWrapper
     implements HttpEntityEnclosingRequest {
-    
+
     private HttpEntity entity;
-    
-    public EntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request) 
+
+    public EntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request)
         throws ProtocolException {
         super(request);
         this.entity = request.getEntity();
@@ -65,7 +65,7 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
     public void setEntity(final HttpEntity entity) {
         this.entity = entity;
     }
-    
+
     public boolean expectContinue() {
         Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());
@@ -75,5 +75,5 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
     public boolean isRepeatable() {
         return this.entity == null || this.entity.isRepeatable();
     }
-    
+
 }

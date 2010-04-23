@@ -64,8 +64,8 @@ import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Test case for how Content Codings are processed. By default, we want to do the right thing and 
- * require no intervention from the user of HttpClient, but we still want to let clients do their 
+ * Test case for how Content Codings are processed. By default, we want to do the right thing and
+ * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
 public class TestContentCodings extends ServerTestBase {
@@ -75,9 +75,9 @@ public class TestContentCodings extends ServerTestBase {
     }
 
     /**
-     * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows 
+     * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows
      * up with the new behaviour.
-     * 
+     *
      * @throws Exception
      *             if there was a problem
      */
@@ -88,8 +88,8 @@ public class TestContentCodings extends ServerTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request, 
-                    HttpResponse response, 
+                    HttpRequest request,
+                    HttpResponse response,
                     HttpContext context) throws HttpException, IOException {
                 response.setStatusCode(HttpStatus.SC_NO_CONTENT);
             }
@@ -106,9 +106,9 @@ public class TestContentCodings extends ServerTestBase {
     }
 
     /**
-     * Test for when we are handling content from a server that has correctly interpreted RFC2616 
+     * Test for when we are handling content from a server that has correctly interpreted RFC2616
      * to return RFC1950 streams for <code>deflate</code> content coding.
-     * 
+     *
      * @throws Exception
      * @see DeflateDecompressingEntity
      */
@@ -121,16 +121,16 @@ public class TestContentCodings extends ServerTestBase {
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText, 
+        assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
     }
 
     /**
-     * Test for when we are handling content from a server that has incorrectly interpreted RFC2616 
+     * Test for when we are handling content from a server that has incorrectly interpreted RFC2616
      * to return RFC1951 streams for <code>deflate</code> content coding.
-     * 
+     *
      * @throws Exception
      * @see DeflateDecompressingEntity
      */
@@ -142,7 +142,7 @@ public class TestContentCodings extends ServerTestBase {
         DefaultHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText, 
+        assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -150,7 +150,7 @@ public class TestContentCodings extends ServerTestBase {
 
     /**
      * Test for a server returning gzipped content.
-     * 
+     *
      * @throws Exception
      */
     public void testGzipSupport() throws Exception {
@@ -161,7 +161,7 @@ public class TestContentCodings extends ServerTestBase {
         DefaultHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText, 
+        assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -169,7 +169,7 @@ public class TestContentCodings extends ServerTestBase {
 
     /**
      * Try with a bunch of client threads, to check that it's thread-safe.
-     * 
+     *
      * @throws Exception
      *             if there was a problem
      */
@@ -179,7 +179,7 @@ public class TestContentCodings extends ServerTestBase {
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
         /*
-         * Create a load of workers which will access the resource. Half will use the default 
+         * Create a load of workers which will access the resource. Half will use the default
          * gzip behaviour; half will require identity entity.
          */
         int clients = 100;
@@ -189,7 +189,7 @@ public class TestContentCodings extends ServerTestBase {
 
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         cm.setMaxTotalConnections(clients);
-        
+
         final HttpClient httpClient = new DefaultHttpClient(cm);
 
         ExecutorService executor = Executors.newFixedThreadPool(clients);
@@ -223,9 +223,9 @@ public class TestContentCodings extends ServerTestBase {
     }
 
     /**
-     * This test is no longer relevant, since the functionality has been added via a new subclass of 
+     * This test is no longer relevant, since the functionality has been added via a new subclass of
      * {@link DefaultHttpClient} rather than changing the existing class.
-     * 
+     *
      * @throws Exception
      */
     public void removedTestExistingProtocolInterceptorsAreNotAffected() throws Exception {
@@ -283,9 +283,9 @@ public class TestContentCodings extends ServerTestBase {
         client.getConnectionManager().shutdown();
     }
     /**
-     * Checks that we can turn off the new Content-Coding support. The default is that it's on, but that is a change 
+     * Checks that we can turn off the new Content-Coding support. The default is that it's on, but that is a change
      * to existing behaviour and might not be desirable in some situations.
-     * 
+     *
      * @throws Exception
      */
     public void testCanBeDisabledAtRequestTime() throws Exception {
@@ -293,9 +293,9 @@ public class TestContentCodings extends ServerTestBase {
 
         /* Assume that server will see an Accept-Encoding header. */
         final boolean [] sawAcceptEncodingHeader = { true };
-        
+
         this.localServer.register("*", new HttpRequestHandler() {
-            
+
             /**
              * {@inheritDoc}
              */
@@ -303,30 +303,30 @@ public class TestContentCodings extends ServerTestBase {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
-                
+
                 sawAcceptEncodingHeader[0] = acceptEncodings.length > 0;
             }
-            
+
         });
 
         AbstractHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
 
         client.removeRequestInterceptorByClass(RequestAcceptEncoding.class);
-        
+
         HttpResponse response = client.execute(getServerHttp(), request);
-        
+
         assertFalse("The Accept-Encoding header was not there", sawAcceptEncodingHeader[0]);
-        assertEquals("The entity isn't treated as gzip or zip content", entityText, 
+        assertEquals("The entity isn't treated as gzip or zip content", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
     }
 
     /**
-     * Test that the returned {@link HttpEntity} in the response correctly overrides 
+     * Test that the returned {@link HttpEntity} in the response correctly overrides
      * {@link HttpEntity#writeTo(OutputStream)} for gzip-encoding.
-     * 
+     *
      * @throws Exception
      */
     public void testHttpEntityWriteToForGzip() throws Exception {
@@ -338,18 +338,18 @@ public class TestContentCodings extends ServerTestBase {
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
+
         response.getEntity().writeTo(out);
-        
+
         assertEquals(entityText, out.toString("utf-8"));
 
         client.getConnectionManager().shutdown();
     }
-    
+
     /**
-     * Test that the returned {@link HttpEntity} in the response correctly overrides 
+     * Test that the returned {@link HttpEntity} in the response correctly overrides
      * {@link HttpEntity#writeTo(OutputStream)} for deflate-encoding.
-     * 
+     *
      * @throws Exception
      */
     public void testHttpEntityWriteToForDeflate() throws Exception {
@@ -361,23 +361,23 @@ public class TestContentCodings extends ServerTestBase {
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
+
         response.getEntity().writeTo(out);
-        
+
         assertEquals(entityText, out.toString("utf-8"));
 
         client.getConnectionManager().shutdown();
     }
-    
+
     /**
-     * Creates a new {@link HttpRequestHandler} that will attempt to provide a deflate stream 
+     * Creates a new {@link HttpRequestHandler} that will attempt to provide a deflate stream
      * Content-Coding.
-     * 
+     *
      * @param entityText
      *            the non-null String entity text to be returned by the server
      * @param rfc1951
-     *            if true, then the stream returned will be a raw RFC1951 deflate stream, which 
-     *            some servers return as a result of misinterpreting the HTTP 1.1 RFC. If false, 
+     *            if true, then the stream returned will be a raw RFC1951 deflate stream, which
+     *            some servers return as a result of misinterpreting the HTTP 1.1 RFC. If false,
      *            then it will return an RFC2616 compliant deflate encoded zlib stream.
      * @return a non-null {@link HttpRequestHandler}
      */
@@ -389,8 +389,8 @@ public class TestContentCodings extends ServerTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request, 
-                    HttpResponse response, 
+                    HttpRequest request,
+                    HttpResponse response,
                     HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
@@ -424,9 +424,9 @@ public class TestContentCodings extends ServerTestBase {
     }
 
     /**
-     * Returns an {@link HttpRequestHandler} implementation that will attempt to provide a gzip 
+     * Returns an {@link HttpRequestHandler} implementation that will attempt to provide a gzip
      * Content-Encoding.
-     * 
+     *
      * @param entityText
      *            the non-null String entity to be returned by the server
      * @return a non-null {@link HttpRequestHandler}
@@ -438,8 +438,8 @@ public class TestContentCodings extends ServerTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request, 
-                    HttpResponse response, 
+                    HttpRequest request,
+                    HttpResponse response,
                     HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
@@ -451,11 +451,11 @@ public class TestContentCodings extends ServerTestBase {
                             response.addHeader("Content-Encoding", "gzip");
 
                             /*
-                             * We have to do a bit more work with gzip versus deflate, since 
-                             * Gzip doesn't appear to have an equivalent to DeflaterInputStream in 
+                             * We have to do a bit more work with gzip versus deflate, since
+                             * Gzip doesn't appear to have an equivalent to DeflaterInputStream in
                              * the JDK.
-                             * 
-                             * UPDATE: DeflaterInputStream is Java 6 anyway, so we have to do a bit 
+                             *
+                             * UPDATE: DeflaterInputStream is Java 6 anyway, so we have to do a bit
                              * of work there too!
                              */
                             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -474,7 +474,7 @@ public class TestContentCodings extends ServerTestBase {
                             out.close();
 
                             byte[] arr = bytes.toByteArray();
-                            response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr), 
+                            response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr),
                                     arr.length));
 
                             return;
@@ -491,9 +491,9 @@ public class TestContentCodings extends ServerTestBase {
 
     /**
      * Sub-ordinate task passed off to a different thread to be executed.
-     * 
+     *
      * @author jabley
-     * 
+     *
      */
     class WorkerTask implements Runnable {
 
@@ -539,7 +539,7 @@ public class TestContentCodings extends ServerTestBase {
 
         /**
          * Returns the text of the HTTP entity.
-         * 
+         *
          * @return a String - may be null.
          */
         public String getText() {
@@ -567,7 +567,7 @@ public class TestContentCodings extends ServerTestBase {
 
         /**
          * Returns true if this task failed, otherwise false.
-         * 
+         *
          * @return a flag
          */
         boolean isFailed() {

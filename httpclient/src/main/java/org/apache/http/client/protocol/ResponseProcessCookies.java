@@ -48,21 +48,21 @@ import org.apache.http.cookie.SM;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Response interceptor that populates the current {@link CookieStore} with data 
+ * Response interceptor that populates the current {@link CookieStore} with data
  * contained in response cookies received in the given the HTTP response.
- * 
+ *
  * @since 4.0
  */
 @Immutable
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public ResponseProcessCookies() {
         super();
     }
-    
-    public void process(final HttpResponse response, final HttpContext context) 
+
+    public void process(final HttpResponse response, final HttpContext context)
             throws HttpException, IOException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -70,7 +70,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
-        
+
         // Obtain actual CookieSpec instance
         CookieSpec cookieSpec = (CookieSpec) context.getAttribute(
                 ClientContext.COOKIE_SPEC);
@@ -93,7 +93,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         }
         HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
         processCookies(it, cookieSpec, cookieOrigin, cookieStore);
-        
+
         // see if the cookie spec supports cookie versioning.
         if (cookieSpec.getVersion() > 0) {
             // process set-cookie2 headers.
@@ -102,9 +102,9 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             processCookies(it, cookieSpec, cookieOrigin, cookieStore);
         }
     }
-     
+
     private void processCookies(
-            final HeaderIterator iterator, 
+            final HeaderIterator iterator,
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
             final CookieStore cookieStore) {
@@ -136,5 +136,5 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             }
         }
     }
-    
+
 }

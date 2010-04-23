@@ -43,14 +43,14 @@ import org.apache.http.cookie.SetCookie2;
 public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2, Serializable {
 
     private static final long serialVersionUID = -7744598295706617057L;
-    
+
     private String commentURL;
     private int[] ports;
     private boolean discard;
-    
+
     /**
      * Default Constructor taking a name and a value. The value may be null.
-     * 
+     *
      * @param name The name.
      * @param value The value.
      */
@@ -66,7 +66,7 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2,
     public void setPorts(final int[] ports) {
         this.ports = ports;
     }
-    
+
     @Override
     public String getCommentURL() {
         return this.commentURL;
@@ -89,13 +89,13 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2,
     public boolean isExpired(final Date date) {
         return this.discard || super.isExpired(date);
     }
- 
+
     @Override
     public Object clone() throws CloneNotSupportedException {
         BasicClientCookie2 clone = (BasicClientCookie2) super.clone();
         clone.ports = this.ports.clone();
         return clone;
     }
-    
+
 }
 

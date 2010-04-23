@@ -35,13 +35,13 @@ import org.apache.http.entity.HttpEntityWrapper;
 
 /**
  * {@link HttpEntityWrapper} for handling gzip Content Coded responses.
- * 
+ *
  * @since 4.1
  */
 public class GzipDecompressingEntity extends DecompressingEntity {
 
     /**
-     * Creates a new {@link GzipDecompressingEntity} which will wrap the specified 
+     * Creates a new {@link GzipDecompressingEntity} which will wrap the specified
      * {@link HttpEntity}.
      *
      * @param entity

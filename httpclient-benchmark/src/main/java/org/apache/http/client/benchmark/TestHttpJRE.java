@@ -37,25 +37,25 @@ public class TestHttpJRE implements TestHttpAgent {
     public TestHttpJRE() {
         super();
     }
-    
+
     public void init() {
     }
 
     public Stats execute(final URI targetURI, byte[] content, int n) throws Exception {
 
         Stats stats = new Stats();
-        
+
         int successCount = 0;
         int failureCount = 0;
         long contentLen = 0;
         long totalContentLen = 0;
-        
+
         byte[] buffer = new byte[4096];
-        
+
         URL url = targetURI.toURL();
         for (int i = 0; i < n; i++) {
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
-            
+
             if (content != null) {
                 c.setRequestMethod("POST");
                 c.setFixedLengthStreamingMode(content.length);
@@ -96,15 +96,15 @@ public class TestHttpJRE implements TestHttpAgent {
         stats.setTotalContentLen(totalContentLen);
         return stats;
     }
- 
+
     public Stats get(final URI target, int n) throws Exception {
         return execute(target, null, n);
     }
-    
+
     public Stats post(final URI target, byte[] content, int n) throws Exception {
         return execute(target, content, n);
     }
-    
+
     public String getClientName() {
         return "JRE HTTP " + System.getProperty("java.version");
     }
@@ -117,13 +117,13 @@ public class TestHttpJRE implements TestHttpAgent {
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
 
-        TestHttpJRE test = new TestHttpJRE(); 
-        
+        TestHttpJRE test = new TestHttpJRE();
+
         long startTime = System.currentTimeMillis();
         Stats stats = test.get(targetURI, n);
         long finishTime = System.currentTimeMillis();
-       
+
         Stats.printStats(targetURI, startTime, finishTime, stats);
     }
-   
-} 
+
+}

@@ -49,7 +49,7 @@ import org.apache.http.annotation.Immutable;
 public class PublicSuffixListParser {
     private static final int MAX_LINE_LEN = 256;
     private final PublicSuffixFilter filter;
-    
+
     PublicSuffixListParser(PublicSuffixFilter filter) {
         this.filter = filter;
     }
@@ -58,7 +58,7 @@ public class PublicSuffixListParser {
      * Parses the public suffix list format.
      * When creating the reader from the file, make sure to
      * use the correct encoding (the original list is in UTF-8).
-     * 
+     *
      * @param list the suffix list. The caller is responsible for closing the reader.
      * @throws IOException on error while reading from list
      */
@@ -75,22 +75,22 @@ public class PublicSuffixListParser {
             if (line.startsWith("//")) continue; //entire lines can also be commented using //
             if (line.startsWith(".")) line = line.substring(1); // A leading dot is optional
             // An exclamation mark (!) at the start of a rule marks an exception to a previous wildcard rule
-            boolean isException = line.startsWith("!"); 
+            boolean isException = line.startsWith("!");
             if (isException) line = line.substring(1);
-            
+
             if (isException) {
                 exceptions.add(line);
             } else {
                 rules.add(line);
             }
         }
-        
+
         filter.setPublicSuffixes(rules);
         filter.setExceptions(exceptions);
     }
-    
+
     /**
-     * 
+     *
      * @param r
      * @param sb
      * @return false when the end of the stream is reached

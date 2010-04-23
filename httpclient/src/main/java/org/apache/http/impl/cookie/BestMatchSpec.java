@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 
 package org.apache.http.impl.cookie;
 
@@ -41,7 +41,7 @@ import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
 
 /**
- * 'Meta' cookie specification that picks up a cookie policy based on 
+ * 'Meta' cookie specification that picks up a cookie policy based on
  * the format of cookies sent with the HTTP response.
  *
  * @since 4.0
@@ -51,7 +51,7 @@ public class BestMatchSpec implements CookieSpec {
 
     private final String[] datepatterns;
     private final boolean oneHeader;
-    
+
     // Cached values of CookieSpec instances
     private RFC2965Spec strict; // @NotThreadSafe
     private RFC2109Spec obsoleteStrict; // @NotThreadSafe
@@ -97,7 +97,7 @@ public class BestMatchSpec implements CookieSpec {
     }
 
     public List<Cookie> parse(
-            final Header header, 
+            final Header header,
             final CookieOrigin origin) throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -134,7 +134,7 @@ public class BestMatchSpec implements CookieSpec {
     }
 
     public void validate(
-            final Cookie cookie, 
+            final Cookie cookie,
             final CookieOrigin origin) throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -176,7 +176,7 @@ public class BestMatchSpec implements CookieSpec {
             throw new IllegalArgumentException("List of cookie may not be null");
         }
         int version = Integer.MAX_VALUE;
-        boolean isSetCookie2 = true; 
+        boolean isSetCookie2 = true;
         for (Cookie cookie: cookies) {
             if (!(cookie instanceof SetCookie2)) {
                 isSetCookie2 = false;
@@ -208,5 +208,5 @@ public class BestMatchSpec implements CookieSpec {
     public String toString() {
         return "best-match";
     }
-    
+
 }

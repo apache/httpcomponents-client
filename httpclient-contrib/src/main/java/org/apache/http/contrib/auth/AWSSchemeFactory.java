@@ -36,9 +36,9 @@ import org.apache.http.params.HttpParams;
  * {@link AWSScheme} instances.
  */
 public class AWSSchemeFactory implements AuthSchemeFactory {
-    
+
     public AuthScheme newInstance(final HttpParams params) {
         return new AWSScheme();
     }
-    
+
 }

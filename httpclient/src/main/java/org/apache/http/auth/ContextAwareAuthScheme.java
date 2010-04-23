@@ -32,31 +32,31 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * This interface represents an extended  authentication scheme
- * that requires access to {@link HttpContext} in order to 
+ * that requires access to {@link HttpContext} in order to
  * generate an authorization string.
  *
  * TODO: Fix AuthScheme interface in the next major version
- * 
+ *
  * @since 4.1
  */
 
 public interface ContextAwareAuthScheme extends AuthScheme {
 
     /**
-     * Produces an authorization string for the given set of 
+     * Produces an authorization string for the given set of
      * {@link Credentials}.
-     * 
+     *
      * @param credentials The set of credentials to be used for athentication
      * @param request The request being authenticated
      * @param context HTTP context
-     * @throws AuthenticationException if authorization string cannot 
+     * @throws AuthenticationException if authorization string cannot
      *   be generated due to an authentication failure
-     * 
+     *
      * @return the authorization string
      */
     Header authenticate(
-            Credentials credentials, 
+            Credentials credentials,
             HttpRequest request,
             HttpContext context) throws AuthenticationException;
-    
+
 }

@@ -46,20 +46,20 @@ public class RedirectLocations {
 
     private final Set<URI> unique;
     private final List<URI> all;
-    
+
     public RedirectLocations() {
         super();
         this.unique = new HashSet<URI>();
         this.all = new ArrayList<URI>();
     }
-    
+
     /**
      * Test if the URI is present in the collection.
      */
     public boolean contains(final URI uri) {
         return this.unique.contains(uri);
     }
-    
+
     /**
      * Adds a new URI to the collection.
      */
@@ -84,12 +84,12 @@ public class RedirectLocations {
         }
         return removed;
     }
-    
+
     /**
      * Returns all redirect {@link URI}s in the order they were added to the collection.
-     * 
+     *
      * @return list of all URIs
-     * 
+     *
      * @since 4.1
      */
     public List<URI> getAll() {

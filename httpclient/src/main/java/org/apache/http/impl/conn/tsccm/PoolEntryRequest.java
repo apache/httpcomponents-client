@@ -54,7 +54,7 @@ public interface PoolEntryRequest {
      *         if the calling thread was interrupted or the request was aborted
      */
     BasicPoolEntry getPoolEntry(
-            long timeout, 
+            long timeout,
             TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**
@@ -62,5 +62,5 @@ public interface PoolEntryRequest {
      * {@link #getPoolEntry(long, TimeUnit)}.
      */
     void abortRequest();
-    
+
 }

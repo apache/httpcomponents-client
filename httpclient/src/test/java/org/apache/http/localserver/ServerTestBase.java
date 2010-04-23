@@ -182,7 +182,7 @@ public abstract class ServerTestBase extends BasicServerTestBase {
 
         DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
         InetSocketAddress address = new InetSocketAddress(
-                InetAddress.getByName(target.getHostName()), port); 
+                InetAddress.getByName(target.getHostName()), port);
         Socket sock = schm.getSchemeSocketFactory().connectSocket(null, address, null, params);
         conn.bind(sock, params);
 

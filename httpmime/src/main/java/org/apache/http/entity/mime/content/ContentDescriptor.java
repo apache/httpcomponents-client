@@ -28,7 +28,7 @@
 package org.apache.http.entity.mime.content;
 
 /**
- * Represents common content properties. 
+ * Represents common content properties.
  */
 public interface ContentDescriptor {
 
@@ -41,7 +41,7 @@ public interface ContentDescriptor {
      *   "text/plain", if no content-type was specified.
      */
     String getMimeType();
-    
+
     /**
      * Gets the defaulted MIME media type for this content.
      * For example <code>TEXT</code>, <code>IMAGE</code>, <code>MULTIPART</code>
@@ -58,7 +58,7 @@ public interface ContentDescriptor {
      * otherwise the correct default (<code>PLAIN</code>)
      */
     String getSubType();
-    
+
     /**
      * <p>The body descriptors character set, defaulted appropriately for the MIME type.</p>
      * <p>

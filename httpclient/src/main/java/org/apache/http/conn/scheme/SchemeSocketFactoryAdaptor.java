@@ -40,16 +40,16 @@ import org.apache.http.params.HttpParams;
 class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
 
     private final SocketFactory factory;
-    
+
     SchemeSocketFactoryAdaptor(final SocketFactory factory) {
         super();
         this.factory = factory;
     }
-    
+
     public Socket connectSocket(
-            final Socket sock, 
+            final Socket sock,
             final InetSocketAddress remoteAddress,
-            final InetSocketAddress localAddress, 
+            final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         String host = remoteAddress.getHostName();
         int port = remoteAddress.getPort();
@@ -73,7 +73,7 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
     public SocketFactory getFactory() {
         return this.factory;
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
         if (obj == null) return false;
@@ -89,5 +89,5 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
     public int hashCode() {
         return this.factory.hashCode();
     }
-    
+
 }

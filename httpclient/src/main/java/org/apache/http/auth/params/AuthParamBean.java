@@ -31,8 +31,8 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate HTTP authentication parameters 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate HTTP authentication parameters
  * using Java Beans conventions.
  *
  * @since 4.0
@@ -46,5 +46,5 @@ public class AuthParamBean extends HttpAbstractParamBean {
     public void setCredentialCharset (final String charset) {
         AuthParams.setCredentialCharset(params, charset);
     }
-    
+
 }

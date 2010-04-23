@@ -127,7 +127,7 @@ public class TestCookieNetscapeDraft extends TestCase {
 
     public void testParseWithWrongNetscapeDomain2() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; domain=.y.z");
-        
+
         CookieSpec cookiespec = new NetscapeDraftSpec();
         try {
             CookieOrigin origin = new CookieOrigin("x.y.z", 80, "/", false);
@@ -155,13 +155,13 @@ public class TestCookieNetscapeDraft extends TestCase {
         assertEquals(1, headers.size());
         assertEquals("name=value", headers.get(0).getValue());
     }
-    
+
     /**
      * Tests Netscape specific expire attribute parsing.
      */
     public void testNetscapeCookieExpireAttribute() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header header = new BasicHeader("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
@@ -181,7 +181,7 @@ public class TestCookieNetscapeDraft extends TestCase {
      */
     public void testNetscapeCookieExpireAttributeTwoDigitYear() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header header = new BasicHeader("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thursday, 01-Jan-70 00:00:10 GMT; comment=no_comment");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
@@ -202,7 +202,7 @@ public class TestCookieNetscapeDraft extends TestCase {
     public void testNetscapeCookieInvalidExpireAttribute() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        Header header = new BasicHeader("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thu 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         try {
             List<Cookie> cookies = cookiespec.parse(header, origin);
@@ -218,7 +218,7 @@ public class TestCookieNetscapeDraft extends TestCase {
      */
     public void testNetscapeCookieExpireAttributeNoTimeZone() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
-        Header header = new BasicHeader("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie",
             "name=value; expires=Thu, 01-Jan-2006 00:00:00 ");
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         try {
@@ -228,7 +228,7 @@ public class TestCookieNetscapeDraft extends TestCase {
             // expected
         }
     }
-    
+
     /**
      * Tests if cookie values with embedded comma are handled correctly.
      */
@@ -242,7 +242,7 @@ public class TestCookieNetscapeDraft extends TestCase {
         assertEquals("a", cookies.get(0).getName());
         assertEquals("b,c", cookies.get(0).getValue());
     }
- 
+
     public void testFormatCookies() throws Exception {
         BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
         c1.setDomain(".whatever.com");
@@ -252,7 +252,7 @@ public class TestCookieNetscapeDraft extends TestCase {
 
         Cookie c2 = new BasicClientCookie("name2", "value2");
         Cookie c3 = new BasicClientCookie("name3", null);
-        
+
         CookieSpec cookiespec = new NetscapeDraftSpec();
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(c1);
@@ -262,7 +262,7 @@ public class TestCookieNetscapeDraft extends TestCase {
         assertNotNull(headers);
         assertEquals(1, headers.size());
         assertEquals("name1=value1; name2=value2; name3", headers.get(0).getValue());
-    }    
+    }
 
     public void testInvalidInput() throws Exception {
         CookieSpec cookiespec = new NetscapeDraftSpec();
@@ -292,6 +292,6 @@ public class TestCookieNetscapeDraft extends TestCase {
             // expected
         }
     }
-    
+
 }
 

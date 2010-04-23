@@ -34,10 +34,10 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.util.LangUtils;
 
-/** 
- * {@link Credentials} implementation for Microsoft Windows platforms that includes 
+/**
+ * {@link Credentials} implementation for Microsoft Windows platforms that includes
  * Windows specific attributes such as name of the domain the user belongs to.
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -50,12 +50,12 @@ public class NTCredentials implements Credentials, Serializable {
 
     /** Password */
     private final String password;
-    
+
     /** The host the authentication request is originating from.  */
     private final String workstation;
 
     /**
-     * The constructor with the fully qualified username and password combined 
+     * The constructor with the fully qualified username and password combined
      * string argument.
      *
      * @param usernamePassword the domain/username:password formed string
@@ -63,7 +63,7 @@ public class NTCredentials implements Credentials, Serializable {
     public NTCredentials(String usernamePassword) {
         super();
         if (usernamePassword == null) {
-            throw new IllegalArgumentException("Username:password string may not be null");            
+            throw new IllegalArgumentException("Username:password string may not be null");
         }
         String username;
         int atColon = usernamePassword.indexOf(':');
@@ -92,13 +92,13 @@ public class NTCredentials implements Credentials, Serializable {
      * @param userName The user name.  This should not include the domain to authenticate with.
      * For example: "user" is correct whereas "DOMAIN\\user" is not.
      * @param password The password.
-     * @param workstation The workstation the authentication request is originating from. 
+     * @param workstation The workstation the authentication request is originating from.
      * Essentially, the computer name for this machine.
      * @param domain The domain to authenticate within.
      */
     public NTCredentials(
-            final String userName, 
-            final String password, 
+            final String userName,
+            final String password,
             final String workstation,
             final String domain) {
         super();
@@ -117,11 +117,11 @@ public class NTCredentials implements Credentials, Serializable {
     public Principal getUserPrincipal() {
         return this.principal;
     }
-    
+
     public String getUserName() {
         return this.principal.getUsername();
     }
-    
+
     public String getPassword() {
         return this.password;
     }
@@ -143,7 +143,7 @@ public class NTCredentials implements Credentials, Serializable {
     public String getWorkstation() {
         return this.workstation;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = LangUtils.HASH_SEED;

@@ -65,10 +65,10 @@ public abstract class AbstractPoolEntry {
     //@@@ avoid that, derived classes should decide whether update is allowed
     //@@@ SCCM: yes, TSCCM: no
     protected volatile HttpRoute route;
-    
+
     /** Connection state object */
     protected volatile Object state;
-    
+
     /** The tracked route, or <code>null</code> before tracking starts. */
     protected volatile RouteTracker tracker;
 
@@ -94,22 +94,22 @@ public abstract class AbstractPoolEntry {
 
     /**
      * Returns the state object associated with this pool entry.
-     * 
+     *
      * @return The state object
      */
     public Object getState() {
         return state;
     }
-    
+
     /**
      * Assigns a state object to this pool entry.
-     * 
+     *
      * @param state The state object
      */
     public void setState(final Object state) {
         this.state = state;
     }
-    
+
     /**
      * Opens the underlying connection.
      *
@@ -150,7 +150,7 @@ public abstract class AbstractPoolEntry {
              route.getLocalAddress(),
              context, params);
 
-        RouteTracker localTracker = tracker; // capture volatile        
+        RouteTracker localTracker = tracker; // capture volatile
 
         // If this tracker was reset while connecting,
         // fail early.
@@ -281,11 +281,11 @@ public abstract class AbstractPoolEntry {
 
     /**
      * Shuts down the entry.
-     * 
+     *
      * If {@link #open(HttpRoute, HttpContext, HttpParams)} is in progress,
      * this will cause that open to possibly throw an {@link IOException}.
      */
-    protected void shutdownEntry() { 
+    protected void shutdownEntry() {
         tracker = null;
         state = null;
     }

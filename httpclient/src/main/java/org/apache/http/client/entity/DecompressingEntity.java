@@ -34,7 +34,7 @@ import org.apache.http.entity.HttpEntityWrapper;
 
 /**
  * Common base class for decompressing {@link HttpEntity} implementations.
- * 
+ *
  * @since 4.1
  */
 abstract class DecompressingEntity extends HttpEntityWrapper {
@@ -46,7 +46,7 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
 
     /**
      * Creates a new {@link DecompressingEntity}.
-     * 
+     *
      * @param wrapped
      *            the non-null {@link HttpEntity} to be wrapped
      */
@@ -64,9 +64,9 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
         }
 
         InputStream instream = getContent();
-        
+
         byte[] buffer = new byte[BUFFER_SIZE];
-        
+
         int l;
 
         while ((l = instream.read(buffer)) != -1) {

@@ -51,7 +51,7 @@ public class GetConnThread extends Thread {
 
     /**
      * Creates a new thread for requesting a connection from the given manager.
-     * 
+     *
      * When this thread is started, it will try to obtain a connection.
      * The timeout is in milliseconds.
      */
@@ -59,10 +59,10 @@ public class GetConnThread extends Thread {
                          HttpRoute route, long timeout) {
         this(mgr.requestConnection(route, null), route, timeout);
     }
-    
+
     /**
      * Creates a new for requesting a connection from the given request object.
-     * 
+     *
      * When this thread is started, it will try to obtain a connection.
      * The timeout is in milliseconds.
      */
@@ -87,7 +87,7 @@ public class GetConnThread extends Thread {
         // terminate
     }
 
-        
+
     public Throwable getException() {
         return exception;
     }

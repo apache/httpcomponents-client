@@ -69,21 +69,21 @@ public class TestTSCCMNoServer extends TestCase {
 
 
     private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr, 
+            final ClientConnectionManager mgr,
             final HttpRoute route,
             long timeout,
             TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
         ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(timeout, unit);
     }
-    
+
     private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr, 
+            final ClientConnectionManager mgr,
             final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
         ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(0, null);
     }
-    
+
     /**
      * Helper to instantiate a <code>ThreadSafeClientConnManager</code>.
      *
@@ -147,7 +147,7 @@ public class TestTSCCMNoServer extends TestCase {
     } // testConstructor
 
 
-    public void testGetConnection() 
+    public void testGetConnection()
             throws InterruptedException, ConnectionPoolTimeoutException {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
 
@@ -175,7 +175,7 @@ public class TestTSCCMNoServer extends TestCase {
     // several other tests here rely on timeout behavior
 
 
-    public void testMaxConnTotal() 
+    public void testMaxConnTotal()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
@@ -199,7 +199,7 @@ public class TestTSCCMNoServer extends TestCase {
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
-        
+
         // release one of the connections
         mgr.releaseConnection(conn2, -1, null);
         conn2 = null;
@@ -224,7 +224,7 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route2 = new HttpRoute(target2, null, false);
         HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
         HttpRoute route3 = new HttpRoute(target3, null, false);
-        
+
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotalConnections(100);
         mgr.setDefaultMaxPerRoute(1);
@@ -248,7 +248,7 @@ public class TestTSCCMNoServer extends TestCase {
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
-        
+
         // route 2, limit 2
         conn1 = getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
         conn2 = getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
@@ -286,7 +286,7 @@ public class TestTSCCMNoServer extends TestCase {
         }
 
         mgr.shutdown();
-    }    
+    }
 
 
     public void testReleaseConnection() throws Exception {
@@ -359,7 +359,7 @@ public class TestTSCCMNoServer extends TestCase {
 
     public void testDeleteClosedConnections()
             throws InterruptedException, ConnectionPoolTimeoutException {
-        
+
         ThreadSafeClientConnManager mgr = createTSCCM(null);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
@@ -520,14 +520,14 @@ public class TestTSCCMNoServer extends TestCase {
 
         mgr.shutdown();
     }
-    
+
     public void testAbortAfterRequestStarts() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotalConnections(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
-        
+
         // get the only connection, then start an extra thread
         ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
         ClientConnectionRequest request = mgr.requestConnection(route, null);
@@ -559,19 +559,19 @@ public class TestTSCCMNoServer extends TestCase {
 
         mgr.shutdown();
     }
-    
+
     public void testAbortBeforeRequestStarts() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotalConnections(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
-        
+
         // get the only connection, then start an extra thread
         ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
         ClientConnectionRequest request = mgr.requestConnection(route, null);
         request.abortRequest();
-        
+
         GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
         gct.start();
         Thread.sleep(100); // give extra thread time to block

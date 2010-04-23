@@ -52,17 +52,17 @@ import org.apache.http.params.HttpProtocolParams;
  * @since 4.0
  */
 @NotThreadSafe
-public abstract class HttpRequestBase extends AbstractHttpMessage 
+public abstract class HttpRequestBase extends AbstractHttpMessage
     implements HttpUriRequest, AbortableHttpRequest, Cloneable {
 
     private Lock abortLock;
 
     private boolean aborted;
-    
+
     private URI uri;
     private ClientConnectionRequest connRequest;
     private ConnectionReleaseTrigger releaseTrigger;
-    
+
     public HttpRequestBase() {
         super();
         this.abortLock = new ReentrantLock();
@@ -75,15 +75,15 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
     }
 
     /**
-     * Returns the original request URI. 
+     * Returns the original request URI.
      * <p>
-     * Please note URI remains unchanged in the course of request execution and 
+     * Please note URI remains unchanged in the course of request execution and
      * is not updated if the request is redirected to another location.
      */
     public URI getURI() {
         return this.uri;
     }
-    
+
     public RequestLine getRequestLine() {
         String method = getMethod();
         ProtocolVersion ver = getProtocolVersion();
@@ -109,7 +109,7 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
             if (this.aborted) {
                 throw new IOException("Request already aborted");
             }
-            
+
             this.releaseTrigger = null;
             this.connRequest = connRequest;
         } finally {
@@ -124,30 +124,30 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
             if (this.aborted) {
                 throw new IOException("Request already aborted");
             }
-            
+
             this.connRequest = null;
             this.releaseTrigger = releaseTrigger;
         } finally {
             this.abortLock.unlock();
         }
     }
-    
+
     public void abort() {
         ClientConnectionRequest localRequest;
         ConnectionReleaseTrigger localTrigger;
-        
+
         this.abortLock.lock();
         try {
             if (this.aborted) {
                 return;
-            }            
+            }
             this.aborted = true;
-            
+
             localRequest = connRequest;
             localTrigger = releaseTrigger;
         } finally {
             this.abortLock.unlock();
-        }        
+        }
 
         // Trigger the callbacks outside of the lock, to prevent
         // deadlocks in the scenario where the callbacks have
@@ -164,7 +164,7 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
             }
         }
     }
-    
+
     public boolean isAborted() {
         return this.aborted;
     }
@@ -180,5 +180,5 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         clone.params = (HttpParams) CloneUtils.clone(this.params);
         return clone;
     }
-    
+
 }

@@ -37,7 +37,7 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 
 /**
- * Interface representing an HTTP request that can be aborted by shutting 
+ * Interface representing an HTTP request that can be aborted by shutting
  * down the underlying HTTP connection.
  *
  *
@@ -50,12 +50,12 @@ public interface AbortableHttpRequest {
      * Sets the {@link ClientConnectionRequest} callback that can be
      * used to abort a long-lived request for a connection.
      * If the request is already aborted, throws an {@link IOException}.
-     * 
+     *
      * @see ClientConnectionManager
      * @see ThreadSafeClientConnManager
      */
     void setConnectionRequest(ClientConnectionRequest connRequest) throws IOException;
-    
+
     /**
      * Sets the {@link ConnectionReleaseTrigger} callback that can
      * be used to abort an active connection.
@@ -69,7 +69,7 @@ public interface AbortableHttpRequest {
      * return immediately. If the request has not started, it will abort after
      * the next execution. Aborting this request will cause all subsequent
      * executions with this request to fail.
-     * 
+     *
      * @see HttpClient#execute(HttpUriRequest)
      * @see HttpClient#execute(org.apache.http.HttpHost,
      *      org.apache.http.HttpRequest)

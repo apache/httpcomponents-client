@@ -51,7 +51,7 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
 
     private final DERObjectIdentifier spnegoOid;
     private final DERObjectIdentifier kerbOid;
-    
+
     public BouncySpnegoTokenGenerator() {
         super();
         this.spnegoOid = new DERObjectIdentifier("1.3.6.1.5.5.2");
@@ -60,7 +60,7 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
 
     public byte [] generateSpnegoDERObject(byte [] kerbTicket) throws IOException {
         DEROctetString ourKerberosTicket = new DEROctetString(kerbTicket);
-        
+
         DERSequence kerbOidSeq = new DERSequence(kerbOid);
         DERTaggedObject tagged0 = new DERTaggedObject(0, kerbOidSeq);
         DERTaggedObject tagged2 = new DERTaggedObject(2, ourKerberosTicket);
@@ -69,22 +69,22 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
         v.add(tagged2);
         DERSequence seq = new DERSequence(v);
         DERTaggedObject taggedSpnego = new DERTaggedObject(0, seq);
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ASN1OutputStream asn1Out = new ASN1OutputStream(out);
 
         ASN1Object spnegoOIDASN1 =  (ASN1Object) spnegoOid.toASN1Object();
         ASN1Object taggedSpnegoASN1    =    (ASN1Object) taggedSpnego.toASN1Object();
-        
+
         int length = spnegoOIDASN1.getDEREncoded().length + taggedSpnegoASN1.getDEREncoded().length;
         byte [] lenBytes = writeLength(length);
         byte[] appWrap = new byte[lenBytes.length + 1];
-        
+
         appWrap[0] = 0x60;
         for(int i=1; i < appWrap.length; i++){
             appWrap[i] = lenBytes[i-1];
         }
-        
+
         asn1Out.write(appWrap);
         asn1Out.writeObject(spnegoOid.toASN1Object());
         asn1Out.writeObject(taggedSpnego.toASN1Object());
@@ -101,7 +101,7 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
             ASN1InputStream ourSpnego = new ASN1InputStream( manipBytes );
             log.debug(ASN1Dump.dumpAsString(ourSpnego.readObject()));
         }
-        
+
         return in.readObject().getDEREncoded();
     }
 
@@ -114,7 +114,7 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
             while ((val >>>= 8) != 0) {
                 size++;
             }
-            
+
             out.write((byte) (size | 0x80));
 
             for (int i = (size - 1) * 8; i >= 0; i -= 8) {
@@ -125,5 +125,5 @@ public class BouncySpnegoTokenGenerator implements SpnegoTokenGenerator {
         }
         return out.toByteArray();
     }
-    
+
 }

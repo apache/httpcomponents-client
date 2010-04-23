@@ -41,7 +41,7 @@ import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Abstract authentication scheme class that lays foundation for all
- * RFC 2617 compliant authentication schemes and provides capabilities common 
+ * RFC 2617 compliant authentication schemes and provides capabilities common
  * to all authentication schemes defined in RFC 2617.
  *
  * @since 4.0
@@ -65,12 +65,12 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     protected void parseChallenge(
             final CharArrayBuffer buffer, int pos, int len) throws MalformedChallengeException {
         HeaderValueParser parser = BasicHeaderValueParser.DEFAULT;
-        ParserCursor cursor = new ParserCursor(pos, buffer.length()); 
+        ParserCursor cursor = new ParserCursor(pos, buffer.length());
         HeaderElement[] elements = parser.parseElements(buffer, cursor);
         if (elements.length == 0) {
             throw new MalformedChallengeException("Authentication challenge is empty");
         }
-        
+
         this.params = new HashMap<String, String>(elements.length);
         for (HeaderElement element : elements) {
             this.params.put(element.getName(), element.getValue());
@@ -79,7 +79,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
 
     /**
      * Returns authentication parameters map. Keys in the map are lower-cased.
-     * 
+     *
      * @return the map of authentication parameters
      */
     protected Map<String, String> getParameters() {
@@ -91,14 +91,14 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
 
     /**
      * Returns authentication parameter with the given name, if available.
-     * 
+     *
      * @param name The name of the parameter to be returned
-     * 
+     *
      * @return the parameter with the given name
      */
     public String getParameter(final String name) {
         if (name == null) {
-            throw new IllegalArgumentException("Parameter name may not be null"); 
+            throw new IllegalArgumentException("Parameter name may not be null");
         }
         if (this.params == null) {
             return null;
@@ -108,7 +108,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
 
     /**
      * Returns authentication realm. The realm may not be null.
-     * 
+     *
      * @return the authentication realm
      */
     public String getRealm() {

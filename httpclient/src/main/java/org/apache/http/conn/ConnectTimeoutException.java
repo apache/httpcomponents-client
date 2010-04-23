@@ -34,8 +34,8 @@ import org.apache.http.annotation.Immutable;
 /**
  * A timeout while connecting to an HTTP server or waiting for an
  * available connection from an HttpConnectionManager.
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 @Immutable
@@ -52,8 +52,8 @@ public class ConnectTimeoutException extends InterruptedIOException {
 
     /**
      * Creates a ConnectTimeoutException with the specified detail message.
-     * 
-     * @param message The exception detail message 
+     *
+     * @param message The exception detail message
      */
     public ConnectTimeoutException(final String message) {
         super(message);

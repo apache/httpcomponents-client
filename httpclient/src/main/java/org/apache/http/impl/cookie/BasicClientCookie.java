@@ -50,7 +50,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Default Constructor taking a name and a value. The value may be null.
-     * 
+     *
      * @param name The name.
      * @param value The value.
      */
@@ -84,7 +84,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Sets the value
-     * 
+     *
      * @param value
      */
     public void setValue(final String value) {
@@ -94,8 +94,8 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     /**
      * Returns the comment describing the purpose of this cookie, or
      * <tt>null</tt> if no such comment has been defined.
-     * 
-     * @return comment 
+     *
+     * @return comment
      *
      * @see #setComment(String)
      */
@@ -106,16 +106,16 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     /**
      * If a user agent (web browser) presents this cookie to a user, the
      * cookie's purpose will be described using this comment.
-     * 
+     *
      * @param comment
-     *  
+     *
      * @see #getComment()
      */
     public void setComment(String comment) {
         cookieComment = comment;
     }
 
-    
+
     /**
      * Returns null. Cookies prior to RFC2965 do not set this attribute
      */
@@ -123,11 +123,11 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
         return null;
     }
 
-    
+
     /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
      * if none exists.
-     * <p><strong>Note:</strong> the object returned by this method is 
+     * <p><strong>Note:</strong> the object returned by this method is
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
      * @return Expiration {@link Date}, or <tt>null</tt>.
@@ -142,7 +142,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     /**
      * Sets expiration date.
      * <p><strong>Note:</strong> the object returned by this method is considered
-     * immutable. Changing it (e.g. using setTime()) could result in undefined 
+     * immutable. Changing it (e.g. using setTime()) could result in undefined
      * behaviour. Do so at your peril.</p>
      *
      * @param expiryDate the {@link Date} after which this cookie is no longer valid.
@@ -169,7 +169,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Returns domain attribute of the cookie.
-     * 
+     *
      * @return the value of the domain attribute
      *
      * @see #setDomain(java.lang.String)
@@ -180,7 +180,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Sets the domain attribute.
-     * 
+     *
      * @param domain The value of the domain attribute
      *
      * @see #getDomain
@@ -196,9 +196,9 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Returns the path attribute of the cookie
-     * 
+     *
      * @return The value of the path attribute.
-     * 
+     *
      * @see #setPath(java.lang.String)
      */
     public String getPath() {
@@ -234,7 +234,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      * cookie's value.
      *
      * @param secure The value of the secure attribute
-     * 
+     *
      * @see #isSecure()
      */
     public void setSecure (boolean secure) {
@@ -249,13 +249,13 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
         return null;
     }
 
-    
+
     /**
      * Returns the version of the cookie specification to which this
      * cookie conforms.
      *
      * @return the version of the cookie.
-     * 
+     *
      * @see #setVersion(int)
      *
      */
@@ -265,10 +265,10 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Sets the version of the cookie specification to which this
-     * cookie conforms. 
+     * cookie conforms.
      *
      * @param version the version of the cookie.
-     * 
+     *
      * @see #getVersion
      */
     public void setVersion(int version) {
@@ -278,21 +278,21 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     /**
      * Returns true if this cookie has expired.
      * @param date Current time
-     * 
+     *
      * @return <tt>true</tt> if the cookie has expired.
      */
     public boolean isExpired(final Date date) {
         if (date == null) {
             throw new IllegalArgumentException("Date may not be null");
         }
-        return (cookieExpiryDate != null  
+        return (cookieExpiryDate != null
             && cookieExpiryDate.getTime() <= date.getTime());
     }
 
     public void setAttribute(final String name, final String value) {
         this.attribs.put(name, value);
     }
-    
+
     public String getAttribute(final String name) {
         return this.attribs.get(name);
     }
@@ -300,7 +300,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     public boolean containsAttribute(final String name) {
         return this.attribs.get(name) != null;
     }
-    
+
     @Override
     public Object clone() throws CloneNotSupportedException {
         BasicClientCookie clone = (BasicClientCookie) super.clone();
@@ -331,7 +331,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
         buffer.append("]");
         return buffer.toString();
     }
-    
+
    // ----------------------------------------------------- Instance Variables
 
     /** Cookie name */
@@ -339,7 +339,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /** Cookie attributes as specified by the origin server */
     private Map<String, String> attribs;
-   
+
     /** Cookie value */
     private String value;
 

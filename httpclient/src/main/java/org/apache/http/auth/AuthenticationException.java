@@ -33,7 +33,7 @@ import org.apache.http.ProtocolException;
 /**
  * Signals a failure in authentication process
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -42,7 +42,7 @@ public class AuthenticationException extends ProtocolException {
     private static final long serialVersionUID = -6794031905674764776L;
 
     /**
-     * Creates a new AuthenticationException with a <tt>null</tt> detail message. 
+     * Creates a new AuthenticationException with a <tt>null</tt> detail message.
      */
     public AuthenticationException() {
         super();
@@ -50,7 +50,7 @@ public class AuthenticationException extends ProtocolException {
 
     /**
      * Creates a new AuthenticationException with the specified message.
-     * 
+     *
      * @param message the exception detail message
      */
     public AuthenticationException(String message) {
@@ -59,7 +59,7 @@ public class AuthenticationException extends ProtocolException {
 
     /**
      * Creates a new AuthenticationException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

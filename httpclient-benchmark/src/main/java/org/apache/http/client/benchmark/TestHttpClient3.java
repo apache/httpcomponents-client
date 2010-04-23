@@ -41,7 +41,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 public class TestHttpClient3 implements TestHttpAgent {
 
     private final HttpClient httpclient;
-    
+
     public TestHttpClient3() {
         super();
         this.httpclient = new HttpClient();
@@ -59,14 +59,14 @@ public class TestHttpClient3 implements TestHttpAgent {
     public Stats execute(final HttpMethod httpmethod, int n) throws Exception {
 
         Stats stats = new Stats();
-        
+
         int successCount = 0;
         int failureCount = 0;
         long contentLen = 0;
         long totalContentLen = 0;
-        
+
         byte[] buffer = new byte[4096];
-        
+
         for (int i = 0; i < n; i++) {
             try {
                 this.httpclient.executeMethod(httpmethod);
@@ -97,7 +97,7 @@ public class TestHttpClient3 implements TestHttpAgent {
         stats.setTotalContentLen(totalContentLen);
         return stats;
     }
-    
+
     public Stats get(final URI target, int n) throws Exception {
         GetMethod httpget = new GetMethod(target.toASCIIString());
         return execute(httpget, n);
@@ -120,13 +120,13 @@ public class TestHttpClient3 implements TestHttpAgent {
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
-        
-        TestHttpClient3 test = new TestHttpClient3(); 
-        
+
+        TestHttpClient3 test = new TestHttpClient3();
+
         long startTime = System.currentTimeMillis();
         Stats stats = test.get(targetURI, n);
         long finishTime = System.currentTimeMillis();
-       
+
         Stats.printStats(targetURI, startTime, finishTime, stats);
     }
 

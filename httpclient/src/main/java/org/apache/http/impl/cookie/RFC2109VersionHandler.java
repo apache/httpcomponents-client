@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -44,8 +44,8 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
     public RFC2109VersionHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, final String value) 
+
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -59,13 +59,13 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
         try {
            cookie.setVersion(Integer.parseInt(value));
         } catch (NumberFormatException e) {
-            throw new MalformedCookieException("Invalid version: " 
+            throw new MalformedCookieException("Invalid version: "
                 + e.getMessage());
         }
     }
 
     @Override
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -74,5 +74,5 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
             throw new CookieRestrictionViolationException("Cookie version may not be negative");
         }
     }
-    
+
 }

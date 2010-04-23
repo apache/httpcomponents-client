@@ -29,7 +29,7 @@ package org.apache.http.auth;
 import java.security.Principal;
 
 /**
- * This interface represents a set of credentials consisting of a security 
+ * This interface represents a set of credentials consisting of a security
  * principal and a secret (password) that can be used to establish user
  * identity
  *
@@ -40,5 +40,5 @@ public interface Credentials {
     Principal getUserPrincipal();
 
     String getPassword();
-    
+
 }

@@ -31,7 +31,7 @@ import org.apache.http.entity.mime.content.ContentBody;
 
 /**
  * FormBodyPart class represents a content body that can be used as a part of multipart encoded
- * entities. This class automatically populates the header with standard fields based on 
+ * entities. This class automatically populates the header with standard fields based on
  * the content description of the enclosed body.
  *
  * @since 4.0
@@ -42,7 +42,7 @@ public class FormBodyPart {
     private final Header header;
 
     private ContentBody body;
-    
+
     public FormBodyPart(final String name, final ContentBody body) {
         super();
         if (name == null) {
@@ -54,20 +54,20 @@ public class FormBodyPart {
         this.name = name;
         this.body = body;
         this.header = new Header();
-        
+
         generateContentDisp(body);
         generateContentType(body);
         generateTransferEncoding(body);
     }
-    
+
     public String getName() {
         return this.name;
     }
-    
+
     public ContentBody getBody() {
         return this.body;
     }
-    
+
     public Header getHeader() {
         return this.header;
     }
@@ -78,7 +78,7 @@ public class FormBodyPart {
         }
         this.header.addField(new MinimalField(name, value));
     }
-    
+
     protected void generateContentDisp(final ContentBody body) {
         StringBuilder buffer = new StringBuilder();
         buffer.append("form-data; name=\"");
@@ -91,7 +91,7 @@ public class FormBodyPart {
         }
         addField(MIME.CONTENT_DISPOSITION, buffer.toString());
     }
-    
+
     protected void generateContentType(final ContentBody body) {
         if (body.getMimeType() != null) {
             StringBuilder buffer = new StringBuilder();
@@ -103,7 +103,7 @@ public class FormBodyPart {
             addField(MIME.CONTENT_TYPE, buffer.toString());
         }
     }
-    
+
     protected void generateTransferEncoding(final ContentBody body) {
         if (body.getTransferEncoding() != null) {
             addField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding());

@@ -131,7 +131,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         int port = origin.getPort();
-        if (cookie instanceof ClientCookie 
+        if (cookie instanceof ClientCookie
                 && ((ClientCookie) cookie).containsAttribute(ClientCookie.PORT_ATTR)) {
             if (!portMatch(port, cookie.getPorts())) {
                 throw new CookieRestrictionViolationException(
@@ -154,7 +154,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         int port = origin.getPort();
-        if (cookie instanceof ClientCookie 
+        if (cookie instanceof ClientCookie
                 && ((ClientCookie) cookie).containsAttribute(ClientCookie.PORT_ATTR)) {
             if (cookie.getPorts() == null) {
                 // Invalid cookie state: port not specified

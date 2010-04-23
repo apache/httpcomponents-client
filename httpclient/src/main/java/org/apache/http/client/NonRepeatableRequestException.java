@@ -31,10 +31,10 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.ProtocolException;
 
 /**
- * Signals failure to retry the request due to non-repeatable request 
+ * Signals failure to retry the request due to non-repeatable request
  * entity.
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 @Immutable
@@ -43,7 +43,7 @@ public class NonRepeatableRequestException extends ProtocolException {
     private static final long serialVersionUID = 82685265288806048L;
 
     /**
-     * Creates a new NonRepeatableEntityException with a <tt>null</tt> detail message. 
+     * Creates a new NonRepeatableEntityException with a <tt>null</tt> detail message.
      */
     public NonRepeatableRequestException() {
         super();
@@ -51,7 +51,7 @@ public class NonRepeatableRequestException extends ProtocolException {
 
     /**
      * Creates a new NonRepeatableEntityException with the specified detail message.
-     * 
+     *
      * @param message The exception detail message
      */
     public NonRepeatableRequestException(String message) {
@@ -60,14 +60,14 @@ public class NonRepeatableRequestException extends ProtocolException {
 
     /**
      * Creates a new NonRepeatableEntityException with the specified detail message.
-     * 
+     *
      * @param message The exception detail message
      * @param cause the cause
      */
     public NonRepeatableRequestException(String message, Throwable cause) {
         super(message, cause);
     }
-    
-    
+
+
 
 }

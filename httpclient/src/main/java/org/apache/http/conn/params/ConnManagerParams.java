@@ -32,9 +32,9 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 
 /**
- * An adaptor for manipulating HTTP connection management 
+ * An adaptor for manipulating HTTP connection management
  * parameters in {@link HttpParams}.
- * 
+ *
  * @since 4.0
  *
  * @see ConnManagerPNames
@@ -49,9 +49,9 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * Returns the timeout in milliseconds used when retrieving a
      * {@link org.apache.http.conn.ManagedClientConnection} from the
      * {@link org.apache.http.conn.ClientConnectionManager}.
-     * 
+     *
      * @return timeout in milliseconds.
-     */ 
+     */
     public static long getTimeout(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
@@ -63,9 +63,9 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * Sets the timeout in milliseconds used when retrieving a
      * {@link org.apache.http.conn.ManagedClientConnection} from the
      * {@link org.apache.http.conn.ClientConnectionManager}.
-     * 
+     *
      * @param timeout the timeout in milliseconds
-     */ 
+     */
     public static void setTimeout(final HttpParams params, long timeout) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
@@ -76,22 +76,22 @@ public final class ConnManagerParams implements ConnManagerPNames {
     /** The default maximum number of connections allowed per host */
     @Deprecated
     private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
-        
+
         public int getMaxForRoute(HttpRoute route) {
             return ConnPerRouteBean.DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
         }
-        
+
     };
-    
+
     /**
      * Sets lookup interface for maximum number of connections allowed per route.
      *
      * @param params HTTP parameters
-     * @param connPerRoute lookup interface for maximum number of connections allowed 
+     * @param connPerRoute lookup interface for maximum number of connections allowed
      *        per route
-     * 
+     *
      * @deprecated do not use
-     * 
+     *
      * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
     @Deprecated
@@ -108,11 +108,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * Returns lookup interface for maximum number of connections allowed per route.
      *
      * @param params HTTP parameters
-     * 
+     *
      * @return lookup interface for maximum number of connections allowed per route.
-     * 
+     *
      * @deprecated do not use
-     * 
+     *
      * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
      */
     @Deprecated
@@ -134,9 +134,9 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @param params HTTP parameters
      * @param maxTotalConnections The maximum number of connections allowed.
-     * 
+     *
      * @deprecated do not use
-     * 
+     *
      * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
     @Deprecated
@@ -156,9 +156,9 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @param params HTTP parameters
      *
      * @return The maximum number of connections allowed.
-     * 
+     *
      * @deprecated do not use
-     * 
+     *
      * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
      */
     @Deprecated
@@ -171,5 +171,5 @@ public final class ConnManagerParams implements ConnManagerPNames {
         return params.getIntParameter(MAX_TOTAL_CONNECTIONS, DEFAULT_MAX_TOTAL_CONNECTIONS);
     }
 
-    
+
 }

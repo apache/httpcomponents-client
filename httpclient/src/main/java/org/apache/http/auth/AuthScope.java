@@ -32,75 +32,75 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.util.LangUtils;
 
-/** 
+/**
  * The class represents an authentication scope consisting of a host name,
- * a port number, a realm name and an authentication scheme name which 
+ * a port number, a realm name and an authentication scheme name which
  * {@link Credentials Credentials} apply to.
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 @Immutable
 public class AuthScope {
-    
-    /** 
-     * The <tt>null</tt> value represents any host. In the future versions of 
-     * HttpClient the use of this parameter will be discontinued.  
+
+    /**
+     * The <tt>null</tt> value represents any host. In the future versions of
+     * HttpClient the use of this parameter will be discontinued.
      */
     public static final String ANY_HOST = null;
 
-    /** 
-     * The <tt>-1</tt> value represents any port.  
+    /**
+     * The <tt>-1</tt> value represents any port.
      */
     public static final int ANY_PORT = -1;
 
-    /** 
-     * The <tt>null</tt> value represents any realm.  
+    /**
+     * The <tt>null</tt> value represents any realm.
      */
     public static final String ANY_REALM = null;
 
-    /** 
-     * The <tt>null</tt> value represents any authentication scheme.  
+    /**
+     * The <tt>null</tt> value represents any authentication scheme.
      */
     public static final String ANY_SCHEME = null;
-    
-    /** 
-     * Default scope matching any host, port, realm and authentication scheme. 
-     * In the future versions of HttpClient the use of this parameter will be 
-     * discontinued.  
+
+    /**
+     * Default scope matching any host, port, realm and authentication scheme.
+     * In the future versions of HttpClient the use of this parameter will be
+     * discontinued.
      */
     public static final AuthScope ANY = new AuthScope(ANY_HOST, ANY_PORT, ANY_REALM, ANY_SCHEME);
 
     /** The authentication scheme the credentials apply to. */
     private final String scheme;
-    
+
     /** The realm the credentials apply to. */
     private final String realm;
-    
+
     /** The host the credentials apply to. */
     private final String host;
-        
+
     /** The port the credentials apply to. */
     private final int port;
-        
-    /** Creates a new credentials scope for the given 
-     * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and 
+
+    /** Creates a new credentials scope for the given
+     * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and
      * <tt>authentication scheme</tt>.
-     * 
+     *
      * @param host the host the credentials apply to. May be set
      *   to <tt>null</tt> if credenticals are applicable to
-     *   any host. 
+     *   any host.
      * @param port the port the credentials apply to. May be set
      *   to negative value if credenticals are applicable to
-     *   any port. 
-     * @param realm the realm the credentials apply to. May be set 
+     *   any port.
+     * @param realm the realm the credentials apply to. May be set
      *   to <tt>null</tt> if credenticals are applicable to
-     *   any realm. 
-     * @param scheme the authentication scheme the credentials apply to. 
+     *   any realm.
+     * @param scheme the authentication scheme the credentials apply to.
      *   May be set to <tt>null</tt> if credenticals are applicable to
-     *   any authentication scheme. 
+     *   any authentication scheme.
      */
-    public AuthScope(final String host, int port, 
+    public AuthScope(final String host, int port,
         final String realm, final String scheme)
     {
         this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ENGLISH);
@@ -108,41 +108,41 @@ public class AuthScope {
         this.realm =  (realm == null)  ? ANY_REALM: realm;
         this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ENGLISH);
     }
-    
-    /** Creates a new credentials scope for the given 
+
+    /** Creates a new credentials scope for the given
      * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and any
      * authentication scheme.
-     * 
+     *
      * @param host the host the credentials apply to. May be set
      *   to <tt>null</tt> if credenticals are applicable to
-     *   any host. 
+     *   any host.
      * @param port the port the credentials apply to. May be set
      *   to negative value if credenticals are applicable to
-     *   any port. 
-     * @param realm the realm the credentials apply to. May be set 
+     *   any port.
+     * @param realm the realm the credentials apply to. May be set
      *   to <tt>null</tt> if credenticals are applicable to
-     *   any realm. 
+     *   any realm.
      */
     public AuthScope(final String host, int port, final String realm) {
         this(host, port, realm, ANY_SCHEME);
     }
-    
-    /** Creates a new credentials scope for the given 
+
+    /** Creates a new credentials scope for the given
      * <tt>host</tt>, <tt>port</tt>, any realm name, and any
      * authentication scheme.
-     * 
+     *
      * @param host the host the credentials apply to. May be set
      *   to <tt>null</tt> if credenticals are applicable to
-     *   any host. 
+     *   any host.
      * @param port the port the credentials apply to. May be set
      *   to negative value if credenticals are applicable to
-     *   any port. 
+     *   any port.
      */
     public AuthScope(final String host, int port) {
         this(host, port, ANY_REALM, ANY_SCHEME);
     }
-    
-    /** 
+
+    /**
      * Creates a copy of the given credentials scope.
      */
     public AuthScope(final AuthScope authscope) {
@@ -155,7 +155,7 @@ public class AuthScope {
         this.realm = authscope.getRealm();
         this.scheme = authscope.getScheme();
     }
-    
+
     /**
      * @return the host
      */
@@ -185,10 +185,10 @@ public class AuthScope {
     }
 
     /**
-     * Tests if the authentication scopes match. 
-     * 
-     * @return the match factor. Negative value signifies no match. 
-     *    Non-negative signifies a match. The greater the returned value 
+     * Tests if the authentication scopes match.
+     *
+     * @return the match factor. Negative value signifies no match.
+     *    Non-negative signifies a match. The greater the returned value
      *    the closer the match.
      */
     public int match(final AuthScope that) {
@@ -239,8 +239,8 @@ public class AuthScope {
             return super.equals(o);
         }
         AuthScope that = (AuthScope) o;
-        return 
-        LangUtils.equals(this.host, that.host) 
+        return
+        LangUtils.equals(this.host, that.host)
           && this.port == that.port
           && LangUtils.equals(this.realm, that.realm)
           && LangUtils.equals(this.scheme, that.scheme);
@@ -273,7 +273,7 @@ public class AuthScope {
         }
         return buffer.toString();
     }
-    
+
     /**
      * @see java.lang.Object#hashCode()
      */

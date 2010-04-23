@@ -46,7 +46,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 
 /**
  * A handler that generates random data.
- * 
+ *
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->
@@ -71,7 +71,7 @@ public class RandomHandler
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    public void handle(final HttpRequest request, 
+    public void handle(final HttpRequest request,
                        final HttpResponse response,
                        final HttpContext context)
         throws HttpException, IOException {

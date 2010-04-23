@@ -64,7 +64,7 @@ public class TestCookieOrigin extends TestCase {
             // expected
         }
     }
-    
+
     public void testEmptyHost() {
         try {
             new CookieOrigin("   ", 80, "/", false);

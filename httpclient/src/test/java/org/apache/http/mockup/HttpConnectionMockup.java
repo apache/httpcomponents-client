@@ -39,27 +39,27 @@ import org.apache.http.HttpConnectionMetrics;
 public class HttpConnectionMockup implements HttpConnection {
 
     private boolean open = true;
-    
+
     public HttpConnectionMockup() {
         super();
     }
-    
+
     public void close() throws IOException {
         this.open = false;
     }
-    
+
     public void shutdown() throws IOException {
         this.open = false;
     }
-    
+
     public int getSocketTimeout() {
         return 0;
     }
-    
+
     public boolean isOpen() {
         return this.open;
     }
-    
+
     public boolean isStale() {
         return false;
     }

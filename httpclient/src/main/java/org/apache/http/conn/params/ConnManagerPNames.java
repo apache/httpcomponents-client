@@ -28,22 +28,22 @@ package org.apache.http.conn.params;
 
 /**
  * Parameter names for connection managers in HttpConn.
- * 
+ *
  * @since 4.0
  */
 public interface ConnManagerPNames {
 
     /**
-     * Defines the timeout in milliseconds used when retrieving an instance of 
+     * Defines the timeout in milliseconds used when retrieving an instance of
      * {@link org.apache.http.conn.ManagedClientConnection} from the
      * {@link org.apache.http.conn.ClientConnectionManager}.
      * <p>
      * This parameter expects a value of type {@link Long}.
      * </p>
-     */ 
-    public static final String TIMEOUT = "http.conn-manager.timeout"; 
+     */
+    public static final String TIMEOUT = "http.conn-manager.timeout";
 
-    /** 
+    /**
      * Defines the maximum number of connections per route.
      * This limit is interpreted by client connection managers
      * and applies to individual manager instances.
@@ -54,7 +54,7 @@ public interface ConnManagerPNames {
     @Deprecated
     public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
 
-    /** 
+    /**
      * Defines the maximum number of connections in total.
      * This limit is interpreted by client connection managers
      * and applies to individual manager instances.

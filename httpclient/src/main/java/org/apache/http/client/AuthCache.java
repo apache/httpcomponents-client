@@ -30,10 +30,10 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScheme;
 
 /**
- * Abstract {@link AuthScheme} cache. Initialized {@link AuthScheme} objects 
- * from this cache can be used to preemptively authenticate against known 
+ * Abstract {@link AuthScheme} cache. Initialized {@link AuthScheme} objects
+ * from this cache can be used to preemptively authenticate against known
  * hosts.
- * 
+ *
  * @since 4.1
  */
 public interface AuthCache {
@@ -45,5 +45,5 @@ public interface AuthCache {
     void remove(HttpHost host);
 
     void clear();
-    
+
 }

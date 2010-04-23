@@ -65,7 +65,7 @@ public class TestBasicClientCookie extends TestCase {
             //expected
         }
     }
-    
+
     public void testCloning() throws Exception {
         BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
@@ -78,7 +78,7 @@ public class TestBasicClientCookie extends TestCase {
         assertEquals(orig.getPath(), clone.getPath());
         assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
-    
+
     public void testSerialization() throws Exception {
         BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
@@ -98,5 +98,5 @@ public class TestBasicClientCookie extends TestCase {
         assertEquals(orig.getPath(), clone.getPath());
         assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
-    
+
 }

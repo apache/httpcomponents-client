@@ -34,13 +34,13 @@ import org.apache.http.annotation.NotThreadSafe;
 /**
  * HTTP PUT method.
  * <p>
- * The HTTP PUT method is defined in section 9.6 of 
+ * The HTTP PUT method is defined in section 9.6 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * <blockquote>
  * The PUT method requests that the enclosed entity be stored under the
  * supplied Request-URI. If the Request-URI refers to an already
  * existing resource, the enclosed entity SHOULD be considered as a
- * modified version of the one residing on the origin server. 
+ * modified version of the one residing on the origin server.
  * </blockquote>
  * </p>
  *
@@ -50,18 +50,18 @@ import org.apache.http.annotation.NotThreadSafe;
 public class HttpPut extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "PUT";
-    
+
     public HttpPut() {
         super();
     }
-    
+
     public HttpPut(final URI uri) {
         super();
         setURI(uri);
     }
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpPut(final String uri) {
         super();
@@ -72,5 +72,5 @@ public class HttpPut extends HttpEntityEnclosingRequestBase {
     public String getMethod() {
         return METHOD_NAME;
     }
-    
+
 }

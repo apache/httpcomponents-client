@@ -57,26 +57,26 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@Immutable 
+@Immutable
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
     private final Log log = LogFactory.getLog(getClass());
-    
-    private static final List<String> DEFAULT_SCHEME_PRIORITY = 
+
+    private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(new String[] {
                 AuthPolicy.SPNEGO,
                 AuthPolicy.NTLM,
                 AuthPolicy.DIGEST,
                 AuthPolicy.BASIC
     }));
-    
+
     public AbstractAuthenticationHandler() {
         super();
     }
-    
+
     protected Map<String, Header> parseChallenges(
             final Header[] headers) throws MalformedChallengeException {
-        
+
         Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (Header header : headers) {
             CharArrayBuffer buffer;
@@ -106,55 +106,55 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         }
         return map;
     }
-    
+
     /**
      * Returns default list of auth scheme names in their order of preference.
-     * 
+     *
      * @return list of auth scheme names
      */
     protected List<String> getAuthPreferences() {
         return DEFAULT_SCHEME_PRIORITY;
     }
-    
+
     /**
      * Returns default list of auth scheme names in their order of preference
      * based on the HTTP response and the current execution context.
-     * 
+     *
      * @param response HTTP response.
      * @param context HTTP execution context.
-     * 
+     *
      * @since 4.1
      */
     protected List<String> getAuthPreferences(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) {
         return getAuthPreferences();
     }
-    
+
     public AuthScheme selectScheme(
-            final Map<String, Header> challenges, 
+            final Map<String, Header> challenges,
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
-        
+
         AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY);
         if (registry == null) {
             throw new IllegalStateException("AuthScheme registry not set in HTTP context");
         }
-        
+
         Collection<String> authPrefs = getAuthPreferences(response, context);
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
-        
+
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication schemes in the order of preference: " 
+            this.log.debug("Authentication schemes in the order of preference: "
                 + authPrefs);
         }
 
         AuthScheme authScheme = null;
         for (String id: authPrefs) {
-            Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH)); 
+            Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
 
             if (challenge != null) {
                 if (this.log.isDebugEnabled()) {

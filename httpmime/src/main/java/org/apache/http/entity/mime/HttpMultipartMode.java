@@ -32,7 +32,7 @@ package org.apache.http.entity.mime;
  * @since 4.0
  */
 public enum HttpMultipartMode {
-    
+
     STRICT,
     BROWSER_COMPATIBLE
 

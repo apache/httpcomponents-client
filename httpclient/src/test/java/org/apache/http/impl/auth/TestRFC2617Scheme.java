@@ -59,7 +59,7 @@ public class TestRFC2617Scheme extends TestCase {
     static class TestAuthScheme extends RFC2617Scheme {
 
         public Header authenticate(
-                final Credentials credentials, 
+                final Credentials credentials,
                 final HttpRequest request) throws AuthenticationException {
             return null;
         }
@@ -75,7 +75,7 @@ public class TestRFC2617Scheme extends TestCase {
         public boolean isConnectionBased() {
             return false;
         }
-        
+
     }
 
     public void testProcessChallenge() throws Exception {
@@ -83,9 +83,9 @@ public class TestRFC2617Scheme extends TestCase {
         Header header = new BasicHeader(
                 AUTH.WWW_AUTH,
                 "Test realm=\"realm1\", test, test1 =  stuff, test2 =  \"stuff, stuff\", test3=\"crap");
-        
+
         authscheme.processChallenge(header);
-        
+
         assertEquals("test", authscheme.getSchemeName());
         assertEquals("realm1", authscheme.getParameter("realm"));
         assertEquals(null, authscheme.getParameter("test"));
@@ -99,9 +99,9 @@ public class TestRFC2617Scheme extends TestCase {
         CharArrayBuffer buffer = new CharArrayBuffer(32);
         buffer.append(" WWW-Authenticate:    Test       realm=\"realm1\"");
         Header header = new BufferedHeader(buffer);
-        
+
         authscheme.processChallenge(header);
-        
+
         assertEquals("test", authscheme.getSchemeName());
         assertEquals("realm1", authscheme.getParameter("realm"));
     }
@@ -116,7 +116,7 @@ public class TestRFC2617Scheme extends TestCase {
             //expected
         }
     }
-    
+
     public void testEmptyHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader(AUTH.WWW_AUTH, "Test    ");
@@ -127,7 +127,7 @@ public class TestRFC2617Scheme extends TestCase {
             //expected
         }
     }
-    
+
     public void testInvalidHeaderValue() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader("whatever", "whatever");

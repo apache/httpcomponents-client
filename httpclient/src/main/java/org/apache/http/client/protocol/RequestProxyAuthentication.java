@@ -46,22 +46,22 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Generates authentication header for the proxy host, if required, 
- * based on the actual state of the HTTP authentication context.   
- * 
+ * Generates authentication header for the proxy host, if required,
+ * based on the actual state of the HTTP authentication context.
+ *
  * @since 4.0
  */
 @Immutable
 public class RequestProxyAuthentication implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public RequestProxyAuthentication() {
         super();
     }
-    
+
     @SuppressWarnings("deprecation")
-    public void process(final HttpRequest request, final HttpContext context) 
+    public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -73,7 +73,7 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         if (request.containsHeader(AUTH.PROXY_AUTH_RESP)) {
             return;
         }
-        
+
         // Obtain authentication state
         AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.PROXY_AUTH_STATE);
@@ -85,7 +85,7 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         if (authScheme == null) {
             return;
         }
-        
+
         Credentials creds = authState.getCredentials();
         if (creds == null) {
             this.log.debug("User credentials not available");
@@ -108,5 +108,5 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
             }
         }
     }
-    
+
 }

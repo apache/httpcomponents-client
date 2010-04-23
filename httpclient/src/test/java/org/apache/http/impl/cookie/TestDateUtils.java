@@ -58,8 +58,8 @@ public class TestDateUtils extends TestCase {
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date1 = calendar.getTime(); 
-        
+        Date date1 = calendar.getTime();
+
         String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1123
                 };
@@ -97,14 +97,14 @@ public class TestDateUtils extends TestCase {
             // expected
         }
     }
-    
+
     public void testTwoDigitYearDateParse() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date1 = calendar.getTime(); 
-        
+        Date date1 = calendar.getTime();
+
         String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1036
                 };
@@ -113,12 +113,12 @@ public class TestDateUtils extends TestCase {
 
         calendar.set(1900, Calendar.JANUARY, 0, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date startDate = calendar.getTime(); 
+        Date startDate = calendar.getTime();
 
         calendar.set(1905, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        date1 = calendar.getTime(); 
-        
+        date1 = calendar.getTime();
+
         date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, startDate);
         assertEquals(date1, date2);
     }
@@ -128,8 +128,8 @@ public class TestDateUtils extends TestCase {
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date1 = calendar.getTime(); 
-        
+        Date date1 = calendar.getTime();
+
         String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1123
                 };
@@ -142,8 +142,8 @@ public class TestDateUtils extends TestCase {
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date = calendar.getTime(); 
-        
+        Date date = calendar.getTime();
+
         assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date));
         assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));
     }

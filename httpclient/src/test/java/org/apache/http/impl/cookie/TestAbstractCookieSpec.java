@@ -73,7 +73,7 @@ public class TestAbstractCookieSpec extends TestCase {
 
         public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
         }
-        
+
         public int getVersion() {
             return 0;
         }
@@ -81,9 +81,9 @@ public class TestAbstractCookieSpec extends TestCase {
         public Header getVersionHeader() {
             return null;
         }
-        
+
     }
-    
+
     private static class DummyCookieAttribHandler implements CookieAttributeHandler {
 
         public boolean match(Cookie cookie, CookieOrigin origin) {
@@ -95,13 +95,13 @@ public class TestAbstractCookieSpec extends TestCase {
 
         public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
         }
-        
+
     }
-    
+
     public void testSimpleRegisterAndGet() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
-        
+
         AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
@@ -112,7 +112,7 @@ public class TestAbstractCookieSpec extends TestCase {
         assertTrue(h2 == cookiespec.getAttribHandler("that"));
         assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
         assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
-        
+
         Iterator<CookieAttributeHandler> it = cookiespec.getAttribHandlers().iterator();
         assertNotNull(it.next());
         assertNotNull(it.next());
@@ -124,11 +124,11 @@ public class TestAbstractCookieSpec extends TestCase {
     public void testInvalidHandler() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
-        
+
         AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
-        
+
         assertNull(cookiespec.findAttribHandler("whatever"));
         try {
             cookiespec.getAttribHandler("whatever");
@@ -153,5 +153,5 @@ public class TestAbstractCookieSpec extends TestCase {
             // expected
         }
     }
-    
+
 }

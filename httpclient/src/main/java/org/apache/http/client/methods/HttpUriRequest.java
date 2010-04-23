@@ -32,7 +32,7 @@ import java.net.URI;
 import org.apache.http.HttpRequest;
 
 /**
- * Extended version of the {@link HttpRequest} interface that provides 
+ * Extended version of the {@link HttpRequest} interface that provides
  * convenience methods to access request properties such as request URI
  * and method type.
  *
@@ -41,7 +41,7 @@ import org.apache.http.HttpRequest;
  * @since 4.0
  */
 public interface HttpUriRequest extends HttpRequest {
-    
+
     /**
      * Returns the HTTP method this request uses, such as <code>GET</code>,
      * <code>PUT</code>, <code>POST</code>, or other.
@@ -51,32 +51,32 @@ public interface HttpUriRequest extends HttpRequest {
     /**
      * Returns the URI this request uses, such as
      * <code>http://example.org/path/to/file</code>.
-     * 
+     *
      * Implementations are encouraged to return
      * the URI that was initially requested.
-     * 
+     *
      * To find the final URI after any redirects have been processed,
-     * please see the section entitled 
+     * please see the section entitled
      * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
-     * in the 
+     * in the
      * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html">HttpClient Tutorial</a>
      */
     URI getURI();
-    
+
     /**
-     * Aborts execution of the request. 
-     * 
-     * @throws UnsupportedOperationException if the abort operation 
+     * Aborts execution of the request.
+     *
+     * @throws UnsupportedOperationException if the abort operation
      *   is not supported / cannot be implemented.
      */
     void abort() throws UnsupportedOperationException;
-    
+
     /**
      * Tests if the request execution has been aborted.
-     * 
+     *
      * @return <code>true</code> if the request execution has been aborted,
      *   <code>false</code> otherwise.
      */
     boolean isAborted();
-    
+
 }

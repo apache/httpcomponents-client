@@ -33,7 +33,7 @@ import org.apache.http.HttpHost;
 
 /**
  * Read-only interface for route information.
- * 
+ *
  * @since 4.0
  */
 public interface RouteInfo {
@@ -65,14 +65,14 @@ public interface RouteInfo {
 
     /**
      * Obtains the target host.
-     * 
+     *
      * @return the target host
      */
     HttpHost getTargetHost();
 
     /**
      * Obtains the local address to connect from.
-     * 
+     *
      * @return  the local address,
      *          or <code>null</code>
      */
@@ -107,7 +107,7 @@ public interface RouteInfo {
 
     /**
      * Obtains the first proxy host.
-     * 
+     *
      * @return the first proxy in the proxy chain, or
      *         <code>null</code> if this route is direct
      */

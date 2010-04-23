@@ -40,7 +40,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 
 /**
- * Multipart/form coded HTTP entity consisting of multiple body parts. 
+ * Multipart/form coded HTTP entity consisting of multiple body parts.
  *
  * @since 4.0
  */
@@ -49,18 +49,18 @@ public class MultipartEntity implements HttpEntity {
     /**
      * The pool of ASCII chars to be used for generating a multipart boundary.
      */
-    private final static char[] MULTIPART_CHARS = 
+    private final static char[] MULTIPART_CHARS =
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             .toCharArray();
-    
+
     private final HttpMultipart multipart;
     private final Header contentType;
-    
+
     private long length;
     private volatile boolean dirty; // used to decide whether to recalculate length
-    
+
     public MultipartEntity(
-            HttpMultipartMode mode, 
+            HttpMultipartMode mode,
             String boundary,
             Charset charset) {
         super();

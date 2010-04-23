@@ -93,9 +93,9 @@ public class TestRedirects extends BasicServerTestBase {
         localServer.registerDefaultHandlers();
         localServer.start();
     }
-    
+
     private static class BasicRedirectService implements HttpRequestHandler {
-        
+
         private int statuscode = HttpStatus.SC_MOVED_TEMPORARILY;
         private String host = null;
         private int port;
@@ -114,14 +114,14 @@ public class TestRedirects extends BasicServerTestBase {
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
                 response.setStatusLine(ver, this.statuscode);
-                response.addHeader(new BasicHeader("Location", 
+                response.addHeader(new BasicHeader("Location",
                         "http://" + this.host + ":" + this.port + "/newlocation/"));
                 response.addHeader(new BasicHeader("Connection", "close"));
             } else if (uri.equals("/newlocation/")) {
@@ -139,10 +139,10 @@ public class TestRedirects extends BasicServerTestBase {
         public CircularRedirectService() {
             super();
         }
-        
+
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             String uri = request.getRequestLine().getUri();
@@ -159,14 +159,14 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     private static class RelativeRedirectService implements HttpRequestHandler {
-        
+
         public RelativeRedirectService() {
             super();
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             String uri = request.getRequestLine().getUri();
@@ -184,14 +184,14 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     private static class RelativeRedirectService2 implements HttpRequestHandler {
-        
+
         public RelativeRedirectService2() {
             super();
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             String uri = request.getRequestLine().getUri();
@@ -210,15 +210,15 @@ public class TestRedirects extends BasicServerTestBase {
 
     private static class BogusRedirectService implements HttpRequestHandler {
         private String url;
-        
+
         public BogusRedirectService(String redirectUrl) {
             super();
             this.url = redirectUrl;
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             String uri = request.getRequestLine().getUri();
@@ -239,10 +239,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_MULTIPLE_CHOICES));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -255,7 +255,7 @@ public class TestRedirects extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
         assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
@@ -264,10 +264,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_PERMANENTLY));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -293,10 +293,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_MOVED_TEMPORARILY));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -322,10 +322,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_SEE_OTHER));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -351,10 +351,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_NOT_MODIFIED));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -367,7 +367,7 @@ public class TestRedirects extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getStatusLine().getStatusCode());
         assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
@@ -376,10 +376,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_USE_PROXY));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -392,7 +392,7 @@ public class TestRedirects extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_USE_PROXY, response.getStatusLine().getStatusCode());
         assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
@@ -401,10 +401,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port, HttpStatus.SC_TEMPORARY_REDIRECT));
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
@@ -429,7 +429,7 @@ public class TestRedirects extends BasicServerTestBase {
     public void testMaxRedirectCheck() throws Exception {
         this.localServer.register("*", new CircularRedirectService());
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
         client.getParams().setIntParameter(ClientPNames.MAX_REDIRECTS, 5);
 
@@ -446,7 +446,7 @@ public class TestRedirects extends BasicServerTestBase {
     public void testCircularRedirect() throws Exception {
         this.localServer.register("*", new CircularRedirectService());
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
@@ -465,9 +465,9 @@ public class TestRedirects extends BasicServerTestBase {
         String host = address.getHostName();
         this.localServer.register("*", new BasicRedirectService(host, port));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
-        
+
         HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
 
@@ -476,7 +476,7 @@ public class TestRedirects extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
@@ -489,12 +489,12 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", new BasicRedirectService(host, port, 
+        this.localServer.register("*", new BasicRedirectService(host, port,
                 HttpStatus.SC_SEE_OTHER));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
-        
+
         HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
 
@@ -503,7 +503,7 @@ public class TestRedirects extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
@@ -518,7 +518,7 @@ public class TestRedirects extends BasicServerTestBase {
         String host = address.getHostName();
         this.localServer.register("*", new RelativeRedirectService());
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         client.getParams().setBooleanParameter(
@@ -530,7 +530,7 @@ public class TestRedirects extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
         HttpHost targetHost = (HttpHost) context.getAttribute(
@@ -548,7 +548,7 @@ public class TestRedirects extends BasicServerTestBase {
         String host = address.getHostName();
         this.localServer.register("*", new RelativeRedirectService2());
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         client.getParams().setBooleanParameter(
@@ -560,7 +560,7 @@ public class TestRedirects extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
         HttpHost targetHost = (HttpHost) context.getAttribute(
@@ -575,7 +575,7 @@ public class TestRedirects extends BasicServerTestBase {
     public void testRejectRelativeRedirect() throws Exception {
         this.localServer.register("*", new RelativeRedirectService());
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
 
         client.getParams().setBooleanParameter(
                 ClientPNames.REJECT_RELATIVE_REDIRECT, true);
@@ -593,7 +593,7 @@ public class TestRedirects extends BasicServerTestBase {
     public void testRejectBogusRedirectLocation() throws Exception {
         this.localServer.register("*", new BogusRedirectService("xxx://bogus"));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -609,10 +609,10 @@ public class TestRedirects extends BasicServerTestBase {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BogusRedirectService("http://"+ host +":"+ port +"/newlocation/?p=I have spaces"));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -630,30 +630,30 @@ public class TestRedirects extends BasicServerTestBase {
         int port = address.getPort();
         String host = address.getHostName();
 
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
-        
+        DefaultHttpClient client = new DefaultHttpClient();
+
         CookieStore cookieStore = new BasicCookieStore();
         client.setCookieStore(cookieStore);
-        
+
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(host);
         cookie.setPath("/");
-        
+
         cookieStore.addCookie(cookie);
 
         HttpContext context = new BasicHttpContext();
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        
+
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
@@ -661,7 +661,7 @@ public class TestRedirects extends BasicServerTestBase {
         assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
         Header[] headers = reqWrapper.getHeaders(SM.COOKIE);
-        assertEquals("There can only be one (cookie)", 1, headers.length);            
+        assertEquals("There can only be one (cookie)", 1, headers.length);
     }
 
     public void testDefaultHeadersRedirect() throws Exception {
@@ -669,26 +669,26 @@ public class TestRedirects extends BasicServerTestBase {
         int port = address.getPort();
         String host = address.getHostName();
 
-        this.localServer.register("*", 
+        this.localServer.register("*",
                 new BasicRedirectService(host, port));
 
-        DefaultHttpClient client = new DefaultHttpClient(); 
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         List<Header> defaultHeaders = new ArrayList<Header>(1);
         defaultHeaders.add(new BasicHeader(HTTP.USER_AGENT, "my-test-client"));
-        
+
         client.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, defaultHeaders);
-        
+
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        
+
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
         HttpEntity e = response.getEntity();
         if (e != null) {
             e.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
@@ -696,7 +696,7 @@ public class TestRedirects extends BasicServerTestBase {
         assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
         Header header = reqWrapper.getFirstHeader(HTTP.USER_AGENT);
-        assertEquals("my-test-client", header.getValue());            
+        assertEquals("my-test-client", header.getValue());
     }
 
 }

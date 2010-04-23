@@ -35,7 +35,7 @@ import org.apache.http.client.AuthCache;
 
 /**
  * Default implementation of {@link AuthCache}.
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
@@ -64,7 +64,7 @@ public class BasicAuthCache implements AuthCache {
         }
         return this.map.get(host);
     }
-    
+
     public void remove(final HttpHost host) {
         if (host == null) {
             throw new IllegalArgumentException("HTTP host may not be null");
@@ -75,10 +75,10 @@ public class BasicAuthCache implements AuthCache {
     public void clear() {
         this.map.clear();
     }
-    
+
     @Override
     public String toString() {
         return this.map.toString();
     }
-    
+
 }

@@ -112,6 +112,6 @@ public class TestCookiePathComparator extends TestCase {
         assertTrue(comparator.compare(cookie1, cookie2) == 0);
         assertTrue(comparator.compare(cookie2, cookie1) == 0);
     }
-    
+
 }
 

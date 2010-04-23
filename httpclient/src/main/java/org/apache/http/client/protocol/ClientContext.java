@@ -28,68 +28,68 @@
 package org.apache.http.client.protocol;
 
 /**
- * {@link org.apache.http.protocol.HttpContext} attribute names for 
+ * {@link org.apache.http.protocol.HttpContext} attribute names for
  * client side HTTP protocol processing.
  *
  * @since 4.0
  */
 public interface ClientContext {
-    
+
     /**
-     * Attribute name of a {@link org.apache.http.conn.scheme.Scheme} 
+     * Attribute name of a {@link org.apache.http.conn.scheme.Scheme}
      * object that represents the actual protocol scheme registry.
      */
-    public static final String SCHEME_REGISTRY   = "http.scheme-registry"; 
+    public static final String SCHEME_REGISTRY   = "http.scheme-registry";
     /**
-     * Attribute name of a {@link org.apache.http.cookie.CookieSpecRegistry} 
+     * Attribute name of a {@link org.apache.http.cookie.CookieSpecRegistry}
      * object that represents the actual cookie specification registry.
      */
-    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry"; 
+    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
 
     /**
-     * Attribute name of a {@link org.apache.http.cookie.CookieSpec} 
+     * Attribute name of a {@link org.apache.http.cookie.CookieSpec}
      * object that represents the actual cookie specification.
      */
-    public static final String COOKIE_SPEC           = "http.cookie-spec"; 
+    public static final String COOKIE_SPEC           = "http.cookie-spec";
 
     /**
-     * Attribute name of a {@link org.apache.http.cookie.CookieOrigin} 
+     * Attribute name of a {@link org.apache.http.cookie.CookieOrigin}
      * object that represents the actual details of the origin server.
      */
-    public static final String COOKIE_ORIGIN         = "http.cookie-origin"; 
-    
+    public static final String COOKIE_ORIGIN         = "http.cookie-origin";
+
     /**
-     * Attribute name of a {@link org.apache.http.client.CookieStore} 
+     * Attribute name of a {@link org.apache.http.client.CookieStore}
      * object that represents the actual cookie store.
      */
-    public static final String COOKIE_STORE          = "http.cookie-store"; 
+    public static final String COOKIE_STORE          = "http.cookie-store";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthSchemeRegistry} 
+     * Attribute name of a {@link org.apache.http.auth.AuthSchemeRegistry}
      * object that represents the actual authentication scheme registry.
      */
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry"; 
+    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
     /**
-     * Attribute name of a {@link org.apache.http.client.CredentialsProvider} 
+     * Attribute name of a {@link org.apache.http.client.CredentialsProvider}
      * object that represents the actual credentials provider.
      */
-    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider"; 
+    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider";
 
     /**
-     * Attribute name of a {@link org.apache.http.client.AuthCache} object 
+     * Attribute name of a {@link org.apache.http.client.AuthCache} object
      * that represents the auth scheme cache.
      */
-    public static final String AUTH_CACHE            = "http.auth.auth-cache"; 
+    public static final String AUTH_CACHE            = "http.auth.auth-cache";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthState} 
+     * Attribute name of a {@link org.apache.http.auth.AuthState}
      * object that represents the actual target authentication state.
      */
-    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope"; 
+    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthState} 
+     * Attribute name of a {@link org.apache.http.auth.AuthState}
      * object that represents the actual proxy authentication state.
      */
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
@@ -99,11 +99,11 @@ public interface ClientContext {
      */
     @Deprecated
     public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
-    
+
     /**
-     * Attribute name of a {@link java.lang.Object} object that represents 
+     * Attribute name of a {@link java.lang.Object} object that represents
      * the actual user identity such as user {@link java.security.Principal}.
      */
     public static final String USER_TOKEN            = "http.user-token";
-    
+
 }

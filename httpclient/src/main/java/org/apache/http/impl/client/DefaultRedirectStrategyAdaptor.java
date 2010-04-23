@@ -47,23 +47,23 @@ import org.apache.http.protocol.HttpContext;
 class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 
     private final org.apache.http.client.RedirectHandler handler;
-    
+
     @Deprecated
     public DefaultRedirectStrategyAdaptor(final org.apache.http.client.RedirectHandler handler) {
         super();
         this.handler = handler;
     }
-    
+
     public boolean isRedirected(
             final HttpRequest request,
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         return this.handler.isRedirectRequested(response, context);
     }
- 
+
     public HttpUriRequest getRedirect(
             final HttpRequest request,
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         URI uri = this.handler.getLocationURI(response, context);
         String method = request.getRequestLine().getMethod();
@@ -73,5 +73,5 @@ class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
             return new HttpGet(uri);
         }
     }
-    
+
 }

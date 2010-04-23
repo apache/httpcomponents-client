@@ -41,15 +41,15 @@ import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * NTLM is a proprietary authentication scheme developed by Microsoft 
+ * NTLM is a proprietary authentication scheme developed by Microsoft
  * and optimized for Windows platforms.
  * <p>
- * Please note that the NTLM scheme requires an external 
+ * Please note that the NTLM scheme requires an external
  * {@link NTLMEngine} implementation to function!
- * For details please refer to 
+ * For details please refer to
  * <a href="http://hc.apache.org/httpcomponents-client/ntlm.html">
  * this document</a>.
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
@@ -63,12 +63,12 @@ public class NTLMScheme extends AuthSchemeBase {
         MSG_TYPE3_GENERATED,
         FAILED,
     }
-    
+
     private final NTLMEngine engine;
-    
+
     private State state;
     private String challenge;
-    
+
     public NTLMScheme(final NTLMEngine engine) {
         super();
         if (engine == null) {
@@ -78,7 +78,7 @@ public class NTLMScheme extends AuthSchemeBase {
         this.state = State.UNINITIATED;
         this.challenge = null;
     }
-    
+
     public String getSchemeName() {
         return "ntlm";
     }
@@ -115,27 +115,27 @@ public class NTLMScheme extends AuthSchemeBase {
     }
 
     public Header authenticate(
-            final Credentials credentials, 
+            final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
         NTCredentials ntcredentials = null;
         try {
             ntcredentials = (NTCredentials) credentials;
         } catch (ClassCastException e) {
             throw new InvalidCredentialsException(
-             "Credentials cannot be used for NTLM authentication: " 
+             "Credentials cannot be used for NTLM authentication: "
               + credentials.getClass().getName());
         }
         String response = null;
         if (this.state == State.CHALLENGE_RECEIVED || this.state == State.FAILED) {
             response = this.engine.generateType1Msg(
-                    ntcredentials.getDomain(), 
+                    ntcredentials.getDomain(),
                     ntcredentials.getWorkstation());
             this.state = State.MSG_TYPE1_GENERATED;
         } else if (this.state == State.MSG_TYPE2_RECEVIED) {
             response = this.engine.generateType3Msg(
-                    ntcredentials.getUserName(), 
-                    ntcredentials.getPassword(), 
-                    ntcredentials.getDomain(), 
+                    ntcredentials.getUserName(),
+                    ntcredentials.getPassword(),
+                    ntcredentials.getDomain(),
                     ntcredentials.getWorkstation(),
                     this.challenge);
             this.state = State.MSG_TYPE3_GENERATED;

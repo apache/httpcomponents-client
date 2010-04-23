@@ -63,9 +63,9 @@ public class SocketFactoryMockup implements SchemeSocketFactory {
     }
 
     public Socket connectSocket(
-            Socket sock, 
+            Socket sock,
             InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress, 
+            InetSocketAddress localAddress,
             HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         throw new UnsupportedOperationException("I'm a mockup!");
     }

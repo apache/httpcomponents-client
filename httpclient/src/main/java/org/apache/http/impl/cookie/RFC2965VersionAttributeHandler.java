@@ -49,7 +49,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
     public RFC2965VersionAttributeHandler() {
         super();
     }
-    
+
     /**
      * Parse cookie version attribute.
      */
@@ -83,7 +83,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
             throw new IllegalArgumentException("Cookie may not be null");
         }
         if (cookie instanceof SetCookie2) {
-            if (cookie instanceof ClientCookie 
+            if (cookie instanceof ClientCookie
                     && !((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {
                 throw new CookieRestrictionViolationException(
                         "Violates RFC 2965. Version attribute is required.");

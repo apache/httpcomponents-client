@@ -30,8 +30,8 @@ import org.apache.http.annotation.Immutable;
 
 /**
  * Signals a circular redirect
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 @Immutable
@@ -40,7 +40,7 @@ public class CircularRedirectException extends RedirectException {
     private static final long serialVersionUID = 6830063487001091803L;
 
     /**
-     * Creates a new CircularRedirectException with a <tt>null</tt> detail message. 
+     * Creates a new CircularRedirectException with a <tt>null</tt> detail message.
      */
     public CircularRedirectException() {
         super();
@@ -48,7 +48,7 @@ public class CircularRedirectException extends RedirectException {
 
     /**
      * Creates a new CircularRedirectException with the specified detail message.
-     * 
+     *
      * @param message The exception detail message
      */
     public CircularRedirectException(String message) {
@@ -57,7 +57,7 @@ public class CircularRedirectException extends RedirectException {
 
     /**
      * Creates a new CircularRedirectException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

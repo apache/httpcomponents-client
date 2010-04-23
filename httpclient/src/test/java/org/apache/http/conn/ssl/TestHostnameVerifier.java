@@ -204,16 +204,16 @@ public class TestHostnameVerifier extends TestCase {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
-        
+
         X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
-        
-        assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH", 
+
+        assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
                 x509.getSubjectDN().getName());
-        
+
         verifier.verify("localhost", x509);
         verifier.verify("localhost.localdomain", x509);
         verifier.verify("127.0.0.1", x509);
-        
+
         try {
             verifier.verify("local.host", x509);
             fail("SSLException should have been thrown");
@@ -226,9 +226,9 @@ public class TestHostnameVerifier extends TestCase {
         } catch (SSLException ex) {
             // expected
         }
-        
+
     }
-    
+
     private void exceptionPlease(X509HostnameVerifier hv, String host,
                                  X509Certificate x509) {
         try {

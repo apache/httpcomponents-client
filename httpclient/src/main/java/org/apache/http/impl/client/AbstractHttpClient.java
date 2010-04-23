@@ -69,85 +69,85 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 
 /**
- * Base class for {@link HttpClient} implementations. This class acts as 
- * a facade to a number of special purpose handler or strategy 
- * implementations responsible for handling of a particular aspect of 
- * the HTTP protocol such as redirect or authentication handling or 
- * making decision about connection persistence and keep alive duration. 
- * This enables the users to selectively replace default implementation 
- * of those aspects with custom, application specific ones. This class 
+ * Base class for {@link HttpClient} implementations. This class acts as
+ * a facade to a number of special purpose handler or strategy
+ * implementations responsible for handling of a particular aspect of
+ * the HTTP protocol such as redirect or authentication handling or
+ * making decision about connection persistence and keep alive duration.
+ * This enables the users to selectively replace default implementation
+ * of those aspects with custom, application specific ones. This class
  * also provides factory methods to instantiate those objects:
  * <ul>
- *   <li>{@link HttpRequestExecutor}</li> object used to transmit messages 
+ *   <li>{@link HttpRequestExecutor}</li> object used to transmit messages
  *    over HTTP connections. The {@link #createRequestExecutor()} must be
- *    implemented by concrete super classes to instantiate this object.  
- *   <li>{@link BasicHttpProcessor}</li> object to manage a list of protocol 
- *    interceptors and apply cross-cutting protocol logic to all incoming 
+ *    implemented by concrete super classes to instantiate this object.
+ *   <li>{@link BasicHttpProcessor}</li> object to manage a list of protocol
+ *    interceptors and apply cross-cutting protocol logic to all incoming
  *    and outgoing HTTP messages. The {@link #createHttpProcessor()} must be
  *    implemented by concrete super classes to instantiate this object.
  *   <li>{@link HttpRequestRetryHandler}</li> object used to decide whether
- *    or not a failed HTTP request is safe to retry automatically.  
+ *    or not a failed HTTP request is safe to retry automatically.
  *    The {@link #createHttpRequestRetryHandler()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link ClientConnectionManager}</li> object used to manage 
+ *   <li>{@link ClientConnectionManager}</li> object used to manage
  *    persistent HTTP connections.
- *   <li>{@link ConnectionReuseStrategy}</li> object used to decide whether 
- *    or not a HTTP connection can be kept alive and re-used for subsequent 
+ *   <li>{@link ConnectionReuseStrategy}</li> object used to decide whether
+ *    or not a HTTP connection can be kept alive and re-used for subsequent
  *    HTTP requests. The {@link #createConnectionReuseStrategy()} must be
  *    implemented by concrete super classes to instantiate this object.
  *   <li>{@link ConnectionKeepAliveStrategy}</li> object used to decide how
  *    long a persistent HTTP connection can be kept alive.
  *    The {@link #createConnectionKeepAliveStrategy()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link CookieSpecRegistry}</li> object used to maintain a list of 
- *    supported cookie specifications. 
- *    The {@link #createCookieSpecRegistry()} must be implemented by concrete 
+ *   <li>{@link CookieSpecRegistry}</li> object used to maintain a list of
+ *    supported cookie specifications.
+ *    The {@link #createCookieSpecRegistry()} must be implemented by concrete
  *    super classes to instantiate this object.
  *   <li>{@link CookieStore}</li> object used to maintain a collection of
- *    cookies. The {@link #createCookieStore()} must be implemented by 
+ *    cookies. The {@link #createCookieStore()} must be implemented by
  *    concrete super classes to instantiate this object.
- *   <li>{@link AuthSchemeRegistry}</li> object used to maintain a list of 
- *    supported authentication schemes. 
- *    The {@link #createAuthSchemeRegistry()} must be implemented by concrete 
+ *   <li>{@link AuthSchemeRegistry}</li> object used to maintain a list of
+ *    supported authentication schemes.
+ *    The {@link #createAuthSchemeRegistry()} must be implemented by concrete
  *    super classes to instantiate this object.
- *   <li>{@link CredentialsProvider}</li> object used to maintain 
- *    a collection user credentials. The {@link #createCredentialsProvider()} 
- *    must be implemented by concrete super classes to instantiate 
+ *   <li>{@link CredentialsProvider}</li> object used to maintain
+ *    a collection user credentials. The {@link #createCredentialsProvider()}
+ *    must be implemented by concrete super classes to instantiate
  *    this object.
  *   <li>{@link AuthenticationHandler}</li> object used to authenticate
- *    against the target host. 
- *    The {@link #createTargetAuthenticationHandler()} must be implemented 
+ *    against the target host.
+ *    The {@link #createTargetAuthenticationHandler()} must be implemented
  *    by concrete super classes to instantiate this object.
  *   <li>{@link AuthenticationHandler}</li> object used to authenticate
- *    against the proxy host. 
- *    The {@link #createProxyAuthenticationHandler()} must be implemented 
+ *    against the proxy host.
+ *    The {@link #createProxyAuthenticationHandler()} must be implemented
  *    by concrete super classes to instantiate this object.
  *   <li>{@link HttpRoutePlanner}</li> object used to calculate a route
  *    for establishing a connection to the target host. The route
- *    may involve multiple intermediate hops. 
- *    The {@link #createHttpRoutePlanner()} must be implemented 
+ *    may involve multiple intermediate hops.
+ *    The {@link #createHttpRoutePlanner()} must be implemented
  *    by concrete super classes to instantiate this object.
- *   <li>{@link RedirectStrategy}</li> object used to determine if an HTTP 
- *    request should be redirected to a new location in response to an HTTP 
- *    response received from the target server. 
- *   <li>{@link UserTokenHandler}</li> object used to determine if the 
- *    execution context is user identity specific. 
- *    The {@link #createUserTokenHandler()} must be implemented by 
+ *   <li>{@link RedirectStrategy}</li> object used to determine if an HTTP
+ *    request should be redirected to a new location in response to an HTTP
+ *    response received from the target server.
+ *   <li>{@link UserTokenHandler}</li> object used to determine if the
+ *    execution context is user identity specific.
+ *    The {@link #createUserTokenHandler()} must be implemented by
  *    concrete super classes to instantiate this object.
- * </ul> 
+ * </ul>
  * <p>
- *   This class also maintains a list of protocol interceptors intended 
- *   for processing outgoing requests and incoming responses and provides 
- *   methods for managing those interceptors. New protocol interceptors can be 
- *   introduced to the protocol processor chain or removed from it if needed. 
- *   Internally protocol interceptors are stored in a simple 
- *   {@link java.util.ArrayList}. They are executed in the same natural order 
+ *   This class also maintains a list of protocol interceptors intended
+ *   for processing outgoing requests and incoming responses and provides
+ *   methods for managing those interceptors. New protocol interceptors can be
+ *   introduced to the protocol processor chain or removed from it if needed.
+ *   Internally protocol interceptors are stored in a simple
+ *   {@link java.util.ArrayList}. They are executed in the same natural order
  *   as they are added to the list.
  * <p>
- *   AbstractHttpClient is thread safe. It is recommended that the same 
- *   instance of this class is reused for multiple request executions. 
- *   When an instance of DefaultHttpClient is no longer needed and is about 
- *   to go out of scope the connection manager associated with it must be 
+ *   AbstractHttpClient is thread safe. It is recommended that the same
+ *   instance of this class is reused for multiple request executions.
+ *   When an instance of DefaultHttpClient is no longer needed and is about
+ *   to go out of scope the connection manager associated with it must be
  *   shut down by calling {@link ClientConnectionManager#shutdown()}!
  *
  * @since 4.0
@@ -172,7 +172,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /** The connection re-use strategy. */
     @GuardedBy("this")
     private ConnectionReuseStrategy reuseStrategy;
-    
+
     /** The connection keep-alive strategy. */
     @GuardedBy("this")
     private ConnectionKeepAliveStrategy keepAliveStrategy;
@@ -184,14 +184,14 @@ public abstract class AbstractHttpClient implements HttpClient {
     /** The authentication scheme registry. */
     @GuardedBy("this")
     private AuthSchemeRegistry supportedAuthSchemes;
-    
+
     /** The HTTP protocol processor and its immutable copy. */
     @GuardedBy("this")
     private BasicHttpProcessor mutableProcessor;
 
     @GuardedBy("this")
     private ImmutableHttpProcessor protocolProcessor;
-    
+
     /** The request retry handler. */
     @GuardedBy("this")
     private HttpRequestRetryHandler retryHandler;
@@ -215,7 +215,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /** The credentials provider. */
     @GuardedBy("this")
     private CredentialsProvider credsProvider;
-    
+
     /** The route planner. */
     @GuardedBy("this")
     private HttpRoutePlanner routePlanner;
@@ -240,10 +240,10 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     protected abstract HttpParams createHttpParams();
 
-    
+
     protected abstract HttpContext createHttpContext();
 
-    
+
     protected abstract HttpRequestExecutor createRequestExecutor();
 
 
@@ -252,41 +252,41 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     protected abstract AuthSchemeRegistry createAuthSchemeRegistry();
 
-    
+
     protected abstract CookieSpecRegistry createCookieSpecRegistry();
 
-    
+
     protected abstract ConnectionReuseStrategy createConnectionReuseStrategy();
 
-    
+
     protected abstract ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy();
 
-    
+
     protected abstract BasicHttpProcessor createHttpProcessor();
 
-    
+
     protected abstract HttpRequestRetryHandler createHttpRequestRetryHandler();
 
-    
+
     @Deprecated
     protected abstract org.apache.http.client.RedirectHandler createRedirectHandler();
 
 
     protected abstract AuthenticationHandler createTargetAuthenticationHandler();
 
-    
+
     protected abstract AuthenticationHandler createProxyAuthenticationHandler();
 
-    
+
     protected abstract CookieStore createCookieStore();
-    
-    
+
+
     protected abstract CredentialsProvider createCredentialsProvider();
-    
-    
+
+
     protected abstract HttpRoutePlanner createHttpRoutePlanner();
 
-    
+
     protected abstract UserTokenHandler createUserTokenHandler();
 
     // non-javadoc, see interface HttpClient
@@ -350,7 +350,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         supportedCookieSpecs = cookieSpecRegistry;
     }
 
-    
+
     public synchronized final ConnectionReuseStrategy getConnectionReuseStrategy() {
         if (reuseStrategy == null) {
             reuseStrategy = createConnectionReuseStrategy();
@@ -363,7 +363,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         this.reuseStrategy = reuseStrategy;
     }
 
-    
+
     public synchronized final ConnectionKeepAliveStrategy getConnectionKeepAliveStrategy() {
         if (keepAliveStrategy == null) {
             keepAliveStrategy = createConnectionKeepAliveStrategy();
@@ -371,7 +371,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         return keepAliveStrategy;
     }
 
-    
+
     public synchronized void setKeepAliveStrategy(final ConnectionKeepAliveStrategy keepAliveStrategy) {
         this.keepAliveStrategy = keepAliveStrategy;
     }
@@ -485,8 +485,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     public synchronized void setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
     }
-    
-    
+
+
     public synchronized final UserTokenHandler getUserTokenHandler() {
         if (this.userTokenHandler == null) {
             this.userTokenHandler = createUserTokenHandler();
@@ -498,8 +498,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     public synchronized void setUserTokenHandler(final UserTokenHandler userTokenHandler) {
         this.userTokenHandler = userTokenHandler;
     }
-    
-    
+
+
     protected synchronized final BasicHttpProcessor getHttpProcessor() {
         if (mutableProcessor == null) {
             mutableProcessor = createHttpProcessor();
@@ -572,7 +572,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         protocolProcessor = null;
     }
 
-    
+
     public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
         getHttpProcessor().addInterceptor(itcp);
         protocolProcessor = null;
@@ -662,8 +662,8 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         HttpContext execContext = null;
         RequestDirector director = null;
-        
-        // Initialize the request execution context making copies of 
+
+        // Initialize the request execution context making copies of
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
 
@@ -777,15 +777,15 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
     public <T> T execute(
-            final HttpUriRequest request, 
-            final ResponseHandler<? extends T> responseHandler) 
+            final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler)
                 throws IOException, ClientProtocolException {
         return execute(request, responseHandler, null);
     }
 
     public <T> T execute(
             final HttpUriRequest request,
-            final ResponseHandler<? extends T> responseHandler, 
+            final ResponseHandler<? extends T> responseHandler,
             final HttpContext context)
                 throws IOException, ClientProtocolException {
         HttpHost target = determineTarget(request);
@@ -793,18 +793,18 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
     public <T> T execute(
-            final HttpHost target, 
+            final HttpHost target,
             final HttpRequest request,
-            final ResponseHandler<? extends T> responseHandler) 
+            final ResponseHandler<? extends T> responseHandler)
                 throws IOException, ClientProtocolException {
         return execute(target, request, responseHandler, null);
     }
 
     public <T> T execute(
-            final HttpHost target, 
+            final HttpHost target,
             final HttpRequest request,
-            final ResponseHandler<? extends T> responseHandler, 
-            final HttpContext context) 
+            final ResponseHandler<? extends T> responseHandler,
+            final HttpContext context)
                 throws IOException, ClientProtocolException {
         if (responseHandler == null) {
             throw new IllegalArgumentException
@@ -839,7 +839,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             if (t instanceof IOException) {
                 throw (IOException) t;
             }
-            
+
             throw new UndeclaredThrowableException(t);
         }
 

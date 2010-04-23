@@ -58,7 +58,7 @@ import org.apache.http.message.BasicHeader;
  * .html?RESTAuthentication.html}
  */
 public class AWSScheme implements AuthScheme {
-    
+
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     public static final String NAME = "AWS";
 
@@ -66,7 +66,7 @@ public class AWSScheme implements AuthScheme {
     }
 
     public Header authenticate(
-            final Credentials credentials, 
+            final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
         // If the Date header has not been provided add it as it is required
         if (request.getFirstHeader("Date") == null) {
@@ -102,7 +102,7 @@ public class AWSScheme implements AuthScheme {
 
     /**
      * Computes RFC 2104-compliant HMAC signature.
-     * 
+     *
      * @param data
      *            The data to be signed.
      * @param key
@@ -112,7 +112,7 @@ public class AWSScheme implements AuthScheme {
      *             when signature generation fails
      */
     private static String calculateRFC2104HMAC(
-            final String data, 
+            final String data,
             final String key) throws AuthenticationException {
         try {
             // get an hmac_sha1 key from the raw key bytes
@@ -131,14 +131,14 @@ public class AWSScheme implements AuthScheme {
         } catch (InvalidKeyException ex) {
             throw new AuthenticationException("Failed to generate HMAC: " + ex.getMessage(), ex);
         } catch (NoSuchAlgorithmException ex) {
-            throw new AuthenticationException(HMAC_SHA1_ALGORITHM + 
+            throw new AuthenticationException(HMAC_SHA1_ALGORITHM +
                     " algorithm is not supported", ex);
         }
     }
 
     /**
      * Returns the canonicalized AMZ headers.
-     * 
+     *
      * @param headers
      *            The list of request headers.
      * @return The canonicalized AMZ headers.
@@ -179,7 +179,7 @@ public class AWSScheme implements AuthScheme {
 
     /**
      * Returns the canonicalized resource.
-     * 
+     *
      * @param uri
      *            The resource uri
      * @param hostName

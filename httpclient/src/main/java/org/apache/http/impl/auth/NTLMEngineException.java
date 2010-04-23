@@ -33,7 +33,7 @@ import org.apache.http.auth.AuthenticationException;
 /**
  * Signals NTLM protocol failure.
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -47,7 +47,7 @@ public class NTLMEngineException extends AuthenticationException {
 
     /**
      * Creates a new NTLMEngineException with the specified message.
-     * 
+     *
      * @param message the exception detail message
      */
     public NTLMEngineException(String message) {
@@ -56,7 +56,7 @@ public class NTLMEngineException extends AuthenticationException {
 
     /**
      * Creates a new NTLMEngineException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
@@ -64,5 +64,5 @@ public class NTLMEngineException extends AuthenticationException {
     public NTLMEngineException(String message, Throwable cause) {
         super(message, cause);
     }
-    
+
 }

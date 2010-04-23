@@ -44,7 +44,7 @@ import org.apache.http.protocol.HttpContext;
  */
 @NotThreadSafe
 public class ClientContextConfigurer implements ClientContext {
-    
+
     private final HttpContext context;
 
     public ClientContextConfigurer (final HttpContext context) {
@@ -56,11 +56,11 @@ public class ClientContextConfigurer implements ClientContext {
     public void setCookieSpecRegistry(final CookieSpecRegistry registry) {
         this.context.setAttribute(COOKIESPEC_REGISTRY, registry);
     }
-    
+
     public void setAuthSchemeRegistry(final AuthSchemeRegistry registry) {
         this.context.setAttribute(AUTHSCHEME_REGISTRY, registry);
     }
-    
+
     public void setCookieStore(final CookieStore store) {
         this.context.setAttribute(COOKIE_STORE, store);
     }

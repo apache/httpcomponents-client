@@ -145,7 +145,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
         // now we know that the target matches and proxies so far are the same
         if (phc > fhc)
             return TUNNEL_PROXY; // need to extend the proxy chain
-            
+
         // proxy chain and target are the same, check tunnelling and layering
         if ((fact.isTunnelled() && !plan.isTunnelled()) ||
             (fact.isLayered()   && !plan.isLayered()))

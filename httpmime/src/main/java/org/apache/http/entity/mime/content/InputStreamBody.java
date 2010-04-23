@@ -41,7 +41,7 @@ public class InputStreamBody extends AbstractContentBody {
 
     private final InputStream in;
     private final String filename;
-    
+
     public InputStreamBody(final InputStream in, final String mimeType, final String filename) {
         super(mimeType);
         if (in == null) {
@@ -50,11 +50,11 @@ public class InputStreamBody extends AbstractContentBody {
         this.in = in;
         this.filename = filename;
     }
-    
+
     public InputStreamBody(final InputStream in, final String filename) {
         this(in, "application/octet-stream", filename);
     }
-    
+
     public InputStream getInputStream() {
         return this.in;
     }
@@ -94,9 +94,9 @@ public class InputStreamBody extends AbstractContentBody {
     public long getContentLength() {
         return -1;
     }
-    
+
     public String getFilename() {
         return this.filename;
     }
-    
+
 }

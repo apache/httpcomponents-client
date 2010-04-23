@@ -32,7 +32,7 @@ import org.apache.http.annotation.Immutable;
 /**
  * The ALLOW_ALL HostnameVerifier essentially turns hostname verification
  * off. This implementation is a no-op, and never throws the SSLException.
- * 
+ *
  *
  * @since 4.0
  */
@@ -40,15 +40,15 @@ import org.apache.http.annotation.Immutable;
 public class AllowAllHostnameVerifier extends AbstractVerifier {
 
     public final void verify(
-            final String host, 
+            final String host,
             final String[] cns,
             final String[] subjectAlts) {
         // Allow everything - so never blowup.
     }
 
     @Override
-    public final String toString() { 
-        return "ALLOW_ALL"; 
+    public final String toString() {
+        return "ALLOW_ALL";
     }
-    
+
 }

@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import java.util.Date;
@@ -43,8 +43,8 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
     public BasicMaxAgeHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, final String value) 
+
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -56,14 +56,14 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
         try {
             age = Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            throw new MalformedCookieException ("Invalid max-age attribute: " 
+            throw new MalformedCookieException ("Invalid max-age attribute: "
                     + value);
         }
         if (age < 0) {
-            throw new MalformedCookieException ("Negative max-age attribute: " 
+            throw new MalformedCookieException ("Negative max-age attribute: "
                     + value);
         }
         cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
     }
-    
+
 }

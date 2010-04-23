@@ -21,7 +21,7 @@
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
- * 
+ *
  */
 
 package org.apache.http.impl.auth;
@@ -192,7 +192,7 @@ public class TestDigestScheme extends TestCase {
         assertEquals("0283edd9ef06a38b378b3b74661391e9", table.get("response"));
     }
 
-    /** 
+    /**
      * Test digest authentication using the MD5-sess algorithm.
      */
     public void testDigestAuthenticationMD5Sess() throws Exception {
@@ -211,15 +211,15 @@ public class TestDigestScheme extends TestCase {
             + "qop=\"auth,auth-int\""; // we pass both but expect auth to be used
 
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
-        
+
         Credentials cred = new UsernamePasswordCredentials(username, password);
         HttpRequest request = new BasicHttpRequest("Simple", "/");
-        
+
         DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
         Header authResponse = authscheme.authenticate(cred, request);
         String response = authResponse.getValue();
-        
+
         assertTrue(response.indexOf("nc=00000001") > 0); // test for quotes
         assertTrue(response.indexOf("qop=auth") > 0); // test for quotes
 
@@ -234,10 +234,10 @@ public class TestDigestScheme extends TestCase {
         assertEquals("SomeString", table.get("opaque"));
         assertEquals("auth", table.get("qop"));
         //@TODO: add better check
-        assertTrue(null != table.get("response")); 
+        assertTrue(null != table.get("response"));
     }
 
-    /** 
+    /**
      * Test digest authentication using the MD5-sess algorithm.
      */
     public void testDigestAuthenticationMD5SessNoQop() throws Exception {
@@ -255,7 +255,7 @@ public class TestDigestScheme extends TestCase {
             + "algorithm=MD5-sess";
 
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
-        
+
         Credentials cred = new UsernamePasswordCredentials(username, password);
 
         HttpRequest request = new BasicHttpRequest("Simple", "/");
@@ -274,10 +274,10 @@ public class TestDigestScheme extends TestCase {
         assertEquals("SomeString", table.get("opaque"));
         assertTrue(null == table.get("qop"));
         //@TODO: add better check
-        assertTrue(null != table.get("response")); 
+        assertTrue(null != table.get("response"));
     }
 
-    /** 
+    /**
      * Test digest authentication with invalud qop value
      */
     public void testDigestAuthenticationMD5SessInvalidQop() throws Exception {
@@ -294,7 +294,7 @@ public class TestDigestScheme extends TestCase {
             + "qop=\"jakarta\""; // jakarta is an invalid qop value
 
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
-        
+
         try {
             AuthScheme authscheme = new DigestScheme();
             authscheme.processChallenge(authChallenge);
@@ -326,5 +326,5 @@ public class TestDigestScheme extends TestCase {
         }
         return map;
     }
-    
+
 }

@@ -95,14 +95,14 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     public static Test suite() {
         return new TestSuite(TestDefaultClientRequestDirector.class);
     }
-    
+
     @Override
     protected void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
     }
-    
+
     /**
      * Tests that if abort is called on an {@link AbortableHttpRequest} while
      * {@link DefaultRequestDirector} is allocating a connection, that the
@@ -111,13 +111,13 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     public void testAbortInAllocate() throws Exception {
         CountDownLatch connLatch = new CountDownLatch(1);
         CountDownLatch awaitLatch = new CountDownLatch(1);
-        final ConMan conMan = new ConMan(connLatch, awaitLatch);        
+        final ConMan conMan = new ConMan(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
-        
+
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -129,36 +129,36 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 }
             }
         }).start();
-        
+
         assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
-        
+
         httpget.abort();
-        
+
         assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
         assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
                 throwableRef.get().getCause() instanceof InterruptedException);
     }
-    
+
     /**
      * Tests that an abort called after the connection has been retrieved
      * but before a release trigger is set does still abort the request.
      */
     public void testAbortAfterAllocateBeforeRequest() throws Exception {
         this.localServer.register("*", new BasicService());
-        
+
         CountDownLatch releaseLatch = new CountDownLatch(1);
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new CustomGet("a", releaseLatch);
-        
+
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -170,36 +170,36 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 }
             }
         }).start();
-        
+
         Thread.sleep(100); // Give it a little time to proceed to release...
-        
+
         httpget.abort();
-        
+
         releaseLatch.countDown();
-        
+
         assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
     }
-    
+
     /**
      * Tests that an abort called completely before execute
      * still aborts the request.
      */
     public void testAbortBeforeExecute() throws Exception {
         this.localServer.register("*", new BasicService());
-        
+
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         SingleClientConnManager conMan = new SingleClientConnManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
-        
+
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -217,15 +217,15 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 }
             }
         }).start();
-        
+
         httpget.abort();
         startLatch.countDown();
-        
+
         assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
     }
-    
+
     /**
      * Tests that an abort called after a redirect has found a new host
      * still aborts in the correct place (while trying to get the new
@@ -234,19 +234,19 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     public void testAbortAfterRedirectedRoute() throws Exception {
         final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new BasicRedirectService(port));
-        
+
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         CountDownLatch connLatch = new CountDownLatch(1);
         CountDownLatch awaitLatch = new CountDownLatch(1);
         ConnMan4 conMan = new ConnMan4(registry, connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
-        
+
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -259,44 +259,44 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 }
             }
         }).start();
-        
+
         assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
-        
+
         httpget.abort();
-        
+
         assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
         assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
                 throwableRef.get().getCause() instanceof InterruptedException);
     }
-    
-    
+
+
     /**
      * Tests that if a socket fails to connect, the allocated connection is
      * properly released back to the connection manager.
      */
     public void testSocketConnectFailureReleasesConnection() throws Exception {
         final ConnMan2 conMan = new ConnMan2();
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams()); 
+        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
-        
+
         try {
             client.execute(httpget, context);
             fail("expected IOException");
         } catch(IOException expected) {}
-        
+
         assertNotNull(conMan.allocatedConnection);
         assertSame(conMan.allocatedConnection, conMan.releasedConnection);
     }
-    
+
     public void testRequestFailureReleasesConnection() throws Exception {
         this.localServer.register("*", new ThrowingService());
 
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         ConnMan3 conMan = new ConnMan3(registry);
         DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
         HttpGet httpget = new HttpGet("/a");
@@ -309,25 +309,25 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         assertNotNull(conMan.allocatedConnection);
         assertSame(conMan.allocatedConnection, conMan.releasedConnection);
     }
-    
+
     private static class ThrowingService implements HttpRequestHandler {
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             throw new IOException();
         }
     }
-    
+
     private static class BasicService implements HttpRequestHandler {
-        public void handle(final HttpRequest request, 
-                final HttpResponse response, 
+        public void handle(final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(200);
             response.setEntity(new StringEntity("Hello World"));
         }
     }
-    
+
    private static class BasicRedirectService implements HttpRequestHandler {
         private int statuscode = HttpStatus.SC_SEE_OTHER;
         private int port;
@@ -350,87 +350,87 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     private static class ConnMan4 extends ThreadSafeClientConnManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
-        
+
         public ConnMan4(SchemeRegistry schreg,
                 CountDownLatch connLatch, CountDownLatch awaitLatch) {
             super(schreg);
             this.connLatch = connLatch;
             this.awaitLatch = awaitLatch;
         }
-        
+
         @Override
         public ClientConnectionRequest requestConnection(HttpRoute route, Object state) {
             // If this is the redirect route, stub the return value
             // so-as to pretend the host is waiting on a slot...
             if(route.getTargetHost().getHostName().equals("localhost")) {
                 final Thread currentThread = Thread.currentThread();
-                
+
                 return new ClientConnectionRequest() {
-                    
+
                     public void abortRequest() {
                         currentThread.interrupt();
                     }
-                    
+
                     public ManagedClientConnection getConnection(
                             long timeout, TimeUnit tunit)
                             throws InterruptedException,
                             ConnectionPoolTimeoutException {
                         connLatch.countDown(); // notify waiter that we're getting a connection
-                        
+
                         // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
                         if(timeout == 0)
                             timeout = Integer.MAX_VALUE;
-                        
+
                         if(!awaitLatch.await(timeout, tunit))
                             throw new ConnectionPoolTimeoutException();
-                        
+
                         return new ClientConnAdapterMockup(ConnMan4.this);
                     }
-                };  
+                };
             } else {
                 return super.requestConnection(route, state);
             }
         }
     }
-     
-    
+
+
     private static class ConnMan3 extends SingleClientConnManager {
         private ManagedClientConnection allocatedConnection;
         private ManagedClientConnection releasedConnection;
-        
+
         public ConnMan3(SchemeRegistry schreg) {
             super(schreg);
         }
-        
+
         @Override
         public ManagedClientConnection getConnection(HttpRoute route, Object state) {
             allocatedConnection = super.getConnection(route, state);
             return allocatedConnection;
         }
-        
+
         @Override
         public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
             releasedConnection = conn;
             super.releaseConnection(conn, validDuration, timeUnit);
         }
-        
-        
+
+
     }
-    
+
     static class ConnMan2 implements ClientConnectionManager {
-        
+
         private ManagedClientConnection allocatedConnection;
         private ManagedClientConnection releasedConnection;
-        
+
         public ConnMan2() {
         }
 
         public void closeIdleConnections(long idletime, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
-        
+
         public void closeExpiredConnections() {
-            throw new UnsupportedOperationException("just a mockup");   
+            throw new UnsupportedOperationException("just a mockup");
         }
 
         public ManagedClientConnection getConnection(HttpRoute route) {
@@ -441,17 +441,17 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 long timeout, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
-        
+
         public ClientConnectionRequest requestConnection(
-                final HttpRoute route, 
+                final HttpRoute route,
                 final Object state) {
-            
+
             return new ClientConnectionRequest() {
-                
+
                 public void abortRequest() {
                     throw new UnsupportedOperationException("just a mockup");
                 }
-                
+
                 public ManagedClientConnection getConnection(
                         long timeout, TimeUnit unit)
                         throws InterruptedException,
@@ -486,11 +486,11 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
     }
-    
+
     static class ConMan implements ClientConnectionManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
-        
+
         public ConMan(CountDownLatch connLatch, CountDownLatch awaitLatch) {
             this.connLatch = connLatch;
             this.awaitLatch = awaitLatch;
@@ -499,9 +499,9 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         public void closeIdleConnections(long idletime, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
-        
+
         public void closeExpiredConnections() {
-            throw new UnsupportedOperationException("just a mockup");            
+            throw new UnsupportedOperationException("just a mockup");
         }
 
         public ManagedClientConnection getConnection(HttpRoute route) {
@@ -512,32 +512,32 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 long timeout, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
-        
+
         public ClientConnectionRequest requestConnection(
                 final HttpRoute route,
                 final Object state) {
-            
+
             final Thread currentThread = Thread.currentThread();
-            
+
             return new ClientConnectionRequest() {
-                
+
                 public void abortRequest() {
                     currentThread.interrupt();
                 }
-                
+
                 public ManagedClientConnection getConnection(
                         long timeout, TimeUnit tunit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {
                     connLatch.countDown(); // notify waiter that we're getting a connection
-                    
+
                     // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
                     if(timeout == 0)
                         timeout = Integer.MAX_VALUE;
-                    
+
                     if(!awaitLatch.await(timeout, tunit))
                         throw new ConnectionPoolTimeoutException();
-                    
+
                     return new ClientConnAdapterMockup(ConMan.this);
                 }
             };
@@ -561,7 +561,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
     }
-    
+
     private static class CustomGet extends HttpGet {
         private final CountDownLatch releaseTriggerLatch;
 
@@ -569,7 +569,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             super(uri);
             this.releaseTriggerLatch = releaseTriggerLatch;
         }
-        
+
         @Override
         public void setReleaseTrigger(ConnectionReleaseTrigger releaseTrigger) throws IOException {
             try {
@@ -578,21 +578,21 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             } catch(InterruptedException ie) {
                 throw new RuntimeException(ie);
             }
-            
+
             super.setReleaseTrigger(releaseTrigger);
         }
-        
+
     }
 
     private static class SimpleService implements HttpRequestHandler {
-        
+
         public SimpleService() {
             super();
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(HttpStatus.SC_OK);
             StringEntity entity = new StringEntity("Whatever");
@@ -605,10 +605,10 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         this.localServer.register("*", new SimpleService());
 
         HttpHost target = new HttpHost("localhost", port);
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
-        
+
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
 
@@ -626,10 +626,10 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         HttpHost target1 = new HttpHost("whatever", 80);
         HttpHost target2 = new HttpHost("localhost", port);
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target1);
-        
+
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         httpget.getParams().setParameter(ClientPNames.DEFAULT_HOST, target2);
@@ -643,21 +643,21 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     }
 
     private static class FaultyHttpRequestExecutor extends HttpRequestExecutor {
-        
+
         private static final String MARKER = "marker";
-        
+
         private final String failureMsg;
 
         public FaultyHttpRequestExecutor(String failureMsg) {
             this.failureMsg = failureMsg;
         }
-        
+
         @Override
         public HttpResponse execute(
-                final HttpRequest request, 
-                final HttpClientConnection conn, 
+                final HttpRequest request,
+                final HttpClientConnection conn,
                 final HttpContext context) throws IOException, HttpException {
-            
+
             Object marker = context.getAttribute(MARKER);
             if (marker == null) {
                 context.setAttribute(MARKER, Boolean.TRUE);
@@ -665,13 +665,13 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             }
             return super.execute(request, conn, context);
         }
-        
+
     }
-    
+
     private static class FaultyHttpClient extends DefaultHttpClient {
-        
+
         private final String failureMsg;
-        
+
         public FaultyHttpClient() {
             this("Oppsie");
         }
@@ -684,37 +684,37 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         protected HttpRequestExecutor createRequestExecutor() {
             return new FaultyHttpRequestExecutor(failureMsg);
         }
-        
+
     }
-    
-    
+
+
     public void testAutoGeneratedHeaders() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
-        
-        FaultyHttpClient client = new FaultyHttpClient(); 
-        
+
+        FaultyHttpClient client = new FaultyHttpClient();
+
         client.addRequestInterceptor(new HttpRequestInterceptor() {
 
             public void process(
-                    final HttpRequest request, 
+                    final HttpRequest request,
                     final HttpContext context) throws HttpException, IOException {
                 request.addHeader("my-header", "stuff");
             }
-            
-        }) ;      
-        
+
+        }) ;
+
         client.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
 
             public boolean retryRequest(
-                    final IOException exception, 
-                    int executionCount, 
+                    final IOException exception,
+                    int executionCount,
                     final HttpContext context) {
                 return true;
             }
-            
+
         });
-        
+
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
@@ -728,7 +728,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         assertTrue(reqWrapper instanceof RequestWrapper);
@@ -736,14 +736,14 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         assertNotNull(myheaders);
         assertEquals(1, myheaders.length);
     }
-    
+
     public void testNonRepeatableEntity() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
-        
+
         String failureMsg = "a message showing that this failed";
-        
-        FaultyHttpClient client = new FaultyHttpClient(failureMsg); 
+
+        FaultyHttpClient client = new FaultyHttpClient(failureMsg);
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
@@ -763,5 +763,5 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             assertEquals(failureMsg, nonRepeat.getCause().getMessage());
         }
     }
-    
+
 }

@@ -44,13 +44,13 @@ import org.apache.http.protocol.HttpContext;
 public class RequestBasicAuth implements HttpRequestInterceptor {
 
     public void process(
-            final HttpRequest request, 
+            final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {
-        
+
         context.removeAttribute("creds");
 
         String auth = null;
-        
+
         Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
         if (h != null) {
             String s = h.getValue();
@@ -58,7 +58,7 @@ public class RequestBasicAuth implements HttpRequestInterceptor {
                 auth = s.trim();
             }
         }
-        
+
         if (auth != null) {
             int i = auth.indexOf(' ');
             if (i == -1) {

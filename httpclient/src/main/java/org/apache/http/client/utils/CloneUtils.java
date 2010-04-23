@@ -59,7 +59,7 @@ public class CloneUtils {
             } catch (InvocationTargetException ex) {
                 Throwable cause = ex.getCause();
                 if (cause instanceof CloneNotSupportedException) {
-                    throw ((CloneNotSupportedException) cause); 
+                    throw ((CloneNotSupportedException) cause);
                 } else {
                     throw new Error("Unexpected exception", cause);
                 }
@@ -70,7 +70,7 @@ public class CloneUtils {
             throw new CloneNotSupportedException();
         }
     }
-    
+
     /**
      * This class should not be instantiated.
      */

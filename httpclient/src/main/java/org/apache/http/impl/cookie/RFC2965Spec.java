@@ -55,14 +55,14 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe // superclass is @NotThreadSafe
 public class RFC2965Spec extends RFC2109Spec {
 
-    /** 
-     * Default constructor 
-     * 
+    /**
+     * Default constructor
+     *
      */
     public RFC2965Spec() {
         this(null, false);
     }
-    
+
     public RFC2965Spec(final String[] datepatterns, boolean oneHeader) {
         super(datepatterns, oneHeader);
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new RFC2965DomainAttributeHandler());
@@ -74,7 +74,7 @@ public class RFC2965Spec extends RFC2109Spec {
 
     @Override
     public List<Cookie> parse(
-            final Header header, 
+            final Header header,
             CookieOrigin origin) throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -90,17 +90,17 @@ public class RFC2965Spec extends RFC2109Spec {
         HeaderElement[] elems = header.getElements();
         return createCookies(elems, origin);
     }
-    
+
     @Override
     protected List<Cookie> parse(
-            final HeaderElement[] elems, 
+            final HeaderElement[] elems,
             CookieOrigin origin) throws MalformedCookieException {
         origin = adjustEffectiveHost(origin);
         return createCookies(elems, origin);
     }
 
     private List<Cookie> createCookies(
-            final HeaderElement[] elems, 
+            final HeaderElement[] elems,
             final CookieOrigin origin) throws MalformedCookieException {
         List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
         for (HeaderElement headerelement : elems) {
@@ -170,7 +170,7 @@ public class RFC2965Spec extends RFC2109Spec {
      * Adds valid Port attribute value, e.g. "8000,8001,8002"
      */
     @Override
-    protected void formatCookieAsVer(final CharArrayBuffer buffer, 
+    protected void formatCookieAsVer(final CharArrayBuffer buffer,
             final Cookie cookie, int version) {
         super.formatCookieAsVer(buffer, cookie, version);
         // format port attribute
@@ -195,7 +195,7 @@ public class RFC2965Spec extends RFC2109Spec {
             }
         }
     }
-    
+
     /**
      * Set 'effective host name' as defined in RFC 2965.
      * <p>
@@ -209,8 +209,8 @@ public class RFC2965Spec extends RFC2109Spec {
      */
     private static CookieOrigin adjustEffectiveHost(final CookieOrigin origin) {
         String host = origin.getHost();
-        
-        // Test if the host name appears to be a fully qualified DNS name, 
+
+        // Test if the host name appears to be a fully qualified DNS name,
         // IPv4 address or IPv6 address
         boolean isLocalHost = true;
         for (int i = 0; i < host.length(); i++) {
@@ -223,9 +223,9 @@ public class RFC2965Spec extends RFC2109Spec {
         if (isLocalHost) {
             host += ".local";
             return new CookieOrigin(
-                    host, 
-                    origin.getPort(), 
-                    origin.getPath(), 
+                    host,
+                    origin.getPort(),
+                    origin.getPath(),
                     origin.isSecure());
         } else {
             return origin;
@@ -246,11 +246,11 @@ public class RFC2965Spec extends RFC2109Spec {
         buffer.append(Integer.toString(getVersion()));
         return new BufferedHeader(buffer);
     }
-    
+
     @Override
     public String toString() {
         return "rfc2965";
     }
-    
+
 }
 

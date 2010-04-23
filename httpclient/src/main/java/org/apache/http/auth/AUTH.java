@@ -31,7 +31,7 @@ import org.apache.http.annotation.Immutable;
 
 /**
  * Constants and static helpers related to the HTTP authentication.
- * 
+ *
  *
  * @since 4.0
  */
@@ -57,8 +57,8 @@ public final class AUTH {
      * The proxy authenticate response header.
      */
     public static final String PROXY_AUTH_RESP = "Proxy-Authorization";
-    
+
     private AUTH() {
     }
-       
+
 }

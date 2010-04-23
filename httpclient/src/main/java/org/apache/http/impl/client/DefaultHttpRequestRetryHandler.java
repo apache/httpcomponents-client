@@ -45,7 +45,7 @@ import org.apache.http.protocol.ExecutionContext;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
- * 
+ *
  *
  * @since 4.0
  */
@@ -54,10 +54,10 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     /** the number of times a method will be retried */
     private final int retryCount;
-    
+
     /** Whether or not methods that have successfully sent their request will be retried */
     private final boolean requestSentRetryEnabled;
-    
+
     /**
      * Default constructor
      */
@@ -66,19 +66,19 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         this.retryCount = retryCount;
         this.requestSentRetryEnabled = requestSentRetryEnabled;
     }
-    
+
     /**
      * Default constructor
      */
     public DefaultHttpRequestRetryHandler() {
         this(3, false);
     }
-    /** 
+    /**
      * Used <code>retryCount</code> and <code>requestSentRetryEnabled</code> to determine
      * if the given method should be retried.
      */
     public boolean retryRequest(
-            final IOException exception, 
+            final IOException exception,
             int executionCount,
             final HttpContext context) {
         if (exception == null) {
@@ -104,26 +104,26 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             return false;
         }
         if (exception instanceof ConnectException) {
-            // Connection refused 
+            // Connection refused
             return false;
         }
         if (exception instanceof SSLException) {
             // SSL handshake exception
             return false;
         }
-        
+
         HttpRequest request = (HttpRequest)
             context.getAttribute(ExecutionContext.HTTP_REQUEST);
-        boolean idempotent = !(request instanceof HttpEntityEnclosingRequest); 
+        boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
         if (idempotent) {
-            // Retry if the request is considered idempotent 
+            // Retry if the request is considered idempotent
             return true;
         }
-        
+
         Boolean b = (Boolean)
             context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
         boolean sent = (b != null && b.booleanValue());
-        
+
         if (!sent || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or
             // if it's OK to retry methods that have been sent
@@ -132,9 +132,9 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         // otherwise do not retry
         return false;
     }
-    
+
     /**
-     * @return <code>true</code> if this handler will retry methods that have 
+     * @return <code>true</code> if this handler will retry methods that have
      * successfully sent their request, <code>false</code> otherwise
      */
     public boolean isRequestSentRetryEnabled() {

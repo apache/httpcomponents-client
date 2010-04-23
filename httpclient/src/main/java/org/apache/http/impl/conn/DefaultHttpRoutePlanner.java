@@ -45,13 +45,13 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.params.ConnRouteParams;
 
 /**
- * Default implementation of an {@link HttpRoutePlanner}. This implementation 
+ * Default implementation of an {@link HttpRoutePlanner}. This implementation
  * is based on {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
- * It will not make use of any Java system properties, nor of system or 
+ * It will not make use of any Java system properties, nor of system or
  * browser proxy settings.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
@@ -120,5 +120,5 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         }
         return route;
     }
-    
+
 }

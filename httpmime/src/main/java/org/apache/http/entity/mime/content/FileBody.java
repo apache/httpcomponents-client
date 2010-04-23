@@ -76,11 +76,11 @@ public class FileBody extends AbstractContentBody {
     public FileBody(final File file, final String mimeType) {
         this(file, mimeType, null);
     }
-    
+
     public FileBody(final File file) {
         this(file, "application/octet-stream");
     }
-    
+
     public InputStream getInputStream() throws IOException {
         return new FileInputStream(this.file);
     }
@@ -121,11 +121,11 @@ public class FileBody extends AbstractContentBody {
     public long getContentLength() {
         return this.file.length();
     }
-    
+
     public String getFilename() {
         return filename;
     }
-    
+
     public File getFile() {
         return this.file;
     }

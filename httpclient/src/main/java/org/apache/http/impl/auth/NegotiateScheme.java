@@ -49,13 +49,13 @@ import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 
 /**
- * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication 
+ * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme.
- * 
+ *
  * @since 4.1
  */
 public class NegotiateScheme implements ContextAwareAuthScheme {
-    
+
     private static final int UNINITIATED         = 0;
     private static final int INITIATED           = 1;
     private static final int NEGOTIATING         = 3;
@@ -63,15 +63,15 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
     private static final int FAILED              = Integer.MAX_VALUE;
     private static final String SPNEGO_OID        = "1.3.6.1.5.5.2";
     private static final String KERBEROS_OID        = "1.2.840.113554.1.2.2";
-    
+
     private final Log log = LogFactory.getLog(getClass());
-    
+
     private final SpnegoTokenGenerator spengoGenerator;
-    
+
     private final boolean stripPort;
-    
+
     private boolean proxy;
-    
+
     private GSSContext gssContext = null;
 
     /** Authentication process state */
@@ -79,12 +79,12 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
 
     /** base64 decoded challenge **/
     byte[] token = new byte[0];
-    
+
     private Oid negotiationOid = null;
-    
+
     /**
      * Default constructor for the Negotiate authentication scheme.
-     * 
+     *
      */
     public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
         super();
@@ -96,17 +96,17 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
     public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator) {
         this(spengoGenerator, false);
     }
-    
+
     public NegotiateScheme() {
         this(null, false);
     }
-    
+
     /**
      * Tests if the Negotiate authentication process has been completed.
-     * 
+     *
      * @return <tt>true</tt> if authorization has been processed,
      *   <tt>false</tt> otherwise.
-     * 
+     *
      */
     public boolean isComplete() {
         return this.state == ESTABLISHED || this.state == FAILED;
@@ -114,7 +114,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
 
     /**
      * Returns textual designation of the Negotiate authentication scheme.
-     * 
+     *
      * @return <code>Negotiate</code>
      */
     public String getSchemeName() {
@@ -127,18 +127,18 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             final HttpRequest request) throws AuthenticationException {
         return authenticate(credentials, request, null);
     }
-    
+
     /**
-     * Produces Negotiate authorization Header based on token created by 
+     * Produces Negotiate authorization Header based on token created by
      * processChallenge.
-     * 
-     * @param credentials Never used be the Negotiate scheme but must be provided to 
+     *
+     * @param credentials Never used be the Negotiate scheme but must be provided to
      * satisfy common-httpclient API. Credentials from JAAS will be used instead.
      * @param request The request being authenticated
-     * 
-     * @throws AuthenticationException if authorisation string cannot 
+     *
+     * @throws AuthenticationException if authorisation string cannot
      *   be generated due to an authentication failure
-     * 
+     *
      * @return an Negotiate authorisation Header
      */
     public Header authenticate(
@@ -146,7 +146,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
         if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null"); 
+            throw new IllegalArgumentException("HTTP request may not be null");
         }
         if (state == UNINITIATED) {
             throw new IllegalStateException(
@@ -170,35 +170,35 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             } else {
                 authServer = host.getHostName();
             }
-            
+
             if (log.isDebugEnabled()) {
                 log.debug("init " + authServer);
             }
             /* Using the SPNEGO OID is the correct method.
              * Kerberos v5 works for IIS but not JBoss. Unwrapping
              * the initial token when using SPNEGO OID looks like what is
-             * described here... 
-             * 
+             * described here...
+             *
              * http://msdn.microsoft.com/en-us/library/ms995330.aspx
-             * 
+             *
              * Another helpful URL...
-             * 
+             *
              * http://publib.boulder.ibm.com/infocenter/wasinfo/v7r0/index.jsp?topic=/com.ibm.websphere.express.doc/info/exp/ae/tsec_SPNEGO_token.html
-             * 
+             *
              * Unfortunately SPNEGO is JRE >=1.6.
              */
-            
+
             /** Try SPNEGO by default, fall back to Kerberos later if error */
             negotiationOid  = new Oid(SPNEGO_OID);
-            
+
             boolean tryKerberos = false;
             try {
                 GSSManager manager = GSSManager.getInstance();
-                GSSName serverName = manager.createName("HTTP/" + authServer, null); 
+                GSSName serverName = manager.createName("HTTP/" + authServer, null);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
                         GSSContext.DEFAULT_LIFETIME);
-                gssContext.requestMutualAuth(true); 
+                gssContext.requestMutualAuth(true);
                 gssContext.requestCredDeleg(true);
             } catch (GSSException ex){
                 // BAD MECH means we are likely to be using 1.5, fall back to Kerberos MECH.
@@ -209,30 +209,30 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
                 } else {
                     throw ex;
                 }
-                
+
             }
             if (tryKerberos){
                 /* Kerberos v5 GSS-API mechanism defined in RFC 1964.*/
                 log.debug("Using Kerberos MECH " + KERBEROS_OID);
                 negotiationOid  = new Oid(KERBEROS_OID);
                 GSSManager manager = GSSManager.getInstance();
-                GSSName serverName = manager.createName("HTTP/" + authServer, null); 
+                GSSName serverName = manager.createName("HTTP/" + authServer, null);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
                         GSSContext.DEFAULT_LIFETIME);
-                gssContext.requestMutualAuth(true); 
+                gssContext.requestMutualAuth(true);
                 gssContext.requestCredDeleg(true);
             }
             state = INITIATED;
-            
+
             // HTTP 1.1 issue:
-            // Mutual auth will never complete to do 200 instead of 401 in 
+            // Mutual auth will never complete to do 200 instead of 401 in
             // return from server. "state" will never reach ESTABLISHED
             // but it works anyway
 
             token = gssContext.initSecContext(token, 0, token.length);
-            
-            /* 
+
+            /*
              * IIS accepts Kerberos and SPNEGO tokens. Some other servers Jboss, Glassfish?
              * seem to only accept SPNEGO. Below wraps Kerberos into SPNEGO token.
              */
@@ -260,32 +260,32 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             state = FAILED;
             throw new AuthenticationException(ex.getMessage());
         }
-        return new BasicHeader("Authorization", "Negotiate " + 
+        return new BasicHeader("Authorization", "Negotiate " +
                 new String(new Base64().encode(token)) );
     }
 
 
     /**
      * Returns the authentication parameter with the given name, if available.
-     * 
-     * <p>There are no valid parameters for Negotiate authentication so this 
+     *
+     * <p>There are no valid parameters for Negotiate authentication so this
      * method always returns <tt>null</tt>.</p>
-     * 
+     *
      * @param name The name of the parameter to be returned
-     * 
+     *
      * @return the parameter with the given name
      */
     public String getParameter(String name) {
         if (name == null) {
-            throw new IllegalArgumentException("Parameter name may not be null"); 
+            throw new IllegalArgumentException("Parameter name may not be null");
         }
         return null;
     }
 
     /**
-     * The concept of an authentication realm is not supported by the Negotiate 
+     * The concept of an authentication realm is not supported by the Negotiate
      * authentication scheme. Always returns <code>null</code>.
-     * 
+     *
      * @return <code>null</code>
      */
     public String getRealm() {
@@ -293,9 +293,9 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
     }
 
     /**
-     * Returns <tt>true</tt>. 
+     * Returns <tt>true</tt>.
      * Negotiate authentication scheme is connection based.
-     * 
+     *
      * @return <tt>true</tt>.
      */
     public boolean isConnectionBased() {
@@ -304,7 +304,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
 
     /**
      * Processes the Negotiate challenge.
-     *  
+     *
      */
     public void processChallenge(final Header header) throws MalformedChallengeException {
         if (log.isDebugEnabled()) {
@@ -319,7 +319,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
         } else {
             throw new MalformedChallengeException("Unexpected header name: " + authheader);
         }
-        
+
         if (challenge.startsWith("Negotiate")) {
             if(isComplete() == false)
                 state = NEGOTIATING;
@@ -334,9 +334,9 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             }
         }
     }
-    
+
     public boolean isProxy() {
         return this.proxy;
     }
-    
+
 }

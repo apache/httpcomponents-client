@@ -60,8 +60,8 @@ import org.apache.http.conn.params.ConnRouteParams;
  * though not the {@link
  * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
@@ -71,7 +71,7 @@ import org.apache.http.conn.params.ConnRouteParams;
  */
 @NotThreadSafe // e.g [gs]etProxySelector()
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
-    
+
     /** The scheme registry. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
@@ -224,7 +224,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         //@@@ Having it in this method at least allows for easy workarounds.
        return isa.isUnresolved() ?
             isa.getHostName() : isa.getAddress().getHostAddress();
- 
+
     }
 
     /**

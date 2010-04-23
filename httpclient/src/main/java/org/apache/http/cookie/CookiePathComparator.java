@@ -33,17 +33,17 @@ import java.util.Comparator;
 import org.apache.http.annotation.Immutable;
 
 /**
- * This cookie comparator ensures that multiple cookies satisfying 
+ * This cookie comparator ensures that multiple cookies satisfying
  * a common criteria are ordered in the <tt>Cookie</tt> header such
  * that those with more specific Path attributes precede those with
  * less specific.
- *  
+ *
  * <p>
- * This comparator assumes that Path attributes of two cookies 
+ * This comparator assumes that Path attributes of two cookies
  * path-match a commmon request-URI. Otherwise, the result of the
  * comparison is undefined.
  * </p>
- * 
+ *
  *
  * @since 4.0
  */
@@ -62,7 +62,7 @@ public class CookiePathComparator implements Serializable, Comparator<Cookie> {
         }
         return path;
     }
-    
+
     public int compare(final Cookie c1, final Cookie c2) {
         String path1 = normalizePath(c1);
         String path2 = normalizePath(c2);

@@ -54,7 +54,7 @@ import org.apache.http.protocol.ExecutionContext;
  * Default implementation of {@link RedirectHandler}.
  *
  * @since 4.0
- * 
+ *
  * @deprecated use {@link DefaultRedirectStrategy}.
  */
 @Immutable
@@ -62,20 +62,20 @@ import org.apache.http.protocol.ExecutionContext;
 public class DefaultRedirectHandler implements RedirectHandler {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     public DefaultRedirectHandler() {
         super();
     }
-    
+
     public boolean isRedirectRequested(
             final HttpResponse response,
             final HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
-        
+
         int statusCode = response.getStatusLine().getStatusCode();
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
@@ -84,7 +84,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             HttpRequest request = (HttpRequest) context.getAttribute(
                     ExecutionContext.HTTP_REQUEST);
             String method = request.getRequestLine().getMethod();
-            return method.equalsIgnoreCase(HttpGet.METHOD_NAME) 
+            return method.equalsIgnoreCase(HttpGet.METHOD_NAME)
                 || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
         case HttpStatus.SC_SEE_OTHER:
             return true;
@@ -92,9 +92,9 @@ public class DefaultRedirectHandler implements RedirectHandler {
             return false;
         } //end of switch
     }
- 
+
     public URI getLocationURI(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
@@ -114,7 +114,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
 
         URI uri;
         try {
-            uri = new URI(location);            
+            uri = new URI(location);
         } catch (URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }
@@ -124,7 +124,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
         // Location       = "Location" ":" absoluteURI
         if (!uri.isAbsolute()) {
             if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
-                throw new ProtocolException("Relative redirect location '" 
+                throw new ProtocolException("Relative redirect location '"
                         + uri + "' not allowed");
             }
             // Adjust location URI
@@ -134,34 +134,34 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 throw new IllegalStateException("Target host not available " +
                         "in the HTTP context");
             }
-            
+
             HttpRequest request = (HttpRequest) context.getAttribute(
                     ExecutionContext.HTTP_REQUEST);
-            
+
             try {
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
-                uri = URIUtils.resolve(absoluteRequestURI, uri); 
+                uri = URIUtils.resolve(absoluteRequestURI, uri);
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }
         }
-        
+
         if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
-            
+
             RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
                     REDIRECT_LOCATIONS);
-            
+
             if (redirectLocations == null) {
                 redirectLocations = new RedirectLocations();
                 context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
             }
-            
+
             URI redirectURI;
             if (uri.getFragment() != null) {
                 try {
                     HttpHost target = new HttpHost(
-                            uri.getHost(), 
+                            uri.getHost(),
                             uri.getPort(),
                             uri.getScheme());
                     redirectURI = URIUtils.rewriteURI(uri, target, true);
@@ -171,7 +171,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             } else {
                 redirectURI = uri;
             }
-            
+
             if (redirectLocations.contains(redirectURI)) {
                 throw new CircularRedirectException("Circular redirect to '" +
                         redirectURI + "'");
@@ -179,7 +179,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 redirectLocations.add(redirectURI);
             }
         }
-        
+
         return uri;
     }
 

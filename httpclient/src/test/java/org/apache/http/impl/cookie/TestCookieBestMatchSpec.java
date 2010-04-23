@@ -46,7 +46,7 @@ import org.apache.http.message.BasicHeader;
 /**
  * Test cases for 'best match' cookie policy
  *
- * 
+ *
  */
 public class TestCookieBestMatchSpec extends TestCase {
 
@@ -80,12 +80,12 @@ public class TestCookieBestMatchSpec extends TestCase {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
 
-        Header header = new BasicHeader("Set-Cookie", 
+        Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         List<Cookie> cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
-        
-        header = new BasicHeader("Set-Cookie", 
+
+        header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; version=1");
         try {
             cookies = cookiespec.parse(header, origin);
@@ -189,10 +189,10 @@ public class TestCookieBestMatchSpec extends TestCase {
         assertFalse(cookiespec.match(cookie, origin));
 
         cookie.setDomain(".b.domain.com");
-        
+
         assertTrue(cookiespec.match(cookie, origin));
     }
-    
+
     public void testCookieBrowserCompatFormatting() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
 
@@ -210,18 +210,18 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, cookie2.getDomain());
         cookie2.setPath("/");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, cookie2.getPath());
-     
+
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie1);
         cookies.add(cookie2);
-        
+
         List<Header> headers = cookiespec.formatCookies(cookies);
         assertNotNull(headers);
         assertEquals(1, headers.size());
-        
+
         Header header = headers.get(0);
         assertEquals("name1=value1; name2=value2", header.getValue());
-        
+
     }
 
     public void testCookieStandardCompliantFormatting() throws Exception {
@@ -242,20 +242,20 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, cookie2.getDomain());
         cookie2.setPath("/");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, cookie2.getPath());
-     
+
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie1);
         cookies.add(cookie2);
-        
+
         List<Header> headers = cookiespec.formatCookies(cookies);
         assertNotNull(headers);
         assertEquals(1, headers.size());
-        
+
         Header header = headers.get(0);
         assertEquals("$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".domain.com\"; " +
-                "name2=\"value2\"; $Path=\"/\"; $Domain=\".domain.com\"", 
+                "name2=\"value2\"; $Path=\"/\"; $Domain=\".domain.com\"",
                 header.getValue());
-        
+
     }
 
     public void testInvalidInput() throws Exception {
@@ -286,6 +286,6 @@ public class TestCookieBestMatchSpec extends TestCase {
             // expected
         }
     }
-    
+
 }
 

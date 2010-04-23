@@ -156,9 +156,9 @@ public final class SchemeRegistry {
     }
 
     /**
-     * Populates the internal collection of registered {@link Scheme protocol schemes} 
+     * Populates the internal collection of registered {@link Scheme protocol schemes}
      * with the content of the map passed as a parameter.
-     * 
+     *
      * @param map protocol schemes
      */
     public void setItems(final Map<String, Scheme> map) {

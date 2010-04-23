@@ -46,13 +46,13 @@ public class StringBody extends AbstractContentBody {
 
     private final byte[] content;
     private final Charset charset;
-    
+
     /**
      * @since 4.1
      */
     public static StringBody create(
-            final String text, 
-            final String mimeType, 
+            final String text,
+            final String mimeType,
             final Charset charset) throws IllegalArgumentException {
         try {
             return new StringBody(text, mimeType, charset);
@@ -60,7 +60,7 @@ public class StringBody extends AbstractContentBody {
             throw new IllegalArgumentException("Charset " + charset + " is not supported", ex);
         }
     }
-    
+
     /**
      * @since 4.1
      */
@@ -68,17 +68,17 @@ public class StringBody extends AbstractContentBody {
             final String text, final Charset charset) throws IllegalArgumentException {
         return create(text, null, charset);
     }
-    
+
     /**
      * @since 4.1
      */
     public static StringBody create(final String text) throws IllegalArgumentException {
         return create(text, null, null);
     }
-    
+
     public StringBody(
-            final String text, 
-            final String mimeType, 
+            final String text,
+            final String mimeType,
             Charset charset) throws UnsupportedEncodingException {
         super(mimeType);
         if (text == null) {
@@ -90,15 +90,15 @@ public class StringBody extends AbstractContentBody {
         this.content = text.getBytes(charset.name());
         this.charset = charset;
     }
-    
+
     public StringBody(final String text, final Charset charset) throws UnsupportedEncodingException {
         this(text, "text/plain", charset);
     }
-    
+
     public StringBody(final String text) throws UnsupportedEncodingException {
         this(text, "text/plain", null);
     }
-    
+
     public Reader getReader() {
         return new InputStreamReader(
                 new ByteArrayInputStream(this.content),
@@ -137,9 +137,9 @@ public class StringBody extends AbstractContentBody {
     public long getContentLength() {
         return this.content.length;
     }
-    
+
     public String getFilename() {
         return null;
     }
-    
+
 }

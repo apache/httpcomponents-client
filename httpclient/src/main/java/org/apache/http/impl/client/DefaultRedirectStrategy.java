@@ -60,28 +60,28 @@ import org.apache.http.protocol.ExecutionContext;
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     public DefaultRedirectStrategy() {
         super();
     }
-    
+
     public boolean isRedirected(
             final HttpRequest request,
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
-        
+
         int statusCode = response.getStatusLine().getStatusCode();
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
             String method = request.getRequestLine().getMethod();
-            return method.equalsIgnoreCase(HttpGet.METHOD_NAME) 
+            return method.equalsIgnoreCase(HttpGet.METHOD_NAME)
                 || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
         case HttpStatus.SC_SEE_OTHER:
             return true;
@@ -89,10 +89,10 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return false;
         } //end of switch
     }
- 
+
     public URI getLocationURI(
             final HttpRequest request,
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
@@ -117,7 +117,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         // Location       = "Location" ":" absoluteURI
         if (!uri.isAbsolute()) {
             if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
-                throw new ProtocolException("Relative redirect location '" 
+                throw new ProtocolException("Relative redirect location '"
                         + uri + "' not allowed");
             }
             // Adjust location URI
@@ -130,27 +130,27 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             try {
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
-                uri = URIUtils.resolve(absoluteRequestURI, uri); 
+                uri = URIUtils.resolve(absoluteRequestURI, uri);
             } catch (URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }
         }
-        
+
         if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
-            
+
             RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
                     REDIRECT_LOCATIONS);
-            
+
             if (redirectLocations == null) {
                 redirectLocations = new RedirectLocations();
                 context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
             }
-            
+
             URI redirectURI;
             if (uri.getFragment() != null) {
                 try {
                     HttpHost target = new HttpHost(
-                            uri.getHost(), 
+                            uri.getHost(),
                             uri.getPort(),
                             uri.getScheme());
                     redirectURI = URIUtils.rewriteURI(uri, target, true);
@@ -160,7 +160,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             } else {
                 redirectURI = uri;
             }
-            
+
             if (redirectLocations.contains(redirectURI)) {
                 throw new CircularRedirectException("Circular redirect to '" +
                         redirectURI + "'");
@@ -168,10 +168,10 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                 redirectLocations.add(redirectURI);
             }
         }
-        
+
         return uri;
     }
-    
+
     /**
      * @since 4.1
      */
@@ -185,7 +185,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     public HttpUriRequest getRedirect(
             final HttpRequest request,
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         URI uri = getLocationURI(request, response, context);
         String method = request.getRequestLine().getMethod();
@@ -195,5 +195,5 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return new HttpGet(uri);
         }
     }
-    
+
 }

@@ -33,8 +33,8 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.util.LangUtils;
 
 /**
- * Encapsulates specifics of a protocol scheme such as "http" or "https". Schemes are identified 
- * by lowercase names. Supported schemes are typically collected in a {@link SchemeRegistry 
+ * Encapsulates specifics of a protocol scheme such as "http" or "https". Schemes are identified
+ * by lowercase names. Supported schemes are typically collected in a {@link SchemeRegistry
  * SchemeRegistry}.
  * <p>
  * For example, to configure support for "https://" URLs, you could write code like the following:
@@ -50,13 +50,13 @@ public final class Scheme {
 
     /** The name of this scheme, in lowercase. (e.g. http, https) */
     private final String name;
-    
+
     /** The socket factory for this scheme */
     private final SchemeSocketFactory socketFactory;
-    
+
     /** The default port for this scheme */
     private final int defaultPort;
-    
+
     /** Indicates whether this scheme allows for layered connections */
     private final boolean layered;
 
@@ -78,7 +78,7 @@ public final class Scheme {
      * @param port      the default port for this scheme
      * @param factory   the factory for creating sockets for communication
      *                  with this scheme
-     * 
+     *
      * @since 4.1
      */
     public Scheme(final String name, final int port, final SchemeSocketFactory factory) {
@@ -107,7 +107,7 @@ public final class Scheme {
      * @param factory   the factory for creating sockets for communication
      *                  with this scheme
      * @param port      the default port for this scheme
-     * 
+     *
      * @deprecated Use {@link #Scheme(String, int, SchemeSocketFactory)}
      */
     @Deprecated
@@ -156,7 +156,7 @@ public final class Scheme {
      * {@link LayeredSocketFactory LayeredSocketFactory}.
      *
      * @return  the socket factory for this scheme
-     * 
+     *
      * @deprecated Use {@link #getSchemeSocketFactory()}
      */
     @Deprecated
@@ -179,7 +179,7 @@ public final class Scheme {
      * {@link LayeredSocketFactory LayeredSchemeSocketFactory}.
      *
      * @return  the socket factory for this scheme
-     * 
+     *
      * @since 4.1
      */
     public final SchemeSocketFactory getSchemeSocketFactory() {
@@ -208,10 +208,10 @@ public final class Scheme {
     /**
      * Resolves the correct port for this scheme.
      * Returns the given port if it is valid, the default port otherwise.
-     * 
+     *
      * @param port      the port to be resolved,
      *                  a negative number to obtain the default port
-     * 
+     *
      * @return the given port or the defaultPort
      */
     public final int resolvePort(int port) {
@@ -241,7 +241,7 @@ public final class Scheme {
         if (this == obj) return true;
         if (obj instanceof Scheme) {
             Scheme that = (Scheme) obj;
-            return this.name.equals(that.name) 
+            return this.name.equals(that.name)
                 && this.defaultPort == that.defaultPort
                 && this.layered == that.layered
                 && this.socketFactory.equals(that.socketFactory);

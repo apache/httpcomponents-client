@@ -82,7 +82,7 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
             return KeyManagerFactory.getInstance("SunX509");
         }
     }
-    
+
     private TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException {
         String algo = TrustManagerFactory.getDefaultAlgorithm();
         try {
@@ -94,7 +94,7 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
 
     private SSLContext serverSSLContext;
     private SSLContext clientSSLContext;
-    
+
     @Override
     protected void setUp() throws Exception {
         ClassLoader cl = getClass().getClassLoader();
@@ -110,16 +110,16 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         KeyManagerFactory kmfactory = createKeyManagerFactory();
         kmfactory.init(keystore, pwd);
         KeyManager[] km = kmfactory.getKeyManagers();
-        
+
         this.serverSSLContext = SSLContext.getInstance("TLS");
         this.serverSSLContext.init(km, tm, null);
 
         this.clientSSLContext = SSLContext.getInstance("TLS");
         this.clientSSLContext.init(null, tm, null);
-        
+
         this.localServer = new LocalTestServer(this.serverSSLContext);
         this.localServer.registerDefaultHandlers();
-        
+
         this.localServer.start();
     }
 
@@ -131,11 +131,11 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
                 address.getPort(),
                 "https");
     }
-    
+
     static class TestX509HostnameVerifier implements X509HostnameVerifier {
 
         private boolean fired = false;
-        
+
         public boolean verify(String host, SSLSession session) {
             return true;
         }
@@ -149,22 +149,22 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
 
         public void verify(String host, X509Certificate cert) throws SSLException {
         }
-        
+
         public boolean isFired() {
             return this.fired;
         }
-        
+
     }
-    
+
     public void testBasicSSL() throws Exception {
         TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        
+
         SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
-        Scheme https = new Scheme("https", 443, socketFactory); 
+        Scheme https = new Scheme("https", 443, socketFactory);
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
         httpclient.getConnectionManager().getSchemeRegistry().register(https);
-        
+
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
         HttpResponse response = httpclient.execute(target, httpget);
@@ -176,14 +176,14 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
-        
-        SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext, 
+
+        SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
                 SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        
-        Scheme https = new Scheme("https", 443, socketFactory); 
+
+        Scheme https = new Scheme("https", 443, socketFactory);
         DefaultHttpClient httpclient = new DefaultHttpClient();
         httpclient.getConnectionManager().getSchemeRegistry().register(https);
-        
+
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
         try {
@@ -197,24 +197,24 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
-        
+
         SSLSocketFactory socketFactory = new SSLSocketFactory(new TrustStrategy() {
-            
+
             public boolean isTrusted(
                     final X509Certificate[] chain, final String authType) throws CertificateException {
                 return chain.length == 1;
             }
-            
+
         }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        
-        Scheme https = new Scheme("https", 443, socketFactory); 
+
+        Scheme https = new Scheme("https", 443, socketFactory);
         DefaultHttpClient httpclient = new DefaultHttpClient();
         httpclient.getConnectionManager().getSchemeRegistry().register(https);
-        
+
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
         HttpResponse response = httpclient.execute(target, httpget);
         assertEquals(200, response.getStatusLine().getStatusCode());
     }
-    
+
 }

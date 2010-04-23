@@ -73,11 +73,11 @@ public class TestBasicCookieStore extends TestCase {
         assertNotNull(l);
         assertEquals(0, l.size());
     }
-    
+
     public void testExpiredCookie() throws Exception {
         BasicCookieStore store = new BasicCookieStore();
         BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
-        
+
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_YEAR, -10);
         cookie.setExpiryDate(c.getTime());
@@ -86,7 +86,7 @@ public class TestBasicCookieStore extends TestCase {
         assertNotNull(l);
         assertEquals(0, l.size());
     }
-    
+
     public void testSerialization() throws Exception {
         BasicCookieStore orig = new BasicCookieStore();
         orig.addCookie(new BasicClientCookie("name1", "value1"));
@@ -109,5 +109,5 @@ public class TestBasicCookieStore extends TestCase {
             assertEquals(expected.get(i).getValue(), clones.get(i).getValue());
         }
     }
-    
+
 }

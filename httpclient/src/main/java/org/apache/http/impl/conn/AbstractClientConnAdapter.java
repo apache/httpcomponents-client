@@ -66,7 +66,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-public abstract class AbstractClientConnAdapter 
+public abstract class AbstractClientConnAdapter
                             implements ManagedClientConnection, HttpContext {
 
     /**
@@ -84,7 +84,7 @@ public abstract class AbstractClientConnAdapter
 
     /** True if the connection has been shut down or released. */
     private volatile boolean released;
-    
+
     /** The duration this is valid for while idle (in ms). */
     private volatile long duration;
 
@@ -119,11 +119,11 @@ public abstract class AbstractClientConnAdapter
     protected OperatedClientConnection getWrappedConnection() {
         return wrappedConnection;
     }
-    
+
     protected ClientConnectionManager getManager() {
         return connManager;
     }
-    
+
     /**
      * @deprecated use {@link #assertValid(OperatedClientConnection)}
      */
@@ -141,7 +141,7 @@ public abstract class AbstractClientConnAdapter
     protected boolean isReleased() {
         return released;
     }
-    
+
     /**
      * Asserts that there is a valid wrapped connection to delegate to.
      *
@@ -290,7 +290,7 @@ public abstract class AbstractClientConnAdapter
     public boolean isMarkedReusable() {
         return markedReusable;
     }
-    
+
     public void setIdleDuration(long duration, TimeUnit unit) {
         if(duration > 0) {
             this.duration = unit.toMillis(duration);
@@ -351,5 +351,5 @@ public abstract class AbstractClientConnAdapter
             ((HttpContext) conn).setAttribute(id, obj);
         }
     }
-    
+
 }

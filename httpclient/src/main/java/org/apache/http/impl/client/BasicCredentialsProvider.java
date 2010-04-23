@@ -37,7 +37,7 @@ import org.apache.http.client.CredentialsProvider;
 
 /**
  * Default implementation of {@link CredentialsProvider}.
- * 
+ *
  * @since 4.0
  */
 @ThreadSafe
@@ -54,7 +54,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
     }
 
     public void setCredentials(
-            final AuthScope authscope, 
+            final AuthScope authscope,
             final Credentials credentials) {
         if (authscope == null) {
             throw new IllegalArgumentException("Authentication scope may not be null");
@@ -67,11 +67,11 @@ public class BasicCredentialsProvider implements CredentialsProvider {
      *
      * @param map the credentials hash map
      * @param authscope the {@link AuthScope authentication scope}
-     * @return the credentials 
-     * 
+     * @return the credentials
+     *
      */
     private static Credentials matchCredentials(
-            final Map<AuthScope, Credentials> map, 
+            final Map<AuthScope, Credentials> map,
             final AuthScope authscope) {
         // see if we get a direct hit
         Credentials creds = map.get(authscope);
@@ -93,7 +93,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         }
         return creds;
     }
-    
+
     public Credentials getCredentials(final AuthScope authscope) {
         if (authscope == null) {
             throw new IllegalArgumentException("Authentication scope may not be null");
@@ -104,10 +104,10 @@ public class BasicCredentialsProvider implements CredentialsProvider {
     public void clear() {
         this.credMap.clear();
     }
-    
+
     @Override
     public String toString() {
         return credMap.toString();
     }
-    
+
 }

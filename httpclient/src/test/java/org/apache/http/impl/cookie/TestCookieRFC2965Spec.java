@@ -114,7 +114,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         assertEquals("/", cookie.getPath());
         assertTrue(cookie.containsAttribute(ClientCookie.PATH_ATTR));
     }
-    
+
     /**
      * Test parsing cookie <tt>"Domain"</tt> attribute.
      */
@@ -308,7 +308,7 @@ public class TestCookieRFC2965Spec extends TestCase {
             // expected
         }
     }
-    
+
     public void testParseNegativeVersion() throws Exception {
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin = new CookieOrigin("www.domain.com", 80, "/", false);
@@ -790,7 +790,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         cookie.setDomain(".domain.com");
         cookie.setPath("/");
         cookie.setPorts(null);
-        
+
         CookieSpec cookiespec = new RFC2965Spec();
         CookieOrigin origin1 = new CookieOrigin("www.domain.com", 8080 /* request port */, "/", false);
         assertTrue(cookiespec.match(cookie, origin1));
@@ -871,7 +871,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         cookie1.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie1.setAttribute(ClientCookie.PATH_ATTR, "/");
         cookie1.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
-        
+
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie1);
         List<Header> headers = cookiespec.formatCookies(cookies);
@@ -880,7 +880,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         assertEquals("$Version=1; name1=\"value\"; $Path=\"/\"; $Domain=\".domain.com\"; $Port=\"80,8080\"",
                 headers.get(0).getValue());
 
-        
+
         BasicClientCookie2 cookie2 = new BasicClientCookie2("name2", "value");
         cookie2.setDomain(".domain.com");
         cookie2.setPath("/a/");
@@ -889,7 +889,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         // domain, path specified  but port unspecified
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, "/a/");
-        
+
         cookies = new ArrayList<Cookie>();
         cookies.add(cookie2);
         headers = cookiespec.formatCookies(cookies);
@@ -943,7 +943,7 @@ public class TestCookieRFC2965Spec extends TestCase {
         cookie1.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie1.setAttribute(ClientCookie.PATH_ATTR, "/");
         cookie1.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
-        
+
         BasicClientCookie2 cookie2 = new BasicClientCookie2("name2", "");
         cookie2.setDomain(".domain.com");
         cookie2.setPath("/");
@@ -952,16 +952,16 @@ public class TestCookieRFC2965Spec extends TestCase {
         // value null, domain, path specified
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, "/");
-        
+
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie1);
         cookies.add(cookie2);
         List<Header> headers = cookiespec.formatCookies(cookies);
         assertNotNull(headers);
         assertEquals(1, headers.size());
-        
+
         assertEquals("$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".domain.com\"; $Port=\"80,8080\"; " +
-            "name2=\"\"; $Path=\"/\"; $Domain=\".domain.com\"", 
+            "name2=\"\"; $Path=\"/\"; $Domain=\".domain.com\"",
             headers.get(0).getValue());
     }
 

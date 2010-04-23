@@ -39,15 +39,15 @@ import org.apache.http.protocol.HttpContext;
 /**
  * Default implementation of a strategy deciding duration
  * that a connection can remain idle.
- * 
+ *
  * The default implementation looks solely at the 'Keep-Alive'
  * header's timeout token.
- * 
+ *
  * @since 4.0
  */
 @Immutable
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
-    
+
     public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
@@ -56,7 +56,7 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
                 response.headerIterator(HTTP.CONN_KEEP_ALIVE));
         while (it.hasNext()) {
             HeaderElement he = it.nextElement();
-            String param = he.getName(); 
+            String param = he.getName();
             String value = he.getValue();
             if (value != null && param.equalsIgnoreCase("timeout")) {
                 try {

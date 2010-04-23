@@ -47,22 +47,22 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Request interceptor that can preemptively authenticate against known hosts, 
- * if there is a cached {@link AuthScheme} instance in the local 
+ * Request interceptor that can preemptively authenticate against known hosts,
+ * if there is a cached {@link AuthScheme} instance in the local
  * {@link AuthCache} associated with the given target or proxy host.
- * 
+ *
  * @since 4.1
  */
 @Immutable
 public class RequestAuthCache implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public RequestAuthCache() {
         super();
     }
-    
-    public void process(final HttpRequest request, final HttpContext context) 
+
+    public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -75,18 +75,18 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         if (authCache == null) {
             context.setAttribute(ClientContext.AUTH_CACHE, new BasicAuthCache());
         } else {
-            
+
             CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
                     ClientContext.CREDS_PROVIDER);
-            
+
             HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
             if (target != null) {
                 AuthScheme authScheme = authCache.get(target);
                 if (authScheme != null) {
                     doPreemptiveAuth(
-                            target, 
-                            authScheme,                     
-                            (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE), 
+                            target,
+                            authScheme,
+                            (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE),
                             credsProvider);
                 }
             }
@@ -96,9 +96,9 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                 AuthScheme authScheme = authCache.get(proxy);
                 if (authScheme != null) {
                     doPreemptiveAuth(
-                            proxy, 
-                            authScheme,                     
-                            (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE), 
+                            proxy,
+                            authScheme,
+                            (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE),
                             credsProvider);
                 }
             }
@@ -106,18 +106,18 @@ public class RequestAuthCache implements HttpRequestInterceptor {
     }
 
     private void doPreemptiveAuth(
-            final HttpHost host, 
-            final AuthScheme authScheme, 
+            final HttpHost host,
+            final AuthScheme authScheme,
             final AuthState authState,
             final CredentialsProvider credsProvider) {
         String schemeName = authScheme.getSchemeName();
         if (this.log.isDebugEnabled()) {
             this.log.debug("Re-using cached '" + schemeName + "' auth scheme for " + host);
         }
-        
+
         Credentials creds = credsProvider.getCredentials(
                 new AuthScope(host.getHostName(), host.getPort(), schemeName));
-        
+
         if (creds != null) {
             authState.setAuthScheme(authScheme);
             authState.setCredentials(creds);
@@ -125,5 +125,5 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             this.log.debug("No credentials for preemptive authentication");
         }
     }
-    
+
 }

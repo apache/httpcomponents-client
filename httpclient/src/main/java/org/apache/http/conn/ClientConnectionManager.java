@@ -33,14 +33,14 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 
 /**
- * Management interface for {@link ManagedClientConnection client connections}. 
- * The purpose of an HTTP connection manager is to serve as a factory for new 
- * HTTP connections, manage persistent connections and synchronize access to 
- * persistent connections making sure that only one thread of execution can 
+ * Management interface for {@link ManagedClientConnection client connections}.
+ * The purpose of an HTTP connection manager is to serve as a factory for new
+ * HTTP connections, manage persistent connections and synchronize access to
+ * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed 
+ * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
  *
  * @since 4.0
@@ -53,7 +53,7 @@ public interface ClientConnectionManager {
      * @return  the scheme registry, never <code>null</code>
      */
     SchemeRegistry getSchemeRegistry();
-    
+
     /**
      * Returns a new {@link ClientConnectionRequest}, from which a
      * {@link ManagedClientConnection} can be obtained or the request can be
@@ -67,14 +67,14 @@ public interface ClientConnectionManager {
      * to be reused.  Values <= 0 are considered to be valid forever.
      * If the connection is not marked as reusable, the connection will
      * not be reused regardless of the valid duration.
-     * 
+     *
      * If the connection has been released before,
      * the call will be ignored.
      *
      * @param conn      the connection to release
      * @param validDuration the duration of time this connection is valid for reuse
      * @param timeUnit the unit of time validDuration is measured in
-     * 
+     *
      * @see #closeExpiredConnections()
      */
     void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit);
@@ -85,12 +85,12 @@ public interface ClientConnectionManager {
      * timespan given by the argument will be closed.
      * Currently allocated connections are not subject to this method.
      * Times will be checked with milliseconds precision
-     * 
+     *
      * All expired connections will also be closed.
-     * 
+     *
      * @param idletime  the idle time of connections to be closed
      * @param tunit     the unit for the <code>idletime</code>
-     * 
+     *
      * @see #closeExpiredConnections()
      */
     void closeIdleConnections(long idletime, TimeUnit tunit);

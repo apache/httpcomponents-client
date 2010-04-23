@@ -54,14 +54,14 @@ import org.apache.http.params.HttpProtocolParams;
  */
 @NotThreadSafe
 public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
-    
+
     private final HttpRequest original;
 
     private URI uri;
     private String method;
     private ProtocolVersion version;
     private int execCount;
-    
+
     public RequestWrapper(final HttpRequest request) throws ProtocolException {
         super();
         if (request == null) {
@@ -69,7 +69,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         }
         this.original = request;
         setParams(request.getParams());
-        // Make a copy of the original URI 
+        // Make a copy of the original URI
         if (request instanceof HttpUriRequest) {
             this.uri = ((HttpUriRequest) request).getURI();
             this.method = ((HttpUriRequest) request).getMethod();
@@ -79,7 +79,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
             try {
                 this.uri = new URI(requestLine.getUri());
             } catch (URISyntaxException ex) {
-                throw new ProtocolException("Invalid request URI: " 
+                throw new ProtocolException("Invalid request URI: "
                         + requestLine.getUri(), ex);
             }
             this.method = requestLine.getMethod();
@@ -93,7 +93,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         this.headergroup.clear();
         setHeaders(this.original.getAllHeaders());
     }
-    
+
     public String getMethod() {
         return this.method;
     }
@@ -120,7 +120,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     public URI getURI() {
         return this.uri;
     }
-    
+
     public void setURI(final URI uri) {
         this.uri = uri;
     }
@@ -149,7 +149,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     public HttpRequest getOriginal() {
         return this.original;
     }
-    
+
     public boolean isRepeatable() {
         return true;
     }
@@ -157,9 +157,9 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     public int getExecCount() {
         return this.execCount;
     }
-    
+
     public void incrementExecCount() {
         this.execCount++;
     }
-    
+
 }

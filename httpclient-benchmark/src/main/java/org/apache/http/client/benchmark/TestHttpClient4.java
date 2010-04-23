@@ -48,7 +48,7 @@ import org.apache.http.util.VersionInfo;
 public class TestHttpClient4 implements TestHttpAgent {
 
     private final HttpClient httpclient;
-    
+
     public TestHttpClient4() {
         super();
         HttpParams params = new SyncBasicHttpParams();
@@ -60,7 +60,7 @@ public class TestHttpClient4 implements TestHttpAgent {
                 false);
         params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
-       
+
         this.httpclient = new DefaultHttpClient(params);
     }
 
@@ -69,14 +69,14 @@ public class TestHttpClient4 implements TestHttpAgent {
 
     public Stats execute(final HttpUriRequest request, int n) throws Exception {
         Stats stats = new Stats();
-        
+
         int successCount = 0;
         int failureCount = 0;
         long contentLen = 0;
         long totalContentLen = 0;
-        
+
         byte[] buffer = new byte[4096];
-        
+
         for (int i = 0; i < n; i++) {
             HttpResponse response = this.httpclient.execute(request);
             HttpEntity entity = response.getEntity();
@@ -109,23 +109,23 @@ public class TestHttpClient4 implements TestHttpAgent {
         stats.setContentLen(contentLen);
         stats.setTotalContentLen(totalContentLen);
         return stats;
-    }    
-    
+    }
+
     public Stats get(final URI target, int n) throws Exception {
         HttpGet httpget = new HttpGet(target);
         return execute(httpget, n);
     }
-    
+
     public Stats post(final URI target, byte[] content, int n) throws Exception {
         HttpPost httppost = new HttpPost(target);
         httppost.setEntity(new ByteArrayEntity(content));
         return execute(httppost, n);
     }
-    
+
     public String getClientName() {
-        VersionInfo vinfo = VersionInfo.loadVersionInfo("org.apache.http.client", 
+        VersionInfo vinfo = VersionInfo.loadVersionInfo("org.apache.http.client",
                 Thread.currentThread().getContextClassLoader());
-        return "Apache HttpClient 4 (ver: " + 
+        return "Apache HttpClient 4 (ver: " +
             ((vinfo != null) ? vinfo.getRelease() : VersionInfo.UNAVAILABLE) + ")";
     }
 
@@ -136,14 +136,14 @@ public class TestHttpClient4 implements TestHttpAgent {
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
-        
-        TestHttpClient4 test = new TestHttpClient4(); 
-        
+
+        TestHttpClient4 test = new TestHttpClient4();
+
         long startTime = System.currentTimeMillis();
         Stats stats = test.get(targetURI, n);
         long finishTime = System.currentTimeMillis();
-       
+
         Stats.printStats(targetURI, startTime, finishTime, stats);
     }
-   
-} 
+
+}

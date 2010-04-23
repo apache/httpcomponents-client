@@ -50,7 +50,7 @@ public class Rfc3492Idn implements Idn {
     private static final int initial_n = 128;
     private static final char delimiter = '-';
     private static final String ACE_PREFIX = "xn--";
-    
+
     private int adapt(int delta, int numpoints, boolean firsttime) {
         if (firsttime) delta = delta / damp;
         else delta = delta / 2;
@@ -62,7 +62,7 @@ public class Rfc3492Idn implements Idn {
         }
         return k + (((base - tmin + 1) * delta) / (delta + skew));
     }
-    
+
     private int digit(char c) {
         if ((c >= 'A') && (c <= 'Z')) return (c - 'A');
         if ((c >= 'a') && (c <= 'z')) return (c - 'a');
@@ -81,7 +81,7 @@ public class Rfc3492Idn implements Idn {
         }
         return unicode.toString();
     }
-    
+
     protected String decode(String input) {
         int n = initial_n;
         int i = 0;
@@ -122,5 +122,5 @@ public class Rfc3492Idn implements Idn {
         }
         return output.toString();
     }
-    
+
 }

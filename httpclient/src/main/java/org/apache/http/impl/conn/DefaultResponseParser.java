@@ -48,27 +48,27 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * Default HTTP response parser implementation. 
+ * Default HTTP response parser implementation.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
  *  <li>{@link org.apache.http.conn.params.ConnConnectionPNames#MAX_STATUS_LINE_GARBAGE}</li>
  * </ul>
- * 
+ *
  * @since 4.0
  */
 @ThreadSafe // no public methods
 public class DefaultResponseParser extends AbstractMessageParser {
-    
+
     private final Log log = LogFactory.getLog(getClass());
 
     private final HttpResponseFactory responseFactory;
     private final CharArrayBuffer lineBuf;
     private final int maxGarbageLines;
-    
+
     public DefaultResponseParser(
             final SessionInputBuffer buffer,
             final LineParser parser,

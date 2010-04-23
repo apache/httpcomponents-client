@@ -30,7 +30,7 @@ package org.apache.http.client.params;
 import org.apache.http.annotation.Immutable;
 
 /**
- * Standard cookie specifications supported by HttpClient. 
+ * Standard cookie specifications supported by HttpClient.
  *
  * @since 4.0
  */
@@ -38,18 +38,18 @@ import org.apache.http.annotation.Immutable;
 public final class CookiePolicy {
 
     /**
-     * The policy that provides high degree of compatibilty 
+     * The policy that provides high degree of compatibilty
      * with common cookie management of popular HTTP agents.
      */
     public static final String BROWSER_COMPATIBILITY = "compatibility";
-    
-    /** 
-     * The Netscape cookie draft compliant policy. 
+
+    /**
+     * The Netscape cookie draft compliant policy.
      */
     public static final String NETSCAPE = "netscape";
 
-    /** 
-     * The RFC 2109 compliant policy. 
+    /**
+     * The RFC 2109 compliant policy.
      */
     public static final String RFC_2109 = "rfc2109";
 
@@ -66,5 +66,5 @@ public final class CookiePolicy {
     private CookiePolicy() {
         super();
     }
-    
+
 }

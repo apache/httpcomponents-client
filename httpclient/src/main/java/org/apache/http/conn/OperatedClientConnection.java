@@ -36,7 +36,7 @@ import org.apache.http.HttpInetConnection;
 import org.apache.http.params.HttpParams;
 
 /**
- * A client-side connection that relies on outside logic to connect sockets to the 
+ * A client-side connection that relies on outside logic to connect sockets to the
  * appropriate hosts. It can be operated directly by an application, or through an
  * {@link ClientConnectionOperator operator}.
  *
@@ -84,7 +84,7 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * Signals that this connection is in the process of being open.
      * <p>
      * By calling this method, the connection can be re-initialized
-     * with a new Socket instance before {@link #openCompleted} is called. 
+     * with a new Socket instance before {@link #openCompleted} is called.
      * This enabled the connection to close that socket if
      * {@link org.apache.http.HttpConnection#shutdown shutdown}
      * is called before it is fully open. Closing an unconnected socket
@@ -93,10 +93,10 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * or it returns successfully and then opens this connection
      * which was just shut down.
      * <p>
-     * This method can be called multiple times if the connection 
-     * is layered over another protocol. <b>Note:</b> This method 
-     * will <i>not</i> close the previously used socket. It is 
-     * the caller's responsibility to close that socket if it is 
+     * This method can be called multiple times if the connection
+     * is layered over another protocol. <b>Note:</b> This method
+     * will <i>not</i> close the previously used socket. It is
+     * the caller's responsibility to close that socket if it is
      * no longer required.
      * <p>
      * The caller must invoke {@link #openCompleted} in order to complete

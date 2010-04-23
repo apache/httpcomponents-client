@@ -41,7 +41,7 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  *  Simple tests for {@link DefaultConnectionKeepAliveStrategy}.
- * 
+ *
  */
 public class TestDefaultConnKeepAliveStrategy extends TestCase {
 

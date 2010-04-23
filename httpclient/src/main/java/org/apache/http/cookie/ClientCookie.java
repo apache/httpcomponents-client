@@ -28,15 +28,15 @@
 package org.apache.http.cookie;
 
 /**
- * ClientCookie extends the standard {@link Cookie} interface with 
- * additional client specific functionality such ability to retrieve 
- * original cookie attributes exactly as they were specified by the 
- * origin server. This is important for generating the <tt>Cookie</tt> 
- * header because some cookie specifications require that the 
- * <tt>Cookie</tt> header should include certain attributes only if 
+ * ClientCookie extends the standard {@link Cookie} interface with
+ * additional client specific functionality such ability to retrieve
+ * original cookie attributes exactly as they were specified by the
+ * origin server. This is important for generating the <tt>Cookie</tt>
+ * header because some cookie specifications require that the
+ * <tt>Cookie</tt> header should include certain attributes only if
  * they were specified in the <tt>Set-Cookie</tt> header.
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 public interface ClientCookie extends Cookie {
@@ -49,14 +49,14 @@ public interface ClientCookie extends Cookie {
     public static final String SECURE_ATTR     = "secure";
     public static final String COMMENT_ATTR    = "comment";
     public static final String EXPIRES_ATTR    = "expires";
-    
+
     // RFC2965 attributes
     public static final String PORT_ATTR       = "port";
     public static final String COMMENTURL_ATTR = "commenturl";
     public static final String DISCARD_ATTR    = "discard";
-    
+
     String getAttribute(String name);
-    
+
     boolean containsAttribute(String name);
-    
+
 }

@@ -43,7 +43,7 @@ public class Header implements Iterable<MinimalField> {
 
     private final List<MinimalField> fields;
     private final Map<String, List<MinimalField>> fieldMap;
-    
+
     public Header() {
         super();
         this.fields = new LinkedList<MinimalField>();
@@ -63,7 +63,7 @@ public class Header implements Iterable<MinimalField> {
         values.add(field);
         this.fields.add(field);
     }
-    
+
     public List<MinimalField> getFields() {
         return new ArrayList<MinimalField>(this.fields);
     }
@@ -79,7 +79,7 @@ public class Header implements Iterable<MinimalField> {
         }
         return null;
     }
-    
+
     public List<MinimalField> getFields(final String name) {
         if (name == null) {
             return null;

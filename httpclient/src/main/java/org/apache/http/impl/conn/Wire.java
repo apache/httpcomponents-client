@@ -38,18 +38,18 @@ import org.apache.commons.logging.Log;
 /**
  * Logs data to the wire LOG.
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
 public class Wire {
 
     private final Log log;
-    
+
     public Wire(Log log) {
         this.log = log;
     }
-    
+
     private void wire(String header, InputStream instream)
       throws IOException {
         StringBuilder buffer = new StringBuilder();
@@ -70,7 +70,7 @@ public class Wire {
             } else {
                 buffer.append((char) ch);
             }
-        } 
+        }
         if (buffer.length() > 0) {
             buffer.append('\"');
             buffer.insert(0, '\"');
@@ -82,12 +82,12 @@ public class Wire {
 
     public boolean enabled() {
         return log.isDebugEnabled();
-    }    
-    
+    }
+
     public void output(InputStream outstream)
       throws IOException {
         if (outstream == null) {
-            throw new IllegalArgumentException("Output may not be null"); 
+            throw new IllegalArgumentException("Output may not be null");
         }
         wire(">> ", outstream);
     }
@@ -95,7 +95,7 @@ public class Wire {
     public void input(InputStream instream)
       throws IOException {
         if (instream == null) {
-            throw new IllegalArgumentException("Input may not be null"); 
+            throw new IllegalArgumentException("Input may not be null");
         }
         wire("<< ", instream);
     }
@@ -103,7 +103,7 @@ public class Wire {
     public void output(byte[] b, int off, int len)
       throws IOException {
         if (b == null) {
-            throw new IllegalArgumentException("Output may not be null"); 
+            throw new IllegalArgumentException("Output may not be null");
         }
         wire(">> ", new ByteArrayInputStream(b, off, len));
     }
@@ -111,7 +111,7 @@ public class Wire {
     public void input(byte[] b, int off, int len)
       throws IOException {
         if (b == null) {
-            throw new IllegalArgumentException("Input may not be null"); 
+            throw new IllegalArgumentException("Input may not be null");
         }
         wire("<< ", new ByteArrayInputStream(b, off, len));
     }
@@ -119,7 +119,7 @@ public class Wire {
     public void output(byte[] b)
       throws IOException {
         if (b == null) {
-            throw new IllegalArgumentException("Output may not be null"); 
+            throw new IllegalArgumentException("Output may not be null");
         }
         wire(">> ", new ByteArrayInputStream(b));
     }
@@ -127,7 +127,7 @@ public class Wire {
     public void input(byte[] b)
       throws IOException {
         if (b == null) {
-            throw new IllegalArgumentException("Input may not be null"); 
+            throw new IllegalArgumentException("Input may not be null");
         }
         wire("<< ", new ByteArrayInputStream(b));
     }
@@ -145,7 +145,7 @@ public class Wire {
     public void output(final String s)
       throws IOException {
         if (s == null) {
-            throw new IllegalArgumentException("Output may not be null"); 
+            throw new IllegalArgumentException("Output may not be null");
         }
         output(s.getBytes());
     }
@@ -153,7 +153,7 @@ public class Wire {
     public void input(final String s)
       throws IOException {
         if (s == null) {
-            throw new IllegalArgumentException("Input may not be null"); 
+            throw new IllegalArgumentException("Input may not be null");
         }
         input(s.getBytes());
     }

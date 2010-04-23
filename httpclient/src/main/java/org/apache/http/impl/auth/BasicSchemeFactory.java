@@ -40,7 +40,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class BasicSchemeFactory implements AuthSchemeFactory {    
+public class BasicSchemeFactory implements AuthSchemeFactory {
 
     public AuthScheme newInstance(final HttpParams params) {
         return new BasicScheme();

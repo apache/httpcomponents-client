@@ -21,7 +21,7 @@
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
- * 
+ *
  */
 
 package org.apache.http.impl.auth;
@@ -32,17 +32,17 @@ import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication 
+ * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme factory.
- * 
+ *
  * @since 4.1
  */
 @Immutable
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
-    
+
     private final SpnegoTokenGenerator spengoGenerator;
     private final boolean stripPort;
-    
+
     public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
         super();
         this.spengoGenerator = spengoGenerator;
@@ -52,11 +52,11 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
     public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator) {
         this(spengoGenerator, false);
     }
-    
+
     public NegotiateSchemeFactory() {
         this(null, false);
     }
-    
+
     public AuthScheme newInstance(final HttpParams params) {
         return new NegotiateScheme(this.spengoGenerator, this.stripPort);
     }
@@ -68,5 +68,5 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
     public SpnegoTokenGenerator getSpengoGenerator() {
         return spengoGenerator;
     }
-    
+
 }

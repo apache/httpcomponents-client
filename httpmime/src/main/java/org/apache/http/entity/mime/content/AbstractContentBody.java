@@ -36,7 +36,7 @@ public abstract class AbstractContentBody implements ContentBody {
     private final String mimeType;
     private final String mediaType;
     private final String subType;
-    
+
     public AbstractContentBody(final String mimeType) {
         super();
         if (mimeType == null) {
@@ -56,7 +56,7 @@ public abstract class AbstractContentBody implements ContentBody {
     public String getMimeType() {
         return this.mimeType;
     }
-    
+
     public String getMediaType() {
         return this.mediaType;
     }

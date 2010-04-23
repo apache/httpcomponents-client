@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 
 package org.apache.http.impl.cookie;
 
@@ -46,16 +46,16 @@ import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * Cookie specification that strives to closely mimic (mis)behavior of 
+ * Cookie specification that strives to closely mimic (mis)behavior of
  * common web browser applications such as Microsoft Internet Explorer
  * and Mozilla FireFox.
  *
- * 
- * @since 4.0 
+ *
+ * @since 4.0
  */
 @NotThreadSafe // superclass is @NotThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
-    
+
     @Deprecated
     protected static final String[] DATE_PATTERNS = new String[] {
             DateUtils.PATTERN_RFC1123,
@@ -71,7 +71,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             "EEE dd MMM yy HH:mm:ss z",
             "EEE,dd-MMM-yy HH:mm:ss z",
             "EEE,dd-MMM-yyyy HH:mm:ss z",
-            "EEE, dd-MM-yyyy HH:mm:ss z",                
+            "EEE, dd-MM-yyyy HH:mm:ss z",
         };
 
     private static final String[] DEFAULT_DATE_PATTERNS = new String[] {
@@ -88,11 +88,11 @@ public class BrowserCompatSpec extends CookieSpecBase {
         "EEE dd MMM yy HH:mm:ss z",
         "EEE,dd-MMM-yy HH:mm:ss z",
         "EEE,dd-MMM-yyyy HH:mm:ss z",
-        "EEE, dd-MM-yyyy HH:mm:ss z",                
+        "EEE, dd-MM-yyyy HH:mm:ss z",
     };
-    
-    private final String[] datepatterns; 
-    
+
+    private final String[] datepatterns;
+
     /** Default constructor */
     public BrowserCompatSpec(final String[] datepatterns) {
         super();
@@ -114,8 +114,8 @@ public class BrowserCompatSpec extends CookieSpecBase {
     public BrowserCompatSpec() {
         this(null);
     }
-    
-    public List<Cookie> parse(final Header header, final CookieOrigin origin) 
+
+    public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -129,17 +129,17 @@ public class BrowserCompatSpec extends CookieSpecBase {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
         }
-        boolean isNetscapeCookie = false; 
+        boolean isNetscapeCookie = false;
         int i1 = headervalue.toLowerCase(Locale.ENGLISH).indexOf("expires=");
         if (i1 != -1) {
             i1 += "expires=".length();
             int i2 = headervalue.indexOf(';', i1);
             if (i2 == -1) {
-                i2 = headervalue.length(); 
+                i2 = headervalue.length();
             }
             try {
                 DateUtils.parseDate(headervalue.substring(i1, i2), this.datepatterns);
-                isNetscapeCookie = true; 
+                isNetscapeCookie = true;
             } catch (DateParseException e) {
                 // Does not look like a valid expiry date
             }
@@ -152,7 +152,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();
                 cursor = new ParserCursor(
-                        ((FormattedHeader) header).getValuePos(), 
+                        ((FormattedHeader) header).getValuePos(),
                         buffer.length());
             } else {
                 String s = header.getValue();
@@ -209,5 +209,5 @@ public class BrowserCompatSpec extends CookieSpecBase {
     public String toString() {
         return "compatibility";
     }
-    
+
 }

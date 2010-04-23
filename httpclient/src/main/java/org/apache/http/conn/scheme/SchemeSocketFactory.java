@@ -36,7 +36,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpParams;
 
 /**
- * A factory for creating, initializing and connecting sockets. The factory encapsulates the logic 
+ * A factory for creating, initializing and connecting sockets. The factory encapsulates the logic
  * for establishing a socket connection.
  *
  * @since 4.1
@@ -49,14 +49,14 @@ public interface SchemeSocketFactory {
      *
      * @param params    additional {@link HttpParams parameters}
      * @return  a new socket
-     * 
+     *
      * @throws IOException if an I/O error occurs while creating the socket
      */
     Socket createSocket(HttpParams params) throws IOException;
 
     /**
      * Connects a socket to the target host with the given remote address.
-     * 
+     *
      * @param sock      the socket to connect, as obtained from
      *                  {@link #createSocket() createSocket}.
      *                  <code>null</code> indicates that a new socket
@@ -65,11 +65,11 @@ public interface SchemeSocketFactory {
      * @param localAddress the local address to bind the socket to, or
      *                  <code>null</code> for any
      * @param params    additional {@link HttpParams parameters} for connecting
-     * 
+     *
      * @return  the connected socket. The returned object may be different
      *          from the <code>sock</code> argument if this factory supports
      *          a layered protocol.
-     * 
+     *
      * @throws IOException if an I/O error occurs
      * @throws UnknownHostException if the IP address of the target host
      *          can not be determined
@@ -78,18 +78,18 @@ public interface SchemeSocketFactory {
      */
     Socket connectSocket(
         Socket sock,
-        InetSocketAddress remoteAddress, 
-        InetSocketAddress localAddress, 
+        InetSocketAddress remoteAddress,
+        InetSocketAddress localAddress,
         HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException;
 
     /**
-     * Checks whether a socket provides a secure connection. The socket must be 
+     * Checks whether a socket provides a secure connection. The socket must be
      * {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams) connected}
      * by this factory. The factory will <i>not</i> perform I/O operations in this method.
      * <p>
-     * As a rule of thumb, plain sockets are not secure and TLS/SSL sockets are secure. However, 
-     * there may be application specific deviations. For example, a plain socket to a host in the 
-     * same intranet ("trusted zone") could be considered secure. On the other hand, a TLS/SSL 
+     * As a rule of thumb, plain sockets are not secure and TLS/SSL sockets are secure. However,
+     * there may be application specific deviations. For example, a plain socket to a host in the
+     * same intranet ("trusted zone") could be considered secure. On the other hand, a TLS/SSL
      * socket could be considered insecure based on the cipher suite chosen for the connection.
      *
      * @param sock      the connected socket to check

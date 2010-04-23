@@ -38,65 +38,65 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * This interface represents only the most basic contract for HTTP request 
- * execution. It imposes no restrictions or particular details on the request 
- * execution process and leaves the specifics of state management, 
- * authentication and redirect handling up to individual implementations. 
- * This should make it easier to decorate the interface with additional 
- * functionality such as response content caching.  
+ * This interface represents only the most basic contract for HTTP request
+ * execution. It imposes no restrictions or particular details on the request
+ * execution process and leaves the specifics of state management,
+ * authentication and redirect handling up to individual implementations.
+ * This should make it easier to decorate the interface with additional
+ * functionality such as response content caching.
  * <p/>
  * The usual execution flow can be demonstrated by the code snippet below:
  * <PRE>
  * HttpClient httpclient = new DefaultHttpClient();
- * 
+ *
  * // Prepare a request object
- * HttpGet httpget = new HttpGet("http://www.apache.org/"); 
- * 
+ * HttpGet httpget = new HttpGet("http://www.apache.org/");
+ *
  * // Execute the request
  * HttpResponse response = httpclient.execute(httpget);
- * 
+ *
  * // Examine the response status
  * System.out.println(response.getStatusLine());
- * 
+ *
  * // Get hold of the response entity
  * HttpEntity entity = response.getEntity();
- * 
+ *
  * // If the response does not enclose an entity, there is no need
  * // to worry about connection release
  * if (entity != null) {
  *     InputStream instream = entity.getContent();
  *     try {
- *         
+ *
  *         BufferedReader reader = new BufferedReader(
  *                 new InputStreamReader(instream));
  *         // do something useful with the response
  *         System.out.println(reader.readLine());
- *         
+ *
  *     } catch (IOException ex) {
- * 
+ *
  *         // In case of an IOException the connection will be released
  *         // back to the connection manager automatically
  *         throw ex;
- *         
+ *
  *     } catch (RuntimeException ex) {
- * 
+ *
  *         // In case of an unexpected exception you may want to abort
- *         // the HTTP request in order to shut down the underlying 
+ *         // the HTTP request in order to shut down the underlying
  *         // connection and release it back to the connection manager.
  *         httpget.abort();
  *         throw ex;
- *         
+ *
  *     } finally {
- * 
+ *
  *         // Closing the input stream will trigger connection release
  *         instream.close();
- *         
+ *
  *     }
- *     
- *     // When HttpClient instance is no longer needed, 
+ *
+ *     // When HttpClient instance is no longer needed,
  *     // shut down the connection manager to ensure
  *     // immediate deallocation of all system resources
- *     httpclient.getConnectionManager().shutdown();        
+ *     httpclient.getConnectionManager().shutdown();
  * }
  * </PRE>
  *
@@ -212,7 +212,7 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     <T> T execute(
-            HttpUriRequest request, 
+            HttpUriRequest request,
             ResponseHandler<? extends T> responseHandler)
         throws IOException, ClientProtocolException;
 
@@ -228,13 +228,13 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     <T> T execute(
-            HttpUriRequest request, 
+            HttpUriRequest request,
             ResponseHandler<? extends T> responseHandler,
             HttpContext context)
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request to the target using the default context and 
+     * Executes a request to the target using the default context and
      * processes the response using the given response handler.
      *
      * @param target    the target host for the request.
@@ -249,13 +249,13 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     <T> T execute(
-            HttpHost target, 
+            HttpHost target,
             HttpRequest request,
             ResponseHandler<? extends T> responseHandler)
         throws IOException, ClientProtocolException;
-    
+
     /**
-     * Executes a request to the target using the given context and 
+     * Executes a request to the target using the given context and
      * processes the response using the given response handler.
      *
      * @param target    the target host for the request.
@@ -272,10 +272,10 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     <T> T execute(
-            HttpHost target, 
+            HttpHost target,
             HttpRequest request,
-            ResponseHandler<? extends T> responseHandler, 
+            ResponseHandler<? extends T> responseHandler,
             HttpContext context)
         throws IOException, ClientProtocolException;
-    
+
 }

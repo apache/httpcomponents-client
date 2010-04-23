@@ -58,16 +58,16 @@ public class TestHttpOptions extends TestCase {
 
     public void testMultipleAllows() {
         ProtocolVersion proto = new ProtocolVersion("HTTP", 1, 1);
-        BasicStatusLine line = new BasicStatusLine(proto, 200, "test reason"); 
+        BasicStatusLine line = new BasicStatusLine(proto, 200, "test reason");
         BasicHttpResponse resp = new BasicHttpResponse(line);
         resp.addHeader("Allow", "POST");
         resp.addHeader("Allow", "GET");
 
         HttpOptions opt = new HttpOptions();
         Set<String> methodsName = opt.getAllowedMethods(resp);
-        
+
         assertTrue(methodsName.contains("POST"));
         assertTrue(methodsName.contains("GET"));
     }
-    
+
 }

@@ -30,7 +30,7 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
- * A watcher for {@link EofSensorInputStream}. Each stream will notify its 
+ * A watcher for {@link EofSensorInputStream}. Each stream will notify its
  * watcher at most once.
  *
  * @since 4.0
@@ -77,7 +77,7 @@ public interface EofSensorWatcher {
      * before aborting. Otherwise, {@link #eofDetected eofDetected} is called.
      * <p/>
      * This method will also be invoked when an input operation causes an
-     * IOException to be thrown to make sure the input stream gets shut down. 
+     * IOException to be thrown to make sure the input stream gets shut down.
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *

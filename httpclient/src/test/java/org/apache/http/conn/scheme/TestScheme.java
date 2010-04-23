@@ -48,7 +48,7 @@ public class TestScheme extends TestCase {
     public static Test suite() {
         return new TestSuite(TestScheme.class);
     }
-    
+
     public void testPortResolution() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         assertEquals(80, http.resolvePort(0));

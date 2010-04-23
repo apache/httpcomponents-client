@@ -30,21 +30,21 @@ package org.apache.http.cookie;
 import java.util.Date;
 
 /**
- * This interface represents a <code>Set-Cookie</code> response header sent by the 
+ * This interface represents a <code>Set-Cookie</code> response header sent by the
  * origin server to the HTTP agent in order to maintain a conversational state.
- * 
+ *
  * @since 4.0
  */
 public interface SetCookie extends Cookie {
 
     void setValue(String value);
-    
+
     /**
      * If a user agent (web browser) presents this cookie to a user, the
      * cookie's purpose will be described using this comment.
-     * 
+     *
      * @param comment
-     *  
+     *
      * @see #getComment()
      */
     void setComment(String comment);
@@ -52,7 +52,7 @@ public interface SetCookie extends Cookie {
     /**
      * Sets expiration date.
      * <p><strong>Note:</strong> the object returned by this method is considered
-     * immutable. Changing it (e.g. using setTime()) could result in undefined 
+     * immutable. Changing it (e.g. using setTime()) could result in undefined
      * behaviour. Do so at your peril.</p>
      *
      * @param expiryDate the {@link Date} after which this cookie is no longer valid.
@@ -64,7 +64,7 @@ public interface SetCookie extends Cookie {
 
     /**
      * Sets the domain attribute.
-     * 
+     *
      * @param domain The value of the domain attribute
      *
      * @see Cookie#getDomain
@@ -90,17 +90,17 @@ public interface SetCookie extends Cookie {
      * cookie's value.
      *
      * @param secure The value of the secure attribute
-     * 
+     *
      * @see #isSecure()
      */
     void setSecure (boolean secure);
 
     /**
      * Sets the version of the cookie specification to which this
-     * cookie conforms. 
+     * cookie conforms.
      *
      * @param version the version of the cookie.
-     * 
+     *
      * @see Cookie#getVersion
      */
     void setVersion(int version);

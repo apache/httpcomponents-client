@@ -42,7 +42,7 @@ public class MinimalField {
         this.name = name;
         this.value = value;
     }
-    
+
     public String getName() {
         return this.name;
     }
@@ -59,5 +59,5 @@ public class MinimalField {
         buffer.append(this.value);
         return buffer.toString();
     }
-    
+
 }

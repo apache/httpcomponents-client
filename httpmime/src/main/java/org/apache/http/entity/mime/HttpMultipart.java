@@ -40,8 +40,8 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.util.ByteArrayBuffer;
 
 /**
- * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is 
- * capable of operating either in the strict (RFC 822, RFC 2045, RFC 2046 compliant) or 
+ * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is
+ * capable of operating either in the strict (RFC 822, RFC 2045, RFC 2046 compliant) or
  * the browser compatible modes.
  *
  * @since 4.0
@@ -55,18 +55,18 @@ public class HttpMultipart {
         bab.append(encoded.array(), encoded.position(), encoded.remaining());
         return bab;
     }
-    
+
     private static void writeBytes(
             final ByteArrayBuffer b, final OutputStream out) throws IOException {
         out.write(b.buffer(), 0, b.length());
     }
-    
+
     private static void writeBytes(
             final String s, final Charset charset, final OutputStream out) throws IOException {
         ByteArrayBuffer b = encode(charset, s);
         writeBytes(b, out);
     }
-    
+
     private static void writeBytes(
             final String s, final OutputStream out) throws IOException {
         ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
@@ -76,15 +76,15 @@ public class HttpMultipart {
     private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
     private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
     private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
-    
+
 
     private final String subType;
     private final Charset charset;
     private final String boundary;
     private final List<FormBodyPart> parts;
-    
+
     private HttpMultipartMode mode;
-    
+
     public HttpMultipart(final String subType, final Charset charset, final String boundary) {
         super();
         if (subType == null) {
@@ -111,7 +111,7 @@ public class HttpMultipart {
     public Charset getCharset() {
         return this.charset;
     }
-    
+
     public HttpMultipartMode getMode() {
         return this.mode;
     }
@@ -130,16 +130,16 @@ public class HttpMultipart {
         }
         this.parts.add(part);
     }
-    
+
     public String getBoundary() {
         return this.boundary;
     }
 
     private void doWriteTo(
-        final HttpMultipartMode mode, 
-        final OutputStream out, 
+        final HttpMultipartMode mode,
+        final OutputStream out,
         boolean writeContent) throws IOException {
-        
+
         ByteArrayBuffer boundary = encode(this.charset, getBoundary());
         for (FormBodyPart part: this.parts) {
             writeBytes(TWO_DASHES, out);
@@ -158,7 +158,7 @@ public class HttpMultipart {
                 }
                 break;
             case BROWSER_COMPATIBLE:
-                // Only write Content-Disposition 
+                // Only write Content-Disposition
                 // Use content charset
                 MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
                 writeBytes(cd.getName(), this.charset, out);
@@ -181,10 +181,10 @@ public class HttpMultipart {
     }
 
     /**
-     * Writes out the content in the multipart/form encoding. This method 
-     * produces slightly different formatting depending on its compatibility 
+     * Writes out the content in the multipart/form encoding. This method
+     * produces slightly different formatting depending on its compatibility
      * mode.
-     * 
+     *
      * @see #getMode()
      */
     public void writeTo(final OutputStream out) throws IOException {
@@ -192,16 +192,16 @@ public class HttpMultipart {
     }
 
     /**
-     * Determines the total length of the multipart content (content length of 
-     * individual parts plus that of extra elements required to delimit the parts 
-     * from one another). If any of the @{link BodyPart}s contained in this object 
+     * Determines the total length of the multipart content (content length of
+     * individual parts plus that of extra elements required to delimit the parts
+     * from one another). If any of the @{link BodyPart}s contained in this object
      * is of a streaming entity of unknown length the total length is also unknown.
      * <p/>
      * This method buffers only a small amount of data in order to determine the
-     * total length of the entire entity. The content of individual parts is not 
-     * buffered.  
-     * 
-     * @return total length of the multipart entity if known, <code>-1</code> 
+     * total length of the entire entity. The content of individual parts is not
+     * buffered.
+     *
+     * @return total length of the multipart entity if known, <code>-1</code>
      *   otherwise.
      */
     public long getTotalLength() {
@@ -225,5 +225,5 @@ public class HttpMultipart {
             return -1;
         }
     }
-    
+
 }

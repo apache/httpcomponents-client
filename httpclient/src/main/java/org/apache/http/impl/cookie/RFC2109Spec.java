@@ -50,25 +50,25 @@ import org.apache.http.util.CharArrayBuffer;
  * RFC 2109 compliant {@link CookieSpec} implementation. This is an older
  * version of the official HTTP state management specification superseded
  * by RFC 2965.
- * 
+ *
  * @see RFC2965Spec
- * 
- * @since 4.0 
+ *
+ * @since 4.0
  */
 @NotThreadSafe // superclass is @NotThreadSafe
 public class RFC2109Spec extends CookieSpecBase {
 
-    private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator(); 
-    
+    private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator();
+
     private final static String[] DATE_PATTERNS = {
         DateUtils.PATTERN_RFC1123,
         DateUtils.PATTERN_RFC1036,
-        DateUtils.PATTERN_ASCTIME 
-    }; 
-    
-    private final String[] datepatterns; 
+        DateUtils.PATTERN_ASCTIME
+    };
+
+    private final String[] datepatterns;
     private final boolean oneHeader;
-    
+
     /** Default constructor */
     public RFC2109Spec(final String[] datepatterns, boolean oneHeader) {
         super();
@@ -92,8 +92,8 @@ public class RFC2109Spec extends CookieSpecBase {
     public RFC2109Spec() {
         this(null, false);
     }
-    
-    public List<Cookie> parse(final Header header, final CookieOrigin origin) 
+
+    public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -110,7 +110,7 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     @Override
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -181,7 +181,7 @@ public class RFC2109Spec extends CookieSpecBase {
         }
         return headers;
     }
-    
+
     /**
      * Return a name/value string suitable for sending in a <tt>"Cookie"</tt>
      * header as defined in RFC 2109 for backward compatibility with cookie
@@ -189,9 +189,9 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param buffer The char array buffer to use for output
      * @param name The cookie name
      * @param value The cookie value
-     * @param version The cookie version 
+     * @param version The cookie version
      */
-    protected void formatParamAsVer(final CharArrayBuffer buffer, 
+    protected void formatParamAsVer(final CharArrayBuffer buffer,
             final String name, final String value, int version) {
         buffer.append(name);
         buffer.append("=");
@@ -207,24 +207,24 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     /**
-     * Return a string suitable for sending in a <tt>"Cookie"</tt> header 
+     * Return a string suitable for sending in a <tt>"Cookie"</tt> header
      * as defined in RFC 2109 for backward compatibility with cookie version 0
      * @param buffer The char array buffer to use for output
      * @param cookie The {@link Cookie} to be formatted as string
      * @param version The version to use.
      */
-    protected void formatCookieAsVer(final CharArrayBuffer buffer, 
+    protected void formatCookieAsVer(final CharArrayBuffer buffer,
             final Cookie cookie, int version) {
         formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
         if (cookie.getPath() != null) {
-            if (cookie instanceof ClientCookie 
+            if (cookie instanceof ClientCookie
                     && ((ClientCookie) cookie).containsAttribute(ClientCookie.PATH_ATTR)) {
                 buffer.append("; ");
                 formatParamAsVer(buffer, "$Path", cookie.getPath(), version);
             }
         }
         if (cookie.getDomain() != null) {
-            if (cookie instanceof ClientCookie 
+            if (cookie instanceof ClientCookie
                     && ((ClientCookie) cookie).containsAttribute(ClientCookie.DOMAIN_ATTR)) {
                 buffer.append("; ");
                 formatParamAsVer(buffer, "$Domain", cookie.getDomain(), version);
@@ -239,10 +239,10 @@ public class RFC2109Spec extends CookieSpecBase {
     public Header getVersionHeader() {
         return null;
     }
-    
+
     @Override
     public String toString() {
         return "rfc2109";
     }
-    
+
 }

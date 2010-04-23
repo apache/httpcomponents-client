@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -45,8 +45,8 @@ public class BasicDomainHandler implements CookieAttributeHandler {
     public BasicDomainHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, final String value) 
+
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -60,7 +60,7 @@ public class BasicDomainHandler implements CookieAttributeHandler {
         cookie.setDomain(value);
     }
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -68,10 +68,10 @@ public class BasicDomainHandler implements CookieAttributeHandler {
         if (origin == null) {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
-        // Validate the cookies domain attribute.  NOTE:  Domains without 
-        // any dots are allowed to support hosts on private LANs that don't 
-        // have DNS names.  Since they have no dots, to domain-match the 
-        // request-host and domain must be identical for the cookie to sent 
+        // Validate the cookies domain attribute.  NOTE:  Domains without
+        // any dots are allowed to support hosts on private LANs that don't
+        // have DNS names.  Since they have no dots, to domain-match the
+        // request-host and domain must be identical for the cookie to sent
         // back to the origin-server.
         String host = origin.getHost();
         String domain = cookie.getDomain();
@@ -87,21 +87,21 @@ public class BasicDomainHandler implements CookieAttributeHandler {
                 if (domain.startsWith(".")) {
                     domain = domain.substring(1, domain.length());
                 }
-                if (!host.equals(domain)) { 
+                if (!host.equals(domain)) {
                     throw new CookieRestrictionViolationException(
-                        "Illegal domain attribute \"" + domain 
+                        "Illegal domain attribute \"" + domain
                         + "\". Domain of origin: \"" + host + "\"");
                 }
             }
         } else {
             if (!host.equals(domain)) {
                 throw new CookieRestrictionViolationException(
-                    "Illegal domain attribute \"" + domain 
+                    "Illegal domain attribute \"" + domain
                     + "\". Domain of origin: \"" + host + "\"");
             }
         }
     }
-    
+
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -122,5 +122,5 @@ public class BasicDomainHandler implements CookieAttributeHandler {
         }
         return host.endsWith(domain) || host.equals(domain.substring(1));
     }
-    
+
 }

@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpRequestHandler;
 
 /**
  *  Simple tests for {@link RequestWrapper}.
- * 
+ *
  */
 public class TestRequestWrapper extends BasicServerTestBase {
 
@@ -74,16 +74,16 @@ public class TestRequestWrapper extends BasicServerTestBase {
         localServer.registerDefaultHandlers();
         localServer.start();
     }
-    
+
     private static class SimpleService implements HttpRequestHandler {
-        
+
         public SimpleService() {
             super();
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(HttpStatus.SC_OK);
             StringEntity entity = new StringEntity("Whatever");
@@ -94,8 +94,8 @@ public class TestRequestWrapper extends BasicServerTestBase {
     public void testRequestURIRewriting() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port + "/path";
@@ -109,7 +109,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         assertTrue(reqWrapper instanceof RequestWrapper);
@@ -119,8 +119,8 @@ public class TestRequestWrapper extends BasicServerTestBase {
     public void testRequestURIRewritingEmptyPath() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
@@ -134,7 +134,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
-        
+
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         assertTrue(reqWrapper instanceof RequestWrapper);

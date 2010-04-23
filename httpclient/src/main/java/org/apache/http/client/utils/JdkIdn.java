@@ -45,7 +45,7 @@ public class JdkIdn implements Idn {
     private final Method toUnicode;
 
     /**
-     * 
+     *
      * @throws ClassNotFoundException if java.net.IDN is not available
      */
     public JdkIdn() throws ClassNotFoundException {
@@ -71,5 +71,5 @@ public class JdkIdn implements Idn {
             throw new RuntimeException(t.getMessage(), t);
         }
     }
-    
+
 }

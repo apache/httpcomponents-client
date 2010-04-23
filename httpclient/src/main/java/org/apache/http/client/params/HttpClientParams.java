@@ -32,7 +32,7 @@ import org.apache.http.params.HttpParams;
 
 /**
  * An adaptor for manipulating HTTP client parameters in {@link HttpParams}.
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -47,7 +47,7 @@ public class HttpClientParams {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         return params.getBooleanParameter
-            (ClientPNames.HANDLE_REDIRECTS, true); 
+            (ClientPNames.HANDLE_REDIRECTS, true);
     }
 
     public static void setRedirecting(final HttpParams params, boolean value) {
@@ -55,15 +55,15 @@ public class HttpClientParams {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         params.setBooleanParameter
-            (ClientPNames.HANDLE_REDIRECTS, value); 
+            (ClientPNames.HANDLE_REDIRECTS, value);
     }
-    
+
     public static boolean isAuthenticating(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         return params.getBooleanParameter
-            (ClientPNames.HANDLE_AUTHENTICATION, true); 
+            (ClientPNames.HANDLE_AUTHENTICATION, true);
     }
 
     public static void setAuthenticating(final HttpParams params, boolean value) {
@@ -71,10 +71,10 @@ public class HttpClientParams {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         params.setBooleanParameter
-            (ClientPNames.HANDLE_AUTHENTICATION, value); 
+            (ClientPNames.HANDLE_AUTHENTICATION, value);
     }
-    
-    public static String getCookiePolicy(final HttpParams params) { 
+
+    public static String getCookiePolicy(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
@@ -85,7 +85,7 @@ public class HttpClientParams {
         }
         return cookiePolicy;
     }
-    
+
     public static void setCookiePolicy(final HttpParams params, final String cookiePolicy) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");

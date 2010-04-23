@@ -29,10 +29,10 @@ package org.apache.http.auth;
 import org.apache.http.annotation.Immutable;
 
 /**
- * Authentication credentials required to respond to a authentication 
+ * Authentication credentials required to respond to a authentication
  * challenge are invalid
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -41,7 +41,7 @@ public class InvalidCredentialsException extends AuthenticationException {
     private static final long serialVersionUID = -4834003835215460648L;
 
     /**
-     * Creates a new InvalidCredentialsException with a <tt>null</tt> detail message. 
+     * Creates a new InvalidCredentialsException with a <tt>null</tt> detail message.
      */
     public InvalidCredentialsException() {
         super();
@@ -49,7 +49,7 @@ public class InvalidCredentialsException extends AuthenticationException {
 
     /**
      * Creates a new InvalidCredentialsException with the specified message.
-     * 
+     *
      * @param message the exception detail message
      */
     public InvalidCredentialsException(String message) {
@@ -58,7 +58,7 @@ public class InvalidCredentialsException extends AuthenticationException {
 
     /**
      * Creates a new InvalidCredentialsException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

@@ -47,7 +47,7 @@ import org.apache.http.annotation.Immutable;
  * A wildcard such as "*.foo.com" matches only subdomains in the same
  * level, for example "a.foo.com".  It does not match deeper subdomains
  * such as "a.b.foo.com".
- * 
+ *
  *
  * @since 4.0
  */
@@ -55,15 +55,15 @@ import org.apache.http.annotation.Immutable;
 public class StrictHostnameVerifier extends AbstractVerifier {
 
     public final void verify(
-            final String host, 
+            final String host,
             final String[] cns,
             final String[] subjectAlts) throws SSLException {
         verify(host, cns, subjectAlts, true);
     }
 
     @Override
-    public final String toString() { 
-        return "STRICT"; 
+    public final String toString() {
+        return "STRICT";
     }
-    
+
 }

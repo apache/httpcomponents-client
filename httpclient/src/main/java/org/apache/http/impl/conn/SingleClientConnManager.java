@@ -49,11 +49,11 @@ import org.apache.http.params.HttpParams;
  * maintains only one active connection at a time. Even though this class
  * is thread-safe it ought to be used by one execution thread only.
  * <p>
- * SingleClientConnManager will make an effort to reuse the connection 
- * for subsequent requests with the same {@link HttpRoute route}. 
+ * SingleClientConnManager will make an effort to reuse the connection
+ * for subsequent requests with the same {@link HttpRoute route}.
  * It will, however, close the existing connection and open it
  * for the given route, if the route of the persistent connection does
- * not match that of the connection request. If the connection has been 
+ * not match that of the connection request. If the connection has been
  * already been allocated {@link IllegalStateException} is thrown.
  *
  * @since 4.0
@@ -69,8 +69,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
     "Make sure to release the connection before allocating another one.";
 
     /** The schemes supported by this connection manager. */
-    protected final SchemeRegistry schemeRegistry; 
-    
+    protected final SchemeRegistry schemeRegistry;
+
     /** The operator for opening and updating connections. */
     protected final ClientConnectionOperator connOperator;
 
@@ -88,7 +88,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     /** The time of the last connection release, or -1. */
     @GuardedBy("this")
     protected long lastReleaseTime;
-    
+
     /** The time the last released connection expires and shouldn't be reused. */
     @GuardedBy("this")
     protected long connectionExpiresTime;
@@ -102,7 +102,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @param params    the parameters for this manager
      * @param schreg    the scheme registry, or
      *                  <code>null</code> for the default registry
-     *                  
+     *
      * @deprecated use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
     @Deprecated
@@ -173,19 +173,19 @@ public class SingleClientConnManager implements ClientConnectionManager {
     public final ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
-        
+
         return new ClientConnectionRequest() {
-            
+
             public void abortRequest() {
                 // Nothing to abort, since requests are immediate.
             }
-            
+
             public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) {
                 return SingleClientConnManager.this.getConnection(
                         route, state);
             }
-            
+
         };
     }
 
@@ -213,10 +213,10 @@ public class SingleClientConnManager implements ClientConnectionManager {
         // check re-usability of the connection
         boolean recreate = false;
         boolean shutdown = false;
-        
+
         // Kill the connection if it expired.
         closeExpiredConnections();
-        
+
         if (uniquePoolEntry.connection.isOpen()) {
             RouteTracker tracker = uniquePoolEntry.tracker;
             shutdown = (tracker == null || // can happen if method is aborted
@@ -238,7 +238,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 log.debug("Problem shutting down connection.", iox);
             }
         }
-        
+
         if (recreate)
             uniquePoolEntry = new PoolEntry();
 
@@ -248,7 +248,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     public synchronized void releaseConnection(
-            ManagedClientConnection conn, 
+            ManagedClientConnection conn,
             long validDuration, TimeUnit timeUnit) {
         assertStillUp();
 
@@ -257,7 +257,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 ("Connection class mismatch, " +
                  "connection not obtained from this manager.");
         }
-        
+
         if (log.isDebugEnabled()) {
             log.debug("Releasing connection " + conn);
         }
@@ -300,7 +300,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 connectionExpiresTime = Long.MAX_VALUE;
         }
     }
-    
+
     public synchronized void closeExpiredConnections() {
         if(System.currentTimeMillis() >= connectionExpiresTime) {
             closeIdleConnections(0, TimeUnit.MILLISECONDS);

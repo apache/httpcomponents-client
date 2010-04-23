@@ -41,7 +41,7 @@ import org.apache.http.cookie.SetCookie;
 
 /**
  * <tt>"Domain"</tt> cookie attribute handler for RFC 2965 cookie spec.
- * 
+ *
  *
  * @since 3.1
  */
@@ -73,7 +73,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             // Per RFC 2965 section 3.2.2
             // "... If an explicitly specified value does not start with
             // a dot, the user agent supplies a leading dot ..."
-            // That effectively implies that the domain attribute 
+            // That effectively implies that the domain attribute
             // MAY NOT be an IP address of a host name
             domain = '.' + domain;
         }
@@ -120,7 +120,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
         }
         String cookieDomain = cookie.getDomain().toLowerCase(Locale.ENGLISH);
 
-        if (cookie instanceof ClientCookie 
+        if (cookie instanceof ClientCookie
                 && ((ClientCookie) cookie).containsAttribute(ClientCookie.DOMAIN_ATTR)) {
             // Domain attribute must start with a dot
             if (!cookieDomain.startsWith(".")) {

@@ -59,7 +59,7 @@ public class TestSCMWithServer extends ServerTestBase {
     public static Test suite() {
         return new TestSuite(TestSCMWithServer.class);
     }
-    
+
     /**
      * Helper to instantiate a <code>SingleClientConnManager</code>.
      *
@@ -73,7 +73,7 @@ public class TestSCMWithServer extends ServerTestBase {
             schreg = supportedSchemes;
         return new SingleClientConnManager(schreg);
     }
-    
+
     /**
      * Tests that SCM can still connect to the same host after
      * a connection was aborted.
@@ -87,7 +87,7 @@ public class TestSCMWithServer extends ServerTestBase {
         ManagedClientConnection conn = mgr.getConnection(route, null);
         assertTrue(conn instanceof AbstractClientConnAdapter);
         ((AbstractClientConnAdapter) conn).abortConnection();
-        
+
         conn = mgr.getConnection(route, null);
         assertFalse("connection should have been closed", conn.isOpen());
         conn.open(route, httpContext, defaultParams);
@@ -95,7 +95,7 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn, -1, null);
         mgr.shutdown();
     }
-    
+
     /**
      * Tests releasing with time limits.
      */
@@ -116,7 +116,7 @@ public class TestSCMWithServer extends ServerTestBase {
 
         // a new context is created for each testcase, no need to reset
         HttpResponse response = Helper.execute(
-                request, conn, target, 
+                request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
 
         assertEquals("wrong status in first response",
@@ -172,7 +172,7 @@ public class TestSCMWithServer extends ServerTestBase {
         Thread.sleep(150);
         conn =  mgr.getConnection(route, null);
         assertTrue("connection should have been closed", !conn.isOpen());
-        
+
         // repeat the communication, no need to prepare the request again
         conn.open(route, httpContext, defaultParams);
         httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -186,7 +186,7 @@ public class TestSCMWithServer extends ServerTestBase {
         assertEquals("wrong length of fourth response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
-        
+
         mgr.shutdown();
     }
 
@@ -201,9 +201,9 @@ public class TestSCMWithServer extends ServerTestBase {
         ManagedClientConnection conn =  mgr.getConnection(route, null);
         conn.open(route, httpContext, defaultParams);
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
-        
+
         mgr.closeExpiredConnections();
-        
+
         conn = mgr.getConnection(route, null);
         assertTrue(conn.isOpen());
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
@@ -212,10 +212,10 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.closeExpiredConnections();
         conn = mgr.getConnection(route, null);
         assertFalse(conn.isOpen());
-        
+
         mgr.shutdown();
     }
-    
+
     public void testAlreadyLeased() throws Exception {
 
         SingleClientConnManager mgr = createSCCM(null);
@@ -225,7 +225,7 @@ public class TestSCMWithServer extends ServerTestBase {
 
         ManagedClientConnection conn =  mgr.getConnection(route, null);
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
-        
+
         mgr.getConnection(route, null);
         try {
             mgr.getConnection(route, null);

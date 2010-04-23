@@ -430,7 +430,7 @@ public class CertificatesToPlayWith {
           "6bb45a374f0537c5a1aab3150764ce93cf386c84346a6bd01f6732e42075" +
           "c7a0e9e78a9e73b934e7d871d0f75673820089e129a1604438edcbbeb4e2" +
           "106467da112ce389";
-    
+
     public final static String RSA_EXPONENT2 =
           "00827e76650c946afcd170038d32e1f8386ab00d6be78d830efe382e45d4" +
           "7ad4bd04e6231ee22e66740efbf52838134932c9f8c460cdccdec58a1424" +
@@ -470,5 +470,5 @@ public class CertificatesToPlayWith {
         "vwuJhNYaa2FJMELIwRN3XES8X8R6JHWbPaRjaAAPhczuEd8SZYy8yiVLmJTgw0gH\n" +
         "BSW775NHlkjsscFVgXkNf0PobqJ9\n" +
         "-----END CERTIFICATE-----").getBytes();
-    
+
 }

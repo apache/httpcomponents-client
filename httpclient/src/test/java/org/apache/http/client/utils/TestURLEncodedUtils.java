@@ -118,15 +118,15 @@ public class TestURLEncodedUtils extends TestCase {
     };
 
     static final int RUSSIAN_HELLO [] = {
-        0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438, 
-        0x432, 0x435, 0x442 
-    }; 
+        0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438,
+        0x432, 0x435, 0x442
+    };
 
     private static String constructString(int [] unicodeChars) {
         StringBuffer buffer = new StringBuffer();
         if (unicodeChars != null) {
             for (int i = 0; i < unicodeChars.length; i++) {
-                buffer.append((char)unicodeChars[i]); 
+                buffer.append((char)unicodeChars[i]);
             }
         }
         return buffer.toString();
@@ -210,8 +210,8 @@ public class TestURLEncodedUtils extends TestCase {
     }
 
     private static void assertNameValuePair (
-            final NameValuePair parameter, 
-            final String expectedName, 
+            final NameValuePair parameter,
+            final String expectedName,
             final String expectedValue) {
         assertEquals(parameter.getName(), expectedName);
         assertEquals(parameter.getValue(), expectedValue);

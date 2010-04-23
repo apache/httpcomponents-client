@@ -37,7 +37,7 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Logs all data written to the wire LOG.
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -45,7 +45,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 
     /** Original data transmitter. */
     private final SessionOutputBuffer out;
-    
+
     /** The wire log to use. */
     private final Wire wire;
 
@@ -59,7 +59,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         this.out = out;
         this.wire = wire;
     }
-    
+
     public void write(byte[] b, int off, int len) throws IOException {
         this.out.write(b,  off,  len);
         if (this.wire.enabled()) {
@@ -103,5 +103,5 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
     public HttpTransportMetrics getMetrics() {
         return this.out.getMetrics();
     }
-    
+
 }

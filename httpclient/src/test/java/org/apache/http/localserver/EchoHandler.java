@@ -46,7 +46,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * A handler that echos the incoming request entity.
- * 
+ *
  *
  *
  * <!-- empty lines to avoid 'svn diff' problems -->
@@ -67,7 +67,7 @@ public class EchoHandler
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    public void handle(final HttpRequest request, 
+    public void handle(final HttpRequest request,
                        final HttpResponse response,
                        final HttpContext context)
         throws HttpException, IOException {

@@ -68,16 +68,16 @@ public class TestStatefulConnManagement extends ServerTestBase {
     public static Test suite() {
         return new TestSuite(TestStatefulConnManagement.class);
     }
-    
+
     private static class SimpleService implements HttpRequestHandler {
-        
+
         public SimpleService() {
             super();
         }
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(HttpStatus.SC_OK);
             StringEntity entity = new StringEntity("Whatever");
@@ -89,22 +89,22 @@ public class TestStatefulConnManagement extends ServerTestBase {
 
         int workerCount = 5;
         int requestCount = 5;
-        
+
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
         HttpHost target = new HttpHost("localhost", port);
-        
+
         HttpParams params = new BasicHttpParams();
         ConnManagerParams.setTimeout(params, 10L);
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
-        
-        
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
-        
+
+
+        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+
         HttpContext[] contexts = new HttpContext[workerCount];
         HttpWorker[] workers = new HttpWorker[workerCount];
         for (int i = 0; i < contexts.length; i++) {
@@ -113,17 +113,17 @@ public class TestStatefulConnManagement extends ServerTestBase {
             contexts[i] = context;
             workers[i] = new HttpWorker(context, requestCount, target, client);
         }
-        
+
         client.setUserTokenHandler(new UserTokenHandler() {
 
             public Object getUserToken(final HttpContext context) {
                 Integer id = (Integer) context.getAttribute("user");
                 return id;
             }
-            
+
         });
-        
-        
+
+
         for (int i = 0; i < workers.length; i++) {
             workers[i].start();
         }
@@ -137,32 +137,32 @@ public class TestStatefulConnManagement extends ServerTestBase {
             }
             assertEquals(requestCount, workers[i].getCount());
         }
-        
+
         for (int i = 0; i < contexts.length; i++) {
             HttpContext context = contexts[i];
             Integer id = (Integer) context.getAttribute("user");
-            
+
             for (int r = 0; r < requestCount; r++) {
                 Integer state = (Integer) context.getAttribute("r" + r);
                 assertNotNull(state);
                 assertEquals(id, state);
             }
         }
-        
+
     }
-    
+
     static class HttpWorker extends Thread {
 
         private final HttpContext context;
         private final int requestCount;
         private final HttpHost target;
         private final HttpClient httpclient;
-        
+
         private volatile Exception exception;
         private volatile int count;
-        
+
         public HttpWorker(
-                final HttpContext context, 
+                final HttpContext context,
                 int requestCount,
                 final HttpHost target,
                 final HttpClient httpclient) {
@@ -173,7 +173,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
             this.httpclient = httpclient;
             this.count = 0;
         }
-        
+
         public int getCount() {
             return this.count;
         }
@@ -188,27 +188,27 @@ public class TestStatefulConnManagement extends ServerTestBase {
                 for (int r = 0; r < this.requestCount; r++) {
                     HttpGet httpget = new HttpGet("/");
                     HttpResponse response = this.httpclient.execute(
-                            this.target, 
-                            httpget, 
+                            this.target,
+                            httpget,
                             this.context);
                     this.count++;
 
                     ManagedClientConnection conn = (ManagedClientConnection) this.context.getAttribute(
                             ExecutionContext.HTTP_CONNECTION);
-                    
+
                     this.context.setAttribute("r" + r, conn.getState());
-                    
+
                     HttpEntity entity = response.getEntity();
                     if (entity != null) {
                         entity.consumeContent();
                     }
                 }
-                
+
             } catch (Exception ex) {
                 this.exception = ex;
             }
         }
-        
+
     }
 
 }

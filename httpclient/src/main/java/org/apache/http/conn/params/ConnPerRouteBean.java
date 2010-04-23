@@ -34,11 +34,11 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
- * This class maintains a map of HTTP routes to maximum number of connections allowed 
- * for those routes. This class can be used by pooling 
- * {@link org.apache.http.conn.ClientConnectionManager connection managers} for 
- * a fine-grained control of connections on a per route basis. 
- * 
+ * This class maintains a map of HTTP routes to maximum number of connections allowed
+ * for those routes. This class can be used by pooling
+ * {@link org.apache.http.conn.ClientConnectionManager connection managers} for
+ * a fine-grained control of connections on a per route basis.
+ *
  * @since 4.0
  */
 @ThreadSafe
@@ -46,21 +46,21 @@ public final class ConnPerRouteBean implements ConnPerRoute {
 
     /** The default maximum number of connections allowed per host */
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 2;   // Per RFC 2616 sec 8.1.4
-    
+
     private final ConcurrentHashMap<HttpRoute, Integer> maxPerHostMap;
-    
+
     private volatile int defaultMax;
-    
+
     public ConnPerRouteBean(int defaultMax) {
         super();
         this.maxPerHostMap = new ConcurrentHashMap<HttpRoute, Integer>();
         setDefaultMaxPerRoute(defaultMax);
     }
-    
+
     public ConnPerRouteBean() {
         this(DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
     }
-    
+
     @Deprecated
     public int getDefaultMax() {
         return this.defaultMax;
@@ -105,7 +105,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
             return this.defaultMax;
         }
     }
-    
+
     public void setMaxForRoutes(final Map<HttpRoute, Integer> map) {
         if (map == null) {
             return;
@@ -118,5 +118,5 @@ public final class ConnPerRouteBean implements ConnPerRoute {
     public String toString() {
         return this.maxPerHostMap.toString();
     }
-    
+
 }

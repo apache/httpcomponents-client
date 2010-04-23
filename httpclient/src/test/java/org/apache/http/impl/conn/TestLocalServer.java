@@ -121,7 +121,7 @@ public class TestLocalServer extends ServerTestBase {
             HttpGet request = new HttpGet(uri);
 
             HttpClientConnection conn = connectTo(target);
-            
+
             httpContext.setAttribute(
                     ExecutionContext.HTTP_CONNECTION, conn);
             httpContext.setAttribute(

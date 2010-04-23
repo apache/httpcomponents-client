@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import java.util.Locale;
@@ -47,8 +47,8 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
     public RFC2109DomainHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, final String value) 
+
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -62,7 +62,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
         cookie.setDomain(value);
     }
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -78,40 +78,40 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
         if (!domain.equals(host)) {
             int dotIndex = domain.indexOf('.');
             if (dotIndex == -1) {
-                throw new CookieRestrictionViolationException("Domain attribute \"" 
-                        + domain 
-                        + "\" does not match the host \"" 
+                throw new CookieRestrictionViolationException("Domain attribute \""
+                        + domain
+                        + "\" does not match the host \""
                         + host + "\"");
             }
             // domain must start with dot
             if (!domain.startsWith(".")) {
-                throw new CookieRestrictionViolationException("Domain attribute \"" 
-                    + domain 
+                throw new CookieRestrictionViolationException("Domain attribute \""
+                    + domain
                     + "\" violates RFC 2109: domain must start with a dot");
             }
             // domain must have at least one embedded dot
             dotIndex = domain.indexOf('.', 1);
             if (dotIndex < 0 || dotIndex == domain.length() - 1) {
-                throw new CookieRestrictionViolationException("Domain attribute \"" 
-                    + domain 
+                throw new CookieRestrictionViolationException("Domain attribute \""
+                    + domain
                     + "\" violates RFC 2109: domain must contain an embedded dot");
             }
             host = host.toLowerCase(Locale.ENGLISH);
             if (!host.endsWith(domain)) {
                 throw new CookieRestrictionViolationException(
-                    "Illegal domain attribute \"" + domain 
+                    "Illegal domain attribute \"" + domain
                     + "\". Domain of origin: \"" + host + "\"");
             }
             // host minus domain may not contain any dots
             String hostWithoutDomain = host.substring(0, host.length() - domain.length());
             if (hostWithoutDomain.indexOf('.') != -1) {
-                throw new CookieRestrictionViolationException("Domain attribute \"" 
-                    + domain 
+                throw new CookieRestrictionViolationException("Domain attribute \""
+                    + domain
                     + "\" violates RFC 2109: host minus domain may not contain any dots");
             }
         }
     }
-    
+
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -126,5 +126,5 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
         }
         return host.equals(domain) || (domain.startsWith(".") && host.endsWith(domain));
     }
-    
+
 }

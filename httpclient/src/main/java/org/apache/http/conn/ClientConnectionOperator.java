@@ -37,9 +37,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * ClientConnectionOperator represents a strategy for creating 
- * {@link OperatedClientConnection} instances and updating the underlying 
- * {@link Socket} of those objects. Implementations will most likely make use 
+ * ClientConnectionOperator represents a strategy for creating
+ * {@link OperatedClientConnection} instances and updating the underlying
+ * {@link Socket} of those objects. Implementations will most likely make use
  * of {@link SchemeSocketFactory}s to create {@link Socket} instances.
  * <p>
  * The methods in this interface allow the creation of plain and layered
@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpContext;
  * is not within the scope of the operator.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed 
+ * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
  *
  * @since 4.0

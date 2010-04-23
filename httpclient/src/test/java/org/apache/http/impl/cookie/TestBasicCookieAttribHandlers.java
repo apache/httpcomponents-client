@@ -68,14 +68,14 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicDomainParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicDomainHandler();
         h.parse(cookie, "www.somedomain.com");
         assertEquals("www.somedomain.com", cookie.getDomain());
     }
 
     public void testBasicDomainParseInvalid() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicDomainHandler();
         try {
             h.parse(cookie, "");
@@ -92,10 +92,10 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicDomainValidate1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
-        
+
         cookie.setDomain(".somedomain.com");
         h.validate(cookie, origin);
 
@@ -116,10 +116,10 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicDomainValidate2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
-        
+
         cookie.setDomain("somehost");
         h.validate(cookie, origin);
 
@@ -133,19 +133,19 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicDomainValidate3() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
-        
+
         cookie.setDomain(".somedomain.com");
         h.validate(cookie, origin);
     }
 
     public void testBasicDomainValidate4() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
-        
+
         cookie.setDomain(null);
         try {
             h.validate(cookie, origin);
@@ -154,27 +154,27 @@ public class TestBasicCookieAttribHandlers extends TestCase {
             // expected
         }
     }
-    
+
     public void testBasicDomainMatch1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
 
         cookie.setDomain("somedomain.com");
         assertTrue(h.match(cookie, origin));
-        
+
         cookie.setDomain(".somedomain.com");
         assertTrue(h.match(cookie, origin));
     }
 
     public void testBasicDomainMatch2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new BasicDomainHandler();
 
         cookie.setDomain("somedomain.com");
         assertTrue(h.match(cookie, origin));
-        
+
         cookie.setDomain(".somedomain.com");
         assertTrue(h.match(cookie, origin));
 
@@ -217,7 +217,7 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicPathParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicPathHandler();
         h.parse(cookie, "stuff");
         assertEquals("stuff", cookie.getPath());
@@ -229,31 +229,31 @@ public class TestBasicCookieAttribHandlers extends TestCase {
 
     public void testBasicPathMatch1() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         assertTrue(h.match(cookie, origin));
     }
-    
+
     public void testBasicPathMatch2() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         assertTrue(h.match(cookie, origin));
     }
-    
+
     public void testBasicPathMatch3() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/more-stuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff/more-stuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         assertTrue(h.match(cookie, origin));
     }
-    
+
     public void testBasicPathMatch4() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuffed", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuffed", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         assertFalse(h.match(cookie, origin));
@@ -261,7 +261,7 @@ public class TestBasicCookieAttribHandlers extends TestCase {
 
     public void testBasicPathMatch5() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/otherstuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/otherstuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         assertFalse(h.match(cookie, origin));
@@ -269,7 +269,7 @@ public class TestBasicCookieAttribHandlers extends TestCase {
 
     public void testBasicPathMatch6() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff/");
         assertTrue(h.match(cookie, origin));
@@ -277,14 +277,14 @@ public class TestBasicCookieAttribHandlers extends TestCase {
 
     public void testBasicPathMatch7() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         assertTrue(h.match(cookie, origin));
     }
 
     public void testBasicPathValidate() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
         CookieAttributeHandler h = new BasicPathHandler();
         cookie.setPath("/stuff");
         h.validate(cookie, origin);
@@ -320,14 +320,14 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicMaxAgeParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicMaxAgeHandler();
         h.parse(cookie, "2000");
         assertNotNull(cookie.getExpiryDate());
     }
 
     public void testBasicMaxAgeParseInvalid() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicMaxAgeHandler();
         try {
             h.parse(cookie, "garbage");
@@ -354,7 +354,7 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicCommentParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicCommentHandler();
         h.parse(cookie, "whatever");
         assertEquals("whatever", cookie.getComment());
@@ -371,9 +371,9 @@ public class TestBasicCookieAttribHandlers extends TestCase {
             // expected
         }
     }
-    
+
     public void testBasicSecureParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicSecureHandler();
         h.parse(cookie, "whatever");
         assertTrue(cookie.isSecure());
@@ -385,13 +385,13 @@ public class TestBasicCookieAttribHandlers extends TestCase {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicSecureHandler();
 
-        CookieOrigin origin1 = new CookieOrigin("somehost", 80, "/stuff", false); 
+        CookieOrigin origin1 = new CookieOrigin("somehost", 80, "/stuff", false);
         cookie.setSecure(false);
         assertTrue(h.match(cookie, origin1));
         cookie.setSecure(true);
         assertFalse(h.match(cookie, origin1));
 
-        CookieOrigin origin2 = new CookieOrigin("somehost", 80, "/stuff", true); 
+        CookieOrigin origin2 = new CookieOrigin("somehost", 80, "/stuff", true);
         cookie.setSecure(false);
         assertTrue(h.match(cookie, origin2));
         cookie.setSecure(true);
@@ -421,20 +421,20 @@ public class TestBasicCookieAttribHandlers extends TestCase {
     }
 
     public void testBasicExpiresParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
-        
+
         DateFormat dateformat = new SimpleDateFormat(DateUtils.PATTERN_RFC1123, Locale.US);
         dateformat.setTimeZone(DateUtils.GMT);
-        
+
         Date now = new Date();
-        
+
         h.parse(cookie, dateformat.format(now));
         assertNotNull(cookie.getExpiryDate());
     }
-    
+
     public void testBasicExpiresParseInvalid() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
         try {
             h.parse(cookie, "garbage");
@@ -465,27 +465,27 @@ public class TestBasicCookieAttribHandlers extends TestCase {
             // expected
         }
     }
-    
+
     public void testPublicSuffixFilter() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        
+
         PublicSuffixFilter h = new PublicSuffixFilter(new RFC2109DomainHandler());
         h.setPublicSuffixes(Arrays.asList(new String[] { "co.uk", "com" }));
-        
+
         cookie.setDomain(".co.uk");
         assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));
-        
+
         cookie.setDomain("co.uk");
         assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));
-        
+
         cookie.setDomain(".com");
         assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
-        
+
         cookie.setDomain("com");
-        assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));        
-        
+        assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
+
         cookie.setDomain("localhost");
-        assertTrue(h.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));        
+        assertTrue(h.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
     }
-    
+
 }

@@ -30,9 +30,9 @@ package org.apache.http.cookie;
 import org.apache.http.annotation.Immutable;
 
 /**
- * Signals that a cookie violates a restriction imposed by the cookie 
+ * Signals that a cookie violates a restriction imposed by the cookie
  * specification.
- * 
+ *
  * @since 4.1
  */
 @Immutable
@@ -41,17 +41,17 @@ public class CookieRestrictionViolationException extends MalformedCookieExceptio
     private static final long serialVersionUID = 7371235577078589013L;
 
     /**
-     * Creates a new CookeFormatViolationException with a <tt>null</tt> detail 
+     * Creates a new CookeFormatViolationException with a <tt>null</tt> detail
      * message.
      */
     public CookieRestrictionViolationException() {
         super();
     }
-     
-    /** 
-     * Creates a new CookeRestrictionViolationException with a specified 
+
+    /**
+     * Creates a new CookeRestrictionViolationException with a specified
      * message string.
-     * 
+     *
      * @param message The exception detail message
      */
     public CookieRestrictionViolationException(String message) {

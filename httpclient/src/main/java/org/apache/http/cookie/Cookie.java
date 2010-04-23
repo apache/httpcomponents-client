@@ -30,11 +30,11 @@ package org.apache.http.cookie;
 import java.util.Date;
 
 /**
- * Cookie interface represents a token or short packet of state information 
- * (also referred to as "magic-cookie") that the HTTP agent and the target 
- * server can exchange to maintain a session. In its simples form an HTTP 
+ * Cookie interface represents a token or short packet of state information
+ * (also referred to as "magic-cookie") that the HTTP agent and the target
+ * server can exchange to maintain a session. In its simples form an HTTP
  * cookie is merely a name / value pair.
- * 
+ *
  * @since 4.0
  */
 public interface Cookie {
@@ -56,8 +56,8 @@ public interface Cookie {
     /**
      * Returns the comment describing the purpose of this cookie, or
      * <tt>null</tt> if no such comment has been defined.
-     * 
-     * @return comment 
+     *
+     * @return comment
      */
     String getComment();
 
@@ -65,12 +65,12 @@ public interface Cookie {
      * If a user agent (web browser) presents this cookie to a user, the
      * cookie's purpose will be described by the information at this URL.
      */
-    String getCommentURL();    
-    
+    String getCommentURL();
+
     /**
      * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
      * if none exists.
-     * <p><strong>Note:</strong> the object returned by this method is 
+     * <p><strong>Note:</strong> the object returned by this method is
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
      * @return Expiration {@link Date}, or <tt>null</tt>.
@@ -87,18 +87,18 @@ public interface Cookie {
     boolean isPersistent();
 
     /**
-     * Returns domain attribute of the cookie. The value of the Domain 
+     * Returns domain attribute of the cookie. The value of the Domain
      * attribute specifies the domain for which the cookie is valid.
-     * 
+     *
      * @return the value of the domain attribute.
      */
     String getDomain();
 
     /**
-     * Returns the path attribute of the cookie. The value of the Path 
-     * attribute specifies the subset of URLs on the origin server to which 
+     * Returns the path attribute of the cookie. The value of the Path
+     * attribute specifies the subset of URLs on the origin server to which
      * this cookie applies.
-     * 
+     *
      * @return The value of the path attribute.
      */
     String getPath();
@@ -128,7 +128,7 @@ public interface Cookie {
     /**
      * Returns true if this cookie has expired.
      * @param date Current time
-     * 
+     *
      * @return <tt>true</tt> if the cookie has expired.
      */
     boolean isExpired(final Date date);

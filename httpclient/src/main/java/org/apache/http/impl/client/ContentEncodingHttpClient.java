@@ -33,9 +33,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 
 /**
- * {@link DefaultHttpClient} sub-class which includes a {@link RequestAcceptEncoding} 
+ * {@link DefaultHttpClient} sub-class which includes a {@link RequestAcceptEncoding}
  * for the request and response.
- * 
+ *
  * @since 4.1
  */
 public class ContentEncodingHttpClient extends DefaultHttpClient {
@@ -58,7 +58,7 @@ public class ContentEncodingHttpClient extends DefaultHttpClient {
     }
 
     /**
-     * 
+     *
      */
     public ContentEncodingHttpClient() {
         this(null);
@@ -70,11 +70,11 @@ public class ContentEncodingHttpClient extends DefaultHttpClient {
     @Override
     protected BasicHttpProcessor createHttpProcessor() {
         BasicHttpProcessor result = super.createHttpProcessor();
-        
+
         result.addRequestInterceptor(new RequestAcceptEncoding());
         result.addResponseInterceptor(new ResponseContentEncoding());
-        
+
         return result;
     }
-    
+
 }

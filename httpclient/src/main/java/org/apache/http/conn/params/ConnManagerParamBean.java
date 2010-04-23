@@ -33,8 +33,8 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate connection manager parameters 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate connection manager parameters
  * using Java Beans conventions.
  *
  * @since 4.0
@@ -45,7 +45,7 @@ public class ConnManagerParamBean extends HttpAbstractParamBean {
     public ConnManagerParamBean (final HttpParams params) {
         super(params);
     }
-    
+
     public void setTimeout (final long timeout) {
         params.setLongParameter(ConnManagerPNames.TIMEOUT, timeout);
     }
@@ -55,7 +55,7 @@ public class ConnManagerParamBean extends HttpAbstractParamBean {
     public void setMaxTotalConnections (final int maxConnections) {
         params.setIntParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxConnections);
     }
-    
+
     /** @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE */
     @Deprecated
     public void setConnectionsPerRoute(final ConnPerRouteBean connPerRoute) {

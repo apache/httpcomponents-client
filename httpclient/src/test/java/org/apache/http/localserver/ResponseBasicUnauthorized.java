@@ -39,7 +39,7 @@ import org.apache.http.protocol.HttpContext;
 public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
     public void process(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
             response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");

@@ -51,7 +51,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 /**
- * Abstract base class for all standard {@link X509HostnameVerifier} 
+ * Abstract base class for all standard {@link X509HostnameVerifier}
  * implementations.
  *
  * @since 4.0
@@ -294,7 +294,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         } else {
             subjectType = 2;
         }
-        
+
         LinkedList<String> subjectAltList = new LinkedList<String>();
         Collection<List<?>> c = null;
         try {
@@ -355,11 +355,11 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
         return count;
     }
-    
+
     private static boolean isIPAddress(final String hostname) {
-        return hostname != null && 
-            (InetAddressUtils.isIPv4Address(hostname) || 
+        return hostname != null &&
+            (InetAddressUtils.isIPv4Address(hostname) ||
                     InetAddressUtils.isIPv6Address(hostname));
     }
-    
+
 }

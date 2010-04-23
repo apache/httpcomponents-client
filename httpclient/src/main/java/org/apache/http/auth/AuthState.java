@@ -32,7 +32,7 @@ import org.apache.http.annotation.NotThreadSafe;
 /**
  * This class provides detailed information about the state of the
  * authentication process.
- * 
+ *
  *
  * @since 4.0
  */
@@ -44,13 +44,13 @@ public class AuthState {
 
     /** Actual authentication scope */
     private AuthScope authScope;
-    
+
     /** Credentials selected for authentication */
     private Credentials credentials;
-    
+
     /**
      * Default constructor.
-     * 
+     *
      */
     public AuthState() {
         super();
@@ -68,10 +68,10 @@ public class AuthState {
     public boolean isValid() {
         return this.authScheme != null;
     }
-    
+
     /**
      * Assigns the given {@link AuthScheme authentication scheme}.
-     * 
+     *
      * @param authScheme the {@link AuthScheme authentication scheme}
      */
     public void setAuthScheme(final AuthScheme authScheme) {
@@ -84,27 +84,27 @@ public class AuthState {
 
     /**
      * Returns the {@link AuthScheme authentication scheme}.
-     * 
+     *
      * @return {@link AuthScheme authentication scheme}
      */
     public AuthScheme getAuthScheme() {
         return this.authScheme;
     }
-    
-    
-    /** 
+
+
+    /**
      * Returns user {@link Credentials} selected for authentication if available
-     * 
+     *
      * @return user credentials if available, <code>null</code otherwise
      */
     public Credentials getCredentials() {
         return this.credentials;
     }
 
-    
-    /** 
+
+    /**
      * Sets user {@link Credentials} to be used for authentication
-     * 
+     *
      * @param credentials User credentials
      */
     public void setCredentials(final Credentials credentials) {
@@ -112,25 +112,25 @@ public class AuthState {
     }
 
 
-    /** 
+    /**
      * Returns actual {@link AuthScope} if available
-     * 
+     *
      * @return actual authentication scope if available, <code>null</code otherwise
      */
      public AuthScope getAuthScope() {
         return this.authScope;
      }
 
-     /** 
+     /**
       * Sets actual {@link AuthScope}.
-      * 
+      *
       * @param authScope Authentication scope
       */
      public void setAuthScope(final AuthScope authScope) {
         this.authScope = authScope;
      }
 
-     
+
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
@@ -141,5 +141,5 @@ public class AuthState {
         buffer.append("]");
         return buffer.toString();
     }
-    
+
 }

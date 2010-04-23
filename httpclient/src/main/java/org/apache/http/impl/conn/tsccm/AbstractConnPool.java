@@ -128,14 +128,14 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     public final
         BasicPoolEntry getEntry(
-                HttpRoute route, 
+                HttpRoute route,
                 Object state,
-                long timeout, 
+                long timeout,
                 TimeUnit tunit)
                     throws ConnectionPoolTimeoutException, InterruptedException {
         return requestPoolEntry(route, state).getPoolEntry(timeout, tunit);
     }
-    
+
     /**
      * Returns a new {@link PoolEntryRequest}, from which a {@link BasicPoolEntry}
      * can be obtained, or the request can be aborted.
@@ -150,7 +150,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      * attempt to determine whether it can be re-used or not.
      *
      * @param entry     the entry for the connection to release
-     * @param reusable  <code>true</code> if the entry is deemed 
+     * @param reusable  <code>true</code> if the entry is deemed
      *                  reusable, <code>false</code> otherwise.
      * @param validDuration The duration that the entry should remain free and reusable.
      * @param timeUnit The unit of time the duration is measured in.
@@ -186,7 +186,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
             poolLock.unlock();
         }
     }
-    
+
     public void closeExpiredConnections() {
         poolLock.lock();
         try {
@@ -196,7 +196,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         }
     }
 
-        
+
     /**
      * Deletes all entries for closed connections.
      */

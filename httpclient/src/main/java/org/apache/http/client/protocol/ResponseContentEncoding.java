@@ -40,11 +40,11 @@ import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link HttpResponseInterceptor} responsible for processing Content-Encoding 
+ * {@link HttpResponseInterceptor} responsible for processing Content-Encoding
  * responses.
  * <p>
  * Instances of this class are stateless and immutable, therefore threadsafe.
- * 
+ *
  * @since 4.1
  *
  */
@@ -55,12 +55,12 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
      * {@inheritDoc}
      */
     public void process(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         HttpEntity entity = response.getEntity();
 
         // It wasn't a 304 Not Modified response, 204 No Content or similar
-        if (entity != null) { 
+        if (entity != null) {
             Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 HeaderElement[] codecs = ceheader.getElements();
@@ -72,7 +72,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                         response.setEntity(new DeflateDecompressingEntity(response.getEntity()));
                         return;
                     } else if ("identity".equalsIgnoreCase(codec.getName())) {
-                        
+
                         /* Don't need to transform the content - no-op */
                         return;
                     } else {

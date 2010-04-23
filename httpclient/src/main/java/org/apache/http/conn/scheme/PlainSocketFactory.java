@@ -43,8 +43,8 @@ import org.apache.http.params.HttpParams;
 /**
  * The default class for creating plain (unencrypted) sockets.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_REUSEADDR}</li>
@@ -62,11 +62,11 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
     private static final PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
 
     private final HostNameResolver nameResolver;
-    
+
     /**
-     * Gets the default factory. Usually there should be no reason for creating 
+     * Gets the default factory. Usually there should be no reason for creating
      * multiple instances of this class.
-     * 
+     *
      * @return the default factory
      */
     public static PlainSocketFactory getSocketFactory() {
@@ -99,8 +99,8 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
      * @since 4.1
      */
     public Socket connectSocket(
-            final Socket socket, 
-            final InetSocketAddress remoteAddress, 
+            final Socket socket,
+            final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, ConnectTimeoutException {
         if (remoteAddress == null) {
@@ -121,7 +121,7 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
         try {
             sock.connect(remoteAddress, timeout);
         } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/" 
+            throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
                     + remoteAddress.getAddress() + " timed out");
         }
         return sock;
@@ -157,9 +157,9 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
      */
     @Deprecated
     public Socket connectSocket(
-            final Socket socket, 
-            final String host, int port, 
-            final InetAddress localAddress, int localPort, 
+            final Socket socket,
+            final String host, int port,
+            final InetAddress localAddress, int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;
         if (localAddress != null || localPort > 0) {

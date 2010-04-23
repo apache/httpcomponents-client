@@ -33,9 +33,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
 /**
- * An adaptor for manipulating HTTP authentication parameters 
+ * An adaptor for manipulating HTTP authentication parameters
  * in {@link HttpParams}.
- * 
+ *
  * @since 4.0
  *
  * @see AuthPNames
@@ -48,10 +48,10 @@ public final class AuthParams {
     }
 
     /**
-     * Obtains the charset for encoding 
+     * Obtains the charset for encoding
      * {@link org.apache.http.auth.Credentials}.If not configured,
      * {@link HTTP#DEFAULT_PROTOCOL_CHARSET}is used instead.
-     * 
+     *
      * @return The charset
      */
     public static String getCredentialCharset(final HttpParams params) {
@@ -70,7 +70,7 @@ public final class AuthParams {
     /**
      * Sets the charset to be used when encoding
      * {@link org.apache.http.auth.Credentials}.
-     * 
+     *
      * @param charset The charset
      */
     public static void setCredentialCharset(final HttpParams params, final String charset) {

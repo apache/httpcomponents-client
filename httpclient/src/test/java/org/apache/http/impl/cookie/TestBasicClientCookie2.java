@@ -65,7 +65,7 @@ public class TestBasicClientCookie2 extends TestCase {
             //expected
         }
     }
-    
+
     public void testCloning() throws Exception {
         BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
@@ -82,7 +82,7 @@ public class TestBasicClientCookie2 extends TestCase {
         assertEquals(orig.getPorts()[0], clone.getPorts()[0]);
         assertEquals(orig.getPorts()[1], clone.getPorts()[1]);
     }
-    
+
     public void testSerialization() throws Exception {
         BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
@@ -111,5 +111,5 @@ public class TestBasicClientCookie2 extends TestCase {
             assertEquals(expected[i], clones[i]);
         }
     }
-    
+
 }

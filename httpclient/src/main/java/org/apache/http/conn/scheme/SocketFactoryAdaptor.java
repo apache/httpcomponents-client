@@ -41,21 +41,21 @@ import org.apache.http.params.HttpParams;
 class SocketFactoryAdaptor implements SocketFactory {
 
     private final SchemeSocketFactory factory;
-    
+
     SocketFactoryAdaptor(final SchemeSocketFactory factory) {
         super();
         this.factory = factory;
     }
-    
+
     public Socket createSocket() throws IOException {
         HttpParams params = new BasicHttpParams();
         return this.factory.createSocket(params);
     }
 
     public Socket connectSocket(
-            final Socket socket, 
-            final String host, int port, 
-            final InetAddress localAddress, int localPort, 
+            final Socket socket,
+            final String host, int port,
+            final InetAddress localAddress, int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;
         if (localAddress != null || localPort > 0) {
@@ -93,5 +93,5 @@ class SocketFactoryAdaptor implements SocketFactory {
     public int hashCode() {
         return this.factory.hashCode();
     }
-    
+
 }

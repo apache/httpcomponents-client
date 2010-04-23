@@ -36,23 +36,23 @@ import org.apache.http.protocol.HttpContext;
  * Class responsible for handling Content Encoding requests in HTTP.
  * <p>
  * Instances of this class are stateless, therefore they're thread-safe and immutable.
- * 
+ *
  * @see "http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5"
- * 
+ *
  * @since 4.1
  */
 @Immutable
 public class RequestAcceptEncoding implements HttpRequestInterceptor {
-    
+
     /**
      * {@inheritDoc}
      */
     public void process(
-            final HttpRequest request, 
+            final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {
 
         /* Signal support for Accept-Encoding transfer encodings. */
-        request.addHeader("Accept-Encoding", "gzip,deflate");    
+        request.addHeader("Accept-Encoding", "gzip,deflate");
     }
 
 }

@@ -30,25 +30,25 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 
 /**
- * Abstract credentials provider that maintains a collection of user 
+ * Abstract credentials provider that maintains a collection of user
  * credentials.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed 
+ * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
- * 
+ *
  * @since 4.0
  */
 public interface CredentialsProvider {
 
-    /** 
-     * Sets the {@link Credentials credentials} for the given authentication 
+    /**
+     * Sets the {@link Credentials credentials} for the given authentication
      * scope. Any previous credentials for the given scope will be overwritten.
-     * 
+     *
      * @param authscope the {@link AuthScope authentication scope}
-     * @param credentials the authentication {@link Credentials credentials} 
+     * @param credentials the authentication {@link Credentials credentials}
      * for the given scope.
-     * 
+     *
      * @see #getCredentials(AuthScope)
      */
     void setCredentials(AuthScope authscope, Credentials credentials);
@@ -57,8 +57,8 @@ public interface CredentialsProvider {
      * Get the {@link Credentials credentials} for the given authentication scope.
      *
      * @param authscope the {@link AuthScope authentication scope}
-     * @return the credentials 
-     * 
+     * @return the credentials
+     *
      * @see #setCredentials(AuthScope, Credentials)
      */
     Credentials getCredentials(AuthScope authscope);
@@ -67,5 +67,5 @@ public interface CredentialsProvider {
      * Clears all credentials.
      */
     void clear();
-    
+
 }

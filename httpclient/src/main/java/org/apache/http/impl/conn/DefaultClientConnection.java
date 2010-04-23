@@ -54,8 +54,8 @@ import org.apache.http.conn.OperatedClientConnection;
 /**
  * Default implementation of an operated client connection.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
@@ -112,7 +112,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         this.socket = sock;
         this.targetHost = target;
 
-        // Check for shutdown after assigning socket, so that 
+        // Check for shutdown after assigning socket, so that
         if (this.shutdown) {
             sock.close(); // allow this to throw...
             // ...but if it doesn't, explicitly throw one ourselves.
@@ -132,11 +132,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     /**
      * Force-closes this connection.
-     * If the connection is still in the process of being open (the method 
-     * {@link #opening opening} was already called but 
-     * {@link #openCompleted openCompleted} was not), the associated 
-     * socket that is being connected to a remote address will be closed. 
-     * That will interrupt a thread that is blocked on connecting 
+     * If the connection is still in the process of being open (the method
+     * {@link #opening opening} was already called but
+     * {@link #openCompleted openCompleted} was not), the associated
+     * socket that is being connected to a remote address will be closed.
+     * That will interrupt a thread that is blocked on connecting
      * the socket.
      * If the connection is not yet open, this will prevent the connection
      * from being opened.
@@ -170,7 +170,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             buffersize = 8192;
         }
         SessionInputBuffer inbuffer = super.createSessionInputBuffer(
-                socket, 
+                socket,
                 buffersize,
                 params);
         if (wireLog.isDebugEnabled()) {
@@ -200,7 +200,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     protected HttpMessageParser createResponseParser(
             final SessionInputBuffer buffer,
-            final HttpResponseFactory responseFactory, 
+            final HttpResponseFactory responseFactory,
             final HttpParams params) {
         // override in derived class to specify a line parser
         return new DefaultResponseParser

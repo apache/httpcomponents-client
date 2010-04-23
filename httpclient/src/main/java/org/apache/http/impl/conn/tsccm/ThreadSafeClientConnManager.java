@@ -45,16 +45,16 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 
 /**
- * Manages a pool of {@link OperatedClientConnection client connections} and 
- * is able to service connection requests from multiple execution threads. 
- * Connections are pooled on a per route basis. A request for a route which 
- * already the manager has persistent connections for available in the pool 
- * will be services by leasing a connection from the pool rather than 
+ * Manages a pool of {@link OperatedClientConnection client connections} and
+ * is able to service connection requests from multiple execution threads.
+ * Connections are pooled on a per route basis. A request for a route which
+ * already the manager has persistent connections for available in the pool
+ * will be services by leasing a connection from the pool rather than
  * creating a brand new connection.
  * <p>
- * ThreadSafeClientConnManager maintains a maximum limit of connection on 
+ * ThreadSafeClientConnManager maintains a maximum limit of connection on
  * a per route basis and in total. Per default this implementation will
- * create no more than than 2 concurrent connections per given route 
+ * create no more than than 2 concurrent connections per given route
  * and no more 20 connections in total. For many real-world applications
  * these limits may prove too constraining, especially if they use HTTP
  * as a transport protocol for their services. Connection limits, however,
@@ -69,7 +69,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     /** The schemes supported by this connection manager. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
-    
+
     @Deprecated
     protected final AbstractConnPool connectionPool;
 
@@ -78,9 +78,9 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     /** The operator for opening and updating connections. */
     protected final ClientConnectionOperator connOperator; // DefaultClientConnectionOperator is @ThreadSafe
-    
+
     protected final ConnPerRouteBean connPerRoute;
-    
+
     /**
      * Creates a new thread safe connection manager.
      *
@@ -104,7 +104,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @param params    the parameters for this manager.
      * @param schreg    the scheme registry.
-     * 
+     *
      * @deprecated use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
      */
     @Deprecated
@@ -120,7 +120,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.pool = (ConnPoolByRoute) createConnectionPool(params) ;
         this.connectionPool = this.pool;
     }
-    
+
     @Override
     protected void finalize() throws Throwable {
         try {
@@ -134,7 +134,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * Hook for creating the connection pool.
      *
      * @return  the connection pool to use
-     * 
+     *
      * @deprecated use {@link #createConnectionPool()}
      */
     @Deprecated
@@ -146,7 +146,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * Hook for creating the connection pool.
      *
      * @return  the connection pool to use
-     * 
+     *
      * @since 4.1
      */
     protected ConnPoolByRoute createConnectionPool() {
@@ -176,18 +176,18 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     }
 
     public ClientConnectionRequest requestConnection(
-            final HttpRoute route, 
+            final HttpRoute route,
             final Object state) {
-        
+
         final PoolEntryRequest poolRequest = pool.requestPoolEntry(
                 route, state);
-        
+
         return new ClientConnectionRequest() {
-            
+
             public void abortRequest() {
                 poolRequest.abortRequest();
             }
-            
+
             public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
@@ -203,9 +203,9 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                 BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }
-            
+
         };
-        
+
     }
 
     public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
@@ -267,7 +267,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * This is the total number of connections that have been created and
      * are still in use by this connection manager for the route.
      * This value will not exceed the maximum number of connections per host.
-     * 
+     *
      * @param route     the route in question
      *
      * @return  the total number of pooled connections for that route
@@ -277,11 +277,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     }
 
     /**
-     * Gets the total number of pooled connections.  This is the total number of 
-     * connections that have been created and are still in use by this connection 
+     * Gets the total number of pooled connections.  This is the total number of
+     * connections that have been created and are still in use by this connection
      * manager.  This value will not exceed the maximum number of connections
      * in total.
-     * 
+     *
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
@@ -300,7 +300,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         pool.closeIdleConnections(idleTimeout, tunit);
         pool.deleteClosedConnections();
     }
-    
+
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
         pool.closeExpiredConnections();
@@ -313,14 +313,14 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     public int getMaxTotalConnections() {
         return pool.getMaxTotalConnections();
     }
-    
+
     /**
      * since 4.1
      */
     public void setMaxTotalConnections(int max) {
         pool.setMaxTotalConnections(max);
     }
-    
+
     /**
      * @since 4.1
      */
@@ -341,7 +341,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     public int getMaxForRoute(final HttpRoute route) {
         return connPerRoute.getMaxForRoute(route);
     }
-    
+
     /**
      * @since 4.1
      */

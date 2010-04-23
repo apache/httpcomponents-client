@@ -50,9 +50,9 @@ public class Punycode {
         }
         impl = _impl;
     }
-    
+
     public static String toUnicode(String punycode) {
         return impl.toUnicode(punycode);
     }
-    
+
 }

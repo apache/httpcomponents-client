@@ -29,7 +29,7 @@ package org.apache.http.conn;
 import java.io.IOException;
 
 /**
- * Interface for releasing a connection. This can be implemented by various 
+ * Interface for releasing a connection. This can be implemented by various
  * "trigger" objects which are associated with a connection, for example
  * a {@link EofSensorInputStream stream} or an {@link BasicManagedEntity entity}
  * or the {@link ManagedClientConnection connection} itself.
@@ -48,7 +48,7 @@ public interface ConnectionReleaseTrigger {
      * remainder of a response entity. Use
      * {@link #abortConnection abortConnection} for a hard release. The
      * connection may be reused as specified by the duration.
-     * 
+     *
      * @throws IOException
      *             in case of an IO problem. The connection will be released
      *             anyway.

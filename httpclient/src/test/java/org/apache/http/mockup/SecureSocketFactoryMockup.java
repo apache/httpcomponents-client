@@ -34,7 +34,7 @@ import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 /**
  * {@link LayeredSchemeSocketFactory} mockup implementation.
  */
-public class SecureSocketFactoryMockup extends SocketFactoryMockup 
+public class SecureSocketFactoryMockup extends SocketFactoryMockup
     implements LayeredSchemeSocketFactory {
 
     /* A default instance of this mockup. */
@@ -56,5 +56,5 @@ public class SecureSocketFactoryMockup extends SocketFactoryMockup
                                       boolean autoClose) {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
-    
+
 }

@@ -34,7 +34,7 @@ public class Stats {
     private String serverName = "unknown";
     private long contentLen = 0;
     private long totalContentLen = 0;
-        
+
     public Stats() {
         super();
     }
@@ -78,13 +78,13 @@ public class Stats {
     public void setTotalContentLen(long totalContentLen) {
         this.totalContentLen = totalContentLen;
     }
-    
+
     public static void printStats(
             final URI targetURI, long startTime, long finishTime, final Stats stats) {
         float totalTimeSec = (float) (finishTime - startTime) / 1000;
         float reqsPerSec = (float) stats.getSuccessCount() / totalTimeSec;
         float timePerReqMs = (float) (finishTime - startTime) / (float) stats.getSuccessCount();
-       
+
         System.out.print("Server Software:\t");
         System.out.println(stats.getServerName());
         System.out.println();
@@ -111,5 +111,5 @@ public class Stats {
         System.out.print(timePerReqMs);
         System.out.println(" [ms] (mean)");
     }
-    
+
 }

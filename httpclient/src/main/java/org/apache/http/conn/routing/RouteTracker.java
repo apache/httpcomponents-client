@@ -35,7 +35,7 @@ import org.apache.http.HttpHost;
 
 /**
  * Helps tracking the steps in establishing a route.
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe

@@ -66,7 +66,7 @@ public class URLEncodedUtils {
      * NameValuePairs, one for a=1, one for b=2, and one for c=3.
      * <p>
      * This is typically useful while parsing an HTTP PUT.
-     * 
+     *
      * @param uri
      *            uri to parse
      * @param encoding
@@ -88,7 +88,7 @@ public class URLEncodedUtils {
      * Content-Encoding header.
      * <p>
      * This is typically used while parsing an HTTP POST.
-     * 
+     *
      * @param entity
      *            The entity to parse
      * @throws IOException
@@ -97,10 +97,10 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
         List <NameValuePair> result = Collections.emptyList();
-        
+
         String contentType = null;
         String charset = null;
-        
+
         Header h = entity.getContentType();
         if (h != null) {
             HeaderElement[] elems = h.getElements();
@@ -113,7 +113,7 @@ public class URLEncodedUtils {
                 }
             }
         }
-        
+
         if (contentType != null && contentType.equalsIgnoreCase(CONTENT_TYPE)) {
             final String content = EntityUtils.toString(entity, HTTP.ASCII);
             if (content != null && content.length() > 0) {
@@ -149,7 +149,7 @@ public class URLEncodedUtils {
      * example, a scanner containing the string <code>a=1&b=2&c=3</code> would
      * add the {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the
      * list of parameters.
-     * 
+     *
      * @param parameters
      *            List to add parameters to.
      * @param scanner
@@ -158,8 +158,8 @@ public class URLEncodedUtils {
      *            Encoding to use when decoding the parameters.
      */
     public static void parse (
-            final List <NameValuePair> parameters, 
-            final Scanner scanner, 
+            final List <NameValuePair> parameters,
+            final Scanner scanner,
             final String encoding) {
         scanner.useDelimiter(PARAMETER_SEPARATOR);
         while (scanner.hasNext()) {
@@ -178,12 +178,12 @@ public class URLEncodedUtils {
     /**
      * Returns a String that is suitable for use as an <code>application/x-www-form-urlencoded</code>
      * list of parameters in an HTTP PUT or HTTP POST.
-     * 
+     *
      * @param parameters  The parameters to include.
      * @param encoding The encoding to use.
      */
     public static String format (
-            final List <? extends NameValuePair> parameters, 
+            final List <? extends NameValuePair> parameters,
             final String encoding) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
@@ -201,7 +201,7 @@ public class URLEncodedUtils {
 
     private static String decode (final String content, final String encoding) {
         try {
-            return URLDecoder.decode(content, 
+            return URLDecoder.decode(content,
                     encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
         } catch (UnsupportedEncodingException problem) {
             throw new IllegalArgumentException(problem);
@@ -210,11 +210,11 @@ public class URLEncodedUtils {
 
     private static String encode (final String content, final String encoding) {
         try {
-            return URLEncoder.encode(content, 
+            return URLEncoder.encode(content,
                     encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
         } catch (UnsupportedEncodingException problem) {
             throw new IllegalArgumentException(problem);
         }
     }
-    
+
 }

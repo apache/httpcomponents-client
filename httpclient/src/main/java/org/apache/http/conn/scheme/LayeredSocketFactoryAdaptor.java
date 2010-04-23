@@ -35,16 +35,16 @@ import java.net.UnknownHostException;
 class LayeredSocketFactoryAdaptor extends SocketFactoryAdaptor implements LayeredSocketFactory {
 
     private final LayeredSchemeSocketFactory factory;
-    
+
     LayeredSocketFactoryAdaptor(final LayeredSchemeSocketFactory factory) {
         super(factory);
         this.factory = factory;
     }
-    
+
     public Socket createSocket(
-            final Socket socket, 
+            final Socket socket,
             final String host, int port, boolean autoClose) throws IOException, UnknownHostException {
         return this.factory.createLayeredSocket(socket, host, port, autoClose);
     }
-    
+
 }

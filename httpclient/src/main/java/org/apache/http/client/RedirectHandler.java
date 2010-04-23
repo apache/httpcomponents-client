@@ -34,16 +34,16 @@ import org.apache.http.ProtocolException;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * A handler for determining if an HTTP request should be redirected to 
+ * A handler for determining if an HTTP request should be redirected to
  * a new location in response to an HTTP response received from the target
  * server.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed 
+ * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
  *
  * @since 4.0
- * 
+ *
  * @deprecated use {@link RedirectStrategy}
  */
 @Deprecated
@@ -52,24 +52,24 @@ public interface RedirectHandler {
     /**
      * Determines if a request should be redirected to a new location
      * given the response from the target server.
-     * 
+     *
      * @param response the response received from the target server
      * @param context the context for the request execution
-     * 
+     *
      * @return <code>true</code> if the request should be redirected, <code>false</code>
      * otherwise
      */
     boolean isRedirectRequested(HttpResponse response, HttpContext context);
-    
+
     /**
-     * Determines the location request is expected to be redirected to 
+     * Determines the location request is expected to be redirected to
      * given the response from the target server and the current request
      * execution context.
-     * 
+     *
      * @param response the response received from the target server
      * @param context the context for the request execution
-     * 
-     * @return redirect URI 
+     *
+     * @return redirect URI
      */
     URI getLocationURI(HttpResponse response, HttpContext context)
             throws ProtocolException;

@@ -31,10 +31,10 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.ProtocolException;
 
 /**
- * Signals that authentication challenge is in some way invalid or 
+ * Signals that authentication challenge is in some way invalid or
  * illegal in the given context
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -43,7 +43,7 @@ public class MalformedChallengeException extends ProtocolException {
     private static final long serialVersionUID = 814586927989932284L;
 
     /**
-     * Creates a new MalformedChallengeException with a <tt>null</tt> detail message. 
+     * Creates a new MalformedChallengeException with a <tt>null</tt> detail message.
      */
     public MalformedChallengeException() {
         super();
@@ -51,7 +51,7 @@ public class MalformedChallengeException extends ProtocolException {
 
     /**
      * Creates a new MalformedChallengeException with the specified message.
-     * 
+     *
      * @param message the exception detail message
      */
     public MalformedChallengeException(String message) {
@@ -60,7 +60,7 @@ public class MalformedChallengeException extends ProtocolException {
 
     /**
      * Creates a new MalformedChallengeException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

@@ -34,16 +34,16 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.util.LangUtils;
 
-/** 
+/**
  * Microsoft Windows specific user principal implementation.
- * 
+ *
  * @since 4.0
  */
 @Immutable
 public class NTUserPrincipal implements Principal, Serializable {
 
     private static final long serialVersionUID = -6870169797924406894L;
-    
+
     private final String username;
     private final String domain;
     private final String ntname;
@@ -75,7 +75,7 @@ public class NTUserPrincipal implements Principal, Serializable {
     public String getName() {
         return this.ntname;
     }
-    
+
     public String getDomain() {
         return this.domain;
     }

@@ -29,10 +29,10 @@ package org.apache.http.impl.auth;
 import org.apache.http.annotation.Immutable;
 
 /**
- * Authentication credentials required to respond to a authentication 
+ * Authentication credentials required to respond to a authentication
  * challenge are invalid
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -41,7 +41,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
     private static final long serialVersionUID = 319558534317118022L;
 
     /**
-     * Creates a new UnsupportedAuthAlgoritmException with a <tt>null</tt> detail message. 
+     * Creates a new UnsupportedAuthAlgoritmException with a <tt>null</tt> detail message.
      */
     public UnsupportedDigestAlgorithmException() {
         super();
@@ -49,7 +49,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
 
     /**
      * Creates a new UnsupportedAuthAlgoritmException with the specified message.
-     * 
+     *
      * @param message the exception detail message
      */
     public UnsupportedDigestAlgorithmException(String message) {
@@ -58,7 +58,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
 
     /**
      * Creates a new UnsupportedAuthAlgoritmException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

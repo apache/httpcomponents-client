@@ -52,21 +52,21 @@ public class Benchmark {
        connector.setRequestBufferSize(12 * 1024);
        connector.setResponseBufferSize(12 * 1024);
        connector.setAcceptors(2);
-       
+
        QueuedThreadPool threadpool = new QueuedThreadPool();
        threadpool.setMinThreads(25);
        threadpool.setMaxThreads(200);
-       
+
        Server server = new Server();
        server.addConnector(connector);
        server.setThreadPool(threadpool);
        server.setHandler(new RandomDataHandler());
-       
+
        server.start();
        int port = connector.getLocalPort();
        int n = 200000;
        int contentLen = 2048;
-       
+
        TestHttpAgent[] agents = new TestHttpAgent[] {
                new TestHttpClient3(),
                new TestHttpJRE(),
@@ -78,7 +78,7 @@ public class Benchmark {
        for (TestHttpAgent agent: agents) {
            agent.init();
        }
-       
+
        byte[] content = new byte[contentLen];
        int r = Math.abs(content.hashCode());
        for (int i = 0; i < content.length; i++) {
@@ -87,7 +87,7 @@ public class Benchmark {
 
        URI target1 = new URI("http", null, "localhost", port, "/rnd", "c=" + contentLen, null);
        URI target2 = new URI("http", null, "localhost", port, "/echo", null, null);
-       
+
        try {
            for (TestHttpAgent agent: agents) {
                System.out.println("=================================");
@@ -95,7 +95,7 @@ public class Benchmark {
                System.out.println("---------------------------------");
                System.out.println(n + " GET requests");
                System.out.println("---------------------------------");
-               
+
                long startTime1 = System.currentTimeMillis();
                Stats stats1 = agent.get(target1, n);
                long finishTime1 = System.currentTimeMillis();
@@ -103,7 +103,7 @@ public class Benchmark {
                System.out.println("---------------------------------");
                System.out.println(n + " POST requests");
                System.out.println("---------------------------------");
-               
+
                long startTime2 = System.currentTimeMillis();
                Stats stats2 = agent.post(target2, content, n);
                long finishTime2 = System.currentTimeMillis();
@@ -117,15 +117,15 @@ public class Benchmark {
     }
 
    static class RandomDataHandler extends AbstractHandler {
-       
+
        public RandomDataHandler() {
            super();
        }
-       
+
        public void handle(
-               final String target, 
-               final Request baseRequest, 
-               final HttpServletRequest request, 
+               final String target,
+               final Request baseRequest,
+               final HttpServletRequest request,
                final HttpServletResponse response) throws IOException, ServletException {
            if (target.equals("/rnd")) {
                rnd(request, response);
@@ -140,7 +140,7 @@ public class Benchmark {
        }
 
        private void rnd(
-               final HttpServletRequest request, 
+               final HttpServletRequest request,
                final HttpServletResponse response) throws IOException, ServletException {
            int count = 100;
            String s = request.getParameter("c");
@@ -153,10 +153,10 @@ public class Benchmark {
                writer.flush();
                return;
            }
-           
+
            response.setStatus(200);
            response.setContentLength(count);
-           
+
            OutputStream outstream = response.getOutputStream();
            byte[] tmp = new byte[1024];
            int r = Math.abs(tmp.hashCode());
@@ -171,28 +171,28 @@ public class Benchmark {
            }
            outstream.flush();
        }
-       
+
        private void echo(
-               final HttpServletRequest request, 
+               final HttpServletRequest request,
                final HttpServletResponse response) throws IOException, ServletException {
 
-           ByteArrayOutputStream2 buffer = new ByteArrayOutputStream2();   
+           ByteArrayOutputStream2 buffer = new ByteArrayOutputStream2();
            InputStream instream = request.getInputStream();
            if (instream != null) {
                IO.copy(instream, buffer);
                buffer.flush();
            }
            byte[] content = buffer.getBuf();
-           
+
            response.setStatus(200);
            response.setContentLength(content.length);
-           
+
            OutputStream outstream = response.getOutputStream();
            outstream.write(content);
            outstream.flush();
        }
 
    }
-   
+
 }
 

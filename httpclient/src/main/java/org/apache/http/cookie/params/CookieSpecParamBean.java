@@ -35,8 +35,8 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate HTTP cookie parameters using Java Beans 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate HTTP cookie parameters using Java Beans
  * conventions.
  *
  * @since 4.0
@@ -55,5 +55,5 @@ public class CookieSpecParamBean extends HttpAbstractParamBean {
     public void setSingleHeader (final boolean singleHeader) {
         params.setBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER, singleHeader);
     }
-    
+
 }

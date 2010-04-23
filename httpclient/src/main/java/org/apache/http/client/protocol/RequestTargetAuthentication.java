@@ -46,22 +46,22 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Generates authentication header for the target host, if required, 
- * based on the actual state of the HTTP authentication context.   
- * 
+ * Generates authentication header for the target host, if required,
+ * based on the actual state of the HTTP authentication context.
+ *
  * @since 4.0
  */
 @Immutable
 public class RequestTargetAuthentication implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public RequestTargetAuthentication() {
         super();
     }
-    
+
     @SuppressWarnings("deprecation")
-    public void process(final HttpRequest request, final HttpContext context) 
+    public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -74,11 +74,11 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
         if (method.equalsIgnoreCase("CONNECT")) {
             return;
         }
-        
+
         if (request.containsHeader(AUTH.WWW_AUTH_RESP)) {
             return;
         }
-        
+
         // Obtain authentication state
         AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.TARGET_AUTH_STATE);
@@ -90,7 +90,7 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
         if (authScheme == null) {
             return;
         }
-        
+
         Credentials creds = authState.getCredentials();
         if (creds == null) {
             this.log.debug("User credentials not available");
@@ -114,5 +114,5 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
             }
         }
     }
-    
+
 }

@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -45,8 +45,8 @@ public class BasicPathHandler implements CookieAttributeHandler {
     public BasicPathHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, String value) 
+
+    public void parse(final SetCookie cookie, String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -57,15 +57,15 @@ public class BasicPathHandler implements CookieAttributeHandler {
         cookie.setPath(value);
     }
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         if (!match(cookie, origin)) {
             throw new CookieRestrictionViolationException(
-                "Illegal path attribute \"" + cookie.getPath() 
+                "Illegal path attribute \"" + cookie.getPath()
                 + "\". Path of origin: \"" + origin.getPath() + "\"");
         }
     }
-    
+
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -91,5 +91,5 @@ public class BasicPathHandler implements CookieAttributeHandler {
         }
         return match;
     }
-    
+
 }

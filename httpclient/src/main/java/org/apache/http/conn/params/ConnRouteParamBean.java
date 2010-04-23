@@ -37,15 +37,15 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate connection routing parameters 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate connection routing parameters
  * using Java Beans conventions.
  *
  * @since 4.0
  */
 @NotThreadSafe
 public class ConnRouteParamBean extends HttpAbstractParamBean {
-    
+
     public ConnRouteParamBean (final HttpParams params) {
         super(params);
     }
@@ -64,5 +64,5 @@ public class ConnRouteParamBean extends HttpAbstractParamBean {
     public void setForcedRoute (final HttpRoute route) {
         params.setParameter(ConnRoutePNames.FORCED_ROUTE, route);
     }
-    
+
 }

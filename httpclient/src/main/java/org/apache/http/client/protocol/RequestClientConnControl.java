@@ -41,22 +41,22 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * This protocol interceptor is responsible for adding <code>Connection</code> 
- * or <code>Proxy-Connection</code> headers to the outgoing requests, which 
- * is essential for managing persistence of <code>HTTP/1.0</code> connections. 
- * 
+ * This protocol interceptor is responsible for adding <code>Connection</code>
+ * or <code>Proxy-Connection</code> headers to the outgoing requests, which
+ * is essential for managing persistence of <code>HTTP/1.0</code> connections.
+ *
  * @since 4.0
  */
 @Immutable
 public class RequestClientConnControl implements HttpRequestInterceptor {
 
     private static final String PROXY_CONN_DIRECTIVE = "Proxy-Connection";
-    
+
     public RequestClientConnControl() {
         super();
     }
-    
-    public void process(final HttpRequest request, final HttpContext context) 
+
+    public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -67,7 +67,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
             request.setHeader(PROXY_CONN_DIRECTIVE, HTTP.CONN_KEEP_ALIVE);
             return;
         }
-        
+
         // Obtain the client connection (required)
         ManagedClientConnection conn = (ManagedClientConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
@@ -76,7 +76,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         }
 
         HttpRoute route = conn.getRoute();
-        
+
         if (route.getHopCount() == 1 || route.isTunnelled()) {
             if (!request.containsHeader(HTTP.CONN_DIRECTIVE)) {
                 request.addHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_KEEP_ALIVE);
@@ -88,5 +88,5 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
             }
         }
     }
-    
+
 }

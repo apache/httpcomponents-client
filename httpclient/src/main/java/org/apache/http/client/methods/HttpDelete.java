@@ -51,7 +51,7 @@ public class HttpDelete extends HttpRequestBase {
 
     public final static String METHOD_NAME = "DELETE";
 
-    
+
     public HttpDelete() {
         super();
     }
@@ -62,7 +62,7 @@ public class HttpDelete extends HttpRequestBase {
     }
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpDelete(final String uri) {
         super();

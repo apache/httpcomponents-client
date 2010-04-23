@@ -163,21 +163,21 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
 
     private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr, 
+            final ClientConnectionManager mgr,
             final HttpRoute route,
             long timeout,
             TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
         ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(timeout, unit);
     }
-    
+
     private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr, 
+            final ClientConnectionManager mgr,
             final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
         ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.getConnection(0, null);
     }
-    
+
     /**
      * Tests releasing and re-using a connection after a response is read.
      */
@@ -199,7 +199,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         // a new context is created for each testcase, no need to reset
         HttpResponse response = Helper.execute(
-                request, conn, target, 
+                request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
 
         assertEquals("wrong status in first response",
@@ -284,7 +284,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         // a new context is created for each testcase, no need to reset
         HttpResponse response = Helper.execute(
-                request, conn, target, 
+                request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
 
         assertEquals("wrong status in first response",
@@ -349,7 +349,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         Thread.sleep(150);
         conn = getConnection(mgr, route);
         assertTrue("connection should have been closed", !conn.isOpen());
-        
+
         // repeat the communication, no need to prepare the request again
         conn.open(route, httpContext, defaultParams);
         httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -363,7 +363,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         assertEquals("wrong length of fourth response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
-        
+
         mgr.shutdown();
     }
 
@@ -388,13 +388,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
         assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
 
         mgr.closeExpiredConnections();
-        
+
         // Time has not expired yet.
         assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
         assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
-        
+
         Thread.sleep(150);
-        
+
         mgr.closeExpiredConnections();
 
         // Time expired now, connections are destroyed.
@@ -403,7 +403,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         mgr.shutdown();
     }
-    
+
 
     /**
      * Tests releasing connection from #abort method called from the
@@ -427,7 +427,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         // a new context is created for each testcase, no need to reset
         HttpResponse response = Helper.execute(
-                request, conn, target, 
+                request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
 
         assertEquals("wrong status in first response",
@@ -446,7 +446,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // abort the connection
         assertTrue(conn instanceof AbstractClientConnAdapter);
         ((AbstractClientConnAdapter) conn).abortConnection();
-        
+
         // the connection is expected to be released back to the manager
         conn = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn.isOpen());
@@ -475,7 +475,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         conn.open(route, httpContext, defaultParams);
 
         // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(request, conn, target, 
+        HttpResponse response = Helper.execute(request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
         EntityUtils.toByteArray(response.getEntity());
 
@@ -491,7 +491,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         // we got from the manager, directly as well as in the request
         // and in the context. The manager will be GCed only if the
         // connection wrapper is truly detached.
-        WeakReference<ThreadSafeClientConnManager> wref = 
+        WeakReference<ThreadSafeClientConnManager> wref =
             new WeakReference<ThreadSafeClientConnManager>(mgr);
         mgr = null;
 
@@ -503,9 +503,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         assertNull("TSCCM not garbage collected", wref.get());
     }
-    
+
     public void testAbortDuringConnecting() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);        
+        final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
@@ -520,7 +520,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final ManagedClientConnection conn = getConnection(mgr, route);
         assertTrue(conn instanceof AbstractClientConnAdapter);
-        
+
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
             public void run() {
@@ -534,7 +534,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             }
         });
         abortingThread.start();
-        
+
         try {
             conn.open(route, httpContext, defaultParams);
             fail("expected SocketException");
@@ -543,10 +543,10 @@ public class TestTSCCMWithServer extends ServerTestBase {
         abortingThread.join(5000);
         if(throwRef.get() != null)
             throw new RuntimeException(throwRef.get());
-        
+
         assertFalse(conn.isOpen());
         assertEquals(0, localServer.getAcceptedConnectionCount());
-        
+
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn2.isOpen());
@@ -554,9 +554,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn2, -1, null);
         mgr.shutdown();
     }
-    
+
     public void testAbortBeforeSocketCreate() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);        
+        final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
@@ -571,7 +571,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final ManagedClientConnection conn = getConnection(mgr, route);
         assertTrue(conn instanceof AbstractClientConnAdapter);
-        
+
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
             public void run() {
@@ -585,7 +585,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             }
         });
         abortingThread.start();
-        
+
         try {
             conn.open(route, httpContext, defaultParams);
             fail("expected exception");
@@ -596,10 +596,10 @@ public class TestTSCCMWithServer extends ServerTestBase {
         abortingThread.join(5000);
         if(throwRef.get() != null)
             throw new RuntimeException(throwRef.get());
-        
+
         assertFalse(conn.isOpen());
         assertEquals(0, localServer.getAcceptedConnectionCount());
-        
+
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn2.isOpen());
@@ -607,9 +607,9 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn2, -1, null);
         mgr.shutdown();
     }
-    
+
     public void testAbortAfterSocketConnect() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);        
+        final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
         Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
@@ -624,7 +624,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final ManagedClientConnection conn = getConnection(mgr, route);
         assertTrue(conn instanceof AbstractClientConnAdapter);
-        
+
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
             public void run() {
@@ -638,7 +638,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             }
         });
         abortingThread.start();
-        
+
         try {
             conn.open(route, httpContext, defaultParams);
             fail("expected SocketException");
@@ -647,7 +647,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         abortingThread.join(5000);
         if(throwRef.get() != null)
             throw new RuntimeException(throwRef.get());
-        
+
         assertFalse(conn.isOpen());
         // Give the server a bit of time to accept the connection, but
         // ensure that it can accept it.
@@ -657,7 +657,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             Thread.sleep(100);
         }
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
+
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn2.isOpen());
@@ -665,11 +665,11 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn2, -1, null);
         mgr.shutdown();
     }
-    
+
     public void testAbortAfterOperatorOpen() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final AtomicReference<StallingOperator> operatorRef = new AtomicReference<StallingOperator>();
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes) {
             @Override
             protected ClientConnectionOperator createConnectionOperator(
@@ -686,7 +686,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final ManagedClientConnection conn = getConnection(mgr, route);
         assertTrue(conn instanceof AbstractClientConnAdapter);
-        
+
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
             public void run() {
@@ -700,7 +700,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             }
         });
         abortingThread.start();
-        
+
         try {
             conn.open(route, httpContext, defaultParams);
             fail("expected exception");
@@ -711,7 +711,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         abortingThread.join(5000);
         if(throwRef.get() != null)
             throw new RuntimeException(throwRef.get());
-        
+
         assertFalse(conn.isOpen());
         // Give the server a bit of time to accept the connection, but
         // ensure that it can accept it.
@@ -721,7 +721,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             Thread.sleep(100);
         }
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
+
         // the connection is expected to be released back to the manager
         ManagedClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
         assertFalse("connection should have been closed", conn2.isOpen());
@@ -729,12 +729,12 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn2, -1, null);
         mgr.shutdown();
     }
-    
+
     private static class LatchSupport {
         private final CountDownLatch continueLatch;
         private final CountDownLatch waitLatch = new CountDownLatch(1);
         protected final WaitPolicy waitPolicy;
-        
+
         LatchSupport(CountDownLatch continueLatch, WaitPolicy waitPolicy) {
             this.continueLatch = continueLatch;
             this.waitPolicy = waitPolicy;
@@ -744,7 +744,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             if(!waitLatch.await(1, TimeUnit.SECONDS))
                 throw new RuntimeException("waited too long");
         }
-        
+
         void latch() {
             waitLatch.countDown();
             try {
@@ -755,7 +755,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
             }
         }
     }
-    
+
     private static class StallingOperator extends LatchSupport implements ClientConnectionOperator {
         private final ClientConnectionOperator delegate;
 
@@ -783,14 +783,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
             delegate.updateSecureConnection(conn, target, context, params);
         }
     }
-    
+
     private static class StallingSocketFactory extends LatchSupport implements SchemeSocketFactory {
-        
+
         private final SchemeSocketFactory delegate;
 
         public StallingSocketFactory(
                 final CountDownLatch continueLatch,
-                final WaitPolicy waitPolicy, 
+                final WaitPolicy waitPolicy,
                 final SchemeSocketFactory delegate) {
             super(continueLatch, waitPolicy);
             this.delegate = delegate;
@@ -798,24 +798,24 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         public Socket connectSocket(
                 final Socket sock,
-                final InetSocketAddress remoteAddress, 
-                final InetSocketAddress localAddress, 
+                final InetSocketAddress remoteAddress,
+                final InetSocketAddress localAddress,
                 final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
             if(waitPolicy == WaitPolicy.BEFORE_CONNECT)
                 latch();
-            
+
             Socket socket = delegate.connectSocket(sock, remoteAddress, localAddress, params);
-            
+
             if(waitPolicy == WaitPolicy.AFTER_CONNECT)
                 latch();
-            
+
             return socket;
         }
 
         public Socket createSocket(final HttpParams params) throws IOException {
             if(waitPolicy == WaitPolicy.BEFORE_CREATE)
                 latch();
-            
+
             return delegate.createSocket(params);
         }
 
@@ -825,6 +825,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
 
     private enum WaitPolicy { BEFORE_CREATE, BEFORE_CONNECT, AFTER_CONNECT, AFTER_OPEN }
-    
+
 
 } // class TestTSCCMWithServer

@@ -254,7 +254,7 @@ public class TestHttpRoute extends TestCase {
         HttpRoute route = new HttpRoute(TARGET1, null, chain1, false,
                                         TunnelType.TUNNELLED, LayerType.PLAIN);
         assertNotNull(route);
-        
+
         try {
             route = new HttpRoute(null, null, chain1, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);

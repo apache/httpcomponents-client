@@ -59,11 +59,11 @@ public class TestMultipartContentBody extends TestCase {
     public void testStringBody() throws Exception {
         StringBody b1 = new StringBody("text");
         assertEquals(4, b1.getContentLength());
-        
+
         Charset defCharset = Charset.defaultCharset();
-        
+
         assertEquals(defCharset.name(), b1.getCharset());
-        
+
         assertNull(b1.getFilename());
         assertEquals("text/plain", b1.getMimeType());
         assertEquals("text", b1.getMediaType());
@@ -74,7 +74,7 @@ public class TestMultipartContentBody extends TestCase {
         StringBody b2 = new StringBody("more text", "text/other", MIME.DEFAULT_CHARSET);
         assertEquals(9, b2.getContentLength());
         assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());
-        
+
         assertNull(b2.getFilename());
         assertEquals("text/other", b2.getMimeType());
         assertEquals("text", b2.getMediaType());
@@ -87,7 +87,7 @@ public class TestMultipartContentBody extends TestCase {
         byte[] stuff = "Stuff".getBytes("US-ASCII");
         InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
         assertEquals(-1, b1.getContentLength());
-        
+
         assertNull(b1.getCharset());
         assertEquals("stuff", b1.getFilename());
         assertEquals("application/octet-stream", b1.getMimeType());

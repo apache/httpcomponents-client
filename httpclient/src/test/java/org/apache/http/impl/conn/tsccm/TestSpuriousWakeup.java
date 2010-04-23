@@ -86,7 +86,7 @@ public class TestSpuriousWakeup extends TestCase {
 
 
         public XConnPoolByRoute(
-                final ClientConnectionOperator operator, 
+                final ClientConnectionOperator operator,
                 final ConnPerRoute connPerRoute,
                 int maxTotalConnections) {
             super(operator, connPerRoute, maxTotalConnections);
@@ -137,7 +137,7 @@ public class TestSpuriousWakeup extends TestCase {
         try {
             mgr.setMaxTotalConnections(1);
             mgr.setDefaultMaxPerRoute(1);
-            
+
             // take out the only connection
             ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE, null);
             ManagedClientConnection conn = connRequest.getConnection(0, null);

@@ -58,22 +58,22 @@ public class TestRedirectLocation extends TestCase {
 
     public void testBasics() throws Exception {
         RedirectLocations locations = new RedirectLocations();
-        
+
         URI uri1 = new URI("/this");
         URI uri2 = new URI("/that");
         URI uri3 = new URI("/this-and-that");
-        
+
         locations.add(uri1);
         locations.add(uri2);
         locations.add(uri2);
         locations.add(uri3);
         locations.add(uri3);
-        
+
         Assert.assertTrue(locations.contains(uri1));
         Assert.assertTrue(locations.contains(uri2));
         Assert.assertTrue(locations.contains(uri3));
         Assert.assertFalse(locations.contains(new URI("/")));
-        
+
         List<URI> list = locations.getAll();
         Assert.assertNotNull(list);
         Assert.assertEquals(5, list.size());
@@ -82,7 +82,7 @@ public class TestRedirectLocation extends TestCase {
         Assert.assertEquals(uri2, list.get(2));
         Assert.assertEquals(uri3, list.get(3));
         Assert.assertEquals(uri3, list.get(4));
-        
+
         Assert.assertTrue(locations.remove(uri3));
         Assert.assertTrue(locations.remove(uri1));
         Assert.assertFalse(locations.remove(new URI("/")));

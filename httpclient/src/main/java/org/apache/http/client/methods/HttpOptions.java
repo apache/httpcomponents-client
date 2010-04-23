@@ -41,7 +41,7 @@ import org.apache.http.HttpResponse;
 /**
  * HTTP OPTIONS method.
  * <p>
- * The HTTP OPTIONS method is defined in section 9.2 of 
+ * The HTTP OPTIONS method is defined in section 9.2 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * <blockquote>
  *  The OPTIONS method represents a request for information about the
@@ -52,14 +52,14 @@ import org.apache.http.HttpResponse;
  *  or initiating a resource retrieval.
  * </blockquote>
  * </p>
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
 public class HttpOptions extends HttpRequestBase {
 
     public final static String METHOD_NAME = "OPTIONS";
-    
+
     public HttpOptions() {
         super();
     }
@@ -70,7 +70,7 @@ public class HttpOptions extends HttpRequestBase {
     }
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpOptions(final String uri) {
         super();
@@ -81,12 +81,12 @@ public class HttpOptions extends HttpRequestBase {
     public String getMethod() {
         return METHOD_NAME;
     }
-    
+
     public Set<String> getAllowedMethods(final HttpResponse response) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
-        
+
         HeaderIterator it = response.headerIterator("Allow");
         Set<String> methods = new HashSet<String>();
         while (it.hasNext()) {
@@ -98,5 +98,5 @@ public class HttpOptions extends HttpRequestBase {
         }
         return methods;
     }
-    
+
 }

@@ -45,14 +45,14 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 /**
- * Socket factory that implements a simple multi-home fail-over on connect failure, 
+ * Socket factory that implements a simple multi-home fail-over on connect failure,
  * provided the same hostname resolves to multiple {@link InetAddress}es. Please note
  * the {@link #connectSocket(Socket, String, int, InetAddress, int, HttpParams)}
  * method cannot be reliably interrupted by closing the socket returned by the
  * {@link #createSocket()} method.
  *
  * @since 4.0
- * 
+ *
  * @deprecated Do not use. For multihome support socket factories must implement
  * {@link SchemeSocketFactory} interface.
  */
@@ -88,21 +88,21 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
     }
 
     /**
-     * Attempts to connects the socket to any of the {@link InetAddress}es the 
-     * given host name resolves to. If connection to all addresses fail, the  
+     * Attempts to connects the socket to any of the {@link InetAddress}es the
+     * given host name resolves to. If connection to all addresses fail, the
      * last I/O exception is propagated to the caller.
-     * 
+     *
      * @param sock socket to connect to any of the given addresses
      * @param host Host name to connect to
      * @param port the port to connect to
      * @param localAddress local address
      * @param localPort local port
-     * @param params HTTP parameters 
-     * 
+     * @param params HTTP parameters
+     *
      * @throws  IOException if an error occurs during the connection
      * @throws  SocketTimeoutException if timeout expires before connecting
      */
-    public Socket connectSocket(Socket sock, String host, int port, 
+    public Socket connectSocket(Socket sock, String host, int port,
                                 InetAddress localAddress, int localPort,
                                 HttpParams params)
         throws IOException {

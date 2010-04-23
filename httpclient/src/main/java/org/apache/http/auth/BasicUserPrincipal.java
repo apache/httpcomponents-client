@@ -35,7 +35,7 @@ import org.apache.http.util.LangUtils;
 
 /**
  * Basic user principal used for HTTP authentication
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -44,7 +44,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
     private static final long serialVersionUID = -2266305184969850467L;
 
     private final String username;
-    
+
     public BasicUserPrincipal(final String username) {
         super();
         if (username == null) {
@@ -52,7 +52,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
         }
         this.username = username;
     }
-    
+
     public String getName() {
         return this.username;
     }

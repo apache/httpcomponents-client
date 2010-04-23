@@ -86,7 +86,7 @@ public class LocalTestServer {
 
     /** Optional SSL context */
     private final SSLContext sslcontext;
-    
+
     /** The server socket, while being served. */
     private volatile ServerSocket servicedSocket;
 
@@ -95,7 +95,7 @@ public class LocalTestServer {
 
     /** Set of active worker threads */
     private final Set<Worker> workers;
-    
+
     /** The number of connections this accepted. */
     private final AtomicInteger acceptedConnections = new AtomicInteger(0);
 
@@ -105,10 +105,10 @@ public class LocalTestServer {
      * @param proc      the HTTP processors to be used by the server, or
      *                  <code>null</code> to use a
      *                  {@link #newProcessor default} processor
-     * @param reuseStrat the connection reuse strategy to be used by the 
+     * @param reuseStrat the connection reuse strategy to be used by the
      *                  server, or <code>null</code> to use
      *                  {@link #newConnectionReuseStrategy() default}
-     *                  strategy.                 
+     *                  strategy.
      * @param params    the parameters to be used by the server, or
      *                  <code>null</code> to use
      *                  {@link #newDefaultParams default} parameters
@@ -116,20 +116,20 @@ public class LocalTestServer {
      *                   SSL/TLS transport security
      */
     public LocalTestServer(
-            final BasicHttpProcessor proc, 
+            final BasicHttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat,
             final HttpResponseFactory responseFactory,
-            final HttpParams params, 
+            final HttpParams params,
             final SSLContext sslcontext) {
         super();
         this.handlerRegistry = new HttpRequestHandlerRegistry();
         this.workers = Collections.synchronizedSet(new HashSet<Worker>());
         this.httpservice = new HttpService(
-            proc != null ? proc : newProcessor(), 
-            reuseStrat != null ? reuseStrat: newConnectionReuseStrategy(), 
-            responseFactory != null ? responseFactory: newHttpResponseFactory(), 
-            handlerRegistry, 
-            null, 
+            proc != null ? proc : newProcessor(),
+            reuseStrat != null ? reuseStrat: newConnectionReuseStrategy(),
+            responseFactory != null ? responseFactory: newHttpResponseFactory(),
+            handlerRegistry,
+            null,
             params != null ? params : newDefaultParams());
         this.sslcontext = sslcontext;
     }
@@ -154,7 +154,7 @@ public class LocalTestServer {
      *                  {@link #newDefaultParams default} parameters
      */
     public LocalTestServer(
-            BasicHttpProcessor proc, 
+            BasicHttpProcessor proc,
             HttpParams params) {
         this(proc, null, null, params, null);
     }
@@ -191,15 +191,15 @@ public class LocalTestServer {
                           "LocalTestServer/1.1");
         return params;
     }
-    
+
     protected ConnectionReuseStrategy newConnectionReuseStrategy() {
         return new DefaultConnectionReuseStrategy();
     }
-    
+
     protected HttpResponseFactory newHttpResponseFactory() {
         return new DefaultHttpResponseFactory();
     }
-    
+
     /**
      * Returns the number of connections this test server has accepted.
      */
@@ -257,7 +257,7 @@ public class LocalTestServer {
         } else {
             ssock = new ServerSocket();
         }
-        
+
         ssock.setReuseAddress(true); // probably pointless for port '0'
         ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;
@@ -291,7 +291,7 @@ public class LocalTestServer {
             listenerThread.join(timeMs);
         }
     }
-    
+
     @Override
     public String toString() {
         ServerSocket ssock = servicedSocket; // avoid synchronization
@@ -306,7 +306,7 @@ public class LocalTestServer {
 
     /**
      * Obtains the local address the server is listening on
-     *  
+     *
      * @return the service address
      */
     public InetSocketAddress getServiceAddress() {
@@ -324,7 +324,7 @@ public class LocalTestServer {
     class ListenerThread extends Thread {
 
         private volatile Exception exception;
-        
+
         ListenerThread() {
             super();
         }
@@ -352,7 +352,7 @@ public class LocalTestServer {
                 }
             }
         }
-        
+
         public void shutdown() {
             interrupt();
             try {
@@ -370,7 +370,7 @@ public class LocalTestServer {
     class Worker extends Thread {
 
         private final HttpServerConnection conn;
-    
+
         private volatile Exception exception;
 
         public Worker(final HttpServerConnection conn) {
@@ -394,7 +394,7 @@ public class LocalTestServer {
                 }
             }
         }
-        
+
         public void shutdown() {
             interrupt();
             try {
@@ -408,5 +408,5 @@ public class LocalTestServer {
         }
 
     }
-    
+
 }

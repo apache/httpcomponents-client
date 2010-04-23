@@ -30,7 +30,7 @@ package org.apache.http.cookie;
 import org.apache.http.params.HttpParams;
 
 /**
- * Factory for {@link CookieSpec} implementations. 
+ * Factory for {@link CookieSpec} implementations.
  *
  * @since 4.0
  */
@@ -38,9 +38,9 @@ public interface CookieSpecFactory {
 
     /**
      * Creates an instance of {@link CookieSpec} using given HTTP parameters.
-     * 
+     *
      * @param params HTTP parameters.
-     * 
+     *
      * @return cookie spec.
      */
     CookieSpec newInstance(HttpParams params);

@@ -42,16 +42,16 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Default implementation of {@link UserTokenHandler}. This class will use 
- * an instance of {@link Principal} as a state object for HTTP connections, 
- * if it can be obtained from the given execution context. This helps ensure 
- * persistent connections created with a particular user identity within 
+ * Default implementation of {@link UserTokenHandler}. This class will use
+ * an instance of {@link Principal} as a state object for HTTP connections,
+ * if it can be obtained from the given execution context. This helps ensure
+ * persistent connections created with a particular user identity within
  * a particular security context can be reused by the same user only.
  * <p>
  * DefaultUserTokenHandler will use the user principle of connection
- * based authentication schemes such as NTLM or that of the SSL session 
- * with the client authentication turned on. If both are unavailable, 
- * <code>null</code> token will be returned.   
+ * based authentication schemes such as NTLM or that of the SSL session
+ * with the client authentication turned on. If both are unavailable,
+ * <code>null</code> token will be returned.
  *
  * @since 4.0
  */
@@ -59,9 +59,9 @@ import org.apache.http.protocol.HttpContext;
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public Object getUserToken(final HttpContext context) {
-        
+
         Principal userPrincipal = null;
-        
+
         AuthState targetAuthState = (AuthState) context.getAttribute(
                 ClientContext.TARGET_AUTH_STATE);
         if (targetAuthState != null) {
@@ -72,7 +72,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
                 userPrincipal = getAuthPrincipal(proxyAuthState);
             }
         }
-        
+
         if (userPrincipal == null) {
             ManagedClientConnection conn = (ManagedClientConnection) context.getAttribute(
                     ExecutionContext.HTTP_CONNECTION);
@@ -83,7 +83,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
                 }
             }
         }
-        
+
         return userPrincipal;
     }
 
@@ -92,10 +92,10 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
         if (scheme != null && scheme.isComplete() && scheme.isConnectionBased()) {
             Credentials creds = authState.getCredentials();
             if (creds != null) {
-                return creds.getUserPrincipal(); 
+                return creds.getUserPrincipal();
             }
         }
         return null;
     }
-    
+
 }

@@ -48,7 +48,7 @@ public class URIUtils {
          * used instead of
          * {@link URI#URI(String, String, String, int, String, String, String)}
          * or any of the other URI multi-argument URI constructors.
-         * 
+         *
          * @param scheme
          *            Scheme name
          * @param host
@@ -61,7 +61,7 @@ public class URIUtils {
          *            Query
          * @param fragment
          *            Fragment
-         * 
+         *
          * @throws URISyntaxException
          *             If both a scheme and a path are given but the path is
          *             relative, if the URI string constructed from the given
@@ -76,7 +76,7 @@ public class URIUtils {
             final String path,
             final String query,
             final String fragment) throws URISyntaxException {
-        
+
         StringBuilder buffer = new StringBuilder();
         if (host != null) {
             if (scheme != null) {
@@ -111,19 +111,19 @@ public class URIUtils {
      * and port are taken from the target host, but whose path, query and
      * fragment are taken from the existing URI. The fragment is only used if
      * dropFragment is false.
-     * 
+     *
      * @param uri
      *            Contains the path, query and fragment to use.
      * @param target
      *            Contains the scheme, host and port to use.
      * @param dropFragment
      *            True if the fragment should not be copied.
-     * 
+     *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
      */
     public static URI rewriteURI(
-            final URI uri, 
+            final URI uri,
             final HttpHost target,
             boolean dropFragment) throws URISyntaxException {
         if (uri == null) {
@@ -131,23 +131,23 @@ public class URIUtils {
         }
         if (target != null) {
             return URIUtils.createURI(
-                    target.getSchemeName(), 
-                    target.getHostName(), 
-                    target.getPort(), 
-                    normalizePath(uri.getRawPath()), 
-                    uri.getRawQuery(), 
+                    target.getSchemeName(),
+                    target.getHostName(),
+                    target.getPort(),
+                    normalizePath(uri.getRawPath()),
+                    uri.getRawQuery(),
                     dropFragment ? null : uri.getRawFragment());
         } else {
             return URIUtils.createURI(
-                    null, 
-                    null, 
-                    -1, 
-                    normalizePath(uri.getRawPath()), 
-                    uri.getRawQuery(), 
+                    null,
+                    null,
+                    -1,
+                    normalizePath(uri.getRawPath()),
+                    uri.getRawQuery(),
                     dropFragment ? null : uri.getRawFragment());
         }
     }
-    
+
     private static String normalizePath(final String path) {
         if (path == null) {
             return null;
@@ -168,18 +168,18 @@ public class URIUtils {
         }
         return buffer.toString();
     }
-    
+
     /**
      * A convenience method for
      * {@link URIUtils#rewriteURI(URI, HttpHost, boolean)} that always keeps the
      * fragment.
      */
     public static URI rewriteURI(
-            final URI uri, 
+            final URI uri,
             final HttpHost target) throws URISyntaxException {
         return rewriteURI(uri, target, false);
     }
-    
+
     /**
      * Resolves a URI reference against a base URI. Work-around for bug in
      * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
@@ -226,7 +226,7 @@ public class URIUtils {
 
     /**
      * Resolves a reference starting with a query string.
-     * 
+     *
      * @param baseURI the base URI
      * @param reference the URI reference starting with a query string
      * @return the resulting URI
@@ -241,7 +241,7 @@ public class URIUtils {
 
     /**
      * Removes dot segments according to RFC 3986, section 5.2.4
-     * 
+     *
      * @param uri the original URI
      * @return the URI without dot segments
      */

@@ -45,22 +45,22 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Response interceptor that adds successfully completed {@link AuthScheme}s
- * to the local {@link AuthCache} instance. Cached {@link AuthScheme}s can be 
- * re-used when executing requests against known hosts, thus avoiding 
- * additional authentication round-trips. 
- * 
+ * to the local {@link AuthCache} instance. Cached {@link AuthScheme}s can be
+ * re-used when executing requests against known hosts, thus avoiding
+ * additional authentication round-trips.
+ *
  * @since 4.1
  */
 @Immutable
 public class ResponseAuthCache implements HttpResponseInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     public ResponseAuthCache() {
         super();
     }
-    
-    public void process(final HttpResponse response, final HttpContext context) 
+
+    public void process(final HttpResponse response, final HttpContext context)
             throws HttpException, IOException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
@@ -70,31 +70,31 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         }
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         if (authCache != null) {
-            cache(authCache, 
+            cache(authCache,
                     (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST),
                     (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE));
-            cache(authCache, 
+            cache(authCache,
                     (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST),
                     (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE));
         }
     }
-    
+
     private void cache(final AuthCache authCache, final HttpHost host, final AuthState authState) {
         if (authState == null) {
             return;
         }
-        
+
         AuthScheme authScheme = authState.getAuthScheme();
         if (authScheme == null || !authScheme.isComplete()) {
             return;
         }
-        
+
         String schemeName = authScheme.getSchemeName();
-        if (!schemeName.equalsIgnoreCase(AuthPolicy.BASIC) && 
+        if (!schemeName.equalsIgnoreCase(AuthPolicy.BASIC) &&
                 !schemeName.equalsIgnoreCase(AuthPolicy.DIGEST)) {
             return;
         }
-        
+
         if (authState.getAuthScope() != null) {
             if (authState.getCredentials() != null) {
                 if (this.log.isDebugEnabled()) {
@@ -106,5 +106,5 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
             }
         }
     }
-     
+
 }

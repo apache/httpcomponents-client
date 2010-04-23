@@ -42,20 +42,20 @@ import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Default {@link AuthenticationHandler} implementation for proxy host 
+ * Default {@link AuthenticationHandler} implementation for proxy host
  * authentication.
  *
  * @since 4.0
  */
-@Immutable 
+@Immutable
 public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 
     public DefaultProxyAuthenticationHandler() {
         super();
     }
-    
+
     public boolean isAuthenticationRequested(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
@@ -65,7 +65,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
     }
 
     public Map<String, Header> getChallenges(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
@@ -76,7 +76,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
 
     @Override
     protected List<String> getAuthPreferences(
-            final HttpResponse response, 
+            final HttpResponse response,
             final HttpContext context) {
         @SuppressWarnings("unchecked")
         List<String> authpref = (List<String>) response.getParams().getParameter(
@@ -87,5 +87,5 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
             return super.getAuthPreferences(response, context);
         }
     }
-    
+
 }

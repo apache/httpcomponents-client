@@ -67,12 +67,12 @@ public class TestHttpRequestBase extends TestCase {
         assertEquals("http://host/path", httpget.getRequestLine().getUri());
         assertEquals(HttpVersion.HTTP_1_0, httpget.getRequestLine().getProtocolVersion());
     }
-    
+
     public void testEmptyURI() throws Exception {
         HttpGet httpget = new HttpGet("");
         assertEquals("/", httpget.getRequestLine().getUri());
     }
-    
+
     public void testCloneBasicRequests() throws Exception {
         HttpGet httpget = new HttpGet("http://host/path");
         httpget.addHeader("h1", "this header");
@@ -81,21 +81,21 @@ public class TestHttpRequestBase extends TestCase {
         httpget.getParams().setParameter("p1", Integer.valueOf(1));
         httpget.getParams().setParameter("p2", "whatever");
         HttpGet clone = (HttpGet) httpget.clone();
-        
+
         assertEquals(httpget.getMethod(), clone.getMethod());
         assertEquals(httpget.getURI(), clone.getURI());
-        
+
         Header[] headers1 = httpget.getAllHeaders();
         Header[] headers2 = clone.getAllHeaders();
-        
+
         assertTrue(LangUtils.equals(headers1, headers2));
         assertTrue(httpget.getParams() != clone.getParams());
-        
+
         assertEquals(Integer.valueOf(1), clone.getParams().getParameter("p1"));
         assertEquals("whatever", clone.getParams().getParameter("p2"));
         assertEquals(null, clone.getParams().getParameter("p3"));
     }
-    
+
     public void testCloneEntityEnclosingRequests() throws Exception {
         HttpPost httppost = new HttpPost("http://host/path");
         httppost.addHeader("h1", "this header");
@@ -104,32 +104,32 @@ public class TestHttpRequestBase extends TestCase {
         httppost.getParams().setParameter("p1", Integer.valueOf(1));
         httppost.getParams().setParameter("p2", "whatever");
         HttpPost clone = (HttpPost) httppost.clone();
-        
+
         assertEquals(httppost.getMethod(), clone.getMethod());
         assertEquals(httppost.getURI(), clone.getURI());
-        
+
         Header[] headers1 = httppost.getAllHeaders();
         Header[] headers2 = clone.getAllHeaders();
-        
+
         assertTrue(LangUtils.equals(headers1, headers2));
         assertTrue(httppost.getParams() != clone.getParams());
-        
+
         assertEquals(Integer.valueOf(1), clone.getParams().getParameter("p1"));
         assertEquals("whatever", clone.getParams().getParameter("p2"));
         assertEquals(null, clone.getParams().getParameter("p3"));
-        
+
         assertNull(clone.getEntity());
-        
+
         StringEntity e1 = new StringEntity("stuff");
         httppost.setEntity(e1);
         clone = (HttpPost) httppost.clone();
         assertTrue(clone.getEntity() instanceof StringEntity);
         assertFalse(clone.getEntity().equals(e1));
-        
-        ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {}); 
+
+        ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {});
         InputStreamEntity e2 = new InputStreamEntity(instream, -1);
         httppost.setEntity(e2);
-        
+
         try {
             httppost.clone();
             fail("CloneNotSupportedException should have been thrown");

@@ -32,11 +32,11 @@ import java.io.IOException;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * A handler for determining if an HttpRequest should be retried after a 
+ * A handler for determining if an HttpRequest should be retried after a
  * recoverable exception during execution.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed 
+ * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
  *
  * @since 4.0
@@ -46,12 +46,12 @@ public interface HttpRequestRetryHandler {
     /**
      * Determines if a method should be retried after an IOException
      * occurs during execution.
-     * 
+     *
      * @param exception the exception that occurred
-     * @param executionCount the number of times this method has been 
+     * @param executionCount the number of times this method has been
      * unsuccessfully executed
      * @param context the context for the request execution
-     * 
+     *
      * @return <code>true</code> if the method should be retried, <code>false</code>
      * otherwise
      */

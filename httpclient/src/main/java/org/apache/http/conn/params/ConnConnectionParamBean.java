@@ -33,15 +33,15 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate HTTP client connection parameters 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate HTTP client connection parameters
  * using Java Beans conventions.
  *
  * @since 4.0
  */
 @NotThreadSafe
 public class ConnConnectionParamBean extends HttpAbstractParamBean {
-    
+
     public ConnConnectionParamBean (final HttpParams params) {
         super(params);
     }
@@ -52,5 +52,5 @@ public class ConnConnectionParamBean extends HttpAbstractParamBean {
     public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
         params.setIntParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, maxStatusLineGarbage);
     }
-    
+
 }

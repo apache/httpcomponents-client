@@ -33,7 +33,7 @@ import java.io.IOException;
 import org.apache.http.annotation.NotThreadSafe;
 
 /**
- * Basic implementation of {@link EofSensorWatcher}. The underlying connection 
+ * Basic implementation of {@link EofSensorWatcher}. The underlying connection
  * is released on close or EOF.
  *
  * @since 4.0

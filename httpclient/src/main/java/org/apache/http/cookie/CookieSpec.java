@@ -37,28 +37,28 @@ import org.apache.http.Header;
  * <ul>
  *   <li> rules of parsing "Set-Cookie" header
  *   <li> rules of validation of parsed cookies
- *   <li>  formatting of "Cookie" header 
+ *   <li>  formatting of "Cookie" header
  * </ul>
  * for a given host, port and path of origin
- * 
+ *
  *
  * @since 4.0
  */
-public interface CookieSpec {    
+public interface CookieSpec {
 
     /**
      * Returns version of the state management this cookie specification
      * conforms to.
-     * 
+     *
      * @return version of the state management specification
      */
     int getVersion();
-    
+
     /**
       * Parse the <tt>"Set-Cookie"</tt> Header into an array of Cookies.
       *
       * <p>This method will not perform the validation of the resultant
-      * {@link Cookie}s</p> 
+      * {@link Cookie}s</p>
       *
       * @see #validate
       *
@@ -70,7 +70,7 @@ public interface CookieSpec {
     List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException;
 
     /**
-      * Validate the cookie according to validation rules defined by the 
+      * Validate the cookie according to validation rules defined by the
       *  cookie specification.
       *
       * @param cookie the Cookie to validate
@@ -78,14 +78,14 @@ public interface CookieSpec {
       * @throws MalformedCookieException if the cookie is invalid
       */
     void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException;
-    
+
     /**
      * Determines if a Cookie matches the target location.
      *
      * @param cookie the Cookie to be matched
      * @param origin the target to test against
-     * 
-     * @return <tt>true</tt> if the cookie should be submitted with a request 
+     *
+     * @return <tt>true</tt> if the cookie should be submitted with a request
      *  with given attributes, <tt>false</tt> otherwise.
      */
     boolean match(Cookie cookie, CookieOrigin origin);
@@ -100,10 +100,10 @@ public interface CookieSpec {
     List<Header> formatCookies(List<Cookie> cookies);
 
     /**
-     * Returns a request header identifying what version of the state management 
-     * specification is understood. May be <code>null</code> if the cookie 
+     * Returns a request header identifying what version of the state management
+     * specification is understood. May be <code>null</code> if the cookie
      * specification does not support <tt>Cookie2</tt> header.
      */
     Header getVersionHeader();
-    
+
 }

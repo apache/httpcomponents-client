@@ -52,9 +52,9 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109DomainHandler();
-        
+
         h.parse(cookie, "somehost");
         assertEquals("somehost", cookie.getDomain());
 
@@ -73,10 +73,10 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainValidate1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
-        
+
         cookie.setDomain("somehost");
         h.validate(cookie, origin);
 
@@ -97,10 +97,10 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainValidate2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
-        
+
         cookie.setDomain(".somedomain.com");
         h.validate(cookie, origin);
 
@@ -121,10 +121,10 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainValidate3() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
-        
+
         cookie.setDomain(".a.com");
         h.validate(cookie, origin);
 
@@ -138,10 +138,10 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainValidate4() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
-        
+
         cookie.setDomain(".a.b.c");
         h.validate(cookie, origin);
 
@@ -160,22 +160,22 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
             // expected
         }
     }
-    
+
     public void testRFC2109DomainMatch1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain(null);
         assertFalse(h.match(cookie, origin));
-        
+
         cookie.setDomain(".somedomain.com");
         assertTrue(h.match(cookie, origin));
     }
 
     public void testRFC2109DomainMatch2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain(".somedomain.com");
@@ -183,8 +183,8 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainMatch3() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain("somedomain.com");
@@ -192,8 +192,8 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
     }
 
     public void testRFC2109DomainMatch4() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain("somedomain.com");
@@ -233,16 +233,16 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
             // expected
         }
     }
- 
+
     public void testRFC2109VersionParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109VersionHandler();
         h.parse(cookie, "12");
         assertEquals(12, cookie.getVersion());
     }
 
     public void testRFC2109VersionParseInvalid() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value"); 
+        BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109VersionHandler();
         try {
             h.parse(cookie, "garbage");
@@ -266,12 +266,12 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
 
     public void testRFC2109VersionValidate() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false); 
+        CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109VersionHandler();
 
         cookie.setVersion(12);
         h.validate(cookie, origin);
-        
+
         cookie.setVersion(-12);
         try {
             h.validate(cookie, origin);
@@ -296,5 +296,5 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
             // expected
         }
     }
-        
+
 }

@@ -53,21 +53,21 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
 
 /**
- * Default implementation of a {@link ClientConnectionOperator}. It uses a {@link SchemeRegistry} 
+ * Default implementation of a {@link ClientConnectionOperator}. It uses a {@link SchemeRegistry}
  * to look up {@link SchemeSocketFactory} objects.
  * <p>
- * This connection operator is multihome network aware and will attempt to retry failed connects 
- * against all known IP addresses sequentially until the connect is successful or all known 
- * addresses fail to respond. Please note the same 
- * {@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT} value will be used 
+ * This connection operator is multihome network aware and will attempt to retry failed connects
+ * against all known IP addresses sequentially until the connect is successful or all known
+ * addresses fail to respond. Please note the same
+ * {@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT} value will be used
  * for each connection attempt, so in the worst case the total elapsed time before timeout
  * can be <code>CONNECTION_TIMEOUT * n</code> where <code>n</code> is the number of IP addresses
- * of the given host. One can disable multihome support by overriding 
+ * of the given host. One can disable multihome support by overriding
  * the {@link #resolveHostname(String)} method and returning only one IP address for the given
  * host name.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
@@ -132,7 +132,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         for (int i = 0; i < addresses.length; i++) {
             InetAddress address = addresses[i];
             boolean last = i == addresses.length - 1;
-            
+
             Socket sock = sf.createSocket(params);
             conn.opening(sock, target);
 
@@ -195,7 +195,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
 
         LayeredSchemeSocketFactory lsf = (LayeredSchemeSocketFactory) schm.getSchemeSocketFactory();
-        Socket sock; 
+        Socket sock;
         try {
             sock = lsf.createLayeredSocket(
                     conn.getSocket(), target.getHostName(), target.getPort(), true);
@@ -216,7 +216,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * @throws IOException      in case of an IO problem
      */
     protected void prepareSocket(
-            final Socket sock, 
+            final Socket sock,
             final HttpContext context,
             final HttpParams params) throws IOException {
         sock.setTcpNoDelay(HttpConnectionParams.getTcpNoDelay(params));
@@ -229,18 +229,18 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
     }
 
     /**
-     * Resolves the given host name to an array of corresponding IP addresses, based on the 
+     * Resolves the given host name to an array of corresponding IP addresses, based on the
      * configured name service on the system.
-     * 
+     *
      * @param host host name to resolve
      * @return array of IP addresses
-     * @exception  UnknownHostException  if no IP address for the host could be determined. 
-     * 
+     * @exception  UnknownHostException  if no IP address for the host could be determined.
+     *
      * @since 4.1
      */
     protected InetAddress[] resolveHostname(final String host) throws UnknownHostException {
         return InetAddress.getAllByName(host);
     }
-    
+
 }
 

@@ -40,51 +40,51 @@ import org.apache.http.HttpConnection;
 // Currently only used by AbstractConnPool
 /**
  * A helper class for connection managers to track idle connections.
- * 
+ *
  * <p>This class is not synchronized.</p>
- * 
+ *
  * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
 public class IdleConnectionHandler {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     /** Holds connections and the time they were added. */
     private final Map<HttpConnection,TimeValues> connectionToTimes;
-    
+
 
     public IdleConnectionHandler() {
         super();
         connectionToTimes = new HashMap<HttpConnection,TimeValues>();
     }
-    
+
     /**
-     * Registers the given connection with this handler.  The connection will be held until 
+     * Registers the given connection with this handler.  The connection will be held until
      * {@link #remove} or {@link #closeIdleConnections} is called.
-     * 
+     *
      * @param connection the connection to add
-     * 
+     *
      * @see #remove
      */
     public void add(HttpConnection connection, long validDuration, TimeUnit unit) {
-        
+
         long timeAdded = System.currentTimeMillis();
-        
+
         if (log.isDebugEnabled()) {
             log.debug("Adding connection at: " + timeAdded);
         }
-        
+
         connectionToTimes.put(connection, new TimeValues(timeAdded, validDuration, unit));
     }
-    
+
     /**
      * Removes the given connection from the list of connections to be closed when idle.
      * This will return true if the connection is still valid, and false
      * if the connection should be considered expired and not used.
-     * 
+     *
      * @param connection
      * @return True if the connection is still valid.
      */
@@ -104,14 +104,14 @@ public class IdleConnectionHandler {
     public void removeAll() {
         this.connectionToTimes.clear();
     }
-    
+
     /**
      * Closes connections that have been idle for at least the given amount of time.
-     * 
+     *
      * @param idleTime the minimum idle time, in milliseconds, for connections to be closed
      */
     public void closeIdleConnections(long idleTime) {
-        
+
         // the latest time for which connections will be closed
         long idleTimeout = System.currentTimeMillis() - idleTime;
 
@@ -135,7 +135,7 @@ public class IdleConnectionHandler {
             }
         }
     }
-    
+
 
     public void closeExpiredConnections() {
         long now = System.currentTimeMillis();
@@ -158,7 +158,7 @@ public class IdleConnectionHandler {
             }
         }
     }
-    
+
     private static class TimeValues {
         private final long timeAdded;
         private final long timeExpires;

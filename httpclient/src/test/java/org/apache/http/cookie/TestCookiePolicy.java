@@ -62,23 +62,23 @@ public class TestCookiePolicy extends TestCase {
     private static final String BROWSER_COMPATIBILITY    = "BROWSER_COMPATIBILITY";
     private static final String NETSCAPE                 = "NETSCAPE";
     private static final String RFC_2109                 = "RFC_2109";
-    
-    
+
+
     public void testRegisterUnregisterCookieSpecFactory() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
+        CookieSpecRegistry registry  = new CookieSpecRegistry();
         List<String> names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(0, names.size());
-        
-        registry.register(BROWSER_COMPATIBILITY, 
+
+        registry.register(BROWSER_COMPATIBILITY,
                 new BrowserCompatSpecFactory());
-        registry.register(NETSCAPE, 
+        registry.register(NETSCAPE,
                 new NetscapeDraftSpecFactory());
-        registry.register(RFC_2109, 
+        registry.register(RFC_2109,
                 new RFC2109SpecFactory());
-        registry.register(RFC_2109, 
+        registry.register(RFC_2109,
                 new RFC2109SpecFactory());
-        registry.register(NETSCAPE, 
+        registry.register(NETSCAPE,
                 new NetscapeDraftSpecFactory());
 
         names = registry.getSpecNames();
@@ -89,26 +89,26 @@ public class TestCookiePolicy extends TestCase {
         assertTrue(m.contains(NETSCAPE.toLowerCase(Locale.ENGLISH)));
         assertTrue(m.contains(RFC_2109.toLowerCase(Locale.ENGLISH)));
 
-        registry.unregister(NETSCAPE); 
-        registry.unregister(NETSCAPE); 
-        registry.unregister(RFC_2109); 
-        registry.unregister(BROWSER_COMPATIBILITY); 
-        registry.unregister("whatever"); 
-        
+        registry.unregister(NETSCAPE);
+        registry.unregister(NETSCAPE);
+        registry.unregister(RFC_2109);
+        registry.unregister(BROWSER_COMPATIBILITY);
+        registry.unregister("whatever");
+
         names = registry.getSpecNames();
         assertNotNull(names);
         assertEquals(0, names.size());
     }
 
     public void testGetNewCookieSpec() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
-        registry.register(BROWSER_COMPATIBILITY, 
+        CookieSpecRegistry registry  = new CookieSpecRegistry();
+        registry.register(BROWSER_COMPATIBILITY,
                 new BrowserCompatSpecFactory());
-        registry.register(NETSCAPE, 
+        registry.register(NETSCAPE,
                 new NetscapeDraftSpecFactory());
-        registry.register(RFC_2109, 
+        registry.register(RFC_2109,
                 new RFC2109SpecFactory());
-        
+
         assertNotNull(registry.getCookieSpec(NETSCAPE));
         assertNotNull(registry.getCookieSpec(RFC_2109));
         assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY));
@@ -131,7 +131,7 @@ public class TestCookiePolicy extends TestCase {
     }
 
     public void testInvalidInput() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry(); 
+        CookieSpecRegistry registry  = new CookieSpecRegistry();
         try {
             registry.register(null, null);
             fail("IllegalArgumentException should have been thrown");
@@ -157,6 +157,6 @@ public class TestCookiePolicy extends TestCase {
             // expected
         }
     }
-    
+
 }
 

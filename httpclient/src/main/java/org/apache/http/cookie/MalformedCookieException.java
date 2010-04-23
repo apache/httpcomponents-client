@@ -35,7 +35,7 @@ import org.apache.http.ProtocolException;
  * Signals that a cookie is in some way invalid or illegal in a given
  * context
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -49,10 +49,10 @@ public class MalformedCookieException extends ProtocolException {
     public MalformedCookieException() {
         super();
     }
-     
-    /** 
+
+    /**
      * Creates a new MalformedCookieException with a specified message string.
-     * 
+     *
      * @param message The exception detail message
      */
     public MalformedCookieException(String message) {
@@ -61,7 +61,7 @@ public class MalformedCookieException extends ProtocolException {
 
     /**
      * Creates a new MalformedCookieException with the specified detail message and cause.
-     * 
+     *
      * @param message the exception detail message
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>

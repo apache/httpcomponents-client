@@ -34,7 +34,7 @@ import org.apache.http.annotation.NotThreadSafe;
 /**
  * HTTP POST method.
  * <p>
- * The HTTP POST method is defined in section 9.5 of 
+ * The HTTP POST method is defined in section 9.5 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * <blockquote>
  * The POST method is used to request that the origin server accept the entity
@@ -43,7 +43,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * method to cover the following functions:
  * <ul>
  *   <li>Annotation of existing resources</li>
- *   <li>Posting a message to a bulletin board, newsgroup, mailing list, or 
+ *   <li>Posting a message to a bulletin board, newsgroup, mailing list, or
  *     similar group of articles</li>
  *   <li>Providing a block of data, such as the result of submitting a form,
  *     to a data-handling process</li>
@@ -58,18 +58,18 @@ import org.apache.http.annotation.NotThreadSafe;
 public class HttpPost extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "POST";
-    
+
     public HttpPost() {
         super();
     }
-    
+
     public HttpPost(final URI uri) {
         super();
         setURI(uri);
     }
-    
+
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpPost(final String uri) {
         super();
@@ -80,5 +80,5 @@ public class HttpPost extends HttpEntityEnclosingRequestBase {
     public String getMethod() {
         return METHOD_NAME;
     }
-    
+
 }

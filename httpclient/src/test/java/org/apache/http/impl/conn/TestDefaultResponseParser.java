@@ -64,19 +64,19 @@ public class TestDefaultResponseParser extends TestCase {
     }
 
     public void testResponseParsingWithSomeGarbage() throws Exception {
-        String s = 
-            "garbage\r\n" + 
-            "garbage\r\n" + 
-            "more garbage\r\n" + 
-            "HTTP/1.1 200 OK\r\n" + 
-            "header1: value1\r\n" + 
-            "header2: value2\r\n" + 
-            "\r\n"; 
+        String s =
+            "garbage\r\n" +
+            "garbage\r\n" +
+            "more garbage\r\n" +
+            "HTTP/1.1 200 OK\r\n" +
+            "header1: value1\r\n" +
+            "header2: value2\r\n" +
+            "\r\n";
 
         HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
         HttpMessageParser parser = new DefaultResponseParser(
-                inbuffer, 
+                inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
@@ -94,20 +94,20 @@ public class TestDefaultResponseParser extends TestCase {
     }
 
     public void testResponseParsingWithTooMuchGarbage() throws Exception {
-        String s = 
-            "garbage\r\n" + 
-            "garbage\r\n" + 
-            "more garbage\r\n" + 
-            "HTTP/1.1 200 OK\r\n" + 
-            "header1: value1\r\n" + 
-            "header2: value2\r\n" + 
-            "\r\n"; 
+        String s =
+            "garbage\r\n" +
+            "garbage\r\n" +
+            "more garbage\r\n" +
+            "HTTP/1.1 200 OK\r\n" +
+            "header1: value1\r\n" +
+            "header2: value2\r\n" +
+            "\r\n";
 
         HttpParams params = new BasicHttpParams();
         params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.valueOf(2));
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
         HttpMessageParser parser = new DefaultResponseParser(
-                inbuffer, 
+                inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
@@ -121,9 +121,9 @@ public class TestDefaultResponseParser extends TestCase {
 
     public void testResponseParsingNoResponse() throws Exception {
         HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params); 
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params);
         HttpMessageParser parser = new DefaultResponseParser(
-                inbuffer, 
+                inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
@@ -136,15 +136,15 @@ public class TestDefaultResponseParser extends TestCase {
     }
 
     public void testResponseParsingOnlyGarbage() throws Exception {
-        String s = 
-            "garbage\r\n" + 
-            "garbage\r\n" + 
-            "more garbage\r\n" + 
+        String s =
+            "garbage\r\n" +
+            "garbage\r\n" +
+            "more garbage\r\n" +
             "a lot more garbage\r\n";
         HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params); 
+        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
         HttpMessageParser parser = new DefaultResponseParser(
-                inbuffer, 
+                inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);

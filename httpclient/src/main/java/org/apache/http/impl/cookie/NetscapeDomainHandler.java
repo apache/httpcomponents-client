@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import java.util.Locale;
@@ -48,7 +48,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
     }
 
     @Override
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         super.validate(cookie, origin);
         // Perform Netscape Cookie draft specific validation
@@ -60,16 +60,16 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
             if (isSpecialDomain(domain)) {
                 if (domainParts < 2) {
                     throw new CookieRestrictionViolationException("Domain attribute \""
-                        + domain 
+                        + domain
                         + "\" violates the Netscape cookie specification for "
                         + "special domains");
                 }
             } else {
                 if (domainParts < 3) {
                     throw new CookieRestrictionViolationException("Domain attribute \""
-                        + domain 
+                        + domain
                         + "\" violates the Netscape cookie specification");
-                }            
+                }
             }
         }
     }

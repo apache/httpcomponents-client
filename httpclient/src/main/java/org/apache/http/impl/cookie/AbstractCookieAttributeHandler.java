@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -40,14 +40,14 @@ import org.apache.http.cookie.MalformedCookieException;
 @Immutable
 public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
-    public void validate(final Cookie cookie, final CookieOrigin origin) 
+    public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         // Do nothing
     }
-    
+
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         // Always match
         return true;
     }
-    
+
 }

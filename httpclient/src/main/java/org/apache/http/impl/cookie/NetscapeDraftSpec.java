@@ -46,19 +46,19 @@ import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * This {@link CookieSpec} implementation conforms to the original draft 
- * specification published by Netscape Communications. It should be avoided 
+ * This {@link CookieSpec} implementation conforms to the original draft
+ * specification published by Netscape Communications. It should be avoided
  * unless absolutely necessary for compatibility with legacy code.
- * 
- * @since 4.0 
+ *
+ * @since 4.0
  */
 @NotThreadSafe // superclass is @NotThreadSafe
 public class NetscapeDraftSpec extends CookieSpecBase {
 
     protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yy HH:mm:ss z";
-    
-    private final String[] datepatterns; 
-    
+
+    private final String[] datepatterns;
+
     /** Default constructor */
     public NetscapeDraftSpec(final String[] datepatterns) {
         super();
@@ -80,26 +80,26 @@ public class NetscapeDraftSpec extends CookieSpecBase {
     public NetscapeDraftSpec() {
         this(null);
     }
-    
+
     /**
       * Parses the Set-Cookie value into an array of <tt>Cookie</tt>s.
       *
       * <p>Syntax of the Set-Cookie HTTP Response Header:</p>
-      * 
-      * <p>This is the format a CGI script would use to add to 
-      * the HTTP headers a new piece of data which is to be stored by 
+      *
+      * <p>This is the format a CGI script would use to add to
+      * the HTTP headers a new piece of data which is to be stored by
       * the client for later retrieval.</p>
-      *  
+      *
       * <PRE>
       *  Set-Cookie: NAME=VALUE; expires=DATE; path=PATH; domain=DOMAIN_NAME; secure
       * </PRE>
       *
-      * <p>Please note that Netscape draft specification does not fully 
-      * conform to the HTTP header format. Netscape draft does not specify 
-      * whether multiple cookies may be sent in one header. Hence, comma 
-      * character may be present in unquoted cookie value or unquoted 
+      * <p>Please note that Netscape draft specification does not fully
+      * conform to the HTTP header format. Netscape draft does not specify
+      * whether multiple cookies may be sent in one header. Hence, comma
+      * character may be present in unquoted cookie value or unquoted
       * parameter value.</p>
-      * 
+      *
       * @see <a href="http://wp.netscape.com/newsref/std/cookie_spec.html">
       *  The Cookie Spec.</a>
       *
@@ -107,7 +107,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing
       */
-    public List<Cookie> parse(final Header header, final CookieOrigin origin) 
+    public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         if (header == null) {
             throw new IllegalArgumentException("Header may not be null");
@@ -125,7 +125,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         if (header instanceof FormattedHeader) {
             buffer = ((FormattedHeader) header).getBuffer();
             cursor = new ParserCursor(
-                    ((FormattedHeader) header).getValuePos(), 
+                    ((FormattedHeader) header).getValuePos(),
                     buffer.length());
         } else {
             String s = header.getValue();
@@ -173,10 +173,10 @@ public class NetscapeDraftSpec extends CookieSpecBase {
     public Header getVersionHeader() {
         return null;
     }
-    
+
     @Override
     public String toString() {
         return "netscape";
     }
-    
+
 }

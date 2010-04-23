@@ -63,7 +63,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         super(manager, entry.connection);
         this.poolEntry = entry;
     }
-    
+
     /**
      * Obtains the pool entry.
      *
@@ -78,15 +78,15 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      *
      * @throws ConnectionShutdownException if there is no pool entry
      *                                  or connection has been aborted
-     *                                  
-     * @see #assertValid(OperatedClientConnection)                                  
+     *
+     * @see #assertValid(OperatedClientConnection)
      */
     protected void assertValid(final AbstractPoolEntry entry) {
         if (isReleased() || entry == null) {
             throw new ConnectionShutdownException();
         }
     }
-    
+
     /**
      * @deprecated use {@link #assertValid(AbstractPoolEntry)}
      */

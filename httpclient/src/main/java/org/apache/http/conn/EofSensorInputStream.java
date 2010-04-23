@@ -62,7 +62,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      * Indicates whether this stream itself is closed.
      * If it isn't, but {@link #wrappedStream wrappedStream}
      * is <code>null</code>, we're running in EOF mode.
-     * All read operations will indicate EOF without accessing 
+     * All read operations will indicate EOF without accessing
      * the underlying stream. After closing this stream, read
      * operations will trigger an {@link IOException IOException}.
      *

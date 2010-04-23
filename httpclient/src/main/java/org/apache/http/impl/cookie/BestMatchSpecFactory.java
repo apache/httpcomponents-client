@@ -40,8 +40,8 @@ import org.apache.http.params.HttpParams;
  * {@link CookieSpecFactory} implementation that creates and initializes
  * {@link BestMatchSpec} instances.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
@@ -50,11 +50,11 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class BestMatchSpecFactory implements CookieSpecFactory {    
+public class BestMatchSpecFactory implements CookieSpecFactory {
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
-            
+
             String[] patterns = null;
             Collection<?> param = (Collection<?>) params.getParameter(
                     CookieSpecPNames.DATE_PATTERNS);
@@ -64,7 +64,7 @@ public class BestMatchSpecFactory implements CookieSpecFactory {
             }
             boolean singleHeader = params.getBooleanParameter(
                     CookieSpecPNames.SINGLE_COOKIE_HEADER, false);
-            
+
             return new BestMatchSpec(patterns, singleHeader);
         } else {
             return new BestMatchSpec();

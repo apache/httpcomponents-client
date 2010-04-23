@@ -64,7 +64,7 @@ import org.apache.http.params.HttpParams;
  */
 @ThreadSafe
 public class ConnPoolByRoute extends AbstractConnPool {
-        
+
     private final Log log = LogFactory.getLog(getClass());
 
     /** Connection operator for this pool */
@@ -72,7 +72,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     /** Connections per route lookup */
     protected final ConnPerRoute connPerRoute;
-    
+
     /** The list of free connections */
     protected final Queue<BasicPoolEntry> freeConnections;
 
@@ -89,14 +89,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     @GuardedBy("poolLock")
     protected volatile int maxTotalConnections;
-    
+
     /**
      * Creates a new connection pool, managed by route.
-     * 
+     *
      * @since 4.1
      */
     public ConnPoolByRoute(
-            final ClientConnectionOperator operator, 
+            final ClientConnectionOperator operator,
             final ConnPerRoute connPerRoute,
             int maxTotalConnections) {
         super();
@@ -116,12 +116,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
     /**
      * Creates a new connection pool, managed by route.
-     * 
+     *
      * @deprecated use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute, int)}
      */
     @Deprecated
     public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
-        this(operator, 
+        this(operator,
                 ConnManagerParams.getMaxConnectionsPerRoute(params),
                 ConnManagerParams.getMaxTotalConnections(params));
     }
@@ -228,16 +228,16 @@ public class ConnPoolByRoute extends AbstractConnPool {
             poolLock.unlock();
         }
     }
-    
+
     @Override
     public PoolEntryRequest requestPoolEntry(
             final HttpRoute route,
             final Object state) {
-        
+
         final WaitingThreadAborter aborter = new WaitingThreadAborter();
-        
+
         return new PoolEntryRequest() {
-        
+
             public void abortRequest() {
                 poolLock.lock();
                 try {
@@ -246,14 +246,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     poolLock.unlock();
                 }
             }
-            
+
             public BasicPoolEntry getPoolEntry(
                     long timeout,
                     TimeUnit tunit)
                         throws InterruptedException, ConnectionPoolTimeoutException {
                 return getEntryBlocking(route, state, timeout, tunit, aborter);
             }
-            
+
         };
     }
 
@@ -302,11 +302,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Total connections kept alive: " + freeConnections.size()); 
-                    log.debug("Total issued connections: " + leasedConnections.size()); 
+                    log.debug("Total connections kept alive: " + freeConnections.size());
+                    log.debug("Total issued connections: " + leasedConnections.size());
                     log.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
                 }
-                
+
                 // the cases to check for:
                 // - have a free connection for that route
                 // - allowed to create a free connection for that route
@@ -317,15 +317,15 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 if (entry != null) {
                     break;
                 }
-                
-                boolean hasCapacity = rospl.getCapacity() > 0; 
-                
+
+                boolean hasCapacity = rospl.getCapacity() > 0;
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Available capacity: " + rospl.getCapacity() 
+                    log.debug("Available capacity: " + rospl.getCapacity()
                             + " out of " + rospl.getMaxEntries()
                             + " [" + route + "][" + state + "]");
                 }
-                
+
                 if (hasCapacity && numConnections < maxTotalConnections) {
 
                     entry = createEntry(rospl, operator);
@@ -387,7 +387,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         HttpRoute route = entry.getPlannedRoute();
         if (log.isDebugEnabled()) {
-            log.debug("Releasing connection" +                                 
+            log.debug("Releasing connection" +
                     " [" + route + "][" + entry.getState() + "]");
         }
 
@@ -407,7 +407,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             if (reusable) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Pooling connection" +                                 
+                    log.debug("Pooling connection" +
                             " [" + route + "][" + entry.getState() + "]" +
                             "; keep alive for " + validDuration + " " + timeUnit.toString());
                 }
@@ -446,12 +446,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
             while(!done) {
 
                 entry = rospl.allocEntry(state);
-    
+
                 if (entry != null) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Getting free connection" 
+                        log.debug("Getting free connection"
                                 + " [" + rospl.getRoute() + "][" + state + "]");
-    
+
                     }
                     freeConnections.remove(entry);
                     boolean valid = idleConnHandler.remove(entry.getConnection());
@@ -471,11 +471,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         leasedConnections.add(entry);
                         done = true;
                     }
-    
+
                 } else {
                     done = true;
                     if (log.isDebugEnabled()) {
-                        log.debug("No free connections" 
+                        log.debug("No free connections"
                                 + " [" + rospl.getRoute() + "][" + state + "]");
                     }
                 }
@@ -520,16 +520,16 @@ public class ConnPoolByRoute extends AbstractConnPool {
         return entry;
     }
 
-        
+
     /**
      * Deletes a given pool entry.
      * This closes the pooled connection and removes all references,
      * so that it can be GCed.
-     * 
+     *
      * <p><b>Note:</b> Does not remove the entry from the freeConnections list.
      * It is assumed that the caller has already handled this step.</p>
      * <!-- @@@ is that a good idea? or rather fix it? -->
-     * 
+     *
      * @param entry         the pool entry for the connection to delete
      */
     protected void deleteEntry(BasicPoolEntry entry) {
@@ -537,7 +537,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         HttpRoute route = entry.getPlannedRoute();
 
         if (log.isDebugEnabled()) {
-            log.debug("Deleting connection" 
+            log.debug("Deleting connection"
                     + " [" + route + "][" + entry.getState() + "]");
         }
 
@@ -613,7 +613,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * This will wake a thread waiting in the specific route pool,
      * if there is one.
      * Otherwise, a thread in the connection pool will be notified.
-     * 
+     *
      * @param rospl     the pool in which to notify, or <code>null</code>
      */
     protected void notifyWaitingThread(RouteSpecificPool rospl) {
@@ -686,9 +686,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
             while (ibpe.hasNext()) {
                 BasicPoolEntry entry = ibpe.next();
                 ibpe.remove();
-                
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Closing connection" 
+                    log.debug("Closing connection"
                             + " [" + entry.getPlannedRoute() + "][" + entry.getState() + "]");
                 }
                 closeConnection(entry.getConnection());
@@ -720,7 +720,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             poolLock.unlock();
         }
     }
-    
+
 
     /**
      * since 4.1
@@ -728,7 +728,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public int getMaxTotalConnections() {
         return maxTotalConnections;
     }
-    
+
 
 } // class ConnPoolByRoute
 

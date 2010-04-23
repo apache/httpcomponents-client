@@ -75,7 +75,7 @@ public class AwaitThread extends Thread {
         // terminate
     }
 
-        
+
     public Throwable getException() {
         return exception;
     }

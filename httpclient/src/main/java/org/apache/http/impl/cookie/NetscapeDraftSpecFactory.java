@@ -40,8 +40,8 @@ import org.apache.http.params.HttpParams;
  * {@link CookieSpecFactory} implementation that creates and initializes
  * {@link NetscapeDraftSpec} instances.
  * <p>
- * The following parameters can be used to customize the behavior of this 
- * class: 
+ * The following parameters can be used to customize the behavior of this
+ * class:
  * <ul>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
  * </ul>

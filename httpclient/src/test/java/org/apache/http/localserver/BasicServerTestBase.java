@@ -34,8 +34,8 @@ import junit.framework.TestCase;
 import org.apache.http.HttpHost;
 
 /**
- * Base class for tests using {@link LocalTestServer}. The server will not be started 
- * per default. 
+ * Base class for tests using {@link LocalTestServer}. The server will not be started
+ * per default.
  */
 public abstract class BasicServerTestBase extends TestCase {
 

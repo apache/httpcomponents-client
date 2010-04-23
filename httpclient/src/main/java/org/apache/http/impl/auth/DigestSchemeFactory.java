@@ -40,7 +40,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @Immutable
-public class DigestSchemeFactory implements AuthSchemeFactory {    
+public class DigestSchemeFactory implements AuthSchemeFactory {
 
     public AuthScheme newInstance(final HttpParams params) {
         return new DigestScheme();

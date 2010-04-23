@@ -41,7 +41,7 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Request interceptor that adds default request headers.
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -50,18 +50,18 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
     public RequestDefaultHeaders() {
         super();
     }
-    
-    public void process(final HttpRequest request, final HttpContext context) 
+
+    public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
-        
+
         String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             return;
         }
-        
+
         // Add default headers
         @SuppressWarnings("unchecked")
         Collection<Header> defHeaders = (Collection<Header>) request.getParams().getParameter(
@@ -73,5 +73,5 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
             }
         }
     }
-    
+
 }

@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 
 package org.apache.http.impl.cookie;
 
@@ -38,26 +38,26 @@ import org.apache.http.cookie.CookieSpec;
 
 /**
  * Abstract cookie specification which can delegate the job of parsing,
- * validation or matching cookie attributes to a number of arbitrary 
+ * validation or matching cookie attributes to a number of arbitrary
  * {@link CookieAttributeHandler}s.
- * 
- * 
- * @since 4.0 
+ *
+ *
+ * @since 4.0
  */
 @NotThreadSafe // HashMap is not thread-safe
 public abstract class AbstractCookieSpec implements CookieSpec {
-    
+
     /**
     * Stores attribute name -> attribute handler mappings
     */
     private final Map<String, CookieAttributeHandler> attribHandlerMap;
 
-    /** 
-     * Default constructor 
+    /**
+     * Default constructor
      * */
     public AbstractCookieSpec() {
         super();
-        this.attribHandlerMap = new HashMap<String, CookieAttributeHandler>(10);        
+        this.attribHandlerMap = new HashMap<String, CookieAttributeHandler>(10);
     }
 
     public void registerAttribHandler(
@@ -70,7 +70,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
         }
         this.attribHandlerMap.put(name, handler);
     }
-    
+
     /**
      * Finds an attribute handler {@link CookieAttributeHandler} for the
      * given attribute. Returns <tt>null</tt> if no attribute handler is
@@ -82,7 +82,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
     protected CookieAttributeHandler findAttribHandler(final String name) {
         return this.attribHandlerMap.get(name);
     }
-    
+
     /**
      * Gets attribute handler {@link CookieAttributeHandler} for the
      * given attribute.
@@ -104,5 +104,5 @@ public abstract class AbstractCookieSpec implements CookieSpec {
     protected Collection<CookieAttributeHandler> getAttribHandlers() {
         return this.attribHandlerMap.values();
     }
-    
+
 }

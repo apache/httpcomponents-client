@@ -29,34 +29,34 @@ package org.apache.http.impl.conn.tsccm;
 import org.apache.http.annotation.NotThreadSafe;
 
 // TODO - only called from ConnPoolByRoute currently; consider adding it as nested class
-/** 
+/**
  * A simple class that can interrupt a {@link WaitingThread}.
- * 
+ *
  * Must be called with the pool lock held.
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
 public class WaitingThreadAborter {
-    
+
     private WaitingThread waitingThread;
     private boolean aborted;
-    
+
     /**
      * If a waiting thread has been set, interrupts it.
      */
     public void abort() {
         aborted = true;
-        
+
         if (waitingThread != null)
             waitingThread.interrupt();
-        
+
     }
-    
+
     /**
      * Sets the waiting thread.  If this has already been aborted,
      * the waiting thread is immediately interrupted.
-     * 
+     *
      * @param waitingThread The thread to interrupt when aborting.
      */
     public void setWaitingThread(WaitingThread waitingThread) {

@@ -31,10 +31,10 @@ import java.io.IOException;
 import org.apache.http.HttpResponse;
 
 /**
- * Handler that encapsulates the process of generating a response object 
+ * Handler that encapsulates the process of generating a response object
  * from a {@link HttpResponse}.
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 public interface ResponseHandler<T> {
@@ -42,13 +42,13 @@ public interface ResponseHandler<T> {
     /**
      * Processes an {@link HttpResponse} and returns some value
      * corresponding to that response.
-     * 
+     *
      * @param response The response to process
      * @return A value determined by the response
-     * 
+     *
      * @throws ClientProtocolException in case of an http protocol error
      * @throws IOException in case of a problem or the connection was aborted
      */
     T handleResponse(HttpResponse response) throws ClientProtocolException, IOException;
-    
+
 }

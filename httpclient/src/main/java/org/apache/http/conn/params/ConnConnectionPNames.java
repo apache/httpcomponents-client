@@ -28,7 +28,7 @@ package org.apache.http.conn.params;
 
 /**
  * Parameter names for HTTP client connections.
- * 
+ *
  * @since 4.0
  */
 public interface ConnConnectionPNames {

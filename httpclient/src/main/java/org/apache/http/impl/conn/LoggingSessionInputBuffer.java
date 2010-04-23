@@ -37,18 +37,18 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Logs all data read to the wire LOG.
  *
- * 
+ *
  * @since 4.0
  */
 @Immutable
 public class LoggingSessionInputBuffer implements SessionInputBuffer {
-     
+
     /** Original session input buffer. */
     private final SessionInputBuffer in;
 
     /** The wire log to use for writing. */
     private final Wire wire;
-    
+
     /**
      * Create an instance that wraps the specified session input buffer.
      * @param in The session input buffer.
@@ -74,7 +74,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
 
     public int read() throws IOException {
         int l = this.in.read();
-        if (this.wire.enabled() && l != -1) { 
+        if (this.wire.enabled() && l != -1) {
             this.wire.input(l);
         }
         return l;

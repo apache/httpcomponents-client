@@ -35,10 +35,10 @@ import javax.net.ssl.X509TrustManager;
  * @since 4.1
  */
 class TrustManagerDecorator implements X509TrustManager {
-    
+
     private final X509TrustManager trustManager;
     private final TrustStrategy trustStrategy;
-    
+
     TrustManagerDecorator(final X509TrustManager trustManager, final TrustStrategy trustStrategy) {
         super();
         this.trustManager = trustManager;
@@ -60,5 +60,5 @@ class TrustManagerDecorator implements X509TrustManager {
     public X509Certificate[] getAcceptedIssuers() {
         return this.trustManager.getAcceptedIssuers();
     }
-    
+
 }

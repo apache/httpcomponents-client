@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -43,15 +43,15 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
     public BasicSecureHandler() {
         super();
     }
-    
-    public void parse(final SetCookie cookie, final String value) 
+
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
         cookie.setSecure(true);
     }
-    
+
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (cookie == null) {
@@ -62,5 +62,5 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
         }
         return !cookie.isSecure() || origin.isSecure();
     }
-    
+
 }

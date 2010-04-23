@@ -85,12 +85,12 @@ public class TestCookie2Support extends BasicServerTestBase {
         localServer.registerDefaultHandlers();
         localServer.start();
     }
-    
+
     private static class CookieVer0Service implements HttpRequestHandler {
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion httpversion = request.getRequestLine().getProtocolVersion();
             response.setStatusLine(httpversion, HttpStatus.SC_OK);
@@ -100,25 +100,25 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
     }
-    
+
     public void testCookieVersionSupportHeader1() throws Exception {
         this.localServer.register("*", new CookieVer0Service());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-        
+
         HttpGet httpget = new HttpGet("/test/");
-        
+
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
         }
-        
+
         List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
         assertEquals(1, cookies.size());
@@ -128,19 +128,19 @@ public class TestCookie2Support extends BasicServerTestBase {
         if (e2 != null) {
             e2.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
-        
+
         Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
         assertNotNull(cookiesupport);
         assertEquals("$Version=1", cookiesupport.getValue());
     }
-    
+
     private static class CookieVer1Service implements HttpRequestHandler {
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion httpversion = request.getRequestLine().getProtocolVersion();
             response.setStatusLine(httpversion, HttpStatus.SC_OK);
@@ -151,25 +151,25 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
     }
-    
+
     public void testCookieVersionSupportHeader2() throws Exception {
         this.localServer.register("*", new CookieVer1Service());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-        
+
         HttpGet httpget = new HttpGet("/test/");
-        
+
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
         }
-        
+
         List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
         assertEquals(2, cookies.size());
@@ -179,9 +179,9 @@ public class TestCookie2Support extends BasicServerTestBase {
         if (e2 != null) {
             e2.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
-        
+
         Header cookiesupport = reqWrapper.getFirstHeader(SM.COOKIE2);
         assertNotNull(cookiesupport);
         assertEquals("$Version=1", cookiesupport.getValue());
@@ -190,8 +190,8 @@ public class TestCookie2Support extends BasicServerTestBase {
     private static class CookieVer2Service implements HttpRequestHandler {
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion httpversion = request.getRequestLine().getProtocolVersion();
             response.setStatusLine(httpversion, HttpStatus.SC_OK);
@@ -201,25 +201,25 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
     }
-    
+
     public void testCookieVersionSupportHeader3() throws Exception {
         this.localServer.register("*", new CookieVer2Service());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-        
+
         HttpGet httpget = new HttpGet("/test/");
-        
+
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
         }
-        
+
         List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
         assertEquals(1, cookies.size());
@@ -229,9 +229,9 @@ public class TestCookie2Support extends BasicServerTestBase {
         if (e2 != null) {
             e2.consumeContent();
         }
-        
+
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
-        
+
         Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
         assertNotNull(cookiesupport);
         assertEquals("$Version=1", cookiesupport.getValue());
@@ -240,8 +240,8 @@ public class TestCookie2Support extends BasicServerTestBase {
     private static class SetCookieVersionMixService implements HttpRequestHandler {
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion httpversion = request.getRequestLine().getProtocolVersion();
             response.setStatusLine(httpversion, HttpStatus.SC_OK);
@@ -252,25 +252,25 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
     }
-    
+
     public void testSetCookieVersionMix() throws Exception {
         this.localServer.register("*", new SetCookieVersionMixService());
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-        
+
         HttpGet httpget = new HttpGet("/test/");
-        
+
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         if (e1 != null) {
             e1.consumeContent();
         }
-        
+
         List<Cookie> cookies = cookieStore.getCookies();
         assertNotNull(cookies);
         assertEquals(1, cookies.size());

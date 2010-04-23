@@ -48,20 +48,20 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe // e.g. numEntries, freeEntries, 
+@NotThreadSafe // e.g. numEntries, freeEntries,
 public class RouteSpecificPool {
 
     private final Log log = LogFactory.getLog(getClass());
-    
+
     /** The route this pool is for. */
     protected final HttpRoute route; //Immutable
 
     @Deprecated
     protected final int maxEntries;
-    
+
     /** Connections per route */
     protected final ConnPerRoute connPerRoute;
-    
+
     /**
      * The list of free entries.
      * This list is managed LIFO, to increase idle times and
@@ -109,7 +109,7 @@ public class RouteSpecificPool {
         this.numEntries = 0;
     }
 
-    
+
     /**
      * Obtains the route for which this pool is specific.
      *
@@ -119,7 +119,7 @@ public class RouteSpecificPool {
         return route;
     }
 
-    
+
     /**
      * Obtains the maximum number of entries allowed for this pool.
      *
@@ -128,8 +128,8 @@ public class RouteSpecificPool {
     public final int getMaxEntries() {
         return maxEntries;
     }
-    
-    
+
+
     /**
      * Indicates whether this pool is unused.
      * A pool is unused if there is neither an entry nor a waiting thread.
@@ -145,14 +145,14 @@ public class RouteSpecificPool {
 
     /**
      * Return remaining capacity of this pool
-     * 
+     *
      * @return capacity
      */
     public int getCapacity() {
         return connPerRoute.getMaxForRoute(route) - numEntries;
     }
-    
-    
+
+
     /**
      * Obtains the number of entries.
      * This includes not only the free entries, but also those that

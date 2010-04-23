@@ -38,8 +38,8 @@ import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
 /**
- * This is a Java Bean class that can be used to wrap an instance of 
- * {@link HttpParams} and manipulate HTTP client parameters using 
+ * This is a Java Bean class that can be used to wrap an instance of
+ * {@link HttpParams} and manipulate HTTP client parameters using
  * Java Beans conventions.
  *
  * @since 4.0
@@ -54,7 +54,7 @@ public class ClientParamBean extends HttpAbstractParamBean {
     public void setConnectionManagerFactoryClassName (final String factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME, factory);
     }
-    
+
     @Deprecated
     public void setConnectionManagerFactory(ClientConnectionManagerFactory factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY, factory);
@@ -95,5 +95,5 @@ public class ClientParamBean extends HttpAbstractParamBean {
     public void setDefaultHost (final HttpHost host) {
         params.setParameter(ClientPNames.DEFAULT_HOST, host);
     }
-    
+
 }

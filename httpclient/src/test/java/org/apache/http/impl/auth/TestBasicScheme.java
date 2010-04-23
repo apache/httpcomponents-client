@@ -82,26 +82,26 @@ public class TestBasicScheme extends TestCase {
         int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
         StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < germanChars.length; i++) {
-            buffer.append((char)germanChars[i]); 
+            buffer.append((char)germanChars[i]);
         }
-        
+
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("dh", buffer.toString());
         Header header = BasicScheme.authenticate(credentials, "ISO-8859-1", false);
         assertEquals("Basic ZGg65C32Lfw=", header.getValue());
     }
-    
+
     public void testBasicAuthentication() throws Exception {
-        UsernamePasswordCredentials creds = 
+        UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
-        
+
         Header challenge = new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\"");
-        
+
         BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
-        
+
         HttpRequest request = new BasicHttpRequest("GET", "/");
         Header authResponse = authscheme.authenticate(creds, request);
-        
+
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
         assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
@@ -112,17 +112,17 @@ public class TestBasicScheme extends TestCase {
     }
 
     public void testBasicProxyAuthentication() throws Exception {
-        UsernamePasswordCredentials creds = 
+        UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
-        
+
         Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
-        
+
         BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
-        
+
         HttpRequest request = new BasicHttpRequest("GET", "/");
         Header authResponse = authscheme.authenticate(creds, request);
-        
+
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
         assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());

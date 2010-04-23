@@ -66,7 +66,7 @@ public class TestHttpCore implements TestHttpAgent {
     private final HttpProcessor httpproc;
     private final HttpRequestExecutor httpexecutor;
     private final ConnectionReuseStrategy connStrategy;
-    
+
     public TestHttpCore() {
         super();
         this.params = new SyncBasicHttpParams();
@@ -78,32 +78,32 @@ public class TestHttpCore implements TestHttpAgent {
                 false);
         this.params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
-        
+
         this.httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
                 new RequestContent(),
                 new RequestTargetHost(),
                 new RequestConnControl(),
                 new RequestUserAgent()
-                
+
         }, null);
 
         this.httpexecutor = new HttpRequestExecutor();
         this.connStrategy = new DefaultConnectionReuseStrategy();
     }
-    
+
     public void init() {
     }
 
     public Stats execute(
             final HttpHost targetHost, final HttpRequest request, int n) throws Exception {
-        
+
         Stats stats = new Stats();
-        
+
         int successCount = 0;
         int failureCount = 0;
         long contentLen = 0;
         long totalContentLen = 0;
-        
+
         byte[] buffer = new byte[4096];
         HttpContext context = new BasicHttpContext();
 
@@ -122,7 +122,7 @@ public class TestHttpCore implements TestHttpAgent {
             this.httpexecutor.preProcess(request, this.httpproc, context);
             HttpResponse response = this.httpexecutor.execute(request, conn, context);
             this.httpexecutor.postProcess(response, this.httpproc, context);
-           
+
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 InputStream instream = entity.getContent();
@@ -161,7 +161,7 @@ public class TestHttpCore implements TestHttpAgent {
         stats.setTotalContentLen(totalContentLen);
         return stats;
     }
-    
+
     public Stats get(final URI target, int n) throws Exception {
         HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
         StringBuilder buffer = new StringBuilder();
@@ -173,7 +173,7 @@ public class TestHttpCore implements TestHttpAgent {
         BasicHttpRequest httpget = new BasicHttpRequest("GET", buffer.toString());
         return execute(targetHost, httpget, n);
     }
-    
+
     public Stats post(final URI target, byte[] content, int n) throws Exception {
         HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
         StringBuilder buffer = new StringBuilder();
@@ -182,16 +182,16 @@ public class TestHttpCore implements TestHttpAgent {
             buffer.append("?");
             buffer.append(target.getQuery());
         }
-        BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST", 
+        BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST",
                 buffer.toString());
         httppost.setEntity(new ByteArrayEntity(content));
         return execute(targetHost, httppost, n);
     }
-    
+
     public String getClientName() {
-        VersionInfo vinfo = VersionInfo.loadVersionInfo("org.apache.http", 
+        VersionInfo vinfo = VersionInfo.loadVersionInfo("org.apache.http",
                 Thread.currentThread().getContextClassLoader());
-        return "Apache HttpCore 4 (ver: " + 
+        return "Apache HttpCore 4 (ver: " +
             ((vinfo != null) ? vinfo.getRelease() : VersionInfo.UNAVAILABLE) + ")";
     }
 
@@ -203,13 +203,13 @@ public class TestHttpCore implements TestHttpAgent {
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
 
-        TestHttpCore test = new TestHttpCore(); 
-        
+        TestHttpCore test = new TestHttpCore();
+
         long startTime = System.currentTimeMillis();
         Stats stats = test.get(targetURI, n);
         long finishTime = System.currentTimeMillis();
-       
+
         Stats.printStats(targetURI, startTime, finishTime, stats);
     }
-   
+
 }

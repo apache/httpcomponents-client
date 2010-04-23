@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
@@ -49,7 +49,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         this.datepatterns = datepatterns;
     }
 
-    public void parse(final SetCookie cookie, final String value) 
+    public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
@@ -60,7 +60,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         try {
             cookie.setExpiryDate(DateUtils.parseDate(value, this.datepatterns));
         } catch (DateParseException dpe) {
-            throw new MalformedCookieException("Unable to parse expires attribute: " 
+            throw new MalformedCookieException("Unable to parse expires attribute: "
                 + value);
         }
     }

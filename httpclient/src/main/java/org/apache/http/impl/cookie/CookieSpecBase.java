@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */ 
+ */
 
 package org.apache.http.impl.cookie;
 
@@ -43,14 +43,14 @@ import org.apache.http.cookie.MalformedCookieException;
 /**
  * Cookie management functions shared by all specification.
  *
- * 
- * @since 4.0 
+ *
+ * @since 4.0
  */
 @NotThreadSafe // AbstractCookieSpec is not thread-safe
 public abstract class CookieSpecBase extends AbstractCookieSpec {
-    
+
     protected static String getDefaultPath(final CookieOrigin origin) {
-        String defaultPath = origin.getPath();    
+        String defaultPath = origin.getPath();
         int lastSlashIndex = defaultPath.lastIndexOf('/');
         if (lastSlashIndex >= 0) {
             if (lastSlashIndex == 0) {
@@ -65,7 +65,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
     protected static String getDefaultDomain(final CookieOrigin origin) {
         return origin.getHost();
     }
-    
+
     protected List<Cookie> parse(final HeaderElement[] elems, final CookieOrigin origin)
                 throws MalformedCookieException {
         List<Cookie> cookies = new ArrayList<Cookie>(elems.length);

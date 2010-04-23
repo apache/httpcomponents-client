@@ -34,7 +34,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.util.LangUtils;
 
 /**
- * Simple {@link Credentials} implementation based on a user name / password 
+ * Simple {@link Credentials} implementation based on a user name / password
  * pair.
  *
  * @since 4.0
@@ -46,7 +46,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
 
     private final BasicUserPrincipal principal;
     private final String password;
-    
+
     /**
      * The constructor with the username and password combined string argument.
      *
@@ -56,7 +56,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     public UsernamePasswordCredentials(String usernamePassword) {
         super();
         if (usernamePassword == null) {
-            throw new IllegalArgumentException("Username:password string may not be null");            
+            throw new IllegalArgumentException("Username:password string may not be null");
         }
         int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
@@ -78,7 +78,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     public UsernamePasswordCredentials(String userName, String password) {
         super();
         if (userName == null) {
-            throw new IllegalArgumentException("Username may not be null");            
+            throw new IllegalArgumentException("Username may not be null");
         }
         this.principal = new BasicUserPrincipal(userName);
         this.password = password;

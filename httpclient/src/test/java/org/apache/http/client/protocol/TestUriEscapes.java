@@ -60,21 +60,21 @@ public class TestUriEscapes extends BasicServerTestBase {
     public static Test suite() {
         return new TestSuite(TestUriEscapes.class);
     }
-    
+
     @Override
     protected void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
     }
-    
+
     private static class UriListeningService implements HttpRequestHandler {
-        
+
         private volatile String requestedUri;
 
         public void handle(
-                final HttpRequest request, 
-                final HttpResponse response, 
+                final HttpRequest request,
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             this.requestedUri = request.getRequestLine().getUri();
@@ -82,82 +82,82 @@ public class TestUriEscapes extends BasicServerTestBase {
             StringEntity entity = new StringEntity("Response Body");
             response.setEntity(entity);
         }
-        
+
         public String getRequestedUri() {
             return requestedUri;
         }
     }
-    
+
     private void doTest(String uri, boolean relative) throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
         String host = address.getHostName();
         UriListeningService listener = new UriListeningService();
         this.localServer.register("*", listener);
-        
-        DefaultHttpClient client = new DefaultHttpClient(); 
+
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpResponse response;
 
         if(!relative) {
             String request = "http://" + host + ":" + port + uri;
-            HttpGet httpget = new HttpGet(request); 
+            HttpGet httpget = new HttpGet(request);
             response = client.execute(httpget);
-            response.getEntity().consumeContent();  
+            response.getEntity().consumeContent();
         } else {
             HttpHost target = new HttpHost(host, port);
-            HttpGet httpget = new HttpGet(uri); 
+            HttpGet httpget = new HttpGet(uri);
             response = client.execute(target, httpget);
-            response.getEntity().consumeContent();  
+            response.getEntity().consumeContent();
         }
-        
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());       
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertEquals(uri, listener.getRequestedUri());
     }
-    
+
     public void testEscapedAmpersandInQueryAbsolute() throws Exception {
         doTest("/path/a=b&c=%26d", false);
     }
-    
+
     public void testEscapedAmpersandInQueryRelative() throws Exception {
         doTest("/path/a=b&c=%26d", true);
     }
-    
+
     public void testPlusInPathAbsolute() throws Exception {
         doTest("/path+go", false);
     }
-    
+
     public void testPlusInPathRelative() throws Exception {
         doTest("/path+go", true);
     }
-    
+
     public void testEscapedSpaceInPathAbsolute() throws Exception {
         doTest("/path%20go?a=b&c=d", false);
     }
-    
+
     public void testEscapedSpaceInPathRelative() throws Exception {
         doTest("/path%20go?a=b&c=d", true);
     }
-    
+
     public void testEscapedAmpersandInPathAbsolute() throws Exception {
         doTest("/this%26that?a=b&c=d", false);
     }
-    
+
     public void testEscapedAmpersandInPathRelative() throws Exception {
         doTest("/this%26that?a=b&c=d", true);
     }
-    
+
     public void testEscapedSpaceInQueryAbsolute() throws Exception {
         doTest("/path?a=b&c=d%20e", false);
     }
-    
+
     public void testEscapedSpaceInQueryRelative() throws Exception {
         doTest("/path?a=b&c=d%20e", true);
     }
-    
+
     public void testPlusInQueryAbsolute() throws Exception {
         doTest("/path?a=b&c=d+e", false);
     }
-    
+
     public void testPlusInQueryRelative() throws Exception {
         doTest("/path?a=b&c=d+e", true);
     }

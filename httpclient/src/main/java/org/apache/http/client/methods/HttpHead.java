@@ -34,7 +34,7 @@ import org.apache.http.annotation.NotThreadSafe;
 /**
  * HTTP HEAD method.
  * <p>
- * The HTTP HEAD method is defined in section 9.4 of 
+ * The HTTP HEAD method is defined in section 9.4 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * <blockquote>
  * The HEAD method is identical to GET except that the server MUST NOT
@@ -54,7 +54,7 @@ import org.apache.http.annotation.NotThreadSafe;
 public class HttpHead extends HttpRequestBase {
 
     public final static String METHOD_NAME = "HEAD";
-    
+
     public HttpHead() {
         super();
     }
@@ -65,7 +65,7 @@ public class HttpHead extends HttpRequestBase {
     }
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpHead(final String uri) {
         super();
@@ -76,5 +76,5 @@ public class HttpHead extends HttpRequestBase {
     public String getMethod() {
         return METHOD_NAME;
     }
-    
+
 }

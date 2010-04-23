@@ -62,14 +62,14 @@ public class TestScheme extends TestCase {
 
     public void testConstructor() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-        assertEquals("http", http.getName()); 
-        assertEquals(80, http.getDefaultPort()); 
-        assertSame(PlainSocketFactory.getSocketFactory(), http.getSchemeSocketFactory()); 
-        assertFalse(http.isLayered()); 
+        assertEquals("http", http.getName());
+        assertEquals(80, http.getDefaultPort());
+        assertSame(PlainSocketFactory.getSocketFactory(), http.getSchemeSocketFactory());
+        assertFalse(http.isLayered());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
-        assertEquals("https", https.getName()); 
-        assertEquals(443, https.getDefaultPort()); 
-        assertSame(SecureSocketFactoryMockup.INSTANCE, https.getSchemeSocketFactory()); 
+        assertEquals("https", https.getName());
+        assertEquals(443, https.getDefaultPort());
+        assertSame(SecureSocketFactoryMockup.INSTANCE, https.getSchemeSocketFactory());
         assertTrue(https.isLayered());
 
         Scheme hTtP = new Scheme("hTtP", 80, PlainSocketFactory.getSocketFactory());
@@ -211,14 +211,14 @@ public class TestScheme extends TestCase {
             // expected
         }
     }
-    
+
     public void testResolvePort() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 
         assertEquals(8080, http.resolvePort(8080));
         assertEquals(80, http.resolvePort(-1));
     }
-    
+
     public void testHashCode() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme myhttp = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
@@ -227,7 +227,7 @@ public class TestScheme extends TestCase {
         assertTrue(http.hashCode() != https.hashCode()); // not guaranteed
         assertTrue(http.hashCode() == myhttp.hashCode());
     }
-    
+
     public void testEquals() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme myhttp = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
@@ -247,5 +247,5 @@ public class TestScheme extends TestCase {
         assertEquals("http:80", http.toString());
         assertEquals("http:80", http.toString());
     }
-    
+
 }

@@ -80,7 +80,7 @@ public class TestConnectionReuse extends TestCase {
     }
 
     protected LocalTestServer localServer;
-    
+
     @Override
     protected void tearDown() throws Exception {
         if (this.localServer != null) {
@@ -95,54 +95,54 @@ public class TestConnectionReuse extends TestCase {
         httpproc.addInterceptor(new ResponseServer());
         httpproc.addInterceptor(new ResponseContent());
         httpproc.addInterceptor(new ResponseConnControl());
-        
+
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
-        
+
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        
+
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
-        
+
         WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    client, 
-                    target, 
-                    new URI("/random/2000"), 
+                    client,
+                    target,
+                    new URI("/random/2000"),
                     10, false);
         }
-        
+
         for (int i = 0; i < workers.length; i++) {
             WorkerThread worker = workers[i];
             worker.start();
         }
         for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i]; 
+            WorkerThread worker = workers[i];
             workers[i].join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
         }
-        
+
         // Expect some connection in the pool
         assertTrue(mgr.getConnectionsInPool() > 0);
 
@@ -152,67 +152,67 @@ public class TestConnectionReuse extends TestCase {
     private static class AlwaysCloseConn implements HttpResponseInterceptor {
 
         public void process(
-                final HttpResponse response, 
+                final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
         }
-        
+
     }
-    
+
     public void testReuseOfClosedConnections() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
         httpproc.addInterceptor(new ResponseServer());
         httpproc.addInterceptor(new ResponseContent());
         httpproc.addInterceptor(new AlwaysCloseConn());
-        
+
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
-        
+
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        
+
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
-        
+
         WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    client, 
-                    target, 
-                    new URI("/random/2000"), 
+                    client,
+                    target,
+                    new URI("/random/2000"),
                     10, false);
         }
-        
+
         for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i]; 
+            WorkerThread worker = workers[i];
             worker.start();
         }
         for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i]; 
+            WorkerThread worker = workers[i];
             workers[i].join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
         }
-        
+
         // Expect zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
 
@@ -225,60 +225,60 @@ public class TestConnectionReuse extends TestCase {
         httpproc.addInterceptor(new ResponseServer());
         httpproc.addInterceptor(new ResponseContent());
         httpproc.addInterceptor(new ResponseConnControl());
-        
+
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
-        
+
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        
+
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params); 
+        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
-        
+
         WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    client, 
-                    target, 
-                    new URI("/random/2000"), 
+                    client,
+                    target,
+                    new URI("/random/2000"),
                     10, true);
         }
-        
+
         for (int i = 0; i < workers.length; i++) {
             WorkerThread worker = workers[i];
             worker.start();
         }
         for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i]; 
+            WorkerThread worker = workers[i];
             workers[i].join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
         }
-        
+
         // Expect zero connections in the pool
         assertEquals(0, mgr.getConnectionsInPool());
 
         mgr.shutdown();
     }
-    
+
     public void testKeepAliveHeaderRespected() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -286,67 +286,67 @@ public class TestConnectionReuse extends TestCase {
         httpproc.addInterceptor(new ResponseContent());
         httpproc.addInterceptor(new ResponseConnControl());
         httpproc.addInterceptor(new ResponseKeepAlive());
-        
+
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
-        
+
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, "UTF-8");
         HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
         HttpProtocolParams.setUseExpectContinue(params, false);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
-        
+
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
-        
+
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
         mgr.setMaxTotalConnections(1);
         mgr.setDefaultMaxPerRoute(1);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
-        
+
         HttpResponse response = client.execute(target, new HttpGet("/random/2000"));
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
-        
+
         assertEquals(1, mgr.getConnectionsInPool());
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
+
         response = client.execute(target, new HttpGet("/random/2000"));
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
-        
+
         assertEquals(1, mgr.getConnectionsInPool());
         assertEquals(1, localServer.getAcceptedConnectionCount());
-        
+
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
         response = client.execute(target, new HttpGet("/random/2000"));
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
-        
+
         assertEquals(1, mgr.getConnectionsInPool());
         assertEquals(2, localServer.getAcceptedConnectionCount());
-        
+
         // Do another request just under the 1 second limit & make
         // sure we reuse that connection.
         Thread.sleep(500);
         response = client.execute(target, new HttpGet("/random/2000"));
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
-        
+
         assertEquals(1, mgr.getConnectionsInPool());
         assertEquals(2, localServer.getAcceptedConnectionCount());
-        
+
 
         mgr.shutdown();
-    }    
+    }
 
     private static class WorkerThread extends Thread {
 
@@ -357,10 +357,10 @@ public class TestConnectionReuse extends TestCase {
         private final boolean forceClose;
 
         private volatile Exception exception;
-        
+
         public WorkerThread(
-                final HttpClient httpclient, 
-                final HttpHost target, 
+                final HttpClient httpclient,
+                final HttpHost target,
                 final URI requestURI,
                 int repetitions,
                 boolean forceClose) {
@@ -371,14 +371,14 @@ public class TestConnectionReuse extends TestCase {
             this.repetitions = repetitions;
             this.forceClose = forceClose;
         }
-        
+
         @Override
         public void run() {
             try {
                 for (int i = 0; i < this.repetitions; i++) {
                     HttpGet httpget = new HttpGet(this.requestURI);
                     HttpResponse response = this.httpclient.execute(
-                            this.target, 
+                            this.target,
                             httpget);
                     if (this.forceClose) {
                         httpget.abort();
@@ -397,9 +397,9 @@ public class TestConnectionReuse extends TestCase {
         public Exception getException() {
             return exception;
         }
-        
+
     }
-    
+
     // A very basic keep-alive header interceptor, to add Keep-Alive: timeout=1
     // if there is no Connection: close header.
     private static class ResponseKeepAlive implements HttpResponseInterceptor {
@@ -410,8 +410,8 @@ public class TestConnectionReuse extends TestCase {
                 if(!connection.getValue().equalsIgnoreCase("Close")) {
                     response.addHeader(HTTP.CONN_KEEP_ALIVE, "timeout=1");
                 }
-            }            
+            }
         }
     }
-    
+
 }

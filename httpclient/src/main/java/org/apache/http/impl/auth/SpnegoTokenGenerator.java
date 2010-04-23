@@ -29,15 +29,15 @@ package org.apache.http.impl.auth;
 import java.io.IOException;
 
 /**
- * Abstract SPNEGO token generator. Implementations should take an Kerberos ticket and transform 
+ * Abstract SPNEGO token generator. Implementations should take an Kerberos ticket and transform
  * into a SPNEGO token.
  * <p>
  * Implementations of this interface are expected to be thread-safe.
- * 
+ *
  * @since 4.1
  */
 public interface SpnegoTokenGenerator {
-    
+
     byte [] generateSpnegoDERObject(byte [] kerberosTicket) throws IOException;
-    
+
 }

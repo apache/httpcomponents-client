@@ -41,7 +41,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * Executes a request from a new thread.
- * 
+ *
  */
 public class ExecReqThread extends GetConnThread {
 
@@ -62,7 +62,7 @@ public class ExecReqThread extends GetConnThread {
      * <li>consume the response entity (if there is one)</li>
      * <li>release the connection</li>
      * </ol>
-     */    
+     */
     public ExecReqThread(ClientConnectionManager mgr,
                          HttpRoute route, long timeout,
                          RequestSpec reqspec) {
@@ -72,7 +72,7 @@ public class ExecReqThread extends GetConnThread {
         request_spec = reqspec;
     }
 
-    
+
     public HttpResponse getResponse() {
         return response;
     }

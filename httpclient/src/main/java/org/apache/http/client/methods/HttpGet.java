@@ -44,14 +44,14 @@ import org.apache.http.annotation.NotThreadSafe;
  * process, unless that text happens to be the output of the process.
  * </blockquote>
  * </p>
- * 
+ *
  * @since 4.0
  */
 @NotThreadSafe
 public class HttpGet extends HttpRequestBase {
 
     public final static String METHOD_NAME = "GET";
-    
+
     public HttpGet() {
         super();
     }
@@ -62,7 +62,7 @@ public class HttpGet extends HttpRequestBase {
     }
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid. 
+     * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpGet(final String uri) {
         super();
@@ -73,5 +73,5 @@ public class HttpGet extends HttpRequestBase {
     public String getMethod() {
         return METHOD_NAME;
     }
-    
+
 }

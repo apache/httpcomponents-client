@@ -43,8 +43,8 @@ import org.apache.http.cookie.CookieIdentityComparator;
 
 /**
  * Default implementation of {@link CookieStore}
- * 
- * 
+ *
+ *
  * @since 4.0
  */
 @ThreadSafe
@@ -57,7 +57,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
 
     @GuardedBy("this")
     private final Comparator<Cookie> cookieComparator;
-    
+
     // -------------------------------------------------------- Class Variables
 
     /**
@@ -71,13 +71,13 @@ public class BasicCookieStore implements CookieStore, Serializable {
 
     /**
      * Adds an {@link Cookie HTTP cookie}, replacing any existing equivalent cookies.
-     * If the given cookie has already expired it will not be added, but existing 
+     * If the given cookie has already expired it will not be added, but existing
      * values will still be removed.
-     * 
+     *
      * @param cookie the {@link Cookie cookie} to be added
-     * 
+     *
      * @see #addCookies(Cookie[])
-     * 
+     *
      */
     public synchronized void addCookie(Cookie cookie) {
         if (cookie != null) {
@@ -95,14 +95,14 @@ public class BasicCookieStore implements CookieStore, Serializable {
     }
 
     /**
-     * Adds an array of {@link Cookie HTTP cookies}. Cookies are added individually and 
-     * in the given array order. If any of the given cookies has already expired it will 
+     * Adds an array of {@link Cookie HTTP cookies}. Cookies are added individually and
+     * in the given array order. If any of the given cookies has already expired it will
      * not be added, but existing values will still be removed.
-     * 
+     *
      * @param cookies the {@link Cookie cookies} to be added
-     * 
+     *
      * @see #addCookie(Cookie)
-     * 
+     *
      */
     public synchronized void addCookies(Cookie[] cookies) {
         if (cookies != null) {
@@ -115,7 +115,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
     /**
      * Returns an immutable array of {@link Cookie cookies} that this HTTP
      * state currently contains.
-     * 
+     *
      * @return an array of {@link Cookie cookies}.
      */
     public synchronized List<Cookie> getCookies() {
@@ -124,10 +124,10 @@ public class BasicCookieStore implements CookieStore, Serializable {
 
     /**
      * Removes all of {@link Cookie cookies} in this HTTP state
-     * that have expired by the specified {@link java.util.Date date}. 
-     * 
+     * that have expired by the specified {@link java.util.Date date}.
+     *
      * @return true if any cookies were purged.
-     * 
+     *
      * @see Cookie#isExpired(Date)
      */
     public synchronized boolean clearExpired(final Date date) {
@@ -148,12 +148,12 @@ public class BasicCookieStore implements CookieStore, Serializable {
     public String toString() {
         return cookies.toString();
     }
-    
+
     /**
      * Clears all cookies.
      */
     public synchronized void clear() {
         cookies.clear();
     }
-    
+
 }

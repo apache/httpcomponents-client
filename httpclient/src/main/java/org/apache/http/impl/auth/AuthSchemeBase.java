@@ -43,8 +43,8 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Abstract authentication scheme class that serves as a basis
  * for all authentication schemes supported by HttpClient. This class
- * defines the generic way of parsing an authentication challenge. It 
- * does not make any assumptions regarding the format of the challenge 
+ * defines the generic way of parsing an authentication challenge. It
+ * does not make any assumptions regarding the format of the challenge
  * nor does it impose any specific way of responding to that challenge.
  *
  *
@@ -57,18 +57,18 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      * Flag whether authenticating against a proxy.
      */
     private boolean proxy;
-    
+
     public AuthSchemeBase() {
         super();
     }
 
     /**
      * Processes the given challenge token. Some authentication schemes
-     * may involve multiple challenge-response exchanges. Such schemes must be able 
-     * to maintain the state information when dealing with sequential challenges 
-     * 
+     * may involve multiple challenge-response exchanges. Such schemes must be able
+     * to maintain the state information when dealing with sequential challenges
+     *
      * @param header the challenge header
-     * 
+     *
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
      */
@@ -111,15 +111,15 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
         if (!s.equalsIgnoreCase(getSchemeName())) {
             throw new MalformedChallengeException("Invalid scheme identifier: " + s);
         }
-        
+
         parseChallenge(buffer, pos, buffer.length());
     }
 
-    
+
     @SuppressWarnings("deprecation")
     public Header authenticate(
-            final Credentials credentials, 
-            final HttpRequest request, 
+            final Credentials credentials,
+            final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
         return authenticate(credentials, request);
     }
@@ -130,7 +130,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     /**
      * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
      * otherwise.
-     *  
+     *
      * @return <code>true</code> if authenticating against a proxy, <code>false</code>
      * otherwise
      */
@@ -142,5 +142,5 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     public String toString() {
         return getSchemeName();
     }
-    
+
 }

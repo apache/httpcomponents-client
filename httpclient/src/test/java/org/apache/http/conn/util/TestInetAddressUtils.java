@@ -48,7 +48,7 @@ public class TestInetAddressUtils extends TestCase {
     public static Test suite() {
         return new TestSuite(TestInetAddressUtils.class);
     }
-    
+
     public void testValidIPv4Address() {
         assertTrue(InetAddressUtils.isIPv4Address("127.0.0.1"));
         assertTrue(InetAddressUtils.isIPv4Address("192.168.0.0"));
@@ -74,5 +74,5 @@ public class TestInetAddressUtils extends TestCase {
         assertFalse(InetAddressUtils.isIPv6Address("2001:0db8:0000:garb:age0:0000:1428:57ab"));
         assertFalse(InetAddressUtils.isIPv6Address("2001:0gb8:0000:0000:0000:0000:1428:57ab"));
     }
-    
+
 }

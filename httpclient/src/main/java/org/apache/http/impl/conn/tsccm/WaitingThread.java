@@ -57,7 +57,7 @@ public class WaitingThread {
 
     /** The thread that is waiting for an entry. */
     private Thread waiter;
-    
+
     /** True if this was interrupted. */
     private boolean aborted;
 
@@ -147,7 +147,7 @@ public class WaitingThread {
 
         if (aborted)
             throw new InterruptedException("Operation interrupted");
-        
+
         this.waiter = Thread.currentThread();
 
         boolean success = false;
@@ -186,7 +186,7 @@ public class WaitingThread {
         // It probably isn't, but just in case: wake all, not just one.
         this.cond.signalAll();
     }
-    
+
     public void interrupt() {
         aborted = true;
         this.cond.signalAll();

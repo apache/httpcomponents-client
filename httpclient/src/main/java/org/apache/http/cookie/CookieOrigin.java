@@ -31,9 +31,9 @@ import java.util.Locale;
 import org.apache.http.annotation.Immutable;
 
 /**
- * CookieOrigin class encapsulates details of an origin server that 
+ * CookieOrigin class encapsulates details of an origin server that
  * are relevant when parsing, validating or matching HTTP cookies.
- * 
+ *
  * @since 4.0
  */
 @Immutable
@@ -43,7 +43,7 @@ public final class CookieOrigin {
     private final int port;
     private final String path;
     private final boolean secure;
-    
+
     public CookieOrigin(final String host, int port, final String path, boolean secure) {
         super();
         if (host == null) {
@@ -101,5 +101,5 @@ public final class CookieOrigin {
         buffer.append(']');
         return buffer.toString();
     }
-    
+
 }
