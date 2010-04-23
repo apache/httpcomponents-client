@@ -334,6 +334,14 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         this.nameResolver = null;
     }
     
+    /**
+     * @since 4.1
+     */
+    public Socket createSocket(final HttpParams params) throws IOException {
+        // the cast makes sure that the factory is working as expected
+        return (SSLSocket) this.socketfactory.createSocket();
+    }
+
     @SuppressWarnings("cast")
     public Socket createSocket() throws IOException {
         // the cast makes sure that the factory is working as expected

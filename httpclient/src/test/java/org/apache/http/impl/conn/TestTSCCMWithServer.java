@@ -812,11 +812,11 @@ public class TestTSCCMWithServer extends ServerTestBase {
             return socket;
         }
 
-        public Socket createSocket() throws IOException {
+        public Socket createSocket(final HttpParams params) throws IOException {
             if(waitPolicy == WaitPolicy.BEFORE_CREATE)
                 latch();
             
-            return delegate.createSocket();
+            return delegate.createSocket(params);
         }
 
         public boolean isSecure(Socket sock) throws IllegalArgumentException {

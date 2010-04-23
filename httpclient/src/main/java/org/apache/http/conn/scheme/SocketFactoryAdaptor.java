@@ -34,6 +34,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 @Deprecated
@@ -47,7 +48,8 @@ class SocketFactoryAdaptor implements SocketFactory {
     }
     
     public Socket createSocket() throws IOException {
-        return this.factory.createSocket();
+        HttpParams params = new BasicHttpParams();
+        return this.factory.createSocket(params);
     }
 
     public Socket connectSocket(

@@ -84,6 +84,13 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
         this.nameResolver = null;
     }
 
+    /**
+     * @since 4.1
+     */
+    public Socket createSocket(final HttpParams params) {
+        return new Socket();
+    }
+
     public Socket createSocket() {
         return new Socket();
     }

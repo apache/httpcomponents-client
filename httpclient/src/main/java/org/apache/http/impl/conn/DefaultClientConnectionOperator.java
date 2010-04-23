@@ -133,7 +133,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             InetAddress address = addresses[i];
             boolean last = i == addresses.length - 1;
             
-            Socket sock = sf.createSocket();
+            Socket sock = sf.createSocket(params);
             conn.opening(sock, target);
 
             InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
@@ -164,7 +164,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connect to " + remoteAddress + " timed out. " +
-                		"Connection will be retried using another IP address");
+                        "Connection will be retried using another IP address");
             }
         }
     }

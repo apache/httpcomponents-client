@@ -89,8 +89,16 @@ public class ClientExecuteSOCKS {
     
     static class MySchemeSocketFactory implements SchemeSocketFactory {
 
-        public Socket createSocket() throws IOException {
-            return new Socket();
+        public Socket createSocket(final HttpParams params) throws IOException {
+            if (params == null) {
+                throw new IllegalArgumentException("HTTP parameters may not be null");
+            }
+            String proxyHost = (String) params.getParameter("socks.host");
+            Integer proxyPort = (Integer) params.getParameter("socks.port");
+
+            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort); 
+            Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
+            return new Socket(proxy);
         }
 
         public Socket connectSocket(
@@ -105,12 +113,12 @@ public class ClientExecuteSOCKS {
             if (params == null) {
                 throw new IllegalArgumentException("HTTP parameters may not be null");
             }
-            String proxyHost = (String) params.getParameter("socks.host");
-            Integer proxyPort = (Integer) params.getParameter("socks.port");
-
-            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort); 
-            Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
-            Socket sock = new Socket(proxy);
+            Socket sock;
+            if (socket != null) {
+                sock = socket;
+            } else {
+                sock = createSocket(params);
+            }
             if (localAddress != null) {
                 sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
                 sock.bind(localAddress);

@@ -58,7 +58,7 @@ public class SocketFactoryMockup implements SchemeSocketFactory {
         return "SocketFactoryMockup." + mockup_name;
     }
 
-    public Socket createSocket() {
+    public Socket createSocket(final HttpParams params) {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
 

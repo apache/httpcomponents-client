@@ -47,11 +47,12 @@ public interface SchemeSocketFactory {
      * Creates a new, unconnected socket. The socket should subsequently be passed to
      * {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}.
      *
+     * @param params    additional {@link HttpParams parameters}
      * @return  a new socket
      * 
      * @throws IOException if an I/O error occurs while creating the socket
      */
-    Socket createSocket() throws IOException;
+    Socket createSocket(HttpParams params) throws IOException;
 
     /**
      * Connects a socket to the target host with the given remote address.

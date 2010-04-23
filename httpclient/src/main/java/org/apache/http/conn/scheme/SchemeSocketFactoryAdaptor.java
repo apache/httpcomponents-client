@@ -62,7 +62,7 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
         return this.factory.connectSocket(sock, host, port, local, localPort, params);
     }
 
-    public Socket createSocket() throws IOException {
+    public Socket createSocket(final HttpParams params) throws IOException {
         return this.factory.createSocket();
     }
 
