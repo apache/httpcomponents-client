@@ -39,7 +39,6 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpRequest;
@@ -74,10 +73,8 @@ public class ManagerConnectProxy {
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
-        sf = SSLSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("https", sf, 80));
+        supportedSchemes.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        supportedSchemes.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,

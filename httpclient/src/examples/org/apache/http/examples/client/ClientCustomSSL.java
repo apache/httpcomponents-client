@@ -55,7 +55,7 @@ public class ClientCustomSSL {
         }
         
         SSLSocketFactory socketFactory = new SSLSocketFactory(trustStore);
-        Scheme sch = new Scheme("https", socketFactory, 443);
+        Scheme sch = new Scheme("https", 443, socketFactory);
         httpclient.getConnectionManager().getSchemeRegistry().register(sch);
 
         HttpGet httpget = new HttpGet("https://localhost/");

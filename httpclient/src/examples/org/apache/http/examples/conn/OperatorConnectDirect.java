@@ -37,7 +37,6 @@ import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
@@ -64,8 +63,7 @@ public class OperatorConnectDirect {
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        supportedSchemes.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,

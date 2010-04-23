@@ -49,7 +49,7 @@ public class ClientEvictExpiredConnections {
         // Create and initialize scheme registry 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(
-                new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+                new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         cm.setMaxTotalConnections(100);

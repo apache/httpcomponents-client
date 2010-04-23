@@ -37,7 +37,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -71,8 +71,8 @@ public class ManagerConnectDirect {
         // Register the "http" protocol scheme, it is required
         // by the default operator to look up socket factories.
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
+        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
+        supportedSchemes.register(new Scheme("http", 80, sf));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,

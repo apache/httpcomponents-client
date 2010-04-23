@@ -68,9 +68,9 @@ public class OperatorConnectProxy {
         // required by the default operator to look up socket factories.
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         supportedSchemes.register(new Scheme("http", 
-                PlainSocketFactory.getSocketFactory(), 80));
+                80, PlainSocketFactory.getSocketFactory()));
         supportedSchemes.register(new Scheme("https", 
-                SSLSocketFactory.getSocketFactory(), 443));
+                443, SSLSocketFactory.getSocketFactory()));
 
         // Prepare parameters.
         // Since this example doesn't use the full core framework,
