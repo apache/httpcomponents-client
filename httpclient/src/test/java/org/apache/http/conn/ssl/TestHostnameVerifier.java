@@ -34,28 +34,15 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLException;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link X509HostnameVerifier}.
  */
-public class TestHostnameVerifier extends TestCase {
+public class TestHostnameVerifier {
 
-    public TestHostnameVerifier(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) throws Exception {
-        String[] testCaseName = { TestHostnameVerifier.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestHostnameVerifier.class);
-    }
-
+    @Test
     public void testVerify() throws Exception {
         X509HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
         X509HostnameVerifier STRICT = new StrictHostnameVerifier();
@@ -200,6 +187,7 @@ public class TestHostnameVerifier extends TestCase {
         //exceptionPlease(STRICT,"a.b.\u82b1\u5b50.co.jp", x509 );
     }
 
+    @Test
     public void testSubjectAlt() throws Exception {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
@@ -207,7 +195,7 @@ public class TestHostnameVerifier extends TestCase {
 
         X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
-        assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
+        Assert.assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
                 x509.getSubjectDN().getName());
 
         verifier.verify("localhost", x509);
@@ -216,24 +204,24 @@ public class TestHostnameVerifier extends TestCase {
 
         try {
             verifier.verify("local.host", x509);
-            fail("SSLException should have been thrown");
+            Assert.fail("SSLException should have been thrown");
         } catch (SSLException ex) {
             // expected
         }
         try {
             verifier.verify("127.0.0.2", x509);
-            fail("SSLException should have been thrown");
+            Assert.fail("SSLException should have been thrown");
         } catch (SSLException ex) {
             // expected
         }
 
     }
 
-    private void exceptionPlease(X509HostnameVerifier hv, String host,
+    public void exceptionPlease(X509HostnameVerifier hv, String host,
                                  X509Certificate x509) {
         try {
             hv.verify(host, x509);
-            fail("HostnameVerifier shouldn't allow [" + host + "]");
+            Assert.fail("HostnameVerifier shouldn't allow [" + host + "]");
         }
         catch(SSLException e) {
             // whew!  we're okay!

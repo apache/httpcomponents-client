@@ -28,8 +28,6 @@ package org.apache.http.impl.client;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-import junit.framework.TestCase;
-
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -41,9 +39,12 @@ import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestRequestRetryHandler extends TestCase {
+public class TestRequestRetryHandler {
 
+    @Test(expected=UnknownHostException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithThreadSafeClientConnManager()
             throws Exception {
 
@@ -54,6 +55,7 @@ public class TestRequestRetryHandler extends TestCase {
         assertOnRetry(connManager);
     }
 
+    @Test(expected=UnknownHostException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithSingleClientConnManager()
             throws Exception {
 
@@ -77,7 +79,8 @@ public class TestRequestRetryHandler extends TestCase {
         try {
             client.execute(request);
         } catch (UnknownHostException ex) {
-            assertEquals(2, testRetryHandler.retryNumber);
+            Assert.assertEquals(2, testRetryHandler.retryNumber);
+            throw ex;
         }
     }
 

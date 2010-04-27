@@ -31,10 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
@@ -42,26 +38,16 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.message.BasicHeader;
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test cases for BrowserCompatSpec
  *
  */
-public class TestBrowserCompatSpec extends TestCase {
+public class TestBrowserCompatSpec {
 
-    // ------------------------------------------------------------ Constructor
-
-    public TestBrowserCompatSpec(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestBrowserCompatSpec.class);
-    }
-
+    @Test
     public void testConstructor() throws Exception {
         new BrowserCompatSpec();
         new BrowserCompatSpec(null);
@@ -71,6 +57,7 @@ public class TestBrowserCompatSpec extends TestCase {
     /**
      * Tests whether domain attribute check is case-insensitive.
      */
+    @Test
     public void testDomainCaseInsensitivity() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.whatever.com");
@@ -81,14 +68,15 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
-        assertEquals(".whatever.com", cookies.get(0).getDomain());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
+        Assert.assertEquals(".whatever.com", cookies.get(0).getDomain());
     }
 
     /**
      * Test basic parse (with various spacings
      */
+    @Test
     public void testParse1() throws Exception {
         String headerValue = "custno = 12345; comment=test; version=1," +
             " name=John; version=1; max-age=600; secure; domain=.apache.org";
@@ -101,28 +89,29 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals(2, cookies.size());
+        Assert.assertEquals(2, cookies.size());
 
-        assertEquals("custno", cookies.get(0).getName());
-        assertEquals("12345", cookies.get(0).getValue());
-        assertEquals("test", cookies.get(0).getComment());
-        assertEquals(0, cookies.get(0).getVersion());
-        assertEquals("www.apache.org", cookies.get(0).getDomain());
-        assertEquals("/", cookies.get(0).getPath());
-        assertFalse(cookies.get(0).isSecure());
+        Assert.assertEquals("custno", cookies.get(0).getName());
+        Assert.assertEquals("12345", cookies.get(0).getValue());
+        Assert.assertEquals("test", cookies.get(0).getComment());
+        Assert.assertEquals(0, cookies.get(0).getVersion());
+        Assert.assertEquals("www.apache.org", cookies.get(0).getDomain());
+        Assert.assertEquals("/", cookies.get(0).getPath());
+        Assert.assertFalse(cookies.get(0).isSecure());
 
-        assertEquals("name", cookies.get(1).getName());
-        assertEquals("John", cookies.get(1).getValue());
-        assertEquals(null, cookies.get(1).getComment());
-        assertEquals(0, cookies.get(1).getVersion());
-        assertEquals(".apache.org", cookies.get(1).getDomain());
-        assertEquals("/", cookies.get(1).getPath());
-        assertTrue(cookies.get(1).isSecure());
+        Assert.assertEquals("name", cookies.get(1).getName());
+        Assert.assertEquals("John", cookies.get(1).getValue());
+        Assert.assertEquals(null, cookies.get(1).getComment());
+        Assert.assertEquals(0, cookies.get(1).getVersion());
+        Assert.assertEquals(".apache.org", cookies.get(1).getDomain());
+        Assert.assertEquals("/", cookies.get(1).getPath());
+        Assert.assertTrue(cookies.get(1).isSecure());
     }
 
     /**
      * Test no spaces
      */
+    @Test
     public void testParse2() throws Exception {
         String headerValue = "custno=12345;comment=test; version=1," +
             "name=John;version=1;max-age=600;secure;domain=.apache.org";
@@ -136,29 +125,30 @@ public class TestBrowserCompatSpec extends TestCase {
             cookiespec.validate(cookies.get(i), origin);
         }
 
-        assertEquals(2, cookies.size());
+        Assert.assertEquals(2, cookies.size());
 
-        assertEquals("custno", cookies.get(0).getName());
-        assertEquals("12345", cookies.get(0).getValue());
-        assertEquals("test", cookies.get(0).getComment());
-        assertEquals(0, cookies.get(0).getVersion());
-        assertEquals("www.apache.org", cookies.get(0).getDomain());
-        assertEquals("/", cookies.get(0).getPath());
-        assertFalse(cookies.get(0).isSecure());
+        Assert.assertEquals("custno", cookies.get(0).getName());
+        Assert.assertEquals("12345", cookies.get(0).getValue());
+        Assert.assertEquals("test", cookies.get(0).getComment());
+        Assert.assertEquals(0, cookies.get(0).getVersion());
+        Assert.assertEquals("www.apache.org", cookies.get(0).getDomain());
+        Assert.assertEquals("/", cookies.get(0).getPath());
+        Assert.assertFalse(cookies.get(0).isSecure());
 
-        assertEquals("name", cookies.get(1).getName());
-        assertEquals("John", cookies.get(1).getValue());
-        assertEquals(null, cookies.get(1).getComment());
-        assertEquals(0, cookies.get(1).getVersion());
-        assertEquals(".apache.org", cookies.get(1).getDomain());
-        assertEquals("/", cookies.get(1).getPath());
-        assertTrue(cookies.get(1).isSecure());
+        Assert.assertEquals("name", cookies.get(1).getName());
+        Assert.assertEquals("John", cookies.get(1).getValue());
+        Assert.assertEquals(null, cookies.get(1).getComment());
+        Assert.assertEquals(0, cookies.get(1).getVersion());
+        Assert.assertEquals(".apache.org", cookies.get(1).getDomain());
+        Assert.assertEquals("/", cookies.get(1).getPath());
+        Assert.assertTrue(cookies.get(1).isSecure());
     }
 
 
     /**
      * Test parse with quoted text
      */
+    @Test
     public void testParse3() throws Exception {
         String headerValue =
             "name=\"Doe, John\";version=1;max-age=600;secure;domain=.apache.org";
@@ -171,19 +161,20 @@ public class TestBrowserCompatSpec extends TestCase {
             cookiespec.validate(cookies.get(i), origin);
         }
 
-        assertEquals(1, cookies.size());
+        Assert.assertEquals(1, cookies.size());
 
-        assertEquals("name", cookies.get(0).getName());
-        assertEquals("Doe, John", cookies.get(0).getValue());
-        assertEquals(null, cookies.get(0).getComment());
-        assertEquals(0, cookies.get(0).getVersion());
-        assertEquals(".apache.org", cookies.get(0).getDomain());
-        assertEquals("/", cookies.get(0).getPath());
-        assertTrue(cookies.get(0).isSecure());
+        Assert.assertEquals("name", cookies.get(0).getName());
+        Assert.assertEquals("Doe, John", cookies.get(0).getValue());
+        Assert.assertEquals(null, cookies.get(0).getComment());
+        Assert.assertEquals(0, cookies.get(0).getVersion());
+        Assert.assertEquals(".apache.org", cookies.get(0).getDomain());
+        Assert.assertEquals("/", cookies.get(0).getPath());
+        Assert.assertTrue(cookies.get(0).isSecure());
     }
 
 
     // see issue #5279
+    @Test
     public void testQuotedExpiresAttribute() throws Exception {
         String headerValue = "custno=12345;Expires='Thu, 01-Jan-2070 00:00:10 GMT'";
 
@@ -195,11 +186,12 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull("Expected some cookies",cookies);
-        assertEquals("Expected 1 cookie",1,cookies.size());
-        assertNotNull("Expected cookie to have getExpiryDate",cookies.get(0).getExpiryDate());
+        Assert.assertNotNull("Expected some cookies",cookies);
+        Assert.assertEquals("Expected 1 cookie",1,cookies.size());
+        Assert.assertNotNull("Expected cookie to have getExpiryDate",cookies.get(0).getExpiryDate());
     }
 
+    @Test
     public void testSecurityError() throws Exception {
         String headerValue = "custno=12345;comment=test; version=1," +
             "name=John;version=1;max-age=600;secure;domain=jakarta.apache.org";
@@ -212,12 +204,13 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testParseSimple() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value");
 
@@ -227,19 +220,20 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertTrue("Comment",null == cookies.get(0).getComment());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        //assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
-        assertTrue("isPersistent",!cookies.get(0).isPersistent());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/path",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertEquals("Version",0,cookies.get(0).getVersion());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        //Assert.assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
+        Assert.assertTrue("isPersistent",!cookies.get(0).isPersistent());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/path",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertEquals("Version",0,cookies.get(0).getVersion());
     }
 
+    @Test
     public void testParseSimple2() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "cookie-name=cookie-value");
 
@@ -249,19 +243,20 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.", 1, cookies.size());
-        assertEquals("Name", "cookie-name", cookies.get(0).getName());
-        assertEquals("Value", "cookie-value", cookies.get(0).getValue());
-        assertTrue("Comment", null == cookies.get(0).getComment());
-        assertTrue("ExpiryDate", null == cookies.get(0).getExpiryDate());
-        //assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
-        assertTrue("isPersistent", !cookies.get(0).isPersistent());
-        assertEquals("Domain", "127.0.0.1", cookies.get(0).getDomain());
-        assertEquals("Path", "/", cookies.get(0).getPath());
-        assertTrue("Secure", !cookies.get(0).isSecure());
-        assertEquals("Version", 0, cookies.get(0).getVersion());
+        Assert.assertEquals("Found 1 cookie.", 1, cookies.size());
+        Assert.assertEquals("Name", "cookie-name", cookies.get(0).getName());
+        Assert.assertEquals("Value", "cookie-value", cookies.get(0).getValue());
+        Assert.assertTrue("Comment", null == cookies.get(0).getComment());
+        Assert.assertTrue("ExpiryDate", null == cookies.get(0).getExpiryDate());
+        //Assert.assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
+        Assert.assertTrue("isPersistent", !cookies.get(0).isPersistent());
+        Assert.assertEquals("Domain", "127.0.0.1", cookies.get(0).getDomain());
+        Assert.assertEquals("Path", "/", cookies.get(0).getPath());
+        Assert.assertTrue("Secure", !cookies.get(0).isSecure());
+        Assert.assertEquals("Version", 0, cookies.get(0).getVersion());
     }
 
+    @Test
     public void testParseNoName() throws Exception {
         Header header = new BasicHeader("Set-Cookie","=stuff; path=/");
 
@@ -272,12 +267,13 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testParseNoValue() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=");
 
@@ -287,19 +283,20 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value", "", cookies.get(0).getValue());
-        assertTrue("Comment",null == cookies.get(0).getComment());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        //assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
-        assertTrue("isPersistent",!cookies.get(0).isPersistent());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertEquals("Version",0,cookies.get(0).getVersion());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value", "", cookies.get(0).getValue());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        //Assert.assertTrue("isToBeDiscarded",cookies.get(0).isToBeDiscarded());
+        Assert.assertTrue("isPersistent",!cookies.get(0).isPersistent());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertEquals("Version",0,cookies.get(0).getVersion());
     }
 
+    @Test
     public void testParseWithWhiteSpace() throws Exception {
         Header header = new BasicHeader("Set-Cookie"," cookie-name  =    cookie-value  ");
 
@@ -309,16 +306,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithQuotes() throws Exception {
         Header header = new BasicHeader("Set-Cookie"," cookie-name  =  \" cookie-value \" ;path=/");
 
@@ -328,16 +326,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value"," cookie-value ",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value"," cookie-value ",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithPath() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Path=/path/");
 
@@ -347,16 +346,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/path/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/path/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithDomain() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Domain=127.0.0.1");
 
@@ -366,16 +366,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithSecure() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; secure");
 
@@ -385,16 +386,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithComment() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; comment=\"This is a comment.\"");
@@ -405,16 +407,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
-        assertEquals("Comment","This is a comment.",cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertTrue("ExpiryDate",null == cookies.get(0).getExpiryDate());
+        Assert.assertEquals("Comment","This is a comment.",cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithExpires() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value;Expires=Thu, 01-Jan-1970 00:00:10 GMT");
@@ -425,16 +428,17 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
-        assertEquals("Path","/",cookies.get(0).getPath());
-        assertTrue("Secure",!cookies.get(0).isSecure());
-        assertEquals(new Date(10000L),cookies.get(0).getExpiryDate());
-        assertTrue("Comment",null == cookies.get(0).getComment());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain","127.0.0.1",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",!cookies.get(0).isSecure());
+        Assert.assertEquals(new Date(10000L),cookies.get(0).getExpiryDate());
+        Assert.assertTrue("Comment",null == cookies.get(0).getComment());
     }
 
+    @Test
     public void testParseWithAll() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value;Version=1;Path=/commons;Domain=.apache.org;" +
@@ -446,17 +450,18 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Domain",".apache.org",cookies.get(0).getDomain());
-        assertEquals("Path","/commons",cookies.get(0).getPath());
-        assertTrue("Secure",cookies.get(0).isSecure());
-        assertEquals(new Date(10000L),cookies.get(0).getExpiryDate());
-        assertEquals("Comment","This is a comment.",cookies.get(0).getComment());
-        assertEquals("Version",0,cookies.get(0).getVersion());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Domain",".apache.org",cookies.get(0).getDomain());
+        Assert.assertEquals("Path","/commons",cookies.get(0).getPath());
+        Assert.assertTrue("Secure",cookies.get(0).isSecure());
+        Assert.assertEquals(new Date(10000L),cookies.get(0).getExpiryDate());
+        Assert.assertEquals("Comment","This is a comment.",cookies.get(0).getComment());
+        Assert.assertEquals("Version",0,cookies.get(0).getVersion());
     }
 
+    @Test
     public void testParseMultipleDifferentPaths() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "name1=value1;Version=1;Path=/commons,name1=value2;Version=1;" +
@@ -468,13 +473,14 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Wrong number of cookies.",2,cookies.size());
-        assertEquals("Name","name1",cookies.get(0).getName());
-        assertEquals("Value","value1",cookies.get(0).getValue());
-        assertEquals("Name","name1",cookies.get(1).getName());
-        assertEquals("Value","value2",cookies.get(1).getValue());
+        Assert.assertEquals("Wrong number of cookies.",2,cookies.size());
+        Assert.assertEquals("Name","name1",cookies.get(0).getName());
+        Assert.assertEquals("Value","value1",cookies.get(0).getValue());
+        Assert.assertEquals("Name","name1",cookies.get(1).getName());
+        Assert.assertEquals("Value","value2",cookies.get(1).getValue());
     }
 
+    @Test
     public void testParseRelativePath() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=whatever");
 
@@ -484,12 +490,13 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookies.",1,cookies.size());
-        assertEquals("Name","name1",cookies.get(0).getName());
-        assertEquals("Value","value1",cookies.get(0).getValue());
-        assertEquals("Path","whatever",cookies.get(0).getPath());
+        Assert.assertEquals("Found 1 cookies.",1,cookies.size());
+        Assert.assertEquals("Name","name1",cookies.get(0).getName());
+        Assert.assertEquals("Value","value1",cookies.get(0).getValue());
+        Assert.assertEquals("Path","whatever",cookies.get(0).getPath());
     }
 
+    @Test
     public void testParseWithWrongDomain() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=127.0.0.1; version=1");
@@ -501,12 +508,13 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testParseWithPathMismatch() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; path=/path/path/path");
@@ -518,12 +526,13 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown.");
+            Assert.fail("MalformedCookieException should have been thrown.");
         } catch (MalformedCookieException e) {
             // expected
         }
     }
 
+    @Test
     public void testParseWithPathMismatch2() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; path=/foobar");
@@ -535,7 +544,7 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown.");
+            Assert.fail("MalformedCookieException should have been thrown.");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -544,6 +553,7 @@ public class TestBrowserCompatSpec extends TestCase {
     /**
      * Tests if cookie constructor rejects cookie name containing blanks.
      */
+    @Test
     public void testCookieNameWithBlanks() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "invalid name=");
         CookieSpec cookiespec = new BrowserCompatSpec();
@@ -552,13 +562,14 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
     }
 
     /**
      * Tests if cookie constructor rejects cookie name containing blanks.
      */
+    @Test
     public void testCookieNameBlank() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "=stuff");
         CookieSpec cookiespec = new BrowserCompatSpec();
@@ -568,7 +579,7 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException expected) {
         }
     }
@@ -576,6 +587,7 @@ public class TestBrowserCompatSpec extends TestCase {
     /**
      * Tests if cookie constructor rejects cookie name starting with $.
      */
+    @Test
     public void testCookieNameStartingWithDollarSign() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "$invalid_name=");
         CookieSpec cookiespec = new BrowserCompatSpec();
@@ -584,14 +596,15 @@ public class TestBrowserCompatSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
     }
 
 
     /**
      * Tests if malformatted expires attribute is cookies correctly.
      */
+    @Test
     public void testCookieWithComma() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "name=value; expires=\"Thu, 01-Jan-1970 00:00:00 GMT");
 
@@ -602,7 +615,7 @@ public class TestBrowserCompatSpec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException expected) {
         }
     }
@@ -611,6 +624,7 @@ public class TestBrowserCompatSpec extends TestCase {
     /**
      * Tests several date formats.
      */
+    @Test
     public void testDateFormats() throws Exception {
         //comma, dashes
         checkDate("Thu, 01-Jan-70 00:00:10 GMT");
@@ -630,9 +644,8 @@ public class TestBrowserCompatSpec extends TestCase {
 
         try {
             checkDate("this aint a date");
-            fail("Date check is bogous");
+            Assert.fail("Date check is bogus");
         } catch(Exception e) {
-            /* must fail */
         }
     }
 
@@ -650,6 +663,7 @@ public class TestBrowserCompatSpec extends TestCase {
      * Tests if invalid second domain level cookie gets accepted in the
      * browser compatibility mode.
      */
+    @Test
     public void testSecondDomainLevelCookie() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -662,6 +676,7 @@ public class TestBrowserCompatSpec extends TestCase {
         cookiespec.validate(cookie, origin);
     }
 
+    @Test
     public void testSecondDomainLevelCookieMatch1() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -671,9 +686,10 @@ public class TestBrowserCompatSpec extends TestCase {
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testSecondDomainLevelCookieMatch2() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("sourceforge.net");
@@ -683,9 +699,10 @@ public class TestBrowserCompatSpec extends TestCase {
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testSecondDomainLevelCookieMatch3() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -695,9 +712,10 @@ public class TestBrowserCompatSpec extends TestCase {
 
          CookieSpec cookiespec = new BrowserCompatSpec();
          CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
-         assertTrue(cookiespec.match(cookie, origin));
+         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testInvalidSecondDomainLevelCookieMatch1() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -707,9 +725,10 @@ public class TestBrowserCompatSpec extends TestCase {
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testInvalidSecondDomainLevelCookieMatch2() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("sourceforge.net");
@@ -719,115 +738,128 @@ public class TestBrowserCompatSpec extends TestCase {
 
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testMatchBlankPath() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "  ", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testMatchNullCookieDomain() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testMatchNullCookiePath() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMatch1() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMatch2() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".whatever.com", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMatch3() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".really.whatever.com", 80, "/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMatch4() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMismatch1() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host1");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin("host2", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMismatch2() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".aaaaaaaaa.com");
         cookie.setPath("/");
         CookieOrigin origin = new CookieOrigin(".bbbbbbbb.com", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMismatch3() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foo", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMismatch4() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMatch5() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar/r");
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieMismatch6() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -835,9 +867,10 @@ public class TestBrowserCompatSpec extends TestCase {
         cookie.setPath("/foobar");
         cookie.setSecure(true);
         CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testInvalidMatchDomain() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("beta.gamma.com");
@@ -848,12 +881,13 @@ public class TestBrowserCompatSpec extends TestCase {
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("alpha.beta.gamma.com", 80, "/", false);
         cookiespec.validate(cookie, origin);
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     /**
      * Tests generic cookie formatting.
      */
+    @Test
     public void testGenericCookieFormatting() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com");
@@ -862,14 +896,15 @@ public class TestBrowserCompatSpec extends TestCase {
         List<Cookie> cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("name=value", headers.get(0).getValue());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("name=value", headers.get(0).getValue());
     }
 
     /**
      * Tests if null cookie values are handled correctly.
      */
+    @Test
     public void testNullCookieValueFormatting() {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".whatever.com");
@@ -881,14 +916,15 @@ public class TestBrowserCompatSpec extends TestCase {
         List<Cookie> cookies = new ArrayList<Cookie>(1);
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("name=", headers.get(0).getValue());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("name=", headers.get(0).getValue());
     }
 
     /**
      * Tests generic cookie formatting.
      */
+    @Test
     public void testFormatSeveralCookies() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "name1=value1; path=/; domain=.mydomain.com, name2 = value2 ; path=/; domain=.mydomain.com");
@@ -896,65 +932,67 @@ public class TestBrowserCompatSpec extends TestCase {
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("name1=value1; name2=value2", headers.get(0).getValue());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("name1=value1; name2=value2", headers.get(0).getValue());
     }
 
+    @Test
     public void testKeepCloverHappy() throws Exception {
         new MalformedCookieException();
         new MalformedCookieException("whatever");
         new MalformedCookieException("whatever", null);
     }
 
+    @Test
     public void testInvalidInput() throws Exception {
         CookieSpec cookiespec = new BrowserCompatSpec();
         try {
             cookiespec.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(new BasicClientCookie("name", null), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.match(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.match(new BasicClientCookie("name", null), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.formatCookies(null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             List<Cookie> cookies = new ArrayList<Cookie>();
             cookiespec.formatCookies(cookies);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }

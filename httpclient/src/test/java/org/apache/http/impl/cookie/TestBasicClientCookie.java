@@ -32,53 +32,42 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link BasicClientCookie}.
  */
-public class TestBasicClientCookie extends TestCase {
+public class TestBasicClientCookie {
 
-    public TestBasicClientCookie(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestBasicClientCookie.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestBasicClientCookie.class);
-    }
-
+    @Test
     public void testConstructor() {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        assertEquals("name", cookie.getName());
-        assertEquals("value", cookie.getValue());
+        Assert.assertEquals("name", cookie.getName());
+        Assert.assertEquals("value", cookie.getValue());
         try {
             new BasicClientCookie(null, null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             //expected
         }
     }
 
+    @Test
     public void testCloning() throws Exception {
         BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
         BasicClientCookie clone = (BasicClientCookie) orig.clone();
-        assertEquals(orig.getName(), clone.getName());
-        assertEquals(orig.getValue(), clone.getValue());
-        assertEquals(orig.getDomain(), clone.getDomain());
-        assertEquals(orig.getPath(), clone.getPath());
-        assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assert.assertEquals(orig.getName(), clone.getName());
+        Assert.assertEquals(orig.getValue(), clone.getValue());
+        Assert.assertEquals(orig.getDomain(), clone.getDomain());
+        Assert.assertEquals(orig.getPath(), clone.getPath());
+        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
 
+    @Test
     public void testSerialization() throws Exception {
         BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
@@ -92,11 +81,11 @@ public class TestBasicClientCookie extends TestCase {
         ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
         ObjectInputStream instream = new ObjectInputStream(inbuffer);
         BasicClientCookie clone = (BasicClientCookie) instream.readObject();
-        assertEquals(orig.getName(), clone.getName());
-        assertEquals(orig.getValue(), clone.getValue());
-        assertEquals(orig.getDomain(), clone.getDomain());
-        assertEquals(orig.getPath(), clone.getPath());
-        assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assert.assertEquals(orig.getName(), clone.getName());
+        Assert.assertEquals(orig.getValue(), clone.getValue());
+        Assert.assertEquals(orig.getDomain(), clone.getDomain());
+        Assert.assertEquals(orig.getPath(), clone.getPath());
+        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
 
 }

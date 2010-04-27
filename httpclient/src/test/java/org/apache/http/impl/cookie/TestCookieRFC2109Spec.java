@@ -30,10 +30,6 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
@@ -41,34 +37,22 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.message.BasicHeader;
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test cases for RFC2109 cookie spec
- *
- *
  */
-public class TestCookieRFC2109Spec extends TestCase {
+public class TestCookieRFC2109Spec {
 
-
-    // ------------------------------------------------------------ Constructor
-
-    public TestCookieRFC2109Spec(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestCookieRFC2109Spec.class);
-    }
-
+    @Test
     public void testConstructor() throws Exception {
         new RFC2109Spec();
         new RFC2109Spec(null, false);
         new RFC2109Spec(new String[] { DateUtils.PATTERN_RFC1036 }, false);
     }
 
+    @Test
     public void testParseVersion() throws Exception {
         Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; version=1");
 
@@ -78,15 +62,16 @@ public class TestCookieRFC2109Spec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertEquals("Found 1 cookie.",1,cookies.size());
-        assertEquals("Name","cookie-name",cookies.get(0).getName());
-        assertEquals("Value","cookie-value",cookies.get(0).getValue());
-        assertEquals("Version",1,cookies.get(0).getVersion());
+        Assert.assertEquals("Found 1 cookie.",1,cookies.size());
+        Assert.assertEquals("Name","cookie-name",cookies.get(0).getName());
+        Assert.assertEquals("Value","cookie-value",cookies.get(0).getValue());
+        Assert.assertEquals("Version",1,cookies.get(0).getVersion());
     }
 
     /**
      * Test domain equals host
      */
+    @Test
     public void testCookiesomainEqualsHost() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=www.b.com; version=1");
@@ -97,14 +82,15 @@ public class TestCookieRFC2109Spec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
-        assertEquals("www.b.com", cookies.get(0).getDomain());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
+        Assert.assertEquals("www.b.com", cookies.get(0).getDomain());
     }
 
     /**
      * Domain does not start with a dot
      */
+    @Test
     public void testParseWithIllegalDomain1() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=a.b.com; version=1");
@@ -116,7 +102,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -125,6 +111,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Domain must have alt least one embedded dot
      */
+    @Test
     public void testParseWithIllegalDomain2() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.com; version=1");
@@ -136,7 +123,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -145,6 +132,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Host minus domain may not contain any dots
      */
+    @Test
     public void testParseWithIllegalDomain4() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.c.com; version=1");
@@ -156,7 +144,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -167,6 +155,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * rejected in the strict mode, but gets accepted in the
      * browser compatibility mode.
      */
+    @Test
     public void testSecondDomainLevelCookie() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -178,12 +167,13 @@ public class TestCookieRFC2109Spec extends TestCase {
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
         try {
             cookiespec.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException e) {
             // Expected
         }
     }
 
+    @Test
     public void testSecondDomainLevelCookieMatch() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
@@ -193,9 +183,10 @@ public class TestCookieRFC2109Spec extends TestCase {
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testParseWithWrongPath() throws Exception {
         Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=127.0.0.1; path=/not/just/root");
@@ -207,7 +198,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -216,6 +207,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Tests if cookie constructor rejects cookie name containing blanks.
      */
+    @Test
     public void testCookieNameWithBlanks() throws Exception {
         Header setcookie = new BasicHeader("Set-Cookie", "invalid name=");
         CookieSpec cookiespec = new RFC2109Spec();
@@ -225,7 +217,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -234,6 +226,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Tests if cookie constructor rejects cookie name starting with $.
      */
+    @Test
     public void testCookieNameStartingWithDollarSign() throws Exception {
         Header setcookie = new BasicHeader("Set-Cookie", "$invalid_name=");
         CookieSpec cookiespec = new RFC2109Spec();
@@ -243,7 +236,7 @@ public class TestCookieRFC2109Spec extends TestCase {
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
@@ -253,6 +246,7 @@ public class TestCookieRFC2109Spec extends TestCase {
      * Tests if default cookie validator rejects cookies originating from a host without domain
      * where domain attribute does not match the host of origin
      */
+    @Test
     public void testInvalidDomainWithSimpleHostName() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec();
         Header header = new BasicHeader("Set-Cookie",
@@ -261,7 +255,7 @@ public class TestCookieRFC2109Spec extends TestCase {
         List<Cookie> cookies = cookiespec.parse(header, origin1);
         try {
             cookiespec.validate(cookies.get(0), origin1);
-            fail("MalformedCookieException must have thrown");
+            Assert.fail("MalformedCookieException must have thrown");
         }
         catch(MalformedCookieException expected) {
         }
@@ -271,7 +265,7 @@ public class TestCookieRFC2109Spec extends TestCase {
         cookies = cookiespec.parse(header, origin2);
         try {
             cookiespec.validate(cookies.get(0), origin2);
-            fail("MalformedCookieException must have thrown");
+            Assert.fail("MalformedCookieException must have thrown");
         }
         catch(MalformedCookieException expected) {
         }
@@ -280,22 +274,24 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Tests if cookie values with embedded comma are handled correctly.
      */
+    @Test
     public void testCookieWithComma() throws Exception {
         Header header = new BasicHeader("Set-Cookie", "a=b,c");
 
         CookieSpec cookiespec = new RFC2109Spec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
-        assertEquals("number of cookies", 2, cookies.size());
-        assertEquals("a", cookies.get(0).getName());
-        assertEquals("b", cookies.get(0).getValue());
-        assertEquals("c", cookies.get(1).getName());
-        assertEquals(null, cookies.get(1).getValue());
+        Assert.assertEquals("number of cookies", 2, cookies.size());
+        Assert.assertEquals("a", cookies.get(0).getName());
+        Assert.assertEquals("b", cookies.get(0).getValue());
+        Assert.assertEquals("c", cookies.get(1).getName());
+        Assert.assertEquals(null, cookies.get(1).getValue());
     }
 
     /**
      * Tests RFC 2109 compiant cookie formatting.
      */
+    @Test
     public void testRFC2109CookieFormatting() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec(null, false);
         Header header = new BasicHeader("Set-Cookie",
@@ -304,9 +300,9 @@ public class TestCookieRFC2109Spec extends TestCase {
         List<Cookie> cookies  = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=1; name=\"value\"; $Path=\"/\"; $Domain=\".mydomain.com\"",
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=1; name=\"value\"; $Path=\"/\"; $Domain=\".mydomain.com\"",
                 headers.get(0).getValue());
 
         header = new BasicHeader( "Set-Cookie",
@@ -314,12 +310,13 @@ public class TestCookieRFC2109Spec extends TestCase {
         cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
         headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=0; name=value; $Path=/; $Domain=.mydomain.com",
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=0; name=value; $Path=/; $Domain=.mydomain.com",
                 headers.get(0).getValue());
     }
 
+    @Test
     public void testRFC2109CookiesFormatting() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec(null, true);
         Header header = new BasicHeader("Set-Cookie",
@@ -330,12 +327,12 @@ public class TestCookieRFC2109Spec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(2, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(2, cookies.size());
         List<Header> headers  = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals(
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals(
             "$Version=0; name1=value1; $Path=/; $Domain=.mydomain.com; " +
             "name2=value2; $Path=/; $Domain=.mydomain.com",
             headers.get(0).getValue());
@@ -347,10 +344,10 @@ public class TestCookieRFC2109Spec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
-        assertNotNull(cookies);
-        assertEquals(2, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(2, cookies.size());
         headers = cookiespec.formatCookies(cookies);
-        assertEquals(
+        Assert.assertEquals(
             "$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".mydomain.com\"; " +
             "name2=\"value2\"; $Path=\"/\"; $Domain=\".mydomain.com\"",
             headers.get(0).getValue());
@@ -359,6 +356,7 @@ public class TestCookieRFC2109Spec extends TestCase {
     /**
      * Tests if null cookie values are handled correctly.
      */
+    @Test
     public void testNullCookieValueFormatting() {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".whatever.com");
@@ -370,21 +368,22 @@ public class TestCookieRFC2109Spec extends TestCase {
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=0; name=; $Path=/; $Domain=.whatever.com",
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=0; name=; $Path=/; $Domain=.whatever.com",
                 headers.get(0).getValue());
 
         cookie.setVersion(1);
         cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=1; name=; $Path=\"/\"; $Domain=\".whatever.com\"",
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=1; name=; $Path=\"/\"; $Domain=\".whatever.com\"",
                 headers.get(0).getValue());
     }
 
+    @Test
     public void testCookieNullDomainNullPathFormatting() {
         BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setPath("/");
@@ -394,20 +393,21 @@ public class TestCookieRFC2109Spec extends TestCase {
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=0; name=; $Path=/", headers.get(0).getValue());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=0; name=; $Path=/", headers.get(0).getValue());
 
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, null);
         cookie.setAttribute(ClientCookie.PATH_ATTR, null);
         cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=0; name=", headers.get(0).getValue());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=0; name=", headers.get(0).getValue());
     }
 
+    @Test
     public void testCookieOrderingByPath() {
         BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
         c1.setPath("/a/b/c");
@@ -429,44 +429,45 @@ public class TestCookieRFC2109Spec extends TestCase {
         cookies.add(c1);
         cookies.add(c3);
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
-        assertEquals("$Version=0; name1=value1; $Path=/a/b/c; " +
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("$Version=0; name1=value1; $Path=/a/b/c; " +
                 "name2=value2; $Path=/a/b; " +
                 "name3=value3; $Path=/a; " +
                 "name4=value4; $Path=/", headers.get(0).getValue());
     }
 
+    @Test
     public void testInvalidInput() throws Exception {
         CookieSpec cookiespec = new RFC2109Spec();
         try {
             cookiespec.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.formatCookies(null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             List<Cookie> cookies = new ArrayList<Cookie>();
             cookiespec.formatCookies(cookies);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }

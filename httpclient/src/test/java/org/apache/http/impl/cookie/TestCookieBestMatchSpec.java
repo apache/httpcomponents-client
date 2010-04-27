@@ -30,10 +30,6 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
@@ -42,26 +38,15 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.message.BasicHeader;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test cases for 'best match' cookie policy
- *
- *
  */
-public class TestCookieBestMatchSpec extends TestCase {
+public class TestCookieBestMatchSpec {
 
-    // ------------------------------------------------------------ Constructor
-
-    public TestCookieBestMatchSpec(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestCookieBestMatchSpec.class);
-    }
-
+    @Test
     public void testCookieBrowserCompatParsing() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
@@ -76,6 +61,7 @@ public class TestCookieBestMatchSpec extends TestCase {
         }
     }
 
+    @Test
     public void testNetscapeCookieParsing() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
@@ -90,12 +76,13 @@ public class TestCookieBestMatchSpec extends TestCase {
         try {
             cookies = cookiespec.parse(header, origin);
             cookiespec.validate(cookies.get(0), origin);
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
     }
 
+    @Test
     public void testCookieStandardCompliantParsing() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
@@ -122,12 +109,13 @@ public class TestCookieBestMatchSpec extends TestCase {
         try {
             cookies = cookiespec.parse(header, origin);
             cookiespec.validate(cookies.get(0), origin);
-            fail("MalformedCookieException exception should have been thrown");
+            Assert.fail("MalformedCookieException exception should have been thrown");
         } catch (MalformedCookieException e) {
             // expected
         }
     }
 
+    @Test
     public void testCookieStandardCompliantParsingLocalHost() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
@@ -138,11 +126,12 @@ public class TestCookieBestMatchSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             Cookie cookie = cookies.get(i);
             cookiespec.validate(cookie, origin);
-            assertEquals("localhost", cookie.getDomain());
-            assertFalse(cookie instanceof SetCookie2);
+            Assert.assertEquals("localhost", cookie.getDomain());
+            Assert.assertFalse(cookie instanceof SetCookie2);
         }
     }
 
+    @Test
     public void testCookieStandardCompliantParsingLocalHost2() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
@@ -153,11 +142,12 @@ public class TestCookieBestMatchSpec extends TestCase {
         for (int i = 0; i < cookies.size(); i++) {
             Cookie cookie = cookies.get(i);
             cookiespec.validate(cookie, origin);
-            assertEquals("localhost.local", cookie.getDomain());
-            assertTrue(cookie instanceof SetCookie2);
+            Assert.assertEquals("localhost.local", cookie.getDomain());
+            Assert.assertTrue(cookie instanceof SetCookie2);
         }
     }
 
+    @Test
     public void testCookieBrowserCompatMatch() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
@@ -170,9 +160,10 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieStandardCompliantMatch() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
@@ -186,13 +177,14 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        assertFalse(cookiespec.match(cookie, origin));
+        Assert.assertFalse(cookiespec.match(cookie, origin));
 
         cookie.setDomain(".b.domain.com");
 
-        assertTrue(cookiespec.match(cookie, origin));
+        Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
+    @Test
     public void testCookieBrowserCompatFormatting() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
 
@@ -216,14 +208,15 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookies.add(cookie2);
 
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
 
         Header header = headers.get(0);
-        assertEquals("name1=value1; name2=value2", header.getValue());
+        Assert.assertEquals("name1=value1; name2=value2", header.getValue());
 
     }
 
+    @Test
     public void testCookieStandardCompliantFormatting() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec(null, true);
 
@@ -248,40 +241,41 @@ public class TestCookieBestMatchSpec extends TestCase {
         cookies.add(cookie2);
 
         List<Header> headers = cookiespec.formatCookies(cookies);
-        assertNotNull(headers);
-        assertEquals(1, headers.size());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
 
         Header header = headers.get(0);
-        assertEquals("$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".domain.com\"; " +
+        Assert.assertEquals("$Version=1; name1=\"value1\"; $Path=\"/\"; $Domain=\".domain.com\"; " +
                 "name2=\"value2\"; $Path=\"/\"; $Domain=\".domain.com\"",
                 header.getValue());
 
     }
 
+    @Test
     public void testInvalidInput() throws Exception {
         CookieSpec cookiespec = new BestMatchSpec();
         try {
             cookiespec.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.formatCookies(null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             List<Cookie> cookies = new ArrayList<Cookie>();
             cookiespec.formatCookies(cookies);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }

@@ -30,10 +30,6 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -46,6 +42,8 @@ import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.params.ConnPerRoute;
 
 import org.apache.http.impl.conn.GetConnThread;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for spurious wakeups in <code>WaitingThread</code>.
@@ -54,27 +52,12 @@ import org.apache.http.impl.conn.GetConnThread;
  * satisfying the condition.
  *
  */
-public class TestSpuriousWakeup extends TestCase {
+public class TestSpuriousWakeup {
 
     public final static
         HttpHost TARGET = new HttpHost("target.test.invalid");
     public final static
         HttpRoute ROUTE = new HttpRoute(TARGET);
-
-
-    public TestSpuriousWakeup(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestSpuriousWakeup.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestSpuriousWakeup.class);
-    }
-
 
     /**
      * An extended connection pool that gives access to some internals.
@@ -126,8 +109,7 @@ public class TestSpuriousWakeup extends TestCase {
 
     } // class XTSCCM
 
-
-
+    @Test
     public void testSpuriousWakeup() throws Exception {
         SchemeRegistry schreg = new SchemeRegistry();
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
@@ -141,14 +123,14 @@ public class TestSpuriousWakeup extends TestCase {
             // take out the only connection
             ClientConnectionRequest connRequest = mgr.requestConnection(ROUTE, null);
             ManagedClientConnection conn = connRequest.getConnection(0, null);
-            assertNotNull(conn);
+            Assert.assertNotNull(conn);
 
             // send a thread waiting
             GetConnThread gct = new GetConnThread(mgr, ROUTE, 0L);
             gct.start();
             Thread.sleep(100); // give extra thread time to block
 
-            assertEquals("thread not waiting",
+            Assert.assertEquals("thread not waiting",
                          Thread.State.WAITING, gct.getState());
 
             // get access to the objects we need
@@ -173,14 +155,13 @@ public class TestSpuriousWakeup extends TestCase {
                 // now give the waiting thread some time to register a wakeup
                 Thread.sleep(100);
 
-                assertEquals("thread no longer waiting, iteration " + i,
+                Assert.assertEquals("thread no longer waiting, iteration " + i,
                              Thread.State.WAITING, gct.getState());
             }
         } finally {
             // don't worry about releasing the connection, just shut down
             mgr.shutdown();
         }
-    } // testSpuriousWakeup
+    }
 
-
-} // class TestSpuriousWakeup
+}

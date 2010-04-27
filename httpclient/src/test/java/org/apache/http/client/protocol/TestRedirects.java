@@ -60,35 +60,17 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Redirection test cases.
- *
  */
 public class TestRedirects extends BasicServerTestBase {
 
-    // ------------------------------------------------------------ Constructor
-    public TestRedirects(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestRedirects.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestRedirects.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
@@ -235,6 +217,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
+    @Test
     public void testBasicRedirect300() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -256,10 +239,11 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
-        assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
 
+    @Test
     public void testBasicRedirect301() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -283,12 +267,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test
     public void testBasicRedirect302() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -312,12 +297,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test
     public void testBasicRedirect303() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -341,12 +327,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test
     public void testBasicRedirect304() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -368,10 +355,11 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getStatusLine().getStatusCode());
-        assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
 
+    @Test
     public void testBasicRedirect305() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -393,10 +381,11 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_USE_PROXY, response.getStatusLine().getStatusCode());
-        assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
     }
 
+    @Test
     public void testBasicRedirect307() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -420,12 +409,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testMaxRedirectCheck() throws Exception {
         this.localServer.register("*", new CircularRedirectService());
 
@@ -434,15 +424,15 @@ public class TestRedirects extends BasicServerTestBase {
         client.getParams().setIntParameter(ClientPNames.MAX_REDIRECTS, 5);
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
-
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ClientProtocolException exception should have been thrown");
         } catch (ClientProtocolException e) {
-            assertTrue(e.getCause() instanceof RedirectException);
+            Assert.assertTrue(e.getCause() instanceof RedirectException);
+            throw e;
         }
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testCircularRedirect() throws Exception {
         this.localServer.register("*", new CircularRedirectService());
 
@@ -453,12 +443,13 @@ public class TestRedirects extends BasicServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ClientProtocolException exception should have been thrown");
         } catch (ClientProtocolException e) {
-            assertTrue(e.getCause() instanceof CircularRedirectException);
+            Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
+            throw e;
         }
     }
 
+    @Test
     public void testPostNoRedirect() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -480,11 +471,12 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
-        assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals("POST", reqWrapper.getRequestLine().getMethod());
+        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("POST", reqWrapper.getRequestLine().getMethod());
     }
 
+    @Test
     public void testPostRedirectSeeOther() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -507,11 +499,12 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals("GET", reqWrapper.getRequestLine().getMethod());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("GET", reqWrapper.getRequestLine().getMethod());
     }
 
+    @Test
     public void testRelativeRedirect() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -536,12 +529,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/relativelocation/", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/relativelocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test
     public void testRelativeRedirect2() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -566,12 +560,13 @@ public class TestRedirects extends BasicServerTestBase {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/test/relativelocation", reqWrapper.getRequestLine().getUri());
-        assertEquals(host, targetHost.getHostName());
-        assertEquals(port, targetHost.getPort());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/test/relativelocation", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testRejectRelativeRedirect() throws Exception {
         this.localServer.register("*", new RelativeRedirectService());
 
@@ -583,13 +578,13 @@ public class TestRedirects extends BasicServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ClientProtocolException exception should have been thrown");
         } catch (ClientProtocolException e) {
-            assertTrue(e.getCause() instanceof ProtocolException);
-            // expected
+            Assert.assertTrue(e.getCause() instanceof ProtocolException);
+            throw e;
         }
     }
 
+    @Test(expected=IllegalStateException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
         this.localServer.register("*", new BogusRedirectService("xxx://bogus"));
 
@@ -597,14 +592,10 @@ public class TestRedirects extends BasicServerTestBase {
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 
-        try {
-            client.execute(getServerHttp(), httpget);
-            fail("IllegalStateException should have been thrown");
-        } catch (IllegalStateException e) {
-            // expected
-        }
+        client.execute(getServerHttp(), httpget);
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testRejectInvalidRedirectLocation() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -618,13 +609,13 @@ public class TestRedirects extends BasicServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException e) {
-            assertTrue(e.getCause() instanceof ProtocolException);
-            // expected
+            Assert.assertTrue(e.getCause() instanceof ProtocolException);
+            throw e;
         }
     }
 
+    @Test
     public void testRedirectWithCookie() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -657,13 +648,14 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
         Header[] headers = reqWrapper.getHeaders(SM.COOKIE);
-        assertEquals("There can only be one (cookie)", 1, headers.length);
+        Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
     }
 
+    @Test
     public void testDefaultHeadersRedirect() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
@@ -692,11 +684,11 @@ public class TestRedirects extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
         Header header = reqWrapper.getFirstHeader(HTTP.USER_AGENT);
-        assertEquals("my-test-client", header.getValue());
+        Assert.assertEquals("my-test-client", header.getValue());
     }
 
 }

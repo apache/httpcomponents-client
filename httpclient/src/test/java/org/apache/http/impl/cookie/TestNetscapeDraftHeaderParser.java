@@ -31,30 +31,15 @@ import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link NetscapeDraftHeaderParser}.
- *
  */
-public class TestNetscapeDraftHeaderParser extends TestCase {
+public class TestNetscapeDraftHeaderParser {
 
-    public TestNetscapeDraftHeaderParser(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestNetscapeDraftHeaderParser.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestNetscapeDraftHeaderParser.class);
-    }
-
+    @Test
     public void testNetscapeCookieParsing() throws Exception {
         NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
 
@@ -65,27 +50,27 @@ public class TestNetscapeDraftHeaderParser extends TestCase {
         ParserCursor cursor = new ParserCursor(0, s.length());
 
         HeaderElement he = parser.parseHeader(buffer, cursor);
-        assertEquals("name", he.getName());
-        assertEquals("value", he.getValue());
+        Assert.assertEquals("name", he.getName());
+        Assert.assertEquals("value", he.getValue());
         NameValuePair[] params = he.getParameters();
-        assertEquals("test", params[0].getName());
-        assertEquals(null, params[0].getValue());
-        assertEquals("test1", params[1].getName());
-        assertEquals("stuff,with,commas", params[1].getValue());
-        assertEquals("test2", params[2].getName());
-        assertEquals("stuff; stuff", params[2].getValue());
-        assertEquals("test3", params[3].getName());
-        assertEquals("\"stuff", params[3].getValue());
-        assertEquals(s.length(), cursor.getPos());
-        assertTrue(cursor.atEnd());
+        Assert.assertEquals("test", params[0].getName());
+        Assert.assertEquals(null, params[0].getValue());
+        Assert.assertEquals("test1", params[1].getName());
+        Assert.assertEquals("stuff,with,commas", params[1].getValue());
+        Assert.assertEquals("test2", params[2].getName());
+        Assert.assertEquals("stuff; stuff", params[2].getValue());
+        Assert.assertEquals("test3", params[3].getName());
+        Assert.assertEquals("\"stuff", params[3].getValue());
+        Assert.assertEquals(s.length(), cursor.getPos());
+        Assert.assertTrue(cursor.atEnd());
 
         s = "  ";
         buffer = new CharArrayBuffer(16);
         buffer.append(s);
         cursor = new ParserCursor(0, s.length());
         he = parser.parseHeader(buffer, cursor);
-        assertEquals("", he.getName());
-        assertEquals(null, he.getValue());
+        Assert.assertEquals("", he.getName());
+        Assert.assertEquals(null, he.getValue());
     }
 
 }

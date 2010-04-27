@@ -32,9 +32,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
@@ -77,27 +74,17 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link DefaultRequestDirector}
  */
 public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
-    public TestDefaultClientRequestDirector(final String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestDefaultClientRequestDirector.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestDefaultClientRequestDirector.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
@@ -108,6 +95,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
      * {@link DefaultRequestDirector} is allocating a connection, that the
      * connection is properly aborted.
      */
+    @Test
     public void testAbortInAllocate() throws Exception {
         CountDownLatch connLatch = new CountDownLatch(1);
         CountDownLatch awaitLatch = new CountDownLatch(1);
@@ -130,14 +118,14 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             }
         }).start();
 
-        assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
 
         httpget.abort();
 
-        assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
-        assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
+        Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
-        assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
+        Assert.assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
                 throwableRef.get().getCause() instanceof InterruptedException);
     }
 
@@ -145,6 +133,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
      * Tests that an abort called after the connection has been retrieved
      * but before a release trigger is set does still abort the request.
      */
+    @Test
     public void testAbortAfterAllocateBeforeRequest() throws Exception {
         this.localServer.register("*", new BasicService());
 
@@ -177,8 +166,8 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         releaseLatch.countDown();
 
-        assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
-        assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
+        Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
     }
 
@@ -186,6 +175,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
      * Tests that an abort called completely before execute
      * still aborts the request.
      */
+    @Test
     public void testAbortBeforeExecute() throws Exception {
         this.localServer.register("*", new BasicService());
 
@@ -221,8 +211,8 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         httpget.abort();
         startLatch.countDown();
 
-        assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
-        assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
+        Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
     }
 
@@ -231,6 +221,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
      * still aborts in the correct place (while trying to get the new
      * host's route, not while doing the subsequent request).
      */
+    @Test
     public void testAbortAfterRedirectedRoute() throws Exception {
         final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new BasicRedirectService(port));
@@ -260,14 +251,14 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             }
         }).start();
 
-        assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should have tried to get a connection", connLatch.await(1, TimeUnit.SECONDS));
 
         httpget.abort();
 
-        assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
-        assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
+        Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
-        assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
+        Assert.assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
                 throwableRef.get().getCause() instanceof InterruptedException);
     }
 
@@ -276,6 +267,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
      * Tests that if a socket fails to connect, the allocated connection is
      * properly released back to the connection manager.
      */
+    @Test
     public void testSocketConnectFailureReleasesConnection() throws Exception {
         final ConnMan2 conMan = new ConnMan2();
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
@@ -284,13 +276,14 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         try {
             client.execute(httpget, context);
-            fail("expected IOException");
+            Assert.fail("expected IOException");
         } catch(IOException expected) {}
 
-        assertNotNull(conMan.allocatedConnection);
-        assertSame(conMan.allocatedConnection, conMan.releasedConnection);
+        Assert.assertNotNull(conMan.allocatedConnection);
+        Assert.assertSame(conMan.allocatedConnection, conMan.releasedConnection);
     }
 
+    @Test
     public void testRequestFailureReleasesConnection() throws Exception {
         this.localServer.register("*", new ThrowingService());
 
@@ -303,11 +296,11 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         try {
             client.execute(getServerHttp(), httpget);
-            fail("expected IOException");
+            Assert.fail("expected IOException");
         } catch (IOException expected) {}
 
-        assertNotNull(conMan.allocatedConnection);
-        assertSame(conMan.allocatedConnection, conMan.releasedConnection);
+        Assert.assertNotNull(conMan.allocatedConnection);
+        Assert.assertSame(conMan.allocatedConnection, conMan.releasedConnection);
     }
 
     private static class ThrowingService implements HttpRequestHandler {
@@ -600,6 +593,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         }
     }
 
+    @Test
     public void testDefaultHostAtClientLevel() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -617,9 +611,10 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
 
+    @Test
     public void testDefaultHostAtRequestLevel() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -639,7 +634,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
 
     private static class FaultyHttpRequestExecutor extends HttpRequestExecutor {
@@ -687,7 +682,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
     }
 
-
+    @Test
     public void testAutoGeneratedHeaders() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -729,14 +724,15 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        assertTrue(reqWrapper instanceof RequestWrapper);
+        Assert.assertTrue(reqWrapper instanceof RequestWrapper);
         Header[] myheaders = reqWrapper.getHeaders("my-header");
-        assertNotNull(myheaders);
-        assertEquals(1, myheaders.length);
+        Assert.assertNotNull(myheaders);
+        Assert.assertEquals(1, myheaders.length);
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testNonRepeatableEntity() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -755,12 +751,12 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         try {
             client.execute(getServerHttp(), httppost, context);
-            fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException ex) {
-            assertTrue(ex.getCause() instanceof NonRepeatableRequestException);
+            Assert.assertTrue(ex.getCause() instanceof NonRepeatableRequestException);
             NonRepeatableRequestException nonRepeat = (NonRepeatableRequestException)ex.getCause();
-            assertTrue(nonRepeat.getCause() instanceof IOException);
-            assertEquals(failureMsg, nonRepeat.getCause().getMessage());
+            Assert.assertTrue(nonRepeat.getCause() instanceof IOException);
+            Assert.assertEquals(failureMsg, nonRepeat.getCause().getMessage());
+            throw ex;
         }
     }
 

@@ -34,36 +34,18 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.HttpMultipart;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestMultipartForm extends TestCase {
+public class TestMultipartForm {
 
-    // ------------------------------------------------------------ Constructor
-    public TestMultipartForm(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestMultipartForm.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestMultipartForm.class);
-    }
-
+    @Test
     public void testMultipartFormStringParts() throws Exception {
         HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
@@ -107,10 +89,11 @@ public class TestMultipartForm extends TestCase {
             "all kind of stuff\r\n" +
             "--foo--\r\n";
         String s = out.toString("US-ASCII");
-        assertEquals(expected, s);
-        assertEquals(s.length(), multipart.getTotalLength());
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(s.length(), multipart.getTotalLength());
     }
 
+    @Test
     public void testMultipartFormBinaryParts() throws Exception {
         File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
@@ -153,12 +136,13 @@ public class TestMultipartForm extends TestCase {
             "some random whatever\r\n" +
             "--foo--\r\n";
         String s = out.toString("US-ASCII");
-        assertEquals(expected, s);
-        assertEquals(-1, multipart.getTotalLength());
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(-1, multipart.getTotalLength());
 
         tmpfile.delete();
     }
 
+    @Test
     public void testMultipartFormBrowserCompatible() throws Exception {
         File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
@@ -214,8 +198,8 @@ public class TestMultipartForm extends TestCase {
             "some random whatever\r\n" +
             "--foo--\r\n";
         String s = out.toString("US-ASCII");
-        assertEquals(expected, s);
-        assertEquals(-1, multipart.getTotalLength());
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(-1, multipart.getTotalLength());
 
         tmpfile.delete();
     }
@@ -239,6 +223,7 @@ public class TestMultipartForm extends TestCase {
         return buffer.toString();
     }
 
+    @Test
     public void testMultipartFormBrowserCompatibleNonASCIIHeaders() throws Exception {
         String s1 = constructString(SWISS_GERMAN_HELLO);
         String s2 = constructString(RUSSIAN_HELLO);
@@ -282,12 +267,13 @@ public class TestMultipartForm extends TestCase {
             "some random whatever\r\n" +
             "--foo--\r\n";
         String s = out.toString("UTF-8");
-        assertEquals(expected, s);
-        assertEquals(-1, multipart.getTotalLength());
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(-1, multipart.getTotalLength());
 
         tmpfile.delete();
     }
 
+    @Test
     public void testMultipartFormStringPartsMultiCharsets() throws Exception {
         String s1 = constructString(SWISS_GERMAN_HELLO);
         String s2 = constructString(RUSSIAN_HELLO);
@@ -330,11 +316,11 @@ public class TestMultipartForm extends TestCase {
         byte[] actual = out1.toByteArray();
         byte[] expected = out2.toByteArray();
 
-        assertEquals(expected.length, actual.length);
+        Assert.assertEquals(expected.length, actual.length);
         for (int i = 0; i < actual.length; i++) {
-            assertEquals(expected[i], actual[i]);
+            Assert.assertEquals(expected[i], actual[i]);
         }
-        assertEquals(expected.length, multipart.getTotalLength());
+        Assert.assertEquals(expected.length, multipart.getTotalLength());
     }
 
 }

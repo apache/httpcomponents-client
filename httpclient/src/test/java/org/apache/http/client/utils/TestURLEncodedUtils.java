@@ -31,86 +31,73 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestURLEncodedUtils extends TestCase {
+public class TestURLEncodedUtils {
 
-    public TestURLEncodedUtils(final String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestURLEncodedUtils.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestURLEncodedUtils.class);
-    }
-
+    @Test
     public void testParseURI () throws Exception {
         List <NameValuePair> result;
 
         result = parse("", null);
-        assertTrue(result.isEmpty());
+        Assert.assertTrue(result.isEmpty());
 
         result = parse("Name1=Value1", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name1", "Value1");
 
         result = parse("Name2=", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name2", null);
 
         result = parse("Name3", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name3", null);
 
         result = parse("Name4=Value+4%21", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name4", "Value 4!");
 
         result = parse("Name4=Value%2B4%21", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name4", "Value+4!");
 
         result = parse("Name4=Value+4%21+%214", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name4", "Value 4! !4");
 
         result = parse("Name5=aaa&Name6=bbb", null);
-        assertEquals(2, result.size());
+        Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "Name5", "aaa");
         assertNameValuePair(result.get(1), "Name6", "bbb");
 
         result = parse("Name7=aaa&Name7=b%2Cb&Name7=ccc", null);
-        assertEquals(3, result.size());
+        Assert.assertEquals(3, result.size());
         assertNameValuePair(result.get(0), "Name7", "aaa");
         assertNameValuePair(result.get(1), "Name7", "b,b");
         assertNameValuePair(result.get(2), "Name7", "ccc");
 
         result = parse("Name8=xx%2C++yy++%2Czz", null);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name8", "xx,  yy  ,zz");
     }
 
+    @Test
     public void testParseEntity () throws Exception {
         final StringEntity entity = new StringEntity("Name1=Value1", null);
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
         final List <NameValuePair> result = URLEncodedUtils.parse(entity);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name1", "Value1");
 
         entity.setContentType("text/test");
-        assertTrue(URLEncodedUtils.parse(entity).isEmpty());
+        Assert.assertTrue(URLEncodedUtils.parse(entity).isEmpty());
     }
 
     static final int SWISS_GERMAN_HELLO [] = {
@@ -132,6 +119,7 @@ public class TestURLEncodedUtils extends TestCase {
         return buffer.toString();
     }
 
+    @Test
     public void testParseUTF8Entity () throws Exception {
         String ru_hello = constructString(RUSSIAN_HELLO);
         String ch_hello = constructString(SWISS_GERMAN_HELLO);
@@ -141,68 +129,70 @@ public class TestURLEncodedUtils extends TestCase {
 
         String s = URLEncodedUtils.format(parameters, HTTP.UTF_8);
 
-        assertEquals("russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
+        Assert.assertEquals("russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
                 "&swiss=Gr%C3%BCezi_z%C3%A4m%C3%A4", s);
 
         StringEntity entity = new StringEntity(s, HTTP.UTF_8);
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE + HTTP.CHARSET_PARAM + HTTP.UTF_8);
         List <NameValuePair> result = URLEncodedUtils.parse(entity);
-        assertEquals(2, result.size());
+        Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "russian", ru_hello);
         assertNameValuePair(result.get(1), "swiss", ch_hello);
     }
 
+    @Test
     public void testIsEncoded () throws Exception {
         final StringEntity entity = new StringEntity("...", null);
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
-        assertTrue(URLEncodedUtils.isEncoded(entity));
+        Assert.assertTrue(URLEncodedUtils.isEncoded(entity));
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE + "; charset=US-ASCII");
-        assertTrue(URLEncodedUtils.isEncoded(entity));
+        Assert.assertTrue(URLEncodedUtils.isEncoded(entity));
 
         entity.setContentType("text/test");
-        assertFalse(URLEncodedUtils.isEncoded(entity));
+        Assert.assertFalse(URLEncodedUtils.isEncoded(entity));
     }
 
+    @Test
     public void testFormat () throws Exception {
         final List <NameValuePair> params = new ArrayList <NameValuePair>();
-        assertEquals(0, URLEncodedUtils.format(params, null).length());
+        Assert.assertEquals(0, URLEncodedUtils.format(params, null).length());
 
         params.clear();
         params.add(new BasicNameValuePair("Name1", "Value1"));
-        assertEquals("Name1=Value1", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name1=Value1", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name2", null));
-        assertEquals("Name2=", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name2=", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4!"));
-        assertEquals("Name4=Value+4%21", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name4=Value+4%21", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value+4!"));
-        assertEquals("Name4=Value%2B4%21", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name4=Value%2B4%21", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4! !4"));
-        assertEquals("Name4=Value+4%21+%214", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name4=Value+4%21+%214", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name5", "aaa"));
         params.add(new BasicNameValuePair("Name6", "bbb"));
-        assertEquals("Name5=aaa&Name6=bbb", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name5=aaa&Name6=bbb", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name7", "aaa"));
         params.add(new BasicNameValuePair("Name7", "b,b"));
         params.add(new BasicNameValuePair("Name7", "ccc"));
-        assertEquals("Name7=aaa&Name7=b%2Cb&Name7=ccc", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name7=aaa&Name7=b%2Cb&Name7=ccc", URLEncodedUtils.format(params, null));
 
         params.clear();
         params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));
-        assertEquals("Name8=xx%2C++yy++%2Czz", URLEncodedUtils.format(params, null));
+        Assert.assertEquals("Name8=xx%2C++yy++%2Czz", URLEncodedUtils.format(params, null));
     }
 
     private List <NameValuePair> parse (final String params, final String encoding) {
@@ -213,7 +203,8 @@ public class TestURLEncodedUtils extends TestCase {
             final NameValuePair parameter,
             final String expectedName,
             final String expectedValue) {
-        assertEquals(parameter.getName(), expectedName);
-        assertEquals(parameter.getValue(), expectedValue);
+        Assert.assertEquals(parameter.getName(), expectedName);
+        Assert.assertEquals(parameter.getValue(), expectedValue);
     }
+
 }

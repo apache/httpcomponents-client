@@ -36,25 +36,10 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
+import org.junit.Assert;
+import org.junit.Test;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-public class TestRFC2617Scheme extends TestCase {
-
-
-    // ------------------------------------------------------------ Constructor
-
-    public TestRFC2617Scheme(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestRFC2617Scheme.class);
-    }
+public class TestRFC2617Scheme {
 
     static class TestAuthScheme extends RFC2617Scheme {
 
@@ -78,6 +63,7 @@ public class TestRFC2617Scheme extends TestCase {
 
     }
 
+    @Test
     public void testProcessChallenge() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader(
@@ -86,14 +72,15 @@ public class TestRFC2617Scheme extends TestCase {
 
         authscheme.processChallenge(header);
 
-        assertEquals("test", authscheme.getSchemeName());
-        assertEquals("realm1", authscheme.getParameter("realm"));
-        assertEquals(null, authscheme.getParameter("test"));
-        assertEquals("stuff", authscheme.getParameter("test1"));
-        assertEquals("stuff, stuff", authscheme.getParameter("test2"));
-        assertEquals("\"crap", authscheme.getParameter("test3"));
+        Assert.assertEquals("test", authscheme.getSchemeName());
+        Assert.assertEquals("realm1", authscheme.getParameter("realm"));
+        Assert.assertEquals(null, authscheme.getParameter("test"));
+        Assert.assertEquals("stuff", authscheme.getParameter("test1"));
+        Assert.assertEquals("stuff, stuff", authscheme.getParameter("test2"));
+        Assert.assertEquals("\"crap", authscheme.getParameter("test3"));
     }
 
+    @Test
     public void testProcessChallengeWithLotsOfBlanks() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         CharArrayBuffer buffer = new CharArrayBuffer(32);
@@ -102,41 +89,29 @@ public class TestRFC2617Scheme extends TestCase {
 
         authscheme.processChallenge(header);
 
-        assertEquals("test", authscheme.getSchemeName());
-        assertEquals("realm1", authscheme.getParameter("realm"));
+        Assert.assertEquals("test", authscheme.getSchemeName());
+        Assert.assertEquals("realm1", authscheme.getParameter("realm"));
     }
 
+    @Test(expected=MalformedChallengeException.class)
     public void testInvalidHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader("whatever", "Test realm=\"realm1\"");
-        try {
-            authscheme.processChallenge(header);
-            fail("MalformedChallengeException should have been thrown");
-        } catch (MalformedChallengeException ex) {
-            //expected
-        }
+        authscheme.processChallenge(header);
     }
 
+    @Test(expected=MalformedChallengeException.class)
     public void testEmptyHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader(AUTH.WWW_AUTH, "Test    ");
-        try {
-            authscheme.processChallenge(header);
-            fail("MalformedChallengeException should have been thrown");
-        } catch (MalformedChallengeException ex) {
-            //expected
-        }
+        authscheme.processChallenge(header);
     }
 
+    @Test(expected=MalformedChallengeException.class)
     public void testInvalidHeaderValue() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader("whatever", "whatever");
-        try {
-            authscheme.processChallenge(header);
-            fail("MalformedChallengeException should have been thrown");
-        } catch (MalformedChallengeException ex) {
-            //expected
-        }
+        authscheme.processChallenge(header);
     }
 
 }

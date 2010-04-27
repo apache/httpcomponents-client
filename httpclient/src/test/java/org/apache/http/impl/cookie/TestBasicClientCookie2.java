@@ -32,40 +32,28 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link BasicClientCookie2}.
  */
-public class TestBasicClientCookie2 extends TestCase {
+public class TestBasicClientCookie2 {
 
-    public TestBasicClientCookie2(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestBasicClientCookie2.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestBasicClientCookie2.class);
-    }
-
+    @Test
     public void testConstructor() {
         BasicClientCookie2 cookie = new BasicClientCookie2("name", "value");
-        assertEquals("name", cookie.getName());
-        assertEquals("value", cookie.getValue());
+        Assert.assertEquals("name", cookie.getName());
+        Assert.assertEquals("value", cookie.getValue());
         try {
             new BasicClientCookie2(null, null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             //expected
         }
     }
 
+    @Test
     public void testCloning() throws Exception {
         BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
@@ -73,16 +61,17 @@ public class TestBasicClientCookie2 extends TestCase {
         orig.setAttribute("attrib", "stuff");
         orig.setPorts(new int[] {80, 8080});
         BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
-        assertEquals(orig.getName(), clone.getName());
-        assertEquals(orig.getValue(), clone.getValue());
-        assertEquals(orig.getDomain(), clone.getDomain());
-        assertEquals(orig.getPath(), clone.getPath());
-        assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
-        assertEquals(orig.getPorts().length, clone.getPorts().length);
-        assertEquals(orig.getPorts()[0], clone.getPorts()[0]);
-        assertEquals(orig.getPorts()[1], clone.getPorts()[1]);
+        Assert.assertEquals(orig.getName(), clone.getName());
+        Assert.assertEquals(orig.getValue(), clone.getValue());
+        Assert.assertEquals(orig.getDomain(), clone.getDomain());
+        Assert.assertEquals(orig.getPath(), clone.getPath());
+        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assert.assertEquals(orig.getPorts().length, clone.getPorts().length);
+        Assert.assertEquals(orig.getPorts()[0], clone.getPorts()[0]);
+        Assert.assertEquals(orig.getPorts()[1], clone.getPorts()[1]);
     }
 
+    @Test
     public void testSerialization() throws Exception {
         BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
@@ -97,18 +86,18 @@ public class TestBasicClientCookie2 extends TestCase {
         ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
         ObjectInputStream instream = new ObjectInputStream(inbuffer);
         BasicClientCookie2 clone = (BasicClientCookie2) instream.readObject();
-        assertEquals(orig.getName(), clone.getName());
-        assertEquals(orig.getValue(), clone.getValue());
-        assertEquals(orig.getDomain(), clone.getDomain());
-        assertEquals(orig.getPath(), clone.getPath());
-        assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assert.assertEquals(orig.getName(), clone.getName());
+        Assert.assertEquals(orig.getValue(), clone.getValue());
+        Assert.assertEquals(orig.getDomain(), clone.getDomain());
+        Assert.assertEquals(orig.getPath(), clone.getPath());
+        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
         int[] expected = orig.getPorts();
         int[] clones = clone.getPorts();
-        assertNotNull(expected);
-        assertNotNull(clones);
-        assertEquals(expected.length, clones.length);
+        Assert.assertNotNull(expected);
+        Assert.assertNotNull(clones);
+        Assert.assertEquals(expected.length, clones.length);
         for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i], clones[i]);
+            Assert.assertEquals(expected[i], clones[i]);
         }
     }
 

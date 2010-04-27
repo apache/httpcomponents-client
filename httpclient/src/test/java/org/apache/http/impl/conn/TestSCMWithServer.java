@@ -29,9 +29,6 @@ package org.apache.http.impl.conn;
 
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -44,21 +41,10 @@ import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestSCMWithServer extends ServerTestBase {
-
-    public TestSCMWithServer(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestSCMWithServer.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestSCMWithServer.class);
-    }
 
     /**
      * Helper to instantiate a <code>SingleClientConnManager</code>.
@@ -78,6 +64,7 @@ public class TestSCMWithServer extends ServerTestBase {
      * Tests that SCM can still connect to the same host after
      * a connection was aborted.
      */
+    @Test
     public void testOpenAfterAbort() throws Exception {
         SingleClientConnManager mgr = createSCCM(null);
 
@@ -85,11 +72,11 @@ public class TestSCMWithServer extends ServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn = mgr.getConnection(route, null);
-        assertTrue(conn instanceof AbstractClientConnAdapter);
+        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
         ((AbstractClientConnAdapter) conn).abortConnection();
 
         conn = mgr.getConnection(route, null);
-        assertFalse("connection should have been closed", conn.isOpen());
+        Assert.assertFalse("connection should have been closed", conn.isOpen());
         conn.open(route, httpContext, defaultParams);
 
         mgr.releaseConnection(conn, -1, null);
@@ -99,6 +86,7 @@ public class TestSCMWithServer extends ServerTestBase {
     /**
      * Tests releasing with time limits.
      */
+    @Test
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
         SingleClientConnManager mgr = createSCCM(null);
@@ -119,11 +107,11 @@ public class TestSCMWithServer extends ServerTestBase {
                 request, conn, target,
                 httpExecutor, httpProcessor, defaultParams, httpContext);
 
-        assertEquals("wrong status in first response",
+        Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
         byte[] data = EntityUtils.toByteArray(response.getEntity());
-        assertEquals("wrong length of first response entity",
+        Assert.assertEquals("wrong length of first response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
 
@@ -131,7 +119,7 @@ public class TestSCMWithServer extends ServerTestBase {
         // expect the next connection obtained to be closed
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
         conn = mgr.getConnection(route, null);
-        assertFalse("connection should have been closed", conn.isOpen());
+        Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
         conn.open(route, httpContext, defaultParams);
@@ -139,11 +127,11 @@ public class TestSCMWithServer extends ServerTestBase {
         response = httpExecutor.execute(request, conn, httpContext);
         httpExecutor.postProcess(response, httpProcessor, httpContext);
 
-        assertEquals("wrong status in second response",
+        Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
         data = EntityUtils.toByteArray(response.getEntity());
-        assertEquals("wrong length of second response entity",
+        Assert.assertEquals("wrong length of second response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
 
@@ -152,18 +140,18 @@ public class TestSCMWithServer extends ServerTestBase {
         conn.markReusable();
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
         conn =  mgr.getConnection(route, null);
-        assertTrue("connection should have been open", conn.isOpen());
+        Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
         httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = httpExecutor.execute(request, conn, httpContext);
         httpExecutor.postProcess(response, httpProcessor, httpContext);
 
-        assertEquals("wrong status in third response",
+        Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
         data = EntityUtils.toByteArray(response.getEntity());
-        assertEquals("wrong length of third response entity",
+        Assert.assertEquals("wrong length of third response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
 
@@ -171,7 +159,7 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
         Thread.sleep(150);
         conn =  mgr.getConnection(route, null);
-        assertTrue("connection should have been closed", !conn.isOpen());
+        Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
         conn.open(route, httpContext, defaultParams);
@@ -179,18 +167,18 @@ public class TestSCMWithServer extends ServerTestBase {
         response = httpExecutor.execute(request, conn, httpContext);
         httpExecutor.postProcess(response, httpProcessor, httpContext);
 
-        assertEquals("wrong status in third response",
+        Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
         data = EntityUtils.toByteArray(response.getEntity());
-        assertEquals("wrong length of fourth response entity",
+        Assert.assertEquals("wrong length of fourth response entity",
                      rsplen, data.length);
         // ignore data, but it must be read
 
         mgr.shutdown();
     }
 
-
+    @Test
     public void testCloseExpiredConnections() throws Exception {
 
         SingleClientConnManager mgr = createSCCM(null);
@@ -205,17 +193,18 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.closeExpiredConnections();
 
         conn = mgr.getConnection(route, null);
-        assertTrue(conn.isOpen());
+        Assert.assertTrue(conn.isOpen());
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
 
         Thread.sleep(150);
         mgr.closeExpiredConnections();
         conn = mgr.getConnection(route, null);
-        assertFalse(conn.isOpen());
+        Assert.assertFalse(conn.isOpen());
 
         mgr.shutdown();
     }
 
+    @Test(expected=IllegalStateException.class)
     public void testAlreadyLeased() throws Exception {
 
         SingleClientConnManager mgr = createSCCM(null);
@@ -227,12 +216,7 @@ public class TestSCMWithServer extends ServerTestBase {
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
 
         mgr.getConnection(route, null);
-        try {
-            mgr.getConnection(route, null);
-            fail("IllegalStateException should have been thrown");
-        } catch (IllegalStateException ex) {
-            mgr.shutdown();
-        }
+        mgr.getConnection(route, null);
     }
 
 }

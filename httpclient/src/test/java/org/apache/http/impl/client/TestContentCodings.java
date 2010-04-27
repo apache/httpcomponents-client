@@ -44,9 +44,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.DeflateDecompressingEntity;
@@ -62,6 +60,8 @@ import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test case for how Content Codings are processed. By default, we want to do the right thing and
@@ -70,10 +70,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class TestContentCodings extends ServerTestBase {
 
-    public TestContentCodings(String testName) {
-        super(testName);
-    }
-
     /**
      * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows
      * up with the new behaviour.
@@ -81,6 +77,7 @@ public class TestContentCodings extends ServerTestBase {
      * @throws Exception
      *             if there was a problem
      */
+    @Test
     public void testResponseWithNoContent() throws Exception {
         this.localServer.register("*", new HttpRequestHandler() {
 
@@ -99,8 +96,8 @@ public class TestContentCodings extends ServerTestBase {
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
-        assertNull(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
+        Assert.assertNull(response.getEntity());
 
         client.getConnectionManager().shutdown();
     }
@@ -112,6 +109,7 @@ public class TestContentCodings extends ServerTestBase {
      * @throws Exception
      * @see DeflateDecompressingEntity
      */
+    @Test
     public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -121,7 +119,7 @@ public class TestContentCodings extends ServerTestBase {
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText,
+        Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -134,6 +132,7 @@ public class TestContentCodings extends ServerTestBase {
      * @throws Exception
      * @see DeflateDecompressingEntity
      */
+    @Test
     public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -142,7 +141,7 @@ public class TestContentCodings extends ServerTestBase {
         DefaultHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText,
+        Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -153,6 +152,7 @@ public class TestContentCodings extends ServerTestBase {
      *
      * @throws Exception
      */
+    @Test
     public void testGzipSupport() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -161,7 +161,7 @@ public class TestContentCodings extends ServerTestBase {
         DefaultHttpClient client = createHttpClient();
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
-        assertEquals("The entity text is correctly transported", entityText,
+        Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -173,6 +173,7 @@ public class TestContentCodings extends ServerTestBase {
      * @throws Exception
      *             if there was a problem
      */
+    @Test
     public void testThreadSafetyOfContentCodings() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -216,78 +217,19 @@ public class TestContentCodings extends ServerTestBase {
 
         for (WorkerTask workerTask : workers) {
             if (workerTask.isFailed()) {
-                fail("A worker failed");
+                Assert.fail("A worker failed");
             }
-            assertEquals(entityText, workerTask.getText());
+            Assert.assertEquals(entityText, workerTask.getText());
         }
     }
 
-    /**
-     * This test is no longer relevant, since the functionality has been added via a new subclass of
-     * {@link DefaultHttpClient} rather than changing the existing class.
-     *
-     * @throws Exception
-     */
-    public void removedTestExistingProtocolInterceptorsAreNotAffected() throws Exception {
-        final String entityText = "Hello, this is some plain text coming back.";
-
-        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
-
-        DefaultHttpClient client = createHttpClient();
-        HttpGet request = new HttpGet("/some-resource");
-
-        client.addRequestInterceptor(new HttpRequestInterceptor() {
-
-            /**
-             * {@inheritDoc}
-             */
-            public void process(
-                    HttpRequest request, HttpContext context) throws HttpException, IOException {
-                request.addHeader("Accept-Encoding", "gzip");
-            }
-        });
-
-        /* Get around Java The Language's lack of mutable closures */
-        final boolean clientSawGzip[] = new boolean[1];
-
-        client.addResponseInterceptor(new HttpResponseInterceptor() {
-
-            /**
-             * {@inheritDoc}
-             */
-            public void process(
-                    HttpResponse response, HttpContext context) throws HttpException, IOException {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    Header ce = entity.getContentEncoding();
-
-                    if (ce != null) {
-                        HeaderElement[] codecs = ce.getElements();
-                        for (int i = 0, n = codecs.length; i < n; ++i) {
-                            if ("gzip".equalsIgnoreCase(codecs[i].getName())) {
-                                clientSawGzip[0] = true;
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        client.execute(getServerHttp(), request);
-
-        assertTrue("Client which added the new custom protocol interceptor to handle gzip responses " +
-                "was unaffected.",
-                clientSawGzip[0]);
-
-        client.getConnectionManager().shutdown();
-    }
     /**
      * Checks that we can turn off the new Content-Coding support. The default is that it's on, but that is a change
      * to existing behaviour and might not be desirable in some situations.
      *
      * @throws Exception
      */
+    @Test
     public void testCanBeDisabledAtRequestTime() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -316,8 +258,8 @@ public class TestContentCodings extends ServerTestBase {
 
         HttpResponse response = client.execute(getServerHttp(), request);
 
-        assertFalse("The Accept-Encoding header was not there", sawAcceptEncodingHeader[0]);
-        assertEquals("The entity isn't treated as gzip or zip content", entityText,
+        Assert.assertFalse("The Accept-Encoding header was not there", sawAcceptEncodingHeader[0]);
+        Assert.assertEquals("The entity isn't treated as gzip or zip content", entityText,
                 EntityUtils.toString(response.getEntity()));
 
         client.getConnectionManager().shutdown();
@@ -329,6 +271,7 @@ public class TestContentCodings extends ServerTestBase {
      *
      * @throws Exception
      */
+    @Test
     public void testHttpEntityWriteToForGzip() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -341,7 +284,7 @@ public class TestContentCodings extends ServerTestBase {
 
         response.getEntity().writeTo(out);
 
-        assertEquals(entityText, out.toString("utf-8"));
+        Assert.assertEquals(entityText, out.toString("utf-8"));
 
         client.getConnectionManager().shutdown();
     }
@@ -352,6 +295,7 @@ public class TestContentCodings extends ServerTestBase {
      *
      * @throws Exception
      */
+    @Test
     public void testHttpEntityWriteToForDeflate() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
@@ -364,7 +308,7 @@ public class TestContentCodings extends ServerTestBase {
 
         response.getEntity().writeTo(out);
 
-        assertEquals(entityText, out.toString("utf-8"));
+        Assert.assertEquals(entityText, out.toString("utf-8"));
 
         client.getConnectionManager().shutdown();
     }

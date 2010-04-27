@@ -28,18 +28,13 @@ package org.apache.http.impl.client;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-
-import junit.framework.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- *
  * Simple tests for {@link BasicCredentialsProvider}.
- *
- *
- * @version $Id$
- *
  */
-public class TestBasicCredentialsProvider extends TestCase {
+public class TestBasicCredentialsProvider {
 
     public final static Credentials CREDS1 =
         new UsernamePasswordCredentials("user1", "pass1");
@@ -55,74 +50,58 @@ public class TestBasicCredentialsProvider extends TestCase {
     public final static AuthScope DEFSCOPE =
         new AuthScope("host", AuthScope.ANY_PORT, "realm");
 
-
-    // ------------------------------------------------------------ Constructor
-    public TestBasicCredentialsProvider(String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestBasicCredentialsProvider.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestBasicCredentialsProvider.class);
-    }
-
-
-    // ----------------------------------------------------------- Test Methods
-
+    @Test
     public void testBasicCredentialsProviderCredentials() {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(SCOPE1, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
-        assertEquals(CREDS1, state.getCredentials(SCOPE1));
-        assertEquals(CREDS2, state.getCredentials(SCOPE2));
+        Assert.assertEquals(CREDS1, state.getCredentials(SCOPE1));
+        Assert.assertEquals(CREDS2, state.getCredentials(SCOPE2));
     }
 
+    @Test
     public void testBasicCredentialsProviderNoCredentials() {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
-        assertEquals(null, state.getCredentials(BOGUS));
+        Assert.assertEquals(null, state.getCredentials(BOGUS));
     }
 
+    @Test
     public void testBasicCredentialsProviderDefaultCredentials() {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(AuthScope.ANY, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
-        assertEquals(CREDS1, state.getCredentials(BOGUS));
+        Assert.assertEquals(CREDS1, state.getCredentials(BOGUS));
     }
 
-    // --------------------------------- Test Methods for Selecting Credentials
-
+    @Test
     public void testDefaultCredentials() throws Exception {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(AuthScope.ANY, expected);
         Credentials got = state.getCredentials(DEFSCOPE);
-        assertEquals(got, expected);
+        Assert.assertEquals(got, expected);
     }
 
+    @Test
     public void testRealmCredentials() throws Exception {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(DEFSCOPE, expected);
         Credentials got = state.getCredentials(DEFSCOPE);
-        assertEquals(expected, got);
+        Assert.assertEquals(expected, got);
     }
 
+    @Test
     public void testHostCredentials() throws Exception {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, AuthScope.ANY_REALM), expected);
         Credentials got = state.getCredentials(DEFSCOPE);
-        assertEquals(expected, got);
+        Assert.assertEquals(expected, got);
     }
 
+    @Test
     public void testWrongHostCredentials() throws Exception {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials expected = new UsernamePasswordCredentials("name", "pass");
@@ -130,9 +109,10 @@ public class TestBasicCredentialsProvider extends TestCase {
             new AuthScope("host1", AuthScope.ANY_PORT, "realm"), expected);
         Credentials got = state.getCredentials(
             new AuthScope("host2", AuthScope.ANY_PORT, "realm"));
-        assertNotSame(expected, got);
+        Assert.assertNotSame(expected, got);
     }
 
+    @Test
     public void testWrongRealmCredentials() throws Exception {
         BasicCredentialsProvider state = new BasicCredentialsProvider();
         Credentials cred = new UsernamePasswordCredentials("name", "pass");
@@ -140,46 +120,46 @@ public class TestBasicCredentialsProvider extends TestCase {
             new AuthScope("host", AuthScope.ANY_PORT, "realm1"), cred);
         Credentials got = state.getCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, "realm2"));
-        assertNotSame(cred, got);
+        Assert.assertNotSame(cred, got);
     }
 
-    // ------------------------------- Test Methods for matching Credentials
-
+    @Test
     public void testScopeMatching() {
         AuthScope authscope1 = new AuthScope("somehost", 80, "somerealm", "somescheme");
         AuthScope authscope2 = new AuthScope("someotherhost", 80, "somerealm", "somescheme");
-        assertTrue(authscope1.match(authscope2) < 0);
+        Assert.assertTrue(authscope1.match(authscope2) < 0);
 
         int m1 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
         int m2 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", AuthScope.ANY_SCHEME));
-        assertTrue(m2 > m1);
+        Assert.assertTrue(m2 > m1);
 
         m1 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
         m2 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", AuthScope.ANY_SCHEME));
-        assertTrue(m2 > m1);
+        Assert.assertTrue(m2 > m1);
 
         m1 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", "somescheme"));
         m2 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, 80, AuthScope.ANY_REALM, AuthScope.ANY_SCHEME));
-        assertTrue(m2 > m1);
+        Assert.assertTrue(m2 > m1);
 
         m1 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, 80, "somerealm", "somescheme"));
         m2 = authscope1.match(
             new AuthScope("somehost", AuthScope.ANY_PORT, AuthScope.ANY_REALM, AuthScope.ANY_SCHEME));
-        assertTrue(m2 > m1);
+        Assert.assertTrue(m2 > m1);
 
         m1 = authscope1.match(AuthScope.ANY);
         m2 = authscope1.match(
             new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
-        assertTrue(m2 > m1);
+        Assert.assertTrue(m2 > m1);
     }
 
+    @Test
     public void testCredentialsMatching() {
         Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1");
         Credentials creds2 = new UsernamePasswordCredentials("name2", "pass2");
@@ -197,16 +177,17 @@ public class TestBasicCredentialsProvider extends TestCase {
         Credentials got = state.getCredentials(
             new AuthScope("someotherhost", 80, "someotherrealm", "basic"));
         Credentials expected = creds1;
-        assertEquals(expected, got);
+        Assert.assertEquals(expected, got);
 
         got = state.getCredentials(
             new AuthScope("someotherhost", 80, "somerealm", "basic"));
         expected = creds2;
-        assertEquals(expected, got);
+        Assert.assertEquals(expected, got);
 
         got = state.getCredentials(
             new AuthScope("somehost", 80, "someotherrealm", "basic"));
         expected = creds3;
-        assertEquals(expected, got);
+        Assert.assertEquals(expected, got);
     }
+
 }

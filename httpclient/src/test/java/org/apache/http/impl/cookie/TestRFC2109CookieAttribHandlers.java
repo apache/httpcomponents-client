@@ -27,51 +27,37 @@
 
 package org.apache.http.impl.cookie;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestRFC2109CookieAttribHandlers extends TestCase {
+public class TestRFC2109CookieAttribHandlers {
 
-    public TestRFC2109CookieAttribHandlers(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestRFC2109CookieAttribHandlers.class);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestRFC2109CookieAttribHandlers.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
+    @Test
     public void testRFC2109DomainParse() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         h.parse(cookie, "somehost");
-        assertEquals("somehost", cookie.getDomain());
+        Assert.assertEquals("somehost", cookie.getDomain());
 
         try {
             h.parse(cookie, null);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         try {
             h.parse(cookie, "  ");
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109DomainValidate1() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false);
@@ -83,19 +69,20 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
         cookie.setDomain("otherhost");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         cookie.setDomain(null);
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109DomainValidate2() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
@@ -107,19 +94,20 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
         cookie.setDomain(".otherdomain.com");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         cookie.setDomain("www.otherdomain.com");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109DomainValidate3() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false);
@@ -131,12 +119,13 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
         cookie.setDomain(".com");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109DomainValidate4() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false);
@@ -148,122 +137,130 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
         cookie.setDomain(".b.c");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         cookie.setDomain(".a.a.b.c");
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException should have been thrown");
+            Assert.fail("MalformedCookieException should have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109DomainMatch1() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain(null);
-        assertFalse(h.match(cookie, origin));
+        Assert.assertFalse(h.match(cookie, origin));
 
         cookie.setDomain(".somedomain.com");
-        assertTrue(h.match(cookie, origin));
+        Assert.assertTrue(h.match(cookie, origin));
     }
 
+    @Test
     public void testRFC2109DomainMatch2() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain(".somedomain.com");
-        assertTrue(h.match(cookie, origin));
+        Assert.assertTrue(h.match(cookie, origin));
     }
 
+    @Test
     public void testRFC2109DomainMatch3() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain("somedomain.com");
-        assertTrue(h.match(cookie, origin));
+        Assert.assertTrue(h.match(cookie, origin));
     }
 
+    @Test
     public void testRFC2109DomainMatch4() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
         CookieAttributeHandler h = new RFC2109DomainHandler();
 
         cookie.setDomain("somedomain.com");
-        assertFalse(h.match(cookie, origin));
+        Assert.assertFalse(h.match(cookie, origin));
     }
 
+    @Test
     public void testRFC2109DomainInvalidInput() throws Exception {
         CookieAttributeHandler h = new RFC2109DomainHandler();
         try {
             h.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             h.validate(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             h.validate(new BasicClientCookie("name", "value"), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             h.match(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             h.match(new BasicClientCookie("name", "value"), null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109VersionParse() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109VersionHandler();
         h.parse(cookie, "12");
-        assertEquals(12, cookie.getVersion());
+        Assert.assertEquals(12, cookie.getVersion());
     }
 
+    @Test
     public void testRFC2109VersionParseInvalid() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieAttributeHandler h = new RFC2109VersionHandler();
         try {
             h.parse(cookie, "garbage");
-            fail("MalformedCookieException must have been thrown");
+            Assert.fail("MalformedCookieException must have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         try {
             h.parse(cookie, null);
-            fail("MalformedCookieException must have been thrown");
+            Assert.fail("MalformedCookieException must have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
         try {
             h.parse(cookie, "  ");
-            fail("MalformedCookieException must have been thrown");
+            Assert.fail("MalformedCookieException must have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109VersionValidate() throws Exception {
         BasicClientCookie cookie = new BasicClientCookie("name", "value");
         CookieOrigin origin = new CookieOrigin("somedomain.com", 80, "/", false);
@@ -275,23 +272,24 @@ public class TestRFC2109CookieAttribHandlers extends TestCase {
         cookie.setVersion(-12);
         try {
             h.validate(cookie, origin);
-            fail("MalformedCookieException must have been thrown");
+            Assert.fail("MalformedCookieException must have been thrown");
         } catch (MalformedCookieException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRFC2109VersionInvalidInput() throws Exception {
         CookieAttributeHandler h = new RFC2109VersionHandler();
         try {
             h.parse(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             h.validate(null, null);
-            fail("IllegalArgumentException must have been thrown");
+            Assert.fail("IllegalArgumentException must have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }

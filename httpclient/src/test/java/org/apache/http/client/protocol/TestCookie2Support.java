@@ -28,9 +28,6 @@ package org.apache.http.client.protocol;
 import java.io.IOException;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -55,32 +52,17 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Cookie2 support tests.
- *
  */
 public class TestCookie2Support extends BasicServerTestBase {
 
-    // ------------------------------------------------------------ Constructor
-    public TestCookie2Support(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestCookie2Support.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestCookie2Support.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
@@ -101,6 +83,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testCookieVersionSupportHeader1() throws Exception {
         this.localServer.register("*", new CookieVer0Service());
 
@@ -120,8 +103,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
         List<Cookie> cookies = cookieStore.getCookies();
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -132,8 +115,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
         Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
-        assertNotNull(cookiesupport);
-        assertEquals("$Version=1", cookiesupport.getValue());
+        Assert.assertNotNull(cookiesupport);
+        Assert.assertEquals("$Version=1", cookiesupport.getValue());
     }
 
     private static class CookieVer1Service implements HttpRequestHandler {
@@ -152,6 +135,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testCookieVersionSupportHeader2() throws Exception {
         this.localServer.register("*", new CookieVer1Service());
 
@@ -171,8 +155,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
         List<Cookie> cookies = cookieStore.getCookies();
-        assertNotNull(cookies);
-        assertEquals(2, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(2, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -183,8 +167,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
         Header cookiesupport = reqWrapper.getFirstHeader(SM.COOKIE2);
-        assertNotNull(cookiesupport);
-        assertEquals("$Version=1", cookiesupport.getValue());
+        Assert.assertNotNull(cookiesupport);
+        Assert.assertEquals("$Version=1", cookiesupport.getValue());
     }
 
     private static class CookieVer2Service implements HttpRequestHandler {
@@ -202,6 +186,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testCookieVersionSupportHeader3() throws Exception {
         this.localServer.register("*", new CookieVer2Service());
 
@@ -221,8 +206,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
         List<Cookie> cookies = cookieStore.getCookies();
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
@@ -233,8 +218,8 @@ public class TestCookie2Support extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
         Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
-        assertNotNull(cookiesupport);
-        assertEquals("$Version=1", cookiesupport.getValue());
+        Assert.assertNotNull(cookiesupport);
+        Assert.assertEquals("$Version=1", cookiesupport.getValue());
     }
 
     private static class SetCookieVersionMixService implements HttpRequestHandler {
@@ -253,6 +238,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testSetCookieVersionMix() throws Exception {
         this.localServer.register("*", new SetCookieVersionMixService());
 
@@ -272,10 +258,10 @@ public class TestCookie2Support extends BasicServerTestBase {
         }
 
         List<Cookie> cookies = cookieStore.getCookies();
-        assertNotNull(cookies);
-        assertEquals(1, cookies.size());
-        assertEquals("right", cookies.get(0).getValue());
-        assertTrue(cookies.get(0) instanceof SetCookie2);
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
+        Assert.assertEquals("right", cookies.get(0).getValue());
+        Assert.assertTrue(cookies.get(0) instanceof SetCookie2);
     }
 
 }

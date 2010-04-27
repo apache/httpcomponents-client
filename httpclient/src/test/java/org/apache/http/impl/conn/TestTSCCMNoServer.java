@@ -29,10 +29,6 @@ package org.apache.http.impl.conn;
 
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionManager;
@@ -47,26 +43,14 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for <code>ThreadSafeClientConnManager</code> that do not require
  * a server to communicate with.
  */
-public class TestTSCCMNoServer extends TestCase {
-
-    public TestTSCCMNoServer(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestTSCCMNoServer.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestTSCCMNoServer.class);
-    }
-
+public class TestTSCCMNoServer {
 
     private static ManagedClientConnection getConnection(
             final ClientConnectionManager mgr,
@@ -126,27 +110,21 @@ public class TestTSCCMNoServer extends TestCase {
         return schreg;
     }
 
-
+    @Test
     public void testConstructor() {
         SchemeRegistry schreg = createSchemeRegistry();
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(schreg);
-        assertNotNull(mgr);
+        Assert.assertNotNull(mgr);
         mgr.shutdown();
-        mgr = null;
+    }
 
-        try {
-            mgr = new ThreadSafeClientConnManager(null);
-            fail("null parameter not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
-        } finally {
-            if (mgr != null)
-                mgr.shutdown();
-        }
-    } // testConstructor
+    @Test(expected=IllegalArgumentException.class)
+    public void testIllegalConstructor() {
+        new ThreadSafeClientConnManager(null);
+    }
 
-
+    @Test(expected=IllegalArgumentException.class)
     public void testGetConnection()
             throws InterruptedException, ConnectionPoolTimeoutException {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
@@ -155,26 +133,22 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn = getConnection(mgr, route);
-        assertNotNull(conn);
-        assertNull(conn.getRoute());
-        assertFalse(conn.isOpen());
+        Assert.assertNotNull(conn);
+        Assert.assertNull(conn.getRoute());
+        Assert.assertFalse(conn.isOpen());
 
         mgr.releaseConnection(conn, -1, null);
 
         try {
             getConnection(mgr, null);
-            fail("null route not detected");
-        } catch (IllegalArgumentException iax) {
-            // expected
+        } finally {
+            mgr.shutdown();
         }
-
-        mgr.shutdown();
     }
 
     // testTimeout in 3.x TestHttpConnectionManager is redundant
     // several other tests here rely on timeout behavior
-
-
+    @Test
     public void testMaxConnTotal()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
@@ -188,14 +162,14 @@ public class TestTSCCMNoServer extends TestCase {
         HttpRoute route2 = new HttpRoute(target2, null, false);
 
         ManagedClientConnection conn1 = getConnection(mgr, route1);
-        assertNotNull(conn1);
+        Assert.assertNotNull(conn1);
         ManagedClientConnection conn2 = getConnection(mgr, route2);
-        assertNotNull(conn2);
+        Assert.assertNotNull(conn2);
 
         try {
             // this should fail quickly, connection has not been released
             getConnection(mgr, route2, 100L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -208,14 +182,13 @@ public class TestTSCCMNoServer extends TestCase {
         try {
             getConnection(mgr, route2, 100L, TimeUnit.MILLISECONDS);
         } catch (ConnectionPoolTimeoutException cptx) {
-            cptx.printStackTrace();
-            fail("connection should have been available: " + cptx);
+            Assert.fail("connection should have been available: " + cptx);
         }
 
         mgr.shutdown();
     }
 
-
+    @Test
     public void testMaxConnPerHost() throws Exception {
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
@@ -234,17 +207,17 @@ public class TestTSCCMNoServer extends TestCase {
         // route 3, limit 3
         ManagedClientConnection conn1 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull(conn1);
+        Assert.assertNotNull(conn1);
         ManagedClientConnection conn2 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull(conn2);
+        Assert.assertNotNull(conn2);
         ManagedClientConnection conn3 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull(conn3);
+        Assert.assertNotNull(conn3);
         try {
             // should fail quickly, connection has not been released
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -255,7 +228,7 @@ public class TestTSCCMNoServer extends TestCase {
         try {
             // should fail quickly, connection has not been released
             getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -265,7 +238,7 @@ public class TestTSCCMNoServer extends TestCase {
         try {
             // should fail quickly, connection has not been released
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -274,13 +247,13 @@ public class TestTSCCMNoServer extends TestCase {
         // check releaseConnection with invalid arguments
         try {
             mgr.releaseConnection(null, -1, null);
-            fail("null connection adapter not detected");
+            Assert.fail("null connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
         try {
             mgr.releaseConnection(new ClientConnAdapterMockup(null), -1, null);
-            fail("foreign connection adapter not detected");
+            Assert.fail("foreign connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
@@ -288,7 +261,7 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.shutdown();
     }
 
-
+    @Test
     public void testReleaseConnection() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
@@ -309,27 +282,27 @@ public class TestTSCCMNoServer extends TestCase {
             getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
         ManagedClientConnection conn3 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull(conn1);
-        assertNotNull(conn2);
-        assertNotNull(conn3);
+        Assert.assertNotNull(conn1);
+        Assert.assertNotNull(conn2);
+        Assert.assertNotNull(conn3);
 
         // obtaining another connection for either of the three should fail
         // this is somehow redundant with testMaxConnPerHost
         try {
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         try {
             getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         try {
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -339,16 +312,16 @@ public class TestTSCCMNoServer extends TestCase {
         conn2 = null;
         try {
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
         // this one succeeds
         conn2 = getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull(conn2);
+        Assert.assertNotNull(conn2);
         try {
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
-            fail("ConnectionPoolTimeoutException should have been thrown");
+            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -356,7 +329,7 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.shutdown();
     }
 
-
+    @Test
     public void testDeleteClosedConnections()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
@@ -367,28 +340,29 @@ public class TestTSCCMNoServer extends TestCase {
 
         ManagedClientConnection conn = getConnection(mgr, route);
 
-        assertEquals("connectionsInPool",
+        Assert.assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
-        assertEquals("connectionsInPool(host)",
+        Assert.assertEquals("connectionsInPool(host)",
                      mgr.getConnectionsInPool(route), 1);
         mgr.releaseConnection(conn, -1, null);
 
-        assertEquals("connectionsInPool",
+        Assert.assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 1);
-        assertEquals("connectionsInPool(host)",
+        Assert.assertEquals("connectionsInPool(host)",
                      mgr.getConnectionsInPool(route), 1);
 
         // this implicitly deletes them
         mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
 
-        assertEquals("connectionsInPool",
+        Assert.assertEquals("connectionsInPool",
                      mgr.getConnectionsInPool(), 0);
-        assertEquals("connectionsInPool(host)",
+        Assert.assertEquals("connectionsInPool(host)",
                      mgr.getConnectionsInPool(route), 0);
 
         mgr.shutdown();
     }
 
+    @Test
     public void testShutdown() throws Exception {
         // 3.x: TestHttpConnectionManager.testShutdown
 
@@ -418,23 +392,23 @@ public class TestTSCCMNoServer extends TestCase {
 
 
         gct.join(10000);
-        assertNull("thread should not have obtained connection",
+        Assert.assertNull("thread should not have obtained connection",
                    gct.getConnection());
-        assertNotNull("thread should have gotten an exception",
+        Assert.assertNotNull("thread should have gotten an exception",
                       gct.getException());
-        assertSame("thread got wrong exception",
+        Assert.assertSame("thread got wrong exception",
                    IllegalStateException.class, gct.getException().getClass());
 
         // the manager is down, we should not be able to get a connection
         try {
             getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
-            fail("shut-down manager does not raise exception");
+            Assert.fail("shut-down manager does not raise exception");
         } catch (IllegalStateException isx) {
             // expected
         }
     }
 
-
+    @Test
     public void testInterruptThread() throws Exception {
         // 3.x: TestHttpConnectionManager.testWaitingThreadInterrupted
 
@@ -457,16 +431,16 @@ public class TestTSCCMNoServer extends TestCase {
 
 
         gct.join(10000);
-        assertNotNull("thread should have gotten an exception",
+        Assert.assertNotNull("thread should have gotten an exception",
                       gct.getException());
-        assertSame("thread got wrong exception",
+        Assert.assertSame("thread got wrong exception",
                    InterruptedException.class,
                    gct.getException().getClass());
 
         // make sure the manager is still working
         try {
             getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-            fail("should have gotten a timeout");
+            Assert.fail("should have gotten a timeout");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -474,13 +448,12 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull("should have gotten a connection", conn);
+        Assert.assertNotNull("should have gotten a connection", conn);
 
         mgr.shutdown();
     }
 
-
-
+    @Test
     public void testReusePreference() throws Exception {
         // 3.x: TestHttpConnectionManager.testHostReusePreference
 
@@ -513,14 +486,15 @@ public class TestTSCCMNoServer extends TestCase {
         gct1.join(10000);
         gct2.join(10000);
 
-        assertNotNull("thread 1 should have gotten a connection",
+        Assert.assertNotNull("thread 1 should have gotten a connection",
                       gct1.getConnection());
-        assertNull   ("thread 2 should NOT have gotten a connection",
+        Assert.assertNull   ("thread 2 should NOT have gotten a connection",
                       gct2.getConnection());
 
         mgr.shutdown();
     }
 
+    @Test
     public void testAbortAfterRequestStarts() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotalConnections(1);
@@ -538,16 +512,16 @@ public class TestTSCCMNoServer extends TestCase {
         request.abortRequest();
 
         gct.join(10000);
-        assertNotNull("thread should have gotten an exception",
+        Assert.assertNotNull("thread should have gotten an exception",
                       gct.getException());
-        assertSame("thread got wrong exception",
+        Assert.assertSame("thread got wrong exception",
                    InterruptedException.class,
                    gct.getException().getClass());
 
         // make sure the manager is still working
         try {
             getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-            fail("should have gotten a timeout");
+            Assert.fail("should have gotten a timeout");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -555,11 +529,12 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull("should have gotten a connection", conn);
+        Assert.assertNotNull("should have gotten a connection", conn);
 
         mgr.shutdown();
     }
 
+    @Test
     public void testAbortBeforeRequestStarts() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotalConnections(1);
@@ -577,16 +552,16 @@ public class TestTSCCMNoServer extends TestCase {
         Thread.sleep(100); // give extra thread time to block
 
         gct.join(10000);
-        assertNotNull("thread should have gotten an exception",
+        Assert.assertNotNull("thread should have gotten an exception",
                       gct.getException());
-        assertSame("thread got wrong exception",
+        Assert.assertSame("thread got wrong exception",
                    InterruptedException.class,
                    gct.getException().getClass());
 
         // make sure the manager is still working
         try {
             getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-            fail("should have gotten a timeout");
+            Assert.fail("should have gotten a timeout");
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
@@ -594,9 +569,9 @@ public class TestTSCCMNoServer extends TestCase {
         mgr.releaseConnection(conn, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
-        assertNotNull("should have gotten a connection", conn);
+        Assert.assertNotNull("should have gotten a connection", conn);
 
         mgr.shutdown();
     }
 
-} // class TestTSCCMNoServer
+}

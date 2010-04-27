@@ -29,9 +29,6 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -39,22 +36,12 @@ import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.localserver.ServerTestBase;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestConnPoolByRoute extends ServerTestBase {
 
-    public TestConnPoolByRoute(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestConnPoolByRoute.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestConnPoolByRoute.class);
-    }
-
+    @Test
     public void testStatelessConnections() throws Exception {
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -68,21 +55,21 @@ public class TestConnPoolByRoute extends ServerTestBase {
             // Allocate max possible entries
             PoolEntryRequest r1 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e1 = r1.getPoolEntry(10, TimeUnit.SECONDS);
-            assertNotNull(e1);
+            Assert.assertNotNull(e1);
 
             PoolEntryRequest r2 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e2 = r2.getPoolEntry(10, TimeUnit.SECONDS);
-            assertNotNull(e2);
+            Assert.assertNotNull(e2);
 
             PoolEntryRequest r3 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e3 = r3.getPoolEntry(10, TimeUnit.SECONDS);
-            assertNotNull(e3);
+            Assert.assertNotNull(e3);
 
             // Attempt to allocate one more. Expected to fail
             PoolEntryRequest r4 = connPool.requestPoolEntry(route, null);
             try {
                 r4.getPoolEntry(250, TimeUnit.MICROSECONDS);
-                fail("ConnectionPoolTimeoutException should have been thrown");
+                Assert.fail("ConnectionPoolTimeoutException should have been thrown");
             } catch (ConnectionPoolTimeoutException expected) {
             }
 
@@ -92,13 +79,14 @@ public class TestConnPoolByRoute extends ServerTestBase {
             // This time the request should succeed
             PoolEntryRequest r5 = connPool.requestPoolEntry(route, null);
             BasicPoolEntry e5 = r5.getPoolEntry(10, TimeUnit.SECONDS);
-            assertNotNull(e5);
+            Assert.assertNotNull(e5);
 
         } finally {
             connPool.shutdown();
         }
     }
 
+    @Test
     public void testStatefullConnections() throws Exception {
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -139,14 +127,14 @@ public class TestConnPoolByRoute extends ServerTestBase {
             PoolEntryRequest r6 = connPool.requestPoolEntry(route, Integer.valueOf(1));
             BasicPoolEntry e6 = r6.getPoolEntry(10, TimeUnit.SECONDS);
 
-            assertNotNull(e4.getState());
-            assertNotNull(e5.getState());
-            assertNotNull(e6.getState());
+            Assert.assertNotNull(e4.getState());
+            Assert.assertNotNull(e5.getState());
+            Assert.assertNotNull(e6.getState());
 
             // Check whether we got the same objects
-            assertTrue(e4 == e2);
-            assertTrue(e5 == e3);
-            assertTrue(e6 == e1);
+            Assert.assertTrue(e4 == e2);
+            Assert.assertTrue(e5 == e3);
+            Assert.assertTrue(e6 == e1);
 
             // Release entries again
             connPool.freeEntry(e4, true, -1, null);
@@ -158,8 +146,8 @@ public class TestConnPoolByRoute extends ServerTestBase {
             BasicPoolEntry e7 = r7.getPoolEntry(10, TimeUnit.SECONDS);
 
             // Make sure we got a closed connection and a stateless entry back
-            assertFalse(e7.getConnection().isOpen());
-            assertNull(e7.getState());
+            Assert.assertFalse(e7.getConnection().isOpen());
+            Assert.assertNull(e7.getState());
 
         } finally {
             connPool.shutdown();

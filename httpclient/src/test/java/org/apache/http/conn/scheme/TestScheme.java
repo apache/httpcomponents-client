@@ -27,34 +27,21 @@
 
 package org.apache.http.conn.scheme;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link Scheme}.
  */
-public class TestScheme extends TestCase {
+public class TestScheme {
 
-    public TestScheme(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestScheme.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestScheme.class);
-    }
-
+    @Test
     public void testPortResolution() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-        assertEquals(80, http.resolvePort(0));
-        assertEquals(80, http.resolvePort(-1));
-        assertEquals(8080, http.resolvePort(8080));
-        assertEquals(80808080, http.resolvePort(80808080));
+        Assert.assertEquals(80, http.resolvePort(0));
+        Assert.assertEquals(80, http.resolvePort(-1));
+        Assert.assertEquals(8080, http.resolvePort(8080));
+        Assert.assertEquals(80808080, http.resolvePort(80808080));
     }
 
 }

@@ -31,44 +31,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test cases for {@link CookieSpecRegistry}.
  */
-public class TestCookiePolicy extends TestCase {
-
-
-    // ------------------------------------------------------------ Constructor
-
-    public TestCookiePolicy(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestCookiePolicy.class);
-    }
+public class TestCookiePolicy {
 
     private static final String BROWSER_COMPATIBILITY    = "BROWSER_COMPATIBILITY";
     private static final String NETSCAPE                 = "NETSCAPE";
     private static final String RFC_2109                 = "RFC_2109";
 
-
+    @Test
     public void testRegisterUnregisterCookieSpecFactory() {
         CookieSpecRegistry registry  = new CookieSpecRegistry();
         List<String> names = registry.getSpecNames();
-        assertNotNull(names);
-        assertEquals(0, names.size());
+        Assert.assertNotNull(names);
+        Assert.assertEquals(0, names.size());
 
         registry.register(BROWSER_COMPATIBILITY,
                 new BrowserCompatSpecFactory());
@@ -82,12 +67,12 @@ public class TestCookiePolicy extends TestCase {
                 new NetscapeDraftSpecFactory());
 
         names = registry.getSpecNames();
-        assertNotNull(names);
-        assertEquals(3, names.size());
+        Assert.assertNotNull(names);
+        Assert.assertEquals(3, names.size());
         HashSet<String> m = new HashSet<String>(names);
-        assertTrue(m.contains(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH)));
-        assertTrue(m.contains(NETSCAPE.toLowerCase(Locale.ENGLISH)));
-        assertTrue(m.contains(RFC_2109.toLowerCase(Locale.ENGLISH)));
+        Assert.assertTrue(m.contains(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH)));
+        Assert.assertTrue(m.contains(NETSCAPE.toLowerCase(Locale.ENGLISH)));
+        Assert.assertTrue(m.contains(RFC_2109.toLowerCase(Locale.ENGLISH)));
 
         registry.unregister(NETSCAPE);
         registry.unregister(NETSCAPE);
@@ -96,10 +81,11 @@ public class TestCookiePolicy extends TestCase {
         registry.unregister("whatever");
 
         names = registry.getSpecNames();
-        assertNotNull(names);
-        assertEquals(0, names.size());
+        Assert.assertNotNull(names);
+        Assert.assertEquals(0, names.size());
     }
 
+    @Test
     public void testGetNewCookieSpec() {
         CookieSpecRegistry registry  = new CookieSpecRegistry();
         registry.register(BROWSER_COMPATIBILITY,
@@ -109,50 +95,51 @@ public class TestCookiePolicy extends TestCase {
         registry.register(RFC_2109,
                 new RFC2109SpecFactory());
 
-        assertNotNull(registry.getCookieSpec(NETSCAPE));
-        assertNotNull(registry.getCookieSpec(RFC_2109));
-        assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY));
+        Assert.assertNotNull(registry.getCookieSpec(NETSCAPE));
+        Assert.assertNotNull(registry.getCookieSpec(RFC_2109));
+        Assert.assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY));
         try {
             registry.getCookieSpec("whatever");
-            fail("IllegalStateException should have been thrown");
+            Assert.fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
             // expected
         }
         HttpParams params = new BasicHttpParams();
-        assertNotNull(registry.getCookieSpec(NETSCAPE, params));
-        assertNotNull(registry.getCookieSpec(RFC_2109, params));
-        assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY, params));
+        Assert.assertNotNull(registry.getCookieSpec(NETSCAPE, params));
+        Assert.assertNotNull(registry.getCookieSpec(RFC_2109, params));
+        Assert.assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY, params));
         try {
             registry.getCookieSpec("whatever", params);
-            fail("IllegalStateException should have been thrown");
+            Assert.fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
             // expected
         }
     }
 
+    @Test
     public void testInvalidInput() {
         CookieSpecRegistry registry  = new CookieSpecRegistry();
         try {
             registry.register(null, null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.register("whatever", null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.unregister(null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.getCookieSpec((String)null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }

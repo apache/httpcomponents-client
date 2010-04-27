@@ -26,10 +26,6 @@
 
 package org.apache.http.impl.auth;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -40,44 +36,23 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.util.EncodingUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Basic authentication test cases.
- *
- * @version $Id$
  */
-public class TestBasicScheme extends TestCase {
+public class TestBasicScheme {
 
-    // ------------------------------------------------------------ Constructor
-    public TestBasicScheme(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestBasicScheme.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite(TestBasicScheme.class);
-        return suite;
-    }
-
-    public void testBasicAuthenticationWithNoRealm() {
+    @Test(expected=MalformedChallengeException.class)
+    public void testBasicAuthenticationWithNoRealm() throws Exception {
         String challenge = "Basic";
         Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
-        try {
-            AuthScheme authscheme = new BasicScheme();
-            authscheme.processChallenge(header);
-            fail("Should have thrown MalformedChallengeException");
-        } catch(MalformedChallengeException e) {
-            // expected
-        }
+        AuthScheme authscheme = new BasicScheme();
+        authscheme.processChallenge(header);
     }
 
+    @Test
     public void testBasicAuthenticationWith88591Chars() throws Exception {
         int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
         StringBuilder buffer = new StringBuilder();
@@ -87,9 +62,10 @@ public class TestBasicScheme extends TestCase {
 
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("dh", buffer.toString());
         Header header = BasicScheme.authenticate(credentials, "ISO-8859-1", false);
-        assertEquals("Basic ZGg65C32Lfw=", header.getValue());
+        Assert.assertEquals("Basic ZGg65C32Lfw=", header.getValue());
     }
 
+    @Test
     public void testBasicAuthentication() throws Exception {
         UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
@@ -104,13 +80,14 @@ public class TestBasicScheme extends TestCase {
 
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
-        assertEquals(expected, authResponse.getValue());
-        assertEquals("test", authscheme.getRealm());
-        assertTrue(authscheme.isComplete());
-        assertFalse(authscheme.isConnectionBased());
+        Assert.assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
+        Assert.assertEquals(expected, authResponse.getValue());
+        Assert.assertEquals("test", authscheme.getRealm());
+        Assert.assertTrue(authscheme.isComplete());
+        Assert.assertFalse(authscheme.isConnectionBased());
     }
 
+    @Test
     public void testBasicProxyAuthentication() throws Exception {
         UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
@@ -125,11 +102,11 @@ public class TestBasicScheme extends TestCase {
 
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());
-        assertEquals(expected, authResponse.getValue());
-        assertEquals("test", authscheme.getRealm());
-        assertTrue(authscheme.isComplete());
-        assertFalse(authscheme.isConnectionBased());
+        Assert.assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());
+        Assert.assertEquals(expected, authResponse.getValue());
+        Assert.assertEquals("test", authscheme.getRealm());
+        Assert.assertTrue(authscheme.isComplete());
+        Assert.assertFalse(authscheme.isConnectionBased());
     }
 
 }

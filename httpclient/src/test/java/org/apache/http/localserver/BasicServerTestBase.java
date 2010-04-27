@@ -29,25 +29,20 @@ package org.apache.http.localserver;
 
 import java.net.InetSocketAddress;
 
-import junit.framework.TestCase;
-
 import org.apache.http.HttpHost;
+import org.junit.After;
 
 /**
  * Base class for tests using {@link LocalTestServer}. The server will not be started
  * per default.
  */
-public abstract class BasicServerTestBase extends TestCase {
+public abstract class BasicServerTestBase {
 
     /** The local server for testing. */
     protected LocalTestServer localServer;
 
-    protected BasicServerTestBase(String testName) {
-        super(testName);
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         if (localServer != null) {
             localServer.stop();
         }

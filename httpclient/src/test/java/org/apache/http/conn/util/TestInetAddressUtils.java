@@ -27,52 +27,42 @@
 
 package org.apache.http.conn.util;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for InetAddressUtils.
  */
-public class TestInetAddressUtils extends TestCase {
+public class TestInetAddressUtils {
 
-    public TestInetAddressUtils(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestInetAddressUtils.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestInetAddressUtils.class);
-    }
-
+    @Test
     public void testValidIPv4Address() {
-        assertTrue(InetAddressUtils.isIPv4Address("127.0.0.1"));
-        assertTrue(InetAddressUtils.isIPv4Address("192.168.0.0"));
-        assertTrue(InetAddressUtils.isIPv4Address("255.255.255.255"));
+        Assert.assertTrue(InetAddressUtils.isIPv4Address("127.0.0.1"));
+        Assert.assertTrue(InetAddressUtils.isIPv4Address("192.168.0.0"));
+        Assert.assertTrue(InetAddressUtils.isIPv4Address("255.255.255.255"));
     }
 
+    @Test
     public void testInvalidIPv4Address() {
-        assertFalse(InetAddressUtils.isIPv4Address(" 127.0.0.1 "));  // Blanks not allowed
-        assertFalse(InetAddressUtils.isIPv4Address("g.ar.ba.ge"));
-        assertFalse(InetAddressUtils.isIPv4Address("192.168.0"));
-        assertFalse(InetAddressUtils.isIPv4Address("256.255.255.255"));
+        Assert.assertFalse(InetAddressUtils.isIPv4Address(" 127.0.0.1 "));  // Blanks not allowed
+        Assert.assertFalse(InetAddressUtils.isIPv4Address("g.ar.ba.ge"));
+        Assert.assertFalse(InetAddressUtils.isIPv4Address("192.168.0"));
+        Assert.assertFalse(InetAddressUtils.isIPv4Address("256.255.255.255"));
     }
 
+    @Test
     public void testValidIPv6Address() {
-        assertTrue(InetAddressUtils.isIPv6StdAddress("2001:0db8:0000:0000:0000:0000:1428:57ab"));
-        assertTrue(InetAddressUtils.isIPv6StdAddress("2001:db8:0:0:0:0:1428:57ab"));
-        assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8:0:0::1428:57ab"));
-        assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8::1428:57ab"));
-        assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:db8::1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6StdAddress("2001:0db8:0000:0000:0000:0000:1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6StdAddress("2001:db8:0:0:0:0:1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8:0:0::1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8::1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:db8::1428:57ab"));
     }
 
+    @Test
     public void testInvalidIPv6Address() {
-        assertFalse(InetAddressUtils.isIPv6Address("2001:0db8:0000:garb:age0:0000:1428:57ab"));
-        assertFalse(InetAddressUtils.isIPv6Address("2001:0gb8:0000:0000:0000:0000:1428:57ab"));
+        Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0db8:0000:garb:age0:0000:1428:57ab"));
+        Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0gb8:0000:0000:0000:0000:1428:57ab"));
     }
 
 }

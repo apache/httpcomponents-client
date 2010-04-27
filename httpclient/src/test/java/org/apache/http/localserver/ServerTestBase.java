@@ -46,6 +46,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
+import org.junit.Before;
 
 /**
  * Base class for tests using {@link LocalTestServer LocalTestServer}.
@@ -72,13 +73,6 @@ public abstract class ServerTestBase extends BasicServerTestBase {
     /** The request executor for the client side. */
     protected HttpRequestExecutor httpExecutor;
 
-
-
-    protected ServerTestBase(String testName) {
-        super(testName);
-    }
-
-
     /**
      * Prepares the local server for testing.
      * Derived classes that override this method MUST call
@@ -101,8 +95,8 @@ public abstract class ServerTestBase extends BasicServerTestBase {
      *
      * @throws Exception        in case of a problem
      */
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
 
         if (defaultParams == null) {
             defaultParams = new SyncBasicHttpParams();
@@ -189,5 +183,4 @@ public abstract class ServerTestBase extends BasicServerTestBase {
         return conn;
     }
 
-
-} // class ServerTestBase
+}

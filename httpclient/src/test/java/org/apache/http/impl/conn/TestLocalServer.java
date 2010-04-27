@@ -27,9 +27,6 @@
 
 package org.apache.http.impl.conn;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -42,7 +39,8 @@ import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.util.EntityUtils;
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * This is more a test for the {@link LocalTestServer LocalTestServer}
@@ -50,21 +48,7 @@ import org.apache.http.util.EntityUtils;
  */
 public class TestLocalServer extends ServerTestBase {
 
-
-    public TestLocalServer(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestLocalServer.class);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestLocalServer.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-
+    @Test
     public void testEcho() throws Exception {
 
         final String  message = "Hello, world!";
@@ -95,16 +79,16 @@ public class TestLocalServer extends ServerTestBase {
         httpExecutor.postProcess
             (response, httpProcessor, httpContext);
 
-        assertEquals("wrong status in response", HttpStatus.SC_OK,
+        Assert.assertEquals("wrong status in response", HttpStatus.SC_OK,
                      response.getStatusLine().getStatusCode());
 
         String received = EntityUtils.toString(response.getEntity());
         conn.close();
 
-        assertEquals("wrong echo", message, received);
+        Assert.assertEquals("wrong echo", message, received);
     }
 
-
+    @Test
     public void testRandom() throws Exception {
 
         final HttpHost target = getServerHttp();
@@ -140,13 +124,13 @@ public class TestLocalServer extends ServerTestBase {
             httpExecutor.postProcess
                 (response, httpProcessor, httpContext);
 
-            assertEquals("(" + sizes[i] + ") wrong status in response",
+            Assert.assertEquals("(" + sizes[i] + ") wrong status in response",
                          HttpStatus.SC_OK,
                          response.getStatusLine().getStatusCode());
 
             byte[] data = EntityUtils.toByteArray(response.getEntity());
             if (sizes[i] >= 0)
-                assertEquals("(" + sizes[i] + ") wrong length of response",
+                Assert.assertEquals("(" + sizes[i] + ") wrong length of response",
                              sizes[i], data.length);
             conn.close();
         }

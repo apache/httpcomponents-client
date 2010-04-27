@@ -28,9 +28,6 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -44,32 +41,17 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  *  Simple tests for {@link RequestWrapper}.
- *
  */
 public class TestRequestWrapper extends BasicServerTestBase {
 
-    // ------------------------------------------------------------ Constructor
-    public TestRequestWrapper(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestRequestWrapper.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestRequestWrapper.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
@@ -91,6 +73,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
         }
     }
 
+    @Test
     public void testRequestURIRewriting() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -110,12 +93,13 @@ public class TestRequestWrapper extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        assertTrue(reqWrapper instanceof RequestWrapper);
-        assertEquals("/path", reqWrapper.getRequestLine().getUri());
+        Assert.assertTrue(reqWrapper instanceof RequestWrapper);
+        Assert.assertEquals("/path", reqWrapper.getRequestLine().getUri());
     }
 
+    @Test
     public void testRequestURIRewritingEmptyPath() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
@@ -135,10 +119,10 @@ public class TestRequestWrapper extends BasicServerTestBase {
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        assertTrue(reqWrapper instanceof RequestWrapper);
-        assertEquals("/", reqWrapper.getRequestLine().getUri());
+        Assert.assertTrue(reqWrapper instanceof RequestWrapper);
+        Assert.assertEquals("/", reqWrapper.getRequestLine().getUri());
     }
 
 }

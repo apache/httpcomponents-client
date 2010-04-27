@@ -27,74 +27,50 @@
 
 package org.apache.http.cookie;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test cases for {@link CookieOrigin}.
  */
-public class TestCookieOrigin extends TestCase {
+public class TestCookieOrigin {
 
-
-    // ------------------------------------------------------------ Constructor
-
-    public TestCookieOrigin(String name) {
-        super(name);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestCookieOrigin.class);
-    }
-
+    @Test
     public void testConstructor() {
         CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
-        assertEquals("www.apache.org", origin.getHost());
-        assertEquals(80, origin.getPort());
-        assertEquals("/", origin.getPath());
-        assertFalse(origin.isSecure());
+        Assert.assertEquals("www.apache.org", origin.getHost());
+        Assert.assertEquals(80, origin.getPort());
+        Assert.assertEquals("/", origin.getPath());
+        Assert.assertFalse(origin.isSecure());
     }
 
+    @Test(expected=IllegalArgumentException.class)
     public void testNullHost() {
-        try {
-            new CookieOrigin(null, 80, "/", false);
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        new CookieOrigin(null, 80, "/", false);
     }
 
+    @Test(expected=IllegalArgumentException.class)
     public void testEmptyHost() {
-        try {
-            new CookieOrigin("   ", 80, "/", false);
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        new CookieOrigin("   ", 80, "/", false);
     }
 
+    @Test(expected=IllegalArgumentException.class)
     public void testNegativePort() {
-        try {
-            new CookieOrigin("www.apache.org", -80, "/", false);
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        new CookieOrigin("www.apache.org", -80, "/", false);
     }
 
+    @Test(expected=IllegalArgumentException.class)
     public void testNullPath() {
-        try {
-            new CookieOrigin("www.apache.org", 80, null, false);
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        new CookieOrigin("www.apache.org", 80, null, false);
     }
 
+    @Test
     public void testEmptyPath() {
         CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "", false);
-        assertEquals("www.apache.org", origin.getHost());
-        assertEquals(80, origin.getPort());
-        assertEquals("/", origin.getPath());
-        assertFalse(origin.isSecure());
+        Assert.assertEquals("www.apache.org", origin.getHost());
+        Assert.assertEquals(80, origin.getPort());
+        Assert.assertEquals("/", origin.getPath());
+        Assert.assertFalse(origin.isSecure());
     }
 
 }

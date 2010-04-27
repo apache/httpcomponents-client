@@ -33,10 +33,6 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.ArrayList;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
@@ -49,25 +45,13 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 
 import org.apache.http.mockup.ProxySelectorMockup;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for <code>ProxySelectorRoutePlanner</code>.
  */
-public class TestProxySelRoutePlanner extends TestCase {
-
-    public TestProxySelRoutePlanner(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestProxySelRoutePlanner.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestProxySelRoutePlanner.class);
-    }
-
+public class TestProxySelRoutePlanner {
 
     /**
      * Instantiates a default scheme registry.
@@ -82,7 +66,7 @@ public class TestProxySelRoutePlanner extends TestCase {
         return schreg;
     }
 
-
+    @Test
     public void testDirect() throws Exception {
 
         HttpRoutePlanner hrp =
@@ -96,11 +80,11 @@ public class TestProxySelRoutePlanner extends TestCase {
 
         HttpRoute route = hrp.determineRoute(target, request, null);
 
-        assertEquals("wrong target", target, route.getTargetHost());
-        assertEquals("not direct", 1, route.getHopCount());
+        Assert.assertEquals("wrong target", target, route.getTargetHost());
+        Assert.assertEquals("not direct", 1, route.getHopCount());
     }
 
-
+    @Test
     public void testProxy() throws Exception {
 
         InetAddress ia = InetAddress.getByAddress(new byte[] {
@@ -124,10 +108,10 @@ public class TestProxySelRoutePlanner extends TestCase {
 
         HttpRoute route = hrp.determineRoute(target, request, null);
 
-        assertEquals("wrong target", target, route.getTargetHost());
-        assertEquals("not via proxy", 2, route.getHopCount());
-        assertEquals("wrong proxy", isa1.getPort(),
+        Assert.assertEquals("wrong target", target, route.getTargetHost());
+        Assert.assertEquals("not via proxy", 2, route.getHopCount());
+        Assert.assertEquals("wrong proxy", isa1.getPort(),
                      route.getProxyHost().getPort());
     }
 
-} // class TestProxySelRoutePlanner
+}

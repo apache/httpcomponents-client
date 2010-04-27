@@ -28,9 +28,6 @@ package org.apache.http.impl.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -59,27 +56,17 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for automatic client authentication.
  */
 public class TestClientAuthentication extends BasicServerTestBase {
 
-    public TestClientAuthentication(final String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestClientAuthentication.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestClientAuthentication.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
         httpproc.addInterceptor(new ResponseServer());
@@ -136,6 +123,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -149,14 +137,15 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         HttpResponse response = httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
-        assertNotNull(entity);
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
         entity.consumeContent();
         AuthScope authscope = credsProvider.getAuthScope();
-        assertNotNull(authscope);
-        assertEquals("test realm", authscope.getRealm());
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
     }
 
+    @Test
     public void testBasicAuthenticationFailure() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -171,14 +160,15 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         HttpResponse response = httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
-        assertNotNull(entity);
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
         entity.consumeContent();
         AuthScope authscope = credsProvider.getAuthScope();
-        assertNotNull(authscope);
-        assertEquals("test realm", authscope.getRealm());
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
     }
 
+    @Test
     public void testBasicAuthenticationSuccess() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -193,14 +183,15 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         HttpResponse response = httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertNotNull(entity);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
         entity.consumeContent();
         AuthScope authscope = credsProvider.getAuthScope();
-        assertNotNull(authscope);
-        assertEquals("test realm", authscope.getRealm());
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
     }
 
+    @Test
     public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -216,14 +207,15 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         HttpResponse response = httpclient.execute(getServerHttp(), httppost);
         HttpEntity entity = response.getEntity();
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertNotNull(entity);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
         entity.consumeContent();
         AuthScope authscope = credsProvider.getAuthScope();
-        assertNotNull(authscope);
-        assertEquals("test realm", authscope.getRealm());
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
     }
 
+    @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -241,11 +233,12 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         try {
             httpclient.execute(getServerHttp(), httppost);
-            fail("ClientProtocolException should have been thrown");
+            Assert.fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException ex) {
             Throwable cause = ex.getCause();
-            assertNotNull(cause);
-            assertTrue(cause instanceof NonRepeatableRequestException);
+            Assert.assertNotNull(cause);
+            Assert.assertTrue(cause instanceof NonRepeatableRequestException);
+            throw ex;
         }
     }
 
@@ -279,6 +272,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     }
 
+    @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
         localServer.register("*", new AuthHandler());
         localServer.start();
@@ -299,17 +293,17 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         HttpResponse response1 = httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity entity1 = response1.getEntity();
-        assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
-        assertNotNull(entity1);
+        Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity1);
         entity1.consumeContent();
 
         HttpResponse response2 = httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity entity2 = response1.getEntity();
-        assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
-        assertNotNull(entity2);
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity2);
         entity1.consumeContent();
 
-        assertEquals(1, authHandler.getCount());
+        Assert.assertEquals(1, authHandler.getCount());
     }
 
 }

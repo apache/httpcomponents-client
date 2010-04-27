@@ -31,44 +31,26 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
 import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
-
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for <code>WaitingThread</code>.
  */
-public class TestWaitingThread extends TestCase {
+public class TestWaitingThread {
 
     public final static
         HttpHost TARGET = new HttpHost("target.test.invalid");
 
-
-    public TestWaitingThread(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestWaitingThread.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestWaitingThread.class);
-    }
-
-
+    @Test
     public void testConstructor() {
         try {
             new WaitingThread(null, null);
-            fail("null condition not detected");
+            Assert.fail("null condition not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
@@ -77,20 +59,20 @@ public class TestWaitingThread extends TestCase {
         Condition cnd = lck.newCondition();
 
         WaitingThread wt = new WaitingThread(cnd, null);
-        assertEquals("wrong condition", cnd, wt.getCondition());
-        assertNull  ("pool from nowhere", wt.getPool());
-        assertNull  ("thread from nowhere", wt.getThread());
+        Assert.assertEquals("wrong condition", cnd, wt.getCondition());
+        Assert.assertNull  ("pool from nowhere", wt.getPool());
+        Assert.assertNull  ("thread from nowhere", wt.getThread());
 
         HttpRoute route = new HttpRoute(TARGET);
         ConnPerRoute connPerRoute = new ConnPerRouteBean(10);
         RouteSpecificPool rospl = new RouteSpecificPool(route, connPerRoute);
         wt = new WaitingThread(cnd, rospl);
-        assertEquals("wrong condition", cnd, wt.getCondition());
-        assertEquals("wrong pool", rospl, wt.getPool());
-        assertNull  ("thread from nowhere", wt.getThread());
+        Assert.assertEquals("wrong condition", cnd, wt.getCondition());
+        Assert.assertEquals("wrong pool", rospl, wt.getPool());
+        Assert.assertNull  ("thread from nowhere", wt.getThread());
     }
 
-
+    @Test
     public void testAwaitWakeup() throws InterruptedException {
 
         Lock      lck = new ReentrantLock();
@@ -101,13 +83,13 @@ public class TestWaitingThread extends TestCase {
         ath.start();
         Thread.sleep(100); // give extra thread time to block
 
-        assertNull("thread caught exception", ath.getException());
-        assertTrue("thread not waiting", ath.isWaiting());
-        assertEquals("wrong thread", ath, wt.getThread());
+        Assert.assertNull("thread caught exception", ath.getException());
+        Assert.assertTrue("thread not waiting", ath.isWaiting());
+        Assert.assertEquals("wrong thread", ath, wt.getThread());
 
         Thread.sleep(500); // just for fun, let it wait for some time
         // this may fail due to a spurious wakeup
-        assertTrue("thread not waiting, spurious wakeup?", ath.isWaiting());
+        Assert.assertTrue("thread not waiting, spurious wakeup?", ath.isWaiting());
 
         try {
             lck.lock();
@@ -117,12 +99,12 @@ public class TestWaitingThread extends TestCase {
         }
         ath.join(10000);
 
-        assertFalse("thread still waiting", ath.isWaiting());
-        assertNull("thread caught exception", ath.getException());
-        assertNull("thread still there", wt.getThread());
+        Assert.assertFalse("thread still waiting", ath.isWaiting());
+        Assert.assertNull("thread caught exception", ath.getException());
+        Assert.assertNull("thread still there", wt.getThread());
     }
 
-
+    @Test
     public void testInterrupt() throws InterruptedException {
 
         Lock      lck = new ReentrantLock();
@@ -133,21 +115,21 @@ public class TestWaitingThread extends TestCase {
         ath.start();
         Thread.sleep(100); // give extra thread time to block
 
-        assertNull("thread caught exception", ath.getException());
-        assertTrue("thread not waiting", ath.isWaiting());
-        assertEquals("wrong thread", ath, wt.getThread());
+        Assert.assertNull("thread caught exception", ath.getException());
+        Assert.assertTrue("thread not waiting", ath.isWaiting());
+        Assert.assertEquals("wrong thread", ath, wt.getThread());
 
         ath.interrupt();
         Thread.sleep(100); // give extra thread time to wake up
 
-        assertFalse("thread still waiting", ath.isWaiting());
-        assertNotNull("thread didn't catch exception", ath.getException());
-        assertTrue("thread caught wrong exception",
+        Assert.assertFalse("thread still waiting", ath.isWaiting());
+        Assert.assertNotNull("thread didn't catch exception", ath.getException());
+        Assert.assertTrue("thread caught wrong exception",
                    ath.getException() instanceof InterruptedException);
-        assertNull("thread still there", wt.getThread());
+        Assert.assertNull("thread still there", wt.getThread());
     }
 
-
+    @Test
     public void testIllegal() throws InterruptedException {
 
         Lock      lck = new ReentrantLock();
@@ -157,7 +139,7 @@ public class TestWaitingThread extends TestCase {
         try {
             lck.lock();
             wt.wakeup();
-            fail("missing waiter not detected");
+            Assert.fail("missing waiter not detected");
         } catch (IllegalStateException isx) {
             // expected
         } finally {
@@ -168,17 +150,17 @@ public class TestWaitingThread extends TestCase {
         ath1.start();
         Thread.sleep(100); // give extra thread time to block
 
-        assertNull("thread caught exception", ath1.getException());
-        assertTrue("thread not waiting", ath1.isWaiting());
-        assertEquals("wrong thread", ath1, wt.getThread());
+        Assert.assertNull("thread caught exception", ath1.getException());
+        Assert.assertTrue("thread not waiting", ath1.isWaiting());
+        Assert.assertEquals("wrong thread", ath1, wt.getThread());
 
         AwaitThread ath2 = new AwaitThread(wt, lck, null);
         ath2.start();
         Thread.sleep(100); // give extra thread time to try to block
 
-        assertFalse("thread waiting", ath2.isWaiting());
-        assertNotNull("thread didn't catch exception", ath2.getException());
-        assertTrue("thread caught wrong exception",
+        Assert.assertFalse("thread waiting", ath2.isWaiting());
+        Assert.assertNotNull("thread didn't catch exception", ath2.getException());
+        Assert.assertTrue("thread caught wrong exception",
                    ath2.getException() instanceof IllegalStateException);
 
         // clean up by letting the threads terminate
@@ -186,5 +168,4 @@ public class TestWaitingThread extends TestCase {
         ath2.interrupt();
     }
 
-
-} // class TestWaitingThread
+}

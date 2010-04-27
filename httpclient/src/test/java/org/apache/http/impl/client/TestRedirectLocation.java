@@ -29,33 +29,15 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.util.List;
 
-import junit.framework.Assert;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *  Simple tests for {@link RedirectLocations}.
  */
-public class TestRedirectLocation extends TestCase {
+public class TestRedirectLocation {
 
-    // ------------------------------------------------------------ Constructor
-    public TestRedirectLocation(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestRedirectLocation.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestRedirectLocation.class);
-    }
-
+    @Test
     public void testBasics() throws Exception {
         RedirectLocations locations = new RedirectLocations();
 

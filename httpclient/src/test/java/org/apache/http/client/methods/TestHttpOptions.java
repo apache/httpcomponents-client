@@ -29,33 +29,15 @@ package org.apache.http.client.methods;
 
 import java.util.Set;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.ProtocolVersion;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestHttpOptions extends TestCase {
+public class TestHttpOptions {
 
-    // ------------------------------------------------------------ Constructor
-    public TestHttpOptions(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestHttpOptions.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestHttpOptions.class);
-    }
-
+    @Test
     public void testMultipleAllows() {
         ProtocolVersion proto = new ProtocolVersion("HTTP", 1, 1);
         BasicStatusLine line = new BasicStatusLine(proto, 200, "test reason");
@@ -66,8 +48,8 @@ public class TestHttpOptions extends TestCase {
         HttpOptions opt = new HttpOptions();
         Set<String> methodsName = opt.getAllowedMethods(resp);
 
-        assertTrue(methodsName.contains("POST"));
-        assertTrue(methodsName.contains("GET"));
+        Assert.assertTrue(methodsName.contains("POST"));
+        Assert.assertTrue(methodsName.contains("GET"));
     }
 
 }

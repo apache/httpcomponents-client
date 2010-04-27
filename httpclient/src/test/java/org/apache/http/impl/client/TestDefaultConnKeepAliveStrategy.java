@@ -26,10 +26,6 @@
 
 package org.apache.http.impl.client;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -38,50 +34,32 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *  Simple tests for {@link DefaultConnectionKeepAliveStrategy}.
- *
  */
-public class TestDefaultConnKeepAliveStrategy extends TestCase {
+public class TestDefaultConnKeepAliveStrategy {
 
-    // ------------------------------------------------------------ Constructor
-    public TestDefaultConnKeepAliveStrategy(final String testName) {
-        super(testName);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestDefaultConnKeepAliveStrategy.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    // ------------------------------------------------------- TestCase Methods
-
-    public static Test suite() {
-        return new TestSuite(TestDefaultConnKeepAliveStrategy.class);
-    }
-
+    @Test(expected=IllegalArgumentException.class)
     public void testIllegalResponseArg() throws Exception {
         HttpContext context = new BasicHttpContext(null);
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        try {
-            keepAliveStrat.getKeepAliveDuration(null, context);
-            fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        keepAliveStrat.getKeepAliveDuration(null, context);
     }
 
+    @Test
     public void testNoKeepAliveHeader() throws Exception {
         HttpContext context = new BasicHttpContext(null);
         HttpResponse response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         long d = keepAliveStrat.getKeepAliveDuration(response, context);
-        assertEquals(-1, d);
+        Assert.assertEquals(-1, d);
     }
 
+    @Test
     public void testEmptyKeepAliveHeader() throws Exception {
         HttpContext context = new BasicHttpContext(null);
         HttpResponse response = new BasicHttpResponse(
@@ -89,9 +67,10 @@ public class TestDefaultConnKeepAliveStrategy extends TestCase {
         response.addHeader("Keep-Alive", "timeout, max=20");
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         long d = keepAliveStrat.getKeepAliveDuration(response, context);
-        assertEquals(-1, d);
+        Assert.assertEquals(-1, d);
     }
 
+    @Test
     public void testInvalidKeepAliveHeader() throws Exception {
         HttpContext context = new BasicHttpContext(null);
         HttpResponse response = new BasicHttpResponse(
@@ -99,9 +78,10 @@ public class TestDefaultConnKeepAliveStrategy extends TestCase {
         response.addHeader("Keep-Alive", "timeout=whatever, max=20");
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         long d = keepAliveStrat.getKeepAliveDuration(response, context);
-        assertEquals(-1, d);
+        Assert.assertEquals(-1, d);
     }
 
+    @Test
     public void testKeepAliveHeader() throws Exception {
         HttpContext context = new BasicHttpContext(null);
         HttpResponse response = new BasicHttpResponse(
@@ -109,7 +89,7 @@ public class TestDefaultConnKeepAliveStrategy extends TestCase {
         response.addHeader("Keep-Alive", "timeout=300, max=20");
         ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         long d = keepAliveStrat.getKeepAliveDuration(response, context);
-        assertEquals(300000, d);
+        Assert.assertEquals(300000, d);
     }
 
 }

@@ -29,79 +29,63 @@ package org.apache.http.conn;
 
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpHost;
-//import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.mockup.SecureSocketFactoryMockup;
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
- *
  */
-public class TestScheme extends TestCase {
+public class TestScheme {
 
-    public TestScheme(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestScheme.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestScheme.class);
-    }
-
+    @Test
     public void testConstructor() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-        assertEquals("http", http.getName());
-        assertEquals(80, http.getDefaultPort());
-        assertSame(PlainSocketFactory.getSocketFactory(), http.getSchemeSocketFactory());
-        assertFalse(http.isLayered());
+        Assert.assertEquals("http", http.getName());
+        Assert.assertEquals(80, http.getDefaultPort());
+        Assert.assertSame(PlainSocketFactory.getSocketFactory(), http.getSchemeSocketFactory());
+        Assert.assertFalse(http.isLayered());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
-        assertEquals("https", https.getName());
-        assertEquals(443, https.getDefaultPort());
-        assertSame(SecureSocketFactoryMockup.INSTANCE, https.getSchemeSocketFactory());
-        assertTrue(https.isLayered());
+        Assert.assertEquals("https", https.getName());
+        Assert.assertEquals(443, https.getDefaultPort());
+        Assert.assertSame(SecureSocketFactoryMockup.INSTANCE, https.getSchemeSocketFactory());
+        Assert.assertTrue(https.isLayered());
 
         Scheme hTtP = new Scheme("hTtP", 80, PlainSocketFactory.getSocketFactory());
-        assertEquals("http", hTtP.getName());
+        Assert.assertEquals("http", hTtP.getName());
         // the rest is no different from above
 
         try {
             new Scheme(null, 80, PlainSocketFactory.getSocketFactory());
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             new Scheme("http", 80, null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             new Scheme("http", -1, PlainSocketFactory.getSocketFactory());
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             new Scheme("http", 70000, PlainSocketFactory.getSocketFactory());
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
     }
 
+    @Test
     public void testRegisterUnregister() {
         SchemeRegistry schmreg = new SchemeRegistry();
 
@@ -112,33 +96,33 @@ public class TestScheme extends TestCase {
         HttpHost host  = new HttpHost("www.test.invalid", -1, "http");
         HttpHost hosts = new HttpHost("www.test.invalid", -1, "https");
 
-        assertNull(schmreg.register(myhttp));
-        assertNull(schmreg.register(https));
-        assertSame(myhttp, schmreg.register(http));
-        assertSame(http, schmreg.getScheme("http"));
-        assertSame(http, schmreg.getScheme(host));
-        assertSame(https, schmreg.getScheme("https"));
-        assertSame(https, schmreg.getScheme(hosts));
+        Assert.assertNull(schmreg.register(myhttp));
+        Assert.assertNull(schmreg.register(https));
+        Assert.assertSame(myhttp, schmreg.register(http));
+        Assert.assertSame(http, schmreg.getScheme("http"));
+        Assert.assertSame(http, schmreg.getScheme(host));
+        Assert.assertSame(https, schmreg.getScheme("https"));
+        Assert.assertSame(https, schmreg.getScheme(hosts));
 
         schmreg.unregister("http");
         schmreg.unregister("https");
 
-        assertNull(schmreg.get("http")); // get() does not throw exception
+        Assert.assertNull(schmreg.get("http")); // get() does not throw exception
         try {
             schmreg.getScheme("http"); // getScheme() does throw exception
-            fail("IllegalStateException should have been thrown");
+            Assert.fail("IllegalStateException should have been thrown");
         } catch (IllegalStateException ex) {
             // expected
         }
     }
 
-
+    @Test
     public void testIterator() {
         SchemeRegistry schmreg = new SchemeRegistry();
 
         List<String> names = schmreg.getSchemeNames();
-        assertNotNull(names);
-        assertTrue(names.isEmpty());
+        Assert.assertNotNull(names);
+        Assert.assertTrue(names.isEmpty());
 
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
@@ -147,8 +131,8 @@ public class TestScheme extends TestCase {
         schmreg.register(https);
 
         names = schmreg.getSchemeNames();
-        assertNotNull(names);
-        assertFalse(names.isEmpty());
+        Assert.assertNotNull(names);
+        Assert.assertFalse(names.isEmpty());
 
         boolean flaghttp  = false;
         boolean flaghttps = false;
@@ -159,93 +143,98 @@ public class TestScheme extends TestCase {
         else if ("https".equals(name))
             flaghttps = true;
         else
-            fail("unexpected name in iterator: " + name);
+            Assert.fail("unexpected name in iterator: " + name);
 
-        assertNotNull(schmreg.get(name));
+        Assert.assertNotNull(schmreg.get(name));
         schmreg.unregister(name);
-        assertNull(schmreg.get(name));
+        Assert.assertNull(schmreg.get(name));
 
         name = names.get(1);
 
         if ("http".equals(name)) {
-            if (flaghttp) fail("name 'http' found twice");
+            if (flaghttp) Assert.fail("name 'http' found twice");
         } else if ("https".equals(name)) {
-            if (flaghttps) fail("name 'https' found twice");
+            if (flaghttps) Assert.fail("name 'https' found twice");
         } else {
-            fail("unexpected name in iterator: " + name);
+            Assert.fail("unexpected name in iterator: " + name);
         }
 
-        assertNotNull(schmreg.get(name));
+        Assert.assertNotNull(schmreg.get(name));
     }
 
+    @Test
     public void testIllegalRegisterUnregister() {
         SchemeRegistry schmreg = new SchemeRegistry();
         try {
             schmreg.register(null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             schmreg.unregister(null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             schmreg.get(null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             schmreg.getScheme((String)null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             schmreg.getScheme((HttpHost)null);
-            fail("IllegalArgumentException should have been thrown");
+            Assert.fail("IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
     }
 
+    @Test
     public void testResolvePort() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 
-        assertEquals(8080, http.resolvePort(8080));
-        assertEquals(80, http.resolvePort(-1));
+        Assert.assertEquals(8080, http.resolvePort(8080));
+        Assert.assertEquals(80, http.resolvePort(-1));
     }
 
+    @Test
     public void testHashCode() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme myhttp = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
 
-        assertTrue(http.hashCode() != https.hashCode()); // not guaranteed
-        assertTrue(http.hashCode() == myhttp.hashCode());
+        Assert.assertTrue(http.hashCode() != https.hashCode()); // not guaranteed
+        Assert.assertTrue(http.hashCode() == myhttp.hashCode());
     }
 
+    @Test
     public void testEquals() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme myhttp = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
 
-        assertFalse(http.equals(https));
-        assertFalse(http.equals(null));
-        assertFalse(http.equals("http"));
-        assertTrue(http.equals(http));
-        assertTrue(http.equals(myhttp));
-        assertFalse(http.equals(https));
+        Assert.assertFalse(http.equals(https));
+        Assert.assertFalse(http.equals(null));
+        Assert.assertFalse(http.equals("http"));
+        Assert.assertTrue(http.equals(http));
+        Assert.assertTrue(http.equals(myhttp));
+        Assert.assertFalse(http.equals(https));
     }
 
+    @Test
     public void testToString() {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         // test it twice, the result is cached
-        assertEquals("http:80", http.toString());
-        assertEquals("http:80", http.toString());
+        Assert.assertEquals("http:80", http.toString());
+        Assert.assertEquals("http:80", http.toString());
     }
 
 }

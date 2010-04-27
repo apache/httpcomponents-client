@@ -30,32 +30,16 @@ package org.apache.http.impl.cookie;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestAbstractCookieSpec extends TestCase {
-
-    public TestAbstractCookieSpec(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestAbstractCookieSpec.class);
-    }
-
-    // ------------------------------------------------------------------- Main
-    public static void main(String args[]) {
-        String[] testCaseName = { TestAbstractCookieSpec.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
+public class TestAbstractCookieSpec {
 
     private static class DummyCookieSpec extends AbstractCookieSpec {
 
@@ -98,6 +82,7 @@ public class TestAbstractCookieSpec extends TestCase {
 
     }
 
+    @Test
     public void testSimpleRegisterAndGet() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
@@ -108,19 +93,20 @@ public class TestAbstractCookieSpec extends TestCase {
         cookiespec.registerAttribHandler("thistoo", h1);
         cookiespec.registerAttribHandler("thattoo", h2);
 
-        assertTrue(h1 == cookiespec.getAttribHandler("this"));
-        assertTrue(h2 == cookiespec.getAttribHandler("that"));
-        assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
-        assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
+        Assert.assertTrue(h1 == cookiespec.getAttribHandler("this"));
+        Assert.assertTrue(h2 == cookiespec.getAttribHandler("that"));
+        Assert.assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
+        Assert.assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
 
         Iterator<CookieAttributeHandler> it = cookiespec.getAttribHandlers().iterator();
-        assertNotNull(it.next());
-        assertNotNull(it.next());
-        assertNotNull(it.next());
-        assertNotNull(it.next());
-        assertFalse(it.hasNext());
+        Assert.assertNotNull(it.next());
+        Assert.assertNotNull(it.next());
+        Assert.assertNotNull(it.next());
+        Assert.assertNotNull(it.next());
+        Assert.assertFalse(it.hasNext());
     }
 
+    @Test(expected=IllegalStateException.class)
     public void testInvalidHandler() {
         CookieAttributeHandler h1 = new DummyCookieAttribHandler();
         CookieAttributeHandler h2 = new DummyCookieAttribHandler();
@@ -129,29 +115,20 @@ public class TestAbstractCookieSpec extends TestCase {
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
 
-        assertNull(cookiespec.findAttribHandler("whatever"));
-        try {
-            cookiespec.getAttribHandler("whatever");
-            fail("IllegalStateException should have been thrown");
-        } catch (IllegalStateException ex) {
-            // expected
-        }
+        Assert.assertNull(cookiespec.findAttribHandler("whatever"));
+        cookiespec.getAttribHandler("whatever");
     }
 
-    public void testBasicPathInvalidInput() throws Exception {
+    @Test(expected=IllegalArgumentException.class)
+    public void testBasicPathInvalidInput1() throws Exception {
         AbstractCookieSpec cookiespec = new DummyCookieSpec();
-        try {
-            cookiespec.registerAttribHandler(null, null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
-        try {
-            cookiespec.registerAttribHandler("whatever", null);
-            fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        cookiespec.registerAttribHandler(null, null);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testBasicPathInvalidInput2() throws Exception {
+        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        cookiespec.registerAttribHandler("whatever", null);
     }
 
 }

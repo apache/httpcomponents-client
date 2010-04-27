@@ -31,10 +31,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -63,32 +59,22 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestConnectionReuse extends TestCase {
-
-    public TestConnectionReuse(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestConnectionReuse.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestConnectionReuse.class);
-    }
+public class TestConnectionReuse {
 
     protected LocalTestServer localServer;
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         if (this.localServer != null) {
             this.localServer.stop();
         }
     }
 
-
+    @Test
     public void testReuseOfPersistentConnections() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -144,7 +130,7 @@ public class TestConnectionReuse extends TestCase {
         }
 
         // Expect some connection in the pool
-        assertTrue(mgr.getConnectionsInPool() > 0);
+        Assert.assertTrue(mgr.getConnectionsInPool() > 0);
 
         mgr.shutdown();
     }
@@ -159,6 +145,7 @@ public class TestConnectionReuse extends TestCase {
 
     }
 
+    @Test
     public void testReuseOfClosedConnections() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -214,11 +201,12 @@ public class TestConnectionReuse extends TestCase {
         }
 
         // Expect zero connections in the pool
-        assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getConnectionsInPool());
 
         mgr.shutdown();
     }
 
+    @Test
     public void testReuseOfAbortedConnections() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -274,11 +262,12 @@ public class TestConnectionReuse extends TestCase {
         }
 
         // Expect zero connections in the pool
-        assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getConnectionsInPool());
 
         mgr.shutdown();
     }
 
+    @Test
     public void testKeepAliveHeaderRespected() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
@@ -315,15 +304,15 @@ public class TestConnectionReuse extends TestCase {
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
 
-        assertEquals(1, mgr.getConnectionsInPool());
-        assertEquals(1, localServer.getAcceptedConnectionCount());
+        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         response = client.execute(target, new HttpGet("/random/2000"));
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
 
-        assertEquals(1, mgr.getConnectionsInPool());
-        assertEquals(1, localServer.getAcceptedConnectionCount());
+        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
@@ -331,8 +320,8 @@ public class TestConnectionReuse extends TestCase {
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
 
-        assertEquals(1, mgr.getConnectionsInPool());
-        assertEquals(2, localServer.getAcceptedConnectionCount());
+        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
 
         // Do another request just under the 1 second limit & make
         // sure we reuse that connection.
@@ -341,8 +330,8 @@ public class TestConnectionReuse extends TestCase {
         if(response.getEntity() != null)
             response.getEntity().consumeContent();
 
-        assertEquals(1, mgr.getConnectionsInPool());
-        assertEquals(2, localServer.getAcceptedConnectionCount());
+        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
 
 
         mgr.shutdown();

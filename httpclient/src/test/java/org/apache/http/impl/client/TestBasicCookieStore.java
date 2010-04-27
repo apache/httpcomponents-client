@@ -36,44 +36,31 @@ import java.util.List;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link BasicCookieStore}.
  */
-public class TestBasicCookieStore extends TestCase {
+public class TestBasicCookieStore {
 
-    public TestBasicCookieStore(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestBasicCookieStore.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestBasicCookieStore.class);
-    }
-
+    @Test
     public void testBasics() throws Exception {
         BasicCookieStore store = new BasicCookieStore();
         store.addCookie(new BasicClientCookie("name1", "value1"));
         store.addCookies(new BasicClientCookie[] {new BasicClientCookie("name2", "value2")});
         List<Cookie> l = store.getCookies();
-        assertNotNull(l);
-        assertEquals(2, l.size());
-        assertEquals("name1", l.get(0).getName());
-        assertEquals("name2", l.get(1).getName());
+        Assert.assertNotNull(l);
+        Assert.assertEquals(2, l.size());
+        Assert.assertEquals("name1", l.get(0).getName());
+        Assert.assertEquals("name2", l.get(1).getName());
         store.clear();
         l = store.getCookies();
-        assertNotNull(l);
-        assertEquals(0, l.size());
+        Assert.assertNotNull(l);
+        Assert.assertEquals(0, l.size());
     }
 
+    @Test
     public void testExpiredCookie() throws Exception {
         BasicCookieStore store = new BasicCookieStore();
         BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
@@ -83,10 +70,11 @@ public class TestBasicCookieStore extends TestCase {
         cookie.setExpiryDate(c.getTime());
         store.addCookie(cookie);
         List<Cookie> l = store.getCookies();
-        assertNotNull(l);
-        assertEquals(0, l.size());
+        Assert.assertNotNull(l);
+        Assert.assertEquals(0, l.size());
     }
 
+    @Test
     public void testSerialization() throws Exception {
         BasicCookieStore orig = new BasicCookieStore();
         orig.addCookie(new BasicClientCookie("name1", "value1"));
@@ -101,12 +89,12 @@ public class TestBasicCookieStore extends TestCase {
         BasicCookieStore clone = (BasicCookieStore) instream.readObject();
         List<Cookie> expected = orig.getCookies();
         List<Cookie> clones = clone.getCookies();
-        assertNotNull(expected);
-        assertNotNull(clones);
-        assertEquals(expected.size(), clones.size());
+        Assert.assertNotNull(expected);
+        Assert.assertNotNull(clones);
+        Assert.assertEquals(expected.size(), clones.size());
         for (int i = 0; i < expected.size(); i++) {
-            assertEquals(expected.get(i).getName(), clones.get(i).getName());
-            assertEquals(expected.get(i).getValue(), clones.get(i).getValue());
+            Assert.assertEquals(expected.get(i).getName(), clones.get(i).getName());
+            Assert.assertEquals(expected.get(i).getValue(), clones.get(i).getValue());
         }
     }
 

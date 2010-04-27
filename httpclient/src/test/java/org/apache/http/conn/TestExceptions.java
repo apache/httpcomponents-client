@@ -27,49 +27,37 @@
 
 package org.apache.http.conn;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for exceptions.
  * Trivial, but it looks better in the Clover reports.
  */
-public class TestExceptions extends TestCase {
+public class TestExceptions {
 
-    public TestExceptions(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestExceptions.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestExceptions.class);
-    }
-
+    @Test
     public void testCTX() {
         String msg = "sample exception message";
         ConnectTimeoutException ctx =
             new ConnectTimeoutException(msg);
-        assertFalse(ctx.toString().indexOf(msg) < 0);
-        assertSame(msg, ctx.getMessage());
+        Assert.assertFalse(ctx.toString().indexOf(msg) < 0);
+        Assert.assertSame(msg, ctx.getMessage());
 
         ctx = new ConnectTimeoutException();
-        assertNull(ctx.getMessage());
+        Assert.assertNull(ctx.getMessage());
     }
 
+    @Test
     public void testCPTX() {
         String msg = "sample exception message";
         ConnectionPoolTimeoutException cptx =
             new ConnectionPoolTimeoutException(msg);
-        assertFalse(cptx.toString().indexOf(msg) < 0);
-        assertSame(msg, cptx.getMessage());
+        Assert.assertFalse(cptx.toString().indexOf(msg) < 0);
+        Assert.assertSame(msg, cptx.getMessage());
 
         cptx = new ConnectionPoolTimeoutException();
-        assertNull(cptx.getMessage());
+        Assert.assertNull(cptx.getMessage());
     }
+
 }

@@ -29,9 +29,6 @@ package org.apache.http.client.protocol;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -45,24 +42,14 @@ import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TestUriEscapes extends BasicServerTestBase {
 
-    public TestUriEscapes(final String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestUriEscapes.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestUriEscapes.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         localServer = new LocalTestServer(null, null);
         localServer.registerDefaultHandlers();
         localServer.start();
@@ -110,55 +97,68 @@ public class TestUriEscapes extends BasicServerTestBase {
             response.getEntity().consumeContent();
         }
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals(uri, listener.getRequestedUri());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(uri, listener.getRequestedUri());
     }
 
+    @Test
     public void testEscapedAmpersandInQueryAbsolute() throws Exception {
         doTest("/path/a=b&c=%26d", false);
     }
 
+    @Test
     public void testEscapedAmpersandInQueryRelative() throws Exception {
         doTest("/path/a=b&c=%26d", true);
     }
 
+    @Test
     public void testPlusInPathAbsolute() throws Exception {
         doTest("/path+go", false);
     }
 
+    @Test
     public void testPlusInPathRelative() throws Exception {
         doTest("/path+go", true);
     }
 
+    @Test
     public void testEscapedSpaceInPathAbsolute() throws Exception {
         doTest("/path%20go?a=b&c=d", false);
     }
 
+    @Test
     public void testEscapedSpaceInPathRelative() throws Exception {
         doTest("/path%20go?a=b&c=d", true);
     }
 
+    @Test
     public void testEscapedAmpersandInPathAbsolute() throws Exception {
         doTest("/this%26that?a=b&c=d", false);
     }
 
+    @Test
     public void testEscapedAmpersandInPathRelative() throws Exception {
         doTest("/this%26that?a=b&c=d", true);
     }
 
+    @Test
     public void testEscapedSpaceInQueryAbsolute() throws Exception {
         doTest("/path?a=b&c=d%20e", false);
     }
 
+    @Test
     public void testEscapedSpaceInQueryRelative() throws Exception {
         doTest("/path?a=b&c=d%20e", true);
     }
 
+    @Test
     public void testPlusInQueryAbsolute() throws Exception {
         doTest("/path?a=b&c=d+e", false);
     }
 
+    @Test
     public void testPlusInQueryRelative() throws Exception {
         doTest("/path?a=b&c=d+e", true);
     }
+
 }

@@ -40,29 +40,15 @@ import org.apache.http.message.BasicLineParser;
 import org.apache.http.mockup.SessionInputBufferMockup;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for <code>DefaultResponseParser</code>.
  */
-public class TestDefaultResponseParser extends TestCase {
+public class TestDefaultResponseParser {
 
-    public TestDefaultResponseParser(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestDefaultResponseParser.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestDefaultResponseParser.class);
-    }
-
+    @Test
     public void testResponseParsingWithSomeGarbage() throws Exception {
         String s =
             "garbage\r\n" +
@@ -82,17 +68,18 @@ public class TestDefaultResponseParser extends TestCase {
                 params);
 
         HttpResponse response = (HttpResponse) parser.parse();
-        assertNotNull(response);
-        assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
-        assertEquals(200, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(response);
+        Assert.assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
+        Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 
         Header[] headers = response.getAllHeaders();
-        assertNotNull(headers);
-        assertEquals(2, headers.length);
-        assertEquals("header1", headers[0].getName());
-        assertEquals("header2", headers[1].getName());
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(2, headers.length);
+        Assert.assertEquals("header1", headers[0].getName());
+        Assert.assertEquals("header2", headers[1].getName());
     }
 
+    @Test(expected=ProtocolException.class)
     public void testResponseParsingWithTooMuchGarbage() throws Exception {
         String s =
             "garbage\r\n" +
@@ -111,14 +98,10 @@ public class TestDefaultResponseParser extends TestCase {
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
-
-        try {
-            parser.parse();
-            fail("ProtocolException should have been thrown");
-        } catch (ProtocolException ex) {
-        }
+        parser.parse();
     }
 
+    @Test(expected=NoHttpResponseException.class)
     public void testResponseParsingNoResponse() throws Exception {
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params);
@@ -127,14 +110,10 @@ public class TestDefaultResponseParser extends TestCase {
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
-
-        try {
-            parser.parse();
-            fail("NoHttpResponseException should have been thrown");
-        } catch (NoHttpResponseException ex) {
-        }
+        parser.parse();
     }
 
+    @Test(expected=ProtocolException.class)
     public void testResponseParsingOnlyGarbage() throws Exception {
         String s =
             "garbage\r\n" +
@@ -148,12 +127,7 @@ public class TestDefaultResponseParser extends TestCase {
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params);
-
-        try {
-            parser.parse();
-            fail("ProtocolException should have been thrown");
-        } catch (ProtocolException ex) {
-        }
+        parser.parse();
     }
 
 }

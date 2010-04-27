@@ -27,9 +27,6 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -50,24 +47,13 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link DefaultRequestDirector}
  */
 public class TestStatefulConnManagement extends ServerTestBase {
-
-    public TestStatefulConnManagement(final String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestStatefulConnManagement.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestStatefulConnManagement.class);
-    }
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -85,6 +71,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         }
     }
 
+    @Test
     public void testStatefulConnections() throws Exception {
 
         int workerCount = 5;
@@ -135,7 +122,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
             if (ex != null) {
                 throw ex;
             }
-            assertEquals(requestCount, workers[i].getCount());
+            Assert.assertEquals(requestCount, workers[i].getCount());
         }
 
         for (int i = 0; i < contexts.length; i++) {
@@ -144,8 +131,8 @@ public class TestStatefulConnManagement extends ServerTestBase {
 
             for (int r = 0; r < requestCount; r++) {
                 Integer state = (Integer) context.getAttribute("r" + r);
-                assertNotNull(state);
-                assertEquals(id, state);
+                Assert.assertNotNull(state);
+                Assert.assertEquals(id, state);
             }
         }
 

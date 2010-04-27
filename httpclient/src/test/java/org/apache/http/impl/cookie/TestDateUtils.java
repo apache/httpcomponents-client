@@ -30,29 +30,15 @@ package org.apache.http.impl.cookie;
 import java.util.Calendar;
 import java.util.Date;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link DateUtils}.
- *
  */
-public class TestDateUtils extends TestCase {
+public class TestDateUtils {
 
-    public TestDateUtils(String testName) {
-        super(testName);
-    }
-
-    public static void main(String args[]) {
-        String[] testCaseName = { TestDateUtils.class.getName() };
-        junit.textui.TestRunner.main(testCaseName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(TestDateUtils.class);
-    }
-
+    @Test
     public void testBasicDateParse() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
@@ -64,40 +50,42 @@ public class TestDateUtils extends TestCase {
                 DateUtils.PATTERN_RFC1123
                 };
         Date date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats, null);
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
         date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats);
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
         date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT");
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
     }
 
+    @Test
     public void testInvalidInput() throws Exception {
         try {
             DateUtils.parseDate(null, null, null);
-            fail("IllegalArgumentException should habe been thrown");
+            Assert.fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null);
-            fail("DateParseException should habe been thrown");
+            Assert.fail("DateParseException should habe been thrown");
         } catch (DateParseException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(null);
-            fail("IllegalArgumentException should habe been thrown");
+            Assert.fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(new Date(), null);
-            fail("IllegalArgumentException should habe been thrown");
+            Assert.fail("IllegalArgumentException should habe been thrown");
         } catch (IllegalArgumentException ex) {
             // expected
         }
     }
 
+    @Test
     public void testTwoDigitYearDateParse() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
@@ -109,7 +97,7 @@ public class TestDateUtils extends TestCase {
                 DateUtils.PATTERN_RFC1036
                 };
         Date date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, null);
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
 
         calendar.set(1900, Calendar.JANUARY, 0, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -120,9 +108,10 @@ public class TestDateUtils extends TestCase {
         date1 = calendar.getTime();
 
         date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, startDate);
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
     }
 
+    @Test
     public void testParseQuotedDate() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
@@ -134,9 +123,10 @@ public class TestDateUtils extends TestCase {
                 DateUtils.PATTERN_RFC1123
                 };
         Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
-        assertEquals(date1, date2);
+        Assert.assertEquals(date1, date2);
     }
 
+    @Test
     public void testBasicDateFormat() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
@@ -144,10 +134,11 @@ public class TestDateUtils extends TestCase {
         calendar.set(Calendar.MILLISECOND, 0);
         Date date = calendar.getTime();
 
-        assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date));
-        assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));
+        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date));
+        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));
     }
 
+    @Test
     public void testConstructor() {
         new DateParseException();
         new DateParseException("Oppsie");
