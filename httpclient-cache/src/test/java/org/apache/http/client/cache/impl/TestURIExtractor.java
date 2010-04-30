@@ -215,6 +215,7 @@ public class TestURIExtractor {
         Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new URIExtractor() {
+            @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
@@ -240,6 +241,7 @@ public class TestURIExtractor {
                 new BasicHeader("Accept-Encoding", "deflate") };
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new URIExtractor() {
+            @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
