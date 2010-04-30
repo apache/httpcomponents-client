@@ -37,6 +37,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;
@@ -46,6 +47,7 @@ import org.apache.http.message.BasicStatusLine;
 /**
  * @since 4.1
  */
+@Immutable
 public class RequestProtocolCompliance {
 
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {

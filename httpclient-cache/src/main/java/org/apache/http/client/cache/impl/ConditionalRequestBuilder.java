@@ -29,11 +29,13 @@ package org.apache.http.client.cache.impl;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.client.RequestWrapper;
 
 /**
  * @since 4.1
  */
+@Immutable
 public class ConditionalRequestBuilder {
 
     public HttpRequest buildConditionalRequest(HttpRequest request, CacheEntry cacheEntry)

@@ -32,12 +32,14 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Determines if an HttpRequest is allowed to be served from the cache.
  *
  * @since 4.1
  */
+@Immutable
 public class CacheableRequestPolicy {
 
     private static final Log LOG = LogFactory.getLog(CacheableRequestPolicy.class);

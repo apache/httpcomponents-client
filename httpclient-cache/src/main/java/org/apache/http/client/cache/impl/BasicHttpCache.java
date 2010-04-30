@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCache;
@@ -39,6 +40,7 @@ import org.apache.http.client.cache.HttpCache;
  *
  * @since 4.1
  */
+@ThreadSafe
 public class BasicHttpCache implements HttpCache<CacheEntry> {
 
     private final LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(20,

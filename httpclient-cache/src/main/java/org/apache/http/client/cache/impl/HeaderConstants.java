@@ -26,9 +26,12 @@
  */
 package org.apache.http.client.cache.impl;
 
+import org.apache.http.annotation.Immutable;
+
 /**
  * @since 4.1
  */
+@Immutable
 public class HeaderConstants {
 
     public static final String GET_METHOD = "GET";

@@ -30,6 +30,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -39,6 +40,7 @@ import org.apache.http.message.BasicHttpResponse;
  *
  * @since 4.1
  */
+@Immutable
 public class CachedHttpResponseGenerator {
 
     /**

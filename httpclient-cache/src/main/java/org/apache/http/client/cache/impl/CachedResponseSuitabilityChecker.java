@@ -32,12 +32,14 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Determines whether a given response can be cached.
  *
  * @since 4.1
  */
+@Immutable
 public class CachedResponseSuitabilityChecker {
 
     private static final Log LOG = LogFactory.getLog(CachedResponseSuitabilityChecker.class);

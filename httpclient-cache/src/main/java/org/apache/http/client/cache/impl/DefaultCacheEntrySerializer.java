@@ -32,6 +32,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 
 /**
@@ -42,6 +43,7 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
  *
  * @since 4.1
  */
+@Immutable
 public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<CacheEntry> {
 
     public void writeTo(CacheEntry cacheEntry, OutputStream os) throws IOException {

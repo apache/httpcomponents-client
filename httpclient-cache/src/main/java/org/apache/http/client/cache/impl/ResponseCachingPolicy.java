@@ -33,6 +33,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 
@@ -41,6 +42,7 @@ import org.apache.http.impl.cookie.DateUtils;
  *
  * @since 4.1
  */
+@Immutable
 public class ResponseCachingPolicy {
 
     private final int maxObjectSizeBytes;

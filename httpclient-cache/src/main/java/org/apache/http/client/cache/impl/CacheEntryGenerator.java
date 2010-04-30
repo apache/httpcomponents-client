@@ -30,10 +30,12 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.annotation.Immutable;
 
 /**
  * @since 4.1
  */
+@Immutable
 public class CacheEntryGenerator {
 
     public CacheEntry generateEntry(Date requestDate, Date responseDate, HttpResponse response,

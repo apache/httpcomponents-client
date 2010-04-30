@@ -34,12 +34,14 @@ import java.util.ListIterator;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 
 /**
  * @since 4.1
  */
+@Immutable
 public class CacheEntryUpdater {
 
     public void updateCacheEntry(CacheEntry entry, Date requestDate, Date responseDate,

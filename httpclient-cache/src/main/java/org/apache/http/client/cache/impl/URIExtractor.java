@@ -36,10 +36,12 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.Immutable;
 
 /**
  * @since 4.1
  */
+@Immutable
 public class URIExtractor {
 
     public String getURI(HttpHost host, HttpRequest req) {

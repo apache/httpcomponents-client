@@ -33,6 +33,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
@@ -40,6 +41,7 @@ import org.apache.http.impl.cookie.DateUtils;
 /**
  * @since 4.1
  */
+@Immutable
 public class ResponseProtocolCompliance {
 
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
