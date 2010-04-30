@@ -208,7 +208,7 @@ public class HttpMultipart {
         long contentLen = 0;
         for (FormBodyPart part: this.parts) {
             ContentBody body = part.getBody();
-            long len = ((ContentBody) body).getContentLength();
+            long len = body.getContentLength();
             if (len >= 0) {
                 contentLen += len;
             } else {

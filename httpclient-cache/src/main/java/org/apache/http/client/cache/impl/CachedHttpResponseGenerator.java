@@ -60,7 +60,7 @@ public class CachedHttpResponseGenerator {
 
         long age = entry.getCurrentAgeSecs();
         if (age > 0) {
-            if (age >= (long) Integer.MAX_VALUE) {
+            if (age >= Integer.MAX_VALUE) {
                 response.setHeader(HeaderConstants.AGE, "2147483648");
             } else {
                 response.setHeader(HeaderConstants.AGE, "" + ((int) age));
