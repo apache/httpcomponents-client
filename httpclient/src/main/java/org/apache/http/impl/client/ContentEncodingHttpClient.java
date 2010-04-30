@@ -26,6 +26,7 @@
 
 package org.apache.http.impl.client;
 
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.conn.ClientConnectionManager;
@@ -38,6 +39,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
  *
  * @since 4.1
  */
+@ThreadSafe // since DefaultHttpClient is
 public class ContentEncodingHttpClient extends DefaultHttpClient {
 
     /**
