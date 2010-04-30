@@ -97,5 +97,5 @@ public class URIExtractor {
             throw new RuntimeException("couldn't encode to UTF-8", uee);
         }
     }
-    
+
 }

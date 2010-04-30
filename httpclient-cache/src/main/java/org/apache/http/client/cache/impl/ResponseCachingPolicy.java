@@ -38,7 +38,7 @@ import org.apache.http.impl.cookie.DateUtils;
 
 /**
  * Determines if an HttpResponse can be cached.
- * 
+ *
  * @since 4.1
  */
 public class ResponseCachingPolicy {

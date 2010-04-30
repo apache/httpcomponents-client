@@ -36,7 +36,7 @@ import org.apache.http.client.cache.HttpCache;
 
 /**
  * Implements {@link HttpCache} using LinkedHashMap for backing store
- * 
+ *
  * @since 4.1
  */
 public class BasicHttpCache implements HttpCache<CacheEntry> {
@@ -94,7 +94,7 @@ public class BasicHttpCache implements HttpCache<CacheEntry> {
     }
 
     public synchronized void updateCacheEntry(
-            String url, 
+            String url,
             HttpCacheUpdateCallback<CacheEntry> callback) throws HttpCacheOperationException {
         CacheEntry existingEntry = syncMap.get(url);
         CacheEntry updated = callback.getUpdatedEntry(existingEntry);
