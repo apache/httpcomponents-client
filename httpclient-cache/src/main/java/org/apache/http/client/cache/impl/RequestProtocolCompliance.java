@@ -105,7 +105,7 @@ public class RequestProtocolCompliance {
         }
 
         request.removeHeaders(HeaderConstants.MAX_FORWARDS);
-        Integer currentMaxForwards = Integer.valueOf(maxForwards.getValue());
+        int currentMaxForwards = Integer.parseInt(maxForwards.getValue());
 
         request.setHeader(HeaderConstants.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
     }
