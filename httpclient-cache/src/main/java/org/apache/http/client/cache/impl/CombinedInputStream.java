@@ -36,8 +36,8 @@ import java.io.InputStream;
  */
 class CombinedInputStream extends InputStream {
 
-    private InputStream inputStream1;
-    private InputStream inputStream2;
+    private final InputStream inputStream1;
+    private final InputStream inputStream2;
 
     /**
      *

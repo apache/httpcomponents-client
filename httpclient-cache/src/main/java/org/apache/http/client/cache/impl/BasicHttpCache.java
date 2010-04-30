@@ -41,19 +41,20 @@ import org.apache.http.client.cache.HttpCache;
  */
 public class BasicHttpCache implements HttpCache<CacheEntry> {
 
-    private LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(20,
+    private final LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(20,
             0.75f, true) {
 
         private static final long serialVersionUID = -7750025207539768511L;
 
+        @Override
         protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
             return size() > maxEntries;
         }
     };
 
-    private Map<String, CacheEntry> syncMap;
+    private final Map<String, CacheEntry> syncMap;
 
-    private int maxEntries;
+    private final int maxEntries;
 
     public BasicHttpCache(int maxEntries) {
         this.maxEntries = maxEntries;

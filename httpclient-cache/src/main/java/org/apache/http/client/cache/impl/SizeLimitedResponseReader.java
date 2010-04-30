@@ -42,8 +42,8 @@ import org.apache.http.message.BasicHttpResponse;
  */
 public class SizeLimitedResponseReader {
 
-    private int maxResponseSizeBytes;
-    private HttpResponse response;
+    private final int maxResponseSizeBytes;
+    private final HttpResponse response;
     ByteArrayOutputStream outputStream;
     InputStream contentInputStream;
 

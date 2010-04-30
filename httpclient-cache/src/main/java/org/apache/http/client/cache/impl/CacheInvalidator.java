@@ -43,8 +43,8 @@ import org.apache.http.client.cache.HttpCache;
  */
 public class CacheInvalidator {
 
-    private HttpCache<CacheEntry> cache;
-    private URIExtractor uriExtractor;
+    private final HttpCache<CacheEntry> cache;
+    private final URIExtractor uriExtractor;
 
     private static final Log LOG = LogFactory.getLog(CacheInvalidator.class);
 
