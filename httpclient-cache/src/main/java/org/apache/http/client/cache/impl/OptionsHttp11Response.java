@@ -93,62 +93,77 @@ public final class OptionsHttp11Response extends AbstractHttpMessage implements 
         return version;
     }
 
+    @Override
     public boolean containsHeader(String name) {
         return this.headergroup.containsHeader(name);
     }
 
+    @Override
     public Header[] getHeaders(String name) {
         return this.headergroup.getHeaders(name);
     }
 
+    @Override
     public Header getFirstHeader(String name) {
         return this.headergroup.getFirstHeader(name);
     }
 
+    @Override
     public Header getLastHeader(String name) {
         return this.headergroup.getLastHeader(name);
     }
 
+    @Override
     public Header[] getAllHeaders() {
         return this.headergroup.getAllHeaders();
     }
 
+    @Override
     public void addHeader(Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void addHeader(String name, String value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setHeader(Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setHeader(String name, String value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setHeaders(Header[] headers) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void removeHeader(Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void removeHeaders(String name) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public HeaderIterator headerIterator() {
         return this.headergroup.iterator();
     }
 
+    @Override
     public HeaderIterator headerIterator(String name) {
         return this.headergroup.iterator(name);
     }
 
+    @Override
     public HttpParams getParams() {
         if (this.params == null) {
             this.params = new BasicHttpParams();
@@ -156,6 +171,7 @@ public final class OptionsHttp11Response extends AbstractHttpMessage implements 
         return this.params;
     }
 
+    @Override
     public void setParams(HttpParams params) {
         // No-op on purpose, this class is not going to be doing any work.
     }
