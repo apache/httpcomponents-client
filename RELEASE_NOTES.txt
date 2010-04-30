@@ -1,75 +1,77 @@
 Release 4.1 ALPHA2
 -------------------
+* [HTTPCLIENT-427] HTTP caching support
+  Contributed by Joe Campbell, David Cleaver, David Mays, Jon Moore, Brad Spenla
 
-* Dropped dependency on Mime4j for HttpMime. 
+* Dropped dependency on Mime4j for HttpMime.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Extended SSLSocketFactory with a mechanism to bypass the standard certificate 
-  trust verification (primarily to simplify dealing with self-signed 
-  certificates) 
+* Extended SSLSocketFactory with a mechanism to bypass the standard certificate
+  trust verification (primarily to simplify dealing with self-signed
+  certificates)
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-916] UsernamePasswordCredentials, NTUserPrincipal, 
+* [HTTPCLIENT-916] UsernamePasswordCredentials, NTUserPrincipal,
   BasicClientCookie, BasicClientCookie2 and BasicCookieStore made Serializable.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-914] Upgraded Commons Codec dependency to version 1.4
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-903] Use ConcurrentHashMap instead of [Linked]HashMap for 
-  thread-safety. Improve performance of AuthSchemeRegistry, CookieSpecRegistry 
+* [HTTPCLIENT-903] Use ConcurrentHashMap instead of [Linked]HashMap for
+  thread-safety. Improve performance of AuthSchemeRegistry, CookieSpecRegistry
   and SchemeRegistry classes.
   Contributed by Sebastian Bazley <sebb at apache.org>
-  
+
 * [HTTPCLIENT-902] HttpRequestRetryHandler not called on I/O exceptions
   thrown when opening a new connection.
-  Contributed by Olivier Lamy <olamy at apache.org> and 
+  Contributed by Olivier Lamy <olamy at apache.org> and
   Oleg Kalnichevski <olegk at apache.org>
 
 Release 4.1 ALPHA1
 -------------------
 
-HttpClient 4.1 ALPHA1 builds on the stable 4.0 release and adds several 
+HttpClient 4.1 ALPHA1 builds on the stable 4.0 release and adds several
 functionality improvements and new features.
 
 * Simplified configuration of connection managers.
 
-* Persistence of authentication data between request executions within 
+* Persistence of authentication data between request executions within
   the same execution context.
 
 * Support for SPNEGO/Kerberos authentication scheme
 
-* Support for transparent content encoding. Please note transparent content 
+* Support for transparent content encoding. Please note transparent content
   encoding is not enabled per default in order to avoid conflicts with
   already existing custom content encoding solutions.
 
-* 5 to 10% performance increase due to elimination of unnecessary Log object 
+* 5 to 10% performance increase due to elimination of unnecessary Log object
   lookups by short-lived components.
 
 Please note all methods and classes added in this release and marked as
 4.1 are API unstable and can change in the future 4.1 ALPHA releases.
-  
+
 Changelog
 -------------------
 
 * [HTTPCLIENT-889] 'expect: continue' handshake disabled per default.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-862] Extended client's redirect handling interface to allow 
+* [HTTPCLIENT-862] Extended client's redirect handling interface to allow
   control of the content of the redirect.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-872] HttpClient can now persist authentication data between request 
+* [HTTPCLIENT-872] HttpClient can now persist authentication data between request
   executions as long as they share the same execution context. It has also become
-  much easier to make HttpClient authenticate preemptively by pre-populating 
+  much easier to make HttpClient authenticate preemptively by pre-populating
   authentication data cache.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-832] Distinguish cookie format errors from violations of 
-  restrictions imposed by a cookie specification. In the latter case 
+* [HTTPCLIENT-832] Distinguish cookie format errors from violations of
+  restrictions imposed by a cookie specification. In the latter case
   CookieRestrictionViolationException will be thrown.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -77,16 +79,16 @@ Changelog
   Contributed by Matthew Stevenson <mavricknzwork at yahoo.com>
 
 * Simplified configuration of connection managers. Total connection maximum
-  and maximum connection per route limits can be set using methods of 
+  and maximum connection per route limits can be set using methods of
   the class instead of HTTP parameters.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Added parameters to define the order of preference for supported auth 
+* Added parameters to define the order of preference for supported auth
   schemes for target host and proxy authentication.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-875] DefaultClientConnectionOperator#openConnection doesn't 
-  update the connection state if the connection socket changed after 
+* [HTTPCLIENT-875] DefaultClientConnectionOperator#openConnection doesn't
+  update the connection state if the connection socket changed after
   the call to SocketFactory#connectSocket().
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -96,8 +98,8 @@ Changelog
 Release 4.0.1
 -------------------
 
-This is a bug fix release that addresses a number of issues discovered since 
-the previous stable release. None of the fixed bugs is considered critical. 
+This is a bug fix release that addresses a number of issues discovered since
+the previous stable release. None of the fixed bugs is considered critical.
 Most notably this release eliminates eliminates dependency on JCIP annotations.
 
 This release is also expected to improve performance by 5 to 10% due to
@@ -106,33 +108,33 @@ elimination of unnecessary Log object lookups by short-lived components.
 Changelog
 -------------------
 
-* [HTTPCLIENT-895] Eliminated Log lookups in short lived objects impairing 
+* [HTTPCLIENT-895] Eliminated Log lookups in short lived objects impairing
   performance.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded 
+* [HTTPCLIENT-885] URLEncodedUtils now correctly parses form-url-encoded
   entities that specify a charset.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-884] UrlEncodedFormEntity now sets charset on the Content-Type 
+* [HTTPCLIENT-884] UrlEncodedFormEntity now sets charset on the Content-Type
   header.
-  Contributed by Jared Jacobs <jmjacobs at cs.stanford.edu>  
-  
+  Contributed by Jared Jacobs <jmjacobs at cs.stanford.edu>
+
 * [HTTPCLIENT-883] SO_TIMEOUT is not reset on persistent (re-used) connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-882] Auth state is now correctly updated if a successful NTLM 
-  authentication results in a redirect. This is a minor bug as HttpClient 
+* [HTTPCLIENT-882] Auth state is now correctly updated if a successful NTLM
+  authentication results in a redirect. This is a minor bug as HttpClient
   manages to recover from the problem automatically.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-881] Fixed race condition in AbstractClientConnAdapter that makes
   it possible for an aborted connection to be returned to the pool.
-  Contributed by Tim Boemker <tboemker at elynx.com> and 
+  Contributed by Tim Boemker <tboemker at elynx.com> and
   Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-866] Removed dependency on jcip-annotations.jar.
-  Contributed by Oleg Kalnichevski <olegk at apache.org> 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
   and Sebastian Bazley <sebb at apache.org>
 
 
@@ -148,42 +150,42 @@ a major code overhaul and breaking API compatibility.
 Architectural changes
 ---------------------
 
-* Redesign of the HttpClient internals addressing all known major 
+* Redesign of the HttpClient internals addressing all known major
   architectural shortcomings of the 3.x codeline.
 
 * Cleaner, more flexible and expressive API.
 
 * More modular structure.
 
-* Better performance and smaller memory footprint due to a more efficient HTTP 
-  transport based on HttpCore. 
+* Better performance and smaller memory footprint due to a more efficient HTTP
+  transport based on HttpCore.
 
-* Implementation of cross-cutting HTTP protocol aspects through protocol 
+* Implementation of cross-cutting HTTP protocol aspects through protocol
   interceptors.
 
 * Improved connection management, better handling of persistent connections,
   support for stateful connections
 
-* Pluggable redirect and authentication handlers.   
+* Pluggable redirect and authentication handlers.
 
-* Improved support for sending requests via a proxy or a chain of proxies 
+* Improved support for sending requests via a proxy or a chain of proxies
 
-* More flexible SSL context customization 
+* More flexible SSL context customization
 
-* Reduced intermediate garbage in the process of generating HTTP requests 
-  and parsing HTTP responses 
+* Reduced intermediate garbage in the process of generating HTTP requests
+  and parsing HTTP responses
 
 
 Important notes
 -------------------
 
-* Future releases of HttpMime module may be binary incompatible with this 
+* Future releases of HttpMime module may be binary incompatible with this
   release due to possible API changes in Apache Mime4J. Apache Mime4J is
   still being actively developed and its API is considered unstable.
-  
+
 * HttpClient 4.0 is not fully binary compatible with 4.0 BETA1 release.
   Some protected variables in connection management class have been
-  made final in order to help ensure their thread safety: 
+  made final in order to help ensure their thread safety:
 
     org.apache.http.conn.BasicEofSensorWatcher#attemptReuse
     org.apache.http.conn.BasicEofSensorWatcher#managedConn
@@ -195,20 +197,20 @@ Important notes
     org.apache.http.impl.conn.SingleClientConnManager#schemeRegistry
     org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager#connOperator
     org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager#schemeRegistry
-    
 
-Bug fixes since 4.0 BETA2 release 
+
+Bug fixes since 4.0 BETA2 release
 -------------------
 
-* [HTTPCLIENT-861] URIUtils#resolve is now compatible with all examples given 
+* [HTTPCLIENT-861] URIUtils#resolve is now compatible with all examples given
   in RFC 3986.
   Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
 
-* [HTTPCLIENT-860] HttpClient no longer converts redirects of PUT/POST to GET 
+* [HTTPCLIENT-860] HttpClient no longer converts redirects of PUT/POST to GET
   for status codes 301, 302, 307, as required by the HTTP spec.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-859] CookieIdentityComparator now takes path attribute into 
+* [HTTPCLIENT-859] CookieIdentityComparator now takes path attribute into
   consideration when comparing cookies.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -219,20 +221,20 @@ Bug fixes since 4.0 BETA2 release
   a different host.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-841] Removed automatic connection release using garbage collection 
+* [HTTPCLIENT-841] Removed automatic connection release using garbage collection
   due to a memory leak.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-853] Fixed bug causing invalid cookie origin port to be selected 
-  when the target is accessed on the default port and the connection is 
+* [HTTPCLIENT-853] Fixed bug causing invalid cookie origin port to be selected
+  when the target is accessed on the default port and the connection is
   established via a proxy.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-852] Fixed bug causing automatically retried redirects fail with 
-  CircularRedirectException.  
+* [HTTPCLIENT-852] Fixed bug causing automatically retried redirects fail with
+  CircularRedirectException.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Fixed problem with the default HTTP response parser failing to handle garbage 
+* Fixed problem with the default HTTP response parser failing to handle garbage
   preceding a valid HTTP response.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -240,12 +242,12 @@ Bug fixes since 4.0 BETA2 release
   request failed.
   Contributed by Sam Berlin <sberlin at apache.org>
 
-* [HTTPCLIENT-837] Fixed problem with the wire log skipping zero byte values 
+* [HTTPCLIENT-837] Fixed problem with the wire log skipping zero byte values
   if read one byte at a time.
   Contributed by Kirill Safonov <ksafonov at swiftteams.com>
 
-* [HTTPCLIENT-823] 'http.conn-manager.max-total' parameter can be adjusted 
-  dynamically. However, the size of existing connection pools per route, 
+* [HTTPCLIENT-823] 'http.conn-manager.max-total' parameter can be adjusted
+  dynamically. However, the size of existing connection pools per route,
   once allocated, will not be adjusted.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -260,20 +262,20 @@ Bug fixes since 4.0 BETA2 release
 Release 4.0 beta 2
 -------------------
 
-BETA2 is a maintenance release, which addresses a number of issues 
-discovered since the previous release. 
+BETA2 is a maintenance release, which addresses a number of issues
+discovered since the previous release.
 
-The only significant new feature is an addition of an OSGi compliant 
+The only significant new feature is an addition of an OSGi compliant
 bundle combining HttpClient and HttpMime jars.
 
 All upstream projects are strongly encouraged to upgrade.
 
-* Fixed NPE in DefaultRequestDirector thrown when retrying a failed 
-  request over a proxied connection. 
+* Fixed NPE in DefaultRequestDirector thrown when retrying a failed
+  request over a proxied connection.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-803] Fixed bug in SSL host verifier implementations 
-  causing the SSL certificate to be rejected as invalid if the connection 
+* [HTTPCLIENT-803] Fixed bug in SSL host verifier implementations
+  causing the SSL certificate to be rejected as invalid if the connection
   is established using an IP address.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -282,32 +284,32 @@ All upstream projects are strongly encouraged to upgrade.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * DigestScheme can use an arbitrary digest algorithm requested by the
-  target server (such as SHA) as long as this algorithm is supported by 
-  the Java runtime.     
+  target server (such as SHA) as long as this algorithm is supported by
+  the Java runtime.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Fixed parsing and validation of RFC2109 compliant Set-Cookie headers 
-  by the Best-Match cookie spec.     
+* Fixed parsing and validation of RFC2109 compliant Set-Cookie headers
+  by the Best-Match cookie spec.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Fixed bug that can cause a managed connection to be returned from the
-  pool in an inconsistent state.     
+  pool in an inconsistent state.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
 4.0 Beta 1
 -------------------
 
-BETA1 release brings yet another round of API enhancements and 
+BETA1 release brings yet another round of API enhancements and
 improvements in the area of connection management. Among the most notable
-ones is the capability to handle stateful connections such as persistent 
+ones is the capability to handle stateful connections such as persistent
 NTLM connections and private key authenticated SSL connections.
 
-This is the first API stable release of HttpClient 4.0. All further 
+This is the first API stable release of HttpClient 4.0. All further
 releases in the 4.0 code line will maintain API compatibility with this
 release.
 
-There has been a number of important bug fixes since ALPHA4. All upstream 
+There has been a number of important bug fixes since ALPHA4. All upstream
 projects are encouraged to upgrade to the latest release.
 
 Please note HttpClient currently provides only limited support for NTLM
@@ -318,7 +320,7 @@ authentication. For details please see NTLM_SUPPORT.txt.
 Changelog:
 -------------------
 
-* [HTTPCLIENT-790] Protocol interceptors are now correctly invoked when 
+* [HTTPCLIENT-790] Protocol interceptors are now correctly invoked when
   executing CONNECT methods.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -356,8 +358,8 @@ Changelog:
 
 * Resolved a long standing problem with HttpClient not taking into account
   the user context when pooling / re-using connections. HttpClient now
-  correctly handles stateful / user specific connections such as persistent 
-  NTLM connections and SSL connections with client side authentication. 
+  correctly handles stateful / user specific connections such as persistent
+  NTLM connections and SSL connections with client side authentication.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-773] Improved handling of the 'expires' attribute by the
@@ -376,14 +378,14 @@ Changelog:
 Release 4.0 Alpha 4
 -------------------
 
-ALPHA4 marks the completion of the overhaul of the connection management 
-code in HttpClient. All known shortcomings of the old HttpClient 3.x 
+ALPHA4 marks the completion of the overhaul of the connection management
+code in HttpClient. All known shortcomings of the old HttpClient 3.x
 connection management API have been addressed.
 
-NTLM authentication remains the only missing major feature in the new 
+NTLM authentication remains the only missing major feature in the new
 codeline that prevents us from moving awards the API freeze.
 
-There has been a number of important bug fixes since ALPHA3. All upstream 
+There has been a number of important bug fixes since ALPHA3. All upstream
 projects are encouraged to upgrade to the latest release.
 
 -------------------
@@ -398,19 +400,19 @@ HttpClient 3.x features that have NOT yet been ported:
 Changelog:
 -------------------
 
-* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify 
+* [HTTPCLIENT-765] String.toLowerCase() / toUpperCase() should specify
   Locale.ENGLISH
   Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-769] Do not pool connection marked non-reusable.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-763] Fixed problem with AbstractClientConnAdapter#abortConnection() 
-  not releasing the connection if called from the main execution thread while 
+* [HTTPCLIENT-763] Fixed problem with AbstractClientConnAdapter#abortConnection()
+  not releasing the connection if called from the main execution thread while
   there is no blocking I/O operation.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-652] Added optional state attribute to managed client connections. 
+* [HTTPCLIENT-652] Added optional state attribute to managed client connections.
   This enables connection managers to correctly handle stateful connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -420,15 +422,15 @@ Changelog:
 * [HTTPCLIENT-753] Class Scheme and related classes moved to a separate package
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-757] Improved request wrapping in the DefaultClientRequestDirector. 
-  This also fixed the problem with the default proxy set at the client level 
-  having no effect. 
+* [HTTPCLIENT-757] Improved request wrapping in the DefaultClientRequestDirector.
+  This also fixed the problem with the default proxy set at the client level
+  having no effect.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-734] Request abort will unblock the thread waiting for a connection
   Contributed by Sam Berlin <sberlin at gmail.com>
 
-* [HTTPCLIENT-759] Ensure release of connections back to the connection manager 
+* [HTTPCLIENT-759] Ensure release of connections back to the connection manager
   on exceptions.
   Contributed by Sam Berlin <sberlin at gmail.com>
 
@@ -448,18 +450,18 @@ Changelog:
 Release 4.0 Alpha 3
 -------------------
 
-ALPHA3 release brings another round of API refinements and improvements in 
-functionality. As of this release HttpClient requires Java 5 compatible 
+ALPHA3 release brings another round of API refinements and improvements in
+functionality. As of this release HttpClient requires Java 5 compatible
 runtime environment and takes full advantage of generics and new concurrency
-primitives.     
+primitives.
 
-This release also introduces new default cookie policy that selects a cookie 
-specification depending on the format of cookies sent by the target host. 
-It is no longer necessary to know beforehand what kind of HTTP cookie support 
-the target host provides. HttpClient is now able to pick up either a lenient 
+This release also introduces new default cookie policy that selects a cookie
+specification depending on the format of cookies sent by the target host.
+It is no longer necessary to know beforehand what kind of HTTP cookie support
+the target host provides. HttpClient is now able to pick up either a lenient
 or a strict cookie policy depending on the compliance level of the target host.
 
-Another notable improvement is a completely reworked support for multipart 
+Another notable improvement is a completely reworked support for multipart
 entities based on Apache mime4j library.
 
 -------------------
@@ -499,10 +501,10 @@ Changelog:
   Contributed by Roland Weber <rolandw at apache.org>
 
 * [HTTPCLIENT-730] Fixed rewriting of URIs containing escaped characters
-  Contributed by Sam Berlin <sberlin at gmail.com> and 
+  Contributed by Sam Berlin <sberlin at gmail.com> and
   Oleg Kalnichevski <olegk at apache.org>
- 
-* [HTTPCLIENT-667] Added 'Meta' cookie policy that selects a cookie 
+
+* [HTTPCLIENT-667] Added 'Meta' cookie policy that selects a cookie
   specification depending on the format of the cookie(s).
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -530,7 +532,7 @@ Changelog:
 * [HTTPCLIENT-705] Fixed incorrect handling of URIs with null path component.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-688] HttpOptions#getAllowedMethods can now handle multiple 
+* [HTTPCLIENT-688] HttpOptions#getAllowedMethods can now handle multiple
   Allow headers.
   Contributed by Andrea Selva <selva.andre at gmail.com>
 
@@ -539,10 +541,10 @@ Changelog:
 Release 4.0 Alpha 2
 -------------------
 
-ALPHA2 release is another milestone in the redesign of HttpClient. It includes 
-a number of improvements since ALPHA1, among which are improved connection 
+ALPHA2 release is another milestone in the redesign of HttpClient. It includes
+a number of improvements since ALPHA1, among which are improved connection
 pooling, support for proxy chains, redesigned HTTP state and authentication
-credentials management API, improved RFC 2965 cookie specification.   
+credentials management API, improved RFC 2965 cookie specification.
 
 -------------------
 
@@ -550,14 +552,14 @@ HttpClient 3.x features that have NOT yet been ported
 -------------------
 * NTLM authentication scheme
 
-* Support for multipart MIME coded entities  
+* Support for multipart MIME coded entities
 
 -------------------
 
 Changelog
 -------------------
 
-* [HTTPCLIENT-698] Resolve non-absolute redirect URIs relative to 
+* [HTTPCLIENT-698] Resolve non-absolute redirect URIs relative to
   the request URI
   Contributed by Johannes Koch <johannes.koch at fit.fraunhofer.de>
 
@@ -571,7 +573,7 @@ Changelog
 * [HTTPCLIENT-689] stackable parameters in AbstractHttpClient
   Contributed by Roland Weber <rolandw at apache.org>
 
-* [HTTPCLIENT-477] Use distinct instances of the authentication handler 
+* [HTTPCLIENT-477] Use distinct instances of the authentication handler
   interface for authentication with target and proxy hosts
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -600,7 +602,7 @@ Changelog
 * [HTTPCLIENT-674] use org.apache.http.util.VersionInfo instead of a local one
   Contributed by Roland Weber <rolandw at apache.org>
 
-* [HTTPCLIENT-666] Replaced HttpState with CredentialsProvier and CookieStore interfaces 
+* [HTTPCLIENT-666] Replaced HttpState with CredentialsProvier and CookieStore interfaces
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCORE-100] revised HttpContext hierarchy
@@ -632,29 +634,29 @@ Architectural changes
 * Redesign of the HttpClient internals addressing all known
   major architectural shortcomings of the 3.x codeline
 
-* Cleaner, more flexible and expressive API   
+* Cleaner, more flexible and expressive API
 
-* Better performance and smaller memory footprint due to a more 
-  efficient HTTP transport based on HttpCore. HttpClient 4.0 is 
+* Better performance and smaller memory footprint due to a more
+  efficient HTTP transport based on HttpCore. HttpClient 4.0 is
   expected to be 10% to 25% faster than HttpClient 3.x codeline
 
-* More modular structure   
+* More modular structure
 
-* Pluggable redirect and authentication handlers   
+* Pluggable redirect and authentication handlers
 
 * Support for protocol incerceptors
 
-* Improved connection management 
+* Improved connection management
 
-* Improved support for sending requests via a proxy or a chain of 
-  proxies 
+* Improved support for sending requests via a proxy or a chain of
+  proxies
 
 * Improved handling redirects of entity enclosing requests
 
-* More flexible SSL context customization 
+* More flexible SSL context customization
 
 * Reduced intermediate garbage in the process of
-  generating HTTP requests and parsing HTTP responses 
+  generating HTTP requests and parsing HTTP responses
 
 -------------------
 
@@ -664,7 +666,7 @@ HttpClient 3.x features that have NOT yet been ported
 
 * RFC2965 cookie policy (Cookie2)
 
-* Support for multipart MIME coded entities  
+* Support for multipart MIME coded entities
 
 -------------------
 
@@ -691,11 +693,11 @@ of the source code repository would have been too burdensome.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-63] Support for pluggable redirect and authentication handlers
-  Long standing architectural problem. Issue opened on 15/Jul/2002. 
+  Long standing architectural problem. Issue opened on 15/Jul/2002.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-245] Fixed redirect handling. HttpClient can now automatically
-  handle redirects of entity enclosing requests. 
+  handle redirects of entity enclosing requests.
   Long standing architectural problem. Issue opened on 14/Jul/2003.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

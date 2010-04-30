@@ -73,11 +73,13 @@
     <commons-codec.version>1.4</commons-codec.version>
     <mime4j.version>0.6</mime4j.version>
     <junit.version>4.8.1</junit.version>
+    <easymock.version>2.5.2</easymock.version>
   </properties>
 
   <modules>
     <module>httpclient</module>
     <module>httpmime</module>
+    <module>httpclient-cache</module>
     <module>httpclient-osgi</module>
   </modules>
 
