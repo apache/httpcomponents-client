@@ -62,7 +62,9 @@ public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<Cac
             // oos.writeObject(sheaders);
         } finally {
             try {
-                oos.close();
+                if (oos != null) {
+                    oos.close();
+                }
             } catch (Exception ignore) {
             }
             try {
@@ -95,7 +97,9 @@ public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<Cac
             throw new RuntimeException(cnfe);
         } finally {
             try {
-                ois.close();
+                if (ois != null) {
+                    ois.close();
+                }
             } catch (Exception ignore) {
             }
             try {
