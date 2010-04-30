@@ -73,7 +73,7 @@ public class TestRequestRetryHandler {
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
         client.setHttpRequestRetryHandler(testRetryHandler);
 
-        HttpRequestBase request = new HttpGet("http://www.complete.garbage");
+        HttpRequestBase request = new HttpGet("http://www.complete.garbage.invalid");
 
         HttpConnectionParams.setConnectionTimeout(request.getParams(), 1);
         try {
