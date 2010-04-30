@@ -60,6 +60,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public class CachingHttpClient implements HttpClient {
 
+    private static final Log LOG = LogFactory.getLog(CachingHttpClient.class);
     private final static int MAX_CACHE_ENTRIES = 1000;
     private final static int DEFAULT_MAX_OBJECT_SIZE_BYTES = 8192;
 
@@ -67,29 +68,29 @@ public class CachingHttpClient implements HttpClient {
 
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
 
-    private HttpClient backend;
-    private ResponseCachingPolicy responseCachingPolicy;
-    private CacheEntryGenerator cacheEntryGenerator;
-    private URIExtractor uriExtractor;
-    private HttpCache<CacheEntry> responseCache;
-    private CachedHttpResponseGenerator responseGenerator;
-    private CacheInvalidator cacheInvalidator;
-    private CacheableRequestPolicy cacheableRequestPolicy;
-    private CachedResponseSuitabilityChecker suitabilityChecker;
+    private final HttpClient backend;
+    private final ResponseCachingPolicy responseCachingPolicy;
+    private final CacheEntryGenerator cacheEntryGenerator;
+    private final URIExtractor uriExtractor;
+    private final HttpCache<CacheEntry> responseCache;
+    private final CachedHttpResponseGenerator responseGenerator;
+    private final CacheInvalidator cacheInvalidator;
+    private final CacheableRequestPolicy cacheableRequestPolicy;
+    private final CachedResponseSuitabilityChecker suitabilityChecker;
 
-    private ConditionalRequestBuilder conditionalRequestBuilder;
-    private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
-    private CacheEntryUpdater cacheEntryUpdater;
+    private final ConditionalRequestBuilder conditionalRequestBuilder;
+    private final int maxObjectSizeBytes;
+    private final CacheEntryUpdater cacheEntryUpdater;
 
     private volatile long cacheHits;
     private volatile long cacheMisses;
     private volatile long cacheUpdates;
-    private ResponseProtocolCompliance responseCompliance;
-    private RequestProtocolCompliance requestCompliance;
-    private static final Log LOG = LogFactory.getLog(CachingHttpClient.class);
+    private final ResponseProtocolCompliance responseCompliance;
+    private final RequestProtocolCompliance requestCompliance;
 
     public CachingHttpClient() {
         this.backend = new DefaultHttpClient();
+        this.maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes);
         this.cacheEntryGenerator = new CacheEntryGenerator();
         this.uriExtractor = new URIExtractor();
@@ -108,6 +109,7 @@ public class CachingHttpClient implements HttpClient {
         this.responseCache = cache;
 
         this.backend = new DefaultHttpClient();
+        this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes);
         this.cacheEntryGenerator = new CacheEntryGenerator();
         this.uriExtractor = new URIExtractor();
@@ -147,6 +149,7 @@ public class CachingHttpClient implements HttpClient {
             ConditionalRequestBuilder conditionalRequestBuilder, CacheEntryUpdater entryUpdater,
             ResponseProtocolCompliance responseCompliance,
             RequestProtocolCompliance requestCompliance) {
+        this.maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
         this.backend = backend;
         this.responseCachingPolicy = responseCachingPolicy;
         this.cacheEntryGenerator = cacheEntryGenerator;
