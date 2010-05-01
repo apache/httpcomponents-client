@@ -2397,12 +2397,7 @@ public class TestProtocolRequirements {
         replayMocks();
         request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
 
-        HttpResponse result = null;
-        try {
-            result = impl.execute(host, request);
-        } catch (IOException e) {
-            Assert.fail("Should not have gotten this exception.");
-        }
+        HttpResponse result = impl.execute(host, request);
 
         verifyMocks();
 
