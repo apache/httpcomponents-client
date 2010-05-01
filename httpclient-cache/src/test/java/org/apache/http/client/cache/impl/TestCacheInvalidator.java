@@ -128,7 +128,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testDoesNotInvalidateGETRequest() throws HttpCacheOperationException {
+    public void testDoesNotInvalidateGETRequest() {
 
         requestLineIsRead();
         requestMethodIs("GET");
@@ -142,7 +142,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testDoesNotInvalidateHEADRequest() throws HttpCacheOperationException {
+    public void testDoesNotInvalidateHEADRequest() {
 
         requestLineIsRead();
         requestMethodIs("HEAD");
