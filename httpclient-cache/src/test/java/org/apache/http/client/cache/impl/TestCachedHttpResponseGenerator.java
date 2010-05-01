@@ -92,8 +92,8 @@ public class TestCachedHttpResponseGenerator {
         Assert.assertTrue(response.containsHeader("Content-Length"));
 
         Assert.assertSame("HTTP", response.getProtocolVersion().getProtocol());
-        Assert.assertSame(1, response.getProtocolVersion().getMajor());
-        Assert.assertSame(1, response.getProtocolVersion().getMinor());
+        Assert.assertEquals(1, response.getProtocolVersion().getMajor());
+        Assert.assertEquals(1, response.getProtocolVersion().getMinor());
     }
 
     @Test
