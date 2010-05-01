@@ -239,7 +239,7 @@ public class TestSizeLimitedResponseReader {
         }
     }
 
-    private void getReader() throws IOException {
+    private void getReader() {
         impl = new SizeLimitedResponseReader(MAX_SIZE, mockResponse);
     }
 

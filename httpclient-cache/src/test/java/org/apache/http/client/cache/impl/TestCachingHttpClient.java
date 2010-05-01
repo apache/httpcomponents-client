@@ -999,7 +999,7 @@ public class TestCachingHttpClient {
         org.easymock.EasyMock.expect(impl.getCurrentDate()).andReturn(date);
     }
 
-    private void getMockResponseReader() throws IOException {
+    private void getMockResponseReader() {
         org.easymock.EasyMock.expect(impl.getResponseReader(mockBackendResponse)).andReturn(
                 mockResponseReader);
     }
@@ -1019,7 +1019,7 @@ public class TestCachingHttpClient {
         return buffer;
     }
 
-    private void readerReturnsReconstructedResponse() throws IOException {
+    private void readerReturnsReconstructedResponse() {
         org.easymock.EasyMock.expect(mockResponseReader.getReconstructedResponse()).andReturn(
                 mockReconstructedResponse);
     }
