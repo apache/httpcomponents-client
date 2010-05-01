@@ -364,7 +364,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         }
         SSLSocket sslsock = (SSLSocket) (sock != null ? sock : createSocket());
         if (localAddress != null) {
-            sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
+            sslsock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sslsock.bind(localAddress);
         }
 
