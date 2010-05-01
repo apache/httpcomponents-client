@@ -435,8 +435,7 @@ public class CachingHttpClient implements HttpClient {
         return backendResponse;
     }
 
-    protected SizeLimitedResponseReader getResponseReader(HttpResponse backEndResponse)
-            throws IOException {
+    protected SizeLimitedResponseReader getResponseReader(HttpResponse backEndResponse) {
         return new SizeLimitedResponseReader(maxObjectSizeBytes, backEndResponse);
     }
 

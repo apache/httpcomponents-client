@@ -52,8 +52,7 @@ public class SizeLimitedResponseReader {
     private byte[] sizeLimitedContent;
     private boolean outputStreamConsumed;
 
-    public SizeLimitedResponseReader(int maxResponseSizeBytes, HttpResponse response)
-            throws IOException {
+    public SizeLimitedResponseReader(int maxResponseSizeBytes, HttpResponse response) {
         this.maxResponseSizeBytes = maxResponseSizeBytes;
         this.response = response;
     }
@@ -116,14 +115,14 @@ public class SizeLimitedResponseReader {
         return sizeLimitedContent;
     }
 
-    public HttpResponse getReconstructedResponse() throws IOException {
+    public HttpResponse getReconstructedResponse() {
 
         InputStream combinedStream = getCombinedInputStream();
 
         return constructResponse(response, combinedStream);
     }
 
-    protected InputStream getCombinedInputStream() throws IOException {
+    protected InputStream getCombinedInputStream() {
         InputStream input1 = new ByteArrayInputStream(getResponseBytes());
         InputStream input2 = getContentInputStream();
         return new CombinedInputStream(input1, input2);
@@ -134,7 +133,7 @@ public class SizeLimitedResponseReader {
     }
 
     protected HttpResponse constructResponse(HttpResponse originalResponse,
-            InputStream combinedStream) throws IOException {
+            InputStream combinedStream) {
         HttpResponse response = new BasicHttpResponse(originalResponse.getProtocolVersion(),
                 HttpStatus.SC_OK, "Success");
 
