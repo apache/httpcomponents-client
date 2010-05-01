@@ -97,6 +97,8 @@ public class HttpTestUtils {
         InputStream i2 = e2.getContent();
         if (i1 == null && i2 == null)
             return true;
+        if (i1 == null || i2 == null)
+            return false; // avoid possible NPEs below
         int b1 = -1;
         while ((b1 = i1.read()) != -1) {
             if (b1 != i2.read())
