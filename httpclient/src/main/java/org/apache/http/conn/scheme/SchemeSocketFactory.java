@@ -58,7 +58,7 @@ public interface SchemeSocketFactory {
      * Connects a socket to the target host with the given remote address.
      *
      * @param sock      the socket to connect, as obtained from
-     *                  {@link #createSocket() createSocket}.
+     *                  {@link #createSocket(HttpParams) createSocket}.
      *                  <code>null</code> indicates that a new socket
      *                  should be created and connected.
      * @param remoteAddress the remote address to connect to
