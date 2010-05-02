@@ -335,6 +335,9 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
     }
 
     /**
+     * @param params Optional parameters. Parameters passed to this method will have no effect.
+     *               This method will create a unconnected instance of {@link Socket} class
+     *               using {@link javax.net.ssl.SSLSocketFactory#createSocket()} method.
      * @since 4.1
      */
     @SuppressWarnings("cast")

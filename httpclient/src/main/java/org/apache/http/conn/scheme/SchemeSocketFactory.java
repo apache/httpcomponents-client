@@ -47,7 +47,14 @@ public interface SchemeSocketFactory {
      * Creates a new, unconnected socket. The socket should subsequently be passed to
      * {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}.
      *
-     * @param params    additional {@link HttpParams parameters}
+     * @param params    Optional {@link HttpParams parameters}. In most cases these parameters
+     *                  will not be required and will have no effect, as usually socket 
+     *                  initialization should take place in the 
+     *                  {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}
+     *                  method. However, in rare cases one may want to pass additional parameters
+     *                  to this method in order to create a customized {@link Socket} instance,
+     *                  for instance bound to a SOCKS proxy server.
+     *                  
      * @return  a new socket
      *
      * @throws IOException if an I/O error occurs while creating the socket
