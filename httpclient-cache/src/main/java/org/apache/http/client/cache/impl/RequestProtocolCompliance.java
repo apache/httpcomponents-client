@@ -53,7 +53,7 @@ public class RequestProtocolCompliance {
     /**
      *
      * @param request
-     * @return
+     * @return list of {@link RequestProtocolError}
      */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {
         List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
@@ -79,7 +79,7 @@ public class RequestProtocolCompliance {
     /**
      *
      * @param request
-     * @return
+     * @return the updated request
      * @throws ProtocolException
      */
     public HttpRequest makeRequestCompliant(HttpRequest request) throws ProtocolException {

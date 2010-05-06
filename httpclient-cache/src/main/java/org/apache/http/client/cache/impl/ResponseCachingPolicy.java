@@ -61,7 +61,7 @@ public class ResponseCachingPolicy {
      *
      * @param httpMethod
      * @param response
-     * @return
+     * @return <code>true</code> if response is cacheable
      */
     public boolean isResponseCacheable(String httpMethod, HttpResponse response) {
         boolean cacheable = false;
@@ -171,7 +171,7 @@ public class ResponseCachingPolicy {
      *
      * @param request
      * @param response
-     * @return
+     * @return <code>true</code> if response is cacheable
      */
     public boolean isResponseCacheable(HttpRequest request, HttpResponse response) {
         if (requestProtocolGreaterThanAccepted(request)) {

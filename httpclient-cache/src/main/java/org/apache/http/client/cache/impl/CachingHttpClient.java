@@ -308,14 +308,14 @@ public class CachingHttpClient implements HttpClient {
     }
 
     /**
-     * @return
+     * @return the connection manager
      */
     public ClientConnectionManager getConnectionManager() {
         return backend.getConnectionManager();
     }
 
     /**
-     * @return
+     * @return the parameters
      */
     public HttpParams getParams() {
         return backend.getParams();
@@ -353,7 +353,7 @@ public class CachingHttpClient implements HttpClient {
      * @param request the request to execute
      * @param context the context to use for the execution, or
      *                <code>null</code> to use the default context
-     * @return
+     * @return the response
      * @throws IOException
      */
     public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context)

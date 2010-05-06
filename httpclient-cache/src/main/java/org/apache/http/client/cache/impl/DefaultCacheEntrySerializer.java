@@ -86,7 +86,7 @@ public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<Cac
     /**
      *
      * @param is
-     * @return
+     * @return the cache entry
      * @throws IOException
      */
     public CacheEntry readFrom(InputStream is) throws IOException {

@@ -42,7 +42,7 @@ public class ConditionalRequestBuilder {
      *
      * @param request
      * @param cacheEntry
-     * @return
+     * @return the wrapped request
      * @throws ProtocolException
      */
     public HttpRequest buildConditionalRequest(HttpRequest request, CacheEntry cacheEntry)
