@@ -26,11 +26,13 @@
  */
 package org.apache.http.client.cache.impl;
 
+import static junit.framework.Assert.assertFalse;
+
 import java.util.Date;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.client.cache.impl.CacheEntry;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
@@ -38,22 +40,26 @@ import org.junit.Test;
 
 public class TestCacheEntry {
 
+    private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP",1,1);
+
     @Test
     public void testGetHeadersReturnsCorrectHeaders() {
         Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(2, entry.getHeaders("bar").length);
+    }
+
+    private CacheEntry getEntry(Header[] headers) {
+        return getEntry(new Date(), new Date(), headers);
     }
 
     @Test
     public void testGetFirstHeaderReturnsCorrectHeader() {
         Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
+        CacheEntry entry = getEntry(headers);
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
         Assert.assertEquals("barValue1", entry.getFirstHeader("bar").getValue());
     }
 
@@ -62,8 +68,8 @@ public class TestCacheEntry {
         Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+
+        CacheEntry entry = getEntry(headers);
 
         Assert.assertEquals(0, entry.getHeaders("baz").length);
     }
@@ -72,9 +78,8 @@ public class TestCacheEntry {
     public void testGetFirstHeaderReturnsNullIfNoneMatch() {
         Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
+        CacheEntry entry = getEntry(headers);
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
 
         Assert.assertEquals(null, entry.getFirstHeader("quux"));
     }
@@ -82,8 +87,7 @@ public class TestCacheEntry {
     @Test
     public void testApparentAgeIsMaxIntIfDateHeaderNotPresent() {
         Header[] headers = new Header[0];
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(2147483648L, entry.getApparentAgeSecs());
     }
 
@@ -96,11 +100,15 @@ public class TestCacheEntry {
         Header[] headers = new Header[] { new BasicHeader("Date", DateUtils
                 .formatDate(tenSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
-        entry.setResponseDate(sixSecondsAgo);
+
+
+        CacheEntry entry = getEntry(now, sixSecondsAgo, headers);
 
         Assert.assertEquals(4, entry.getApparentAgeSecs());
+    }
+
+    private CacheEntry getEntry(Date requestDate, Date responseDate, Header[] headers) {
+        return new CacheEntry(requestDate,responseDate,HTTP_1_1,headers,new byte[]{},200,"OK");
     }
 
     @Test
@@ -112,17 +120,14 @@ public class TestCacheEntry {
         Header[] headers = new Header[] { new BasicHeader("Date", DateUtils
                 .formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
-        entry.setResponseDate(tenSecondsAgo);
-
+        CacheEntry entry  = getEntry(now,tenSecondsAgo,headers);
         Assert.assertEquals(0, entry.getApparentAgeSecs());
     }
 
     @Test
     public void testCorrectedReceivedAgeIsAgeHeaderIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "10"), };
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,headers, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -130,7 +135,7 @@ public class TestCacheEntry {
                 return 6;
             }
         };
-        entry.setResponseHeaders(headers);
+
 
         Assert.assertEquals(10, entry.getCorrectedReceivedAgeSecs());
     }
@@ -138,7 +143,7 @@ public class TestCacheEntry {
     @Test
     public void testCorrectedReceivedAgeIsApparentAgeIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "6"), };
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,headers, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -146,7 +151,6 @@ public class TestCacheEntry {
                 return 10;
             }
         };
-        entry.setResponseHeaders(headers);
 
         Assert.assertEquals(10, entry.getCorrectedReceivedAgeSecs());
     }
@@ -157,16 +161,17 @@ public class TestCacheEntry {
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        CacheEntry entry = new CacheEntry();
-        entry.setRequestDate(tenSecondsAgo);
-        entry.setResponseDate(sixSecondsAgo);
+        Header[] headers = new Header[]{};
+
+        CacheEntry entry = new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP",1,1),headers,new byte[]{},200,"OK");
+
 
         Assert.assertEquals(4, entry.getResponseDelaySecs());
     }
 
     @Test
     public void testCorrectedInitialAgeIsCorrectedReceivedAgePlusResponseDelay() {
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -187,7 +192,7 @@ public class TestCacheEntry {
         final Date now = new Date();
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
 
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),sixSecondsAgo,HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -195,14 +200,13 @@ public class TestCacheEntry {
                 return now;
             }
         };
-        entry.setResponseDate(sixSecondsAgo);
 
         Assert.assertEquals(6, entry.getResidentTimeSecs());
     }
 
     @Test
     public void testCurrentAgeIsCorrectedInitialAgePlusResidentTime() {
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -221,16 +225,14 @@ public class TestCacheEntry {
     @Test
     public void testFreshnessLifetimeIsSMaxAgeIfPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "s-maxage=10") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
     }
 
     @Test
     public void testFreshnessLifetimeIsMaxAgeIfPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
     }
 
@@ -238,14 +240,12 @@ public class TestCacheEntry {
     public void testFreshnessLifetimeIsMostRestrictiveOfMaxAgeAndSMaxAge() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10"),
                 new BasicHeader("Cache-Control", "s-maxage=20") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
 
         headers = new Header[] { new BasicHeader("Cache-Control", "max-age=20"),
                 new BasicHeader("Cache-Control", "s-maxage=10") };
-        entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
     }
 
@@ -258,8 +258,7 @@ public class TestCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
     }
 
@@ -272,8 +271,7 @@ public class TestCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(10, entry.getFreshnessLifetimeSecs());
     }
 
@@ -286,14 +284,13 @@ public class TestCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertEquals(4, entry.getFreshnessLifetimeSecs());
     }
 
     @Test
     public void testResponseIsFreshIfFreshnessLifetimeExceedsCurrentAge() {
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -312,7 +309,7 @@ public class TestCacheEntry {
 
     @Test
     public void testResponseIsNotFreshIfFreshnessLifetimeEqualsCurrentAge() {
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -331,7 +328,7 @@ public class TestCacheEntry {
 
     @Test
     public void testResponseIsNotFreshIfCurrentAgeExceedsFreshnessLifetime() {
-        CacheEntry entry = new CacheEntry() {
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -350,46 +347,53 @@ public class TestCacheEntry {
 
     @Test
     public void testCacheEntryIsRevalidatableIfHeadersIncludeETag() {
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(new Header[] {
+
+        Header[] headers = {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
-                new BasicHeader("ETag", "somevalue") });
+                new BasicHeader("ETag", "somevalue")};
+
+        CacheEntry entry = getEntry(headers);
 
         Assert.assertTrue(entry.isRevalidatable());
     }
 
     @Test
     public void testCacheEntryIsRevalidatableIfHeadersIncludeLastModifiedDate() {
-        CacheEntry entry = new CacheEntry();
 
-        entry.setResponseHeaders(new Header[] {
+        Header[] headers = {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
-                new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())) });
+                new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())) };
 
+        CacheEntry entry = getEntry(headers);
         Assert.assertTrue(entry.isRevalidatable());
     }
 
     @Test
     public void testCacheEntryIsNotRevalidatableIfNoAppropriateHeaders() {
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(new Header[] {
+
+        Header[] headers =  {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
-                new BasicHeader("Cache-Control", "public") });
+                new BasicHeader("Cache-Control", "public") };
+
+        CacheEntry entry = getEntry(headers);
+
+        assertFalse(entry.isRevalidatable());
     }
+
+
 
     @Test
     public void testCacheEntryWithNoVaryHeaderDoesNotHaveVariants() {
         Header[] headers = new Header[0];
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+
+        CacheEntry entry = getEntry(headers);
         Assert.assertFalse(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithOneVaryHeaderHasVariants() {
         Header[] headers = { new BasicHeader("Vary", "User-Agent") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
         Assert.assertTrue(entry.hasVariants());
     }
 
@@ -397,20 +401,27 @@ public class TestCacheEntry {
     public void testCacheEntryWithMultipleVaryHeadersHasVariants() {
         Header[] headers = { new BasicHeader("Vary", "User-Agent"),
                 new BasicHeader("Vary", "Accept-Encoding") };
-        CacheEntry entry = new CacheEntry();
-        entry.setResponseHeaders(headers);
+        CacheEntry entry = getEntry(headers);
+        Assert.assertTrue(entry.hasVariants());
+    }
+
+    @Test
+    public void testCacheEntryWithVaryStarHasVariants(){
+        Header[] headers = { new BasicHeader("Vary", "*") };
+        CacheEntry entry = getEntry(headers);
         Assert.assertTrue(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryCanStoreMultipleVariantUris() {
 
-        CacheEntry entry = new CacheEntry();
+        Header[] headers = new Header[]{};
+        CacheEntry entry = getEntry(headers);
 
-        entry.addVariantURI("foo");
-        entry.addVariantURI("bar");
+        CacheEntry addedOne = entry.addVariantURI("foo");
+        CacheEntry addedTwo = addedOne.addVariantURI("bar");
 
-        Set<String> variants = entry.getVariantURIs();
+        Set<String> variants = addedTwo.getVariantURIs();
 
         Assert.assertTrue(variants.contains("foo"));
         Assert.assertTrue(variants.contains("bar"));
@@ -419,76 +430,67 @@ public class TestCacheEntry {
     @Test
     public void testMalformedDateHeaderIsIgnored() {
 
-        Header[] h = new Header[] { new BasicHeader("Date", "asdf") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Date", "asdf") };
+        CacheEntry entry = getEntry(headers);
 
-        Date d = e.getDateValue();
+        Date d = entry.getDateValue();
 
         Assert.assertNull(d);
-
     }
 
     @Test
     public void testMalformedContentLengthReturnsNegativeOne() {
 
-        Header[] h = new Header[] { new BasicHeader("Content-Length", "asdf") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Content-Length", "asdf") };
+        CacheEntry entry = getEntry(headers);
 
-        long length = e.getContentLengthValue();
+        long length = entry.getContentLengthValue();
 
         Assert.assertEquals(-1, length);
-
     }
 
     @Test
     public void testNegativeAgeHeaderValueReturnsMaxAge() {
 
-        Header[] h = new Header[] { new BasicHeader("Age", "-100") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
+        CacheEntry entry = getEntry(headers);
 
-        long length = e.getAgeValue();
+        long length = entry.getAgeValue();
 
         Assert.assertEquals(CacheEntry.MAX_AGE, length);
-
     }
 
     @Test
     public void testMalformedAgeHeaderValueReturnsMaxAge() {
 
-        Header[] h = new Header[] { new BasicHeader("Age", "asdf") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Age", "asdf") };
+        CacheEntry entry = getEntry(headers);
 
-        long length = e.getAgeValue();
+        long length = entry.getAgeValue();
 
         Assert.assertEquals(CacheEntry.MAX_AGE, length);
-
     }
 
     @Test
     public void testMalformedCacheControlMaxAgeHeaderReturnsZero() {
 
-        Header[] h = new Header[] { new BasicHeader("Cache-Control", "max-age=asdf") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=asdf") };
+        CacheEntry entry = getEntry(headers);
 
-        long maxage = e.getMaxAge();
+        long maxage = entry.getMaxAge();
 
         Assert.assertEquals(0, maxage);
-
     }
 
     @Test
     public void testMalformedExpirationDateReturnsNull() {
-        Header[] h = new Header[] { new BasicHeader("Expires", "asdf") };
-        CacheEntry e = new CacheEntry();
-        e.setResponseHeaders(h);
+        Header[] headers = new Header[] { new BasicHeader("Expires", "asdf") };
+        CacheEntry entry = getEntry(headers);
 
-        Date expirationDate = e.getExpirationDate();
+        Date expirationDate = entry.getExpirationDate();
 
         Assert.assertNull(expirationDate);
     }
+
+
 }

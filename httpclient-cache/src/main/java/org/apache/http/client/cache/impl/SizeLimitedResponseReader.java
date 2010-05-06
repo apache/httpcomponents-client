@@ -52,12 +52,17 @@ public class SizeLimitedResponseReader {
     private byte[] sizeLimitedContent;
     private boolean outputStreamConsumed;
 
+    /**
+     *
+     * @param maxResponseSizeBytes
+     * @param response
+     */
     public SizeLimitedResponseReader(int maxResponseSizeBytes, HttpResponse response) {
         this.maxResponseSizeBytes = maxResponseSizeBytes;
         this.response = response;
     }
 
-    public boolean isResponseTooLarge() throws IOException {
+    protected boolean isResponseTooLarge() throws IOException {
         if (!responseIsConsumed)
             isTooLarge = consumeResponse();
 
@@ -108,14 +113,14 @@ public class SizeLimitedResponseReader {
         outputStreamConsumed = true;
     }
 
-    public byte[] getResponseBytes() {
+    protected byte[] getResponseBytes() {
         if (!outputStreamConsumed)
             consumeOutputStream();
 
         return sizeLimitedContent;
     }
 
-    public HttpResponse getReconstructedResponse() {
+    protected HttpResponse getReconstructedResponse() {
 
         InputStream combinedStream = getCombinedInputStream();
 

@@ -35,6 +35,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.BasicHttpParams;
@@ -43,11 +44,12 @@ import org.apache.http.params.HttpParams;
 /**
  * @since 4.1
  */
+@Immutable
 public final class OptionsHttp11Response extends AbstractHttpMessage implements HttpResponse {
 
-    StatusLine statusLine = new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+    private final StatusLine statusLine = new BasicStatusLine(CachingHttpClient.HTTP_1_1,
             HttpStatus.SC_NOT_IMPLEMENTED, "");
-    ProtocolVersion version = CachingHttpClient.HTTP_1_1;
+    private final ProtocolVersion version = CachingHttpClient.HTTP_1_1;
 
     public StatusLine getStatusLine() {
         return statusLine;

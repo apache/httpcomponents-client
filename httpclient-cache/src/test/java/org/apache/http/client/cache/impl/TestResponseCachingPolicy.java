@@ -33,7 +33,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.client.cache.impl.ResponseCachingPolicy;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;

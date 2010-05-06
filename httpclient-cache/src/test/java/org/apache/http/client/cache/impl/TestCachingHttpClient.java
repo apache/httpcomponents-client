@@ -26,6 +26,8 @@
  */
 package org.apache.http.client.cache.impl;
 
+import static junit.framework.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -33,34 +35,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCache;
-import org.apache.http.client.cache.impl.BasicHttpCache;
-import org.apache.http.client.cache.impl.CacheEntry;
-import org.apache.http.client.cache.impl.CacheEntryGenerator;
-import org.apache.http.client.cache.impl.CacheEntryUpdater;
-import org.apache.http.client.cache.impl.CacheInvalidator;
-import org.apache.http.client.cache.impl.CacheableRequestPolicy;
-import org.apache.http.client.cache.impl.CachedHttpResponseGenerator;
-import org.apache.http.client.cache.impl.CachedResponseSuitabilityChecker;
-import org.apache.http.client.cache.impl.CachingHttpClient;
-import org.apache.http.client.cache.impl.ConditionalRequestBuilder;
-import org.apache.http.client.cache.impl.RequestProtocolCompliance;
-import org.apache.http.client.cache.impl.RequestProtocolError;
-import org.apache.http.client.cache.impl.ResponseCachingPolicy;
-import org.apache.http.client.cache.impl.ResponseProtocolCompliance;
-import org.apache.http.client.cache.impl.SizeLimitedResponseReader;
-import org.apache.http.client.cache.impl.URIExtractor;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -79,6 +66,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestCachingHttpClient {
+
+    private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP",1,1);
 
     private static final String GET_CURRENT_DATE = "getCurrentDate";
 
@@ -106,6 +95,7 @@ public class TestCachingHttpClient {
     private HttpResponse mockBackendResponse;
     private CacheEntry mockCacheEntry;
     private CacheEntry mockVariantCacheEntry;
+    private CacheEntry mockUpdatedCacheEntry;
     private URIExtractor mockExtractor;
     private CacheEntryGenerator mockEntryGenerator;
     private CachedHttpResponseGenerator mockResponseGenerator;
@@ -153,6 +143,7 @@ public class TestCachingHttpClient {
         mockBackendResponse = EasyMock.createMock(HttpResponse.class);
         mockUriRequest = EasyMock.createMock(HttpUriRequest.class);
         mockCacheEntry = EasyMock.createMock(CacheEntry.class);
+        mockUpdatedCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockVariantCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockExtractor = EasyMock.createMock(URIExtractor.class);
         mockEntryGenerator = EasyMock.createMock(CacheEntryGenerator.class);
@@ -168,14 +159,15 @@ public class TestCachingHttpClient {
         mockRequestProtocolCompliance = EasyMock.createMock(RequestProtocolCompliance.class);
         mockRequestLine = EasyMock.createMock(RequestLine.class);
 
+
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
         host = new HttpHost("foo.example.com");
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance);
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance);
     }
 
     private void replayMocks() {
@@ -264,7 +256,7 @@ public class TestCachingHttpClient {
 
         replayMocks();
         HttpResponse result = impl.handleBackendResponse(host, mockRequest, requestDate,
-                responseDate, mockBackendResponse);
+                                                         responseDate, mockBackendResponse);
         verifyMocks();
 
         Assert.assertSame(mockCachedResponse, result);
@@ -317,25 +309,24 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    public void testCacheUpdateCallbackCreatesNewParentEntryWhenParentEntryNull() throws Exception {
+    public void testCacheUpdateAddsVariantURIToParentEntry() throws Exception {
 
         final String variantURI = "variantURI";
 
-        extractVariantURI(variantURI);
-        putInCache(variantURI);
+        final CacheEntry entry = new CacheEntry(new Date(), new Date(),HTTP_1_1,new Header[]{},new byte[]{},200,"OK");
 
-        variantURIAddedToCacheEntry(variantURI);
+        extractVariantURI(variantURI, entry);
+        putInCache(variantURI, entry);
 
         replayMocks();
-        HttpCacheUpdateCallback<CacheEntry> callbackImpl = impl
-                .storeVariantEntry(host, mockRequest, mockCacheEntry);
-        callbackImpl.getUpdatedEntry(null);
+
+        CacheEntry updatedEntry = impl.doGetUpdatedParentEntry(null, host, mockRequest, entry);
+
         verifyMocks();
+
+        assertTrue(updatedEntry.getVariantURIs().contains(variantURI));
     }
 
-    private void variantURIAddedToCacheEntry(String variantURI) {
-        mockCacheEntry.addVariantURI(variantURI);
-    }
 
     @Test
     public void testCacheMissCausesBackendRequest() throws Exception {
@@ -417,15 +408,15 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(responseDate);
         backendResponseCodeIs(HttpStatus.SC_OK);
         cacheEntryUpdaterCalled();
-        cacheEntryHasVariants(false);
+        cacheEntryHasVariants(false, mockUpdatedCacheEntry);
         extractTheURI("http://foo.example.com");
-        putInCache("http://foo.example.com");
-        responseIsGeneratedFromCache();
+        putInCache("http://foo.example.com", mockUpdatedCacheEntry);
+        responseIsGeneratedFromCache(mockUpdatedCacheEntry);
 
         replayMocks();
 
         HttpResponse result = impl.revalidateCacheEntry(host, mockRequest, mockContext,
-                mockCacheEntry);
+                                                        mockCacheEntry);
 
         verifyMocks();
 
@@ -446,14 +437,13 @@ public class TestCachingHttpClient {
         backendResponseCodeIs(HttpStatus.SC_NOT_MODIFIED);
 
         cacheEntryUpdaterCalled();
-        storeInCacheWasCalled();
+        storeInCacheWasCalled(mockUpdatedCacheEntry);
 
-        responseIsGeneratedFromCache();
+        responseIsGeneratedFromCache(mockUpdatedCacheEntry);
 
         replayMocks();
 
-        HttpResponse result = impl.revalidateCacheEntry(host, mockRequest, mockContext,
-                mockCacheEntry);
+        HttpResponse result = impl.revalidateCacheEntry(host, mockRequest, mockContext, mockCacheEntry);
 
         verifyMocks();
 
@@ -509,7 +499,7 @@ public class TestCachingHttpClient {
 
         replayMocks();
         HttpResponse result = impl.handleBackendResponse(host, mockRequest, currentDate,
-                currentDate, mockBackendResponse);
+                                                         currentDate, mockBackendResponse);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -628,10 +618,10 @@ public class TestCachingHttpClient {
         final HttpRequest theRequest = mockRequest;
         final HttpResponse theResponse = mockBackendResponse;
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
                 Assert.assertSame(theHost, target);
@@ -660,13 +650,13 @@ public class TestCachingHttpClient {
         final ResponseHandler<Object> theHandler = mockHandler;
         final Object value = new Object();
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public <T> T execute(HttpHost target, HttpRequest request,
-                    ResponseHandler<? extends T> rh, HttpContext context) {
+                                 ResponseHandler<? extends T> rh, HttpContext context) {
                 Assert.assertSame(theHost, target);
                 Assert.assertSame(theRequest, request);
                 Assert.assertSame(theHandler, rh);
@@ -700,10 +690,10 @@ public class TestCachingHttpClient {
         final HttpResponse theResponse = mockBackendResponse;
         final HttpContext theContext = mockContext;
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
                 Assert.assertSame(theHost, target);
@@ -732,10 +722,10 @@ public class TestCachingHttpClient {
         final HttpUriRequest theRequest = mockUriRequest;
         final HttpResponse theResponse = mockBackendResponse;
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public HttpResponse execute(HttpUriRequest request, HttpContext context) {
                 Assert.assertSame(theRequest, request);
@@ -762,10 +752,10 @@ public class TestCachingHttpClient {
         final HttpContext theContext = mockContext;
         final HttpResponse theResponse = mockBackendResponse;
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public HttpResponse execute(HttpHost hh, HttpRequest req, HttpContext ctx) {
                 Assert.assertEquals("sch", hh.getSchemeName());
@@ -795,13 +785,13 @@ public class TestCachingHttpClient {
         final HttpResponse theResponse = mockBackendResponse;
         final Object theValue = new Object();
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> handler,
-                    HttpContext context) throws IOException {
+                                 HttpContext context) throws IOException {
                 Assert.assertSame(theRequest, request);
                 Assert.assertNull(context);
                 c.incr();
@@ -830,10 +820,10 @@ public class TestCachingHttpClient {
         final HttpResponse theResponse = mockBackendResponse;
         final Object theValue = new Object();
         impl = new CachingHttpClient(mockBackend, mockResponsePolicy, mockEntryGenerator,
-                mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
-                mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
-                mockCacheEntryUpdater, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
+                                     mockExtractor, mockCache, mockResponseGenerator, mockInvalidator,
+                                     mockRequestPolicy, mockSuitabilityChecker, mockConditionalRequestBuilder,
+                                     mockCacheEntryUpdater, mockResponseProtocolCompliance,
+                                     mockRequestProtocolCompliance) {
             @Override
             public HttpResponse execute(HttpUriRequest request, HttpContext context)
                     throws IOException {
@@ -949,7 +939,7 @@ public class TestCachingHttpClient {
             response.getEntity().writeTo(s1);
             return s1.toByteArray();
         } catch (Exception ex) {
-            return new byte[] {};
+            return new byte[]{};
 
         }
 
@@ -976,8 +966,9 @@ public class TestCachingHttpClient {
     }
 
     private void cacheEntryUpdaterCalled() {
-        mockCacheEntryUpdater.updateCacheEntry(mockCacheEntry, requestDate, responseDate,
-                mockBackendResponse);
+        EasyMock.expect(
+                mockCacheEntryUpdater.updateCacheEntry(mockCacheEntry, requestDate, responseDate,
+                                                       mockBackendResponse)).andReturn(mockUpdatedCacheEntry);
     }
 
     private void getCacheEntryReturns(CacheEntry entry) {
@@ -1061,8 +1052,17 @@ public class TestCachingHttpClient {
         org.easymock.EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(b);
     }
 
+    private void cacheEntryHasVariants(boolean b, CacheEntry entry) {
+        EasyMock.expect(entry.hasVariants()).andReturn(b);
+    }
+
     private void responseIsGeneratedFromCache() {
         org.easymock.EasyMock.expect(mockResponseGenerator.generateResponse(mockCacheEntry))
+                .andReturn(mockCachedResponse);
+    }
+
+    private void responseIsGeneratedFromCache(CacheEntry entry) {
+        org.easymock.EasyMock.expect(mockResponseGenerator.generateResponse(entry))
                 .andReturn(mockCachedResponse);
     }
 
@@ -1071,31 +1071,43 @@ public class TestCachingHttpClient {
     }
 
     private void extractVariantURI(String variantURI) {
+        extractVariantURI(variantURI,mockCacheEntry);
+    }
+
+    private void extractVariantURI(String variantURI, CacheEntry entry){
         org.easymock.EasyMock
-                .expect(mockExtractor.getVariantURI(host, mockRequest, mockCacheEntry)).andReturn(
-                        variantURI);
+                .expect(mockExtractor.getVariantURI(host, mockRequest, entry)).andReturn(
+                variantURI);
     }
 
     private void putInCache(String theURI) throws Exception {
         mockCache.putEntry(theURI, mockCacheEntry);
     }
 
+    private void putInCache(String theURI, CacheEntry entry) throws Exception {
+        mockCache.putEntry(theURI, entry);
+    }
+
     private void generateCacheEntry(Date requestDate, Date responseDate, byte[] bytes)
             throws IOException {
         org.easymock.EasyMock.expect(
                 mockEntryGenerator.generateEntry(requestDate, responseDate, mockBackendResponse,
-                        bytes)).andReturn(mockCacheEntry);
+                                                 bytes)).andReturn(mockCacheEntry);
     }
 
     private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)
             throws IOException {
         org.easymock.EasyMock.expect(
                 impl.handleBackendResponse(host, request, requestDate, responseDate,
-                        mockBackendResponse)).andReturn(response);
+                                           mockBackendResponse)).andReturn(response);
     }
 
     private void storeInCacheWasCalled() {
         impl.storeInCache(host, mockRequest, mockCacheEntry);
+    }
+
+    private void storeInCacheWasCalled(CacheEntry entry) {
+        impl.storeInCache(host, mockRequest, entry);
     }
 
     private void responseProtocolValidationIsCalled() throws ClientProtocolException {
@@ -1117,10 +1129,10 @@ public class TestCachingHttpClient {
     private void mockImplMethods(String... methods) {
         mockedImpl = true;
         impl = EasyMock.createMockBuilder(CachingHttpClient.class).withConstructor(mockBackend,
-                mockResponsePolicy, mockEntryGenerator, mockExtractor, mockCache,
-                mockResponseGenerator, mockInvalidator, mockRequestPolicy, mockSuitabilityChecker,
-                mockConditionalRequestBuilder, mockCacheEntryUpdater,
-                mockResponseProtocolCompliance, mockRequestProtocolCompliance).addMockedMethods(
+                                                                                   mockResponsePolicy, mockEntryGenerator, mockExtractor, mockCache,
+                                                                                   mockResponseGenerator, mockInvalidator, mockRequestPolicy, mockSuitabilityChecker,
+                                                                                   mockConditionalRequestBuilder, mockCacheEntryUpdater,
+                                                                                   mockResponseProtocolCompliance, mockRequestProtocolCompliance).addMockedMethods(
                 methods).createMock();
     }
 }

@@ -33,6 +33,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 
 /**
+ * Generates a {@link CacheEntry} from a {@link HttpResponse}
+ *
  * @since 4.1
  */
 @Immutable
@@ -41,7 +43,15 @@ public class CacheEntryGenerator {
     public CacheEntry generateEntry(Date requestDate, Date responseDate, HttpResponse response,
             byte[] responseBytes) throws IOException {
 
-        return new CacheEntry(requestDate, responseDate, response, responseBytes);
+
+
+        return new CacheEntry(requestDate,
+                              responseDate,
+                              response.getProtocolVersion(),
+                              response.getAllHeaders(),
+                              responseBytes,
+                              response.getStatusLine().getStatusCode(),
+                              response.getStatusLine().getReasonPhrase());
 
     }
 }

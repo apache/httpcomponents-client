@@ -34,7 +34,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.client.cache.impl.SizeLimitedResponseReader;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;

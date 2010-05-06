@@ -26,7 +26,6 @@
  */
 package org.apache.http.client.cache.impl;
 
-import org.apache.http.client.cache.impl.CacheableRequestPolicy;
 import org.apache.http.message.BasicHttpRequest;
 import org.junit.Assert;
 import org.junit.Before;

@@ -44,6 +44,12 @@ import org.apache.http.impl.cookie.DateUtils;
 @Immutable
 public class ResponseProtocolCompliance {
 
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws ClientProtocolException
+     */
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
             throws ClientProtocolException {
         if (backendResponseMustNotHaveBody(request, response)) {

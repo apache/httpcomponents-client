@@ -38,16 +38,23 @@ import org.apache.http.impl.client.RequestWrapper;
 @Immutable
 public class ConditionalRequestBuilder {
 
+    /**
+     *
+     * @param request
+     * @param cacheEntry
+     * @return
+     * @throws ProtocolException
+     */
     public HttpRequest buildConditionalRequest(HttpRequest request, CacheEntry cacheEntry)
             throws ProtocolException {
         RequestWrapper wrapperRequest = new RequestWrapper(request);
         wrapperRequest.resetHeaders();
         Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
-            wrapperRequest.setHeader("If-None-Match", eTag.getValue());
+            wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
         } else {
             Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
-            wrapperRequest.setHeader("If-Modified-Since", lastModified.getValue());
+            wrapperRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
         }
         return wrapperRequest;
 

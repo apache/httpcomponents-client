@@ -42,7 +42,7 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class CacheableRequestPolicy {
 
-    private static final Log LOG = LogFactory.getLog(CacheableRequestPolicy.class);
+    private final Log LOG = LogFactory.getLog(CacheableRequestPolicy.class);
 
     /**
      * Determines if an HttpRequest can be served from the cache.

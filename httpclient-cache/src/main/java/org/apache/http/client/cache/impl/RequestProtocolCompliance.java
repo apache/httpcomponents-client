@@ -50,6 +50,11 @@ import org.apache.http.message.BasicStatusLine;
 @Immutable
 public class RequestProtocolCompliance {
 
+    /**
+     *
+     * @param request
+     * @return
+     */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {
         List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
 
@@ -71,6 +76,12 @@ public class RequestProtocolCompliance {
         return theErrors;
     }
 
+    /**
+     *
+     * @param request
+     * @return
+     * @throws ProtocolException
+     */
     public HttpRequest makeRequestCompliant(HttpRequest request) throws ProtocolException {
         if (requestMustNotHaveEntity(request)) {
             ((HttpEntityEnclosingRequest) request).setEntity(null);
@@ -250,11 +261,11 @@ public class RequestProtocolCompliance {
             return null;
         }
 
-        Header range = request.getFirstHeader("Range");
+        Header range = request.getFirstHeader(HeaderConstants.RANGE);
         if (range == null)
             return null;
 
-        Header ifRange = request.getFirstHeader("If-Range");
+        Header ifRange = request.getFirstHeader(HeaderConstants.IF_RANGE);
         if (ifRange == null)
             return null;
 
@@ -267,8 +278,7 @@ public class RequestProtocolCompliance {
     }
 
     private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(HttpRequest request) {
-        // TODO: Should these be looking at all the headers marked as
-        // If-Match/If-None-Match?
+        // TODO: Should these be looking at all the headers marked as If-Match/If-None-Match?
 
         String method = request.getRequestLine().getMethod();
         if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD
@@ -276,14 +286,14 @@ public class RequestProtocolCompliance {
             return null;
         }
 
-        Header ifMatch = request.getFirstHeader("If-Match");
+        Header ifMatch = request.getFirstHeader(HeaderConstants.IF_MATCH);
         if (ifMatch != null) {
             String val = ifMatch.getValue();
             if (val.startsWith("W/")) {
                 return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
             }
         } else {
-            Header ifNoneMatch = request.getFirstHeader("If-None-Match");
+            Header ifNoneMatch = request.getFirstHeader(HeaderConstants.IF_NONE_MATCH);
             if (ifNoneMatch == null)
                 return null;
 

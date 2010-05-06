@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -41,7 +40,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
@@ -51,56 +50,73 @@ import org.apache.http.message.BasicHeader;
  *
  * @since 4.1
  */
+@Immutable
 public class CacheEntry implements Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
 
     public static final long MAX_AGE = 2147483648L;
 
-    private transient Header[] responseHeaders;
-    private byte[] body;
-    private ProtocolVersion version;
-    private int status;
-    private String reason;
-    private Date requestDate;
-    private Date responseDate;
-    private Set<String> variantURIs = new HashSet<String>();
+    private final Date requestDate;
+    private final Date responseDate;
+    private final ProtocolVersion version;
+    private final int status;
+    private final String reason;
+    private final CachedHeaderGroup responseHeaders = new CachedHeaderGroup();
+    private final byte[] body;
+    private final Set<String> variantURIs = new HashSet<String>();
 
     /**
-     * Default constructor
-     */
-    public CacheEntry() {
-    }
-
-    /**
+     *
      * @param requestDate
-     *            Date/time when the request was made (Used for age
+     *          Date/time when the request was made (Used for age
      *            calculations)
      * @param responseDate
-     *            Date/time that the response came back (Used for age
+     *          Date/time that the response came back (Used for age
      *            calculations)
-     * @param response
-     *            original {@link HttpResponse}
+     * @param version
+     *          HTTP Response Version
+     * @param responseHeaders
+     *          Header[] from original HTTP Response
      * @param responseBytes
-     *            Byte array containing the body of the response
-     * @throws IOException
-     *             Does not attempt to handle IOExceptions
+     *          Byte array containing the body of the response
+     * @param status
+     *          Numeric HTTP Status Code
+     * @param reason
+     *          String message from HTTP Status Line
      */
-    public CacheEntry(Date requestDate, Date responseDate, HttpResponse response,
-            byte[] responseBytes) throws IOException {
+    public CacheEntry(Date requestDate, Date responseDate, ProtocolVersion version, Header[] responseHeaders, byte[] responseBytes, int status, String reason){
+
+        super();
         this.requestDate = requestDate;
         this.responseDate = responseDate;
-        version = response.getProtocolVersion();
-        responseHeaders = response.getAllHeaders();
-        StatusLine sl = response.getStatusLine();
-        status = sl.getStatusCode();
-        reason = sl.getReasonPhrase();
-
-        body = responseBytes;
+        this.version = version;
+        this.responseHeaders.setHeaders(responseHeaders);
+        this.status = status;
+        this.reason = reason;
+        this.body = responseBytes;
     }
 
-    public void setProtocolVersion(ProtocolVersion version) {
-        this.version = version;
+    /**
+     * Constructor used to create a copy of an existing entry, while adding another variant URI to it.
+     * @param toCopy CacheEntry to be duplicated
+     * @param variantURI URI to add
+     */
+    private CacheEntry(CacheEntry toCopy, String variantURI){
+        this(toCopy.getRequestDate(),
+             toCopy.getResponseDate(),
+             toCopy.getProtocolVersion(),
+             toCopy.getAllHeaders(),
+             toCopy.getBody(),
+             toCopy.getStatusCode(),
+             toCopy.getReasonPhrase());
+
+        this.variantURIs.addAll(toCopy.getVariantURIs());
+        this.variantURIs.add(variantURI);
+    }
+
+    public CacheEntry addVariantURI(String variantURI){
+        return new CacheEntry(this,variantURI);
     }
 
     public ProtocolVersion getProtocolVersion() {
@@ -115,24 +131,12 @@ public class CacheEntry implements Serializable {
         return this.status;
     }
 
-    public void setRequestDate(Date requestDate) {
-        this.requestDate = requestDate;
-    }
-
     public Date getRequestDate() {
         return requestDate;
     }
 
-    public void setResponseDate(Date responseDate) {
-        this.responseDate = responseDate;
-    }
-
     public Date getResponseDate() {
         return this.responseDate;
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
     }
 
     public byte[] getBody() {
@@ -140,36 +144,15 @@ public class CacheEntry implements Serializable {
     }
 
     public Header[] getAllHeaders() {
-        return responseHeaders;
-    }
-
-    public void setResponseHeaders(Header[] responseHeaders) {
-        this.responseHeaders = responseHeaders;
+        return responseHeaders.getAllHeaders();
     }
 
     public Header getFirstHeader(String name) {
-        for (Header h : responseHeaders) {
-            if (h.getName().equals(name))
-                return h;
-        }
-
-        return null;
+        return responseHeaders.getFirstHeader(name);
     }
 
     public Header[] getHeaders(String name) {
-
-        ArrayList<Header> headers = new ArrayList<Header>();
-
-        for (Header h : this.responseHeaders) {
-            if (h.getName().equals(name))
-                headers.add(h);
-        }
-
-        Header[] headerArray = new Header[headers.size()];
-
-        headers.toArray(headerArray);
-
-        return headerArray;
+        return responseHeaders.getHeaders(name);
     }
 
     /**
@@ -377,12 +360,14 @@ public class CacheEntry implements Serializable {
         out.defaultWriteObject();
 
         // write (non-serializable) responseHeaders
-        if (null == responseHeaders || responseHeaders.length < 1)
+        if (null == responseHeaders || responseHeaders.getAllHeaders().length < 1)
             return;
-        String[][] sheaders = new String[responseHeaders.length][2];
-        for (int i = 0; i < responseHeaders.length; i++) {
-            sheaders[i][0] = responseHeaders[i].getName();
-            sheaders[i][1] = responseHeaders[i].getValue();
+        int headerCount = responseHeaders.getAllHeaders().length;
+        Header[] headers = responseHeaders.getAllHeaders();
+        String[][] sheaders = new String[headerCount][2];
+        for (int i = 0; i < headerCount; i++) {
+            sheaders[i][0] = headers[i].getName();
+            sheaders[i][1] = headers[i].getValue();
         }
         out.writeObject(sheaders);
 
@@ -402,15 +387,12 @@ public class CacheEntry implements Serializable {
             String[] sheader = sheaders[i];
             headers[i] = new BasicHeader(sheader[0], sheader[1]);
         }
-        this.responseHeaders = headers;
 
-    }
-
-    public void addVariantURI(String URI) {
-        this.variantURIs.add(URI);
+        this.responseHeaders.setHeaders(headers);
     }
 
     public Set<String> getVariantURIs() {
         return Collections.unmodifiableSet(this.variantURIs);
     }
+
 }

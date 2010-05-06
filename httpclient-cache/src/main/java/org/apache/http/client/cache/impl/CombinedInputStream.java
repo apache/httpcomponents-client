@@ -40,6 +40,8 @@ class CombinedInputStream extends InputStream {
     private final InputStream inputStream2;
 
     /**
+     * Take two inputstreams and produce an object that makes them appear as if they
+     * are actually a 'single' input stream.
      *
      * @param inputStream1
      *            First stream to read

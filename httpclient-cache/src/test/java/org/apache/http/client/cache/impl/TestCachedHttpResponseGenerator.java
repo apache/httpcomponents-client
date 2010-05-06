@@ -31,8 +31,6 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.client.cache.impl.CacheEntry;
-import org.apache.http.client.cache.impl.CachedHttpResponseGenerator;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
@@ -43,14 +41,9 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testResponseHasContentLength() {
 
-        CacheEntry entry = new CacheEntry();
         Header[] hdrs = new Header[] {};
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        entry.setResponseHeaders(hdrs);
-        entry.setProtocolVersion(new ProtocolVersion("HTTP", 1, 1));
-        entry.setBody(buf);
-        entry.setResponseDate(new Date());
-        entry.setRequestDate(new Date());
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP", 1, 1),hdrs,buf,200,"OK");
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -64,14 +57,11 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() {
-        CacheEntry entry = new CacheEntry();
+
         Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        entry.setResponseHeaders(hdrs);
-        entry.setProtocolVersion(new ProtocolVersion("HTTP", 1, 1));
-        entry.setBody(buf);
-        entry.setResponseDate(new Date());
-        entry.setRequestDate(new Date());
+        CacheEntry entry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP", 1, 1),hdrs,buf,200,"OK");
+
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -83,8 +73,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseMatchesCacheEntry() {
-        CacheEntry entry = new CacheEntry();
-        buildEntry(entry);
+        CacheEntry entry = buildEntry();
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -98,8 +87,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseStatusCodeMatchesCacheEntry() {
-        CacheEntry entry = new CacheEntry();
-        buildEntry(entry);
+        CacheEntry entry = buildEntry();
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -110,16 +98,8 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() {
         final long currAge = 10L;
-        CacheEntry entry = new CacheEntry() {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public long getCurrentAgeSecs() {
-                return currAge;
-            }
-        };
-
-        buildEntry(entry);
+        CacheEntry entry = buildEntryWithCurrentAge(currAge);
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -132,15 +112,8 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() {
         final long currAge = 0L;
-        CacheEntry entry = new CacheEntry() {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public long getCurrentAgeSecs() {
-                return currAge;
-            }
-        };
-        buildEntry(entry);
+        CacheEntry entry = buildEntryWithCurrentAge(currAge);
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -151,16 +124,8 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
-        final long currAge = CacheEntry.MAX_AGE + 1L;
-        CacheEntry entry = new CacheEntry() {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public long getCurrentAgeSecs() {
-                return currAge;
-            }
-        };
-        buildEntry(entry);
+        CacheEntry entry = buildEntryWithCurrentAge(CacheEntry.MAX_AGE + 1L);
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -170,7 +135,7 @@ public class TestCachedHttpResponseGenerator {
         Assert.assertEquals(CacheEntry.MAX_AGE, Long.parseLong(ageHdr.getValue()));
     }
 
-    private CacheEntry buildEntry(CacheEntry entry) {
+    private CacheEntry buildEntry() {
         Date now = new Date();
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
@@ -179,14 +144,30 @@ public class TestCachedHttpResponseGenerator {
         Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
                 new BasicHeader("Content-Length", "150") };
-        entry.setRequestDate(tenSecondsAgo);
-        entry.setResponseDate(sixSecondsAgo);
-        entry.setBody(new byte[] {});
-        entry.setResponseHeaders(hdrs);
 
-        entry.setProtocolVersion(new ProtocolVersion("HTTP", 1, 1));
+        return new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP", 1, 1),hdrs,new byte[]{},200,"OK");
+    }
 
-        return entry;
 
+    private CacheEntry buildEntryWithCurrentAge(final long currAge){
+                Date now = new Date();
+        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
+        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
+        Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
+                new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
+                new BasicHeader("Content-Length", "150") };
+
+
+        return new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP", 1, 1),hdrs,new byte[]{},200,"OK"){
+                        private static final long serialVersionUID = 1L;
+
+            @Override
+            public long getCurrentAgeSecs() {
+                return currAge;
+            }
+
+        };
     }
 }

@@ -39,19 +39,39 @@ import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 
 /**
+ * Update a {@link CacheEntry} with new or updated information based on the latest
+ * 200 or 304 status responses from the Server.  Use the {@link HttpResponse} to perform
+ * the update.
+ *
  * @since 4.1
  */
 @Immutable
 public class CacheEntryUpdater {
 
-    public void updateCacheEntry(CacheEntry entry, Date requestDate, Date responseDate,
-            HttpResponse response) {
-        entry.setRequestDate(requestDate);
-        entry.setResponseDate(responseDate);
-        mergeHeaders(entry, response);
+    /**
+     * Update the entry with the new information from the response.
+     *
+     * @param entry The cache Entry to be updated
+     * @param requestDate When the request was performed
+     * @param responseDate When the response was gotten
+     * @param response The HttpResponse from the backend server call
+     * @return CacheEntry an updated version of the cache entry
+     */
+    public CacheEntry updateCacheEntry(CacheEntry entry, Date requestDate, Date responseDate, HttpResponse response) {
+
+        Header[] mergedHeaders = mergeHeaders(entry, response);
+
+        CacheEntry updated = new CacheEntry(requestDate, responseDate,
+                                            entry.getProtocolVersion(),
+                                            mergedHeaders,
+                                            entry.getBody(),
+                                            entry.getStatusCode(),
+                                            entry.getReasonPhrase());
+
+        return updated;
     }
 
-    protected void mergeHeaders(CacheEntry entry, HttpResponse response) {
+    protected Header[] mergeHeaders(CacheEntry entry, HttpResponse response) {
         List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
                 .getAllHeaders()));
 
@@ -60,7 +80,7 @@ public class CacheEntryUpdater {
             // Don't merge Headers, keep the entries headers as they are newer.
             removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
 
-            return;
+            return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
         }
 
         removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
@@ -68,8 +88,7 @@ public class CacheEntryUpdater {
         cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
         removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
 
-        entry.setResponseHeaders(cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList
-                .size()]));
+        return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
     }
 
     private void removeCacheHeadersThatMatchResponse(List<Header> cacheEntryHeaderList,

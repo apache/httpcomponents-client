@@ -31,8 +31,7 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
-import org.apache.http.client.cache.impl.CacheEntry;
-import org.apache.http.client.cache.impl.ConditionalRequestBuilder;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
@@ -58,11 +57,11 @@ public class TestConditionalRequestBuilder {
         HttpRequest request = new BasicHttpRequest(theMethod, theUri);
         request.addHeader("Accept-Encoding", "gzip");
 
-        CacheEntry cacheEntry = new CacheEntry();
-        cacheEntry.setResponseHeaders(new Header[] {
+        Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
-                new BasicHeader("Last-Modified", lastModified) });
+                new BasicHeader("Last-Modified", lastModified) };
 
+        CacheEntry cacheEntry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP",1,1),headers, new byte[]{},200,"OK");
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);
 
         Assert.assertNotSame(request, newRequest);
@@ -89,11 +88,13 @@ public class TestConditionalRequestBuilder {
         HttpRequest request = new BasicHttpRequest(theMethod, theUri);
         request.addHeader("Accept-Encoding", "gzip");
 
-        CacheEntry cacheEntry = new CacheEntry();
-        cacheEntry.setResponseHeaders(new Header[] {
+        Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())),
-                new BasicHeader("ETag", theETag) });
+                new BasicHeader("ETag", theETag) };
+
+        CacheEntry cacheEntry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP",1,1),headers, new byte[]{},200,"OK");
+
 
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);
 

@@ -31,9 +31,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
-import org.apache.http.client.cache.HttpCache;
 
 /**
  * Implements {@link HttpCache} using LinkedHashMap for backing store

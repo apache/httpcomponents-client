@@ -33,8 +33,8 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheOperationException;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -48,19 +48,30 @@ public class CacheInvalidator {
     private final HttpCache<CacheEntry> cache;
     private final URIExtractor uriExtractor;
 
-    private static final Log LOG = LogFactory.getLog(CacheInvalidator.class);
+    private final Log LOG = LogFactory.getLog(CacheInvalidator.class);
 
+    /**
+     *
+     * @param uriExtractor
+     * @param cache
+     */
     public CacheInvalidator(URIExtractor uriExtractor, HttpCache<CacheEntry> cache) {
         this.uriExtractor = uriExtractor;
         this.cache = cache;
     }
 
+    /**
+     * Remove cache entries from the cache that are no longer fresh or
+     * have been invalidated in some way.
+     *
+     * @param host The backend host we are talking to
+     * @param req The HttpRequest to that host
+     */
     public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req) {
         LOG.debug("CacheInvalidator: flushInvalidatedCacheEntries, BEGIN");
 
         if (requestShouldNotBeCached(req)) {
-            LOG
-                    .debug("CacheInvalidator: flushInvalidatedCacheEntries, Request should not be cached");
+            LOG.debug("CacheInvalidator: flushInvalidatedCacheEntries, Request should not be cached");
 
             try {
                 String theUri = uriExtractor.getURI(host, req);
@@ -76,6 +87,7 @@ public class CacheInvalidator {
                     cache.removeEntry(theUri);
                 }
             } catch (HttpCacheOperationException coe) {
+                LOG.warn("Cache: Was unable to REMOVE an entry from the cache based on the uri provided.", coe);
                 // TODO: track failed state
             }
         }

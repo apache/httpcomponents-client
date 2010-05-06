@@ -43,15 +43,14 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
-import org.apache.http.client.cache.impl.BasicHttpCache;
-import org.apache.http.client.cache.impl.CacheEntry;
-import org.apache.http.client.cache.impl.CachingHttpClient;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.HeaderGroup;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
 import org.easymock.IExpectationSetters;
@@ -2063,52 +2062,53 @@ public class TestProtocolRequirements {
     public void testCacheEntryIsUpdatedWithNewFieldValuesIn304Response() throws Exception {
 
         Date now = new Date();
-        Date inOneSecond = new Date(now.getTime() + 1000L);
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        HttpResponse resp1 = make200Response();
-        resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("ETag", "\"etag\"");
+        Date inFiveSeconds = new Date(now.getTime() + 5000L);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
+        HttpRequest initialRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
 
-        HttpRequest conditionalValidation = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        conditionalValidation.setHeader("If-None-Match", "\"etag\"");
+        HttpResponse cachedResponse = make200Response();
+        cachedResponse.setHeader("Cache-Control", "max-age=3600");
+        cachedResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequest unconditionalValidation = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest secondRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        secondRequest.setHeader("Cache-Control", "max-age=0,max-stale=0");
+
+        HttpRequest conditionalValidationRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        conditionalValidationRequest.setHeader("If-None-Match", "\"etag\"");
+
+        HttpRequest unconditionalValidationRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
 
         // to be used if the cache generates a conditional validation
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
-                "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
-        resp2.setHeader("Server", "MockUtils/1.0");
-        resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("X-Extra", "junk");
+        HttpResponse conditionalResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        conditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
+        conditionalResponse.setHeader("Server", "MockUtils/1.0");
+        conditionalResponse.setHeader("ETag", "\"etag\"");
+        conditionalResponse.setHeader("X-Extra", "junk");
 
         // to be used if the cache generates an unconditional validation
-        HttpResponse resp3 = make200Response();
-        resp3.setHeader("Date", DateUtils.formatDate(inOneSecond));
-        resp3.setHeader("ETag", "\"etag\"");
+        HttpResponse unconditionalResponse = make200Response();
+        unconditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
+        unconditionalResponse.setHeader("ETag", "\"etag\"");
 
         Capture<HttpRequest> cap1 = new Capture<HttpRequest>();
         Capture<HttpRequest> cap2 = new Capture<HttpRequest>();
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
-                        (HttpContext) EasyMock.isNull())).andReturn(resp1);
+                        (HttpContext) EasyMock.isNull())).andReturn(cachedResponse);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.and(
-                        eqRequest(conditionalValidation), EasyMock.capture(cap1)),
-                        (HttpContext) EasyMock.isNull())).andReturn(resp2).times(0, 1);
+                        eqRequest(conditionalValidationRequest), EasyMock.capture(cap1)),
+                        (HttpContext) EasyMock.isNull())).andReturn(conditionalResponse).times(0, 1);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.and(
-                        eqRequest(unconditionalValidation), EasyMock.capture(cap2)),
-                        (HttpContext) EasyMock.isNull())).andReturn(resp3).times(0, 1);
+                        eqRequest(unconditionalValidationRequest), EasyMock.capture(cap2)),
+                        (HttpContext) EasyMock.isNull())).andReturn(unconditionalResponse).times(0, 1);
 
         replayMocks();
 
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(host, initialRequest);
+        HttpResponse result = impl.execute(host, secondRequest);
 
         verifyMocks();
 
@@ -2116,7 +2116,7 @@ public class TestProtocolRequirements {
                 || (!cap1.hasCaptured() && cap2.hasCaptured()));
 
         if (cap1.hasCaptured()) {
-            Assert.assertEquals(DateUtils.formatDate(inOneSecond), result.getFirstHeader("Date")
+            Assert.assertEquals(DateUtils.formatDate(inFiveSeconds), result.getFirstHeader("Date")
                     .getValue());
             Assert.assertEquals("junk", result.getFirstHeader("X-Extra").getValue());
         }
@@ -2297,17 +2297,20 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        originResponse.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        originResponse.setHeader("Cache-Control", "max-age=0");
-        originResponse.setHeader("ETag", "\"etag\"");
-        originResponse.setHeader("Content-Length", "128");
+        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+
+        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
+        headerGroup.addHeader("Cache-Control", "max-age=0");
+        headerGroup.addHeader("ETag", "\"etag\"");
+        headerGroup.addHeader("Content-Length", "128");
+
 
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, originResponse, bytes);
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
 
-        mockCache.putEntry("http://foo.example.com/thing", entry);
+        mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(CacheEntry.class));
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2339,14 +2342,18 @@ public class TestProtocolRequirements {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
 
-        originResponse.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        originResponse.setHeader("Cache-Control", "max-age=3600");
-        originResponse.setHeader("Content-Length", "128");
+
+        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
+        headerGroup.addHeader("Cache-Control", "max-age=3600");
+        headerGroup.addHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, originResponse, bytes);
+
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2377,14 +2384,18 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        originResponse.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        originResponse.setHeader("Cache-Control", "max-age=0");
-        originResponse.setHeader("Content-Length", "128");
-        originResponse.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+
+        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
+        headerGroup.addHeader("Cache-Control", "max-age=0");
+        headerGroup.addHeader("Content-Length", "128");
+        headerGroup.addHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, originResponse, bytes);
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+
+
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2558,14 +2569,16 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        originResponse.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        originResponse.setHeader("Cache-Control", "max-age=3600");
-        originResponse.setHeader("Content-Length", "128");
+
+        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+
+        headerGroup.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
+        headerGroup.setHeader("Cache-Control", "max-age=3600");
+        headerGroup.setHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
-        originResponse.setEntity(new ByteArrayEntity(bytes));
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, originResponse, bytes);
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2599,15 +2612,17 @@ public class TestProtocolRequirements {
         Date requestTime = new Date(thirtySixHoursAgo.getTime() - 1000L);
         Date responseTime = new Date(thirtySixHoursAgo.getTime() + 1000L);
 
-        originResponse.setHeader("Date", DateUtils.formatDate(thirtySixHoursAgo));
-        originResponse.setHeader("Cache-Control", "public");
-        originResponse.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
-        originResponse.setHeader("Content-Length", "128");
+        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+
+        headerGroup.setHeader("Date", DateUtils.formatDate(thirtySixHoursAgo));
+        headerGroup.setHeader("Cache-Control", "public");
+        headerGroup.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
+        headerGroup.setHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
-        originResponse.setEntity(new ByteArrayEntity(bytes));
 
-        CacheEntry entry = new CacheEntry(requestTime, responseTime, originResponse, bytes);
+        CacheEntry entry = new CacheEntry(requestTime, responseTime, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -3139,4 +3154,16 @@ public class TestProtocolRequirements {
         testDoesNotAddHeaderOnCacheHit("Last-Modified");
     }
 
+
+
+    private class FakeHeaderGroup extends HeaderGroup{
+
+        public void addHeader(String name, String value){
+            this.addHeader(new BasicHeader(name,value));
+        }
+
+        public void setHeader(String name, String value){
+            addHeader(name,value);
+        }
+    }
 }

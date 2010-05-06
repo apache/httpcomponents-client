@@ -33,8 +33,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.client.cache.impl.CacheEntry;
-import org.apache.http.client.cache.impl.CacheEntryGenerator;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Assert;

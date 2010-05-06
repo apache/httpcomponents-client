@@ -29,7 +29,6 @@ package org.apache.http.client.cache.impl;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.http.client.cache.impl.CombinedInputStream;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;

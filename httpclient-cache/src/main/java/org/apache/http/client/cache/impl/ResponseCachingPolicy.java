@@ -46,8 +46,12 @@ import org.apache.http.impl.cookie.DateUtils;
 public class ResponseCachingPolicy {
 
     private final int maxObjectSizeBytes;
-    private static final Log LOG = LogFactory.getLog(ResponseCachingPolicy.class);
+    private final Log LOG = LogFactory.getLog(ResponseCachingPolicy.class);
 
+    /**
+     *
+     * @param maxObjectSizeBytes
+     */
     public ResponseCachingPolicy(int maxObjectSizeBytes) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
     }
