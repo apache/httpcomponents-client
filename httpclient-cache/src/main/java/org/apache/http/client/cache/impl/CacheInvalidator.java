@@ -32,7 +32,7 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheOperationException;
 
@@ -42,7 +42,7 @@ import org.apache.http.client.cache.HttpCacheOperationException;
  *
  * @since 4.1
  */
-@Immutable
+@ThreadSafe // so long as the cache implementation is thread-safe
 public class CacheInvalidator {
 
     private final HttpCache<CacheEntry> cache;
