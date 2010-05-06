@@ -26,7 +26,6 @@
  */
 package org.apache.http.client.cache.impl;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.apache.http.HttpResponse;
@@ -41,9 +40,7 @@ import org.apache.http.annotation.Immutable;
 public class CacheEntryGenerator {
 
     public CacheEntry generateEntry(Date requestDate, Date responseDate, HttpResponse response,
-            byte[] responseBytes) throws IOException {
-
-
+            byte[] responseBytes) {
 
         return new CacheEntry(requestDate,
                               responseDate,
