@@ -42,6 +42,7 @@ import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -59,6 +60,7 @@ import org.apache.http.protocol.HttpContext;
 /**
  * @since 4.1
  */
+@ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingHttpClient implements HttpClient {
 
     private final static int MAX_CACHE_ENTRIES = 1000;
@@ -82,9 +84,9 @@ public class CachingHttpClient implements HttpClient {
     private final int maxObjectSizeBytes;
     private final CacheEntryUpdater cacheEntryUpdater;
 
-    private volatile AtomicLong cacheHits = new AtomicLong();
-    private volatile AtomicLong cacheMisses = new AtomicLong();
-    private volatile AtomicLong cacheUpdates = new AtomicLong();
+    private AtomicLong cacheHits = new AtomicLong();
+    private AtomicLong cacheMisses = new AtomicLong();
+    private AtomicLong cacheUpdates = new AtomicLong();
 
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
