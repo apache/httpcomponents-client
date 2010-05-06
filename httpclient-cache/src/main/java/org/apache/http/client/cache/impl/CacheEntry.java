@@ -94,7 +94,7 @@ public class CacheEntry implements Serializable {
         this.responseHeaders.setHeaders(responseHeaders);
         this.status = status;
         this.reason = reason;
-        this.body = responseBytes;
+        this.body = responseBytes.clone();
     }
 
     /**
@@ -140,7 +140,7 @@ public class CacheEntry implements Serializable {
     }
 
     public byte[] getBody() {
-        return body;
+        return body.clone();
     }
 
     public Header[] getAllHeaders() {
