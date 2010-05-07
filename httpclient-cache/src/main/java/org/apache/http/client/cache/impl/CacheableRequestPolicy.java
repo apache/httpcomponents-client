@@ -42,7 +42,7 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class CacheableRequestPolicy {
 
-    private final Log LOG = LogFactory.getLog(CacheableRequestPolicy.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     /**
      * Determines if an HttpRequest can be served from the cache.
@@ -56,17 +56,17 @@ public class CacheableRequestPolicy {
 
         ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
         if (CachingHttpClient.HTTP_1_1.compareToVersion(pv) != 0) {
-            LOG.debug("CacheableRequestPolicy: Request WAS NOT serveable from Cache.");
+            log.debug("Request was not serveable from cache");
             return false;
         }
 
         if (!method.equals(HeaderConstants.GET_METHOD)) {
-            LOG.debug("CacheableRequestPolicy: Request WAS NOT serveable from Cache.");
+            log.debug("Request was not serveable from cache");
             return false;
         }
 
         if (request.getHeaders(HeaderConstants.PRAGMA).length > 0) {
-            LOG.debug("CacheableRequestPolicy: Request WAS NOT serveable from Cache.");
+            log.debug("Request was not serveable from cache");
             return false;
         }
 
@@ -75,19 +75,19 @@ public class CacheableRequestPolicy {
             for (HeaderElement cacheControlElement : cacheControl.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement
                         .getName())) {
-                    LOG.debug("CacheableRequestPolicy: Request WAS NOT serveable from Cache.");
+                    log.debug("Request was not serveable from Cache");
                     return false;
                 }
 
                 if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement
                         .getName())) {
-                    LOG.debug("CacheableRequestPolicy: Request WAS NOT serveable from Cache.");
+                    log.debug("Request was not serveable from cache");
                     return false;
                 }
             }
         }
 
-        LOG.debug("CacheableRequestPolicy: Request WAS serveable from Cache.");
+        log.debug("Request was serveable from cache");
         return true;
     }
 

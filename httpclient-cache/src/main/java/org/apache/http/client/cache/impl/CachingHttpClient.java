@@ -91,7 +91,7 @@ public class CachingHttpClient implements HttpClient {
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
 
-    private final Log LOG = LogFactory.getLog(CachingHttpClient.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     public CachingHttpClient() {
         this.backend = new DefaultHttpClient();
@@ -330,8 +330,8 @@ public class CachingHttpClient implements HttpClient {
         CacheEntry entry = null;
         try {
             entry = responseCache.getEntry(uri);
-        } catch (HttpCacheOperationException probablyIgnore) {
-            LOG.warn("Cache: Was unable to get an entry from the cache based on the uri provided.", probablyIgnore);
+        } catch (HttpCacheOperationException ex) {
+            log.debug("Was unable to get an entry from the cache based on the uri provided", ex);
         }
 
         if (entry == null || !entry.hasVariants())
@@ -340,7 +340,7 @@ public class CachingHttpClient implements HttpClient {
         String variantUri = uriExtractor.getVariantURI(target, request, entry);
         try {
             return responseCache.getEntry(variantUri);
-        } catch (HttpCacheOperationException probablyIgnore) {
+        } catch (HttpCacheOperationException ex) {
             return null;
         }
     }
@@ -384,11 +384,19 @@ public class CachingHttpClient implements HttpClient {
         CacheEntry entry = getCacheEntry(target, request);
         if (entry == null) {
             cacheMisses.getAndIncrement();
-            LOG.debug("CLIENT: Cache Miss.");
+            if (log.isDebugEnabled()) {
+                RequestLine rl = request.getRequestLine();
+                log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
+
+            }
             return callBackend(target, request, context);
         }
 
-        LOG.debug("CLIENT: Cache HIT.");
+        if (log.isDebugEnabled()) {
+            RequestLine rl = request.getRequestLine();
+            log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
+
+        }
         cacheHits.getAndIncrement();
 
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry)) {
@@ -396,14 +404,14 @@ public class CachingHttpClient implements HttpClient {
         }
 
         if (entry.isRevalidatable()) {
-            LOG.debug("CLIENT: Revalidate the entry.");
+            log.debug("Revalidating the cache entry");
 
             try {
                 return revalidateCacheEntry(target, request, context, entry);
             } catch (IOException ioex) {
                 HttpResponse response = responseGenerator.generateResponse(entry);
                 response.addHeader(HeaderConstants.WARNING, "111 Revalidation Failed - " + ioex.getMessage());
-                LOG.debug("111 revalidation failed due to exception: " + ioex);
+                log.debug("111 revalidation failed due to exception: " + ioex);
                 return response;
             } catch (ProtocolException e) {
                 throw new ClientProtocolException(e);
@@ -433,7 +441,7 @@ public class CachingHttpClient implements HttpClient {
         Date requestDate = getCurrentDate();
 
         try {
-            LOG.debug("CLIENT: Calling the backend.");
+            log.debug("Calling the backend");
             HttpResponse backendResponse = backend.execute(target, request, context);
             return handleBackendResponse(target, request, requestDate, getCurrentDate(),
                                          backendResponse);
@@ -447,8 +455,11 @@ public class CachingHttpClient implements HttpClient {
 
     }
 
-    protected HttpResponse revalidateCacheEntry(HttpHost target, HttpRequest request,
-                                                HttpContext context, CacheEntry cacheEntry) throws IOException, ProtocolException {
+    protected HttpResponse revalidateCacheEntry(
+            HttpHost target,
+            HttpRequest request,
+            HttpContext context,
+            CacheEntry cacheEntry) throws IOException, ProtocolException {
         HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
         Date requestDate = getCurrentDate();
 
@@ -472,10 +483,12 @@ public class CachingHttpClient implements HttpClient {
         if (entry.hasVariants()) {
             try {
                 String uri = uriExtractor.getURI(target, request);
-                HttpCacheUpdateCallback<CacheEntry> callback = storeVariantEntry(target, request, entry);
+                HttpCacheUpdateCallback<CacheEntry> callback = storeVariantEntry(
+                        target, request, entry);
                 responseCache.updateCacheEntry(uri, callback);
-            } catch (HttpCacheOperationException probablyIgnore) {
-                LOG.warn("Cache: Was unable to PUT/UPDATE an entry into the cache based on the uri provided.", probablyIgnore);
+            } catch (HttpCacheOperationException ex) {
+                log.debug("Was unable to PUT/UPDATE an entry into the cache based on the uri provided",
+                        ex);
             }
         } else {
             storeNonVariantEntry(target, request, entry);
@@ -486,13 +499,15 @@ public class CachingHttpClient implements HttpClient {
         String uri = uriExtractor.getURI(target, req);
         try {
             responseCache.putEntry(uri, entry);
-        } catch (HttpCacheOperationException probablyIgnore) {
-            LOG.warn("Cache: Was unable to PUT an entry into the cache based on the uri provided.", probablyIgnore);
+        } catch (HttpCacheOperationException ex) {
+            log.debug("Was unable to PUT an entry into the cache based on the uri provided", ex);
         }
     }
 
-    protected HttpCacheUpdateCallback<CacheEntry> storeVariantEntry(final HttpHost target, final HttpRequest req,
-                                                                    final CacheEntry entry) {
+    protected HttpCacheUpdateCallback<CacheEntry> storeVariantEntry(
+            final HttpHost target,
+            final HttpRequest req,
+            final CacheEntry entry) {
 
         return new HttpCacheUpdateCallback<CacheEntry>() {
             public CacheEntry getUpdatedEntry(CacheEntry existing) throws HttpCacheOperationException {
@@ -502,7 +517,11 @@ public class CachingHttpClient implements HttpClient {
         };
     }
 
-    protected CacheEntry doGetUpdatedParentEntry(CacheEntry existing, HttpHost target, HttpRequest req, CacheEntry entry) throws HttpCacheOperationException {
+    protected CacheEntry doGetUpdatedParentEntry(
+            CacheEntry existing,
+            HttpHost target,
+            HttpRequest req,
+            CacheEntry entry) throws HttpCacheOperationException {
 
         String variantURI = uriExtractor.getVariantURI(target, req, entry);
         responseCache.putEntry(variantURI, entry);
@@ -514,10 +533,14 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    protected HttpResponse handleBackendResponse(HttpHost target, HttpRequest request,
-                                                 Date requestDate, Date responseDate, HttpResponse backendResponse) throws IOException {
+    protected HttpResponse handleBackendResponse(
+            HttpHost target,
+            HttpRequest request,
+            Date requestDate,
+            Date responseDate,
+            HttpResponse backendResponse) throws IOException {
 
-        LOG.debug("CLIENT: Handling Backend response.");
+        log.debug("Handling Backend response");
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
@@ -530,8 +553,11 @@ public class CachingHttpClient implements HttpClient {
                 return responseReader.getReconstructedResponse();
             }
 
-            CacheEntry entry = cacheEntryGenerator.generateEntry(requestDate, responseDate,
-                                                                 backendResponse, responseReader.getResponseBytes());
+            CacheEntry entry = cacheEntryGenerator.generateEntry(
+                    requestDate,
+                    responseDate,
+                    backendResponse,
+                    responseReader.getResponseBytes());
             storeInCache(target, request, entry);
             return responseGenerator.generateResponse(entry);
         }
@@ -539,9 +565,8 @@ public class CachingHttpClient implements HttpClient {
         String uri = uriExtractor.getURI(target, request);
         try {
             responseCache.removeEntry(uri);
-        } catch (HttpCacheOperationException coe) {
-            LOG.warn("Cache: Was unable to remove an entry from the cache based on the uri provided.", coe);
-            // TODO: track failed state
+        } catch (HttpCacheOperationException ex) {
+            log.debug("Was unable to remove an entry from the cache based on the uri provided", ex);
         }
         return backendResponse;
     }

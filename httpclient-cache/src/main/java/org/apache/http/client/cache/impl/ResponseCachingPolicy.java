@@ -46,7 +46,7 @@ import org.apache.http.impl.cookie.DateUtils;
 public class ResponseCachingPolicy {
 
     private final int maxObjectSizeBytes;
-    private final Log LOG = LogFactory.getLog(ResponseCachingPolicy.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     /**
      *
@@ -67,7 +67,7 @@ public class ResponseCachingPolicy {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod)) {
-            LOG.debug("ResponseCachingPolicy: response was not cacheable.");
+            log.debug("Response was not cacheable.");
             return false;
         }
 
@@ -79,18 +79,18 @@ public class ResponseCachingPolicy {
         case HttpStatus.SC_GONE:
             // these response codes MAY be cached
             cacheable = true;
-            LOG.debug("ResponseCachingPolicy: response WAS cacheable.");
+            log.debug("Response was cacheable");
             break;
         case HttpStatus.SC_PARTIAL_CONTENT:
             // we don't implement Range requests and hence are not
             // allowed to cache partial content
-            LOG.debug("ResponseCachingPolicy: response was not cacheable (Partial Content).");
+            log.debug("Response was not cacheable (Partial Content)");
             return cacheable;
 
         default:
             // If the status code is not one of the recognized
             // available codes in HttpStatus Don't Cache
-            LOG.debug("ResponseCachingPolicy: response was not cacheable (Unknown Status code).");
+            log.debug("Response was not cacheable (Unknown Status code)");
             return cacheable;
         }
 
@@ -175,12 +175,12 @@ public class ResponseCachingPolicy {
      */
     public boolean isResponseCacheable(HttpRequest request, HttpResponse response) {
         if (requestProtocolGreaterThanAccepted(request)) {
-            LOG.debug("ResponseCachingPolicy: response was not cacheable.");
+            log.debug("Response was not cacheable.");
             return false;
         }
 
         if (request.getRequestLine().getUri().contains("?") && !isExplicitlyCacheable(response)) {
-            LOG.debug("ResponseCachingPolicy: response was not cacheable.");
+            log.debug("Response was not cacheable.");
             return false;
         }
 

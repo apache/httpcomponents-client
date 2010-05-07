@@ -395,4 +395,10 @@ public class CacheEntry implements Serializable {
         return Collections.unmodifiableSet(this.variantURIs);
     }
 
+    @Override
+    public String toString() {
+        return "[request date=" + requestDate + "; response date=" + responseDate
+                + "; status=" + status + "]";
+    }
+
 }

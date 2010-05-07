@@ -48,7 +48,7 @@ public class CacheInvalidator {
     private final HttpCache<CacheEntry> cache;
     private final URIExtractor uriExtractor;
 
-    private final Log LOG = LogFactory.getLog(CacheInvalidator.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     /**
      *
@@ -68,17 +68,15 @@ public class CacheInvalidator {
      * @param req The HttpRequest to that host
      */
     public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req) {
-        LOG.debug("CacheInvalidator: flushInvalidatedCacheEntries, BEGIN");
-
         if (requestShouldNotBeCached(req)) {
-            LOG.debug("CacheInvalidator: flushInvalidatedCacheEntries, Request should not be cached");
+            log.debug("Request should not be cached");
 
             try {
                 String theUri = uriExtractor.getURI(host, req);
 
                 CacheEntry parent = cache.getEntry(theUri);
 
-                LOG.debug("CacheInvalidator: flushInvalidatedCacheEntries: " + parent);
+                log.debug("parent entry: " + parent);
 
                 if (parent != null) {
                     for (String variantURI : parent.getVariantURIs()) {
@@ -86,9 +84,9 @@ public class CacheInvalidator {
                     }
                     cache.removeEntry(theUri);
                 }
-            } catch (HttpCacheOperationException coe) {
-                LOG.warn("Cache: Was unable to REMOVE an entry from the cache based on the uri provided.", coe);
-                // TODO: track failed state
+            } catch (HttpCacheOperationException ex) {
+                log.debug("Was unable to REMOVE an entry from the cache based on the uri provided",
+                        ex);
             }
         }
     }
