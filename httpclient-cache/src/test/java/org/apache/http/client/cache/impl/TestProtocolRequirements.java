@@ -2468,25 +2468,32 @@ public class TestProtocolRequirements {
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Via", "1.1 fred");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
-                        (HttpContext) EasyMock.isNull())).andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp1);
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host), 
+                                            eqRequest(validate), 
+                                            (HttpContext)EasyMock.isNull()))
+            .andReturn(resp2);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.eq(host), eqRequest(validate), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
 
         replayMocks();
 
         HttpResponse stale = impl.execute(host, req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        HttpResponse result = impl.execute(host, req2);
+        HttpResponse result1 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(host, req3);
 
         verifyMocks();
 
         boolean found1xxWarning = false;
-        for (Header h : result.getHeaders("Warning")) {
+        for (Header h : result1.getHeaders("Warning")) {
+            for (HeaderElement elt : h.getElements()) {
+                if (elt.getName().startsWith("1"))
+                    found1xxWarning = true;
+            }
+        }
+        for (Header h : result2.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 if (elt.getName().startsWith("1"))
                     found1xxWarning = true;
@@ -2526,9 +2533,9 @@ public class TestProtocolRequirements {
         resp2.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Via", "1.1 xproxy");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
-                        (HttpContext) EasyMock.isNull())).andReturn(resp1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        backendExpectsAnyRequest().andReturn(resp1);
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), eqRequest(validate), (HttpContext) EasyMock
@@ -2539,12 +2546,23 @@ public class TestProtocolRequirements {
         HttpResponse stale = impl.execute(host, req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        HttpResponse result = impl.execute(host, req2);
+        HttpResponse result1 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(host, req3);
 
         verifyMocks();
 
         boolean found214Warning = false;
-        for (Header h : result.getHeaders("Warning")) {
+        for (Header h : result1.getHeaders("Warning")) {
+            for (HeaderElement elt : h.getElements()) {
+                String[] parts = elt.getName().split(" ");
+                if ("214".equals(parts[0]))
+                    found214Warning = true;
+            }
+        }
+        Assert.assertTrue(found214Warning);
+
+        found214Warning = false;
+        for (Header h : result2.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 String[] parts = elt.getName().split(" ");
                 if ("214".equals(parts[0]))
@@ -3041,7 +3059,6 @@ public class TestProtocolRequirements {
     }
 
     private void testDoesNotAddHeaderToOriginResponse(String header) throws Exception {
-        originResponse = make200Response();
         originResponse.removeHeaders(header);
 
         backendExpectsAnyRequest().andReturn(originResponse);
@@ -3120,8 +3137,7 @@ public class TestProtocolRequirements {
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
         HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
 
-        originResponse = make200Response();
-        originResponse.setHeader("Cache-Control", "max-age=3600");
+        originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.removeHeaders(header);
 
         backendExpectsAnyRequest().andReturn(originResponse);
@@ -3154,7 +3170,493 @@ public class TestProtocolRequirements {
         testDoesNotAddHeaderOnCacheHit("Last-Modified");
     }
 
+    private void testDoesNotModifyHeaderOnRequest(String header, String value) throws Exception {
+        BasicHttpEntityEnclosingRequest req = 
+            new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+        req.setEntity(makeBody(128));
+        req.setHeader("Content-Length","128");
+        req.setHeader(header,value);
 
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+            .andReturn(originResponse);
+        
+        replayMocks();
+        impl.execute(host, req);
+        verifyMocks();
+        
+        HttpRequest captured = cap.getValue();
+        Assert.assertEquals(value, captured.getFirstHeader(header).getValue());
+    }
+
+    @Test
+    public void testDoesNotModifyContentLocationHeaderOnRequest() throws Exception {
+        String url = "http://foo.example.com/other";
+        testDoesNotModifyHeaderOnRequest("Content-Location",url);
+    }
+
+    @Test
+    public void testDoesNotModifyContentMD5HeaderOnRequest() throws Exception {
+        testDoesNotModifyHeaderOnRequest("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+    }
+    
+    @Test
+    public void testDoesNotModifyETagHeaderOnRequest() throws Exception {
+        testDoesNotModifyHeaderOnRequest("ETag","\"etag\"");
+    }
+
+    @Test
+    public void testDoesNotModifyLastModifiedHeaderOnRequest() throws Exception {
+        long tenSecondsAgo = System.currentTimeMillis() - 10 * 1000L;
+        String lm = DateUtils.formatDate(new Date(tenSecondsAgo));
+        testDoesNotModifyHeaderOnRequest("Last-Modified", lm);
+    }
+
+    private void testDoesNotAddHeaderToRequestIfNotPresent(String header) throws Exception {
+        BasicHttpEntityEnclosingRequest req = 
+            new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+        req.setEntity(makeBody(128));
+        req.setHeader("Content-Length","128");
+        req.removeHeaders(header);
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+            .andReturn(originResponse);
+        
+        replayMocks();
+        impl.execute(host, req);
+        verifyMocks();
+        
+        HttpRequest captured = cap.getValue();
+        Assert.assertNull(captured.getFirstHeader(header));
+    }
+
+    @Test
+    public void testDoesNotAddContentLocationToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Location");
+    }
+
+    @Test
+    public void testDoesNotAddContentMD5ToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-MD5");
+    }
+
+    @Test
+    public void testDoesNotAddETagToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("ETag");
+    }
+
+    @Test
+    public void testDoesNotAddLastModifiedToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Last-Modified");
+    }
+
+    /* " A transparent proxy MUST NOT modify any of the following
+     * fields in a response: - Expires
+     * but it MAY add any of these fields if not already present. If
+     * an Expires header is added, it MUST be given a field-value
+     * identical to that of the Date header in that response.
+     */
+    @Test
+    public void testDoesNotModifyExpiresHeaderFromOrigin() throws Exception {
+        long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
+        String expires = DateUtils.formatDate(new Date(inTenSeconds));
+        testDoesNotModifyHeaderFromOrigin("Expires", expires);
+    }
+
+    @Test
+    public void testDoesNotModifyExpiresHeaderFromOriginOnCacheHit() throws Exception {
+        long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
+        String expires = DateUtils.formatDate(new Date(inTenSeconds));
+        testDoesNotModifyHeaderFromOriginOnCacheHit("Expires", expires);
+    }
+
+    @Test
+    public void testExpiresHeaderMatchesDateIfAddedToOriginResponse() throws Exception {
+        originResponse.removeHeaders("Expires");
+        
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        Header expHdr = result.getFirstHeader("Expires");
+        if (expHdr != null) {
+            Assert.assertEquals(result.getFirstHeader("Date").getValue(),
+                                expHdr.getValue());
+        }
+    }
+
+    @Test
+    public void testExpiresHeaderMatchesDateIfAddedToCacheHit() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        originResponse.setHeader("Cache-Control","max-age=3600");
+        originResponse.removeHeaders("Expires");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Header expHdr = result.getFirstHeader("Expires");
+        if (expHdr != null) {
+            Assert.assertEquals(result.getFirstHeader("Date").getValue(),
+                                expHdr.getValue());
+        }
+    }
+
+    /* "A proxy MUST NOT modify or add any of the following fields in
+     * a message that contains the no-transform cache-control
+     * directive, or in any request: - Content-Encoding - Content-Range
+     * - Content-Type"
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.2
+     */
+    private void testDoesNotModifyHeaderFromOriginResponseWithNoTransform(String header, String value) throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        originResponse.setHeader(header, value);
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+    }
+
+    @Test
+    public void testDoesNotModifyContentEncodingHeaderFromOriginResponseWithNoTransform() throws Exception {
+        testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Encoding","gzip");
+    }
+
+    @Test
+    public void testDoesNotModifyContentRangeHeaderFromOriginResponseWithNoTransform() throws Exception {
+        request.setHeader("If-Range","\"etag\"");
+        request.setHeader("Range","bytes=0-49");
+
+        originResponse = new BasicHttpResponse(HTTP_1_1, 206, "Partial Content");
+        originResponse.setEntity(makeBody(50));
+        testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Range","bytes 0-49/128");
+    }
+
+    @Test
+    public void testDoesNotModifyContentTypeHeaderFromOriginResponseWithNoTransform() throws Exception {
+        testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Type","text/html;charset=utf-8");
+    }
+
+    private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(String header, String value) throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        originResponse.addHeader("Cache-Control","max-age=3600, no-transform");
+        originResponse.setHeader(header, value);
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+    }
+
+    @Test
+    public void testDoesNotModifyContentEncodingHeaderOnCachedResponseWithNoTransform() throws Exception {
+        testDoesNotModifyHeaderOnCachedResponseWithNoTransform("Content-Encoding","gzip");
+    }
+
+    @Test
+    public void testDoesNotModifyContentTypeHeaderOnCachedResponseWithNoTransform() throws Exception {
+        testDoesNotModifyHeaderOnCachedResponseWithNoTransform("Content-Type","text/html;charset=utf-8");
+    }
+
+    @Test
+    public void testDoesNotModifyContentRangeHeaderOnCachedResponseWithNoTransform() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("If-Range","\"etag\"");
+        req1.setHeader("Range","bytes=0-49");
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("If-Range","\"etag\"");
+        req2.setHeader("Range","bytes=0-49");
+
+        originResponse.addHeader("Cache-Control","max-age=3600, no-transform");
+        originResponse.setHeader("Content-Range", "bytes 0-49/128");
+
+        backendExpectsAnyRequest().andReturn(originResponse).times(1,2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals("bytes 0-49/128", 
+                            result.getFirstHeader("Content-Range").getValue());
+    }
+
+    @Test
+    public void testDoesNotAddContentEncodingHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderToOriginResponse("Content-Encoding");
+    }
+
+    @Test
+    public void testDoesNotAddContentRangeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderToOriginResponse("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotAddContentTypeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderToOriginResponse("Content-Type");
+    }
+
+    /* no add on cache hit with no-transform */
+    @Test
+    public void testDoesNotAddContentEncodingHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderOnCacheHit("Content-Encoding");
+    }
+
+    @Test
+    public void testDoesNotAddContentRangeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderOnCacheHit("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotAddContentTypeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+        originResponse.addHeader("Cache-Control","no-transform");
+        testDoesNotAddHeaderOnCacheHit("Content-Type");
+    }
+
+    /* no modify on request */
+    @Test
+    public void testDoesNotAddContentEncodingToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Encoding");
+    }
+    
+    @Test
+    public void testDoesNotAddContentRangeToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotAddContentTypeToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Type");
+    }
+
+    @Test
+    public void testDoesNotAddContentEncodingHeaderToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Encoding");
+    }
+
+    @Test
+    public void testDoesNotAddContentRangeHeaderToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotAddContentTypeHeaderToRequestIfNotPresent() throws Exception {
+        testDoesNotAddHeaderToRequestIfNotPresent("Content-Type");
+    }
+
+    /* "When a cache makes a validating request to a server, and the
+     * server provides a 304 (Not Modified) response or a 206 (Partial
+     * Content) response, the cache then constructs a response to send
+     * to the requesting client. 
+     *
+     * If the status code is 304 (Not Modified), the cache uses the
+     * entity-body stored in the cache entry as the entity-body of
+     * this outgoing response.
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.3
+     */
+    public void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("ETag","\"etag\"");
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Cache-Control","max-age=0, max-stale=0");
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        InputStream i1 = resp1.getEntity().getContent();
+        InputStream i2 = result.getEntity().getContent();
+        int b1, b2;
+        while((b1 = i1.read()) != -1) {
+            b2 = i2.read();
+            Assert.assertEquals(b1, b2);
+        }
+        b2 = i2.read();
+        Assert.assertEquals(-1, b2);
+        i1.close();
+        i2.close();
+    }
+
+    /* "The end-to-end headers stored in the cache entry are used for
+     * the constructed response, except that ...
+     *
+     * - any end-to-end headers provided in the 304 or 206 response MUST
+     *  replace the corresponding headers from the cache entry.
+     *
+     * Unless the cache decides to remove the cache entry, it MUST
+     * also replace the end-to-end headers stored with the cache entry
+     * with corresponding headers received in the incoming response,
+     * except for Warning headers as described immediately above."
+     */
+    private void decorateWithEndToEndHeaders(HttpResponse r) {
+        r.setHeader("Allow","GET");
+        r.setHeader("Content-Encoding","gzip");
+        r.setHeader("Content-Language","en");
+        r.setHeader("Content-Length", "128");
+        r.setHeader("Content-Location","http://foo.example.com/other");
+        r.setHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+        r.setHeader("Content-Type", "text/html;charset=utf-8");
+        r.setHeader("Expires", DateUtils.formatDate(new Date(System.currentTimeMillis() + 10 * 1000L)));
+        r.setHeader("Last-Modified", DateUtils.formatDate(new Date(System.currentTimeMillis() - 10 * 1000L)));
+        r.setHeader("Location", "http://foo.example.com/other2");
+        r.setHeader("Pragma", "x-pragma");
+        r.setHeader("Retry-After","180");
+    }
+
+    @Test
+    public void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("ETag","\"etag\"");
+        decorateWithEndToEndHeaders(resp1);
+        
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Server", "MockServer/1.0");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        String[] endToEndHeaders = { 
+            "Cache-Control", "ETag", "Allow", "Content-Encoding", 
+            "Content-Language", "Content-Length", "Content-Location",
+            "Content-MD5", "Content-Type", "Expires", "Last-Modified",
+            "Location", "Pragma", "Retry-After"
+        };
+        for(String h : endToEndHeaders) {
+            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
+                                HttpTestUtils.getCanonicalHeaderValue(result, h));
+        }
+    }
+
+    @Test
+    public void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("ETag","\"etag\"");
+        decorateWithEndToEndHeaders(resp1);
+        
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Cache-Control", "max-age=1800");
+        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Server", "MockServer/1.0");
+        resp2.setHeader("Allow", "GET,HEAD");
+        resp2.setHeader("Content-Language", "en,en-us");
+        resp2.setHeader("Content-Location", "http://foo.example.com/new");
+        resp2.setHeader("Content-Type","text/html");
+        resp2.setHeader("Expires", DateUtils.formatDate(new Date(System.currentTimeMillis() + 5 * 1000L)));
+        resp2.setHeader("Location", "http://foo.example.com/new2");
+        resp2.setHeader("Pragma","x-new-pragma");
+        resp2.setHeader("Retry-After","120");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result1 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(host, req3);
+        verifyMocks();
+
+        String[] endToEndHeaders = { 
+            "Date", "Cache-Control", "Allow", "Content-Language",
+            "Content-Location", "Content-Type", "Expires", "Location", 
+            "Pragma", "Retry-After"
+        };
+        for(String h : endToEndHeaders) {
+            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+                                HttpTestUtils.getCanonicalHeaderValue(result1, h));
+            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+                                HttpTestUtils.getCanonicalHeaderValue(result2, h));
+        }
+    }
+
+    /* "If a header field-name in the incoming response matches more
+     * than one header in the cache entry, all such old headers MUST
+     * be replaced."
+     */
+    @Test
+    public void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.addHeader("Cache-Control","max-age=3600");
+        resp1.addHeader("Cache-Control","public");
+        resp1.setHeader("ETag","\"etag\"");
+        
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Cache-Control", "max-age=1800");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result1 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(host, req3);
+        verifyMocks();
+
+        final String h = "Cache-Control";
+        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+                            HttpTestUtils.getCanonicalHeaderValue(result1, h));
+        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+                            HttpTestUtils.getCanonicalHeaderValue(result2, h));
+    }
 
     private class FakeHeaderGroup extends HeaderGroup{
 
