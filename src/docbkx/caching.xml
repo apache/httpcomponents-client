@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!--
+    ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+    ====================================================================
+-->
+<chapter id="caching">
+  <title>HTTP Caching</title>
+
+  <section id="generalconcepts">
+    <title>General Concepts</title>
+
+    <para>HttpClient Cache provides an HTTP 1.1 compliant caching layer to be
+    used with HttpClient. It is implemented as a decorator of HttpClient. It
+    provides basic HTTP 1.1 caching capability. You can specify a limit on the
+    maximum cacheable object size to have some control over the size of your
+    cache.</para>
+
+    <para>When CachingHttpClient executes a request, it goes through the
+    following flow:</para>
+
+    <orderedlist>
+      <listitem>
+        <para>Check the request for basic compliance with the HTTP 1.1
+        protocol and attempt to correct the request.</para>
+      </listitem>
+
+      <listitem>
+        <para>Flush any cache entries which would be invalidated by this
+        request.</para>
+      </listitem>
+
+      <listitem>
+        <para>Determine if the current request would be servable from cache.
+        If not, directly pass through the request to the origin server and
+        return the response, after caching it if appropriate.</para>
+      </listitem>
+
+      <listitem>
+        <para>If it was a a cache-servable request, it will attempt to read it
+        from the cache. If it is not in the cache, call the origin server and
+        cache the response, if appropriate.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the cached response is suitable to be served as a response,
+        construct a BasicHttpResponse containing a ByteArrayEntity and return
+        it. Otherwise, attempt to revalidate the cache entry against the
+        origin server.</para>
+      </listitem>
+
+      <listitem>
+        <para>In the case of a cached response which cannot be revalidated,
+        call the origin server and cache the response, if appropriate.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>When CachingHttpClient receives a response, it goes through the
+    following flow:</para>
+
+    <orderedlist>
+      <listitem>
+        <para>Examing the response for protocol compliance</para>
+      </listitem>
+
+      <listitem>
+        <para>Determine whether the response is cacheable</para>
+      </listitem>
+
+      <listitem>
+        <para>If it is cacheable, attempt to read up to the maximum size
+        allowed in the configuration and store it in the cache.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the response is too large for the cache, reconstruct the
+        partially consumed response and return it directly without caching
+        it.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>It is important to note that CachingHttpClient is not, itself, an
+    implementation of HttpClient, but that it decorates an instance of an
+    HttpClient implementation. If you do not provide an implementation, it
+    will use DefaultHttpClient internally by default.</para>
+  </section>
+
+  <section id="rfc2616compliance">
+    <title>RFC-2616 Compliance</title>
+
+    <para>HttpClient Cache makes an effort to be at least conditionally
+    compliant with <ulink
+    url="http://www.ietf.org/rfc/rfc2616.txt">RFC-2616</ulink>. That is,
+    wherever the specification indicates MUST or MUST NOT for HTTP caches, the
+    caching layer attempts to behave in a way that satisfies those
+    requirements.</para>
+  </section>
+
+  <section>
+    <title>Cache Implementation</title>
+
+    <para>The provided implementation for an HttpCache&lt;T&gt; is called
+    BasicHttpCache. It uses an in-memory LinkedHashMap to provide basic
+    least-recently-used (LRU) functionality. Because we provide the
+    HttpCache&lt;T&gt; interface, other implementations of caching may be
+    used, e.g. EHCache, memcached, etc.</para>
+  </section>
+
+  <section>
+    <title>Example Usage</title>
+
+    <para>This is a simple example of how to set up a basic CachingHttpClient.
+    As configured, it will store a maximum of 1000 cached objects, each of
+    which may have a maximum body size of 8192 bytes. The numbers selected
+    here are for example only and not intended to be prescriptive or
+    considered as recommendations.</para>
+
+    <programlisting>
+HttpClient client = new DefaultHttpClient();
+int maxCacheEntries = 1000;
+int maxCacheEntrySizeBytes = 8192;
+HttpCache&lt;CacheEntry&gt; cache = new
+BasicHttpCache(maxCacheEntries);
+HttpClient cachingClient = new CachingHttpClient(client, cache, maxCacheEntrySizeBytes);
+</programlisting>
+  </section>
+</chapter>
