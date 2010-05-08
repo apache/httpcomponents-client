@@ -25,7 +25,7 @@
     
     <bookinfo>
         <title>HttpClient Tutorial</title>
-        <releaseinfo></releaseinfo>
+        <releaseinfo>&version;</releaseinfo>
 
         <authorgroup>
             <author>
