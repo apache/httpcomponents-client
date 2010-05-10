@@ -64,24 +64,35 @@ HttpClient Downloads
   </dependency>
 -------------------------
 
-* {HttpComponents Client 4.1-alpha1 (development branch)}
+* {HttpComponents Client 4.1-alpha2 (development branch)}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.1-alpha1</version>
+    <version>4.1-alpha2</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime 4.1-alpha1 (development branch)}
+* {HttpComponents HttpMime 4.1-alpha2 (development branch)}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
     <version>4.1-alpha1</version>
+    <scope>compile</scope>
+  </dependency>
+-------------------------
+
+* {HttpComponents HttpClient Cache 4.1-alpha2 (development branch)}
+
+-------------------------
+  <dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient-cache</artifactId>
+    <version>4.1-alpha2</version>
     <scope>compile</scope>
   </dependency>
 -------------------------

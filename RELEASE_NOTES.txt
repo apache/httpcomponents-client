@@ -1,5 +1,27 @@
 Release 4.1 ALPHA2
 -------------------
+
+HttpClient 4.1 ALPHA2 fixes a number of non-severe bugs discovered since 
+the last release and introduces support for two frequently requested features:
+
+* a mechanism to bypass the standard certificate trust verification 
+(useful when dealing with self-signed certificates)
+
+* HTTP/1.1 response caching.
+
+Compatibility notes
+-------------------
+(1) Please note the HTTP caching module is still considered experimental and 
+its API may change significantly in the future releases.
+
+(2) This release eliminates Mime4J as a dependency for the HttpMime module. 
+HttpMime is no longer binary compatible with the previous releases. 
+Full API and binary compatibility between minor versions of HttpMime will be
+maintained as of 4.1 GA release.
+
+Changelog
+-------------------
+
 * [HTTPCLIENT-427] HTTP caching support
   Contributed by Joe Campbell, David Cleaver, David Mays, Jon Moore, Brad Spenla
 

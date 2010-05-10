@@ -66,6 +66,8 @@ HttpClient Overview
 
     * Basic, Digest authentication schemes. Please note NTLM is supported only partially.
 
+    * Experimental support for SPNEGO Kerberos authentication scheme.
+
     * Plug-in mechanism for custom authentication schemes.
 
     * Pluggable secure socket factories, making it easier to use third party solutions
@@ -90,6 +92,8 @@ HttpClient Overview
     * Direct access to the response code and headers sent by the server.
 
     * The ability to set connection timeouts.
+
+    * Experimental support for HTTP/1.1 response caching.
 
     * Source code is freely available under the Apache License.
 
