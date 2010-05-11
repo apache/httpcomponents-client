@@ -26,7 +26,6 @@
  */
 package org.apache.http.client.cache.impl;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.apache.http.HttpEntity;
@@ -41,7 +40,7 @@ import org.junit.Test;
 public class TestCacheEntryGenerator {
 
     @Test
-    public void testEntryMatchesInputs() throws IOException {
+    public void testEntryMatchesInputs() {
 
         CacheEntryGenerator gen = new CacheEntryGenerator();
 

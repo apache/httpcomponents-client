@@ -1088,8 +1088,7 @@ public class TestCachingHttpClient {
         mockCache.putEntry(theURI, entry);
     }
 
-    private void generateCacheEntry(Date requestDate, Date responseDate, byte[] bytes)
-            throws IOException {
+    private void generateCacheEntry(Date requestDate, Date responseDate, byte[] bytes) {
         org.easymock.EasyMock.expect(
                 mockEntryGenerator.generateEntry(requestDate, responseDate, mockBackendResponse,
                                                  bytes)).andReturn(mockCacheEntry);
