@@ -69,8 +69,8 @@ public class TestProtocolDeviations {
 
     private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
-    private static int MAX_BYTES = 1024;
-    private static int MAX_ENTRIES = 100;
+    private static final int MAX_BYTES = 1024;
+    private static final int MAX_ENTRIES = 100;
     private int entityLength = 128;
 
     private HttpHost host;

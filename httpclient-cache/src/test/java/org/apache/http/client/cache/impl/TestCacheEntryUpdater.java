@@ -47,7 +47,7 @@ import org.junit.Test;
 public class TestCacheEntryUpdater {
 
 
-    private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
+    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
 
     private HttpResponse mockResponse;

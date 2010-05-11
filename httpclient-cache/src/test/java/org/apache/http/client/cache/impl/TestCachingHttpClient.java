@@ -67,7 +67,7 @@ import org.junit.Test;
 
 public class TestCachingHttpClient {
 
-    private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP",1,1);
+    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP",1,1);
 
     private static final String GET_CURRENT_DATE = "getCurrentDate";
 
