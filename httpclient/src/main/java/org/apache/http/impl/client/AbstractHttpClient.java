@@ -47,6 +47,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.ResponseHandler;
@@ -153,6 +154,7 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
  * @since 4.0
  */
 @ThreadSafe
+@SuppressWarnings("deprecation")
 public abstract class AbstractHttpClient implements HttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -269,7 +271,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     @Deprecated
-    protected abstract org.apache.http.client.RedirectHandler createRedirectHandler();
+    protected abstract RedirectHandler createRedirectHandler();
 
 
     protected abstract AuthenticationHandler createTargetAuthenticationHandler();
@@ -391,7 +393,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     @Deprecated
-    public synchronized final org.apache.http.client.RedirectHandler getRedirectHandler() {
+    public synchronized final RedirectHandler getRedirectHandler() {
         return createRedirectHandler();
     }
 
@@ -404,10 +406,9 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @since 4.1
      */
-    @SuppressWarnings("deprecation")
     public synchronized final RedirectStrategy getRedirectStrategy() {
         if (redirectStrategy == null) {
-            redirectStrategy = new DefaultRedirectStrategyAdaptor(createRedirectHandler());
+            redirectStrategy = new DefaultRedirectStrategy();
         }
         return redirectStrategy;
     }

@@ -76,11 +76,14 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         }
 
         int statusCode = response.getStatusLine().getStatusCode();
+        String method = request.getRequestLine().getMethod();
+        Header locationHeader = response.getFirstHeader("location");
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
+            return (method.equalsIgnoreCase(HttpGet.METHOD_NAME)
+                || method.equalsIgnoreCase(HttpHead.METHOD_NAME)) && locationHeader != null;
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
-            String method = request.getRequestLine().getMethod();
             return method.equalsIgnoreCase(HttpGet.METHOD_NAME)
                 || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
         case HttpStatus.SC_SEE_OTHER:

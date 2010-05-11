@@ -304,6 +304,44 @@ public class TestRedirects extends BasicServerTestBase {
     }
 
     @Test
+    public void testBasicRedirect302NoLocation() throws Exception {
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        int port = address.getPort();
+        String host = address.getHostName();
+        this.localServer.register("*", new HttpRequestHandler() {
+
+            public void handle(
+                    final HttpRequest request, 
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+            }
+            
+        });
+
+        DefaultHttpClient client = new DefaultHttpClient();
+        HttpContext context = new BasicHttpContext();
+
+        HttpGet httpget = new HttpGet("/oldlocation/");
+
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpEntity e = response.getEntity();
+        if (e != null) {
+            e.consumeContent();
+        }
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+        HttpHost targetHost = (HttpHost) context.getAttribute(
+                ExecutionContext.HTTP_TARGET_HOST);
+
+        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, targetHost.getHostName());
+        Assert.assertEquals(port, targetHost.getPort());
+    }
+
+    @Test
     public void testBasicRedirect303() throws Exception {
         InetSocketAddress address = this.localServer.getServiceAddress();
         int port = address.getPort();
