@@ -204,11 +204,11 @@ public class TestMultipartForm {
         tmpfile.delete();
     }
 
-    static final int SWISS_GERMAN_HELLO [] = {
+    private static final int SWISS_GERMAN_HELLO [] = {
         0x47, 0x72, 0xFC, 0x65, 0x7A, 0x69, 0x5F, 0x7A, 0xE4, 0x6D, 0xE4
     };
 
-    static final int RUSSIAN_HELLO [] = {
+    private static final int RUSSIAN_HELLO [] = {
         0x412, 0x441, 0x435, 0x43C, 0x5F, 0x43F, 0x440, 0x438,
         0x432, 0x435, 0x442
     };
