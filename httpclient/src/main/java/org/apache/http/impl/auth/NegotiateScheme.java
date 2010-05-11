@@ -78,7 +78,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
     private int state;
 
     /** base64 decoded challenge **/
-    byte[] token = new byte[0];
+    private byte[] token;
 
     private Oid negotiationOid = null;
 
@@ -126,6 +126,10 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
         return authenticate(credentials, request, null);
+    }
+
+    protected GSSManager getManager() {
+        return GSSManager.getInstance();
     }
 
     /**
@@ -193,7 +197,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
 
             boolean tryKerberos = false;
             try {
-                GSSManager manager = GSSManager.getInstance();
+                GSSManager manager = getManager();
                 GSSName serverName = manager.createName("HTTP/" + authServer, null);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
@@ -215,7 +219,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
                 /* Kerberos v5 GSS-API mechanism defined in RFC 1964.*/
                 log.debug("Using Kerberos MECH " + KERBEROS_OID);
                 negotiationOid  = new Oid(KERBEROS_OID);
-                GSSManager manager = GSSManager.getInstance();
+                GSSManager manager = getManager();
                 GSSName serverName = manager.createName("HTTP/" + authServer, null);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
@@ -225,12 +229,18 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             }
             state = INITIATED;
 
+            if (token == null) {
+                token = new byte[0];                
+            }
             // HTTP 1.1 issue:
             // Mutual auth will never complete to do 200 instead of 401 in
             // return from server. "state" will never reach ESTABLISHED
             // but it works anyway
 
             token = gssContext.initSecContext(token, 0, token.length);
+            if (token == null) {
+                throw new AuthenticationException("Failed to initialize security context");
+            }
 
             /*
              * IIS accepts Kerberos and SPNEGO tokens. Some other servers Jboss, Glassfish?
@@ -261,7 +271,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             throw new AuthenticationException(ex.getMessage());
         }
         return new BasicHeader("Authorization", "Negotiate " +
-                new String(new Base64().encode(token)) );
+                new String(Base64.encodeBase64(token, false)) );
     }
 
 
