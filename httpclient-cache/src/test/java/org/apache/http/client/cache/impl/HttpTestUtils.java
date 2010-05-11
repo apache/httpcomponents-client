@@ -43,7 +43,7 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.1
      */
-    public static String[] HOP_BY_HOP_HEADERS = { "Connection", "Keep-Alive", "Proxy-Authenticate",
+    private static final String[] HOP_BY_HOP_HEADERS = { "Connection", "Keep-Alive", "Proxy-Authenticate",
             "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade" };
 
     /*
@@ -53,11 +53,11 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
-    public static String[] MULTI_HEADERS = { "Accept", "Accept-Charset", "Accept-Encoding",
+    private static final String[] MULTI_HEADERS = { "Accept", "Accept-Charset", "Accept-Encoding",
             "Accept-Language", "Allow", "Cache-Control", "Connection", "Content-Encoding",
             "Content-Language", "Expect", "Pragma", "Proxy-Authenticate", "TE", "Trailer",
             "Transfer-Encoding", "Upgrade", "Via", "Warning", "WWW-Authenticate" };
-    public static String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
+    private static final String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
             "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
             "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
             "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
