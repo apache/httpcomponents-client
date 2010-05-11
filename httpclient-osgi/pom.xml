@@ -65,11 +65,6 @@
       <artifactId>httpmime</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.james</groupId>
-      <artifactId>apache-mime4j</artifactId>
-      <version>${mime4j.version}</version>
-    </dependency>
   </dependencies>
 
   <properties>
