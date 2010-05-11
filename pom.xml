@@ -71,7 +71,6 @@
     <httpcore.version>4.1-beta1</httpcore.version>
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-codec.version>1.4</commons-codec.version>
-    <mime4j.version>0.6</mime4j.version>
     <junit.version>4.8.1</junit.version>
     <easymock.version>2.5.2</easymock.version>
   </properties>
@@ -103,7 +102,6 @@
           <links>
             <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core/httpcore/apidocs/</link>
-            <link>http://james.apache.org/mime4j/apidocs/</link>
           </links>
         </configuration>
       </plugin>
