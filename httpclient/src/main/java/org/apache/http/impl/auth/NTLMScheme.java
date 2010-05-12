@@ -99,8 +99,9 @@ public class NTLMScheme extends AuthSchemeBase {
 
     @Override
     protected void parseChallenge(
-            final CharArrayBuffer buffer, int pos, int len) throws MalformedChallengeException {
-        String challenge = buffer.substringTrimmed(pos, len);
+            final CharArrayBuffer buffer, 
+            int beginIndex, int endIndex) throws MalformedChallengeException {
+        String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (challenge.length() == 0) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;

@@ -22,6 +22,10 @@ maintained as of 4.1 GA release.
 Changelog
 -------------------
 
+* [HTTPCLIENT-936] Fixed bug causing NPE or an infinite loop in 
+  the authentication code in case of a SPNEGO authentication failure. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-427] HTTP caching support
   Contributed by Joe Campbell, David Cleaver, David Mays, Jon Moore, Brad Spenla
 

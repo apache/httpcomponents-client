@@ -26,8 +26,6 @@
  */
 package org.apache.http.client.cache.impl;
 
-import static junit.framework.Assert.assertFalse;
-
 import java.util.Date;
 import java.util.Set;
 
@@ -376,8 +374,7 @@ public class TestCacheEntry {
                 new BasicHeader("Cache-Control", "public") };
 
         CacheEntry entry = getEntry(headers);
-
-        assertFalse(entry.isRevalidatable());
+        Assert.assertFalse(entry.isRevalidatable());
     }
 
 

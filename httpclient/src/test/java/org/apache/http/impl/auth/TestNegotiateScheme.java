@@ -26,17 +26,17 @@
  */
 package org.apache.http.impl.auth;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
 import java.io.IOException;
 import java.security.Principal;
+
+import junit.framework.Assert;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -44,8 +44,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.auth.NegotiateScheme;
-import org.apache.http.impl.auth.NegotiateSchemeFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
@@ -59,8 +57,9 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link NegotiateScheme}.
@@ -79,13 +78,15 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      * This service will continue to ask for authentication.
      */
     private static class PleaseNegotiateService implements HttpRequestHandler {
-        public void handle(final HttpRequest request,
+
+        public void handle(
+                final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(401);
+            response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             response.addHeader(new BasicHeader("WWW-Authenticate", "Negotiate blablabla"));
-            response.setEntity(new StringEntity("auth required "));
             response.addHeader(new BasicHeader("Connection", "Keep-Alive"));
+            response.setEntity(new StringEntity("auth required "));
         }
     }
 
@@ -96,29 +97,34 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      *
      */
     private static class NegotiateSchemeWithMockGssManager extends NegotiateScheme {
-        GSSManager manager = mock(GSSManager.class);
-        GSSName name = mock(GSSName.class);
-        GSSContext context = mock(GSSContext.class);
+        
+        GSSManager manager = Mockito.mock(GSSManager.class);
+        GSSName name = Mockito.mock(GSSName.class);
+        GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(null, true);
-
-            when(context.initSecContext(any(byte[].class), anyInt(), anyInt()))
-                .thenReturn("12345678".getBytes());
-            when(manager.createName(any(String.class), any(Oid.class)))
-                .thenReturn(name);
-            when(manager.createContext(any(GSSName.class), any(Oid.class), any(GSSCredential.class), anyInt()))
-                .thenReturn(context);
-
+            Mockito.when(context.initSecContext(
+                    Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt()))
+                    .thenReturn("12345678".getBytes());
+            Mockito.when(manager.createName(
+                    Matchers.any(String.class), Matchers.any(Oid.class)))
+                    .thenReturn(name);
+            Mockito.when(manager.createContext(
+                    Matchers.any(GSSName.class), Matchers.any(Oid.class), 
+                    Matchers.any(GSSCredential.class), Matchers.anyInt()))
+                    .thenReturn(context);
         }
 
         @Override
         protected GSSManager getManager() {
             return manager;
         }
+        
     }
 
     private static class UseJaasCredentials implements Credentials {
+        
         public String getPassword() {
             return null;
         }
@@ -126,17 +132,22 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         public Principal getUserPrincipal() {
             return null;
         }
+        
     }
 
     private static class NegotiateSchemeFactoryWithMockGssManager extends NegotiateSchemeFactory {
+        
         NegotiateSchemeWithMockGssManager scheme;
+        
         NegotiateSchemeFactoryWithMockGssManager() throws Exception {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
+        
         @Override
         public AuthScheme newInstance(HttpParams params) {
             return scheme;
         }
+        
     }
 
     /**
@@ -144,7 +155,6 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      * the server still keep asking for a valid ticket.
      */
     @Test
-    @Ignore
     public void testDontTryToAuthenticateEndlessly() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new PleaseNegotiateService());
@@ -163,25 +173,26 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = client.execute(httpget);
         HttpEntity e = response.getEntity();
-        e.consumeContent();
+        if (e != null) {
+            e.consumeContent();
+        }
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
-
 
     /**
      * Javadoc specifies that {@link GSSContext#initSecContext(byte[], int, int)} can return null
      * if no token is generated. Client should be able to deal with this response.
-     *
      */
     @Test
-    @Ignore
-    public void testNoTokenGeneratedGenerateAnError() throws Exception {
+    public void testNoTokenGeneratedError() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new PleaseNegotiateService());
 
         HttpHost target = new HttpHost("localhost", port);
         DefaultHttpClient client = new DefaultHttpClient();
         NegotiateSchemeFactoryWithMockGssManager nsf = new NegotiateSchemeFactoryWithMockGssManager();
-        when(nsf.scheme.context.initSecContext(any(byte[].class), anyInt(), anyInt())).thenReturn(null);
+        Mockito.when(nsf.scheme.context.initSecContext(
+                Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt())).thenReturn(null);
         client.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new UseJaasCredentials();
@@ -193,7 +204,10 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = client.execute(httpget);
         HttpEntity e = response.getEntity();
-        e.consumeContent();
+        if (e != null) {
+            e.consumeContent();
+        }
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
 }

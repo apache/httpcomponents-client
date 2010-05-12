@@ -79,6 +79,17 @@ public class HttpTestUtils {
     }
 
     /*
+     * Determines whether a given header name may appear multiple times.
+     */
+    public static boolean isMultiHeader(String name) {
+        for (String s : MULTI_HEADERS) {
+            if (s.equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
+    }
+
+    /*
      * Determines whether a given header name may only appear once in a message.
      */
     public static boolean isSingleHeader(String name) {
@@ -88,7 +99,6 @@ public class HttpTestUtils {
         }
         return false;
     }
-
     /*
      * Assert.asserts that two request or response bodies are byte-equivalent.
      */

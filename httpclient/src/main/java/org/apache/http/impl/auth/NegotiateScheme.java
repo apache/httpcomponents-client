@@ -33,15 +33,14 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.CharArrayBuffer;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
@@ -54,15 +53,17 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.1
  */
-public class NegotiateScheme implements ContextAwareAuthScheme {
+public class NegotiateScheme extends AuthSchemeBase {
 
-    private static final int UNINITIATED         = 0;
-    private static final int INITIATED           = 1;
-    private static final int NEGOTIATING         = 3;
-    private static final int ESTABLISHED         = 4;
-    private static final int FAILED              = Integer.MAX_VALUE;
-    private static final String SPNEGO_OID        = "1.3.6.1.5.5.2";
-    private static final String KERBEROS_OID        = "1.2.840.113554.1.2.2";
+    enum State {
+        UNINITIATED,
+        CHALLENGE_RECEIVED,
+        TOKEN_GENERATED,
+        FAILED,
+    }
+    
+    private static final String SPNEGO_OID       = "1.3.6.1.5.5.2";
+    private static final String KERBEROS_OID     = "1.2.840.113554.1.2.2";
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -70,12 +71,10 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
 
     private final boolean stripPort;
 
-    private boolean proxy;
-
     private GSSContext gssContext = null;
 
     /** Authentication process state */
-    private int state;
+    private State state;
 
     /** base64 decoded challenge **/
     private byte[] token;
@@ -88,7 +87,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
      */
     public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
         super();
-        this.state = UNINITIATED;
+        this.state = State.UNINITIATED;
         this.spengoGenerator = spengoGenerator;
         this.stripPort = stripPort;
     }
@@ -109,7 +108,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
      *
      */
     public boolean isComplete() {
-        return this.state == ESTABLISHED || this.state == FAILED;
+        return this.state == State.TOKEN_GENERATED || this.state == State.FAILED;
     }
 
     /**
@@ -152,7 +151,7 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
-        if (state == UNINITIATED) {
+        if (state != State.CHALLENGE_RECEIVED) {
             throw new IllegalStateException(
                     "Negotiation authentication process has not been initiated");
         }
@@ -227,19 +226,13 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
                 gssContext.requestMutualAuth(true);
                 gssContext.requestCredDeleg(true);
             }
-            state = INITIATED;
-
             if (token == null) {
                 token = new byte[0];                
             }
-            // HTTP 1.1 issue:
-            // Mutual auth will never complete to do 200 instead of 401 in
-            // return from server. "state" will never reach ESTABLISHED
-            // but it works anyway
-
             token = gssContext.initSecContext(token, 0, token.length);
             if (token == null) {
-                throw new AuthenticationException("Failed to initialize security context");
+                state = State.FAILED;
+                throw new AuthenticationException("GSS security context initialization failed");
             }
 
             /*
@@ -250,11 +243,14 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
                 token = spengoGenerator.generateSpnegoDERObject(token);
             }
 
+            state = State.TOKEN_GENERATED;
+            String tokenstr = new String(Base64.encodeBase64(token, false));
             if (log.isDebugEnabled()) {
-                log.debug("got token, sending " + token.length + " bytes to server");
+                log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
+            return new BasicHeader("Authorization", "Negotiate " + tokenstr);
         } catch (GSSException gsse) {
-            state = FAILED;
+            state = State.FAILED;
             if (gsse.getMajor() == GSSException.DEFECTIVE_CREDENTIAL
                     || gsse.getMajor() == GSSException.CREDENTIALS_EXPIRED)
                 throw new InvalidCredentialsException(gsse.getMessage(), gsse);
@@ -267,11 +263,9 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
             // other error
             throw new AuthenticationException(gsse.getMessage());
         } catch (IOException ex){
-            state = FAILED;
+            state = State.FAILED;
             throw new AuthenticationException(ex.getMessage());
         }
-        return new BasicHeader("Authorization", "Negotiate " +
-                new String(Base64.encodeBase64(token, false)) );
     }
 
 
@@ -312,41 +306,21 @@ public class NegotiateScheme implements ContextAwareAuthScheme {
         return true;
     }
 
-    /**
-     * Processes the Negotiate challenge.
-     *
-     */
-    public void processChallenge(final Header header) throws MalformedChallengeException {
+    @Override
+    protected void parseChallenge(
+            final CharArrayBuffer buffer, 
+            int beginIndex, int endIndex) throws MalformedChallengeException {
+        String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (log.isDebugEnabled()) {
-            log.debug("Challenge header: " + header);
+            log.debug("Received challenge '" + challenge + "' from the auth server");
         }
-        String authheader = header.getName();
-        String challenge = header.getValue();
-        if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
-            this.proxy = false;
-        } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
-            this.proxy = true;
+        if (state == State.UNINITIATED) {
+            token = new Base64().decode(challenge.getBytes());
+            state = State.CHALLENGE_RECEIVED;
         } else {
-            throw new MalformedChallengeException("Unexpected header name: " + authheader);
-        }
-
-        if (challenge.startsWith("Negotiate")) {
-            if(isComplete() == false)
-                state = NEGOTIATING;
-
-            if (challenge.startsWith("Negotiate ")){
-                token = new Base64().decode(challenge.substring(10).getBytes());
-                if (log.isDebugEnabled()) {
-                    log.debug("challenge = " + challenge.substring(10));
-                }
-            } else {
-                token = new byte[0];
-            }
+            log.debug("Authentication already attempted");
+            state = State.FAILED;
         }
     }
-
-    public boolean isProxy() {
-        return this.proxy;
-    }
-
+    
 }

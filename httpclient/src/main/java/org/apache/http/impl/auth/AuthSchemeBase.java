@@ -125,7 +125,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     }
 
     protected abstract void parseChallenge(
-            CharArrayBuffer buffer, int pos, int len) throws MalformedChallengeException;
+            CharArrayBuffer buffer, int beginIndex, int endIndex) throws MalformedChallengeException;
 
     /**
      * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
