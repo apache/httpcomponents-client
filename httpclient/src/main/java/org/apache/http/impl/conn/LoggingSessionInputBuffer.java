@@ -50,7 +50,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
     /** The wire log to use for writing. */
     private final Wire wire;
 
-    private String charset;
+    private final String charset;
 
     /**
      * Create an instance that wraps the specified session input buffer.

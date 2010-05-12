@@ -50,7 +50,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
     /** The wire log to use. */
     private final Wire wire;
 
-    private String charset;
+    private final String charset;
 
     /**
      * Create an instance that wraps the specified session output buffer.
