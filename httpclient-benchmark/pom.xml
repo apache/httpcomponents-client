@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.1-alpha2-SNAPSHOT</version>
+    <version>4.1-alpha2</version>
   </parent>
   <artifactId>httpclient-benchmark</artifactId>
   <name>HttpClient Benchmarks</name>
@@ -53,21 +53,19 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>4.1-alpha2-SNAPSHOT</version>
+      <version>4.1-beta1</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

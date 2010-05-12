@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.1-alpha2-SNAPSHOT</version>
+    <version>4.1-alpha2</version>
   </parent>
   <artifactId>httpmime</artifactId>
   <name>HttpMime</name>
@@ -53,11 +53,13 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
       <version>${httpcore.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
       <version>${commons-logging.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
