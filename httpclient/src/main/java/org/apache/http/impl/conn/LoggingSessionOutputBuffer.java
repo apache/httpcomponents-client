@@ -32,6 +32,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionOutputBuffer;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -49,15 +50,24 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
     /** The wire log to use. */
     private final Wire wire;
 
+    private String charset;
+
     /**
      * Create an instance that wraps the specified session output buffer.
      * @param out The session output buffer.
      * @param wire The Wire log to use.
+     * @param charset protocol charset, <code>ASCII</code> if <code>null</code>
      */
-    public LoggingSessionOutputBuffer(final SessionOutputBuffer out, final Wire wire) {
+    public LoggingSessionOutputBuffer(
+            final SessionOutputBuffer out, final Wire wire, final String charset) {
         super();
         this.out = out;
         this.wire = wire;
+        this.charset = charset != null ? charset : HTTP.ASCII;
+    }
+
+    public LoggingSessionOutputBuffer(final SessionOutputBuffer out, final Wire wire) {
+        this(out, wire, null);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
@@ -89,14 +99,16 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         this.out.writeLine(buffer);
         if (this.wire.enabled()) {
             String s = new String(buffer.buffer(), 0, buffer.length());
-            this.wire.output(s + "[EOL]");
+            String tmp = s + "\r\n";
+            this.wire.output(tmp.getBytes(this.charset));
         }
     }
 
     public void writeLine(final String s) throws IOException {
         this.out.writeLine(s);
         if (this.wire.enabled()) {
-            this.wire.output(s + "[EOL]");
+            String tmp = s + "\r\n";
+            this.wire.output(tmp.getBytes(this.charset));
         }
     }
 

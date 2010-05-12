@@ -32,6 +32,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionInputBuffer;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -49,15 +50,24 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
     /** The wire log to use for writing. */
     private final Wire wire;
 
+    private String charset;
+
     /**
      * Create an instance that wraps the specified session input buffer.
      * @param in The session input buffer.
      * @param wire The wire log to use.
+     * @param charset protocol charset, <code>ASCII</code> if <code>null</code>
      */
-    public LoggingSessionInputBuffer(final SessionInputBuffer in, final Wire wire) {
+    public LoggingSessionInputBuffer(
+            final SessionInputBuffer in, final Wire wire, final String charset) {
         super();
         this.in = in;
         this.wire = wire;
+        this.charset = charset != null ? charset : HTTP.ASCII;
+    }
+
+    public LoggingSessionInputBuffer(final SessionInputBuffer in, final Wire wire) {
+        this(in, wire, null);
     }
 
     public boolean isDataAvailable(int timeout) throws IOException {
@@ -91,7 +101,8 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
     public String readLine() throws IOException {
         String s = this.in.readLine();
         if (this.wire.enabled() && s != null) {
-            this.wire.input(s + "[EOL]");
+            String tmp = s + "\r\n";
+            this.wire.input(tmp.getBytes(this.charset));
         }
         return s;
     }
@@ -101,7 +112,8 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
         if (this.wire.enabled() && l >= 0) {
             int pos = buffer.length() - l;
             String s = new String(buffer.buffer(), pos, l);
-            this.wire.input(s + "[EOL]");
+            String tmp = s + "\r\n";
+            this.wire.input(tmp.getBytes(this.charset));
         }
         return l;
     }

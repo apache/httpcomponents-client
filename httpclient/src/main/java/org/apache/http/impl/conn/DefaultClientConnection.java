@@ -43,6 +43,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
@@ -174,7 +175,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 buffersize,
                 params);
         if (wireLog.isDebugEnabled()) {
-            inbuffer = new LoggingSessionInputBuffer(inbuffer, new Wire(wireLog));
+            inbuffer = new LoggingSessionInputBuffer(
+                    inbuffer,
+                    new Wire(wireLog),
+                    HttpProtocolParams.getHttpElementCharset(params));
         }
         return inbuffer;
     }
@@ -192,7 +196,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 buffersize,
                 params);
         if (wireLog.isDebugEnabled()) {
-            outbuffer = new LoggingSessionOutputBuffer(outbuffer, new Wire(wireLog));
+            outbuffer = new LoggingSessionOutputBuffer(
+                    outbuffer,
+                    new Wire(wireLog),
+                    HttpProtocolParams.getHttpElementCharset(params));
         }
         return outbuffer;
     }
