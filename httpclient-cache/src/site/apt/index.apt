@@ -23,14 +23,14 @@
 ~~ <http://www.apache.org/>.
 
     ----------
-    HttpComponents HttpMime Module
+    HttpComponents HttpClient Cache Module
     ----------
     ----------
     ----------
 
-HttpMime
+HttpClient Cache
 
-    This module provides support for MIME multipart encoded entities.
+    This module provides support for HTTP/1.1 response caching.
 
     {{{apidocs/index.html}Javadocs}}
     
