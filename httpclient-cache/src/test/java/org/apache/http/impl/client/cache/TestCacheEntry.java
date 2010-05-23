@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
@@ -106,7 +107,8 @@ public class TestCacheEntry {
     }
 
     private CacheEntry getEntry(Date requestDate, Date responseDate, Header[] headers) {
-        return new CacheEntry(requestDate,responseDate,HTTP_1_1,headers,new byte[]{},200,"OK");
+        return new CacheEntry(requestDate, responseDate, HTTP_1_1, headers,
+                new ByteArrayEntity(new byte[] {}), 200, "OK");
     }
 
     @Test
@@ -125,7 +127,9 @@ public class TestCacheEntry {
     @Test
     public void testCorrectedReceivedAgeIsAgeHeaderIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "10"), };
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,headers, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1,
+                headers, new ByteArrayEntity(new byte[] {}), 200, "OK") {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -141,7 +145,8 @@ public class TestCacheEntry {
     @Test
     public void testCorrectedReceivedAgeIsApparentAgeIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "6"), };
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,headers, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1,
+                headers, new ByteArrayEntity(new byte[] {}), 200 ,"OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -161,7 +166,9 @@ public class TestCacheEntry {
 
         Header[] headers = new Header[]{};
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP",1,1),headers,new byte[]{},200,"OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, sixSecondsAgo,
+                new ProtocolVersion("HTTP",1,1), headers, new ByteArrayEntity(new byte[] {}),
+                200, "OK");
 
 
         Assert.assertEquals(4, entry.getResponseDelaySecs());
@@ -169,7 +176,8 @@ public class TestCacheEntry {
 
     @Test
     public void testCorrectedInitialAgeIsCorrectedReceivedAgePlusResponseDelay() {
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1, new Header[] {},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -190,7 +198,8 @@ public class TestCacheEntry {
         final Date now = new Date();
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
 
-        CacheEntry entry = new CacheEntry(new Date(),sixSecondsAgo,HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), sixSecondsAgo, HTTP_1_1, new Header[]{},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -204,7 +213,8 @@ public class TestCacheEntry {
 
     @Test
     public void testCurrentAgeIsCorrectedInitialAgePlusResidentTime() {
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1, new Header[]{},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -288,7 +298,8 @@ public class TestCacheEntry {
 
     @Test
     public void testResponseIsFreshIfFreshnessLifetimeExceedsCurrentAge() {
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1, new Header[]{},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -307,7 +318,9 @@ public class TestCacheEntry {
 
     @Test
     public void testResponseIsNotFreshIfFreshnessLifetimeEqualsCurrentAge() {
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1, new Header[]{},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -326,7 +339,8 @@ public class TestCacheEntry {
 
     @Test
     public void testResponseIsNotFreshIfCurrentAgeExceedsFreshnessLifetime() {
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),HTTP_1_1,new Header[]{}, new byte[]{},200,"OK") {
+        CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1, new Header[] {},
+                new ByteArrayEntity(new byte[] {}), 200, "OK") {
             private static final long serialVersionUID = 1L;
 
             @Override

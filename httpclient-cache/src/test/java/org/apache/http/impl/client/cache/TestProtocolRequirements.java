@@ -2308,7 +2308,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
 
         mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(CacheEntry.class));
 
@@ -2352,7 +2353,9 @@ public class TestProtocolRequirements {
         (new Random()).nextBytes(bytes);
 
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
+                headerGroup.getAllHeaders(),
+                new ByteArrayEntity(bytes), 200, "OK");
 
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
@@ -2393,7 +2396,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
 
 
 
@@ -2596,7 +2600,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2639,8 +2644,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(requestTime, responseTime, HTTP_1_1, headerGroup.getAllHeaders(),bytes,200,"OK");
-
+        CacheEntry entry = new CacheEntry(requestTime, responseTime, HTTP_1_1,
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 

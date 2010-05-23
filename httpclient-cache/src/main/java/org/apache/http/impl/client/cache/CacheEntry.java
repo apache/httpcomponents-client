@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
@@ -62,9 +63,9 @@ public class CacheEntry implements Serializable {
     private final ProtocolVersion version;
     private final int status;
     private final String reason;
-    private final CachedHeaderGroup responseHeaders = new CachedHeaderGroup();
-    private final byte[] body;
-    private final Set<String> variantURIs = new HashSet<String>();
+    private final CachedHeaderGroup responseHeaders;
+    private final HttpEntity body;
+    private final Set<String> variantURIs;
 
     /**
      *
@@ -85,16 +86,18 @@ public class CacheEntry implements Serializable {
      * @param reason
      *          String message from HTTP Status Line
      */
-    public CacheEntry(Date requestDate, Date responseDate, ProtocolVersion version, Header[] responseHeaders, byte[] responseBytes, int status, String reason){
-
+    public CacheEntry(Date requestDate, Date responseDate, ProtocolVersion version,
+            Header[] responseHeaders, HttpEntity body, int status, String reason) {
         super();
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.version = version;
+        this.responseHeaders = new CachedHeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
         this.status = status;
         this.reason = reason;
-        this.body = responseBytes.clone();
+        this.body = body;
+        this.variantURIs = new HashSet<String>();
     }
 
     /**
@@ -107,7 +110,7 @@ public class CacheEntry implements Serializable {
              toCopy.getResponseDate(),
              toCopy.getProtocolVersion(),
              toCopy.getAllHeaders(),
-             toCopy.getBody(),
+             toCopy.body,
              toCopy.getStatusCode(),
              toCopy.getReasonPhrase());
 
@@ -124,11 +127,11 @@ public class CacheEntry implements Serializable {
     }
 
     public String getReasonPhrase() {
-        return this.reason;
+        return reason;
     }
 
     public int getStatusCode() {
-        return this.status;
+        return status;
     }
 
     public Date getRequestDate() {
@@ -136,11 +139,11 @@ public class CacheEntry implements Serializable {
     }
 
     public Date getResponseDate() {
-        return this.responseDate;
+        return responseDate;
     }
 
-    public byte[] getBody() {
-        return body.clone();
+    public HttpEntity getBody() {
+        return body;
     }
 
     public Header[] getAllHeaders() {
@@ -190,7 +193,7 @@ public class CacheEntry implements Serializable {
      * @return boolean indicating whether actual length matches Content-Length
      */
     protected boolean contentLengthHeaderMatchesActualLength() {
-        return getContentLengthValue() == body.length;
+        return getContentLengthValue() == body.getContentLength();
     }
 
     /**

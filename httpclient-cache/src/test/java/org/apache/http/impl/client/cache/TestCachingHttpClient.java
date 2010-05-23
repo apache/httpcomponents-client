@@ -26,24 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static junit.framework.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ProtocolException;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.StatusLine;
+import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -55,6 +38,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
@@ -64,6 +48,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static junit.framework.Assert.assertTrue;
 
 public class TestCachingHttpClient {
 
@@ -313,7 +306,8 @@ public class TestCachingHttpClient {
 
         final String variantURI = "variantURI";
 
-        final CacheEntry entry = new CacheEntry(new Date(), new Date(),HTTP_1_1,new Header[]{},new byte[]{},200,"OK");
+        final CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1,
+                new Header[] {}, new ByteArrayEntity(new byte[] {}), 200, "OK");
 
         extractVariantURI(variantURI, entry);
         putInCache(variantURI, entry);
@@ -965,7 +959,7 @@ public class TestCachingHttpClient {
         org.easymock.EasyMock.expect(mockCacheEntry.isRevalidatable()).andReturn(b);
     }
 
-    private void cacheEntryUpdaterCalled() {
+    private void cacheEntryUpdaterCalled() throws IOException {
         EasyMock.expect(
                 mockCacheEntryUpdater.updateCacheEntry(mockCacheEntry, requestDate, responseDate,
                                                        mockBackendResponse)).andReturn(mockUpdatedCacheEntry);

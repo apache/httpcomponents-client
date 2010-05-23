@@ -31,7 +31,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 
@@ -54,7 +53,7 @@ public class CachedHttpResponseGenerator {
                 .getStatusCode(), entry.getReasonPhrase());
 
         if (entry.getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-            HttpEntity entity = new ByteArrayEntity(entry.getBody());
+            HttpEntity entity = entry.getBody();
             response.setEntity(entity);
             response.setHeaders(entry.getAllHeaders());
             addMissingContentLengthHeader(response, entity);

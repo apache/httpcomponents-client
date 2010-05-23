@@ -26,15 +26,11 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotSame;
-
-import java.util.Date;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -43,6 +39,12 @@ import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Date;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotSame;
 
 public class TestCacheEntryUpdater {
 
@@ -86,7 +88,7 @@ public class TestCacheEntryUpdater {
     }
 
     @Test
-    public void testUpdateCacheEntryReturnsDifferentEntryInstance() {
+    public void testUpdateCacheEntryReturnsDifferentEntryInstance() throws IOException {
 
         CacheEntry entry = getEntry(new Header[]{});
         BasicHttpResponse response = new BasicHttpResponse(HTTP_1_1, 200, "OK");
@@ -102,7 +104,7 @@ public class TestCacheEntryUpdater {
     }
 
     @Test
-    public void testHeadersAreMergedCorrectly() {
+    public void testHeadersAreMergedCorrectly() throws IOException {
 
         Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(responseDate)),
@@ -124,7 +126,7 @@ public class TestCacheEntryUpdater {
     }
 
     @Test
-    public void testNewerHeadersReplaceExistingHeaders() {
+    public void testNewerHeadersReplaceExistingHeaders() throws IOException {
 
         Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(requestDate)),
@@ -152,7 +154,7 @@ public class TestCacheEntryUpdater {
     }
 
     @Test
-    public void testNewHeadersAreAddedByMerge() {
+    public void testNewHeadersAreAddedByMerge() throws IOException {
 
         Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(requestDate)),
@@ -179,7 +181,7 @@ public class TestCacheEntryUpdater {
     }
 
     @Test
-    public void testUpdatedEntryHasLatestRequestAndResponseDates() {
+    public void testUpdatedEntryHasLatestRequestAndResponseDates() throws IOException {
 
         Date now = new Date();
 
@@ -191,7 +193,8 @@ public class TestCacheEntryUpdater {
 
         Header[] headers = new Header[]{};
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headers, new byte[]{}, 200, "OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headers,
+                new ByteArrayEntity(new byte[] {}), 200, "OK");
 
         HttpResponse response = new BasicHttpResponse(HTTP_1_1, 200, "OK");
 
@@ -222,6 +225,7 @@ public class TestCacheEntryUpdater {
     }
 
     private CacheEntry getEntry(Date requestDate, Date responseDate, Header[] headers) {
-        return new CacheEntry(requestDate, responseDate, HTTP_1_1, headers, new byte[]{}, 200, "OK");
+        return new CacheEntry(requestDate, responseDate, HTTP_1_1, headers,
+                new ByteArrayEntity(new byte[] {}), 200, "OK");
     }
 }

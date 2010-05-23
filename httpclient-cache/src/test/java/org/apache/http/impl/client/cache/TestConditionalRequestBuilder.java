@@ -32,6 +32,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
@@ -61,7 +62,9 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
                 new BasicHeader("Last-Modified", lastModified) };
 
-        CacheEntry cacheEntry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP",1,1),headers, new byte[]{},200,"OK");
+        CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(),
+                new ProtocolVersion("HTTP",1,1), headers,
+                new ByteArrayEntity(new byte[] {}), 200, "OK");
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);
 
         Assert.assertNotSame(request, newRequest);
@@ -93,7 +96,9 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())),
                 new BasicHeader("ETag", theETag) };
 
-        CacheEntry cacheEntry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP",1,1),headers, new byte[]{},200,"OK");
+        CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(),
+                new ProtocolVersion("HTTP",1,1), headers, new ByteArrayEntity(new byte[] {}),
+                200, "OK");
 
 
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);

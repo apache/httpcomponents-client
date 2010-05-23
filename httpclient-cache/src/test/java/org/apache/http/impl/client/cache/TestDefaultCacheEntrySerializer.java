@@ -26,11 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.Date;
-
 import org.apache.http.Header;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
@@ -38,6 +33,13 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.Date;
 
 public class TestDefaultCacheEntrySerializer {
 
@@ -60,7 +62,7 @@ public class TestDefaultCacheEntrySerializer {
 
     }
 
-    private CacheEntry newCacheEntry() {
+    private CacheEntry newCacheEntry() throws UnsupportedEncodingException {
 
 
         Header[] headers = new Header[5];
@@ -70,13 +72,14 @@ public class TestDefaultCacheEntrySerializer {
         ProtocolVersion version = new HttpVersion(1, 1);
         String body = "Lorem ipsum dolor sit amet";
 
-        CacheEntry cacheEntry = new CacheEntry(new Date(),new Date(), version, headers, body.getBytes(),200,"OK");
+        CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(), version, headers,
+                new CacheEntity(body.getBytes("US-ASCII"), null, null), 200, "OK");
 
         return cacheEntry;
 
     }
 
-    private boolean areEqual(CacheEntry one, CacheEntry two) {
+    private boolean areEqual(CacheEntry one, CacheEntry two) throws IOException {
 
         if (!one.getRequestDate().equals(two.getRequestDate()))
             return false;
@@ -84,7 +87,20 @@ public class TestDefaultCacheEntrySerializer {
             return false;
         if (!one.getProtocolVersion().equals(two.getProtocolVersion()))
             return false;
-        if (!Arrays.equals(one.getBody(), two.getBody()))
+
+        byte[] bytesOne, bytesTwo;
+
+        ByteArrayOutputStream streamOne = new ByteArrayOutputStream();
+        one.getBody().writeTo(streamOne);
+        bytesOne = streamOne.toByteArray();
+
+        ByteArrayOutputStream streamTwo = new ByteArrayOutputStream();
+
+        two.getBody().writeTo(streamTwo);
+        bytesTwo = streamTwo.toByteArray();
+
+
+        if (!Arrays.equals(bytesOne, bytesTwo))
             return false;
 
         Header[] oneHeaders = one.getAllHeaders();

@@ -28,11 +28,15 @@ package org.apache.http.impl.client.cache;
 
 import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.entity.ByteArrayEntity;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class TestResponseCache {
 
@@ -133,7 +137,7 @@ public class TestResponseCache {
 
     @Test
     @Ignore
-    public void testCacheEntryCallbackUpdatesCacheEntry() throws HttpCacheOperationException {
+    public void testCacheEntryCallbackUpdatesCacheEntry() throws HttpCacheOperationException, IOException {
 
         final byte[] expectedArray = new byte[] { 1, 2, 3, 4, 5 };
 
@@ -151,7 +155,7 @@ public class TestResponseCache {
                         existing.getRequestDate(),
                         existing.getProtocolVersion(),
                         existing.getAllHeaders(),
-                        expectedArray,
+                        new ByteArrayEntity(expectedArray),
                         existing.getStatusCode(),
                         existing.getReasonPhrase());
                 cache.removeEntry("bar");
@@ -164,7 +168,12 @@ public class TestResponseCache {
 
         Assert.assertNull(bar);
 
-        Assert.assertArrayEquals(expectedArray, afterUpdate.getBody());
+        byte[] bytes;
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        afterUpdate.getBody().writeTo(stream);
+        bytes = stream.toByteArray();
+
+        Assert.assertArrayEquals(expectedArray,bytes);
     }
 
 }

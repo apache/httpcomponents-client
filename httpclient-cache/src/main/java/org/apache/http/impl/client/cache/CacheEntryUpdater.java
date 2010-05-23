@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -56,11 +57,15 @@ public class CacheEntryUpdater {
      * @param responseDate When the response was gotten
      * @param response The HttpResponse from the backend server call
      * @return CacheEntry an updated version of the cache entry
+     * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
      */
-    public CacheEntry updateCacheEntry(CacheEntry entry, Date requestDate, Date responseDate, HttpResponse response) {
+    public CacheEntry updateCacheEntry(
+            CacheEntry entry,
+            Date requestDate,
+            Date responseDate,
+            HttpResponse response) throws IOException {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
-
         CacheEntry updated = new CacheEntry(requestDate, responseDate,
                                             entry.getProtocolVersion(),
                                             mergedHeaders,

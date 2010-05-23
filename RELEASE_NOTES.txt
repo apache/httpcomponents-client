@@ -1,3 +1,11 @@
+Changes since 4.1 ALPHA2
+-------------------
+
+* [HTTPCLIENT-937] CacheEntry made immutable; now uses immutable HttpEntity 
+  to store cached content. 
+  Contributed by David Mays <david_mays at comcast.com> and 
+  Oleg Kalnichevski <olegk at apache.org>
+
 Release 4.1 ALPHA2
 -------------------
 

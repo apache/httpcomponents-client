@@ -31,6 +31,7 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
@@ -43,7 +44,9 @@ public class TestCachedHttpResponseGenerator {
 
         Header[] hdrs = new Header[] {};
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP", 1, 1),hdrs,buf,200,"OK");
+        CacheEntry entry = new CacheEntry(
+                new Date(), new Date(), new ProtocolVersion("HTTP", 1, 1), hdrs,
+                new ByteArrayEntity(buf), 200, "OK");
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
         HttpResponse response = gen.generateResponse(entry);
@@ -60,7 +63,9 @@ public class TestCachedHttpResponseGenerator {
 
         Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(new Date(),new Date(),new ProtocolVersion("HTTP", 1, 1),hdrs,buf,200,"OK");
+        CacheEntry entry = new CacheEntry(
+                new Date(), new Date(), new ProtocolVersion("HTTP", 1, 1), hdrs,
+                new ByteArrayEntity(buf), 200, "OK");
 
 
         CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
@@ -145,7 +150,8 @@ public class TestCachedHttpResponseGenerator {
                 new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
                 new BasicHeader("Content-Length", "150") };
 
-        return new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP", 1, 1),hdrs,new byte[]{},200,"OK");
+        return new CacheEntry(tenSecondsAgo, sixSecondsAgo, new ProtocolVersion("HTTP", 1, 1),
+                hdrs, new ByteArrayEntity(new byte[] {}), 200, "OK");
     }
 
 
@@ -160,8 +166,10 @@ public class TestCachedHttpResponseGenerator {
                 new BasicHeader("Content-Length", "150") };
 
 
-        return new CacheEntry(tenSecondsAgo,sixSecondsAgo,new ProtocolVersion("HTTP", 1, 1),hdrs,new byte[]{},200,"OK"){
-                        private static final long serialVersionUID = 1L;
+        return new CacheEntry(tenSecondsAgo, sixSecondsAgo, new ProtocolVersion("HTTP", 1, 1),
+                hdrs, new ByteArrayEntity(new byte[] {}), 200, "OK"){
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public long getCurrentAgeSecs() {

@@ -44,9 +44,9 @@ public class SizeLimitedResponseReader {
 
     private final int maxResponseSizeBytes;
     private final HttpResponse response;
-    ByteArrayOutputStream outputStream;
-    InputStream contentInputStream;
 
+    private ByteArrayOutputStream outputStream;
+    private InputStream contentInputStream;
     private boolean isTooLarge;
     private boolean responseIsConsumed;
     private byte[] sizeLimitedContent;
