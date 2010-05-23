@@ -51,6 +51,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSManager;
@@ -58,8 +59,8 @@ import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
+
+import org.easymock.classextension.EasyMock;
 
 /**
  * Tests for {@link NegotiateScheme}.
@@ -90,7 +91,6 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         }
     }
 
-
     /**
      * NegotatieScheme with a custom GSSManager that does not require any Jaas or
      * Kerberos configuration.
@@ -98,27 +98,41 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      */
     private static class NegotiateSchemeWithMockGssManager extends NegotiateScheme {
         
-        GSSManager manager = Mockito.mock(GSSManager.class);
-        GSSName name = Mockito.mock(GSSName.class);
-        GSSContext context = Mockito.mock(GSSContext.class);
-
+        GSSManager manager = EasyMock.createNiceMock(GSSManager.class);
+        GSSName name = EasyMock.createNiceMock(GSSName.class);
+        GSSContext context = EasyMock.createNiceMock(GSSContext.class);
+        
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(null, true);
-            Mockito.when(context.initSecContext(
-                    Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt()))
-                    .thenReturn("12345678".getBytes());
-            Mockito.when(manager.createName(
-                    Matchers.any(String.class), Matchers.any(Oid.class)))
-                    .thenReturn(name);
-            Mockito.when(manager.createContext(
-                    Matchers.any(GSSName.class), Matchers.any(Oid.class), 
-                    Matchers.any(GSSCredential.class), Matchers.anyInt()))
-                    .thenReturn(context);
+
+            EasyMock.expect(context.initSecContext(EasyMock.<byte[]>anyObject(),
+                    EasyMock.anyInt(), EasyMock.anyInt())).andReturn("12345678".getBytes());
+
+            EasyMock.expect(manager.createName(EasyMock.isA(String.class),
+                    EasyMock.<Oid>anyObject())).andReturn(name);
+
+            EasyMock.expect(manager.createContext(
+                    EasyMock.isA(GSSName.class),EasyMock.isA(Oid.class),
+                    EasyMock.<GSSCredential>anyObject(), EasyMock.anyInt()))
+                    .andReturn(context);
+
+            EasyMock.expect(name.canonicalize(EasyMock.isA(Oid.class)))
+                    .andReturn(name);
+
+            EasyMock.replay(context);
+            EasyMock.replay(name);
+            EasyMock.replay(manager);
         }
 
         @Override
         protected GSSManager getManager() {
             return manager;
+        }
+
+        public void verify() {
+            EasyMock.verify(context);
+            EasyMock.verify(name);
+            EasyMock.verify(manager);
         }
         
     }
@@ -161,7 +175,9 @@ public class TestNegotiateScheme extends BasicServerTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
         DefaultHttpClient client = new DefaultHttpClient();
+
         NegotiateSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
+
         client.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new UseJaasCredentials();
@@ -176,6 +192,9 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
+
+        ((NegotiateSchemeFactoryWithMockGssManager)nsf).scheme.verify();
+
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -190,9 +209,9 @@ public class TestNegotiateScheme extends BasicServerTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
         DefaultHttpClient client = new DefaultHttpClient();
+
         NegotiateSchemeFactoryWithMockGssManager nsf = new NegotiateSchemeFactoryWithMockGssManager();
-        Mockito.when(nsf.scheme.context.initSecContext(
-                Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt())).thenReturn(null);
+
         client.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new UseJaasCredentials();
@@ -207,6 +226,8 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         if (e != null) {
             e.consumeContent();
         }
+
+        nsf.scheme.verify();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 

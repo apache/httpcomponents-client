@@ -73,7 +73,6 @@
     <commons-codec.version>1.4</commons-codec.version>
     <junit.version>4.8.1</junit.version>
     <easymock.version>2.5.2</easymock.version>
-    <mockito.version>1.8.4</mockito.version>
   </properties>
 
   <modules>
