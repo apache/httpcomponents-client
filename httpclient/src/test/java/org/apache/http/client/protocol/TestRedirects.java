@@ -311,12 +311,12 @@ public class TestRedirects extends BasicServerTestBase {
         this.localServer.register("*", new HttpRequestHandler() {
 
             public void handle(
-                    final HttpRequest request, 
+                    final HttpRequest request,
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
             }
-            
+
         });
 
         DefaultHttpClient client = new DefaultHttpClient();

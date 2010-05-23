@@ -97,11 +97,11 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      *
      */
     private static class NegotiateSchemeWithMockGssManager extends NegotiateScheme {
-        
+
         GSSManager manager = EasyMock.createNiceMock(GSSManager.class);
         GSSName name = EasyMock.createNiceMock(GSSName.class);
         GSSContext context = EasyMock.createNiceMock(GSSContext.class);
-        
+
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(null, true);
 
@@ -134,11 +134,11 @@ public class TestNegotiateScheme extends BasicServerTestBase {
             EasyMock.verify(name);
             EasyMock.verify(manager);
         }
-        
+
     }
 
     private static class UseJaasCredentials implements Credentials {
-        
+
         public String getPassword() {
             return null;
         }
@@ -146,22 +146,22 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         public Principal getUserPrincipal() {
             return null;
         }
-        
+
     }
 
     private static class NegotiateSchemeFactoryWithMockGssManager extends NegotiateSchemeFactory {
-        
+
         NegotiateSchemeWithMockGssManager scheme;
-        
+
         NegotiateSchemeFactoryWithMockGssManager() throws Exception {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
-        
+
         @Override
         public AuthScheme newInstance(HttpParams params) {
             return scheme;
         }
-        
+
     }
 
     /**
