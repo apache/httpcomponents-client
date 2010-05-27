@@ -38,6 +38,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Update a {@link CacheEntry} with new or updated information based on the latest
@@ -129,9 +130,9 @@ public class CacheEntryUpdater {
 
     private boolean entryDateHeaderNewerThenResponse(CacheEntry entry, HttpResponse response) {
         try {
-            Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HeaderConstants.DATE)
+            Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
-            Date responseDate = DateUtils.parseDate(response.getFirstHeader(HeaderConstants.DATE)
+            Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
 
             if (!entryDate.after(responseDate)) {
@@ -145,8 +146,8 @@ public class CacheEntryUpdater {
     }
 
     private boolean entryAndResponseHaveDateHeader(CacheEntry entry, HttpResponse response) {
-        if (entry.getFirstHeader(HeaderConstants.DATE) != null
-                && response.getFirstHeader(HeaderConstants.DATE) != null) {
+        if (entry.getFirstHeader(HTTP.DATE_HEADER) != null
+                && response.getFirstHeader(HTTP.DATE_HEADER) != null) {
             return true;
         }
 

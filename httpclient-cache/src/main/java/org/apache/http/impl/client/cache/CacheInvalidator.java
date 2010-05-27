@@ -51,9 +51,11 @@ public class CacheInvalidator {
     private final Log log = LogFactory.getLog(getClass());
 
     /**
+     * Create a new {@link CacheInvalidator} for a given {@link HttpCache} and
+     * {@link URIExtractor}.
      *
-     * @param uriExtractor
-     * @param cache
+     * @param uriExtractor Provides identifiers for the keys to store cache entries
+     * @param cache the cache to store items away in
      */
     public CacheInvalidator(URIExtractor uriExtractor, HttpCache<CacheEntry> cache) {
         this.uriExtractor = uriExtractor;

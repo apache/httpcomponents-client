@@ -296,7 +296,7 @@ public class CachingHttpClient implements HttpClient {
     /**
      * @param request         the request to execute
      * @param responseHandler the response handler
-     * @param context
+     * @param context         the http context
      * @param <T>             The Return Type Identified by the generic type of the {@link ResponseHandler}
      * @return T The response type as handled by ResponseHandler
      * @throws IOException

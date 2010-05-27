@@ -46,6 +46,9 @@ public class CachedResponseSuitabilityChecker {
     private final Log log = LogFactory.getLog(getClass());
 
     /**
+     * Determine if I can utilize a {@link CacheEntry} to respond to the given
+     * {@link HttpRequest}
+     *
      * @param host
      *            {@link HttpHost}
      * @param request

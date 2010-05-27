@@ -45,6 +45,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Structure used to store an {@link HttpResponse} in a cache
@@ -68,6 +69,7 @@ public class CacheEntry implements Serializable {
     private final Set<String> variantURIs;
 
     /**
+     * Create a new {@link CacheEntry}
      *
      * @param requestDate
      *          Date/time when the request was made (Used for age
@@ -79,8 +81,8 @@ public class CacheEntry implements Serializable {
      *          HTTP Response Version
      * @param responseHeaders
      *          Header[] from original HTTP Response
-     * @param responseBytes
-     *          Byte array containing the body of the response
+     * @param body
+     *          HttpEntity representing the body of the response
      * @param status
      *          Numeric HTTP Status Code
      * @param reason
@@ -102,6 +104,7 @@ public class CacheEntry implements Serializable {
 
     /**
      * Constructor used to create a copy of an existing entry, while adding another variant URI to it.
+     *
      * @param toCopy CacheEntry to be duplicated
      * @param variantURI URI to add
      */
@@ -158,12 +161,8 @@ public class CacheEntry implements Serializable {
         return responseHeaders.getHeaders(name);
     }
 
-    /**
-     *
-     * @return Response Date header value
-     */
     protected Date getDateValue() {
-        Header dateHdr = getFirstHeader(HeaderConstants.DATE);
+        Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
         if (dateHdr == null)
             return null;
         try {
@@ -175,7 +174,7 @@ public class CacheEntry implements Serializable {
     }
 
     protected long getContentLengthValue() {
-        Header cl = getFirstHeader(HeaderConstants.CONTENT_LENGTH);
+        Header cl = getFirstHeader(HTTP.CONTENT_LEN);
         if (cl == null)
             return -1;
 
@@ -196,10 +195,6 @@ public class CacheEntry implements Serializable {
         return getContentLengthValue() == body.getContentLength();
     }
 
-    /**
-     *
-     * @return Apparent age of the response
-     */
     protected long getApparentAgeSecs() {
         Date dateValue = getDateValue();
         if (dateValue == null)
@@ -210,10 +205,6 @@ public class CacheEntry implements Serializable {
         return (diff / 1000);
     }
 
-    /**
-     *
-     * @return Response Age header value
-     */
     protected long getAgeValue() {
         long ageValue = 0;
         for (Header hdr : getHeaders(HeaderConstants.AGE)) {
@@ -237,10 +228,6 @@ public class CacheEntry implements Serializable {
         return (apparentAge > ageValue) ? apparentAge : ageValue;
     }
 
-    /**
-     *
-     * @return Delay between request and response
-     */
     protected long getResponseDelaySecs() {
         long diff = responseDate.getTime() - requestDate.getTime();
         return (diff / 1000L);

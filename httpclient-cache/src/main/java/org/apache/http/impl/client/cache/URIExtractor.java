@@ -37,6 +37,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -44,6 +45,14 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class URIExtractor {
 
+    /**
+     * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the
+     * pair that I can use as an identifier KEY into my HttpCache
+     *
+     * @param host The host for this request
+     * @param req the {@link HttpRequest}
+     * @return String the extracted URI
+     */
     public String getURI(HttpHost host, HttpRequest req) {
         return String.format("%s%s", host.toString(), req.getRequestLine().getUri());
     }
@@ -65,6 +74,16 @@ public class URIExtractor {
         return buf.toString();
     }
 
+    /**
+     * For a given {@link HttpHost} and {@link HttpRequest} if the request has a
+     * VARY header - I need to get an additional URI from the pair of host and
+     * request so that I can also store the variant into my HttpCache.
+     *
+     * @param host The host for this request
+     * @param req the {@link HttpRequest}
+     * @param entry the parent entry used to track the varients
+     * @return String the extracted variant URI
+     */
     public String getVariantURI(HttpHost host, HttpRequest req, CacheEntry entry) {
         Header[] varyHdrs = entry.getHeaders(HeaderConstants.VARY);
         if (varyHdrs == null || varyHdrs.length == 0) {
@@ -86,10 +105,10 @@ public class URIExtractor {
                 if (!first) {
                     buf.append("&");
                 }
-                buf.append(URLEncoder.encode(headerName, "UTF-8"));
+                buf.append(URLEncoder.encode(headerName, HTTP.UTF_8));
                 buf.append("=");
                 buf.append(URLEncoder.encode(getFullHeaderValue(req.getHeaders(headerName)),
-                        "UTF-8"));
+                        HTTP.UTF_8));
                 first = false;
             }
             buf.append("}");

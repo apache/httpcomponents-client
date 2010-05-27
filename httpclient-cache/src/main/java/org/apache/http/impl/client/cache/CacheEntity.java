@@ -34,6 +34,7 @@ import java.io.Serializable;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
@@ -47,27 +48,31 @@ class CacheEntity implements HttpEntity, Cloneable, Serializable {
     private final String contentType;
     private final String contentEncoding;
 
-    public CacheEntity(final byte[] b, final String contentType, final String contentEncoding) {
+    public CacheEntity(final byte[] b, final HttpResponse response) {
         super();
         this.content = b;
-        this.contentType = contentType;
-        this.contentEncoding = contentEncoding;
+
+        Header ct = response.getFirstHeader(HTTP.CONTENT_TYPE);
+        Header ce = response.getFirstHeader(HTTP.CONTENT_ENCODING);
+
+        this.contentType  = ct != null ? ct.getValue() : null;
+        this.contentEncoding = ce != null ? ce.getValue() : null;
     }
 
     public Header getContentType() {
-        if (this.contentType != null) {
-            return new BasicHeader(HTTP.CONTENT_TYPE, this.contentType);
-        } else {
+        if (this.contentType == null) {
             return null;
         }
+
+        return new BasicHeader(HTTP.CONTENT_TYPE, this.contentType);
     }
 
     public Header getContentEncoding() {
-        if (this.contentEncoding != null) {
-            return new BasicHeader(HTTP.CONTENT_ENCODING, this.contentEncoding);
-        } else {
+        if (this.contentEncoding == null) {
             return null;
         }
+
+        return new BasicHeader(HTTP.CONTENT_ENCODING, this.contentEncoding);
     }
 
     public boolean isChunked() {

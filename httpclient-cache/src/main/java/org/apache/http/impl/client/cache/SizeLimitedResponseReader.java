@@ -53,9 +53,14 @@ public class SizeLimitedResponseReader {
     private boolean outputStreamConsumed;
 
     /**
+     * Create an {@link HttpResponse} that is limited in size, this allows for checking
+     * the size of objects that will be stored in the cache.
      *
      * @param maxResponseSizeBytes
+     *      Maximum size that a response can be to be eligible for cache inclusion
+     *
      * @param response
+     *      The {@link HttpResponse}
      */
     public SizeLimitedResponseReader(int maxResponseSizeBytes, HttpResponse response) {
         this.maxResponseSizeBytes = maxResponseSizeBytes;

@@ -53,9 +53,8 @@ public class HeaderConstants {
     public static final String ETAG = "ETag";
     public static final String EXPIRES = "Expires";
     public static final String AGE = "Age";
-    public static final String CONTENT_LENGTH = "Content-Length";
-    public static final String DATE = "Date";
     public static final String VARY = "Vary";
+    public static final String ALLOW = "Allow";
 
     public static final String CACHE_CONTROL = "Cache-Control";
     public static final String CACHE_CONTROL_NO_STORE = "no-store";
@@ -64,10 +63,10 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_MAX_STALE = "max-stale";
     public static final String CACHE_CONTROL_MIN_FRESH = "min-fresh";
 
-    public static final String TRANSFER_ENCODING = "Transfer-Encoding";
     public static final String WARNING = "Warning";
-    public static final String EXPECT = "Expect";
     public static final String RANGE = "Range";
     public static final String CONTENT_RANGE = "Content-Range";
+    public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
+    public static final String PROXY_AUTHENTICATE = "Proxy-Authenticate";
 
 }

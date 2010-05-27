@@ -36,6 +36,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Determines if an HttpResponse can be cached.
@@ -49,8 +50,10 @@ public class ResponseCachingPolicy {
     private final Log log = LogFactory.getLog(getClass());
 
     /**
+     * Define a cache policy that limits the size of things that should be stored
+     * in the cache to a maximum of {@link HttpResponse} bytes in size.
      *
-     * @param maxObjectSizeBytes
+     * @param maxObjectSizeBytes the size to limit items into the cache
      */
     public ResponseCachingPolicy(int maxObjectSizeBytes) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
@@ -59,8 +62,8 @@ public class ResponseCachingPolicy {
     /**
      * Determines if an HttpResponse can be cached.
      *
-     * @param httpMethod
-     * @param response
+     * @param httpMethod What type of request was this, a GET, PUT, other?
+     * @param response The origin response
      * @return <code>true</code> if response is cacheable
      */
     public boolean isResponseCacheable(String httpMethod, HttpResponse response) {
@@ -94,7 +97,7 @@ public class ResponseCachingPolicy {
             return cacheable;
         }
 
-        Header contentLength = response.getFirstHeader(HeaderConstants.CONTENT_LENGTH);
+        Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength != null) {
             int contentLengthValue = Integer.parseInt(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes)
@@ -111,7 +114,7 @@ public class ResponseCachingPolicy {
         if (expiresHeaders.length > 1)
             return false;
 
-        Header[] dateHeaders = response.getHeaders(HeaderConstants.DATE);
+        Header[] dateHeaders = response.getHeaders(HTTP.DATE_HEADER);
 
         if (dateHeaders.length != 1)
             return false;
@@ -168,9 +171,11 @@ public class ResponseCachingPolicy {
     }
 
     /**
+     * Determine if the {@link HttpResponse} gotten from the origin is a
+     * cacheable response.
      *
-     * @param request
-     * @param response
+     * @param request the {@link HttpRequest} that generated an origin hit
+     * @param response the {@link HttpResponse} from the origin
      * @return <code>true</code> if response is cacheable
      */
     public boolean isResponseCacheable(HttpRequest request, HttpResponse response) {

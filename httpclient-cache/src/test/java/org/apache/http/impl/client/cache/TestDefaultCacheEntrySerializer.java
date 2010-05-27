@@ -31,6 +31,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicHttpResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -71,9 +72,10 @@ public class TestDefaultCacheEntrySerializer {
         }
         ProtocolVersion version = new HttpVersion(1, 1);
         String body = "Lorem ipsum dolor sit amet";
+        BasicHttpResponse response = new BasicHttpResponse(version, 200, "OK");
 
         CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(), version, headers,
-                new CacheEntity(body.getBytes("US-ASCII"), null, null), 200, "OK");
+                new CacheEntity(body.getBytes("US-ASCII"), response), 200, "OK");
 
         return cacheEntry;
 

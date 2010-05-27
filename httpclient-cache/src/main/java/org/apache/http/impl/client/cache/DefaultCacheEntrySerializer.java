@@ -47,10 +47,11 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<CacheEntry> {
 
     /**
+     * Write a {@link CacheEntry} to an {@link OutputStream}.
      *
-     * @param cacheEntry
-     * @param os
-     * @throws IOException
+     * @param cacheEntry the entry to write
+     * @param os the output stream to write to
+     * @throws IOException if problems occur writing the entry
      */
     public void writeTo(CacheEntry cacheEntry, OutputStream os) throws IOException {
 
@@ -84,8 +85,9 @@ public class DefaultCacheEntrySerializer implements HttpCacheEntrySerializer<Cac
     }
 
     /**
+     * Read a {@link CacheEntry} from an {@link InputStream}
      *
-     * @param is
+     * @param is the input stream to read from
      * @return the cache entry
      * @throws IOException
      */

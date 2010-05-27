@@ -33,6 +33,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Rebuilds an {@link HttpResponse} from a {@link CacheEntry}
@@ -43,6 +44,8 @@ import org.apache.http.message.BasicHttpResponse;
 public class CachedHttpResponseGenerator {
 
     /**
+     * If I was able to use a {@link CacheEntry} to response to the {@link org.apache.http.HttpRequest} then
+     * generate an {@link HttpResponse} based on the cache entry.
      * @param entry
      *            {@link CacheEntry} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
@@ -75,16 +78,16 @@ public class CachedHttpResponseGenerator {
         if (transferEncodingIsPresent(response))
             return;
 
-        Header contentLength = response.getFirstHeader(HeaderConstants.CONTENT_LENGTH);
+        Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength == null) {
-            contentLength = new BasicHeader(HeaderConstants.CONTENT_LENGTH, Long.toString(entity
+            contentLength = new BasicHeader(HTTP.CONTENT_LEN, Long.toString(entity
                     .getContentLength()));
             response.setHeader(contentLength);
         }
     }
 
     private boolean transferEncodingIsPresent(HttpResponse response) {
-        Header hdr = response.getFirstHeader(HeaderConstants.TRANSFER_ENCODING);
+        Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
         return hdr != null;
     }
 }

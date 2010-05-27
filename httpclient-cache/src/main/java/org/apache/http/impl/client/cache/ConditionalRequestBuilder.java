@@ -39,11 +39,14 @@ import org.apache.http.impl.client.RequestWrapper;
 public class ConditionalRequestBuilder {
 
     /**
+     * When a {@link CacheEntry} is stale but 'might' be used as a response
+     * to an {@link HttpRequest} we will attempt to revalidate the entry with
+     * the origin.  Build the origin {@link HttpRequest} here and return it.
      *
-     * @param request
-     * @param cacheEntry
+     * @param request the original request from the caller
+     * @param cacheEntry the entry that needs to be revalidated
      * @return the wrapped request
-     * @throws ProtocolException
+     * @throws ProtocolException when I am unable to build a new origin request.
      */
     public HttpRequest buildConditionalRequest(HttpRequest request, CacheEntry cacheEntry)
             throws ProtocolException {

@@ -43,6 +43,7 @@ import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -51,8 +52,10 @@ import org.apache.http.message.BasicStatusLine;
 public class RequestProtocolCompliance {
 
     /**
+     * Test to see if the {@link HttpRequest} is HTTP1.1 compliant or not
+     * and if not, we can not continue.
      *
-     * @param request
+     * @param request the HttpRequest Object
      * @return list of {@link RequestProtocolError}
      */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {
@@ -77,10 +80,12 @@ public class RequestProtocolCompliance {
     }
 
     /**
+     * If the {@link HttpRequest} is non-compliant but 'fixable' we go ahead and
+     * fix the request here.  Returning the updated one.
      *
-     * @param request
+     * @param request the request to check for compliance
      * @return the updated request
-     * @throws ProtocolException
+     * @throws ProtocolException when we have trouble making the request compliant
      */
     public HttpRequest makeRequestCompliant(HttpRequest request) throws ProtocolException {
         if (requestMustNotHaveEntity(request)) {
@@ -137,7 +142,7 @@ public class RequestProtocolCompliance {
 
     private void addContentTypeHeaderIfMissing(HttpEntityEnclosingRequest request) {
         if (request.getEntity().getContentType() == null) {
-            ((AbstractHttpEntity) request.getEntity()).setContentType("application/octet-stream");
+            ((AbstractHttpEntity) request.getEntity()).setContentType(HTTP.OCTET_STREAM_TYPE);
         }
     }
 
@@ -158,12 +163,12 @@ public class RequestProtocolCompliance {
     private void remove100ContinueHeaderIfExists(HttpRequest request) {
         boolean hasHeader = false;
 
-        Header[] expectHeaders = request.getHeaders(HeaderConstants.EXPECT);
+        Header[] expectHeaders = request.getHeaders(HTTP.EXPECT_DIRECTIVE);
         List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<HeaderElement>();
 
         for (Header h : expectHeaders) {
             for (HeaderElement elt : h.getElements()) {
-                if (!("100-continue".equalsIgnoreCase(elt.getName()))) {
+                if (!(HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName()))) {
                     expectElementsThatAreNot100Continue.add(elt);
                 } else {
                     hasHeader = true;
@@ -173,7 +178,7 @@ public class RequestProtocolCompliance {
             if (hasHeader) {
                 request.removeHeader(h);
                 for (HeaderElement elt : expectElementsThatAreNot100Continue) {
-                    BasicHeader newHeader = new BasicHeader(HeaderConstants.EXPECT, elt.getName());
+                    BasicHeader newHeader = new BasicHeader(HTTP.EXPECT_DIRECTIVE, elt.getName());
                     request.addHeader(newHeader);
                 }
                 return;
@@ -186,16 +191,16 @@ public class RequestProtocolCompliance {
     private void add100ContinueHeaderIfMissing(HttpRequest request) {
         boolean hasHeader = false;
 
-        for (Header h : request.getHeaders(HeaderConstants.EXPECT)) {
+        for (Header h : request.getHeaders(HTTP.EXPECT_DIRECTIVE)) {
             for (HeaderElement elt : h.getElements()) {
-                if ("100-continue".equalsIgnoreCase(elt.getName())) {
+                if (HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName())) {
                     hasHeader = true;
                 }
             }
         }
 
         if (!hasHeader) {
-            request.addHeader(HeaderConstants.EXPECT, "100-continue");
+            request.addHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
         }
     }
 
@@ -232,24 +237,31 @@ public class RequestProtocolCompliance {
         return request.getProtocolVersion().compareToVersion(CachingHttpClient.HTTP_1_1) < 0;
     }
 
+    /**
+     * Extract error information about the {@link HttpRequest} telling the 'caller'
+     * that a problem occured.
+     *
+     * @param errorCheck What type of error should I get
+     * @return The {@link HttpResponse} that is the error generated
+     */
     public HttpResponse getErrorForRequest(RequestProtocolError errorCheck) {
         switch (errorCheck) {
-        case BODY_BUT_NO_LENGTH_ERROR:
-            return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
-                    HttpStatus.SC_LENGTH_REQUIRED, ""));
+            case BODY_BUT_NO_LENGTH_ERROR:
+                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                        HttpStatus.SC_LENGTH_REQUIRED, ""));
 
-        case WEAK_ETAG_AND_RANGE_ERROR:
-            return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
-                    HttpStatus.SC_BAD_REQUEST, "Weak eTag not compatible with byte range"));
+            case WEAK_ETAG_AND_RANGE_ERROR:
+                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                        HttpStatus.SC_BAD_REQUEST, "Weak eTag not compatible with byte range"));
 
-        case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-            return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
-                    HttpStatus.SC_BAD_REQUEST,
-                    "Weak eTag not compatible with PUT or DELETE requests"));
+            case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
+                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                        HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with PUT or DELETE requests"));
 
-        default:
-            throw new IllegalStateException(
-                    "The request was compliant, therefore no error can be generated for it.");
+            default:
+                throw new IllegalStateException(
+                        "The request was compliant, therefore no error can be generated for it.");
 
         }
     }
@@ -311,7 +323,7 @@ public class RequestProtocolCompliance {
             return null;
         }
 
-        if (request.getFirstHeader(HeaderConstants.CONTENT_LENGTH) != null
+        if (request.getFirstHeader(HTTP.CONTENT_LEN) != null
                 && ((HttpEntityEnclosingRequest) request).getEntity() != null)
             return null;
 

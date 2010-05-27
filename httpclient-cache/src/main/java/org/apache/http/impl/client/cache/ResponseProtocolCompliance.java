@@ -37,6 +37,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -45,10 +46,13 @@ import org.apache.http.impl.cookie.DateUtils;
 public class ResponseProtocolCompliance {
 
     /**
+     * When we get a response from a down stream server (Origin Server)
+     * we attempt to see if it is HTTP 1.1 Compliant and if not, attempt to
+     * make it so.
      *
-     * @param request
-     * @param response
-     * @throws ClientProtocolException
+     * @param request The {@link HttpRequest} that generated an origin hit and response
+     * @param response The {@link HttpResponse} from the origin server
+     * @throws ClientProtocolException when we are unable to 'convert' the response to a compliant one
      */
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
             throws ClientProtocolException {
@@ -78,7 +82,7 @@ public class ResponseProtocolCompliance {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED)
             return;
 
-        if (response.getFirstHeader("Proxy-Authenticate") == null)
+        if (response.getFirstHeader(HeaderConstants.PROXY_AUTHENTICATE) == null)
             throw new ClientProtocolException(
                     "407 Response did not contain a Proxy-Authentication header");
     }
@@ -88,7 +92,7 @@ public class ResponseProtocolCompliance {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_METHOD_NOT_ALLOWED)
             return;
 
-        if (response.getFirstHeader("Allow") == null)
+        if (response.getFirstHeader(HeaderConstants.ALLOW) == null)
             throw new ClientProtocolException("405 Response did not contain an Allow header.");
     }
 
@@ -97,15 +101,15 @@ public class ResponseProtocolCompliance {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_UNAUTHORIZED)
             return;
 
-        if (response.getFirstHeader("WWW-Authenticate") == null) {
+        if (response.getFirstHeader(HeaderConstants.WWW_AUTHENTICATE) == null) {
             throw new ClientProtocolException(
                     "401 Response did not contain required WWW-Authenticate challenge header");
         }
     }
 
     private void ensure206ContainsDateHeader(HttpResponse response) {
-        if (response.getFirstHeader(HeaderConstants.DATE) == null) {
-            response.addHeader(HeaderConstants.DATE, DateUtils.formatDate(new Date()));
+        if (response.getFirstHeader(HTTP.DATE_HEADER) == null) {
+            response.addHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date()));
         }
 
     }
@@ -132,8 +136,8 @@ public class ResponseProtocolCompliance {
             return;
         }
 
-        if (response.getFirstHeader(HeaderConstants.CONTENT_LENGTH) == null) {
-            response.addHeader(HeaderConstants.CONTENT_LENGTH, "0");
+        if (response.getFirstHeader(HTTP.CONTENT_LEN) == null) {
+            response.addHeader(HTTP.CONTENT_LEN, "0");
         }
     }
 
@@ -183,7 +187,7 @@ public class ResponseProtocolCompliance {
 
     private void removeResponseTransferEncoding(HttpResponse response) {
         response.removeHeaders("TE");
-        response.removeHeaders(HeaderConstants.TRANSFER_ENCODING);
+        response.removeHeaders(HTTP.TRANSFER_ENCODING);
     }
 
     private boolean originalRequestDidNotExpectContinue(RequestWrapper request) {
