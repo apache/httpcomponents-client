@@ -165,8 +165,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("ThreadSafeClientConnManager.getConnection: "
-                        + route + ", timeout = " + timeout);
+                    log.debug("Get connection: " + route + ", timeout = " + timeout);
                 }
 
                 BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
@@ -255,25 +254,36 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
-        int count;
         connectionPool.poolLock.lock();
-        count = connectionPool.numConnections; //@@@
-        connectionPool.poolLock.unlock();
-        return count;
+        try {
+            return connectionPool.numConnections;
+        } finally {
+            connectionPool.poolLock.unlock();
+        }
     }
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
         }
-        connectionPool.closeIdleConnections(idleTimeout, tunit);
-        connectionPool.deleteClosedConnections();
+        connectionPool.poolLock.lock();
+        try {
+            connectionPool.closeIdleConnections(idleTimeout, tunit);
+            connectionPool.deleteClosedConnections();
+        } finally {
+            connectionPool.poolLock.unlock();
+        }
     }
     
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
-        connectionPool.closeExpiredConnections();
-        connectionPool.deleteClosedConnections();
+        connectionPool.poolLock.lock();
+        try {
+            connectionPool.closeExpiredConnections();
+            connectionPool.deleteClosedConnections();
+        } finally {
+            connectionPool.poolLock.unlock();
+        }
     }
 
 }
