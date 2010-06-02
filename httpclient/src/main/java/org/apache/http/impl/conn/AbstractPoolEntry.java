@@ -31,6 +31,7 @@ import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.conn.ClientConnectionOperator;
@@ -52,6 +53,7 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public abstract class AbstractPoolEntry {
 
     /** The connection operator. */

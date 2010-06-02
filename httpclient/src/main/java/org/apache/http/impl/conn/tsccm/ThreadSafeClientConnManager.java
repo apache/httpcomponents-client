@@ -196,8 +196,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("ThreadSafeClientConnManager.getConnection: "
-                        + route + ", timeout = " + timeout);
+                    log.debug("Get connection: " + route + ", timeout = " + timeout);
                 }
 
                 BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
@@ -285,11 +284,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
-        pool.poolLock.lock();
+        connectionPool.poolLock.lock();
         try {
-            return pool.numConnections;
+            return connectionPool.numConnections;
         } finally {
-            pool.poolLock.unlock();
+            connectionPool.poolLock.unlock();
         }
     }
 
@@ -297,14 +296,24 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
         }
-        pool.closeIdleConnections(idleTimeout, tunit);
-        pool.deleteClosedConnections();
+        connectionPool.poolLock.lock();
+        try {
+            connectionPool.closeIdleConnections(idleTimeout, tunit);
+            connectionPool.deleteClosedConnections();
+        } finally {
+            connectionPool.poolLock.unlock();
+        }
     }
 
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
-        pool.closeExpiredConnections();
-        pool.deleteClosedConnections();
+        connectionPool.poolLock.lock();
+        try {
+            connectionPool.closeExpiredConnections();
+            connectionPool.deleteClosedConnections();
+        } finally {
+            connectionPool.poolLock.unlock();
+        }
     }
 
     /**
