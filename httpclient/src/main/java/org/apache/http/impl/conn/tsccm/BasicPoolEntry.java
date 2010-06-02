@@ -28,6 +28,7 @@ package org.apache.http.impl.conn.tsccm;
 
 import java.lang.ref.ReferenceQueue;
 
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.routing.HttpRoute;
@@ -38,6 +39,7 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
  *
  * @since 4.0
  */
+@NotThreadSafe
 public class BasicPoolEntry extends AbstractPoolEntry {
 
     /**

@@ -278,9 +278,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Total connections kept alive: " + freeConnections.size()); 
-                    log.debug("Total issued connections: " + leasedConnections.size()); 
-                    log.debug("Total allocated connection: " + numConnections + " out of " + maxTotalConnections);
+                    log.debug("[" + route + "] kept alive: " + freeConnections.size() + 
+                            ", issued: " + leasedConnections.size() + 
+                            ", allocated: " + numConnections + " out of " + maxTotalConnections);
                 }
                 
                 // the cases to check for:
