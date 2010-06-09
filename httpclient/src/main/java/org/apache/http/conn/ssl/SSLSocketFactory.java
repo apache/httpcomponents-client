@@ -193,7 +193,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         KeyManager[] keymanagers =  kmfactory.getKeyManagers();
         TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
                 TrustManagerFactory.getDefaultAlgorithm());
-        tmfactory.init(keystore);
+        tmfactory.init(truststore);
         TrustManager[] trustmanagers = tmfactory.getTrustManagers();
         if (trustmanagers != null && trustStrategy != null) {
             for (int i = 0; i < trustmanagers.length; i++) {

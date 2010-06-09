@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-952] Trust store parameter is ingored by SSLSocketFactory 
+  (affects version 4.1-alpha2 only)
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-937] CacheEntry made immutable; now uses immutable HttpEntity 
   to store cached content. 
   Contributed by David Mays <david_mays at comcast.com> and 
