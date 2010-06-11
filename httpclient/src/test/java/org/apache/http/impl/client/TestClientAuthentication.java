@@ -41,16 +41,20 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
@@ -58,6 +62,7 @@ import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -91,6 +96,29 @@ public class TestClientAuthentication extends BasicServerTestBase {
                 response.setStatusCode(HttpStatus.SC_OK);
                 StringEntity entity = new StringEntity("success", HTTP.ASCII);
                 response.setEntity(entity);
+            }
+        }
+
+    }
+
+    static class AuthExpectationVerifier implements HttpExpectationVerifier {
+
+        private final BasicAuthTokenExtractor authTokenExtractor;
+        
+        public AuthExpectationVerifier() {
+            super();
+            this.authTokenExtractor = new BasicAuthTokenExtractor();
+        }
+        
+        public void verify(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException {
+            String creds = this.authTokenExtractor.extract(request);
+            if (creds == null || !creds.equals("test:test")) {
+                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+            } else {
+                response.setStatusCode(HttpStatus.SC_CONTINUE);
             }
         }
 
@@ -189,6 +217,68 @@ public class TestClientAuthentication extends BasicServerTestBase {
         AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
+    }
+
+    @Test @Ignore
+    public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
+        BasicHttpProcessor httpproc = new BasicHttpProcessor();
+        httpproc.addInterceptor(new ResponseDate());
+        httpproc.addInterceptor(new ResponseServer());
+        httpproc.addInterceptor(new ResponseContent());
+        httpproc.addInterceptor(new ResponseConnControl());
+        httpproc.addInterceptor(new RequestBasicAuth());
+        httpproc.addInterceptor(new ResponseBasicUnauthorized());
+        localServer = new LocalTestServer(
+                httpproc, null, null, new AuthExpectationVerifier(), null, null);
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+
+        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test"));
+
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.setCredentialsProvider(credsProvider);
+
+        HttpPut httpput = new HttpPut("/");
+        httpput.setEntity(new InputStreamEntity(
+                new ByteArrayInputStream(
+                        new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
+                        -1));
+        httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+
+        HttpResponse response = httpclient.execute(getServerHttp(), httpput);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
+    }
+
+    @Test(expected=ClientProtocolException.class)
+    public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+
+        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test"));
+
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.setCredentialsProvider(credsProvider);
+
+        HttpPut httpput = new HttpPut("/");
+        httpput.setEntity(new InputStreamEntity(
+                new ByteArrayInputStream(
+                        new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
+                        -1));
+        httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, false);
+
+        try {
+            httpclient.execute(getServerHttp(), httpput);
+            Assert.fail("ClientProtocolException should have been thrown");
+        } catch (ClientProtocolException ex) {
+            Throwable cause = ex.getCause();
+            Assert.assertNotNull(cause);
+            Assert.assertTrue(cause instanceof NonRepeatableRequestException);
+            throw ex;
+        }
     }
 
     @Test

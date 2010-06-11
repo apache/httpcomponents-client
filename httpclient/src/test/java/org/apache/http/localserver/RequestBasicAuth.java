@@ -29,54 +29,24 @@ package org.apache.http.localserver;
 
 import java.io.IOException;
 
-import org.apache.commons.codec.BinaryDecoder;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.ProtocolException;
-import org.apache.http.auth.AUTH;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
 public class RequestBasicAuth implements HttpRequestInterceptor {
 
+    private final BasicAuthTokenExtractor authTokenExtractor;
+    
+    public RequestBasicAuth() {
+        super();
+        this.authTokenExtractor = new BasicAuthTokenExtractor();
+    }
+    
     public void process(
             final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {
-
-        context.removeAttribute("creds");
-
-        String auth = null;
-
-        Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
-        if (h != null) {
-            String s = h.getValue();
-            if (s != null) {
-                auth = s.trim();
-            }
-        }
-
-        if (auth != null) {
-            int i = auth.indexOf(' ');
-            if (i == -1) {
-                throw new ProtocolException("Invalid Authorization header: " + auth);
-            }
-            String authscheme = auth.substring(0, i);
-            if (authscheme.equalsIgnoreCase("basic")) {
-                String s = auth.substring(i + 1).trim();
-                byte[] credsRaw = s.getBytes(HTTP.ASCII);
-                BinaryDecoder codec = new Base64();
-                try {
-                    String creds = new String(codec.decode(credsRaw), HTTP.ASCII);
-                    context.setAttribute("creds", creds);
-                } catch (DecoderException ex) {
-                    throw new ProtocolException("Malformed BASIC credentials");
-                }
-            }
-        }
+        context.setAttribute("creds", this.authTokenExtractor.extract(request));
     }
 
 }

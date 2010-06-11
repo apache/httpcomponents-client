@@ -54,6 +54,7 @@ import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.HttpRequestHandlerRegistry;
@@ -119,6 +120,7 @@ public class LocalTestServer {
             final BasicHttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat,
             final HttpResponseFactory responseFactory,
+            final HttpExpectationVerifier expectationVerifier,
             final HttpParams params,
             final SSLContext sslcontext) {
         super();
@@ -129,7 +131,7 @@ public class LocalTestServer {
             reuseStrat != null ? reuseStrat: newConnectionReuseStrategy(),
             responseFactory != null ? responseFactory: newHttpResponseFactory(),
             handlerRegistry,
-            null,
+            expectationVerifier,
             params != null ? params : newDefaultParams());
         this.sslcontext = sslcontext;
     }
@@ -140,7 +142,7 @@ public class LocalTestServer {
      * @param sslcontext SSL context
      */
     public LocalTestServer(final SSLContext sslcontext) {
-        this(null, null, null, null, sslcontext);
+        this(null, null, null, null, null, sslcontext);
     }
 
     /**
@@ -156,7 +158,7 @@ public class LocalTestServer {
     public LocalTestServer(
             BasicHttpProcessor proc,
             HttpParams params) {
-        this(proc, null, null, params, null);
+        this(proc, null, null, null, params, null);
     }
 
     /**
