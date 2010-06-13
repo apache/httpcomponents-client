@@ -555,9 +555,12 @@ public class DefaultRequestDirector implements RequestDirector {
         HttpRoute route = req.getRoute();
 
         boolean retrying = true;
+        int connectCount = 0;
         while (retrying) {
             // Increment total exec count
             execCount++;
+            // Increment connect count
+            connectCount++;
             try {
                 if (!managedConn.isOpen()) {
                     managedConn.open(route, context, params);
@@ -571,7 +574,7 @@ public class DefaultRequestDirector implements RequestDirector {
                     managedConn.close();
                 } catch (IOException ignore) {
                 }
-                if (retryHandler.retryRequest(ex, execCount, context)) {
+                if (retryHandler.retryRequest(ex, connectCount, context)) {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when connecting to the target host: "
@@ -629,7 +632,7 @@ public class DefaultRequestDirector implements RequestDirector {
                     managedConn.close();
                 } catch (IOException ignore) {
                 }
-                if (retryHandler.retryRequest(ex, execCount, context)) {
+                if (retryHandler.retryRequest(ex, wrapper.getExecCount(), context)) {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when processing request: "
