@@ -72,7 +72,7 @@ public class ClientConnectionRelease {
             } catch (RuntimeException ex) {
                 // In case of an unexpected exception you may want to abort
                 // the HTTP request in order to shut down the underlying
-                // connection and release it back to the connection manager.
+                // connection immediately.
                 httpget.abort();
                 throw ex;
             } finally {
