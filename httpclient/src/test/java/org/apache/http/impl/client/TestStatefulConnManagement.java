@@ -198,4 +198,80 @@ public class TestStatefulConnManagement extends ServerTestBase {
 
     }
 
+    @Test
+    public void testRouteSpecificPoolRecylcing() throws Exception {
+        // This tests what happens when a maxed connection pool needs
+        // to kill the last idle connection to a route to build a new
+        // one to the same route.
+
+        int maxConn = 2;
+
+        int port = this.localServer.getServiceAddress().getPort();
+        this.localServer.register("*", new SimpleService());
+
+        // We build a client with 2 max active // connections, and 2 max per route.
+        ThreadSafeClientConnManager connMngr = new ThreadSafeClientConnManager(supportedSchemes);
+        connMngr.setMaxTotalConnections(maxConn);
+        connMngr.setDefaultMaxPerRoute(maxConn);
+
+        DefaultHttpClient client = new DefaultHttpClient(connMngr);
+
+        client.setUserTokenHandler(new UserTokenHandler() {
+
+            public Object getUserToken(final HttpContext context) {
+                return context.getAttribute("user");
+            }
+
+        });
+
+        // Bottom of the pool : a *keep alive* connection to Route 1.
+        HttpContext context1 = new BasicHttpContext();
+        context1.setAttribute("user", "stuff");
+        HttpResponse response1 = client.execute(
+                new HttpHost("localhost", port), new HttpGet("/"), context1);
+        HttpEntity entity1 = response1.getEntity();
+        if (entity1 != null) {
+            entity1.consumeContent();
+        }
+
+        // The ConnPoolByRoute now has 1 free connection, out of 2 max
+        // The ConnPoolByRoute has one RouteSpcfcPool, that has one free connection
+        // for [localhost][stuff]
+
+        Thread.sleep(100);
+
+        // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
+        // Send it to another route. Must be a keepalive.
+        HttpContext context2 = new BasicHttpContext();
+        HttpResponse response2 = client.execute(
+                new HttpHost("127.0.0.1", port), new HttpGet("/"), context2);
+        HttpEntity entity2 = response2.getEntity();
+        if (entity2 != null) {
+            entity2.consumeContent();
+        }
+        // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
+        // The [localhost][stuff] RouteSpcfcPool is the same as earlier
+        // And there is a [127.0.0.1][null] pool with 1 free connection
+
+        Thread.sleep(100);
+
+        // This will put the ConnPoolByRoute to the targeted state :
+        // [localhost][stuff] will not get reused because this call is [localhost][null]
+        // So the ConnPoolByRoute will need to kill one connection (it is maxed out globally).
+        // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
+        // When this happens, the RouteSpecificPool becomes empty.
+        HttpContext context3 = new BasicHttpContext();
+        HttpResponse response3 = client.execute(
+                new HttpHost("localhost", port), new HttpGet("/"), context3);
+
+        // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool
+        // this may fail. Ex : if the ConnPool discared the route pool because it was empty,
+        // but still used it to build the request3 connection.
+        HttpEntity entity3 = response3.getEntity();
+        if (entity3 != null) {
+            entity3.consumeContent();
+        }
+
+    }
+
 }

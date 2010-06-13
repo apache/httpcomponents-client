@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
+  Contributed by Guillaume <gueugaie at gmail.com>
+
 * [HTTPCLIENT-952] Trust store parameter is ingored by SSLSocketFactory 
   (affects version 4.1-alpha2 only)
   Contributed by Oleg Kalnichevski <olegk at apache.org>
