@@ -309,6 +309,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 } else if (hasCapacity && !freeConnections.isEmpty()) {
 
                     deleteLeastUsedEntry();
+                    // if least used entry's route was the same as rospl,
+                    // rospl is now out of date : we preemptively refresh
+                    rospl = getRoutePool(route, true);
                     entry = createEntry(rospl, operator);
 
                 } else {

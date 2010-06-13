@@ -1,3 +1,10 @@
+Changes since 4.0.1
+-------------------
+
+* [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
+  Contributed by Guillaume <gueugaie at gmail.com>
+
+
 Release 4.0.1
 -------------------
 
