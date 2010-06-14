@@ -27,6 +27,7 @@
 package org.apache.http.impl.conn.tsccm;
 
 import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.OperatedClientConnection;
@@ -42,6 +43,11 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
 @NotThreadSafe
 public class BasicPoolEntry extends AbstractPoolEntry {
 
+    private final long created;
+    
+    private long updated;
+    private long expiry;
+    
     /**
      * @deprecated do not use
      */
@@ -53,6 +59,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
         }
+        this.created = System.currentTimeMillis();
     }
 
     /**
@@ -67,6 +74,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
         }
+        this.created = System.currentTimeMillis();
     }
 
     protected final OperatedClientConnection getConnection() {
@@ -87,6 +95,46 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         super.shutdownEntry();
     }
 
+    /**
+     * @since 4.1
+     */
+    public long getCreated() {
+        return this.created;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public long getUpdated() {
+        return this.updated;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public long getExpiry() {
+        return this.expiry;
+    }
+
+    /**
+     * @since 4.1
+     */
+    public void updateExpiry(long time, TimeUnit timeunit) {
+        this.updated = System.currentTimeMillis();
+        if (time > 0) {
+            this.expiry = this.updated + timeunit.toMillis(time);
+        } else {
+            this.expiry = Long.MAX_VALUE;
+        }
+    }
+
+    /**
+     * @since 4.1
+     */
+    public boolean isExpired(long now) {
+        return now >= this.expiry;
+    }
+    
 }
 
 

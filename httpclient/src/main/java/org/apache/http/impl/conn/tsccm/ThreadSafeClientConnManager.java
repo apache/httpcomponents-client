@@ -284,36 +284,19 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return the total number of pooled connections
      */
     public int getConnectionsInPool() {
-        connectionPool.poolLock.lock();
-        try {
-            return connectionPool.numConnections;
-        } finally {
-            connectionPool.poolLock.unlock();
-        }
+        return pool.getConnectionsInPool();
     }
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
         }
-        connectionPool.poolLock.lock();
-        try {
-            connectionPool.closeIdleConnections(idleTimeout, tunit);
-            connectionPool.deleteClosedConnections();
-        } finally {
-            connectionPool.poolLock.unlock();
-        }
+        pool.closeIdleConnections(idleTimeout, tunit);
     }
 
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
-        connectionPool.poolLock.lock();
-        try {
-            connectionPool.closeExpiredConnections();
-            connectionPool.deleteClosedConnections();
-        } finally {
-            connectionPool.poolLock.unlock();
-        }
+        pool.closeExpiredConnections();
     }
 
     /**

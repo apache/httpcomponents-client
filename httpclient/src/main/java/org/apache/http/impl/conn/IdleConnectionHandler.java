@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpConnection;
@@ -46,8 +44,10 @@ import org.apache.http.HttpConnection;
  * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections
  *
  * @since 4.0
+ * 
+ * @deprecated no longer used
  */
-@NotThreadSafe
+@Deprecated
 public class IdleConnectionHandler {
 
     private final Log log = LogFactory.getLog(getClass());

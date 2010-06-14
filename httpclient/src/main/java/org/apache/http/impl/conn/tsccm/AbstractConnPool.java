@@ -37,7 +37,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,8 +55,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  * @since 4.0
  */
 
-@ThreadSafe
-@SuppressWarnings("deprecation")
+@Deprecated
 public abstract class AbstractConnPool implements RefQueueHandler {
 
     private final Log log;
@@ -67,16 +65,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
      */
     protected final Lock poolLock;
 
-    /**
-     * References to issued connections.
-     * Must hold poolLock when accessing.
-     */
+    /** References to issued connections */
     @GuardedBy("poolLock")
     protected Set<BasicPoolEntry> leasedConnections;
-
-    /** The handler for idle connections. Must hold poolLock when accessing. */
-    @GuardedBy("poolLock")
-    protected IdleConnectionHandler idleConnHandler;
 
     /** The current total number of connections. */
     @GuardedBy("poolLock")
@@ -85,12 +76,12 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     /** Indicates whether this pool is shut down. */
     protected volatile boolean isShutDown;
 
-    @Deprecated
     protected Set<BasicPoolEntryRef> issuedConnections;
 
-    @Deprecated
     protected ReferenceQueue<Object> refQueue;
 
+    protected IdleConnectionHandler idleConnHandler;
+    
     /**
      * Creates a new connection pool.
      */
@@ -102,14 +93,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
         this.poolLock = new ReentrantLock();
     }
 
-    /**
-     * @deprecated do not sue
-     */
-    @Deprecated
     public void enableConnectionGC()
         throws IllegalStateException {
     }
-
 
     /**
      * Obtains a pool entry with a connection within the given timeout.
@@ -158,11 +144,9 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     public abstract void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit)
         ;
 
-    @Deprecated
     public void handleReference(Reference<?> ref) {
     }
 
-    @Deprecated
     protected abstract void handleLostEntry(HttpRoute route);
 
     /**
@@ -200,9 +184,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     /**
      * Deletes all entries for closed connections.
      */
-    public abstract void deleteClosedConnections()
-        ;
-
+    public abstract void deleteClosedConnections();
 
     /**
      * Shuts down this pool and all associated resources.

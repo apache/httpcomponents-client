@@ -134,7 +134,7 @@ public class TestSpuriousWakeup {
                          Thread.State.WAITING, gct.getState());
 
             // get access to the objects we need
-            Lock      lck = mgr.extendedCPBR.poolLock;
+            Lock      lck = mgr.extendedCPBR.getLock();
             Condition cnd = mgr.extendedCPBR.newestWT.getCondition();
 
             // Now trigger spurious wakeups. We'll do it several times
