@@ -4,7 +4,9 @@ Building HttpComponents Client
 (1) Requisites
 --------------
 HttpClient utilizes Maven 2 as a distribution management and packaging tool. 
-Version 2.1.0 or above is required. This requires JDK 1.5 or above, as does HttpClient itself.
+Version 2.1.0 or above is required, which requires JDK 1.4 or later.
+However, it is recommended that you use Maven 2.2.1 or later, which  
+require JDK 1.5 or above, as does HttpClient itself.
 
 Maven installation and configuration instructions can be found here:
 
