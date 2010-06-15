@@ -69,13 +69,13 @@ Logging Practices
 * {Wire Logging}
 
     The wire log is used to log all data transmitted to and from servers when executing HTTP 
-    requests. The wire log uses the {{{org.apache.http.wire}}} logging category. This log should 
+    requests. The wire log uses the <<<org.apache.http.wire>>> logging category. This log should 
     only be enabled to debug problems, as it will produce an extremely large amount of log data.
     
 * {HTTP header Logging}
 
     Because the content of HTTP requests is usually less important for debugging than the HTTP 
-    headers, the {{{org.apache.http.headers}}} logging category for capturing HTTP headers only.
+    headers, the <<<org.apache.http.headers>>> logging category for capturing HTTP headers only.
 
 * {Configuration Examples}
 
@@ -280,5 +280,5 @@ org.apache.http.client.level = FINEST
     []
     
     More detailed information is available from the
-    {{{"http://java.sun.com/j2se/1.4.2/docs/guide/util/logging/overview.html"}
+    {{{http://java.sun.com/j2se/1.4.2/docs/guide/util/logging/overview.html}
     Java Logging documentation}}.
