@@ -47,9 +47,9 @@ HttpClient Overview
 
 {Documentation}
 
-    * HttpClient Tutorial ( {{{tutorial/html}HTML}} / {{{tutorial/pdf/httpclient-tutorial.pdf}PDF}} )
+    * HttpClient Tutorial ( {{{./tutorial/html}HTML}} / {{{./tutorial/pdf/httpclient-tutorial.pdf}PDF}} )
     
-    * Some examples of HttpClient in action can be found {{{examples.html}here}}
+    * Some examples of HttpClient in action can be found {{{./examples.html}here}}
     
 {Features}
 

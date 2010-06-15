@@ -51,11 +51,11 @@ HttpClient Quick Start
     []
     
     [[2]] Take a look at the HttpClient tutorial shipped with the release package or avaialble
-    {{{tutorial/html/}online}} to learn HttpClient API.
+    {{{./tutorial/html/}online}} to learn HttpClient API.
     
     [[3]] Another good way of getting started with HttpClient is by seeing it in action. Take 
-    a look at the samples shipped with the release package or available {{{examples.html}online}}.
+    a look at the samples shipped with the release package or available {{{./examples.html}online}}.
     
     [[4]] Please note that HttpClient is not a browser. Importantly it lacks UI, cache, HTML 
     renderer and a JavaScript engine. To learn more about the scope of HttpClient please refer to 
-    {{{primer.html}HttpClient Primer}}
+    {{{./primer.html}HttpClient Primer}}
