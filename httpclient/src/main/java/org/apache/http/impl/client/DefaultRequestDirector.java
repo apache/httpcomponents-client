@@ -468,15 +468,16 @@ public class DefaultRequestDirector implements RequestDirector {
                 if (reuse) {
                     // Set the idle duration of this connection
                     long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                    managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
-
                     if (this.log.isDebugEnabled()) {
+                        String s;
                         if (duration >= 0) {
-                            this.log.debug("Connection can be kept alive for " + duration + " ms");
+                            s = duration + " " + TimeUnit.MILLISECONDS;
                         } else {
-                            this.log.debug("Connection can be kept alive indefinitely");
+                            s = "ever";
                         }
+                        this.log.debug("Connection can be kept alive for " + s);
                     }
+                    managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
                 }
 
                 RoutedRequest followup = handleResponse(roureq, response, context);

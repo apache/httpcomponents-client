@@ -54,6 +54,7 @@ import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -178,7 +179,7 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         httpclient.execute(target, httpget);
     }
 
-    @Test
+    @Test @Ignore
     public void testSSLTrustVerificationOverride() throws Exception {
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");

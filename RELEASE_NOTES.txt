@@ -1,10 +1,14 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-948] In rare circumstances the idle connection handling code  
+  can leave closed connections in a inconsistent state.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
   Contributed by Guillaume <gueugaie at gmail.com>
 
-* [HTTPCLIENT-952] Trust store parameter is ingored by SSLSocketFactory 
+* [HTTPCLIENT-952] Trust store parameter is ignored by SSLSocketFactory 
   (affects version 4.1-alpha2 only)
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

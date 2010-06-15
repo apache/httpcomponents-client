@@ -289,7 +289,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
         if (log.isDebugEnabled()) {
-            log.debug("Closing connections idle for " + idleTimeout + " " + tunit);
+            log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
         }
         pool.closeIdleConnections(idleTimeout, tunit);
     }

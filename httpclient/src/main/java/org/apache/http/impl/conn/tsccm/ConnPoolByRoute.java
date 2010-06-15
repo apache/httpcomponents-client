@@ -237,7 +237,6 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
     }
 
     public int getConnectionsInPool(HttpRoute route) {
-
         poolLock.lock();
         try {
             // don't allow a pool to be created here!
@@ -330,9 +329,9 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("[" + route + "] kept alive: " + freeConnections.size() +
-                            ", issued: " + leasedConnections.size() +
-                            ", allocated: " + numConnections + " out of " + maxTotalConnections);
+                    log.debug("[" + route + "] total kept alive: " + freeConnections.size() +
+                            ", total issued: " + leasedConnections.size() +
+                            ", total allocated: " + numConnections + " out of " + maxTotalConnections);
                 }
 
                 // the cases to check for:
@@ -407,7 +406,6 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             poolLock.unlock();
         }
         return entry;
-
     }
 
     @Override
@@ -435,9 +433,14 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
 
             if (reusable) {
                 if (log.isDebugEnabled()) {
+                    String s;
+                    if (validDuration >= 0) {
+                        s = validDuration + " " + timeUnit;
+                    } else {
+                        s = "ever";
+                    }
                     log.debug("Pooling connection" +
-                            " [" + route + "][" + entry.getState() + "]" +
-                            "; keep alive for " + validDuration + " " + timeUnit.toString());
+                            " [" + route + "][" + entry.getState() + "]; keep alive for " + s);
                 }
                 rospl.freeEntry(entry);
                 entry.updateExpiry(validDuration, timeUnit);
@@ -452,10 +455,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
         } finally {
             poolLock.unlock();
         }
-
-    } // freeEntry
-
-
+    }
 
     /**
      * If available, get a free pool entry for a route.
@@ -485,7 +485,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
                     if (entry.isExpired(System.currentTimeMillis())) {
                         // If the free entry isn't valid anymore, get rid of it
                         // and loop to find another one that might be valid.
-                        if(log.isDebugEnabled())
+                        if (log.isDebugEnabled())
                             log.debug("Closing expired free connection"
                                     + " [" + rospl.getRoute() + "][" + state + "]");
                         closeConnection(entry);
@@ -510,7 +510,6 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
         } finally {
             poolLock.unlock();
         }
-
         return entry;
     }
 
@@ -591,12 +590,9 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
      * Used to replace pool entries with ones for a different route.
      */
     protected void deleteLeastUsedEntry() {
-
+        poolLock.lock();
         try {
-            poolLock.lock();
 
-            //@@@ with get() instead of remove, we could
-            //@@@ leave the removing to deleteEntry()
             BasicPoolEntry entry = freeConnections.remove();
 
             if (entry != null) {

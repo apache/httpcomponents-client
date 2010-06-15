@@ -82,7 +82,7 @@ public class TestIdleConnectionEviction extends ServerTestBase {
         HttpGet httpget = new HttpGet("/random/1024");
         WorkerThread[] workers = new WorkerThread[5];
         for (int i = 0; i < workers.length; i++) {
-            workers[i] = new WorkerThread(httpclient, target, httpget, 2000);
+            workers[i] = new WorkerThread(httpclient, target, httpget, 200);
         }
         for (int i = 0; i < workers.length; i++) {
             workers[i].start();
@@ -132,6 +132,7 @@ public class TestIdleConnectionEviction extends ServerTestBase {
                     if (entity != null) {
                         entity.consumeContent();
                     }
+                    Thread.sleep(10);
                 }
             } catch (Exception ex) {
                 this.ex = ex;
