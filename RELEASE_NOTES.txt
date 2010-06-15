@@ -4,6 +4,9 @@ Changes since 4.0.1
 * [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
   Contributed by Guillaume <gueugaie at gmail.com>
 
+* Work-around for HTTPCLIENT-948 (idle connection handling code can
+  leave closed connection in a inconsistent state)
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 Release 4.0.1
 -------------------
