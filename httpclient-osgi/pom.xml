@@ -122,6 +122,8 @@
             org.apache.http.impl.entity;version=${httpcore.version},
             org.apache.http.impl.io;version=${httpcore.version}
             </Import-Package>
+            <!-- Stop the JAVA_1_n_HOME variables from being treated as headers by Bnd -->
+            <_removeheaders>JAVA_1_3_HOME,JAVA_1_4_HOME</_removeheaders>
           </instructions>
         </configuration>
       </plugin>
