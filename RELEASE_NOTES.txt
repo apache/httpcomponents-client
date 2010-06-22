@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-951] Non-repeatable entity enclosing requests are not correctly
+  retried when 'expect-continue' handshake is active.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-948] In rare circumstances the idle connection handling code  
   can leave closed connections in a inconsistent state.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

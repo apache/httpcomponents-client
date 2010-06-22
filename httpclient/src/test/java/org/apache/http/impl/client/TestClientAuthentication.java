@@ -62,7 +62,6 @@ import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -219,7 +218,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         Assert.assertEquals("test realm", authscope.getRealm());
     }
 
-    @Test @Ignore
+    @Test
     public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new ResponseDate());
