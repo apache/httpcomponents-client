@@ -658,12 +658,13 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
                 final HttpClientConnection conn, 
                 final HttpContext context) throws IOException, HttpException {
             
+            HttpResponse response = super.execute(request, conn, context);
             Object marker = context.getAttribute(MARKER);
             if (marker == null) {
                 context.setAttribute(MARKER, Boolean.TRUE);
                 throw new IOException(failureMsg);
             }
-            return super.execute(request, conn, context);
+            return response;
         }
         
     }
@@ -744,6 +745,16 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         String failureMsg = "a message showing that this failed";
         
         FaultyHttpClient client = new FaultyHttpClient(failureMsg); 
+        client.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
+
+            public boolean retryRequest(
+                    final IOException exception,
+                    int executionCount,
+                    final HttpContext context) {
+                return true;
+            }
+
+        });
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;

@@ -1,6 +1,10 @@
 Changes since 4.0.1
 -------------------
 
+* [HTTPCLIENT-951] Non-repeatable entity enclosing requests are not correctly
+  retried when 'expect-continue' handshake is active.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
   Contributed by Guillaume <gueugaie at gmail.com>
 
