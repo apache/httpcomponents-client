@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-958] Client cache no longer allows incomplete responses to be 
+  passed on to the client.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
 * [HTTPCLIENT-951] Non-repeatable entity enclosing requests are not correctly
   retried when 'expect-continue' handshake is active.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

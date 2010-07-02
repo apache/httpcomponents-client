@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -51,6 +52,7 @@ import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
@@ -533,6 +535,32 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
+    protected HttpResponse correctIncompleteResponse(HttpResponse resp,
+                                                     byte[] bodyBytes) {
+        int status = resp.getStatusLine().getStatusCode();
+        if (status != HttpStatus.SC_OK
+            && status != HttpStatus.SC_PARTIAL_CONTENT) {
+            return resp;
+        }
+        Header hdr = resp.getFirstHeader("Content-Length");
+        if (hdr == null) return resp;
+        int contentLength;
+        try {
+            contentLength = Integer.parseInt(hdr.getValue());
+        } catch (NumberFormatException nfe) {
+            return resp;
+        }
+        if (bodyBytes.length >= contentLength) return resp;
+        HttpResponse error =
+            new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
+        error.setHeader("Content-Type","text/plain;charset=UTF-8");
+        String msg = String.format("Received incomplete response with Content-Length %d but actual body length %d", contentLength, bodyBytes.length);
+        byte[] msgBytes = msg.getBytes();
+        error.setHeader("Content-Length", String.format("%d",msgBytes.length));
+        error.setEntity(new ByteArrayEntity(msgBytes));
+        return error;
+    }
+
     protected HttpResponse handleBackendResponse(
             HttpHost target,
             HttpRequest request,
@@ -545,6 +573,7 @@ public class CachingHttpClient implements HttpClient {
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
 
+        HttpResponse corrected = backendResponse;
         if (cacheable) {
 
             SizeLimitedResponseReader responseReader = getResponseReader(backendResponse);
@@ -553,13 +582,17 @@ public class CachingHttpClient implements HttpClient {
                 return responseReader.getReconstructedResponse();
             }
 
-            CacheEntry entry = cacheEntryGenerator.generateEntry(
-                    requestDate,
-                    responseDate,
-                    backendResponse,
-                    responseReader.getResponseBytes());
-            storeInCache(target, request, entry);
-            return responseGenerator.generateResponse(entry);
+            byte[] responseBytes = responseReader.getResponseBytes();
+            corrected = correctIncompleteResponse(backendResponse,
+                                                               responseBytes);
+            int correctedStatus = corrected.getStatusLine().getStatusCode();
+            if (HttpStatus.SC_BAD_GATEWAY != correctedStatus) {
+                CacheEntry entry = cacheEntryGenerator
+                    .generateEntry(requestDate, responseDate, corrected,
+                                   responseBytes);
+                storeInCache(target, request, entry);
+                return responseGenerator.generateResponse(entry);
+            }
         }
 
         String uri = uriExtractor.getURI(target, request);
@@ -568,7 +601,7 @@ public class CachingHttpClient implements HttpClient {
         } catch (HttpCacheOperationException ex) {
             log.debug("Was unable to remove an entry from the cache based on the uri provided", ex);
         }
-        return backendResponse;
+        return corrected;
     }
 
     protected SizeLimitedResponseReader getResponseReader(HttpResponse backEndResponse) {

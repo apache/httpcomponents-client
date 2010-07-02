@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.InputStream;
+import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -35,6 +36,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
+import org.apache.http.entity.ByteArrayEntity;
 
 public class HttpTestUtils {
 
@@ -203,4 +205,19 @@ public class HttpTestUtils {
         return (equivalent(r1.getRequestLine(), r2.getRequestLine()) && isEndToEndHeaderSubset(r1,
                 r2));
     }
+
+    public static byte[] getRandomBytes(int nbytes) {
+        byte[] bytes = new byte[nbytes];
+        (new Random()).nextBytes(bytes);
+        return bytes;
+    }
+
+    /** Generates a response body with random content.
+     *  @param nbytes length of the desired response body
+     *  @return an {@link HttpEntity}
+     */
+    public static HttpEntity makeBody(int nbytes) {
+        return new ByteArrayEntity(getRandomBytes(nbytes));
+    }
+
 }

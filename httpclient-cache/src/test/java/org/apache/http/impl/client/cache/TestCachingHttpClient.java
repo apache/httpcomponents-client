@@ -26,7 +26,26 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.*;
+import static junit.framework.Assert.assertTrue;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.ProtocolException;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.RequestLine;
+import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -41,6 +60,8 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.classextension.EasyMock;
@@ -48,15 +69,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static junit.framework.Assert.assertTrue;
 
 public class TestCachingHttpClient {
 
@@ -246,6 +258,8 @@ public class TestCachingHttpClient {
         generateCacheEntry(requestDate, responseDate, buf);
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
+        responseStatusLineIsInspectable();
+        responseDoesNotHaveExplicitContentLength();
 
         replayMocks();
         HttpResponse result = impl.handleBackendResponse(host, mockRequest, requestDate,
@@ -597,6 +611,8 @@ public class TestCachingHttpClient {
         generateCacheEntry(requestDate, responseDate, buf);
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
+        responseStatusLineIsInspectable();
+        responseDoesNotHaveExplicitContentLength();
 
         replayMocks();
 
@@ -927,6 +943,117 @@ public class TestCachingHttpClient {
         Assert.assertTrue(gotException);
     }
 
+    @Test
+    public void testCorrectIncompleteResponseDoesNotCorrectComplete200Response()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","128");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseDoesNotCorrectComplete206Response()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","128");
+        resp.setHeader("Content-Range","bytes 0-127/255");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseGenerates502ForIncomplete200Response()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","256");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpStatus.SC_BAD_GATEWAY == result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseDoesNotCorrectIncompleteNon200Or206Responses()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","256");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseDoesNotCorrectResponsesWithoutExplicitContentLength()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseDoesNotCorrectResponsesWithUnparseableContentLengthHeader()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setHeader("Content-Length","foo");
+        resp.setEntity(new ByteArrayEntity(bytes));
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseProvidesPlainTextErrorMessage()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","256");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        Header ctype = result.getFirstHeader("Content-Type");
+        Assert.assertEquals("text/plain;charset=UTF-8", ctype.getValue());
+    }
+
+    @Test
+    public void testCorrectIncompleteResponseProvidesNonEmptyErrorMessage()
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        resp.setEntity(new ByteArrayEntity(bytes));
+        resp.setHeader("Content-Length","256");
+
+        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        int clen = Integer.parseInt(result.getFirstHeader("Content-Length").getValue());
+        Assert.assertTrue(clen > 0);
+        HttpEntity body = result.getEntity();
+        if (body.getContentLength() < 0) {
+            InputStream is = body.getContent();
+            int bytes_read = 0;
+            while((is.read()) != -1) {
+                bytes_read++;
+            }
+            is.close();
+            Assert.assertEquals(clen, bytes_read);
+        } else {
+            Assert.assertTrue(body.getContentLength() == clen);
+        }
+    }
+
+
     private byte[] readResponse(HttpResponse response) {
         try {
             ByteArrayOutputStream s1 = new ByteArrayOutputStream();
@@ -998,6 +1125,11 @@ public class TestCachingHttpClient {
                 allow);
     }
 
+    private void responseDoesNotHaveExplicitContentLength() {
+        EasyMock.expect(mockBackendResponse.getFirstHeader("Content-Length"))
+            .andReturn(null).anyTimes();
+    }
+
     private byte[] responseReaderReturnsBufferOfSize(int bufferSize) {
         byte[] buffer = new byte[bufferSize];
         org.easymock.EasyMock.expect(mockResponseReader.getResponseBytes()).andReturn(buffer);
@@ -1051,8 +1183,14 @@ public class TestCachingHttpClient {
     }
 
     private void responseIsGeneratedFromCache() {
-        org.easymock.EasyMock.expect(mockResponseGenerator.generateResponse(mockCacheEntry))
-                .andReturn(mockCachedResponse);
+        EasyMock.expect(mockResponseGenerator.generateResponse(mockCacheEntry))
+            .andReturn(mockCachedResponse);
+    }
+
+    private void responseStatusLineIsInspectable() {
+        StatusLine statusLine = new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        EasyMock.expect(mockBackendResponse.getStatusLine())
+            .andReturn(statusLine).anyTimes();
     }
 
     private void responseIsGeneratedFromCache(CacheEntry entry) {

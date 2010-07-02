@@ -126,9 +126,7 @@ public class TestProtocolRequirements {
     }
 
     private HttpEntity makeBody(int nbytes) {
-        byte[] bytes = new byte[nbytes];
-        (new Random()).nextBytes(bytes);
-        return new ByteArrayEntity(bytes);
+        return HttpTestUtils.makeBody(nbytes);
     }
 
     private IExpectationSetters<HttpResponse> backendExpectsAnyRequest() throws Exception {
@@ -3661,6 +3659,613 @@ public class TestProtocolRequirements {
                             HttpTestUtils.getCanonicalHeaderValue(result1, h));
         Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                             HttpTestUtils.getCanonicalHeaderValue(result2, h));
+    }
+
+    /* "If a cache has a stored non-empty set of subranges for an
+     * entity, and an incoming response transfers another subrange,
+     * the cache MAY combine the new subrange with the existing set if
+     * both the following conditions are met:
+     *
+     * - Both the incoming response and the cache entry have a cache
+     * validator.
+     *
+     * - The two cache validators match using the strong comparison
+     * function (see section 13.3.3).
+     *
+     * If either requirement is not met, the cache MUST use only the
+     * most recent partial response (based on the Date values
+     * transmitted with every response, and using the incoming
+     * response if these values are equal or missing), and MUST
+     * discard the other partial information."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.4
+     */
+    @Test
+    public void testCannotCombinePartialResponseIfIncomingResponseDoesNotHaveACacheValidator()
+        throws Exception {
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("ETag","\"etag1\"");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testCannotCombinePartialResponseIfCacheEntryDoesNotHaveACacheValidator()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag1\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testCannotCombinePartialResponseIfCacheValidatorsDoNotStronglyMatch()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("ETag","\"etag1\"");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag2\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMustDiscardLeastRecentPartialResponseIfIncomingRequestDoesNotHaveCacheValidator()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("ETag","\"etag1\"");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req3.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        // must make this request; cannot serve from cache
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMustDiscardLeastRecentPartialResponseIfCachedResponseDoesNotHaveCacheValidator()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag1\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req3.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        // must make this request; cannot serve from cache
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatch()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("Etag","\"etag1\"");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag2\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req3.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        // must make this request; cannot serve from cache
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatchEvenIfResponsesOutOfOrder()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("Etag","\"etag1\"");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag2\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req3.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        // must make this request; cannot serve from cache
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMustDiscardCachedPartialResponseIfCacheValidatorsDoNotStronglyMatchAndDateHeadersAreEqual()
+        throws Exception {
+
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req1.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setEntity(makeBody(50));
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Content-Range","bytes 0-49/128");
+        resp1.setHeader("Etag","\"etag1\"");
+        resp1.setHeader("Server","MockServer/1.0");
+        resp1.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req2.setHeader("Range","bytes=50-127");
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(makeBody(78));
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Content-Range","bytes 50-127/128");
+        resp2.setHeader("ETag","\"etag2\"");
+        resp2.setHeader("Server","MockServer/1.0");
+        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        req3.setHeader("Range","bytes=0-49");
+
+        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(makeBody(128));
+        resp3.setHeader("Server","MockServer/1.0");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+
+        // must make this request; cannot serve from cache
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    /* "When the cache receives a subsequent request whose Request-URI
+     * specifies one or more cache entries including a Vary header
+     * field, the cache MUST NOT use such a cache entry to construct a
+     * response to the new request unless all of the selecting
+     * request-headers present in the new request match the
+     * corresponding stored request-headers in the original request."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch()
+        throws Exception {
+
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req1.setHeader("Accept-Encoding","gzip");
+
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag1\"");
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Vary","Accept-Encoding");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req2.removeHeaders("Accept-Encoding");
+
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("ETag","\"etag1\"");
+        resp2.setHeader("Cache-Control","max-age=3600");
+
+        // not allowed to have a cache hit; must forward request
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
+    /* "A Vary header field-value of "*" always fails to match and
+     * subsequent requests on that resource can only be properly
+     * interpreted by the origin server."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void testCannotServeFromCacheForVaryStar() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag1\"");
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Vary","*");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("ETag","\"etag1\"");
+        resp2.setHeader("Cache-Control","max-age=3600");
+
+        // not allowed to have a cache hit; must forward request
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
+    /* " If the selecting request header fields for the cached entry
+     * do not match the selecting request header fields of the new
+     * request, then the cache MUST NOT use a cached entry to satisfy
+     * the request unless it first relays the new request to the
+     * origin server in a conditional request and the server responds
+     * with 304 (Not Modified), including an entity tag or
+     * Content-Location that indicates the entity to be used.
+     *
+     * If an entity tag was assigned to a cached representation, the
+     * forwarded request SHOULD be conditional and include the entity
+     * tags in an If-None-Match header field from all its cache
+     * entries for the resource. This conveys to the server the set of
+     * entities currently held by the cache, so that if any one of
+     * these entities matches the requested entity, the server can use
+     * the ETag header field in its 304 (Not Modified) response to
+     * tell the cache which entry is appropriate. If the entity-tag of
+     * the new response matches that of an existing entry, the new
+     * response SHOULD be used to update the header fields of the
+     * existing entry, and the result MUST be returned to the client.
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void testNonmatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated()
+        throws Exception {
+
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req1.setHeader("User-Agent","MyBrowser/1.0");
+
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag1\"");
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Vary","User-Agent");
+        resp1.setHeader("Content-Type","application/octet-stream");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req2.setHeader("User-Agent","MyBrowser/1.5");
+
+        HttpRequest conditional = new BasicHttpRequest("GET","/",HTTP_1_1);
+        conditional.setHeader("User-Agent","MyBrowser/1.5");
+        conditional.setHeader("If-None-Match","\"etag1\"");
+
+        HttpResponse resp200 = make200Response();
+        resp200.setHeader("ETag","\"etag1\"");
+        resp200.setHeader("Vary","User-Agent");
+
+        HttpResponse resp304 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp304.setHeader("ETag","\"etag1\"");
+        resp304.setHeader("Vary","User-Agent");
+
+        Capture<HttpRequest> condCap = new Capture<HttpRequest>();
+        Capture<HttpRequest> uncondCap = new Capture<HttpRequest>();
+
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                                            EasyMock.and(eqRequest(conditional),
+                                                         EasyMock.capture(condCap)),
+                                            (HttpContext)EasyMock.isNull()))
+            .andReturn(resp304).times(0,1);
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                                            EasyMock.and(eqRequest(req2),
+                                                         EasyMock.capture(uncondCap)),
+                                            (HttpContext)EasyMock.isNull()))
+            .andReturn(resp200).times(0,1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        if (HttpStatus.SC_OK == result.getStatusLine().getStatusCode()) {
+            Assert.assertTrue(condCap.hasCaptured()
+                              || uncondCap.hasCaptured());
+            if (uncondCap.hasCaptured()) {
+                Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp200, result));
+            }
+        }
+    }
+
+    /* "A cache that receives an incomplete response (for example,
+     * with fewer bytes of data than specified in a Content-Length
+     * header) MAY store the response. However, the cache MUST treat
+     * this as a partial response. Partial responses MAY be combined
+     * as described in section 13.5.4; the result might be a full
+     * response or might still be partial. A cache MUST NOT return a
+     * partial response to a client without explicitly marking it as
+     * such, using the 206 (Partial Content) status code. A cache MUST
+     * NOT return a partial response using a status code of 200 (OK)."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.8
+     */
+    @Test
+    public void testIncompleteResponseMustNotBeReturnedToClientWithoutMarkingItAs206() throws Exception {
+        originResponse.setEntity(makeBody(128));
+        originResponse.setHeader("Content-Length","256");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        int status = result.getStatusLine().getStatusCode();
+        Assert.assertFalse(HttpStatus.SC_OK == status);
+        if (status > 200 && status <= 299
+            && HttpTestUtils.equivalent(originResponse.getEntity(),
+                                        result.getEntity())) {
+            Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT == status);
+        }
     }
 
     private class FakeHeaderGroup extends HeaderGroup{
