@@ -612,4 +612,8 @@ public class CachingHttpClient implements HttpClient {
         return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
     }
 
+    public boolean isSharedCache() {
+        return true;
+    }
+
 }

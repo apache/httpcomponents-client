@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-962] Fixed handling of Authorization headers in shared cache mode.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
 * [HTTPCLIENT-961] Not all applicable URIs are invalidated on PUT/POST/DELETEs 
   that pass through client cache.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>

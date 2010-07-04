@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class TestResponseCachingPolicy {
 
-    private static final ProtocolVersion PROTOCOL_VERSION = new ProtocolVersion("HTTP", 1, 1);
+    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
     private ResponseCachingPolicy policy;
     private HttpResponse response;
     private HttpRequest request;
@@ -55,7 +55,7 @@ public class TestResponseCachingPolicy {
     public void setUp() throws Exception {
         policy = new ResponseCachingPolicy(0);
         response = new BasicHttpResponse(
-                new BasicStatusLine(PROTOCOL_VERSION, HttpStatus.SC_OK, ""));
+                new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, ""));
         response.setHeader("Date", DateUtils.formatDate(new Date()));
         response.setHeader("Content-Length", "0");
     }
@@ -63,6 +63,45 @@ public class TestResponseCachingPolicy {
     @Test
     public void testIsGetCacheable() {
         Assert.assertTrue(policy.isResponseCacheable("GET", response));
+    }
+
+    @Test
+    public void testResponsesToRequestsWithAuthorizationHeadersAreNotCacheable() {
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        Assert.assertFalse(policy.isResponseCacheable(request,response));
+    }
+
+    @Test
+    public void testAuthorizedResponsesWithSMaxAgeAreCacheable() {
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control","s-maxage=3600");
+        Assert.assertTrue(policy.isResponseCacheable(request,response));
+    }
+
+    @Test
+    public void testAuthorizedResponsesWithMustRevalidateAreCacheable() {
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control","must-revalidate");
+        Assert.assertTrue(policy.isResponseCacheable(request,response));
+    }
+
+    @Test
+    public void testAuthorizedResponsesWithCacheControlPublicAreCacheable() {
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control","public");
+        Assert.assertTrue(policy.isResponseCacheable(request,response));
+    }
+
+    @Test
+    public void testAuthorizedResponsesWithCacheControlMaxAgeAreNotCacheable() {
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control","max-age=3600");
+        Assert.assertFalse(policy.isResponseCacheable(request,response));
     }
 
     @Test
@@ -219,7 +258,7 @@ public class TestResponseCachingPolicy {
         Assert.assertTrue(policy.isResponseCacheable("GET", response));
 
         response = new BasicHttpResponse(
-                new BasicStatusLine(PROTOCOL_VERSION, HttpStatus.SC_OK, ""));
+                new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, ""));
         response.setHeader("Date", DateUtils.formatDate(new Date()));
         response.addHeader("Cache-Control", "no-transform");
         response.setHeader("Content-Length", "0");
@@ -229,12 +268,12 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testIsGetWithout200Cacheable() {
-        HttpResponse response = new BasicHttpResponse(new BasicStatusLine(PROTOCOL_VERSION,
+        HttpResponse response = new BasicHttpResponse(new BasicStatusLine(HTTP_1_1,
                 HttpStatus.SC_NOT_FOUND, ""));
 
         Assert.assertFalse(policy.isResponseCacheable("GET", response));
 
-        response = new BasicHttpResponse(new BasicStatusLine(PROTOCOL_VERSION,
+        response = new BasicHttpResponse(new BasicStatusLine(HTTP_1_1,
                 HttpStatus.SC_GATEWAY_TIMEOUT, ""));
 
         Assert.assertFalse(policy.isResponseCacheable("GET", response));

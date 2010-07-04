@@ -1054,6 +1054,11 @@ public class TestCachingHttpClient {
     }
 
 
+    @Test
+    public void testIsSharedCache() throws Exception {
+        Assert.assertTrue(impl.isSharedCache());
+    }
+
     private byte[] readResponse(HttpResponse response) {
         try {
             ByteArrayOutputStream s1 = new ByteArrayOutputStream();

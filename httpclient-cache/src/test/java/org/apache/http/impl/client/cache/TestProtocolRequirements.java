@@ -57,6 +57,7 @@ import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -2156,9 +2157,8 @@ public class TestProtocolRequirements {
         originResponse = new BasicHttpResponse(HTTP_1_1, 405, "Method Not Allowed");
         originResponse.setHeader("Allow", "GET, HEAD");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
-                        (HttpContext) EasyMock.isNull())).andReturn(originResponse);
+        backendExpectsAnyRequest().andReturn(originResponse);
+
         replayMocks();
 
         HttpResponse result = impl.execute(host, request);
@@ -2588,7 +2588,6 @@ public class TestProtocolRequirements {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-
 
         FakeHeaderGroup headerGroup = new FakeHeaderGroup();
 
@@ -4504,6 +4503,279 @@ public class TestProtocolRequirements {
     public void testDeleteDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
         HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
+    }
+
+    /* "All methods that might be expected to cause modifications to the origin
+     * server's resources MUST be written through to the origin server. This
+     * currently includes all methods except for GET and HEAD. A cache MUST NOT
+     * reply to such a request from a client before having transmitted the
+     * request to the inbound server, and having received a corresponding
+     * response from the inbound server."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.11
+     */
+    private void testRequestIsWrittenThroughToOrigin(HttpRequest req)
+        throws Exception {
+        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                        eqRequest(req),
+                                        (HttpContext)EasyMock.isNull()))
+            .andReturn(resp);
+
+        replayMocks();
+        impl.execute(host, req);
+        verifyMocks();
+    }
+
+    @Test @Ignore
+    public void testOPTIONSRequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("OPTIONS","*",HTTP_1_1);
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testPOSTRequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+        req.setEntity(makeBody(128));
+        req.setHeader("Content-Length","128");
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testPUTRequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        req.setEntity(makeBody(128));
+        req.setHeader("Content-Length","128");
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testDELETERequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testTRACERequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("TRACE","/",HTTP_1_1);
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testCONNECTRequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("CONNECT","/",HTTP_1_1);
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    @Test
+    public void testUnknownMethodRequestsAreWrittenThroughToOrigin()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("UNKNOWN","/",HTTP_1_1);
+        testRequestIsWrittenThroughToOrigin(req);
+    }
+
+    /* "If a cache receives a value larger than the largest positive
+     * integer it can represent, or if any of its age calculations
+     * overflows, it MUST transmit an Age header with a value of
+     * 2147483648 (2^31)."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.6
+     */
+    @Test
+    public void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig()
+        throws Exception {
+        String reallyOldAge = "1" + Long.MAX_VALUE;
+        originResponse.setHeader("Age",reallyOldAge);
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host,request);
+        verifyMocks();
+
+        Assert.assertEquals("2147483648",
+                            result.getFirstHeader("Age").getValue());
+    }
+
+    /* "A proxy MUST NOT modify the Allow header field even if it does not
+     * understand all the methods specified, since the user agent might
+     * have other means of communicating with the origin server.
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.7
+     */
+    @Test
+    public void testDoesNotModifyAllowHeaderWithUnknownMethods()
+        throws Exception {
+        String allowHeaderValue = "GET, HEAD, FOOBAR";
+        originResponse.setHeader("Allow",allowHeaderValue);
+        backendExpectsAnyRequest().andReturn(originResponse);
+        replayMocks();
+        HttpResponse result = impl.execute(host,request);
+        verifyMocks();
+        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
+                            HttpTestUtils.getCanonicalHeaderValue(result, "Allow"));
+    }
+
+    /* "When a shared cache (see section 13.7) receives a request
+     * containing an Authorization field, it MUST NOT return the
+     * corresponding response as a reply to any other request, unless one
+     * of the following specific exceptions holds:
+     *
+     * 1. If the response includes the "s-maxage" cache-control
+     *    directive, the cache MAY use that response in replying to a
+     *    subsequent request. But (if the specified maximum age has
+     *    passed) a proxy cache MUST first revalidate it with the origin
+     *    server, using the request-headers from the new request to allow
+     *    the origin server to authenticate the new request. (This is the
+     *    defined behavior for s-maxage.) If the response includes "s-
+     *    maxage=0", the proxy MUST always revalidate it before re-using
+     *    it.
+     *
+     * 2. If the response includes the "must-revalidate" cache-control
+     *    directive, the cache MAY use that response in replying to a
+     *    subsequent request. But if the response is stale, all caches
+     *    MUST first revalidate it with the origin server, using the
+     *    request-headers from the new request to allow the origin server
+     *    to authenticate the new request.
+     *
+     * 3. If the response includes the "public" cache-control directive,
+     *    it MAY be returned in reply to any subsequent request.
+     */
+    protected void testSharedCacheRevalidatesAuthorizedResponse(
+            HttpResponse authorizedResponse, int minTimes, int maxTimes) throws Exception,
+            IOException {
+        if (impl.isSharedCache()) {
+            String authorization = "Basic dXNlcjpwYXNzd2Q=";
+            HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            req1.setHeader("Authorization",authorization);
+
+            backendExpectsAnyRequest().andReturn(authorizedResponse);
+
+            HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            HttpResponse resp2 = make200Response();
+            resp2.setHeader("Cache-Control","max-age=3600");
+
+            if (maxTimes > 0) {
+                // this request MUST happen
+                backendExpectsAnyRequest().andReturn(resp2)
+                    .times(minTimes,maxTimes);
+            }
+
+            replayMocks();
+            impl.execute(host, req1);
+            impl.execute(host, req2);
+            verifyMocks();
+        }
+    }
+
+    @Test
+    public void testSharedCacheMustNotNormallyCacheAuthorizedResponses()
+        throws Exception {
+        HttpResponse resp = make200Response();
+        resp.setHeader("Cache-Control","max-age=3600");
+        resp.setHeader("ETag","\"etag\"");
+        testSharedCacheRevalidatesAuthorizedResponse(resp, 1, 1);
+    }
+
+    @Test
+    public void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader()
+        throws Exception {
+        HttpResponse resp = make200Response();
+        resp.setHeader("Cache-Control","s-maxage=3600");
+        resp.setHeader("ETag","\"etag\"");
+        testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
+    }
+
+    @Test
+    public void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero()
+        throws Exception {
+        HttpResponse resp = make200Response();
+        resp.setHeader("Cache-Control","s-maxage=0");
+        resp.setHeader("ETag","\"etag\"");
+        testSharedCacheRevalidatesAuthorizedResponse(resp, 1, 1);
+    }
+
+    @Test
+    public void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate()
+        throws Exception {
+        HttpResponse resp = make200Response();
+        resp.setHeader("Cache-Control","must-revalidate");
+        resp.setHeader("ETag","\"etag\"");
+        testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
+    }
+
+    @Test
+    public void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic()
+        throws Exception {
+        HttpResponse resp = make200Response();
+        resp.setHeader("Cache-Control","public");
+        testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
+    }
+
+    protected void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(
+            HttpResponse authorizedResponse) throws Exception, IOException,
+            ClientProtocolException {
+        if (impl.isSharedCache()) {
+            String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
+            String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
+
+            HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            req1.setHeader("Authorization",authorization1);
+
+            backendExpectsAnyRequest().andReturn(authorizedResponse);
+
+            HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            req2.setHeader("Authorization",authorization2);
+
+            HttpResponse resp2 = make200Response();
+
+            Capture<HttpRequest> cap = new Capture<HttpRequest>();
+            EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                    EasyMock.capture(cap),
+                    (HttpContext)EasyMock.isNull()))
+                    .andReturn(resp2);
+
+            replayMocks();
+            impl.execute(host,req1);
+            impl.execute(host,req2);
+            verifyMocks();
+
+            HttpRequest captured = cap.getValue();
+            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(req2, "Authorization"),
+                    HttpTestUtils.getCanonicalHeaderValue(captured, "Authorization"));
+        }
+    }
+
+    @Test
+    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge()
+    throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Cache-Control","s-maxage=5");
+
+        testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(resp1);
+    }
+
+    @Test
+    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate()
+    throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Cache-Control","maxage=5, must-revalidate");
+
+        testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(resp1);
     }
 
     private class FakeHeaderGroup extends HeaderGroup{
