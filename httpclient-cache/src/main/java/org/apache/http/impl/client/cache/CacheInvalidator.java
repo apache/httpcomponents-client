@@ -26,6 +26,9 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -86,11 +89,60 @@ public class CacheInvalidator {
                     }
                     cache.removeEntry(theUri);
                 }
+                URL reqURL;
+                try {
+                    reqURL = new URL(theUri);
+                } catch (MalformedURLException mue) {
+                    log.error("Couldn't transform request into valid URL");
+                    return;
+                }
+                Header clHdr = req.getFirstHeader("Content-Location");
+                if (clHdr != null) {
+                    String contentLocation = clHdr.getValue();
+                    if (!flushAbsoluteUriFromSameHost(reqURL, contentLocation)) {
+                        flushRelativeUriFromSameHost(reqURL, contentLocation);
+                    }
+                }
+                Header lHdr = req.getFirstHeader("Location");
+                if (lHdr != null) {
+                    flushAbsoluteUriFromSameHost(reqURL, lHdr.getValue());
+                }
             } catch (HttpCacheOperationException ex) {
                 log.debug("Was unable to REMOVE an entry from the cache based on the uri provided",
                         ex);
             }
         }
+    }
+
+    protected void flushUriIfSameHost(URL requestURL, URL targetURL)
+        throws HttpCacheOperationException {
+        if (targetURL.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
+            cache.removeEntry(targetURL.toString());
+        }
+    }
+
+    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri)
+        throws HttpCacheOperationException {
+        URL relURL;
+        try {
+            relURL = new URL(reqURL,relUri);
+        } catch (MalformedURLException e) {
+            log.debug("Invalid relative URI",e);
+            return;
+        }
+        flushUriIfSameHost(reqURL, relURL);
+    }
+
+    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri)
+            throws HttpCacheOperationException {
+        URL absURL;
+        try {
+            absURL = new URL(uri);
+        } catch (MalformedURLException mue) {
+            return false;
+        }
+        flushUriIfSameHost(reqURL,absURL);
+        return true;
     }
 
     protected boolean requestShouldNotBeCached(HttpRequest req) {

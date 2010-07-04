@@ -91,7 +91,7 @@ public class TestProtocolRequirements {
     public void setUp() {
         host = new HttpHost("foo.example.com");
 
-        body = makeBody(entityLength);
+        body = HttpTestUtils.makeBody(entityLength);
 
         request = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
 
@@ -1027,7 +1027,7 @@ public class TestProtocolRequirements {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HTTP_1_1);
         post.setHeader("Content-Length", "128");
-        post.setEntity(makeBody(128));
+        post.setEntity(HttpTestUtils.makeBody(128));
 
         originResponse.removeHeaders("Cache-Control");
         originResponse.removeHeaders("Expires");
@@ -1054,7 +1054,7 @@ public class TestProtocolRequirements {
 
         BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
                 HTTP_1_1);
-        put.setEntity(makeBody(128));
+        put.setEntity(HttpTestUtils.makeBody(128));
         put.addHeader("Content-Length", "128");
 
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -1102,7 +1102,7 @@ public class TestProtocolRequirements {
     public void testForwardedTRACERequestsDoNotIncludeAnEntity() throws Exception {
         BasicHttpEntityEnclosingRequest trace = new BasicHttpEntityEnclosingRequest("TRACE", "/",
                 HTTP_1_1);
-        trace.setEntity(makeBody(entityLength));
+        trace.setEntity(HttpTestUtils.makeBody(entityLength));
         trace.setHeader("Content-Length", Integer.toString(entityLength));
 
         Capture<HttpRequest> reqCap = new Capture<HttpRequest>();
@@ -1157,7 +1157,7 @@ public class TestProtocolRequirements {
     @Test
     public void test204ResponsesDoNotContainMessageBodies() throws Exception {
         originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
-        originResponse.setEntity(makeBody(entityLength));
+        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
@@ -1181,7 +1181,7 @@ public class TestProtocolRequirements {
     public void test205ResponsesDoNotContainMessageBodies() throws Exception {
         originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_RESET_CONTENT,
                 "Reset Content");
-        originResponse.setEntity(makeBody(entityLength));
+        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
@@ -1308,7 +1308,7 @@ public class TestProtocolRequirements {
                 "Partial Content");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
-        originResponse.setEntity(makeBody(500));
+        originResponse.setEntity(HttpTestUtils.makeBody(500));
         originResponse.setHeader("Content-Range", "bytes 0-499/1234");
         originResponse.removeHeaders("Date");
 
@@ -1731,7 +1731,7 @@ public class TestProtocolRequirements {
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Type", "application/x-cachingclient-test");
         originResponse.setHeader("Location", "http://foo.example.com/other");
-        originResponse.setEntity(makeBody(entityLength));
+        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
@@ -1756,7 +1756,7 @@ public class TestProtocolRequirements {
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("Content-Length", "128");
-        originResponse.setEntity(makeBody(entityLength));
+        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
@@ -1901,7 +1901,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Cache-Control", "max-age=7200");
         resp1.setHeader("Expires", DateUtils.formatDate(inTwoHours));
         resp1.setHeader("Vary", "Accept-Encoding");
-        resp1.setEntity(makeBody(entityLength));
+        resp1.setEntity(HttpTestUtils.makeBody(entityLength));
 
         HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
         req1.setHeader("Accept-Encoding", "gzip");
@@ -1912,7 +1912,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Expires", DateUtils.formatDate(inTwoHours));
         resp2.setHeader("Vary", "Accept-Encoding");
-        resp2.setEntity(makeBody(entityLength));
+        resp2.setEntity(HttpTestUtils.makeBody(entityLength));
 
         HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
         req3.setHeader("Accept-Encoding", "gzip");
@@ -2225,7 +2225,7 @@ public class TestProtocolRequirements {
     public void testMustNotUseMultipartByteRangeContentTypeOnCacheGenerated416Responses()
             throws Exception {
 
-        originResponse.setEntity(makeBody(entityLength));
+        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
         originResponse.setHeader("Content-Length", "128");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
@@ -2783,7 +2783,7 @@ public class TestProtocolRequirements {
     @Test
     public void testPUTWithIfMatchWeakETagIsNotAllowed() throws Exception {
         HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HTTP_1_1);
-        put.setEntity(makeBody(128));
+        put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-Match", "W/\"etag\"");
         request = put;
@@ -2794,7 +2794,7 @@ public class TestProtocolRequirements {
     @Test
     public void testPUTWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
         HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HTTP_1_1);
-        put.setEntity(makeBody(128));
+        put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-None-Match", "W/\"etag\"");
         request = put;
@@ -3176,7 +3176,7 @@ public class TestProtocolRequirements {
     private void testDoesNotModifyHeaderOnRequest(String header, String value) throws Exception {
         BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
-        req.setEntity(makeBody(128));
+        req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.setHeader(header,value);
 
@@ -3221,7 +3221,7 @@ public class TestProtocolRequirements {
     private void testDoesNotAddHeaderToRequestIfNotPresent(String header) throws Exception {
         BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
-        req.setEntity(makeBody(128));
+        req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.removeHeaders(header);
 
@@ -3349,7 +3349,7 @@ public class TestProtocolRequirements {
         request.setHeader("Range","bytes=0-49");
 
         originResponse = new BasicHttpResponse(HTTP_1_1, 206, "Partial Content");
-        originResponse.setEntity(makeBody(50));
+        originResponse.setEntity(HttpTestUtils.makeBody(50));
         testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Range","bytes 0-49/128");
     }
 
@@ -4266,6 +4266,244 @@ public class TestProtocolRequirements {
                                         result.getEntity())) {
             Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT == status);
         }
+    }
+
+    /* "Some HTTP methods MUST cause a cache to invalidate an
+     * entity. This is either the entity referred to by the
+     * Request-URI, or by the Location or Content-Location headers (if
+     * present). These methods are:
+     * - PUT
+     * - DELETE
+     * - POST
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
+     */
+    protected void testUnsafeOperationInvalidatesCacheForThatUri(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public, max-age=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpResponse resp3 = make200Response();
+        resp3.setHeader("Cache-Control","public, max-age=3600");
+
+        // this origin request MUST happen due to invalidation
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, unsafeReq);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    @Test
+    public void testPutToUriInvalidatesCacheForThatUri() throws Exception {
+        HttpRequest req = makeRequestWithBody("PUT","/");
+        testUnsafeOperationInvalidatesCacheForThatUri(req);
+    }
+
+    @Test
+    public void testDeleteToUriInvalidatesCacheForThatUri() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/");
+        testUnsafeOperationInvalidatesCacheForThatUri(req);
+    }
+
+    @Test
+    public void testPostToUriInvalidatesCacheForThatUri() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeOperationInvalidatesCacheForThatUri(req);
+    }
+
+    protected void testUnsafeMethodInvalidatesCacheForHeaderUri(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public, max-age=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpResponse resp3 = make200Response();
+        resp3.setHeader("Cache-Control","public, max-age=3600");
+
+        // this origin request MUST happen due to invalidation
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, unsafeReq);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
+    protected void testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        unsafeReq.setHeader("Content-Location","http://foo.example.com/content");
+        testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
+    }
+
+    protected void testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        unsafeReq.setHeader("Content-Location","/content");
+        testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
+    }
+
+    protected void testUnsafeMethodInvalidatesCacheForUriInLocationHeader(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        unsafeReq.setHeader("Location","http://foo.example.com/content");
+        testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
+    }
+
+    @Test
+    public void testPutInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+        HttpRequest req2 = makeRequestWithBody("PUT","/");
+        testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req2);
+    }
+
+    @Test
+    public void testPutInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+        HttpRequest req = makeRequestWithBody("PUT","/");
+        testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
+    }
+
+    @Test
+    public void testPutInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
+        HttpRequest req = makeRequestWithBody("PUT","/");
+        testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
+    }
+
+    @Test
+    public void testDeleteInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/");
+        testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
+    }
+
+    @Test
+    public void testDeleteInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/");
+        testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
+    }
+
+    @Test
+    public void testDeleteInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/");
+        testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
+    }
+
+    @Test
+    public void testPostInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
+    }
+
+    @Test
+    public void testPostInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
+    }
+
+    @Test
+    public void testPostInvalidatesCacheForRelativeUriInContentLocationHeader() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
+    }
+
+    /* "In order to prevent denial of service attacks, an invalidation based on the URI
+     *  in a Location or Content-Location header MUST only be performed if the host part
+     *  is the same as in the Request-URI."
+     *
+     *  http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
+     */
+    protected void testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(
+            HttpRequest unsafeReq) throws Exception, IOException {
+
+        HttpHost otherHost = new HttpHost("bar.example.com");
+        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public, max-age=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+
+        replayMocks();
+        impl.execute(otherHost, req1);
+        impl.execute(host, unsafeReq);
+        impl.execute(otherHost, req3);
+        verifyMocks();
+    }
+
+    protected void testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        unsafeReq.setHeader("Content-Location","http://bar.example.com/content");
+        testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
+    }
+
+    protected void testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(
+            HttpRequest unsafeReq) throws Exception, IOException {
+        unsafeReq.setHeader("Location","http://bar.example.com/content");
+        testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
+    }
+
+    protected HttpRequest makeRequestWithBody(String method, String requestUri) {
+        HttpEntityEnclosingRequest request =
+            new BasicHttpEntityEnclosingRequest(method, requestUri, HTTP_1_1);
+        int nbytes = 128;
+        request.setEntity(HttpTestUtils.makeBody(nbytes));
+        request.setHeader("Content-Length",""+nbytes);
+        return request;
+    }
+
+    @Test
+    public void testPutDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = makeRequestWithBody("PUT","/");
+        testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
+    }
+
+    @Test
+    public void testPutDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = makeRequestWithBody("PUT","/");
+        testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
+    }
+
+    @Test
+    public void testPostDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
+    }
+
+    @Test
+    public void testPostDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = makeRequestWithBody("POST","/");
+        testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
+    }
+
+    @Test
+    public void testDeleteDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
+    }
+
+    @Test
+    public void testDeleteDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
     private class FakeHeaderGroup extends HeaderGroup{

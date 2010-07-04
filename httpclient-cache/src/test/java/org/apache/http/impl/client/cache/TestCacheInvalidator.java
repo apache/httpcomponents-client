@@ -29,64 +29,44 @@ package org.apache.http.impl.client.cache;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.RequestLine;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheOperationException;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.message.BasicHttpRequest;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestCacheInvalidator {
 
+    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
+
     private CacheInvalidator impl;
     private HttpCache<CacheEntry> mockCache;
-    private Header mockHeader;
-    private Header[] mockHeaderArray = new Header[1];
     private HttpHost host;
-    private HttpRequest mockRequest;
-    private RequestLine mockRequestLine;
-    private URIExtractor mockExtractor;
+    private URIExtractor extractor;
     private CacheEntry mockEntry;
 
     private boolean mockedImpl;
-    private HeaderElement mockElement;
-    private HeaderElement[] mockElementArray = new HeaderElement[1];
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
         mockCache = EasyMock.createMock(HttpCache.class);
-        mockExtractor = EasyMock.createMock(URIExtractor.class);
-        mockHeader = EasyMock.createMock(Header.class);
-        mockElement = EasyMock.createMock(HeaderElement.class);
-        mockRequest = EasyMock.createMock(HttpRequest.class);
-        mockRequestLine = EasyMock.createMock(RequestLine.class);
+        extractor = new URIExtractor();
         mockEntry = EasyMock.createMock(CacheEntry.class);
-        mockHeaderArray[0] = mockHeader;
-        mockElementArray[0] = mockElement;
 
-        impl = new CacheInvalidator(mockExtractor, mockCache);
-    }
-
-    private void mockImplMethods(String... methods) {
-        mockedImpl = true;
-        impl = EasyMock.createMockBuilder(CacheInvalidator.class).withConstructor(mockExtractor,
-                mockCache).addMockedMethods(methods).createMock();
+        impl = new CacheInvalidator(extractor, mockCache);
     }
 
     private void replayMocks() {
         EasyMock.replay(mockCache);
-        EasyMock.replay(mockExtractor);
-        EasyMock.replay(mockHeader);
-        EasyMock.replay(mockRequest);
-        EasyMock.replay(mockRequestLine);
         EasyMock.replay(mockEntry);
-        EasyMock.replay(mockElement);
 
         if (mockedImpl)
             EasyMock.replay(impl);
@@ -94,12 +74,7 @@ public class TestCacheInvalidator {
 
     private void verifyMocks() {
         EasyMock.verify(mockCache);
-        EasyMock.verify(mockExtractor);
-        EasyMock.verify(mockHeader);
-        EasyMock.verify(mockRequest);
-        EasyMock.verify(mockRequestLine);
         EasyMock.verify(mockEntry);
-        EasyMock.verify(mockElement);
 
         if (mockedImpl)
             EasyMock.verify(impl);
@@ -108,139 +83,210 @@ public class TestCacheInvalidator {
     // Tests
     @Test
     public void testInvalidatesRequestsThatArentGETorHEAD() throws Exception {
-        final String theUri = "theUri";
+        HttpRequest request = new BasicHttpRequest("POST","/path", HTTP_1_1);
+
+        final String theUri = "http://foo.example.com/path";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
         cacheReturnsEntryForUri(theUri);
-        requestLineIsRead();
-        requestMethodIs("POST");
-        extractorReturns(theUri);
         entryIsRemoved(theUri);
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
+
+        verifyMocks();
+    }
+
+    @Test
+    public void testInvalidatesUrisInContentLocationHeadersOnPUTs() throws Exception {
+        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        request.setEntity(HttpTestUtils.makeBody(128));
+        request.setHeader("Content-Length","128");
+
+        String contentLocation = "http://foo.example.com/content";
+        request.setHeader("Content-Location",contentLocation);
+
+        final String theUri = "http://foo.example.com/";
+        Set<String> variantURIs = new HashSet<String>();
+        cacheEntryHasVariantURIs(variantURIs);
+
+        cacheReturnsEntryForUri(theUri);
+        entryIsRemoved(theUri);
+        entryIsRemoved(contentLocation);
+
+        replayMocks();
+
+        impl.flushInvalidatedCacheEntries(host, request);
+
+        verifyMocks();
+    }
+
+    @Test
+    public void testInvalidatesUrisInLocationHeadersOnPUTs() throws Exception {
+        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        request.setEntity(HttpTestUtils.makeBody(128));
+        request.setHeader("Content-Length","128");
+
+        String contentLocation = "http://foo.example.com/content";
+        request.setHeader("Location",contentLocation);
+
+        final String theUri = "http://foo.example.com/";
+        Set<String> variantURIs = new HashSet<String>();
+        cacheEntryHasVariantURIs(variantURIs);
+
+        cacheReturnsEntryForUri(theUri);
+        entryIsRemoved(theUri);
+        entryIsRemoved(contentLocation);
+
+        replayMocks();
+
+        impl.flushInvalidatedCacheEntries(host, request);
+
+        verifyMocks();
+    }
+
+    @Test
+    public void testInvalidatesRelativeUrisInContentLocationHeadersOnPUTs() throws Exception {
+        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        request.setEntity(HttpTestUtils.makeBody(128));
+        request.setHeader("Content-Length","128");
+
+        String contentLocation = "http://foo.example.com/content";
+        String relativePath = "/content";
+        request.setHeader("Content-Location",relativePath);
+
+        final String theUri = "http://foo.example.com/";
+        Set<String> variantURIs = new HashSet<String>();
+        cacheEntryHasVariantURIs(variantURIs);
+
+        cacheReturnsEntryForUri(theUri);
+        entryIsRemoved(theUri);
+        entryIsRemoved(contentLocation);
+
+        replayMocks();
+
+        impl.flushInvalidatedCacheEntries(host, request);
+
+        verifyMocks();
+    }
+
+    @Test
+    public void testDoesNotInvalidateUrisInContentLocationHeadersOnPUTsToDifferentHosts() throws Exception {
+        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        request.setEntity(HttpTestUtils.makeBody(128));
+        request.setHeader("Content-Length","128");
+
+        String contentLocation = "http://bar.example.com/content";
+        request.setHeader("Content-Location",contentLocation);
+
+        final String theUri = "http://foo.example.com/";
+        Set<String> variantURIs = new HashSet<String>();
+        cacheEntryHasVariantURIs(variantURIs);
+
+        cacheReturnsEntryForUri(theUri);
+        entryIsRemoved(theUri);
+
+        replayMocks();
+
+        impl.flushInvalidatedCacheEntries(host, request);
 
         verifyMocks();
     }
 
     @Test
     public void testDoesNotInvalidateGETRequest() {
+        HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
 
-        requestLineIsRead();
-        requestMethodIs("GET");
-        requestContainsCacheControlHeader(null);
-        requestContainsPragmaHeader(null);
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
 
         verifyMocks();
     }
 
     @Test
     public void testDoesNotInvalidateHEADRequest() {
+        HttpRequest request = new BasicHttpRequest("HEAD","/",HTTP_1_1);
 
-        requestLineIsRead();
-        requestMethodIs("HEAD");
-        requestContainsCacheControlHeader(null);
-        requestContainsPragmaHeader(null);
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
 
         verifyMocks();
     }
 
     @Test
     public void testInvalidatesRequestsWithClientCacheControlHeaders() throws Exception {
-        final String theUri = "theUri";
-        extractorReturns(theUri);
+        HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Cache-Control","no-cache");
+
+        final String theUri = "http://foo.example.com/";
         cacheReturnsEntryForUri(theUri);
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
-        requestLineIsRead();
-        requestMethodIs("GET");
-        requestContainsCacheControlHeader(mockHeaderArray);
-
-        org.easymock.EasyMock.expect(mockHeader.getElements()).andReturn(mockElementArray);
-        org.easymock.EasyMock.expect(mockElement.getName()).andReturn("no-cache").anyTimes();
-
         entryIsRemoved(theUri);
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
 
         verifyMocks();
     }
 
     @Test
     public void testInvalidatesRequestsWithClientPragmaHeaders() throws Exception {
-        final String theUri = "theUri";
-        extractorReturns(theUri);
+        HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Pragma","no-cache");
+
+        final String theUri = "http://foo.example.com/";
         cacheReturnsEntryForUri(theUri);
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
-        requestLineIsRead();
-        requestMethodIs("GET");
-        requestContainsCacheControlHeader(null);
-        requestContainsPragmaHeader(mockHeader);
         entryIsRemoved(theUri);
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
 
         verifyMocks();
     }
 
     @Test
     public void testVariantURIsAreFlushedAlso() throws HttpCacheOperationException {
-        final String theUri = "theUri";
+        HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
+
+        final String theUri = "http://foo.example.com/";
         final String variantUri = "theVariantURI";
 
         Set<String> listOfURIs = new HashSet<String>();
         listOfURIs.add(variantUri);
 
-        extractorReturns(theUri);
         cacheReturnsEntryForUri(theUri);
         cacheEntryHasVariantURIs(listOfURIs);
 
         entryIsRemoved(variantUri);
         entryIsRemoved(theUri);
 
-        mockImplMethods("requestShouldNotBeCached");
-        org.easymock.EasyMock.expect(impl.requestShouldNotBeCached(mockRequest)).andReturn(true);
-
         replayMocks();
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
         verifyMocks();
     }
 
     @Test
     public void testCacheFlushException() throws Exception {
-        String theURI = "theURI";
+        HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
+        String theURI = "http://foo.example.com/";
 
-        mockImplMethods("requestShouldNotBeCached");
-        org.easymock.EasyMock.expect(impl.requestShouldNotBeCached(mockRequest)).andReturn(true);
-
-        extractorReturns(theURI);
         cacheReturnsExceptionForUri(theURI);
 
         replayMocks();
-        impl.flushInvalidatedCacheEntries(host, mockRequest);
+        impl.flushInvalidatedCacheEntries(host, request);
         verifyMocks();
     }
 
     // Expectations
-    private void requestContainsPragmaHeader(Header header) {
-        org.easymock.EasyMock.expect(mockRequest.getFirstHeader("Pragma")).andReturn(header);
-    }
 
-    private void requestMethodIs(String s) {
-        org.easymock.EasyMock.expect(mockRequestLine.getMethod()).andReturn(s);
-    }
 
     private void cacheEntryHasVariantURIs(Set<String> variantURIs) {
         org.easymock.EasyMock.expect(mockEntry.getVariantURIs()).andReturn(variantURIs);
@@ -255,19 +301,8 @@ public class TestCacheInvalidator {
                 new HttpCacheOperationException("TOTAL FAIL"));
     }
 
-    private void extractorReturns(String theUri) {
-        org.easymock.EasyMock.expect(mockExtractor.getURI(host, mockRequest)).andReturn(theUri);
-    }
-
     private void entryIsRemoved(String theUri) throws HttpCacheOperationException {
         mockCache.removeEntry(theUri);
     }
 
-    private void requestLineIsRead() {
-        org.easymock.EasyMock.expect(mockRequest.getRequestLine()).andReturn(mockRequestLine);
-    }
-
-    private void requestContainsCacheControlHeader(Header[] header) {
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Cache-Control")).andReturn(header);
-    }
 }
