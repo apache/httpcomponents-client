@@ -76,6 +76,11 @@ public class RequestProtocolCompliance {
             theErrors.add(anError);
         }
 
+        anError = requestContainsNoCacheDirectiveWithFieldName(request);
+        if (anError != null) {
+            theErrors.add(anError);
+        }
+
         return theErrors;
     }
 
@@ -259,6 +264,11 @@ public class RequestProtocolCompliance {
                         HttpStatus.SC_BAD_REQUEST,
                         "Weak eTag not compatible with PUT or DELETE requests"));
 
+            case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
+                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                        HttpStatus.SC_BAD_REQUEST,
+                        "No-Cache directive MUST NOT include a field name"));
+
             default:
                 throw new IllegalStateException(
                         "The request was compliant, therefore no error can be generated for it.");
@@ -328,5 +338,17 @@ public class RequestProtocolCompliance {
             return null;
 
         return RequestProtocolError.BODY_BUT_NO_LENGTH_ERROR;
+    }
+
+    private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(HttpRequest request) {
+        for(Header h : request.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("no-cache".equalsIgnoreCase(elt.getName())
+                    && elt.getValue() != null) {
+                    return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;
+                }
+            }
+        }
+        return null;
     }
 }

@@ -4778,6 +4778,91 @@ public class TestProtocolRequirements {
         testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(resp1);
     }
 
+    /* "If a cache returns a stale response, either because of a max-stale
+     * directive on a request, or because the cache is configured to
+     * override the expiration time of a response, the cache MUST attach a
+     * Warning header to the stale response, using Warning 110 (Response
+     * is stale).
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
+     */
+    @Test
+    public void testWarning110IsAddedToStaleResponses()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=5");
+        resp1.setHeader("Etag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req2.setHeader("Cache-Control","max-stale=60");
+        HttpResponse resp2 = make200Response();
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+                .andReturn(resp2).times(0,1);
+
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+
+        if (!cap.hasCaptured()) {
+            boolean found110Warning = false;
+            for(Header h : result.getHeaders("Warning")) {
+                for(HeaderElement elt : h.getElements()) {
+                    String[] parts = elt.getName().split("\\s");
+                    if ("110".equals(parts[0])) {
+                        found110Warning = true;
+                        break;
+                    }
+                }
+            }
+            Assert.assertTrue(found110Warning);
+        }
+    }
+
+    /* "Field names MUST NOT be included with the no-cache directive in a
+     * request."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    @Test
+    public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream()
+        throws Exception {
+        request.setHeader("Cache-Control","no-cache=\"X-Field\"");
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+                .andReturn(originResponse).times(0,1);
+
+        replayMocks();
+        try {
+            impl.execute(host, request);
+        } catch (ClientProtocolException acceptable) {
+        }
+        verifyMocks();
+
+        if (cap.hasCaptured()) {
+            HttpRequest captured = cap.getValue();
+            for(Header h : captured.getHeaders("Cache-Control")) {
+                for(HeaderElement elt : h.getElements()) {
+                    if ("no-cache".equals(elt.getName())) {
+                        Assert.assertNull(elt.getValue());
+                    }
+                }
+            }
+        }
+    }
+
     private class FakeHeaderGroup extends HeaderGroup{
 
         public void addHeader(String name, String value){

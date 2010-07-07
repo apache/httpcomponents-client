@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-964] no-cache directives with field names are no longer transmitted 
+  downstream.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
 * [HTTPCLIENT-962] Fixed handling of Authorization headers in shared cache mode.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
