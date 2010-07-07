@@ -100,6 +100,7 @@ public class CacheEntry implements Serializable {
         this.reason = reason;
         this.body = body;
         this.variantURIs = new HashSet<String>();
+
     }
 
     /**
@@ -389,6 +390,24 @@ public class CacheEntry implements Serializable {
     public String toString() {
         return "[request date=" + requestDate + "; response date=" + responseDate
                 + "; status=" + status + "]";
+    }
+
+    protected boolean hasCacheControlDirective(String directive) {
+        for(Header h : responseHeaders.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if (directive.equalsIgnoreCase(elt.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean mustRevalidate() {
+        return hasCacheControlDirective("must-revalidate");
+    }
+    public boolean proxyRevalidate() {
+        return hasCacheControlDirective("proxy-revalidate");
     }
 
 }

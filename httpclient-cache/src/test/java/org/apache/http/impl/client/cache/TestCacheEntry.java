@@ -503,5 +503,34 @@ public class TestCacheEntry {
         Assert.assertNull(expirationDate);
     }
 
+    @Test
+    public void testMustRevalidateIsFalseIfDirectiveNotPresent() {
+        Header[] headers = new Header[] { new BasicHeader("Cache-Control","public") };
+        CacheEntry entry = getEntry(headers);
+        Assert.assertFalse(entry.mustRevalidate());
+    }
+
+    @Test
+    public void testMustRevalidateIsTrueWhenDirectiveIsPresent() {
+        Header[] headers = new Header[] { new BasicHeader("Cache-Control","public, must-revalidate") };
+        CacheEntry entry = getEntry(headers);
+        Assert.assertTrue(entry.mustRevalidate());
+    }
+
+    @Test
+    public void testProxyRevalidateIsFalseIfDirectiveNotPresent() {
+        Header[] headers = new Header[] { new BasicHeader("Cache-Control","public") };
+        CacheEntry entry = getEntry(headers);
+        Assert.assertFalse(entry.proxyRevalidate());
+    }
+
+    @Test
+    public void testProxyRevalidateIsTrueWhenDirectiveIsPresent() {
+        Header[] headers = new Header[] { new BasicHeader("Cache-Control","public, proxy-revalidate") };
+        CacheEntry entry = getEntry(headers);
+        Assert.assertTrue(entry.proxyRevalidate());
+    }
+
+
 
 }

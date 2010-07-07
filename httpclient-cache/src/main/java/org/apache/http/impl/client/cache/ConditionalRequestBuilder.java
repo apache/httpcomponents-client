@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
@@ -58,6 +59,19 @@ public class ConditionalRequestBuilder {
         } else {
             Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
             wrapperRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
+        }
+        boolean mustRevalidate = false;
+        for(Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(HeaderElement elt : h.getElements()) {
+                if (HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE.equalsIgnoreCase(elt.getName())
+                    || HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE.equalsIgnoreCase(elt.getName())) {
+                    mustRevalidate = true;
+                    break;
+                }
+            }
+        }
+        if (mustRevalidate) {
+            wrapperRequest.addHeader("Cache-Control","max-age=0");
         }
         return wrapperRequest;
 

@@ -1053,9 +1053,8 @@ public class TestCachingHttpClient {
         }
     }
 
-
     @Test
-    public void testIsSharedCache() throws Exception {
+    public void testIsSharedCache() {
         Assert.assertTrue(impl.isSharedCache());
     }
 

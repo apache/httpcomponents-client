@@ -411,10 +411,15 @@ public class CachingHttpClient implements HttpClient {
             try {
                 return revalidateCacheEntry(target, request, context, entry);
             } catch (IOException ioex) {
-                HttpResponse response = responseGenerator.generateResponse(entry);
-                response.addHeader(HeaderConstants.WARNING, "111 Revalidation Failed - " + ioex.getMessage());
-                log.debug("111 revalidation failed due to exception: " + ioex);
-                return response;
+                if (entry.mustRevalidate()
+                    || (isSharedCache() && entry.proxyRevalidate())) {
+                    return new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+                } else {
+                    HttpResponse response = responseGenerator.generateResponse(entry);
+                    response.addHeader(HeaderConstants.WARNING, "111 Revalidation Failed - " + ioex.getMessage());
+                    log.debug("111 revalidation failed due to exception: " + ioex);
+                    return response;
+                }
             } catch (ProtocolException e) {
                 throw new ClientProtocolException(e);
             }

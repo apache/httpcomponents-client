@@ -29,7 +29,9 @@ package org.apache.http.impl.client.cache;
 import java.util.Date;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.entity.ByteArrayEntity;
@@ -119,4 +121,63 @@ public class TestConditionalRequestBuilder {
         Assert.assertEquals(theETag, newRequest.getAllHeaders()[1].getValue());
     }
 
+    @Test
+    public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
+        HttpRequest request = new BasicHttpRequest("GET","/",CachingHttpClient.HTTP_1_1);
+        Date now = new Date();
+        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+
+        Header[] cacheEntryHeaders = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"etag\""),
+                new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
+        CacheEntry cacheEntry = new CacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                CachingHttpClient.HTTP_1_1, cacheEntryHeaders, new ByteArrayEntity(new byte[0]),
+                HttpStatus.SC_OK, "OK");
+
+        HttpRequest result = impl.buildConditionalRequest(request, cacheEntry);
+
+        boolean foundMaxAge0 = false;
+        for(Header h : result.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-age".equalsIgnoreCase(elt.getName())
+                    && "0".equals(elt.getValue())) {
+                    foundMaxAge0 = true;
+                }
+            }
+        }
+        Assert.assertTrue(foundMaxAge0);
+    }
+
+    @Test
+    public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
+        HttpRequest request = new BasicHttpRequest("GET","/",CachingHttpClient.HTTP_1_1);
+        Date now = new Date();
+        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+
+        Header[] cacheEntryHeaders = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"etag\""),
+                new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
+        CacheEntry cacheEntry = new CacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                CachingHttpClient.HTTP_1_1, cacheEntryHeaders, new ByteArrayEntity(new byte[0]),
+                HttpStatus.SC_OK, "OK");
+
+        HttpRequest result = impl.buildConditionalRequest(request, cacheEntry);
+
+        boolean foundMaxAge0 = false;
+        for(Header h : result.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-age".equalsIgnoreCase(elt.getName())
+                    && "0".equals(elt.getValue())) {
+                    foundMaxAge0 = true;
+                }
+            }
+        }
+        Assert.assertTrue(foundMaxAge0);
+    }
 }

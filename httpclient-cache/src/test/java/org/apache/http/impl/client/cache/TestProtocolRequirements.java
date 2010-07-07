@@ -28,6 +28,7 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.Random;
 
@@ -4862,6 +4863,191 @@ public class TestProtocolRequirements {
             }
         }
     }
+
+    /* "The request includes a "no-cache" cache-control directive or, for
+     * compatibility with HTTP/1.0 clients, "Pragma: no-cache".... The
+     * server MUST NOT use a cached copy when responding to such a request."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    protected void testCacheIsNotUsedWhenRespondingToRequest(HttpRequest req)
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Etag","\"etag\"");
+        resp1.setHeader("Cache-Control","max-age=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("Etag","\"etag2\"");
+        resp2.setHeader("Cache-Control","max-age=1200");
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                EasyMock.capture(cap),
+                (HttpContext)EasyMock.isNull()))
+                .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req);
+        verifyMocks();
+
+        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
+        HttpRequest captured = cap.getValue();
+        Assert.assertTrue(HttpTestUtils.equivalent(req, captured));
+    }
+
+    @Test
+    public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req.setHeader("Cache-Control","no-cache");
+        testCacheIsNotUsedWhenRespondingToRequest(req);
+    }
+
+    @Test
+    public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache()
+        throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req.setHeader("Pragma","no-cache");
+        testCacheIsNotUsedWhenRespondingToRequest(req);
+    }
+
+    /* "When the must-revalidate directive is present in a response received
+     * by a cache, that cache MUST NOT use the entry after it becomes stale
+     * to respond to a subsequent request without first revalidating it with
+     * the origin server. (I.e., the cache MUST do an end-to-end
+     * revalidation every time, if, based solely on the origin server's
+     * Expires or max-age value, the cached response is stale.)"
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    protected void testStaleCacheResponseMustBeRevalidatedWithOrigin(
+            HttpResponse staleResponse) throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+
+        backendExpectsAnyRequest().andReturn(staleResponse);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req2.setHeader("Cache-Control","max-stale=3600");
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("ETag","\"etag2\"");
+        resp2.setHeader("Cache-Control","max-age=5, must-revalidate");
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        // this request MUST happen
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+                .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host,req1);
+        impl.execute(host,req2);
+        verifyMocks();
+
+        HttpRequest reval = cap.getValue();
+        boolean foundMaxAge0 = false;
+        for(Header h : reval.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-age".equalsIgnoreCase(elt.getName())
+                    && "0".equals(elt.getValue())) {
+                    foundMaxAge0 = true;
+                }
+            }
+        }
+        Assert.assertTrue(foundMaxAge0);
+    }
+
+    @Test
+    public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin()
+        throws Exception {
+        HttpResponse response = make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        response.setHeader("ETag","\"etag1\"");
+        response.setHeader("Cache-Control","max-age=5, must-revalidate");
+
+        testStaleCacheResponseMustBeRevalidatedWithOrigin(response);
+    }
+
+
+    /* "In all circumstances an HTTP/1.1 cache MUST obey the must-revalidate
+     * directive; in particular, if the cache cannot reach the origin server
+     * for any reason, it MUST generate a 504 (Gateway Timeout) response."
+     */
+    protected void testGenerates504IfCannotRevalidateStaleResponse(
+            HttpResponse staleResponse) throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+
+        backendExpectsAnyRequest().andReturn(staleResponse);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+
+        backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
+
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
+                            result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testGenerates504IfCannotRevalidateAMustRevalidateEntry()
+        throws Exception {
+        HttpResponse resp1 = make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=5,must-revalidate");
+
+        testGenerates504IfCannotRevalidateStaleResponse(resp1);
+    }
+
+    /* "The proxy-revalidate directive has the same meaning as the must-
+     * revalidate directive, except that it does not apply to non-shared
+     * user agent caches."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    @Test
+    public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin()
+        throws Exception {
+        if (impl.isSharedCache()) {
+            HttpResponse response = make200Response();
+            Date now = new Date();
+            Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+            response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+            response.setHeader("ETag","\"etag1\"");
+            response.setHeader("Cache-Control","max-age=5, proxy-revalidate");
+
+            testStaleCacheResponseMustBeRevalidatedWithOrigin(response);
+        }
+    }
+
+    @Test
+    public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry()
+        throws Exception {
+        if (impl.isSharedCache()) {
+            HttpResponse resp1 = make200Response();
+            Date now = new Date();
+            Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+            resp1.setHeader("ETag","\"etag\"");
+            resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+            resp1.setHeader("Cache-Control","max-age=5,proxy-revalidate");
+
+            testGenerates504IfCannotRevalidateStaleResponse(resp1);
+        }
+    }
+
+
 
     private class FakeHeaderGroup extends HeaderGroup{
 

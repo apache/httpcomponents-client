@@ -62,6 +62,8 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_MAX_AGE = "max-age";
     public static final String CACHE_CONTROL_MAX_STALE = "max-stale";
     public static final String CACHE_CONTROL_MIN_FRESH = "min-fresh";
+    public static final String CACHE_CONTROL_MUST_REVALIDATE = "must-revalidate";
+    public static final String CACHE_CONTROL_PROXY_REVALIDATE = "proxy-revalidate";
 
     public static final String WARNING = "Warning";
     public static final String RANGE = "Range";
