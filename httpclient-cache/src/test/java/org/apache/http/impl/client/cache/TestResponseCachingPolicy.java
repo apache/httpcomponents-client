@@ -54,6 +54,7 @@ public class TestResponseCachingPolicy {
     @Before
     public void setUp() throws Exception {
         policy = new ResponseCachingPolicy(0);
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
         response = new BasicHttpResponse(
                 new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, ""));
         response.setHeader("Date", DateUtils.formatDate(new Date()));
@@ -297,6 +298,13 @@ public class TestResponseCachingPolicy {
         Assert.assertFalse(policy.isResponseCacheable("PUT", response));
 
         Assert.assertFalse(policy.isResponseCacheable("get", response));
+    }
+
+    @Test
+    public void testResponsesToRequestsWithNoStoreAreNotCacheable() {
+        request.setHeader("Cache-Control","no-store");
+        response.setHeader("Cache-Control","public");
+        Assert.assertFalse(policy.isResponseCacheable(request,response));
     }
 
     @Test

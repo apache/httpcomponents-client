@@ -5,8 +5,11 @@ Changes since 4.1 ALPHA2
   proxy-revalidate Cache-Control directives.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
-* [HTTPCLIENT-964] no-cache directives with field names are no longer transmitted 
+* [HTTPCLIENT-964] 'no-cache' directives with field names are no longer transmitted 
   downstream.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-963] Fixed handling of 'Cache-Control: no-store' on requests.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
 * [HTTPCLIENT-962] Fixed handling of Authorization headers in shared cache mode.

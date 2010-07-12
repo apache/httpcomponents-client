@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -153,12 +154,12 @@ public class ResponseCachingPolicy {
         return false;
     }
 
-    protected boolean hasCacheControlParameterFrom(HttpResponse response, String[] params) {
-        Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
+    protected boolean hasCacheControlParameterFrom(HttpMessage msg, String[] params) {
+        Header[] cacheControlHeaders = msg.getHeaders(HeaderConstants.CACHE_CONTROL);
         for (Header header : cacheControlHeaders) {
             for (HeaderElement elem : header.getElements()) {
                 for (String param : params) {
-                    if (param.equals(elem.getName())) {
+                    if (param.equalsIgnoreCase(elem.getName())) {
                         return true;
                     }
                 }
@@ -187,6 +188,10 @@ public class ResponseCachingPolicy {
     public boolean isResponseCacheable(HttpRequest request, HttpResponse response) {
         if (requestProtocolGreaterThanAccepted(request)) {
             log.debug("Response was not cacheable.");
+            return false;
+        }
+        String[] uncacheableRequestDirectives = { "no-store" };
+        if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
             return false;
         }
 

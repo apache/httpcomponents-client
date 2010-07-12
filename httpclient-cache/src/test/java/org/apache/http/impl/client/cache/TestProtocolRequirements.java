@@ -5047,7 +5047,214 @@ public class TestProtocolRequirements {
         }
     }
 
+    /* "[The cache control directive] "private" Indicates that all or part of
+     * the response message is intended for a single user and MUST NOT be
+     * cached by a shared cache."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
+     */
+    @Test
+    public void testCacheControlPrivateIsNotCacheableBySharedCache()
+    throws Exception {
+       if (impl.isSharedCache()) {
+               HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpResponse resp1 = make200Response();
+               resp1.setHeader("Cache-Control","private,max-age=3600");
 
+               backendExpectsAnyRequest().andReturn(resp1);
+
+               HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpResponse resp2 = make200Response();
+               // this backend request MUST happen
+               backendExpectsAnyRequest().andReturn(resp2);
+
+               replayMocks();
+               impl.execute(host,req1);
+               impl.execute(host,req2);
+               verifyMocks();
+       }
+    }
+
+    @Test
+    public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache()
+    throws Exception {
+       if (impl.isSharedCache()) {
+               HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpResponse resp1 = make200Response();
+               resp1.setHeader("X-Personal","stuff");
+               resp1.setHeader("Cache-Control","private=\"X-Personal\",s-maxage=3600");
+
+               backendExpectsAnyRequest().andReturn(resp1);
+
+               HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpResponse resp2 = make200Response();
+
+               // this backend request MAY happen
+               backendExpectsAnyRequest().andReturn(resp2).times(0,1);
+
+               replayMocks();
+               impl.execute(host,req1);
+               HttpResponse result = impl.execute(host,req2);
+               verifyMocks();
+               Assert.assertNull(result.getFirstHeader("X-Personal"));
+       }
+    }
+
+    /* "If the no-cache directive does not specify a field-name, then a
+     * cache MUST NOT use the response to satisfy a subsequent request
+     * without successful revalidation with the origin server. This allows
+     * an origin server to prevent caching even by caches that have been
+     * configured to return stale responses to client requests."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
+     */
+    @Test
+    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation()
+    throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Cache-Control","no-cache");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp2 = make200Response();
+
+        // this MUST happen
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host,req1);
+        impl.execute(host,req2);
+        verifyMocks();
+    }
+
+    @Test
+    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications()
+    throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Cache-Control","no-cache,s-maxage=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        req2.setHeader("Cache-Control","max-stale=7200");
+        HttpResponse resp2 = make200Response();
+
+        // this MUST happen
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host,req1);
+        impl.execute(host,req2);
+        verifyMocks();
+    }
+
+    /* "If the no-cache directive does specify one or more field-names, then
+     * a cache MAY use the response to satisfy a subsequent request, subject
+     * to any other restrictions on caching. However, the specified
+     * field-name(s) MUST NOT be sent in the response to a subsequent request
+     * without successful revalidation with the origin server."
+     */
+    @Test
+    public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation()
+    throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("X-Stuff","things");
+        resp1.setHeader("Cache-Control","no-cache=\"X-Stuff\", max-age=3600");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("ETag","\"etag\"");
+        resp2.setHeader("X-Stuff","things");
+        resp2.setHeader("Cache-Control","no-cache=\"X-Stuff\",max-age=3600");
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+                                            EasyMock.capture(cap),
+                                            (HttpContext)EasyMock.isNull()))
+                .andReturn(resp2).times(0,1);
+
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+
+        if (!cap.hasCaptured()) {
+            Assert.assertNull(result.getFirstHeader("X-Stuff"));
+        }
+    }
+
+    /* "The purpose of the no-store directive is to prevent the inadvertent
+     * release or retention of sensitive information (for example, on backup
+     * tapes). The no-store directive applies to the entire message, and MAY
+     * be sent either in a response or in a request. If sent in a request, a
+     * cache MUST NOT store any part of either this request or any response
+     * to it. If sent in a response, a cache MUST NOT store any part of
+     * either this response or the request that elicited it. This directive
+     * applies to both non- shared and shared caches. "MUST NOT store" in
+     * this context means that the cache MUST NOT intentionally store the
+     * information in non-volatile storage, and MUST make a best-effort
+     * attempt to remove the information from volatile storage as promptly
+     * as possible after forwarding it."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.2
+     */
+    @Test
+    public void testNoStoreOnRequestIsNotStoredInCache()
+    throws Exception {
+        emptyMockCacheExpectsNoPuts();
+        request.setHeader("Cache-Control","no-store");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host,request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testNoStoreOnRequestIsNotStoredInCacheEvenIfResponseMarkedCacheable()
+    throws Exception {
+        emptyMockCacheExpectsNoPuts();
+        request.setHeader("Cache-Control","no-store");
+        originResponse.setHeader("Cache-Control","max-age=3600");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host,request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testNoStoreOnResponseIsNotStoredInCache()
+    throws Exception {
+        emptyMockCacheExpectsNoPuts();
+        originResponse.setHeader("Cache-Control","no-store");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host,request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testNoStoreOnResponseIsNotStoredInCacheEvenWithContraryIndicators()
+    throws Exception {
+        emptyMockCacheExpectsNoPuts();
+        originResponse.setHeader("Cache-Control","no-store,max-age=3600");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host,request);
+        verifyMocks();
+    }
 
     private class FakeHeaderGroup extends HeaderGroup{
 
