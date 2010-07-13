@@ -41,6 +41,6 @@ public interface HttpCacheUpdateCallback<E> {
      *
      * @since 4.1
      */
-    E getUpdatedEntry(E existing) throws HttpCacheOperationException;
+    E update(E existing) throws HttpCacheOperationException;
 
 }

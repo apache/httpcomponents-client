@@ -488,15 +488,7 @@ public class CachingHttpClient implements HttpClient {
 
     protected void storeInCache(HttpHost target, HttpRequest request, CacheEntry entry) {
         if (entry.hasVariants()) {
-            try {
-                String uri = uriExtractor.getURI(target, request);
-                HttpCacheUpdateCallback<CacheEntry> callback = storeVariantEntry(
-                        target, request, entry);
-                responseCache.updateCacheEntry(uri, callback);
-            } catch (HttpCacheOperationException ex) {
-                log.debug("Was unable to PUT/UPDATE an entry into the cache based on the uri provided",
-                        ex);
-            }
+            storeVariantEntry(target, request, entry);
         } else {
             storeNonVariantEntry(target, request, entry);
         }
@@ -511,28 +503,35 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    protected HttpCacheUpdateCallback<CacheEntry> storeVariantEntry(
+    protected void storeVariantEntry(
             final HttpHost target,
             final HttpRequest req,
             final CacheEntry entry) {
+        final String variantURI = uriExtractor.getVariantURI(target, req, entry);
+        try {
+            responseCache.putEntry(variantURI, entry);
+        } catch (HttpCacheOperationException e) {
+            log.debug("Was unable to PUT a variant entry into the cache based on the uri provided", e);
+        }
 
-        return new HttpCacheUpdateCallback<CacheEntry>() {
-            public CacheEntry getUpdatedEntry(CacheEntry existing) throws HttpCacheOperationException {
+        HttpCacheUpdateCallback<CacheEntry> callback = new HttpCacheUpdateCallback<CacheEntry>() {
 
-                return doGetUpdatedParentEntry(existing, target, req, entry);
+            public CacheEntry update(CacheEntry existing) throws HttpCacheOperationException {
+                return doGetUpdatedParentEntry(existing, entry, variantURI);
             }
+
         };
+        String parentURI = uriExtractor.getURI(target, req);
+        try {
+            responseCache.updateEntry(parentURI, callback);
+        } catch (HttpCacheOperationException e) {
+            log.debug("Was unable to UPDATE a parent entry for a variant", e);
+        }
     }
 
     protected CacheEntry doGetUpdatedParentEntry(
             CacheEntry existing,
-            HttpHost target,
-            HttpRequest req,
-            CacheEntry entry) throws HttpCacheOperationException {
-
-        String variantURI = uriExtractor.getVariantURI(target, req, entry);
-        responseCache.putEntry(variantURI, entry);
-
+            CacheEntry entry, String variantURI) throws HttpCacheOperationException {
         if (existing != null) {
             return existing.addVariantURI(variantURI);
         } else {

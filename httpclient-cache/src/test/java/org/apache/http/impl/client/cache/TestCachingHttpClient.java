@@ -323,12 +323,9 @@ public class TestCachingHttpClient {
         final CacheEntry entry = new CacheEntry(new Date(), new Date(), HTTP_1_1,
                 new Header[] {}, new ByteArrayEntity(new byte[] {}), 200, "OK");
 
-        extractVariantURI(variantURI, entry);
-        putInCache(variantURI, entry);
-
         replayMocks();
 
-        CacheEntry updatedEntry = impl.doGetUpdatedParentEntry(null, host, mockRequest, entry);
+        CacheEntry updatedEntry = impl.doGetUpdatedParentEntry(null, entry, variantURI);
 
         verifyMocks();
 

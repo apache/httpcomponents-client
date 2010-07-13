@@ -37,7 +37,7 @@ public interface HttpCache<E> {
 
     void removeEntry(String url) throws HttpCacheOperationException;
 
-    void updateCacheEntry(
+    void updateEntry(
             String url, HttpCacheUpdateCallback<E> callback) throws HttpCacheOperationException;
 
 }

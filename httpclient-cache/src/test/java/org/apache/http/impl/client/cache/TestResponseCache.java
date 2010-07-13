@@ -147,9 +147,9 @@ public class TestResponseCache {
         cache.putEntry("foo", entry);
         cache.putEntry("bar", entry2);
 
-        cache.updateCacheEntry("foo", new HttpCacheUpdateCallback<CacheEntry>() {
+        cache.updateEntry("foo", new HttpCacheUpdateCallback<CacheEntry>() {
 
-            public CacheEntry getUpdatedEntry(CacheEntry existing) {
+            public CacheEntry update(CacheEntry existing) {
                 CacheEntry updated = new CacheEntry(
                         existing.getRequestDate(),
                         existing.getRequestDate(),

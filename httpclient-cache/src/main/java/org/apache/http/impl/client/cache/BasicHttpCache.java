@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,8 +42,8 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 @ThreadSafe
 public class BasicHttpCache implements HttpCache<CacheEntry> {
 
-    private final LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(20,
-            0.75f, true) {
+    private final LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(
+            20, 0.75f, true) {
 
         private static final long serialVersionUID = -7750025207539768511L;
 
@@ -52,15 +51,13 @@ public class BasicHttpCache implements HttpCache<CacheEntry> {
         protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
             return size() > maxEntries;
         }
-    };
 
-    private final Map<String, CacheEntry> syncMap;
+    };
 
     private final int maxEntries;
 
     public BasicHttpCache(int maxEntries) {
         this.maxEntries = maxEntries;
-        syncMap = Collections.synchronizedMap(baseMap);
     }
 
     /**
@@ -71,8 +68,8 @@ public class BasicHttpCache implements HttpCache<CacheEntry> {
      * @param entry
      *            CacheEntry to place in the cache
      */
-    public void putEntry(String url, CacheEntry entry) {
-        syncMap.put(url, entry);
+    public synchronized void putEntry(String url, CacheEntry entry) {
+        baseMap.put(url, entry);
     }
 
     /**
@@ -82,8 +79,8 @@ public class BasicHttpCache implements HttpCache<CacheEntry> {
      *            Url that is the cache key
      * @return CacheEntry if one exists, or null for cache miss
      */
-    public CacheEntry getEntry(String url) {
-        return syncMap.get(url);
+    public synchronized CacheEntry getEntry(String url) {
+        return baseMap.get(url);
     }
 
     /**
@@ -92,15 +89,15 @@ public class BasicHttpCache implements HttpCache<CacheEntry> {
      * @param url
      *            Url that is the cache key
      */
-    public void removeEntry(String url) {
-        syncMap.remove(url);
+    public synchronized void removeEntry(String url) {
+        baseMap.remove(url);
     }
 
-    public synchronized void updateCacheEntry(
+    public synchronized void updateEntry(
             String url,
             HttpCacheUpdateCallback<CacheEntry> callback) throws HttpCacheOperationException {
-        CacheEntry existingEntry = syncMap.get(url);
-        CacheEntry updated = callback.getUpdatedEntry(existingEntry);
-        syncMap.put(url, updated);
+        CacheEntry existingEntry = baseMap.get(url);
+        baseMap.put(url, callback.update(existingEntry));
     }
+
 }
