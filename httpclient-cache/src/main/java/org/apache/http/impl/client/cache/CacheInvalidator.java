@@ -48,7 +48,7 @@ import org.apache.http.client.cache.HttpCacheOperationException;
 @ThreadSafe // so long as the cache implementation is thread-safe
 public class CacheInvalidator {
 
-    private final HttpCache<CacheEntry> cache;
+    private final HttpCache<String, CacheEntry> cache;
     private final URIExtractor uriExtractor;
 
     private final Log log = LogFactory.getLog(getClass());
@@ -60,7 +60,7 @@ public class CacheInvalidator {
      * @param uriExtractor Provides identifiers for the keys to store cache entries
      * @param cache the cache to store items away in
      */
-    public CacheInvalidator(URIExtractor uriExtractor, HttpCache<CacheEntry> cache) {
+    public CacheInvalidator(URIExtractor uriExtractor, HttpCache<String, CacheEntry> cache) {
         this.uriExtractor = uriExtractor;
         this.cache = cache;
     }

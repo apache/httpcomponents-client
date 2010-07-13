@@ -76,7 +76,7 @@ public class CachingHttpClient implements HttpClient {
     private final ResponseCachingPolicy responseCachingPolicy;
     private final CacheEntryGenerator cacheEntryGenerator;
     private final URIExtractor uriExtractor;
-    private final HttpCache<CacheEntry> responseCache;
+    private final HttpCache<String, CacheEntry> responseCache;
     private final CachedHttpResponseGenerator responseGenerator;
     private final CacheInvalidator cacheInvalidator;
     private final CacheableRequestPolicy cacheableRequestPolicy;
@@ -112,7 +112,7 @@ public class CachingHttpClient implements HttpClient {
         this.requestCompliance = new RequestProtocolCompliance();
     }
 
-    public CachingHttpClient(HttpCache<CacheEntry> cache, int maxObjectSizeBytes) {
+    public CachingHttpClient(HttpCache<String, CacheEntry> cache, int maxObjectSizeBytes) {
         this.responseCache = cache;
 
         this.backend = new DefaultHttpClient();
@@ -130,7 +130,7 @@ public class CachingHttpClient implements HttpClient {
         this.requestCompliance = new RequestProtocolCompliance();
     }
 
-    public CachingHttpClient(HttpClient client, HttpCache<CacheEntry> cache, int maxObjectSizeBytes) {
+    public CachingHttpClient(HttpClient client, HttpCache<String, CacheEntry> cache, int maxObjectSizeBytes) {
         this.responseCache = cache;
 
         this.backend = client;
@@ -150,7 +150,7 @@ public class CachingHttpClient implements HttpClient {
 
     public CachingHttpClient(HttpClient backend, ResponseCachingPolicy responseCachingPolicy,
                              CacheEntryGenerator cacheEntryGenerator, URIExtractor uriExtractor,
-                             HttpCache<CacheEntry> responseCache, CachedHttpResponseGenerator responseGenerator,
+                             HttpCache<String, CacheEntry> responseCache, CachedHttpResponseGenerator responseGenerator,
                              CacheInvalidator cacheInvalidator, CacheableRequestPolicy cacheableRequestPolicy,
                              CachedResponseSuitabilityChecker suitabilityChecker,
                              ConditionalRequestBuilder conditionalRequestBuilder, CacheEntryUpdater entryUpdater,

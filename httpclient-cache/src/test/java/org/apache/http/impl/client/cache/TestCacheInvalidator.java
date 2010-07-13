@@ -46,7 +46,7 @@ public class TestCacheInvalidator {
     private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
     private CacheInvalidator impl;
-    private HttpCache<CacheEntry> mockCache;
+    private HttpCache<String, CacheEntry> mockCache;
     private HttpHost host;
     private URIExtractor extractor;
     private CacheEntry mockEntry;

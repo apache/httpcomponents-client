@@ -40,7 +40,7 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
  * @since 4.1
  */
 @ThreadSafe
-public class BasicHttpCache implements HttpCache<CacheEntry> {
+public class BasicHttpCache implements HttpCache<String, CacheEntry> {
 
     private final LinkedHashMap<String, CacheEntry> baseMap = new LinkedHashMap<String, CacheEntry>(
             20, 0.75f, true) {

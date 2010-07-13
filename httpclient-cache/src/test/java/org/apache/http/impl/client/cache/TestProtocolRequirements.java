@@ -82,7 +82,7 @@ public class TestProtocolRequirements {
     private HttpEntity body;
     private HttpEntity mockEntity;
     private HttpClient mockBackend;
-    private HttpCache<CacheEntry> mockCache;
+    private HttpCache<String, CacheEntry> mockCache;
     private HttpRequest request;
     private HttpResponse originResponse;
 
@@ -99,7 +99,7 @@ public class TestProtocolRequirements {
 
         originResponse = make200Response();
 
-        HttpCache<CacheEntry> cache = new BasicHttpCache(MAX_ENTRIES);
+        HttpCache<String, CacheEntry> cache = new BasicHttpCache(MAX_ENTRIES);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);

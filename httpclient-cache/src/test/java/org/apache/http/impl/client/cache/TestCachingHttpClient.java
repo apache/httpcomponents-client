@@ -93,7 +93,7 @@ public class TestCachingHttpClient {
     private CacheInvalidator mockInvalidator;
     private CacheableRequestPolicy mockRequestPolicy;
     private HttpClient mockBackend;
-    private HttpCache<CacheEntry> mockCache;
+    private HttpCache<String, CacheEntry> mockCache;
     private CachedResponseSuitabilityChecker mockSuitabilityChecker;
     private ResponseCachingPolicy mockResponsePolicy;
     private HttpRequest mockRequest;
@@ -881,7 +881,7 @@ public class TestCachingHttpClient {
         ClientConnectionManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         HttpClient httpClient = new DefaultHttpClient(cm);
 
-        HttpCache<CacheEntry> cacheImpl = new BasicHttpCache(100);
+        HttpCache<String, CacheEntry> cacheImpl = new BasicHttpCache(100);
 
         CachingHttpClient cachingClient = new CachingHttpClient(httpClient, cacheImpl, 8192);
 

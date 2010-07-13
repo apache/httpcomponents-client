@@ -29,15 +29,15 @@ package org.apache.http.client.cache;
 /**
  * @since 4.1
  */
-public interface HttpCache<E> {
+public interface HttpCache<K, E> {
 
-    void putEntry(String url, E entry) throws HttpCacheOperationException;
+    void putEntry(K key, E entry) throws HttpCacheOperationException;
 
-    E getEntry(String url) throws HttpCacheOperationException;
+    E getEntry(K key) throws HttpCacheOperationException;
 
-    void removeEntry(String url) throws HttpCacheOperationException;
+    void removeEntry(K key) throws HttpCacheOperationException;
 
     void updateEntry(
-            String url, HttpCacheUpdateCallback<E> callback) throws HttpCacheOperationException;
+            K key, HttpCacheUpdateCallback<E> callback) throws HttpCacheOperationException;
 
 }
