@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
 
@@ -40,7 +41,7 @@ import org.apache.http.annotation.Immutable;
  * @since 4.1
  */
 @Immutable
-public class CacheableRequestPolicy {
+class CacheableRequestPolicy {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -55,7 +56,7 @@ public class CacheableRequestPolicy {
         String method = request.getRequestLine().getMethod();
 
         ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
-        if (CachingHttpClient.HTTP_1_1.compareToVersion(pv) != 0) {
+        if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
             log.debug("Request was not serveable from cache");
             return false;
         }

@@ -40,7 +40,7 @@ import org.apache.http.message.BasicHttpResponse;
 /**
  * @since 4.1
  */
-public class SizeLimitedResponseReader {
+class SizeLimitedResponseReader {
 
     private final int maxResponseSizeBytes;
     private final HttpResponse response;

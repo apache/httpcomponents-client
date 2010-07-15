@@ -41,7 +41,7 @@ import org.apache.http.annotation.Immutable;
  * @since 4.1
  */
 @Immutable
-public class CachedResponseSuitabilityChecker {
+class CachedResponseSuitabilityChecker {
 
     private final Log log = LogFactory.getLog(getClass());
 

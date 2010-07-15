@@ -43,7 +43,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-public class URIExtractor {
+class URIExtractor {
 
     /**
      * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the

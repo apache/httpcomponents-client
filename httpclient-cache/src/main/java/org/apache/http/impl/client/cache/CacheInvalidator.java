@@ -46,7 +46,7 @@ import org.apache.http.client.cache.HttpCacheOperationException;
  * @since 4.1
  */
 @ThreadSafe // so long as the cache implementation is thread-safe
-public class CacheInvalidator {
+class CacheInvalidator {
 
     private final HttpCache<String, CacheEntry> cache;
     private final URIExtractor uriExtractor;

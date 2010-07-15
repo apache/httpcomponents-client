@@ -32,7 +32,7 @@ import org.apache.http.annotation.Immutable;
  * @since 4.1
  */
 @Immutable
-public class HeaderConstants {
+class HeaderConstants {
 
     public static final String GET_METHOD = "GET";
     public static final String HEAD_METHOD = "HEAD";

@@ -32,6 +32,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
@@ -43,7 +44,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-public class ResponseProtocolCompliance {
+class ResponseProtocolCompliance {
 
     /**
      * When we get a response from a down stream server (Origin Server)
@@ -160,7 +161,7 @@ public class ResponseProtocolCompliance {
 
         ProtocolVersion originalProtocol = getOriginalRequestProtocol((RequestWrapper) request);
 
-        if (originalProtocol.compareToVersion(CachingHttpClient.HTTP_1_1) >= 0) {
+        if (originalProtocol.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;
         }
 
@@ -178,7 +179,7 @@ public class ResponseProtocolCompliance {
 
         ProtocolVersion originalProtocol = getOriginalRequestProtocol((RequestWrapper) request);
 
-        if (originalProtocol.compareToVersion(CachingHttpClient.HTTP_1_1) >= 0) {
+        if (originalProtocol.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;
         }
 

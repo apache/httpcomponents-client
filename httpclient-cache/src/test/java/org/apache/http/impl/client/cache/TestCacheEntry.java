@@ -429,8 +429,8 @@ public class TestCacheEntry {
         Header[] headers = new Header[]{};
         CacheEntry entry = getEntry(headers);
 
-        CacheEntry addedOne = entry.addVariantURI("foo");
-        CacheEntry addedTwo = addedOne.addVariantURI("bar");
+        CacheEntry addedOne = entry.copyWithVariant("foo");
+        CacheEntry addedTwo = addedOne.copyWithVariant("bar");
 
         Set<String> variants = addedTwo.getVariantURIs();
 

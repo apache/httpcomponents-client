@@ -35,6 +35,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
@@ -49,7 +50,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-public class RequestProtocolCompliance {
+class RequestProtocolCompliance {
 
     /**
      * Test to see if the {@link HttpRequest} is HTTP1.1 compliant or not
@@ -102,11 +103,11 @@ public class RequestProtocolCompliance {
         decrementOPTIONSMaxForwardsIfGreaterThen0(request);
 
         if (requestVersionIsTooLow(request)) {
-            return upgradeRequestTo(request, CachingHttpClient.HTTP_1_1);
+            return upgradeRequestTo(request, HttpVersion.HTTP_1_1);
         }
 
         if (requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
-            return downgradeRequestTo(request, CachingHttpClient.HTTP_1_1);
+            return downgradeRequestTo(request, HttpVersion.HTTP_1_1);
         }
 
         return request;
@@ -227,11 +228,11 @@ public class RequestProtocolCompliance {
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(HttpRequest request) {
         ProtocolVersion requestProtocol = request.getProtocolVersion();
-        if (requestProtocol.getMajor() != CachingHttpClient.HTTP_1_1.getMajor()) {
+        if (requestProtocol.getMajor() != HttpVersion.HTTP_1_1.getMajor()) {
             return false;
         }
 
-        if (requestProtocol.getMinor() > CachingHttpClient.HTTP_1_1.getMinor()) {
+        if (requestProtocol.getMinor() > HttpVersion.HTTP_1_1.getMinor()) {
             return true;
         }
 
@@ -239,7 +240,7 @@ public class RequestProtocolCompliance {
     }
 
     protected boolean requestVersionIsTooLow(HttpRequest request) {
-        return request.getProtocolVersion().compareToVersion(CachingHttpClient.HTTP_1_1) < 0;
+        return request.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) < 0;
     }
 
     /**
@@ -252,20 +253,20 @@ public class RequestProtocolCompliance {
     public HttpResponse getErrorForRequest(RequestProtocolError errorCheck) {
         switch (errorCheck) {
             case BODY_BUT_NO_LENGTH_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
                         HttpStatus.SC_LENGTH_REQUIRED, ""));
 
             case WEAK_ETAG_AND_RANGE_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
                         HttpStatus.SC_BAD_REQUEST, "Weak eTag not compatible with byte range"));
 
             case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
                         HttpStatus.SC_BAD_REQUEST,
                         "Weak eTag not compatible with PUT or DELETE requests"));
 
             case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
-                return new BasicHttpResponse(new BasicStatusLine(CachingHttpClient.HTTP_1_1,
+                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
                         HttpStatus.SC_BAD_REQUEST,
                         "No-Cache directive MUST NOT include a field name"));
 

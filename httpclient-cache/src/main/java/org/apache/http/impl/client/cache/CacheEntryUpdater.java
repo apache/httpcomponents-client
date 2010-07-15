@@ -48,7 +48,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-public class CacheEntryUpdater {
+class CacheEntryUpdater {
 
     /**
      * Update the entry with the new information from the response.

@@ -37,13 +37,14 @@ import org.apache.http.annotation.Immutable;
  * @since 4.1
  */
 @Immutable
-public class CacheEntryGenerator {
+class CacheEntryGenerator {
 
-    public CacheEntry generateEntry(Date requestDate, Date responseDate, HttpResponse response,
+    public CacheEntry generateEntry(
+            Date requestDate, 
+            Date responseDate, 
+            HttpResponse response,
             byte[] body) {
-
         CacheEntity entity = new CacheEntity(body, response);
-
         return new CacheEntry(requestDate,
                               responseDate,
                               response.getProtocolVersion(),

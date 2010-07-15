@@ -37,7 +37,7 @@ import org.apache.http.impl.client.RequestWrapper;
  * @since 4.1
  */
 @Immutable
-public class ConditionalRequestBuilder {
+class ConditionalRequestBuilder {
 
     /**
      * When a {@link CacheEntry} is stale but 'might' be used as a response

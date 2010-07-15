@@ -106,23 +106,22 @@ public class CacheEntry implements Serializable {
     /**
      * Constructor used to create a copy of an existing entry, while adding another variant URI to it.
      *
-     * @param toCopy CacheEntry to be duplicated
+     * @param entry CacheEntry to be duplicated
      * @param variantURI URI to add
      */
-    private CacheEntry(CacheEntry toCopy, String variantURI){
-        this(toCopy.getRequestDate(),
-             toCopy.getResponseDate(),
-             toCopy.getProtocolVersion(),
-             toCopy.getAllHeaders(),
-             toCopy.body,
-             toCopy.getStatusCode(),
-             toCopy.getReasonPhrase());
-
-        this.variantURIs.addAll(toCopy.getVariantURIs());
+    private CacheEntry(CacheEntry entry, String variantURI){
+        this(entry.getRequestDate(),
+                entry.getResponseDate(),
+                entry.getProtocolVersion(),
+                entry.getAllHeaders(),
+                entry.body,
+                entry.getStatusCode(),
+                entry.getReasonPhrase());
+        this.variantURIs.addAll(entry.getVariantURIs());
         this.variantURIs.add(variantURI);
     }
 
-    public CacheEntry addVariantURI(String variantURI){
+    public CacheEntry copyWithVariant(String variantURI){
         return new CacheEntry(this,variantURI);
     }
 
@@ -162,126 +161,8 @@ public class CacheEntry implements Serializable {
         return responseHeaders.getHeaders(name);
     }
 
-    protected Date getDateValue() {
-        Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
-        if (dateHdr == null)
-            return null;
-        try {
-            return DateUtils.parseDate(dateHdr.getValue());
-        } catch (DateParseException dpe) {
-            // ignore malformed date
-        }
-        return null;
-    }
-
-    protected long getContentLengthValue() {
-        Header cl = getFirstHeader(HTTP.CONTENT_LEN);
-        if (cl == null)
-            return -1;
-
-        try {
-            return Long.parseLong(cl.getValue());
-        } catch (NumberFormatException ex) {
-            return -1;
-        }
-    }
-
-    /**
-     * This matters for deciding whether the cache entry is valid to serve as a
-     * response. If these values do not match, we might have a partial response
-     *
-     * @return boolean indicating whether actual length matches Content-Length
-     */
-    protected boolean contentLengthHeaderMatchesActualLength() {
-        return getContentLengthValue() == body.getContentLength();
-    }
-
-    protected long getApparentAgeSecs() {
-        Date dateValue = getDateValue();
-        if (dateValue == null)
-            return MAX_AGE;
-        long diff = responseDate.getTime() - dateValue.getTime();
-        if (diff < 0L)
-            return 0;
-        return (diff / 1000);
-    }
-
-    protected long getAgeValue() {
-        long ageValue = 0;
-        for (Header hdr : getHeaders(HeaderConstants.AGE)) {
-            long hdrAge;
-            try {
-                hdrAge = Long.parseLong(hdr.getValue());
-                if (hdrAge < 0) {
-                    hdrAge = MAX_AGE;
-                }
-            } catch (NumberFormatException nfe) {
-                hdrAge = MAX_AGE;
-            }
-            ageValue = (hdrAge > ageValue) ? hdrAge : ageValue;
-        }
-        return ageValue;
-    }
-
-    protected long getCorrectedReceivedAgeSecs() {
-        long apparentAge = getApparentAgeSecs();
-        long ageValue = getAgeValue();
-        return (apparentAge > ageValue) ? apparentAge : ageValue;
-    }
-
-    protected long getResponseDelaySecs() {
-        long diff = responseDate.getTime() - requestDate.getTime();
-        return (diff / 1000L);
-    }
-
-    protected long getCorrectedInitialAgeSecs() {
-        return getCorrectedReceivedAgeSecs() + getResponseDelaySecs();
-    }
-
-    protected Date getCurrentDate() {
-        return new Date();
-    }
-
-    protected long getResidentTimeSecs() {
-        long diff = getCurrentDate().getTime() - responseDate.getTime();
-        return (diff / 1000L);
-    }
-
     public long getCurrentAgeSecs() {
         return getCorrectedInitialAgeSecs() + getResidentTimeSecs();
-    }
-
-    protected long getMaxAge() {
-        long maxage = -1;
-        for (Header hdr : getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for (HeaderElement elt : hdr.getElements()) {
-                if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())
-                        || "s-maxage".equals(elt.getName())) {
-                    try {
-                        long currMaxAge = Long.parseLong(elt.getValue());
-                        if (maxage == -1 || currMaxAge < maxage) {
-                            maxage = currMaxAge;
-                        }
-                    } catch (NumberFormatException nfe) {
-                        // be conservative if can't parse
-                        maxage = 0;
-                    }
-                }
-            }
-        }
-        return maxage;
-    }
-
-    protected Date getExpirationDate() {
-        Header expiresHeader = getFirstHeader(HeaderConstants.EXPIRES);
-        if (expiresHeader == null)
-            return null;
-        try {
-            return DateUtils.parseDate(expiresHeader.getValue());
-        } catch (DateParseException dpe) {
-            // malformed expires header
-        }
-        return null;
     }
 
     public long getFreshnessLifetimeSecs() {
@@ -345,6 +226,146 @@ public class CacheEntry implements Serializable {
         return (getFirstHeader(HeaderConstants.VARY) != null);
     }
 
+    public Set<String> getVariantURIs() {
+        return Collections.unmodifiableSet(this.variantURIs);
+    }
+
+    public boolean mustRevalidate() {
+        return hasCacheControlDirective("must-revalidate");
+    }
+    public boolean proxyRevalidate() {
+        return hasCacheControlDirective("proxy-revalidate");
+    }
+
+    Date getDateValue() {
+        Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
+        if (dateHdr == null)
+            return null;
+        try {
+            return DateUtils.parseDate(dateHdr.getValue());
+        } catch (DateParseException dpe) {
+            // ignore malformed date
+        }
+        return null;
+    }
+
+    long getContentLengthValue() {
+        Header cl = getFirstHeader(HTTP.CONTENT_LEN);
+        if (cl == null)
+            return -1;
+
+        try {
+            return Long.parseLong(cl.getValue());
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
+    }
+
+    /**
+     * This matters for deciding whether the cache entry is valid to serve as a
+     * response. If these values do not match, we might have a partial response
+     *
+     * @return boolean indicating whether actual length matches Content-Length
+     */
+    boolean contentLengthHeaderMatchesActualLength() {
+        return getContentLengthValue() == body.getContentLength();
+    }
+
+    long getApparentAgeSecs() {
+        Date dateValue = getDateValue();
+        if (dateValue == null)
+            return MAX_AGE;
+        long diff = responseDate.getTime() - dateValue.getTime();
+        if (diff < 0L)
+            return 0;
+        return (diff / 1000);
+    }
+
+    long getAgeValue() {
+        long ageValue = 0;
+        for (Header hdr : getHeaders(HeaderConstants.AGE)) {
+            long hdrAge;
+            try {
+                hdrAge = Long.parseLong(hdr.getValue());
+                if (hdrAge < 0) {
+                    hdrAge = MAX_AGE;
+                }
+            } catch (NumberFormatException nfe) {
+                hdrAge = MAX_AGE;
+            }
+            ageValue = (hdrAge > ageValue) ? hdrAge : ageValue;
+        }
+        return ageValue;
+    }
+
+    long getCorrectedReceivedAgeSecs() {
+        long apparentAge = getApparentAgeSecs();
+        long ageValue = getAgeValue();
+        return (apparentAge > ageValue) ? apparentAge : ageValue;
+    }
+
+    long getResponseDelaySecs() {
+        long diff = responseDate.getTime() - requestDate.getTime();
+        return (diff / 1000L);
+    }
+
+    long getCorrectedInitialAgeSecs() {
+        return getCorrectedReceivedAgeSecs() + getResponseDelaySecs();
+    }
+
+    Date getCurrentDate() {
+        return new Date();
+    }
+
+    long getResidentTimeSecs() {
+        long diff = getCurrentDate().getTime() - responseDate.getTime();
+        return (diff / 1000L);
+    }
+
+    long getMaxAge() {
+        long maxage = -1;
+        for (Header hdr : getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for (HeaderElement elt : hdr.getElements()) {
+                if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())
+                        || "s-maxage".equals(elt.getName())) {
+                    try {
+                        long currMaxAge = Long.parseLong(elt.getValue());
+                        if (maxage == -1 || currMaxAge < maxage) {
+                            maxage = currMaxAge;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        // be conservative if can't parse
+                        maxage = 0;
+                    }
+                }
+            }
+        }
+        return maxage;
+    }
+
+    Date getExpirationDate() {
+        Header expiresHeader = getFirstHeader(HeaderConstants.EXPIRES);
+        if (expiresHeader == null)
+            return null;
+        try {
+            return DateUtils.parseDate(expiresHeader.getValue());
+        } catch (DateParseException dpe) {
+            // malformed expires header
+        }
+        return null;
+    }
+
+    boolean hasCacheControlDirective(String directive) {
+        for(Header h : responseHeaders.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if (directive.equalsIgnoreCase(elt.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
 
         // write CacheEntry
@@ -382,32 +403,10 @@ public class CacheEntry implements Serializable {
         this.responseHeaders.setHeaders(headers);
     }
 
-    public Set<String> getVariantURIs() {
-        return Collections.unmodifiableSet(this.variantURIs);
-    }
-
     @Override
     public String toString() {
         return "[request date=" + requestDate + "; response date=" + responseDate
                 + "; status=" + status + "]";
-    }
-
-    protected boolean hasCacheControlDirective(String directive) {
-        for(Header h : responseHeaders.getHeaders("Cache-Control")) {
-            for(HeaderElement elt : h.getElements()) {
-                if (directive.equalsIgnoreCase(elt.getName())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean mustRevalidate() {
-        return hasCacheControlDirective("must-revalidate");
-    }
-    public boolean proxyRevalidate() {
-        return hasCacheControlDirective("proxy-revalidate");
     }
 
 }

@@ -30,6 +30,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -41,7 +42,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-public class CachedHttpResponseGenerator {
+class CachedHttpResponseGenerator {
 
     /**
      * If I was able to use a {@link CacheEntry} to response to the {@link org.apache.http.HttpRequest} then
@@ -52,7 +53,7 @@ public class CachedHttpResponseGenerator {
      */
     HttpResponse generateResponse(CacheEntry entry) {
 
-        HttpResponse response = new BasicHttpResponse(CachingHttpClient.HTTP_1_1, entry
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
 
         if (entry.getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
