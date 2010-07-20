@@ -96,7 +96,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         final int COUNT = 8; // adjust to execute more requests
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
-        mgr.setMaxTotalConnections(COUNT/2);
+        mgr.setMaxTotal(COUNT/2);
         mgr.setDefaultMaxPerRoute(COUNT/2);
 
         final HttpHost target = getServerHttp();
@@ -169,7 +169,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public void testReleaseConnection() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -255,7 +255,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -357,7 +357,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public void testCloseExpiredConnections() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -398,7 +398,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public void testReleaseConnectionOnAbort() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -501,7 +501,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         registry.register(scheme);
 
         ThreadSafeClientConnManager mgr = createTSCCM(registry);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -553,7 +553,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         registry.register(scheme);
 
         ThreadSafeClientConnManager mgr = createTSCCM(registry);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -607,7 +607,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         registry.register(scheme);
 
         ThreadSafeClientConnManager mgr = createTSCCM(registry);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -669,7 +669,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
                 return operatorRef.get();
             }
         };
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
         Assert.assertNotNull(operatorRef.get());
 
         final HttpHost target = getServerHttp();

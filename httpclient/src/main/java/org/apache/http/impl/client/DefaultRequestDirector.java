@@ -74,7 +74,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
@@ -115,7 +114,6 @@ import org.apache.http.protocol.HttpRequestExecutor;
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
- *  <li>{@link org.apache.http.conn.params.ConnManagerPNames#TIMEOUT}</li>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
  *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
  *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
@@ -361,7 +359,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute);
 
-        long timeout = ConnManagerParams.getTimeout(params);
+        long timeout = HttpConnectionParams.getConnectionTimeout(params);
 
         boolean reuse = false;
         boolean done = false;

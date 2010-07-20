@@ -302,14 +302,14 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * since 4.1
      */
-    public int getMaxTotalConnections() {
+    public int getMaxTotal() {
         return pool.getMaxTotalConnections();
     }
 
     /**
      * since 4.1
      */
-    public void setMaxTotalConnections(int max) {
+    public void setMaxTotal(int max) {
         pool.setMaxTotalConnections(max);
     }
 

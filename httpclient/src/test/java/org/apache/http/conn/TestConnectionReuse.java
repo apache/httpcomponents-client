@@ -100,7 +100,7 @@ public class TestConnectionReuse {
         supportedSchemes.register(new Scheme("http", 80, sf));
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
-        mgr.setMaxTotalConnections(5);
+        mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);
@@ -171,7 +171,7 @@ public class TestConnectionReuse {
         supportedSchemes.register(new Scheme("http", 80, sf));
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
-        mgr.setMaxTotalConnections(5);
+        mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);
@@ -232,7 +232,7 @@ public class TestConnectionReuse {
         supportedSchemes.register(new Scheme("http", 80, sf));
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
-        mgr.setMaxTotalConnections(5);
+        mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);
@@ -294,7 +294,7 @@ public class TestConnectionReuse {
         supportedSchemes.register(new Scheme("http", 80, sf));
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
         DefaultHttpClient client = new DefaultHttpClient(mgr, params);

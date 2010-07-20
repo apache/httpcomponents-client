@@ -86,7 +86,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         ConnManagerParams.setTimeout(params, 10L);
 
         ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
-        mgr.setMaxTotalConnections(workerCount);
+        mgr.setMaxTotal(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
 
 
@@ -211,7 +211,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
 
         // We build a client with 2 max active // connections, and 2 max per route.
         ThreadSafeClientConnManager connMngr = new ThreadSafeClientConnManager(supportedSchemes);
-        connMngr.setMaxTotalConnections(maxConn);
+        connMngr.setMaxTotal(maxConn);
         connMngr.setDefaultMaxPerRoute(maxConn);
 
         DefaultHttpClient client = new DefaultHttpClient(connMngr);

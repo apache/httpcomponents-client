@@ -117,7 +117,7 @@ public class TestSpuriousWakeup {
 
         XTSCCM mgr = new XTSCCM(schreg);
         try {
-            mgr.setMaxTotalConnections(1);
+            mgr.setMaxTotal(1);
             mgr.setDefaultMaxPerRoute(1);
 
             // take out the only connection

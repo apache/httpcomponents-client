@@ -70,7 +70,7 @@ public class TestIdleConnectionEviction extends ServerTestBase {
 
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         cm.setDefaultMaxPerRoute(10);
-        cm.setMaxTotalConnections(50);
+        cm.setMaxTotal(50);
 
         DefaultHttpClient httpclient = new DefaultHttpClient(cm, params);
 

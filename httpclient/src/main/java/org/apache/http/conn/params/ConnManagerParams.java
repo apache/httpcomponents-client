@@ -29,6 +29,8 @@ package org.apache.http.conn.params;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -39,6 +41,7 @@ import org.apache.http.params.HttpParams;
  *
  * @see ConnManagerPNames
  */
+@Deprecated
 @Immutable
 public final class ConnManagerParams implements ConnManagerPNames {
 
@@ -51,6 +54,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * {@link org.apache.http.conn.ClientConnectionManager}.
      *
      * @return timeout in milliseconds.
+     * 
+     * @deprecated use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
     public static long getTimeout(final HttpParams params) {
         if (params == null) {
@@ -65,6 +70,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * {@link org.apache.http.conn.ClientConnectionManager}.
      *
      * @param timeout the timeout in milliseconds
+     * 
+     * @deprecated use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)
      */
     public static void setTimeout(final HttpParams params, long timeout) {
         if (params == null) {
@@ -74,7 +81,6 @@ public final class ConnManagerParams implements ConnManagerPNames {
     }
 
     /** The default maximum number of connections allowed per host */
-    @Deprecated
     private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
 
         public int getMaxForRoute(HttpRoute route) {
@@ -90,11 +96,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @param connPerRoute lookup interface for maximum number of connections allowed
      *        per route
      *
-     * @deprecated do not use
-     *
-     * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
+     * @deprecated use {@link ThreadSafeClientConnManager#setMaxForRoute(org.apache.http.conn.routing.HttpRoute, int)}
      */
-    @Deprecated
     public static void setMaxConnectionsPerRoute(final HttpParams params,
                                                 final ConnPerRoute connPerRoute) {
         if (params == null) {
@@ -111,11 +114,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @return lookup interface for maximum number of connections allowed per route.
      *
-     * @deprecated do not use
-     *
-     * @see ConnManagerPNames#MAX_CONNECTIONS_PER_ROUTE
+     * @deprecated use {@link ThreadSafeClientConnManager#getMaxForRoute(org.apache.http.conn.routing.HttpRoute)}
      */
-    @Deprecated
     public static ConnPerRoute getMaxConnectionsPerRoute(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException
@@ -128,18 +128,14 @@ public final class ConnManagerParams implements ConnManagerPNames {
         return connPerRoute;
     }
 
-
     /**
      * Sets the maximum number of connections allowed.
      *
      * @param params HTTP parameters
      * @param maxTotalConnections The maximum number of connections allowed.
      *
-     * @deprecated do not use
-     *
-     * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
+     * @deprecated use {@link ThreadSafeClientConnManager#setMaxTotal(int)}
      */
-    @Deprecated
     public static void setMaxTotalConnections(
             final HttpParams params,
             int maxTotalConnections) {
@@ -157,11 +153,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @return The maximum number of connections allowed.
      *
-     * @deprecated do not use
-     *
-     * @see ConnManagerPNames#MAX_TOTAL_CONNECTIONS
+     * @deprecated use {@link ThreadSafeClientConnManager#getMaxTotal()}
      */
-    @Deprecated
     public static int getMaxTotalConnections(
             final HttpParams params) {
         if (params == null) {
@@ -170,6 +163,5 @@ public final class ConnManagerParams implements ConnManagerPNames {
         }
         return params.getIntParameter(MAX_TOTAL_CONNECTIONS, DEFAULT_MAX_TOTAL_CONNECTIONS);
     }
-
 
 }

@@ -603,24 +603,6 @@ httpclient.getConnectionManager().shutdown();
         </section>
     </section>
     <section>
-        <title>Connection management parameters</title>
-        <para>These are parameters that be used to customize standard HTTP connection manager
-            implementations:</para>
-        <itemizedlist>
-            <listitem>
-                <formalpara>
-                    <title>'http.conn-manager.timeout':</title>
-                    <para>defines the timeout in milliseconds used when retrieving an instance of
-                            <interfacename>ManagedClientConnection</interfacename> from the
-                            <interfacename>ClientConnectionManager</interfacename> This parameter
-                        expects a value of type <classname>java.lang.Long</classname>. If this
-                        parameter is not set connection requests will not time out (infinite
-                        timeout).</para>
-                </formalpara>
-            </listitem>
-        </itemizedlist>
-    </section>
-    <section>
         <title>Multithreaded request execution</title>
         <para>When equipped with a pooling connection manager such as ThreadSafeClientConnManager
             HttpClient can be used to execute multiple requests simultaneously using multiple

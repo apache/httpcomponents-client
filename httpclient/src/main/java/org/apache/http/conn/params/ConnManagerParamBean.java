@@ -40,6 +40,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @NotThreadSafe
+@Deprecated
 public class ConnManagerParamBean extends HttpAbstractParamBean {
 
     public ConnManagerParamBean (final HttpParams params) {

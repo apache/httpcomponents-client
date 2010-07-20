@@ -65,7 +65,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     public void testReleaseOnEntityConsumeContent() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setDefaultMaxPerRoute(1);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         // Zero connections in the pool
         Assert.assertEquals(0, mgr.getConnectionsInPool());
@@ -105,7 +105,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     public void testReleaseOnEntityWriteTo() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setDefaultMaxPerRoute(1);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         // Zero connections in the pool
         Assert.assertEquals(0, mgr.getConnectionsInPool());
@@ -146,7 +146,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
     public void testReleaseOnAbort() throws Exception {
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setDefaultMaxPerRoute(1);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         // Zero connections in the pool
         Assert.assertEquals(0, mgr.getConnectionsInPool());
@@ -219,7 +219,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setDefaultMaxPerRoute(1);
-        mgr.setMaxTotalConnections(1);
+        mgr.setMaxTotal(1);
 
         // Zero connections in the pool
         Assert.assertEquals(0, mgr.getConnectionsInPool());
