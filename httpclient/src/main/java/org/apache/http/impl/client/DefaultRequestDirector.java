@@ -556,8 +556,6 @@ public class DefaultRequestDirector implements RequestDirector {
         boolean retrying = true;
         int connectCount = 0;
         while (retrying) {
-            // Increment total exec count
-            execCount++;
             // Increment connect count
             connectCount++;
             try {
