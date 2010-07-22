@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.entity.ByteArrayEntity;
@@ -41,19 +42,19 @@ import java.io.IOException;
 public class TestResponseCache {
 
     private BasicHttpCache cache;
-    private CacheEntry mockEntry;
+    private HttpCacheEntry mockEntry;
 
     @Before
     public void setUp() {
         cache = new BasicHttpCache(5);
-        mockEntry = EasyMock.createMock(CacheEntry.class);
+        mockEntry = EasyMock.createMock(HttpCacheEntry.class);
     }
 
     @Test
     public void testEntryRemainsInCacheWhenPutThere() {
         cache.putEntry("foo", mockEntry);
 
-        CacheEntry cachedEntry = cache.getEntry("foo");
+        HttpCacheEntry cachedEntry = cache.getEntry("foo");
 
         Assert.assertSame(mockEntry, cachedEntry);
     }
@@ -64,7 +65,7 @@ public class TestResponseCache {
 
         cache.removeEntry("foo");
 
-        CacheEntry nullEntry = cache.getEntry("foo");
+        HttpCacheEntry nullEntry = cache.getEntry("foo");
 
         Assert.assertNull(nullEntry);
     }
@@ -73,22 +74,22 @@ public class TestResponseCache {
     public void testCacheHoldsNoMoreThanSpecifiedMaxEntries() {
         BasicHttpCache cache = new BasicHttpCache(1);
 
-        CacheEntry entry1 = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry entry1 = EasyMock.createMock(HttpCacheEntry.class);
         cache.putEntry("foo", entry1);
 
-        CacheEntry entry2 = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry entry2 = EasyMock.createMock(HttpCacheEntry.class);
         cache.putEntry("bar", entry2);
 
-        CacheEntry entry3 = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry entry3 = EasyMock.createMock(HttpCacheEntry.class);
         cache.putEntry("baz", entry3);
 
-        CacheEntry e1 = cache.getEntry("foo");
+        HttpCacheEntry e1 = cache.getEntry("foo");
         Assert.assertNull("Got foo entry when we should not", e1);
 
-        CacheEntry e2 = cache.getEntry("bar");
+        HttpCacheEntry e2 = cache.getEntry("bar");
         Assert.assertNull("Got bar entry when we should not", e2);
 
-        CacheEntry e3 = cache.getEntry("baz");
+        HttpCacheEntry e3 = cache.getEntry("baz");
         Assert.assertNotNull("Did not get baz entry, but should have", e3);
     }
 
@@ -100,7 +101,7 @@ public class TestResponseCache {
 
         // fill the cache with entries
         for (int i = 0; i < max_size; i++) {
-            CacheEntry entry = EasyMock.createMock(CacheEntry.class);
+            HttpCacheEntry entry = EasyMock.createMock(HttpCacheEntry.class);
             cache.putEntry("entry" + i, entry);
         }
 
@@ -109,17 +110,17 @@ public class TestResponseCache {
 
         // add another entry, which kicks out the eldest (should be the 2nd one
         // created), and becomes the new MRU entry
-        CacheEntry newMru = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry newMru = EasyMock.createMock(HttpCacheEntry.class);
         cache.putEntry("newMru", newMru);
 
         // get the original second eldest
-        CacheEntry gone = cache.getEntry("entry1");
+        HttpCacheEntry gone = cache.getEntry("entry1");
         Assert.assertNull("entry1 should be gone", gone);
 
-        CacheEntry latest = cache.getEntry("newMru");
+        HttpCacheEntry latest = cache.getEntry("newMru");
         Assert.assertNotNull("latest entry should still be there", latest);
 
-        CacheEntry originalEldest = cache.getEntry("entry0");
+        HttpCacheEntry originalEldest = cache.getEntry("entry0");
         Assert.assertNotNull("original eldest entry should still be there", originalEldest);
     }
 
@@ -127,10 +128,10 @@ public class TestResponseCache {
     public void testZeroMaxSizeCacheDoesNotStoreAnything() {
         BasicHttpCache cache = new BasicHttpCache(0);
 
-        CacheEntry entry = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry entry = EasyMock.createMock(HttpCacheEntry.class);
         cache.putEntry("foo", entry);
 
-        CacheEntry gone = cache.getEntry("foo");
+        HttpCacheEntry gone = cache.getEntry("foo");
 
         Assert.assertNull("This cache should not have anything in it!", gone);
     }
@@ -141,30 +142,29 @@ public class TestResponseCache {
 
         final byte[] expectedArray = new byte[] { 1, 2, 3, 4, 5 };
 
-        CacheEntry entry = EasyMock.createMock(CacheEntry.class);
-        CacheEntry entry2 = EasyMock.createMock(CacheEntry.class);
+        HttpCacheEntry entry = EasyMock.createMock(HttpCacheEntry.class);
+        HttpCacheEntry entry2 = EasyMock.createMock(HttpCacheEntry.class);
 
         cache.putEntry("foo", entry);
         cache.putEntry("bar", entry2);
 
-        cache.updateEntry("foo", new HttpCacheUpdateCallback<CacheEntry>() {
+        cache.updateEntry("foo", new HttpCacheUpdateCallback() {
 
-            public CacheEntry update(CacheEntry existing) {
-                CacheEntry updated = new CacheEntry(
+            public HttpCacheEntry update(HttpCacheEntry existing) {
+                HttpCacheEntry updated = new HttpCacheEntry(
                         existing.getRequestDate(),
                         existing.getRequestDate(),
-                        existing.getProtocolVersion(),
+                        existing.getStatusLine(),
                         existing.getAllHeaders(),
                         new ByteArrayEntity(expectedArray),
-                        existing.getStatusCode(),
-                        existing.getReasonPhrase());
+                        null);
                 cache.removeEntry("bar");
                 return updated;
             }
         });
 
-        CacheEntry afterUpdate = cache.getEntry("foo");
-        CacheEntry bar = cache.getEntry("bar");
+        HttpCacheEntry afterUpdate = cache.getEntry("foo");
+        HttpCacheEntry bar = cache.getEntry("bar");
 
         Assert.assertNull(bar);
 

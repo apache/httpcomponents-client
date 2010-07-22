@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.message.BasicHeader;
@@ -38,28 +37,28 @@ import org.junit.Test;
 
 public class TestCachedResponseSuitabilityChecker {
 
-    private CachedResponseSuitabilityChecker impl;
     private HttpHost host;
     private HttpRequest request;
-    private CacheEntry mockEntry;
-    private HttpRequest mockRequest;
+    private CacheEntry entry;
+    private CacheValidityPolicy mockValidityPolicy;
+    private CachedResponseSuitabilityChecker impl;
 
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/foo");
-        mockEntry = EasyMock.createMock(CacheEntry.class);
-        mockRequest = EasyMock.createMock(HttpRequest.class);
+        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
+        entry = new CacheEntry();
 
-        impl = new CachedResponseSuitabilityChecker();
+        impl = new CachedResponseSuitabilityChecker(mockValidityPolicy);
     }
 
     public void replayMocks() {
-        EasyMock.replay(mockEntry, mockRequest);
+        EasyMock.replay(mockValidityPolicy);
     }
 
     public void verifyMocks() {
-        EasyMock.verify(mockEntry, mockRequest);
+        EasyMock.verify(mockValidityPolicy);
     }
 
     @Test
@@ -68,7 +67,7 @@ public class TestCachedResponseSuitabilityChecker {
         contentLengthMatchesActualLength(false);
 
         replayMocks();
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
@@ -82,7 +81,7 @@ public class TestCachedResponseSuitabilityChecker {
         modifiedSince(false, request);
 
         replayMocks();
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
@@ -97,7 +96,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
@@ -109,7 +108,7 @@ public class TestCachedResponseSuitabilityChecker {
         responseIsFresh(false);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
@@ -125,7 +124,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertFalse(result);
     }
@@ -136,11 +135,11 @@ public class TestCachedResponseSuitabilityChecker {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
         modifiedSince(false, request);
+        currentAge(20L);
 
-        org.easymock.EasyMock.expect(mockEntry.getCurrentAgeSecs()).andReturn(20L);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertFalse(result);
     }
@@ -151,11 +150,11 @@ public class TestCachedResponseSuitabilityChecker {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
         modifiedSince(false, request);
+        currentAge(5L);
 
-        org.easymock.EasyMock.expect(mockEntry.getCurrentAgeSecs()).andReturn(5L);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertTrue(result);
     }
@@ -166,11 +165,11 @@ public class TestCachedResponseSuitabilityChecker {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
         modifiedSince(false, request);
+        freshnessLifetime(15L);
 
-        org.easymock.EasyMock.expect(mockEntry.getFreshnessLifetimeSecs()).andReturn(15L);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertTrue(result);
     }
@@ -181,11 +180,11 @@ public class TestCachedResponseSuitabilityChecker {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
         modifiedSince(false, request);
+        freshnessLifetime(5L);
 
-        org.easymock.EasyMock.expect(mockEntry.getFreshnessLifetimeSecs()).andReturn(5L);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertFalse(result);
     }
@@ -199,23 +198,21 @@ public class TestCachedResponseSuitabilityChecker {
 
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, request, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
         verifyMocks();
         Assert.assertFalse(result);
     }
 
     @Test
     public void testMalformedCacheControlMaxAgeRequestHeaderCausesUnsuitableEntry() {
-
-        Header[] hdrs = new Header[] { new BasicHeader("Cache-Control", "max-age=foo") };
+        request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, mockRequest);
+        modifiedSince(false, request);
 
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Cache-Control")).andReturn(hdrs);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, mockRequest, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
@@ -224,32 +221,43 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testMalformedCacheControlMinFreshRequestHeaderCausesUnsuitableEntry() {
+        request.addHeader(new BasicHeader("Cache-Control", "min-fresh=foo"));
 
-        Header[] hdrs = new Header[] { new BasicHeader("Cache-Control", "min-fresh=foo") };
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, mockRequest);
+        modifiedSince(false, request);
 
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Cache-Control")).andReturn(hdrs);
         replayMocks();
 
-        boolean result = impl.canCachedResponseBeUsed(host, mockRequest, mockEntry);
+        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
 
         verifyMocks();
 
         Assert.assertFalse(result);
     }
 
+    private void currentAge(long sec) {
+        EasyMock.expect(
+                mockValidityPolicy.getCurrentAgeSecs(entry)).andReturn(sec);
+    }
+
+    private void freshnessLifetime(long sec) {
+        EasyMock.expect(
+                mockValidityPolicy.getFreshnessLifetimeSecs(entry)).andReturn(sec);
+    }
+
     private void responseIsFresh(boolean fresh) {
-        org.easymock.EasyMock.expect(mockEntry.isResponseFresh()).andReturn(fresh);
+        EasyMock.expect(
+                mockValidityPolicy.isResponseFresh(entry)).andReturn(fresh);
     }
 
     private void modifiedSince(boolean modified, HttpRequest request) {
-        org.easymock.EasyMock.expect(mockEntry.modifiedSince(request)).andReturn(modified);
+        EasyMock.expect(
+                mockValidityPolicy.modifiedSince(entry, request)).andReturn(modified);
     }
 
     private void contentLengthMatchesActualLength(boolean b) {
-        org.easymock.EasyMock.expect(mockEntry.contentLengthHeaderMatchesActualLength()).andReturn(
-                b);
+        EasyMock.expect(
+                mockValidityPolicy.contentLengthHeaderMatchesActualLength(entry)).andReturn(b);
     }
 }

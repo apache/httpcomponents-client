@@ -32,6 +32,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
@@ -44,6 +46,17 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class CachedHttpResponseGenerator {
 
+    private final CacheValidityPolicy validityStrategy;
+
+    CachedHttpResponseGenerator(final CacheValidityPolicy validityStrategy) {
+        super();
+        this.validityStrategy = validityStrategy;
+    }
+
+    CachedHttpResponseGenerator() {
+        this(new CacheValidityPolicy());
+    }
+
     /**
      * If I was able to use a {@link CacheEntry} to response to the {@link org.apache.http.HttpRequest} then
      * generate an {@link HttpResponse} based on the cache entry.
@@ -51,7 +64,7 @@ class CachedHttpResponseGenerator {
      *            {@link CacheEntry} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
-    HttpResponse generateResponse(CacheEntry entry) {
+    HttpResponse generateResponse(HttpCacheEntry entry) {
 
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
@@ -63,7 +76,7 @@ class CachedHttpResponseGenerator {
             addMissingContentLengthHeader(response, entity);
         }
 
-        long age = entry.getCurrentAgeSecs();
+        long age = this.validityStrategy.getCurrentAgeSecs(entry);
         if (age > 0) {
             if (age >= Integer.MAX_VALUE) {
                 response.setHeader(HeaderConstants.AGE, "2147483648");

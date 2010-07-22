@@ -36,12 +36,14 @@ import java.util.ListIterator;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.HTTP;
 
 /**
- * Update a {@link CacheEntry} with new or updated information based on the latest
+ * Update a {@link HttpCacheEntry} with new or updated information based on the latest
  * 200 or 304 status responses from the Server.  Use the {@link HttpResponse} to perform
  * the update.
  *
@@ -57,27 +59,25 @@ class CacheEntryUpdater {
      * @param requestDate When the request was performed
      * @param responseDate When the response was gotten
      * @param response The HttpResponse from the backend server call
-     * @return CacheEntry an updated version of the cache entry
+     * @return HttpCacheEntry an updated version of the cache entry
      * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
      */
-    public CacheEntry updateCacheEntry(
-            CacheEntry entry,
+    public HttpCacheEntry updateCacheEntry(
+            HttpCacheEntry entry,
             Date requestDate,
             Date responseDate,
             HttpResponse response) throws IOException {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
-        CacheEntry updated = new CacheEntry(requestDate, responseDate,
-                                            entry.getProtocolVersion(),
+        HttpCacheEntry updated = new HttpCacheEntry(requestDate, responseDate,
+                                            entry.getStatusLine(),
                                             mergedHeaders,
                                             entry.getBody(),
-                                            entry.getStatusCode(),
-                                            entry.getReasonPhrase());
-
+                                            null);
         return updated;
     }
 
-    protected Header[] mergeHeaders(CacheEntry entry, HttpResponse response) {
+    protected Header[] mergeHeaders(HttpCacheEntry entry, HttpResponse response) {
         List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
                 .getAllHeaders()));
 
@@ -112,7 +112,7 @@ class CacheEntryUpdater {
         }
     }
 
-    private void removeCacheEntry1xxWarnings(List<Header> cacheEntryHeaderList, CacheEntry entry) {
+    private void removeCacheEntry1xxWarnings(List<Header> cacheEntryHeaderList, HttpCacheEntry entry) {
         ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
 
         while (cacheEntryHeaderListIter.hasNext()) {
@@ -128,7 +128,7 @@ class CacheEntryUpdater {
         }
     }
 
-    private boolean entryDateHeaderNewerThenResponse(CacheEntry entry, HttpResponse response) {
+    private boolean entryDateHeaderNewerThenResponse(HttpCacheEntry entry, HttpResponse response) {
         try {
             Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
@@ -145,7 +145,7 @@ class CacheEntryUpdater {
         return true;
     }
 
-    private boolean entryAndResponseHaveDateHeader(CacheEntry entry, HttpResponse response) {
+    private boolean entryAndResponseHaveDateHeader(HttpCacheEntry entry, HttpResponse response) {
         if (entry.getFirstHeader(HTTP.DATE_HEADER) != null
                 && response.getFirstHeader(HTTP.DATE_HEADER) != null) {
             return true;

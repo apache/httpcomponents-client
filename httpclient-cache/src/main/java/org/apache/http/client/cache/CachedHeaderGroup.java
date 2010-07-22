@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.cache;
+package org.apache.http.client.cache;
 
 import java.io.Serializable;
 
@@ -35,5 +35,5 @@ import org.apache.http.message.HeaderGroup;
 class CachedHeaderGroup extends HeaderGroup implements Serializable {
 
     private static final long serialVersionUID = -4572663568087431896L;
-    
+
 }

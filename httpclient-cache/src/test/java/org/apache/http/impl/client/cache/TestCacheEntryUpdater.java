@@ -29,13 +29,13 @@ package org.apache.http.impl.client.cache;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,59 +48,28 @@ import static junit.framework.Assert.assertNotSame;
 
 public class TestCacheEntryUpdater {
 
-
-    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
-
-
-    private HttpResponse mockResponse;
-    private CacheEntry mockCacheEntry;
     private Date requestDate;
     private Date responseDate;
 
-    private boolean implMocked = false;
     private CacheEntryUpdater impl;
 
     @Before
     public void setUp() throws Exception {
-        mockResponse = EasyMock.createMock(HttpResponse.class);
-        mockCacheEntry = EasyMock.createMock(CacheEntry.class);
-
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
 
         impl = new CacheEntryUpdater();
     }
 
-    private void replayMocks() {
-        EasyMock.replay(mockResponse);
-        EasyMock.replay(mockCacheEntry);
-        if (implMocked) {
-            EasyMock.replay(impl);
-        }
-    }
-
-    private void verifyMocks() {
-        EasyMock.verify(mockResponse);
-        EasyMock.verify(mockCacheEntry);
-        if (implMocked) {
-            EasyMock.verify(impl);
-        }
-    }
-
     @Test
     public void testUpdateCacheEntryReturnsDifferentEntryInstance() throws IOException {
 
-        CacheEntry entry = getEntry(new Header[]{});
-        BasicHttpResponse response = new BasicHttpResponse(HTTP_1_1, 200, "OK");
+        CacheEntry entry = new CacheEntry();
+        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        replayMocks();
-
-        CacheEntry newEntry = impl.updateCacheEntry(entry, requestDate, responseDate, response);
-
-        verifyMocks();
+        HttpCacheEntry newEntry = impl.updateCacheEntry(entry, requestDate, responseDate, response);
 
         assertNotSame(newEntry, entry);
-
     }
 
     @Test
@@ -110,13 +79,13 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", DateUtils.formatDate(responseDate)),
                 new BasicHeader("ETag", "\"etag\"")};
 
-        CacheEntry cacheEntry = getEntry(headers);
+        CacheEntry cacheEntry = new CacheEntry(headers);
 
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
         response.setHeaders(new Header[]{});
 
-        CacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
 
         Assert.assertEquals(2, updatedEntry.getAllHeaders().length);
 
@@ -133,7 +102,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Cache-Control", "private"), new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(requestDate)),
                 new BasicHeader("Cache-Control", "max-age=0"),};
-        CacheEntry cacheEntry = getEntry(headers);
+        CacheEntry cacheEntry = new CacheEntry(headers);
 
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
@@ -141,7 +110,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public"),});
 
-        CacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
 
 
         Assert.assertEquals(4, updatedEntry.getAllHeaders().length);
@@ -160,14 +129,14 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", DateUtils.formatDate(requestDate)),
                 new BasicHeader("ETag", "\"etag\"")};
 
-        CacheEntry cacheEntry = getEntry(headers);
+        CacheEntry cacheEntry = new CacheEntry(headers);
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
         response.setHeaders(new Header[]{
                 new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public"),});
 
-        CacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
 
 
         Assert.assertEquals(4, updatedEntry.getAllHeaders().length);
@@ -191,22 +160,16 @@ public class TestCacheEntryUpdater {
         Date twoSecondsAgo = new Date(now.getTime() - 2000L);
         Date oneSecondAgo = new Date(now.getTime() - 1000L);
 
-        Header[] headers = new Header[]{};
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1, headers,
-                new ByteArrayEntity(new byte[] {}), 200, "OK");
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        HttpResponse response = new BasicHttpResponse(HTTP_1_1, 200, "OK");
-
-        CacheEntry updated = impl.updateCacheEntry(entry, twoSecondsAgo, oneSecondAgo, response);
+        HttpCacheEntry updated = impl.updateCacheEntry(entry, twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals(twoSecondsAgo, updated.getRequestDate());
         assertEquals(oneSecondAgo, updated.getResponseDate());
 
     }
-
-
-    // UTILITY
 
     private void headersContain(Header[] headers, String name, String value) {
         for (Header header : headers) {
@@ -219,13 +182,4 @@ public class TestCacheEntryUpdater {
         Assert.fail("Header [" + name + ": " + value + "] not found in headers.");
     }
 
-
-    private CacheEntry getEntry(Header[] headers) {
-        return getEntry(new Date(), new Date(), headers);
-    }
-
-    private CacheEntry getEntry(Date requestDate, Date responseDate, Header[] headers) {
-        return new CacheEntry(requestDate, responseDate, HTTP_1_1, headers,
-                new ByteArrayEntity(new byte[] {}), 200, "OK");
-    }
 }

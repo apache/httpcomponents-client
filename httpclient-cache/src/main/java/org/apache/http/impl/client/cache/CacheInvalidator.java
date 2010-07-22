@@ -36,7 +36,9 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheOperationException;
 
 /**
@@ -48,7 +50,7 @@ import org.apache.http.client.cache.HttpCacheOperationException;
 @ThreadSafe // so long as the cache implementation is thread-safe
 class CacheInvalidator {
 
-    private final HttpCache<String, CacheEntry> cache;
+    private final HttpCache cache;
     private final URIExtractor uriExtractor;
 
     private final Log log = LogFactory.getLog(getClass());
@@ -60,7 +62,9 @@ class CacheInvalidator {
      * @param uriExtractor Provides identifiers for the keys to store cache entries
      * @param cache the cache to store items away in
      */
-    public CacheInvalidator(URIExtractor uriExtractor, HttpCache<String, CacheEntry> cache) {
+    public CacheInvalidator(
+            final URIExtractor uriExtractor,
+            final HttpCache cache) {
         this.uriExtractor = uriExtractor;
         this.cache = cache;
     }
@@ -79,7 +83,7 @@ class CacheInvalidator {
             try {
                 String theUri = uriExtractor.getURI(host, req);
 
-                CacheEntry parent = cache.getEntry(theUri);
+                HttpCacheEntry parent = cache.getEntry(theUri);
 
                 log.debug("parent entry: " + parent);
 

@@ -46,14 +46,11 @@ public class TestCacheInvalidator {
     private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
     private CacheInvalidator impl;
-    private HttpCache<String, CacheEntry> mockCache;
+    private HttpCache mockCache;
     private HttpHost host;
     private URIExtractor extractor;
     private CacheEntry mockEntry;
 
-    private boolean mockedImpl;
-
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
@@ -67,17 +64,11 @@ public class TestCacheInvalidator {
     private void replayMocks() {
         EasyMock.replay(mockCache);
         EasyMock.replay(mockEntry);
-
-        if (mockedImpl)
-            EasyMock.replay(impl);
     }
 
     private void verifyMocks() {
         EasyMock.verify(mockCache);
         EasyMock.verify(mockEntry);
-
-        if (mockedImpl)
-            EasyMock.verify(impl);
     }
 
     // Tests

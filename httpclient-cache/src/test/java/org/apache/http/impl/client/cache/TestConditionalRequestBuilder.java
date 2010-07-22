@@ -31,10 +31,8 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
@@ -66,8 +64,8 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Last-Modified", lastModified) };
 
         CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(),
-                new ProtocolVersion("HTTP",1,1), headers,
-                new ByteArrayEntity(new byte[] {}), 200, "OK");
+                new OKStatus(), headers,
+                new ByteArrayEntity(new byte[] {}));
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);
 
         Assert.assertNotSame(request, newRequest);
@@ -100,9 +98,7 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("ETag", theETag) };
 
         CacheEntry cacheEntry = new CacheEntry(new Date(), new Date(),
-                new ProtocolVersion("HTTP",1,1), headers, new ByteArrayEntity(new byte[] {}),
-                200, "OK");
-
+                new OKStatus(), headers, new ByteArrayEntity(new byte[] {}));
 
         HttpRequest newRequest = impl.buildConditionalRequest(request, cacheEntry);
 
@@ -135,8 +131,7 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
         CacheEntry cacheEntry = new CacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                HttpVersion.HTTP_1_1, cacheEntryHeaders, new ByteArrayEntity(new byte[0]),
-                HttpStatus.SC_OK, "OK");
+                new OKStatus(), cacheEntryHeaders, new ByteArrayEntity(new byte[0]));
 
         HttpRequest result = impl.buildConditionalRequest(request, cacheEntry);
 
@@ -165,8 +160,7 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
         CacheEntry cacheEntry = new CacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                HttpVersion.HTTP_1_1, cacheEntryHeaders, new ByteArrayEntity(new byte[0]),
-                HttpStatus.SC_OK, "OK");
+                new OKStatus(), cacheEntryHeaders, new ByteArrayEntity(new byte[0]));
 
         HttpRequest result = impl.buildConditionalRequest(request, cacheEntry);
 

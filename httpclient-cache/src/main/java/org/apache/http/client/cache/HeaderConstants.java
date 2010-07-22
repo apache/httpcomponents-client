@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.cache;
+package org.apache.http.client.cache;
 
 import org.apache.http.annotation.Immutable;
 
@@ -32,7 +32,7 @@ import org.apache.http.annotation.Immutable;
  * @since 4.1
  */
 @Immutable
-class HeaderConstants {
+public class HeaderConstants {
 
     public static final String GET_METHOD = "GET";
     public static final String HEAD_METHOD = "HEAD";

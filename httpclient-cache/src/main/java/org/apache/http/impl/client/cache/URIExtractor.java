@@ -37,6 +37,8 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -84,7 +86,7 @@ class URIExtractor {
      * @param entry the parent entry used to track the varients
      * @return String the extracted variant URI
      */
-    public String getVariantURI(HttpHost host, HttpRequest req, CacheEntry entry) {
+    public String getVariantURI(HttpHost host, HttpRequest req, HttpCacheEntry entry) {
         Header[] varyHdrs = entry.getHeaders(HeaderConstants.VARY);
         if (varyHdrs == null || varyHdrs.length == 0) {
             return getURI(host, req);

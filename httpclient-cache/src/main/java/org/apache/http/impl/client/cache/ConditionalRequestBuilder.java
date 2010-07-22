@@ -31,6 +31,8 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.client.RequestWrapper;
 
 /**
@@ -40,7 +42,7 @@ import org.apache.http.impl.client.RequestWrapper;
 class ConditionalRequestBuilder {
 
     /**
-     * When a {@link CacheEntry} is stale but 'might' be used as a response
+     * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
      * to an {@link HttpRequest} we will attempt to revalidate the entry with
      * the origin.  Build the origin {@link HttpRequest} here and return it.
      *
@@ -49,7 +51,7 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public HttpRequest buildConditionalRequest(HttpRequest request, CacheEntry cacheEntry)
+    public HttpRequest buildConditionalRequest(HttpRequest request, HttpCacheEntry cacheEntry)
             throws ProtocolException {
         RequestWrapper wrapperRequest = new RequestWrapper(request);
         wrapperRequest.resetHeaders();

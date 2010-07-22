@@ -40,10 +40,12 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
@@ -72,8 +74,6 @@ import org.junit.Test;
  */
 public class TestProtocolRequirements {
 
-    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
-
     private static final int MAX_BYTES = 1024;
     private static final int MAX_ENTRIES = 100;
     private int entityLength = 128;
@@ -82,24 +82,23 @@ public class TestProtocolRequirements {
     private HttpEntity body;
     private HttpEntity mockEntity;
     private HttpClient mockBackend;
-    private HttpCache<String, CacheEntry> mockCache;
+    private HttpCache mockCache;
     private HttpRequest request;
     private HttpResponse originResponse;
 
     private CachingHttpClient impl;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
 
         body = HttpTestUtils.makeBody(entityLength);
 
-        request = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
 
         originResponse = make200Response();
 
-        HttpCache<String, CacheEntry> cache = new BasicHttpCache(MAX_ENTRIES);
+        HttpCache cache = new BasicHttpCache(MAX_ENTRIES);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
@@ -119,7 +118,7 @@ public class TestProtocolRequirements {
     }
 
     private HttpResponse make200Response() {
-        HttpResponse out = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse out = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         out.setHeader("Date", DateUtils.formatDate(new Date()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setHeader("Content-Length", "128");
@@ -137,7 +136,6 @@ public class TestProtocolRequirements {
         return EasyMock.expect(resp);
     }
 
-    @SuppressWarnings("unchecked")
     private void emptyMockCacheExpectsNoPuts() throws Exception {
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockCache = EasyMock.createMock(HttpCache.class);
@@ -202,7 +200,7 @@ public class TestProtocolRequirements {
 
         request = new BasicHttpRequest("GET", "/foo", new ProtocolVersion("HTTP", 1, 2));
 
-        HttpRequest downgraded = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
+        HttpRequest downgraded = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), eqRequest(downgraded),
@@ -228,7 +226,7 @@ public class TestProtocolRequirements {
     public void testRequestsWithLowerProtocolVersionsGetUpgradedTo1_1() throws Exception {
 
         request = new BasicHttpRequest("GET", "/foo", new ProtocolVersion("HTTP", 1, 0));
-        HttpRequest upgraded = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
+        HttpRequest upgraded = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), eqRequest(upgraded), (HttpContext) EasyMock
@@ -267,7 +265,7 @@ public class TestProtocolRequirements {
         HttpResponse result = impl.execute(host, request);
 
         verifyMocks();
-        Assert.assertEquals(HTTP_1_1, result.getProtocolVersion());
+        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
     }
 
     @Test
@@ -282,7 +280,7 @@ public class TestProtocolRequirements {
         HttpResponse result = impl.execute(host, request);
 
         verifyMocks();
-        Assert.assertEquals(HTTP_1_1, result.getProtocolVersion());
+        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
     }
 
     /*
@@ -295,7 +293,7 @@ public class TestProtocolRequirements {
         request.removeHeaders("Connection");
         request.addHeader("X-Unknown-Header", "some-value");
 
-        HttpRequest downgraded = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
+        HttpRequest downgraded = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
         downgraded.removeHeaders("Connection");
         downgraded.addHeader("X-Unknown-Header", "some-value");
 
@@ -399,7 +397,7 @@ public class TestProtocolRequirements {
     @Test
     public void testOrderOfMultipleAllowHeadersIsPreservedOnRequests() throws Exception {
         BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         put.setEntity(body);
         put.addHeader("Allow", "GET, HEAD");
         put.addHeader("Allow", "DELETE");
@@ -417,7 +415,7 @@ public class TestProtocolRequirements {
     @Test
     public void testOrderOfMultipleContentEncodingHeadersIsPreservedOnRequests() throws Exception {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Content-Encoding", "gzip");
         post.addHeader("Content-Encoding", "compress");
@@ -428,7 +426,7 @@ public class TestProtocolRequirements {
     @Test
     public void testOrderOfMultipleContentLanguageHeadersIsPreservedOnRequests() throws Exception {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Content-Language", "mi");
         post.addHeader("Content-Language", "en");
@@ -439,7 +437,7 @@ public class TestProtocolRequirements {
     @Test
     public void testOrderOfMultipleExpectHeadersIsPreservedOnRequests() throws Exception {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Expect", "100-continue");
         post.addHeader("Expect", "x-expect=true");
@@ -486,7 +484,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testOrderOfMultipleAllowHeadersIsPreservedOnResponses() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 405, "Method Not Allowed");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 405, "Method Not Allowed");
         originResponse.addHeader("Allow", "HEAD");
         originResponse.addHeader("Allow", "DELETE");
         testOrderOfMultipleHeadersIsPreservedOnResponses("Allow");
@@ -546,7 +544,7 @@ public class TestProtocolRequirements {
 
         emptyMockCacheExpectsNoPuts();
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, code, "Moo");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, code, "Moo");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -635,7 +633,7 @@ public class TestProtocolRequirements {
     @Test
     public void testRequestsExpecting100ContinueBehaviorShouldSetExpectHeader() throws Exception {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
-                BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HTTP_1_1)
+                BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
                 .addMockedMethods("expectContinue").createMock();
         post.setEntity(mockEntity);
         post.setHeader("Content-Length", "128");
@@ -680,7 +678,7 @@ public class TestProtocolRequirements {
     public void testRequestsNotExpecting100ContinueBehaviorShouldNotSetExpectContinueHeader()
             throws Exception {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
-                BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HTTP_1_1)
+                BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
                 .addMockedMethods("expectContinue").createMock();
         post.setEntity(mockEntity);
         post.setHeader("Content-Length", "128");
@@ -784,7 +782,7 @@ public class TestProtocolRequirements {
         post.setEntity(body);
         post.setHeader("Content-Length", "128");
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, 100, "Continue");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 100, "Continue");
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.isA(HttpRequest.class),
                         (HttpContext) EasyMock.isNull())).andReturn(originResponse);
@@ -809,7 +807,7 @@ public class TestProtocolRequirements {
     @Test
     public void testResponsesToOPTIONSAreNotCacheable() throws Exception {
         emptyMockCacheExpectsNoPuts();
-        request = new BasicHttpRequest("OPTIONS", "/", HTTP_1_1);
+        request = new BasicHttpRequest("OPTIONS", "/", HttpVersion.HTTP_1_1);
         originResponse.addHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
@@ -832,7 +830,7 @@ public class TestProtocolRequirements {
     @Test
     public void test200ResponseToOPTIONSWithNoBodyShouldIncludeContentLengthZero() throws Exception {
 
-        request = new BasicHttpRequest("OPTIONS", "/", HTTP_1_1);
+        request = new BasicHttpRequest("OPTIONS", "/", HttpVersion.HTTP_1_1);
         originResponse.setEntity(null);
         originResponse.setHeader("Content-Length", "0");
 
@@ -861,7 +859,7 @@ public class TestProtocolRequirements {
     @Test
     public void testDoesNotForwardOPTIONSWhenMaxForwardsIsZeroOnAbsoluteURIRequest()
             throws Exception {
-        request = new BasicHttpRequest("OPTIONS", "*", HTTP_1_1);
+        request = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
         request.setHeader("Max-Forwards", "0");
 
         replayMocks();
@@ -878,7 +876,7 @@ public class TestProtocolRequirements {
     @Test
     public void testDecrementsMaxForwardsWhenForwardingOPTIONSRequest() throws Exception {
 
-        request = new BasicHttpRequest("OPTIONS", "*", HTTP_1_1);
+        request = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
         request.setHeader("Max-Forwards", "7");
 
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
@@ -903,7 +901,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testDoesNotAddAMaxForwardsHeaderToForwardedOPTIONSRequests() throws Exception {
-        request = new BasicHttpRequest("OPTIONS", "/", HTTP_1_1);
+        request = new BasicHttpRequest("OPTIONS", "/", HttpVersion.HTTP_1_1);
         Capture<HttpRequest> reqCap = new Capture<HttpRequest>();
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.capture(reqCap),
@@ -925,7 +923,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testResponseToAHEADRequestMustNotHaveABody() throws Exception {
-        request = new BasicHttpRequest("HEAD", "/", HTTP_1_1);
+        request = new BasicHttpRequest("HEAD", "/", HttpVersion.HTTP_1_1);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.isA(HttpRequest.class),
                         (HttpContext) EasyMock.isNull())).andReturn(originResponse);
@@ -951,20 +949,20 @@ public class TestProtocolRequirements {
             String oldVal, String newVal) throws Exception {
 
         // put something cacheable in the cache
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.addHeader("Cache-Control", "max-age=3600");
         resp1.setHeader(eHeader, oldVal);
 
         // get a head that penetrates the cache
-        HttpRequest req2 = new BasicHttpRequest("HEAD", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("HEAD", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("Cache-Control", "no-cache");
         HttpResponse resp2 = make200Response();
         resp2.setEntity(null);
         resp2.setHeader(eHeader, newVal);
 
         // next request doesn't tolerate stale entry
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.addHeader("Cache-Control", "max-stale=0");
         HttpResponse resp3 = make200Response();
         resp3.setHeader(eHeader, newVal);
@@ -1027,7 +1025,7 @@ public class TestProtocolRequirements {
         emptyMockCacheExpectsNoPuts();
 
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         post.setHeader("Content-Length", "128");
         post.setEntity(HttpTestUtils.makeBody(128));
 
@@ -1055,7 +1053,7 @@ public class TestProtocolRequirements {
         emptyMockCacheExpectsNoPuts();
 
         BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.addHeader("Content-Length", "128");
 
@@ -1081,7 +1079,7 @@ public class TestProtocolRequirements {
     public void testResponsesToDELETEsAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = new BasicHttpRequest("DELETE", "/", HTTP_1_1);
+        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
@@ -1103,7 +1101,7 @@ public class TestProtocolRequirements {
     @Test
     public void testForwardedTRACERequestsDoNotIncludeAnEntity() throws Exception {
         BasicHttpEntityEnclosingRequest trace = new BasicHttpEntityEnclosingRequest("TRACE", "/",
-                HTTP_1_1);
+                HttpVersion.HTTP_1_1);
         trace.setEntity(HttpTestUtils.makeBody(entityLength));
         trace.setHeader("Content-Length", Integer.toString(entityLength));
 
@@ -1136,7 +1134,7 @@ public class TestProtocolRequirements {
     public void testResponsesToTRACEsAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = new BasicHttpRequest("TRACE", "/", HTTP_1_1);
+        request = new BasicHttpRequest("TRACE", "/", HttpVersion.HTTP_1_1);
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
@@ -1158,7 +1156,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void test204ResponsesDoNotContainMessageBodies() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
@@ -1181,7 +1179,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void test205ResponsesDoNotContainMessageBodies() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_RESET_CONTENT,
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_RESET_CONTENT,
                 "Reset Content");
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
@@ -1221,12 +1219,12 @@ public class TestProtocolRequirements {
     public void test206ResponseGeneratedFromCacheMustHaveContentRangeOrMultipartByteRangesContentType()
             throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(resp1).times(1, 2);
@@ -1251,12 +1249,12 @@ public class TestProtocolRequirements {
     public void test206ResponseGeneratedFromCacheMustHaveABodyThatMatchesContentLengthHeaderIfPresent()
             throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(resp1).times(1, 2);
@@ -1283,12 +1281,12 @@ public class TestProtocolRequirements {
 
     @Test
     public void test206ResponseGeneratedFromCacheMustHaveDateHeader() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(resp1).times(1, 2);
@@ -1306,7 +1304,7 @@ public class TestProtocolRequirements {
     @Test
     public void test206ResponseReturnedToClientMustHaveDateHeader() throws Exception {
         request.addHeader("Range", "bytes=0-50");
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
@@ -1329,12 +1327,12 @@ public class TestProtocolRequirements {
 
     @Test
     public void test206ContainsETagIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("ETag", "\"etag1\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(originResponse).times(1, 2);
@@ -1353,12 +1351,12 @@ public class TestProtocolRequirements {
 
     @Test
     public void test206ContainsContentLocationIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Location", "http://foo.example.com/other/url");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(originResponse).times(1, 2);
@@ -1378,7 +1376,7 @@ public class TestProtocolRequirements {
     @Test
     public void test206ResponseIncludesVariantHeadersIfValueMightDiffer() throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.addHeader("Accept-Encoding", "gzip");
 
         Date now = new Date();
@@ -1387,7 +1385,7 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Expires", DateUtils.formatDate(inOneHour));
         originResponse.addHeader("Vary", "Accept-Encoding");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("Cache-Control", "no-cache");
         req2.addHeader("Accept-Encoding", "gzip");
         Date nextSecond = new Date(now.getTime() + 1000L);
@@ -1399,7 +1397,7 @@ public class TestProtocolRequirements {
         originResponse2.setHeader("Expires", DateUtils.formatDate(inTwoHoursPlusASec));
         originResponse2.setHeader("Vary", "Accept-Encoding");
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.addHeader("Range", "bytes=0-50");
         req3.addHeader("Accept-Encoding", "gzip");
 
@@ -1433,7 +1431,7 @@ public class TestProtocolRequirements {
     public void test206ResponseToConditionalRangeRequestDoesNotIncludeOtherEntityHeaders()
             throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         Date now = new Date();
         Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
@@ -1448,7 +1446,7 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "W/\"weak-tag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("If-Range", "W/\"weak-tag\"");
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1481,7 +1479,7 @@ public class TestProtocolRequirements {
     public void test206ResponseToIfRangeWithStrongValidatorReturnsAllEntityHeaders()
             throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         Date now = new Date();
         Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
@@ -1495,7 +1493,7 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "\"strong-tag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.addHeader("If-Range", "\"strong-tag\"");
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1533,7 +1531,7 @@ public class TestProtocolRequirements {
 
         Date now = new Date();
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -1543,12 +1541,12 @@ public class TestProtocolRequirements {
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
         Date inOneSecond = new Date(now.getTime() + 1000L);
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
         resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
@@ -1561,7 +1559,7 @@ public class TestProtocolRequirements {
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp3 = make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
@@ -1609,7 +1607,7 @@ public class TestProtocolRequirements {
 
         Date now = new Date();
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         Date oneHourAgo = new Date(now.getTime() - 3600L);
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -1620,12 +1618,12 @@ public class TestProtocolRequirements {
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
         Date inOneSecond = new Date(now.getTime() + 1000L);
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
         resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
@@ -1638,7 +1636,7 @@ public class TestProtocolRequirements {
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp3 = make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
@@ -1693,10 +1691,10 @@ public class TestProtocolRequirements {
         if (!impl.supportsRangeAndContentRangeHeaders()) {
             emptyMockCacheExpectsNoPuts();
 
-            request = new BasicHttpRequest("GET", "/", HTTP_1_1);
+            request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
             request.addHeader("Range", "bytes=0-50");
 
-            originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+            originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                     "Partial Content");
             originResponse.setHeader("Content-Range", "bytes 0-50/128");
             originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -1725,9 +1723,9 @@ public class TestProtocolRequirements {
     public void test303ResponsesAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_SEE_OTHER, "See Other");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_SEE_OTHER, "See Other");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -1754,7 +1752,7 @@ public class TestProtocolRequirements {
     public void test304ResponseDoesNotContainABody() throws Exception {
         request.setHeader("If-None-Match", "\"etag\"");
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("Content-Length", "128");
@@ -1786,7 +1784,7 @@ public class TestProtocolRequirements {
 
         request.setHeader("If-None-Match", "\"etag\"");
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("ETag", "\"etag\"");
@@ -1805,11 +1803,11 @@ public class TestProtocolRequirements {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesDateHeader() throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
@@ -1835,11 +1833,11 @@ public class TestProtocolRequirements {
      */
     @Test
     public void test304ResponseGeneratedFromCacheIncludesEtagIfOriginResponseDid() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
@@ -1859,12 +1857,12 @@ public class TestProtocolRequirements {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid()
             throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Location", "http://foo.example.com/other");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
@@ -1895,7 +1893,7 @@ public class TestProtocolRequirements {
         Date now = new Date();
         Date inTwoHours = new Date(now.getTime() + 2 * 3600 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Accept-Encoding", "gzip");
 
         HttpResponse resp1 = make200Response();
@@ -1905,7 +1903,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Accept-Encoding", "gzip");
         req1.setHeader("Cache-Control", "no-cache");
 
@@ -1916,7 +1914,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Accept-Encoding", "gzip");
         req3.setHeader("If-None-Match", "\"v2\"");
 
@@ -1955,7 +1953,7 @@ public class TestProtocolRequirements {
         Date now = new Date();
         Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "W/\"v1\"");
@@ -1968,7 +1966,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         resp1.setHeader("Cache-Control", "max-age=7200");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "W/\"v1\"");
 
         EasyMock.expect(
@@ -2005,28 +2003,28 @@ public class TestProtocolRequirements {
         Date now = new Date();
 
         // load cache with cacheable entry
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
         // force a revalidation
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
         // updated ETag provided to a conditional revalidation
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag2\"");
 
         // conditional validation uses If-None-Match
-        HttpRequest conditionalValidation = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest conditionalValidation = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         conditionalValidation.setHeader("If-None-Match", "\"etag1\"");
 
         // unconditional validation doesn't use If-None-Match
-        HttpRequest unconditionalValidation = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest unconditionalValidation = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         // new response to unconditional validation provides new body
         HttpResponse resp3 = make200Response();
         resp1.setHeader("ETag", "\"etag2\"");
@@ -2064,22 +2062,22 @@ public class TestProtocolRequirements {
         Date now = new Date();
         Date inFiveSeconds = new Date(now.getTime() + 5000L);
 
-        HttpRequest initialRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest initialRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         HttpResponse cachedResponse = make200Response();
         cachedResponse.setHeader("Cache-Control", "max-age=3600");
         cachedResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequest secondRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest secondRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         secondRequest.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        HttpRequest conditionalValidationRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest conditionalValidationRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         conditionalValidationRequest.setHeader("If-None-Match", "\"etag\"");
 
-        HttpRequest unconditionalValidationRequest = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest unconditionalValidationRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         // to be used if the cache generates a conditional validation
-        HttpResponse conditionalResponse = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse conditionalResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         conditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
         conditionalResponse.setHeader("Server", "MockUtils/1.0");
         conditionalResponse.setHeader("ETag", "\"etag\"");
@@ -2131,7 +2129,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testMustIncludeWWWAuthenticateHeaderOnAnOrigin401Response() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 401, "Unauthorized");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Unauthorized");
         originResponse.setHeader("WWW-Authenticate", "x-scheme x-param");
 
         EasyMock.expect(
@@ -2155,7 +2153,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testMustIncludeAllowHeaderFromAnOrigin405Response() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 405, "Method Not Allowed");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 405, "Method Not Allowed");
         originResponse.setHeader("Allow", "GET, HEAD");
 
         backendExpectsAnyRequest().andReturn(originResponse);
@@ -2179,7 +2177,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testMustIncludeProxyAuthenticateHeaderFromAnOrigin407Response() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 407, "Proxy Authentication Required");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 407, "Proxy Authentication Required");
         originResponse.setHeader("Proxy-Authenticate", "x-scheme x-param");
 
         EasyMock.expect(
@@ -2203,7 +2201,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testMustNotAddMultipartByteRangeContentTypeTo416Response() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 416, "Requested Range Not Satisfiable");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 416, "Requested Range Not Satisfiable");
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
@@ -2230,10 +2228,10 @@ public class TestProtocolRequirements {
         originResponse.setHeader("Content-Length", "128");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequest rangeReq = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest rangeReq = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         rangeReq.setHeader("Range", "bytes=1000-1200");
 
-        HttpResponse orig416 = new BasicHttpResponse(HTTP_1_1, 416,
+        HttpResponse orig416 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 416,
                 "Requested Range Not Satisfiable");
 
         EasyMock.expect(
@@ -2307,17 +2305,17 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
 
-        mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(CacheEntry.class));
+        mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
-        HttpRequest validate = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        HttpRequest validate = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        HttpResponse notModified = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        HttpResponse notModified = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
@@ -2328,7 +2326,7 @@ public class TestProtocolRequirements {
                         .isNull())).andReturn(notModified);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2352,17 +2350,15 @@ public class TestProtocolRequirements {
         (new Random()).nextBytes(bytes);
 
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
-                headerGroup.getAllHeaders(),
-                new ByteArrayEntity(bytes), 200, "OK");
-
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2395,8 +2391,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
 
 
 
@@ -2409,7 +2405,7 @@ public class TestProtocolRequirements {
                 new IOException("can't talk to origin!")).anyTimes();
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         HttpResponse result = impl.execute(host, request);
 
@@ -2451,7 +2447,7 @@ public class TestProtocolRequirements {
 
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 25 * 1000L);
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
@@ -2459,12 +2455,12 @@ public class TestProtocolRequirements {
         resp1.setHeader("Warning", "110 squid \"stale stuff\"");
         resp1.setHeader("Via", "1.1 fred");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpRequest validate = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest validate = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
@@ -2477,7 +2473,7 @@ public class TestProtocolRequirements {
                                             (HttpContext)EasyMock.isNull()))
             .andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         replayMocks();
 
@@ -2516,7 +2512,7 @@ public class TestProtocolRequirements {
     public void test2xxWarningsAreNotDeletedAfterSuccessfulRevalidation() throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
@@ -2524,19 +2520,19 @@ public class TestProtocolRequirements {
         resp1.setHeader("Via", "1.1 xproxy");
         resp1.setHeader("Warning", "214 xproxy \"transformed stuff\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpRequest validate = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest validate = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Via", "1.1 xproxy");
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -2598,15 +2594,15 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, HTTP_1_1,
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2642,8 +2638,8 @@ public class TestProtocolRequirements {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(requestTime, responseTime, HTTP_1_1,
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes), 200, "OK");
+        CacheEntry entry = new CacheEntry(requestTime, responseTime, new OKStatus(),
+                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2657,14 +2653,14 @@ public class TestProtocolRequirements {
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
-        mockCache.putEntry(EasyMock.isA(String.class), EasyMock.isA(CacheEntry.class));
+        mockCache.putEntry(EasyMock.isA(String.class), EasyMock.isA(HttpCacheEntry.class));
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.capture(cap),
                         (HttpContext) EasyMock.isNull())).andReturn(validated).times(0, 1);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2699,7 +2695,7 @@ public class TestProtocolRequirements {
         Date inFiveSecond = new Date(now.getTime() + 5 * 1000L);
 
         // put an entry in the cache
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(inFiveSecond));
@@ -2708,7 +2704,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Length", "128");
 
         // force a revalidation
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
         HttpResponse resp2 = make200Response();
@@ -2717,7 +2713,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Content-Length", "128");
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), eqRequest(req1),
@@ -2772,7 +2768,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testSubrangeGETWithWeakETagIsNotAllowed() throws Exception {
-        request = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         request.setHeader("Range", "bytes=0-500");
         request.setHeader("If-Range", "W/\"etag\"");
 
@@ -2782,7 +2778,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testPUTWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HTTP_1_1);
+        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-Match", "W/\"etag\"");
@@ -2793,7 +2789,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testPUTWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HTTP_1_1);
+        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-None-Match", "W/\"etag\"");
@@ -2804,7 +2800,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDELETEWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        request = new BasicHttpRequest("DELETE", "/", HTTP_1_1);
+        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
         request.setHeader("If-Match", "W/\"etag\"");
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-Match");
@@ -2812,7 +2808,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDELETEWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        request = new BasicHttpRequest("DELETE", "/", HTTP_1_1);
+        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
         request.setHeader("If-None-Match", "W/\"etag\"");
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-None-Match");
@@ -2828,7 +2824,7 @@ public class TestProtocolRequirements {
     @Test
     public void testSubrangeGETMustUseStrongComparisonForCachedResponse() throws Exception {
         Date now = new Date();
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -2839,7 +2835,7 @@ public class TestProtocolRequirements {
         // marked weak. Therefore, the If-Range must fail and we must
         // either get an error back or the full entity, but we better
         // not get the conditionally-requested Partial Content (206).
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range", "bytes=0-50");
         req2.setHeader("If-Range", "W/\"etag\"");
 
@@ -2868,14 +2864,14 @@ public class TestProtocolRequirements {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
@@ -2938,14 +2934,14 @@ public class TestProtocolRequirements {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "W/\"etag\"");
         req2.setHeader("If-Unmodified-Since", DateUtils.formatDate(twentySecondsAgo));
 
@@ -2975,10 +2971,10 @@ public class TestProtocolRequirements {
         if (!impl.supportsRangeAndContentRangeHeaders()) {
             emptyMockCacheExpectsNoPuts();
 
-            HttpRequest req = new BasicHttpRequest("GET", "/", HTTP_1_1);
+            HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
             req.setHeader("Range", "bytes=0-50");
 
-            HttpResponse resp = new BasicHttpResponse(HTTP_1_1, 206, "Partial Content");
+            HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, 206, "Partial Content");
             resp.setHeader("Content-Range", "bytes 0-50/128");
             resp.setHeader("ETag", "\"etag\"");
             resp.setHeader("Cache-Control", "max-age=3600");
@@ -3007,7 +3003,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void test302ResponseWithoutExplicitCacheabilityIsNotReturnedFromCache() throws Exception {
-        originResponse = new BasicHttpResponse(HTTP_1_1, 302, "Temporary Redirect");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 302, "Temporary Redirect");
         originResponse.setHeader("Location", "http://foo.example.com/other");
         originResponse.removeHeaders("Expires");
         originResponse.removeHeaders("Cache-Control");
@@ -3096,8 +3092,8 @@ public class TestProtocolRequirements {
     private void testDoesNotModifyHeaderFromOriginOnCacheHit(String header, String value)
             throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse = make200Response();
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -3137,8 +3133,8 @@ public class TestProtocolRequirements {
 
     private void testDoesNotAddHeaderOnCacheHit(String header) throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.removeHeaders(header);
@@ -3175,7 +3171,7 @@ public class TestProtocolRequirements {
 
     private void testDoesNotModifyHeaderOnRequest(String header, String value) throws Exception {
         BasicHttpEntityEnclosingRequest req =
-            new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+            new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.setHeader(header,value);
@@ -3220,7 +3216,7 @@ public class TestProtocolRequirements {
 
     private void testDoesNotAddHeaderToRequestIfNotPresent(String header) throws Exception {
         BasicHttpEntityEnclosingRequest req =
-            new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+            new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.removeHeaders(header);
@@ -3299,8 +3295,8 @@ public class TestProtocolRequirements {
 
     @Test
     public void testExpiresHeaderMatchesDateIfAddedToCacheHit() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse.setHeader("Cache-Control","max-age=3600");
         originResponse.removeHeaders("Expires");
@@ -3348,7 +3344,7 @@ public class TestProtocolRequirements {
         request.setHeader("If-Range","\"etag\"");
         request.setHeader("Range","bytes=0-49");
 
-        originResponse = new BasicHttpResponse(HTTP_1_1, 206, "Partial Content");
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 206, "Partial Content");
         originResponse.setEntity(HttpTestUtils.makeBody(50));
         testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Range","bytes 0-49/128");
     }
@@ -3359,8 +3355,8 @@ public class TestProtocolRequirements {
     }
 
     private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(String header, String value) throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         originResponse.addHeader("Cache-Control","max-age=3600, no-transform");
         originResponse.setHeader(header, value);
@@ -3387,10 +3383,10 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDoesNotModifyContentRangeHeaderOnCachedResponseWithNoTransform() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("If-Range","\"etag\"");
         req1.setHeader("Range","bytes=0-49");
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-Range","\"etag\"");
         req2.setHeader("Range","bytes=0-49");
 
@@ -3488,14 +3484,14 @@ public class TestProtocolRequirements {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.3
      */
     public void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control","max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         backendExpectsAnyRequest().andReturn(resp1);
         backendExpectsAnyRequest().andReturn(resp2);
@@ -3546,15 +3542,15 @@ public class TestProtocolRequirements {
 
     @Test
     public void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Server", "MockServer/1.0");
 
@@ -3581,15 +3577,15 @@ public class TestProtocolRequirements {
     @Test
     public void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Server", "MockServer/1.0");
@@ -3605,7 +3601,7 @@ public class TestProtocolRequirements {
         backendExpectsAnyRequest().andReturn(resp1);
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -3632,21 +3628,21 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.addHeader("Cache-Control","max-age=3600");
         resp1.addHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
 
         backendExpectsAnyRequest().andReturn(resp1);
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -3684,14 +3680,14 @@ public class TestProtocolRequirements {
     public void testCannotCombinePartialResponseIfIncomingResponseDoesNotHaveACacheValidator()
         throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
         Date now = new Date();
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Server","MockServer/1.0");
         resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
@@ -3701,10 +3697,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3713,9 +3709,9 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3737,10 +3733,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -3749,10 +3745,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3762,9 +3758,9 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3786,10 +3782,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -3799,10 +3795,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3812,9 +3808,9 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3836,10 +3832,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -3849,10 +3845,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3861,10 +3857,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3887,10 +3883,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -3899,10 +3895,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3912,10 +3908,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3938,10 +3934,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -3951,10 +3947,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -3964,10 +3960,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -3990,10 +3986,10 @@ public class TestProtocolRequirements {
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4003,10 +3999,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4016,10 +4012,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4041,10 +4037,10 @@ public class TestProtocolRequirements {
         Date now = new Date();
         Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
 
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4054,10 +4050,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4067,10 +4063,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4098,7 +4094,7 @@ public class TestProtocolRequirements {
     public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch()
         throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req1.setHeader("Accept-Encoding","gzip");
 
         HttpResponse resp1 = make200Response();
@@ -4108,7 +4104,7 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req2.removeHeaders("Accept-Encoding");
 
         HttpResponse resp2 = make200Response();
@@ -4132,7 +4128,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testCannotServeFromCacheForVaryStar() throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
 
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag","\"etag1\"");
@@ -4141,7 +4137,7 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
 
         HttpResponse resp2 = make200Response();
         resp2.setHeader("ETag","\"etag1\"");
@@ -4182,7 +4178,7 @@ public class TestProtocolRequirements {
     public void testNonmatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated()
         throws Exception {
 
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req1.setHeader("User-Agent","MyBrowser/1.0");
 
         HttpResponse resp1 = make200Response();
@@ -4193,10 +4189,10 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req2.setHeader("User-Agent","MyBrowser/1.5");
 
-        HttpRequest conditional = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest conditional = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         conditional.setHeader("User-Agent","MyBrowser/1.5");
         conditional.setHeader("If-None-Match","\"etag1\"");
 
@@ -4204,7 +4200,7 @@ public class TestProtocolRequirements {
         resp200.setHeader("ETag","\"etag1\"");
         resp200.setHeader("Vary","User-Agent");
 
-        HttpResponse resp304 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse resp304 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp304.setHeader("ETag","\"etag1\"");
         resp304.setHeader("Vary","User-Agent");
 
@@ -4280,17 +4276,17 @@ public class TestProtocolRequirements {
      */
     protected void testUnsafeOperationInvalidatesCacheForThatUri(
             HttpRequest unsafeReq) throws Exception, IOException {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp3 = make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4324,17 +4320,17 @@ public class TestProtocolRequirements {
 
     protected void testUnsafeMethodInvalidatesCacheForHeaderUri(
             HttpRequest unsafeReq) throws Exception, IOException {
-        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1);
         HttpResponse resp3 = make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4430,17 +4426,17 @@ public class TestProtocolRequirements {
             HttpRequest unsafeReq) throws Exception, IOException {
 
         HttpHost otherHost = new HttpHost("bar.example.com");
-        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequest().andReturn(resp2);
 
-        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HTTP_1_1);
+        HttpRequest req3 = new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1);
 
         replayMocks();
         impl.execute(otherHost, req1);
@@ -4463,7 +4459,7 @@ public class TestProtocolRequirements {
 
     protected HttpRequest makeRequestWithBody(String method, String requestUri) {
         HttpEntityEnclosingRequest request =
-            new BasicHttpEntityEnclosingRequest(method, requestUri, HTTP_1_1);
+            new BasicHttpEntityEnclosingRequest(method, requestUri, HttpVersion.HTTP_1_1);
         int nbytes = 128;
         request.setEntity(HttpTestUtils.makeBody(nbytes));
         request.setHeader("Content-Length",""+nbytes);
@@ -4496,13 +4492,13 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HttpVersion.HTTP_1_1);
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HttpVersion.HTTP_1_1);
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
@@ -4517,7 +4513,7 @@ public class TestProtocolRequirements {
      */
     private void testRequestIsWrittenThroughToOrigin(HttpRequest req)
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
         EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
                                         eqRequest(req),
                                         (HttpContext)EasyMock.isNull()))
@@ -4531,14 +4527,14 @@ public class TestProtocolRequirements {
     @Test @Ignore
     public void testOPTIONSRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("OPTIONS","*",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("OPTIONS","*",HttpVersion.HTTP_1_1);
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
     public void testPOSTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST","/",HTTP_1_1);
+        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(makeBody(128));
         req.setHeader("Content-Length","128");
         testRequestIsWrittenThroughToOrigin(req);
@@ -4547,7 +4543,7 @@ public class TestProtocolRequirements {
     @Test
     public void testPUTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("PUT","/",HttpVersion.HTTP_1_1);
         req.setEntity(makeBody(128));
         req.setHeader("Content-Length","128");
         testRequestIsWrittenThroughToOrigin(req);
@@ -4556,28 +4552,28 @@ public class TestProtocolRequirements {
     @Test
     public void testDELETERequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("DELETE","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("DELETE","/",HttpVersion.HTTP_1_1);
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
     public void testTRACERequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("TRACE","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("TRACE","/",HttpVersion.HTTP_1_1);
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
     public void testCONNECTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("CONNECT","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("CONNECT","/",HttpVersion.HTTP_1_1);
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
     public void testUnknownMethodRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("UNKNOWN","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("UNKNOWN","/",HttpVersion.HTTP_1_1);
         testRequestIsWrittenThroughToOrigin(req);
     }
 
@@ -4653,12 +4649,12 @@ public class TestProtocolRequirements {
             IOException {
         if (impl.isSharedCache()) {
             String authorization = "Basic dXNlcjpwYXNzd2Q=";
-            HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
             req1.setHeader("Authorization",authorization);
 
             backendExpectsAnyRequest().andReturn(authorizedResponse);
 
-            HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
             HttpResponse resp2 = make200Response();
             resp2.setHeader("Cache-Control","max-age=3600");
 
@@ -4726,12 +4722,12 @@ public class TestProtocolRequirements {
             String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
             String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
 
-            HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
             req1.setHeader("Authorization",authorization1);
 
             backendExpectsAnyRequest().andReturn(authorizedResponse);
 
-            HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+            HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
             req2.setHeader("Authorization",authorization2);
 
             HttpResponse resp2 = make200Response();
@@ -4792,7 +4788,7 @@ public class TestProtocolRequirements {
         throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
@@ -4800,7 +4796,7 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control","max-stale=60");
         HttpResponse resp2 = make200Response();
 
@@ -4872,7 +4868,7 @@ public class TestProtocolRequirements {
      */
     protected void testCacheIsNotUsedWhenRespondingToRequest(HttpRequest req)
         throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("Etag","\"etag\"");
         resp1.setHeader("Cache-Control","max-age=3600");
@@ -4902,7 +4898,7 @@ public class TestProtocolRequirements {
     @Test
     public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req.setHeader("Cache-Control","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
     }
@@ -4910,7 +4906,7 @@ public class TestProtocolRequirements {
     @Test
     public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache()
         throws Exception {
-        HttpRequest req = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req.setHeader("Pragma","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
     }
@@ -4926,11 +4922,11 @@ public class TestProtocolRequirements {
      */
     protected void testStaleCacheResponseMustBeRevalidatedWithOrigin(
             HttpResponse staleResponse) throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
 
         backendExpectsAnyRequest().andReturn(staleResponse);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control","max-stale=3600");
         HttpResponse resp2 = make200Response();
         resp2.setHeader("ETag","\"etag2\"");
@@ -4981,11 +4977,11 @@ public class TestProtocolRequirements {
      */
     protected void testGenerates504IfCannotRevalidateStaleResponse(
             HttpResponse staleResponse) throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
 
         backendExpectsAnyRequest().andReturn(staleResponse);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
@@ -5057,13 +5053,13 @@ public class TestProtocolRequirements {
     public void testCacheControlPrivateIsNotCacheableBySharedCache()
     throws Exception {
        if (impl.isSharedCache()) {
-               HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
                HttpResponse resp1 = make200Response();
                resp1.setHeader("Cache-Control","private,max-age=3600");
 
                backendExpectsAnyRequest().andReturn(resp1);
 
-               HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
                HttpResponse resp2 = make200Response();
                // this backend request MUST happen
                backendExpectsAnyRequest().andReturn(resp2);
@@ -5079,14 +5075,14 @@ public class TestProtocolRequirements {
     public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache()
     throws Exception {
        if (impl.isSharedCache()) {
-               HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
                HttpResponse resp1 = make200Response();
                resp1.setHeader("X-Personal","stuff");
                resp1.setHeader("Cache-Control","private=\"X-Personal\",s-maxage=3600");
 
                backendExpectsAnyRequest().andReturn(resp1);
 
-               HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+               HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
                HttpResponse resp2 = make200Response();
 
                // this backend request MAY happen
@@ -5111,14 +5107,14 @@ public class TestProtocolRequirements {
     @Test
     public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation()
     throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp2 = make200Response();
 
         // this MUST happen
@@ -5133,14 +5129,14 @@ public class TestProtocolRequirements {
     @Test
     public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications()
     throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache,s-maxage=3600");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control","max-stale=7200");
         HttpResponse resp2 = make200Response();
 
@@ -5162,7 +5158,7 @@ public class TestProtocolRequirements {
     @Test
     public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation()
     throws Exception {
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("X-Stuff","things");
@@ -5170,7 +5166,7 @@ public class TestProtocolRequirements {
 
         backendExpectsAnyRequest().andReturn(resp1);
 
-        HttpRequest req2 = new BasicHttpRequest("GET","/",HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         HttpResponse resp2 = make200Response();
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("X-Stuff","things");

@@ -33,9 +33,11 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 
 /**
- * Determines whether a given {@link CacheEntry} is suitable to be
+ * Determines whether a given {@link HttpCacheEntry} is suitable to be
  * used as a response for a given {@link HttpRequest}.
  *
  * @since 4.1
@@ -45,8 +47,19 @@ class CachedResponseSuitabilityChecker {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private final CacheValidityPolicy validityStrategy;
+
+    CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy) {
+        super();
+        this.validityStrategy = validityStrategy;
+    }
+
+    CachedResponseSuitabilityChecker() {
+        this(new CacheValidityPolicy());
+    }
+
     /**
-     * Determine if I can utilize a {@link CacheEntry} to respond to the given
+     * Determine if I can utilize a {@link HttpCacheEntry} to respond to the given
      * {@link HttpRequest}
      *
      * @param host
@@ -54,21 +67,21 @@ class CachedResponseSuitabilityChecker {
      * @param request
      *            {@link HttpRequest}
      * @param entry
-     *            {@link CacheEntry}
+     *            {@link HttpCacheEntry}
      * @return boolean yes/no answer
      */
-    public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, CacheEntry entry) {
-        if (!entry.isResponseFresh()) {
+    public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry) {
+        if (!validityStrategy.isResponseFresh(entry)) {
             log.debug("Cache entry was not fresh enough");
             return false;
         }
 
-        if (!entry.contentLengthHeaderMatchesActualLength()) {
+        if (!validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
             log.debug("Cache entry Content-Length and header information do not match");
             return false;
         }
 
-        if (entry.modifiedSince(request)) {
+        if (validityStrategy.modifiedSince(entry, request)) {
             log.debug("Cache entry modified times didn't line up. Cache Entry should not be used");
             return false;
         }
@@ -88,7 +101,7 @@ class CachedResponseSuitabilityChecker {
                 if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())) {
                     try {
                         int maxage = Integer.parseInt(elt.getValue());
-                        if (entry.getCurrentAgeSecs() > maxage) {
+                        if (validityStrategy.getCurrentAgeSecs(entry) > maxage) {
                             log.debug("Response from cache was NOT suitable due to max age");
                             return false;
                         }
@@ -102,7 +115,7 @@ class CachedResponseSuitabilityChecker {
                 if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                     try {
                         int maxstale = Integer.parseInt(elt.getValue());
-                        if (entry.getFreshnessLifetimeSecs() > maxstale) {
+                        if (validityStrategy.getFreshnessLifetimeSecs(entry) > maxstale) {
                             log.debug("Response from cache was not suitable due to Max stale freshness");
                             return false;
                         }
@@ -116,7 +129,7 @@ class CachedResponseSuitabilityChecker {
                 if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())) {
                     try {
                         int minfresh = Integer.parseInt(elt.getValue());
-                        if (entry.getFreshnessLifetimeSecs() < minfresh) {
+                        if (validityStrategy.getFreshnessLifetimeSecs(entry) < minfresh) {
                             log.debug("Response from cache was not suitable due to min fresh " +
                                     "freshness requirement");
                             return false;

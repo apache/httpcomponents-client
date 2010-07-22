@@ -77,13 +77,12 @@ public class TestProtocolDeviations {
     private HttpEntity body;
     private HttpEntity mockEntity;
     private HttpClient mockBackend;
-    private HttpCache<String, CacheEntry> mockCache;
+    private HttpCache mockCache;
     private HttpRequest request;
     private HttpResponse originResponse;
 
     private CachingHttpClient impl;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
@@ -94,7 +93,7 @@ public class TestProtocolDeviations {
 
         originResponse = make200Response();
 
-        HttpCache<String, CacheEntry> cache = new BasicHttpCache(MAX_ENTRIES);
+        HttpCache cache = new BasicHttpCache(MAX_ENTRIES);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);

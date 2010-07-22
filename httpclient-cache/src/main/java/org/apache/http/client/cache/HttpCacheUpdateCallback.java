@@ -26,7 +26,7 @@
  */
 package org.apache.http.client.cache;
 
-public interface HttpCacheUpdateCallback<E> {
+public interface HttpCacheUpdateCallback {
 
     /**
      * Returns the new cache entry that should replace an existing one.
@@ -41,6 +41,6 @@ public interface HttpCacheUpdateCallback<E> {
      *
      * @since 4.1
      */
-    E update(E existing) throws HttpCacheOperationException;
+    HttpCacheEntry update(HttpCacheEntry existing) throws HttpCacheOperationException;
 
 }

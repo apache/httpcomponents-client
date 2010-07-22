@@ -30,26 +30,45 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
+import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestCachedHttpResponseGenerator {
 
+    private CacheEntry entry;
+    private CacheValidityPolicy mockValidityPolicy;
+    private CachedHttpResponseGenerator impl;
+
+    @Before
+    public void setUp() {
+        Date now = new Date();
+        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
+        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
+        Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
+                new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
+                new BasicHeader("Content-Length", "150") };
+
+        entry = new CacheEntry(tenSecondsAgo, sixSecondsAgo, hdrs);
+        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
+        impl = new CachedHttpResponseGenerator(mockValidityPolicy);
+    }
+
+    public void replayMocks() {
+        EasyMock.replay(mockValidityPolicy);
+    }
+
     @Test
     public void testResponseHasContentLength() {
-
-        Header[] hdrs = new Header[] {};
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(
-                new Date(), new Date(), new ProtocolVersion("HTTP", 1, 1), hdrs,
-                new ByteArrayEntity(buf), 200, "OK");
+        CacheEntry entry = new CacheEntry(buf);
 
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Header length = response.getFirstHeader("Content-Length");
         Assert.assertNotNull("Content-Length Header is missing", length);
@@ -63,13 +82,9 @@ public class TestCachedHttpResponseGenerator {
 
         Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(
-                new Date(), new Date(), new ProtocolVersion("HTTP", 1, 1), hdrs,
-                new ByteArrayEntity(buf), 200, "OK");
+        CacheEntry entry = new CacheEntry(hdrs, buf);
 
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Header length = response.getFirstHeader("Content-Length");
 
@@ -78,10 +93,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseMatchesCacheEntry() {
-        CacheEntry entry = buildEntry();
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Assert.assertTrue(response.containsHeader("Content-Length"));
 
@@ -92,36 +104,29 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseStatusCodeMatchesCacheEntry() {
-        CacheEntry entry = buildEntry();
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Assert.assertEquals(entry.getStatusCode(), response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() {
-        final long currAge = 10L;
+        currentAge(10L);
+        replayMocks();
 
-        CacheEntry entry = buildEntryWithCurrentAge(currAge);
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
-        Assert.assertEquals(currAge, Long.parseLong(ageHdr.getValue()));
+        Assert.assertEquals(10L, Long.parseLong(ageHdr.getValue()));
     }
 
     @Test
     public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() {
-        final long currAge = 0L;
+        currentAge(0L);
+        replayMocks();
 
-        CacheEntry entry = buildEntryWithCurrentAge(currAge);
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNull(ageHdr);
@@ -129,53 +134,19 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
+        currentAge(CacheEntry.MAX_AGE + 1L);
+        replayMocks();
 
-        CacheEntry entry = buildEntryWithCurrentAge(CacheEntry.MAX_AGE + 1L);
-
-        CachedHttpResponseGenerator gen = new CachedHttpResponseGenerator();
-        HttpResponse response = gen.generateResponse(entry);
+        HttpResponse response = impl.generateResponse(entry);
 
         Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
         Assert.assertEquals(CacheEntry.MAX_AGE, Long.parseLong(ageHdr.getValue()));
     }
 
-    private CacheEntry buildEntry() {
-        Date now = new Date();
-        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
-        Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
-                new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
-                new BasicHeader("Content-Length", "150") };
-
-        return new CacheEntry(tenSecondsAgo, sixSecondsAgo, new ProtocolVersion("HTTP", 1, 1),
-                hdrs, new ByteArrayEntity(new byte[] {}), 200, "OK");
+    private void currentAge(long sec) {
+        EasyMock.expect(
+                mockValidityPolicy.getCurrentAgeSecs(entry)).andReturn(sec);
     }
 
-
-    private CacheEntry buildEntryWithCurrentAge(final long currAge){
-                Date now = new Date();
-        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
-        Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
-                new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
-                new BasicHeader("Content-Length", "150") };
-
-
-        return new CacheEntry(tenSecondsAgo, sixSecondsAgo, new ProtocolVersion("HTTP", 1, 1),
-                hdrs, new ByteArrayEntity(new byte[] {}), 200, "OK"){
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public long getCurrentAgeSecs() {
-                return currAge;
-            }
-
-        };
-    }
 }

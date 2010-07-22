@@ -34,6 +34,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
 
 /**
  * Determines if an HttpRequest is allowed to be served from the cache.

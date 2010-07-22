@@ -32,6 +32,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Assert;
@@ -51,7 +52,7 @@ public class TestCacheEntryGenerator {
 
         response.setHeader("fooHeader", "fooHeaderValue");
 
-        CacheEntry entry = gen.generateEntry(new Date(), new Date(), response, new byte[] {});
+        HttpCacheEntry entry = gen.generateEntry(new Date(), new Date(), response, new byte[] {});
 
         Assert.assertEquals("HTTP", entry.getProtocolVersion().getProtocol());
         Assert.assertEquals(1, entry.getProtocolVersion().getMajor());

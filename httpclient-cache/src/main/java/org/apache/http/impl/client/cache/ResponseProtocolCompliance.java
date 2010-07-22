@@ -36,6 +36,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.HTTP;

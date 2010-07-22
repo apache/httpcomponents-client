@@ -39,6 +39,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;

@@ -26,32 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.Date;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.message.BasicStatusLine;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheEntry;
+public class OKStatus extends BasicStatusLine {
 
-/**
- * Generates a {@link CacheEntry} from a {@link HttpResponse}
- *
- * @since 4.1
- */
-@Immutable
-class CacheEntryGenerator {
-
-    public HttpCacheEntry generateEntry(
-            Date requestDate,
-            Date responseDate,
-            HttpResponse response,
-            byte[] body) {
-        CacheEntity entity = new CacheEntity(body, response);
-        return new HttpCacheEntry(requestDate,
-                              responseDate,
-                              response.getStatusLine(),
-                              response.getAllHeaders(),
-                              entity,
-                              null);
+    public OKStatus() {
+        super(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
     }
 
 }
