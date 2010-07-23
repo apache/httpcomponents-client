@@ -27,7 +27,6 @@
 package org.apache.http.impl.client;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
@@ -116,7 +115,7 @@ public class BasicCookieStore implements CookieStore {
      * @return an array of {@link Cookie cookies}.
      */
     public synchronized List<Cookie> getCookies() {
-        return Collections.unmodifiableList(this.cookies);
+        return new ArrayList<Cookie>(this.cookies);
     }
 
     /**
