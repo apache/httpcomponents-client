@@ -53,7 +53,6 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.HeaderGroup;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
 import org.easymock.IExpectationSetters;
@@ -2294,19 +2293,17 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
-
-        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        headerGroup.addHeader("Cache-Control", "max-age=0");
-        headerGroup.addHeader("ETag", "\"etag\"");
-        headerGroup.addHeader("Content-Length", "128");
-
+        Header[] hdrs = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=0"),
+                new BasicHeader("ETag", "\"etag\""),
+                new BasicHeader("Content-Length", "128")
+        };
 
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
 
@@ -2340,18 +2337,17 @@ public class TestProtocolRequirements {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+        
+        Header[] hdrs = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length", "128")
+        };
 
-
-        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        headerGroup.addHeader("Cache-Control", "max-age=3600");
-        headerGroup.addHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2382,19 +2378,17 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+        Header[] hdrs = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=0"),
+                new BasicHeader("Content-Length", "128"),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo))
+        };
 
-        headerGroup.addHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        headerGroup.addHeader("Cache-Control", "max-age=0");
-        headerGroup.addHeader("Content-Length", "128");
-        headerGroup.addHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
-
-
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2586,16 +2580,16 @@ public class TestProtocolRequirements {
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+        Header[] hdrs = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length", "128")
+        };
 
-        headerGroup.setHeader("Date", DateUtils.formatDate(nineSecondsAgo));
-        headerGroup.setHeader("Cache-Control", "max-age=3600");
-        headerGroup.setHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, new OKStatus(),
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
+        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -2629,17 +2623,17 @@ public class TestProtocolRequirements {
         Date requestTime = new Date(thirtySixHoursAgo.getTime() - 1000L);
         Date responseTime = new Date(thirtySixHoursAgo.getTime() + 1000L);
 
-        FakeHeaderGroup headerGroup = new FakeHeaderGroup();
+        Header[] hdrs = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(thirtySixHoursAgo)),
+                new BasicHeader("Cache-Control", "public"),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(oneYearAgo)),
+                new BasicHeader("Content-Length", "128")
+        };
 
-        headerGroup.setHeader("Date", DateUtils.formatDate(thirtySixHoursAgo));
-        headerGroup.setHeader("Cache-Control", "public");
-        headerGroup.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
-        headerGroup.setHeader("Content-Length", "128");
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(requestTime, responseTime, new OKStatus(),
-                headerGroup.getAllHeaders(), new ByteArrayEntity(bytes));
+        CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
 
@@ -5252,14 +5246,4 @@ public class TestProtocolRequirements {
         verifyMocks();
     }
 
-    private class FakeHeaderGroup extends HeaderGroup{
-
-        public void addHeader(String name, String value){
-            this.addHeader(new BasicHeader(name,value));
-        }
-
-        public void setHeader(String name, String value){
-            addHeader(name,value);
-        }
-    }
 }

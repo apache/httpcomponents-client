@@ -32,8 +32,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
 
 public class CacheEntry extends HttpCacheEntry {
 
@@ -53,24 +51,37 @@ public class CacheEntry extends HttpCacheEntry {
     public CacheEntry(
             Date requestDate,
             Date responseDate) {
-        super(requestDate, responseDate, new OKStatus(), new Header[] {}, new BasicHttpEntity(), null);
+        super(requestDate, responseDate, new OKStatus(), new Header[] {}, 
+                new CacheEntity(new byte[] {}), null);
     }
 
     public CacheEntry(
             Date requestDate,
             Date responseDate,
             Header[] headers) {
-        super(requestDate, responseDate, new OKStatus(), headers, new BasicHttpEntity(), null);
+        super(requestDate, responseDate, new OKStatus(), headers, 
+                new CacheEntity(new byte[] {}), null);
     }
 
-    public CacheEntry(Header[] headers) {
-        super(new Date(), new Date(), new OKStatus(), headers, new BasicHttpEntity(), null);
+    public CacheEntry(
+            Date requestDate,
+            Date responseDate,
+            Header[] headers,
+            byte[] content) {
+        super(requestDate, responseDate, new OKStatus(), headers, 
+                new CacheEntity(content), null);
     }
 
     public CacheEntry(
             Header[] headers,
             byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), headers, new ByteArrayEntity(content), null);
+        super(new Date(), new Date(), new OKStatus(), headers, 
+                new CacheEntity(content), null);
+    }
+
+    public CacheEntry(Header[] headers) {
+        super(new Date(), new Date(), new OKStatus(), headers, 
+                new CacheEntity(new byte[] {}), null);
     }
 
     public CacheEntry() {
@@ -78,7 +89,8 @@ public class CacheEntry extends HttpCacheEntry {
     }
 
     public CacheEntry(byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), new Header[] {}, new ByteArrayEntity(content), null);
+        super(new Date(), new Date(), new OKStatus(), new Header[] {}, 
+                new CacheEntity(content), null);
     }
 
 }

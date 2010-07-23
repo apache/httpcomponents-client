@@ -322,8 +322,7 @@ public class TestCachingHttpClient {
 
         final String variantURI = "variantURI";
 
-        final CacheEntry entry = new CacheEntry(new Date(), new Date(), new OKStatus(),
-                new Header[] {}, new ByteArrayEntity(new byte[] {}));
+        final CacheEntry entry = new CacheEntry();
 
         replayMocks();
 

@@ -28,9 +28,11 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Generates a {@link CacheEntry} from a {@link HttpResponse}
@@ -45,7 +47,12 @@ class CacheEntryGenerator {
             Date responseDate,
             HttpResponse response,
             byte[] body) {
-        CacheEntity entity = new CacheEntity(body, response);
+        Header ct = response.getFirstHeader(HTTP.CONTENT_TYPE);
+        Header ce = response.getFirstHeader(HTTP.CONTENT_ENCODING);
+        CacheEntity entity = new CacheEntity(
+                body, 
+                ct != null ? ct.getValue() : null, 
+                ce != null ? ce.getValue() : null);
         return new HttpCacheEntry(requestDate,
                               responseDate,
                               response.getStatusLine(),
