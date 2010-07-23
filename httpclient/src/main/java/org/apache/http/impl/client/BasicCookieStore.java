@@ -27,12 +27,7 @@
 package org.apache.http.impl.client;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
@@ -50,23 +45,14 @@ import org.apache.http.cookie.CookieIdentityComparator;
 @ThreadSafe
 public class BasicCookieStore implements CookieStore, Serializable {
 
-    private static final long serialVersionUID = -1113466491038527240L;
+    private static final long serialVersionUID = -7581093305228232025L;
 
     @GuardedBy("this")
-    private final ArrayList<Cookie> cookies;
+    private final TreeSet<Cookie> cookies;
 
-    @GuardedBy("this")
-    private final Comparator<Cookie> cookieComparator;
-
-    // -------------------------------------------------------- Class Variables
-
-    /**
-     * Default constructor.
-     */
     public BasicCookieStore() {
         super();
-        this.cookies = new ArrayList<Cookie>();
-        this.cookieComparator = new CookieIdentityComparator();
+        this.cookies = new TreeSet<Cookie>(new CookieIdentityComparator());
     }
 
     /**
@@ -82,12 +68,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
     public synchronized void addCookie(Cookie cookie) {
         if (cookie != null) {
             // first remove any old cookie that is equivalent
-            for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
-                if (cookieComparator.compare(cookie, it.next()) == 0) {
-                    it.remove();
-                    break;
-                }
-            }
+            cookies.remove(cookie);
             if (!cookie.isExpired(new Date())) {
                 cookies.add(cookie);
             }
@@ -119,7 +100,8 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @return an array of {@link Cookie cookies}.
      */
     public synchronized List<Cookie> getCookies() {
-        return Collections.unmodifiableList(this.cookies);
+        //create defensive copy so it won't be concurrently modified
+        return new ArrayList<Cookie>(cookies);
     }
 
     /**
@@ -144,16 +126,16 @@ public class BasicCookieStore implements CookieStore, Serializable {
         return removed;
     }
 
-    @Override
-    public String toString() {
-        return cookies.toString();
-    }
-
     /**
      * Clears all cookies.
      */
     public synchronized void clear() {
         cookies.clear();
+    }
+
+    @Override
+    public synchronized String toString() {
+        return cookies.toString();
     }
 
 }

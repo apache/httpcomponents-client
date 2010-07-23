@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-969] BasicCookieStore#getCookies() to return a copy of Cookie list 
+  Contributed by David Smiley <dsmiley at mitre.org>
+
 * [HTTPCLIENT-965] Fixed problem with cache not honoring must-revalidate or 
   proxy-revalidate Cache-Control directives.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
