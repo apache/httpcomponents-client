@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -39,7 +40,6 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheOperationException;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -76,57 +76,50 @@ class CacheInvalidator {
      * @param host The backend host we are talking to
      * @param req The HttpRequest to that host
      */
-    public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req) {
+    public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req) throws IOException {
         if (requestShouldNotBeCached(req)) {
             log.debug("Request should not be cached");
 
+            String theUri = uriExtractor.getURI(host, req);
+
+            HttpCacheEntry parent = cache.getEntry(theUri);
+
+            log.debug("parent entry: " + parent);
+
+            if (parent != null) {
+                for (String variantURI : parent.getVariantURIs()) {
+                    cache.removeEntry(variantURI);
+                }
+                cache.removeEntry(theUri);
+            }
+            URL reqURL;
             try {
-                String theUri = uriExtractor.getURI(host, req);
-
-                HttpCacheEntry parent = cache.getEntry(theUri);
-
-                log.debug("parent entry: " + parent);
-
-                if (parent != null) {
-                    for (String variantURI : parent.getVariantURIs()) {
-                        cache.removeEntry(variantURI);
-                    }
-                    cache.removeEntry(theUri);
+                reqURL = new URL(theUri);
+            } catch (MalformedURLException mue) {
+                log.error("Couldn't transform request into valid URL");
+                return;
+            }
+            Header clHdr = req.getFirstHeader("Content-Location");
+            if (clHdr != null) {
+                String contentLocation = clHdr.getValue();
+                if (!flushAbsoluteUriFromSameHost(reqURL, contentLocation)) {
+                    flushRelativeUriFromSameHost(reqURL, contentLocation);
                 }
-                URL reqURL;
-                try {
-                    reqURL = new URL(theUri);
-                } catch (MalformedURLException mue) {
-                    log.error("Couldn't transform request into valid URL");
-                    return;
-                }
-                Header clHdr = req.getFirstHeader("Content-Location");
-                if (clHdr != null) {
-                    String contentLocation = clHdr.getValue();
-                    if (!flushAbsoluteUriFromSameHost(reqURL, contentLocation)) {
-                        flushRelativeUriFromSameHost(reqURL, contentLocation);
-                    }
-                }
-                Header lHdr = req.getFirstHeader("Location");
-                if (lHdr != null) {
-                    flushAbsoluteUriFromSameHost(reqURL, lHdr.getValue());
-                }
-            } catch (HttpCacheOperationException ex) {
-                log.debug("Was unable to REMOVE an entry from the cache based on the uri provided",
-                        ex);
+            }
+            Header lHdr = req.getFirstHeader("Location");
+            if (lHdr != null) {
+                flushAbsoluteUriFromSameHost(reqURL, lHdr.getValue());
             }
         }
     }
 
-    protected void flushUriIfSameHost(URL requestURL, URL targetURL)
-        throws HttpCacheOperationException {
+    protected void flushUriIfSameHost(URL requestURL, URL targetURL) throws IOException {
         if (targetURL.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
             cache.removeEntry(targetURL.toString());
         }
     }
 
-    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri)
-        throws HttpCacheOperationException {
+    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri) throws IOException {
         URL relURL;
         try {
             relURL = new URL(reqURL,relUri);
@@ -137,8 +130,7 @@ class CacheInvalidator {
         flushUriIfSameHost(reqURL, relURL);
     }
 
-    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri)
-            throws HttpCacheOperationException {
+    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri) throws IOException {
         URL absURL;
         try {
             absURL = new URL(uri);

@@ -26,6 +26,8 @@
  */
 package org.apache.http.client.cache;
 
+import java.io.IOException;
+
 public interface HttpCacheUpdateCallback {
 
     /**
@@ -36,11 +38,9 @@ public interface HttpCacheUpdateCallback {
      *            <code>null</code> if nonexistent
      * @return CacheEntry the cache entry that should replace it, again,
      *         possible <code>null</code>
-     * @throws HttpCacheOperationException
-     *             exception containing information about a failure in the cache
      *
      * @since 4.1
      */
-    HttpCacheEntry update(HttpCacheEntry existing) throws HttpCacheOperationException;
+    HttpCacheEntry update(HttpCacheEntry existing) throws IOException;
 
 }

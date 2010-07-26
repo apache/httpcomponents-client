@@ -46,7 +46,7 @@ public class TestResponseCache {
     }
 
     @Test
-    public void testEntryRemainsInCacheWhenPutThere() {
+    public void testEntryRemainsInCacheWhenPutThere() throws Exception {
         cache.putEntry("foo", entry);
 
         HttpCacheEntry cachedEntry = cache.getEntry("foo");
@@ -55,7 +55,7 @@ public class TestResponseCache {
     }
 
     @Test
-    public void testRemovedEntriesDoNotExistAnymore() {
+    public void testRemovedEntriesDoNotExistAnymore() throws Exception {
         cache.putEntry("foo", entry);
 
         cache.removeEntry("foo");
@@ -66,7 +66,7 @@ public class TestResponseCache {
     }
 
     @Test
-    public void testCacheHoldsNoMoreThanSpecifiedMaxEntries() {
+    public void testCacheHoldsNoMoreThanSpecifiedMaxEntries() throws Exception {
         BasicHttpCache cache = new BasicHttpCache(1);
 
         HttpCacheEntry entry1 = new CacheEntry();
@@ -89,7 +89,7 @@ public class TestResponseCache {
     }
 
     @Test
-    public void testSmallCacheKeepsMostRecentlyUsedEntry() {
+    public void testSmallCacheKeepsMostRecentlyUsedEntry() throws Exception {
 
         final int max_size = 3;
         BasicHttpCache cache = new BasicHttpCache(max_size);
@@ -120,7 +120,7 @@ public class TestResponseCache {
     }
 
     @Test
-    public void testZeroMaxSizeCacheDoesNotStoreAnything() {
+    public void testZeroMaxSizeCacheDoesNotStoreAnything() throws Exception {
         BasicHttpCache cache = new BasicHttpCache(0);
 
         HttpCacheEntry entry = new CacheEntry();

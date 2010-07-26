@@ -26,13 +26,13 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
 /**
@@ -69,7 +69,7 @@ public class BasicHttpCache implements HttpCache {
      * @param entry
      *            HttpCacheEntry to place in the cache
      */
-    public synchronized void putEntry(String url, HttpCacheEntry entry) {
+    public synchronized void putEntry(String url, HttpCacheEntry entry) throws IOException {
         baseMap.put(url, entry);
     }
 
@@ -80,7 +80,7 @@ public class BasicHttpCache implements HttpCache {
      *            Url that is the cache key
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
-    public synchronized HttpCacheEntry getEntry(String url) {
+    public synchronized HttpCacheEntry getEntry(String url) throws IOException {
         return baseMap.get(url);
     }
 
@@ -90,13 +90,13 @@ public class BasicHttpCache implements HttpCache {
      * @param url
      *            Url that is the cache key
      */
-    public synchronized void removeEntry(String url) {
+    public synchronized void removeEntry(String url) throws IOException {
         baseMap.remove(url);
     }
 
     public synchronized void updateEntry(
             String url,
-            HttpCacheUpdateCallback callback) throws HttpCacheOperationException {
+            HttpCacheUpdateCallback callback) throws IOException {
         HttpCacheEntry existingEntry = baseMap.get(url);
         baseMap.put(url, callback.update(existingEntry));
     }

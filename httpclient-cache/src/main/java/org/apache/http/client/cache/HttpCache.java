@@ -26,18 +26,20 @@
  */
 package org.apache.http.client.cache;
 
+import java.io.IOException;
+
 /**
  * @since 4.1
  */
 public interface HttpCache {
 
-    void putEntry(String key, HttpCacheEntry entry) throws HttpCacheOperationException;
+    void putEntry(String key, HttpCacheEntry entry) throws IOException;
 
-    HttpCacheEntry getEntry(String key) throws HttpCacheOperationException;
+    HttpCacheEntry getEntry(String key) throws IOException;
 
-    void removeEntry(String key) throws HttpCacheOperationException;
+    void removeEntry(String key) throws IOException;
 
     void updateEntry(
-            String key, HttpCacheUpdateCallback callback) throws HttpCacheOperationException;
+            String key, HttpCacheUpdateCallback callback) throws IOException;
 
 }

@@ -1068,7 +1068,7 @@ public class TestCachingHttpClient {
 
     }
 
-    private void cacheInvalidatorWasCalled() {
+    private void cacheInvalidatorWasCalled()  throws IOException {
         mockInvalidator.flushInvalidatedCacheEntries(host, mockRequest);
     }
 
@@ -1094,7 +1094,7 @@ public class TestCachingHttpClient {
                                                        mockBackendResponse)).andReturn(mockUpdatedCacheEntry);
     }
 
-    private void getCacheEntryReturns(CacheEntry entry) {
+    private void getCacheEntryReturns(CacheEntry entry) throws IOException {
         EasyMock.expect(impl.getCacheEntry(host, mockRequest)).andReturn(entry);
     }
 
@@ -1235,11 +1235,11 @@ public class TestCachingHttpClient {
                                            mockBackendResponse)).andReturn(response);
     }
 
-    private void storeInCacheWasCalled() {
+    private void storeInCacheWasCalled() throws IOException {
         impl.storeInCache(host, mockRequest, mockCacheEntry);
     }
 
-    private void storeInCacheWasCalled(CacheEntry entry) {
+    private void storeInCacheWasCalled(CacheEntry entry) throws IOException {
         impl.storeInCache(host, mockRequest, entry);
     }
 

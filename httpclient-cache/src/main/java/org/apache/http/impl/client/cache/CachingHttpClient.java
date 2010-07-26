@@ -50,7 +50,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -391,25 +390,16 @@ public class CachingHttpClient implements HttpClient {
         return new Date();
     }
 
-    HttpCacheEntry getCacheEntry(HttpHost target, HttpRequest request) {
+    HttpCacheEntry getCacheEntry(HttpHost target, HttpRequest request) throws IOException {
         String uri = uriExtractor.getURI(target, request);
-        HttpCacheEntry entry = null;
-        try {
-            entry = responseCache.getEntry(uri);
-        } catch (HttpCacheOperationException ex) {
-            log.debug("Was unable to get an entry from the cache based on the uri provided", ex);
-        }
+        HttpCacheEntry entry = responseCache.getEntry(uri);
 
         if (entry == null || !entry.hasVariants()) {
             return entry;
         }
 
         String variantUri = uriExtractor.getVariantURI(target, request, entry);
-        try {
-            return responseCache.getEntry(variantUri);
-        } catch (HttpCacheOperationException ex) {
-            return null;
-        }
+        return responseCache.getEntry(variantUri);
     }
 
     boolean clientRequestsOurOptions(HttpRequest request) {
@@ -471,7 +461,8 @@ public class CachingHttpClient implements HttpClient {
                                      backendResponse);
     }
 
-    void storeInCache(HttpHost target, HttpRequest request, HttpCacheEntry entry) {
+    void storeInCache(
+            HttpHost target, HttpRequest request, HttpCacheEntry entry) throws IOException {
         if (entry.hasVariants()) {
             storeVariantEntry(target, request, entry);
         } else {
@@ -479,44 +470,33 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    void storeNonVariantEntry(HttpHost target, HttpRequest req, HttpCacheEntry entry) {
+    void storeNonVariantEntry(
+            HttpHost target, HttpRequest req, HttpCacheEntry entry) throws IOException {
         String uri = uriExtractor.getURI(target, req);
-        try {
-            responseCache.putEntry(uri, entry);
-        } catch (HttpCacheOperationException ex) {
-            log.debug("Was unable to PUT an entry into the cache based on the uri provided", ex);
-        }
+        responseCache.putEntry(uri, entry);
     }
 
     void storeVariantEntry(
             final HttpHost target,
             final HttpRequest req,
-            final HttpCacheEntry entry) {
+            final HttpCacheEntry entry) throws IOException {
         final String variantURI = uriExtractor.getVariantURI(target, req, entry);
-        try {
-            responseCache.putEntry(variantURI, entry);
-        } catch (HttpCacheOperationException e) {
-            log.debug("Was unable to PUT a variant entry into the cache based on the uri provided", e);
-        }
+        responseCache.putEntry(variantURI, entry);
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
 
-            public HttpCacheEntry update(HttpCacheEntry existing) throws HttpCacheOperationException {
+            public HttpCacheEntry update(HttpCacheEntry existing) {
                 return doGetUpdatedParentEntry(existing, entry, variantURI);
             }
 
         };
         String parentURI = uriExtractor.getURI(target, req);
-        try {
-            responseCache.updateEntry(parentURI, callback);
-        } catch (HttpCacheOperationException e) {
-            log.debug("Was unable to UPDATE a parent entry for a variant", e);
-        }
+        responseCache.updateEntry(parentURI, callback);
     }
 
     HttpCacheEntry doGetUpdatedParentEntry(
             HttpCacheEntry existing,
-            HttpCacheEntry entry, String variantURI) throws HttpCacheOperationException {
+            HttpCacheEntry entry, String variantURI) {
         if (existing != null) {
             return HttpCacheEntry.copyWithVariant(existing, variantURI);
         } else {
@@ -585,11 +565,7 @@ public class CachingHttpClient implements HttpClient {
         }
 
         String uri = uriExtractor.getURI(target, request);
-        try {
-            responseCache.removeEntry(uri);
-        } catch (HttpCacheOperationException ex) {
-            log.debug("Was unable to remove an entry from the cache based on the uri provided", ex);
-        }
+        responseCache.removeEntry(uri);
         return corrected;
     }
 

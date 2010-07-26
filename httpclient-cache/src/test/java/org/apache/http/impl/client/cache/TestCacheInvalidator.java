@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +35,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCache;
-import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.easymock.classextension.EasyMock;
@@ -186,7 +186,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testDoesNotInvalidateGETRequest() {
+    public void testDoesNotInvalidateGETRequest() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
 
         replayMocks();
@@ -197,7 +197,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testDoesNotInvalidateHEADRequest() {
+    public void testDoesNotInvalidateHEADRequest() throws Exception {
         HttpRequest request = new BasicHttpRequest("HEAD","/",HTTP_1_1);
 
         replayMocks();
@@ -244,7 +244,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testVariantURIsAreFlushedAlso() throws HttpCacheOperationException {
+    public void testVariantURIsAreFlushedAlso() throws Exception {
         HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
 
         final String theUri = "http://foo.example.com/";
@@ -264,7 +264,7 @@ public class TestCacheInvalidator {
         verifyMocks();
     }
 
-    @Test
+    @Test(expected=IOException.class)
     public void testCacheFlushException() throws Exception {
         HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
         String theURI = "http://foo.example.com/";
@@ -273,7 +273,6 @@ public class TestCacheInvalidator {
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
     }
 
     // Expectations
@@ -283,16 +282,16 @@ public class TestCacheInvalidator {
         org.easymock.EasyMock.expect(mockEntry.getVariantURIs()).andReturn(variantURIs);
     }
 
-    private void cacheReturnsEntryForUri(String theUri) throws HttpCacheOperationException {
+    private void cacheReturnsEntryForUri(String theUri) throws IOException {
         org.easymock.EasyMock.expect(mockCache.getEntry(theUri)).andReturn(mockEntry);
     }
 
-    private void cacheReturnsExceptionForUri(String theUri) throws HttpCacheOperationException {
+    private void cacheReturnsExceptionForUri(String theUri) throws IOException {
         org.easymock.EasyMock.expect(mockCache.getEntry(theUri)).andThrow(
-                new HttpCacheOperationException("TOTAL FAIL"));
+                new IOException("TOTAL FAIL"));
     }
 
-    private void entryIsRemoved(String theUri) throws HttpCacheOperationException {
+    private void entryIsRemoved(String theUri) throws IOException {
         mockCache.removeEntry(theUri);
     }
 
