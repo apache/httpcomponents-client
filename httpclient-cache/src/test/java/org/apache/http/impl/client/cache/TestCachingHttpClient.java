@@ -884,7 +884,7 @@ public class TestCachingHttpClient {
 
         HttpCache cacheImpl = new BasicHttpCache(100);
 
-        CachingHttpClient cachingClient = new CachingHttpClient(httpClient, cacheImpl, 8192);
+        CachingHttpClient cachingClient = new CachingHttpClient(httpClient, cacheImpl);
 
         HttpUriRequest request = new HttpGet("http://www.fancast.com/static-28262/styles/base.css");
 

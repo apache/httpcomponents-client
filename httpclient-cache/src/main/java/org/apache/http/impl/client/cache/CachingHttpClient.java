@@ -67,8 +67,6 @@ import org.apache.http.protocol.HttpContext;
 public class CachingHttpClient implements HttpClient {
 
     private final static int MAX_CACHE_ENTRIES = 1000;
-    private final static int DEFAULT_MAX_OBJECT_SIZE_BYTES = 8192;
-
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
 
     private final AtomicLong cacheHits = new AtomicLong();
@@ -87,16 +85,30 @@ public class CachingHttpClient implements HttpClient {
     private final CachedResponseSuitabilityChecker suitabilityChecker;
 
     private final ConditionalRequestBuilder conditionalRequestBuilder;
-    private final int maxObjectSizeBytes;
+
     private final CacheEntryUpdater cacheEntryUpdater;
+
+    private final int maxObjectSizeBytes;
+    private final boolean sharedCache;
 
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
 
     private final Log log = LogFactory.getLog(getClass());
 
-    public CachingHttpClient(HttpClient client, HttpCache cache, int maxObjectSizeBytes) {
+    public CachingHttpClient(HttpClient client, HttpCache cache, CacheConfig config) {
         super();
+        if (client == null) {
+            throw new IllegalArgumentException("HttpClient may not be null");
+        }
+        if (cache == null) {
+            throw new IllegalArgumentException("HttpCache may not be null");
+        }
+        if (config == null) {
+            throw new IllegalArgumentException("CacheConfig may not be null");
+        }
+        this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
+        this.sharedCache = config.isSharedCache();
         this.backend = client;
         this.responseCache = cache;
         this.validityPolicy = new CacheValidityPolicy();
@@ -109,17 +121,37 @@ public class CachingHttpClient implements HttpClient {
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy);
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
         this.cacheEntryUpdater = new CacheEntryUpdater();
-        this.maxObjectSizeBytes = maxObjectSizeBytes;
+
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
     }
 
     public CachingHttpClient() {
-        this(new DefaultHttpClient(), new BasicHttpCache(MAX_CACHE_ENTRIES), DEFAULT_MAX_OBJECT_SIZE_BYTES);
+        this(new DefaultHttpClient(), new BasicHttpCache(MAX_CACHE_ENTRIES), new CacheConfig());
     }
 
-    public CachingHttpClient(HttpCache cache, int maxObjectSizeBytes) {
-        this(new DefaultHttpClient(), cache, maxObjectSizeBytes);
+    public CachingHttpClient(CacheConfig config) {
+        this(new DefaultHttpClient(), new BasicHttpCache(MAX_CACHE_ENTRIES), config);
+    }
+
+    public CachingHttpClient(HttpClient client) {
+        this(client, new BasicHttpCache(MAX_CACHE_ENTRIES), new CacheConfig());
+    }
+
+    public CachingHttpClient(HttpClient client, CacheConfig config) {
+        this(client, new BasicHttpCache(MAX_CACHE_ENTRIES), config);
+    }
+
+    public CachingHttpClient(HttpCache cache) {
+        this(new DefaultHttpClient(), cache, new CacheConfig());
+    }
+
+    public CachingHttpClient(HttpCache cache, CacheConfig config) {
+        this(new DefaultHttpClient(), cache, config);
+    }
+
+    public CachingHttpClient(HttpClient client, HttpCache cache) {
+        this(client, cache, new CacheConfig());
     }
 
     CachingHttpClient(HttpClient backend, CacheValidityPolicy validityPolicy, ResponseCachingPolicy responseCachingPolicy,
@@ -130,7 +162,9 @@ public class CachingHttpClient implements HttpClient {
                              ConditionalRequestBuilder conditionalRequestBuilder, CacheEntryUpdater entryUpdater,
                              ResponseProtocolCompliance responseCompliance,
                              RequestProtocolCompliance requestCompliance) {
-        this.maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
+        CacheConfig config = new CacheConfig();
+        this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
+        this.sharedCache = config.isSharedCache();
         this.backend = backend;
         this.validityPolicy = validityPolicy;
         this.responseCachingPolicy = responseCachingPolicy;
@@ -383,7 +417,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     public boolean isSharedCache() {
-        return true;
+        return sharedCache;
     }
 
     Date getCurrentDate() {

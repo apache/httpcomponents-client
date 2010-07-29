@@ -84,6 +84,7 @@ public class TestProtocolRequirements {
     private HttpCache mockCache;
     private HttpRequest request;
     private HttpResponse originResponse;
+    private CacheConfig params;
 
     private CachingHttpClient impl;
 
@@ -101,7 +102,9 @@ public class TestProtocolRequirements {
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
-        impl = new CachingHttpClient(mockBackend, cache, MAX_BYTES);
+        params = new CacheConfig();
+        params.setMaxObjectSizeBytes(MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
     private void replayMocks() {
@@ -140,7 +143,7 @@ public class TestProtocolRequirements {
         mockCache = EasyMock.createMock(HttpCache.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         EasyMock.expect(mockCache.getEntry((String) EasyMock.anyObject())).andReturn(null)
                 .anyTimes();
@@ -2307,7 +2310,7 @@ public class TestProtocolRequirements {
 
         mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         HttpRequest validate = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
@@ -2337,7 +2340,7 @@ public class TestProtocolRequirements {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        
+
         Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
@@ -2349,7 +2352,7 @@ public class TestProtocolRequirements {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2390,7 +2393,7 @@ public class TestProtocolRequirements {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
         EasyMock.expect(
@@ -2591,7 +2594,7 @@ public class TestProtocolRequirements {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2635,7 +2638,7 @@ public class TestProtocolRequirements {
 
         CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
         HttpResponse validated = make200Response();
         validated.setHeader("Cache-Control", "public");

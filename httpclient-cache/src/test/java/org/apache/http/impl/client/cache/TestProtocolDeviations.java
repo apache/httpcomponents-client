@@ -97,7 +97,10 @@ public class TestProtocolDeviations {
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
-        impl = new CachingHttpClient(mockBackend, cache, MAX_BYTES);
+
+        CacheConfig params = new CacheConfig();
+        params.setMaxObjectSizeBytes(MAX_BYTES);
+        impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
     private HttpResponse make200Response() {
