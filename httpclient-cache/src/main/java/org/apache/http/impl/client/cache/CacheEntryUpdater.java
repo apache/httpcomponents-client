@@ -78,7 +78,7 @@ class CacheEntryUpdater {
         while ((len = instream.read(buf)) != -1) {
             outstream.write(buf, 0, len);
         }
-        HttpCacheEntry updated = new BasicHttpCacheEntry(requestDate, responseDate,
+        HttpCacheEntry updated = new MemCacheEntry(requestDate, responseDate,
                                             entry.getStatusLine(),
                                             mergedHeaders,
                                             outstream.toByteArray(),

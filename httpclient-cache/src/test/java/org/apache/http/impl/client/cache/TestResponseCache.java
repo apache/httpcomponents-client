@@ -144,7 +144,7 @@ public class TestResponseCache {
         cache.updateEntry("foo", new HttpCacheUpdateCallback() {
 
             public HttpCacheEntry update(HttpCacheEntry existing) {
-                HttpCacheEntry updated = new BasicHttpCacheEntry(
+                HttpCacheEntry updated = new MemCacheEntry(
                         existing.getRequestDate(),
                         existing.getRequestDate(),
                         existing.getStatusLine(),

@@ -50,7 +50,7 @@ class CacheEntryGenerator {
             Date responseDate,
             HttpResponse response,
             byte[] body) {
-        return new BasicHttpCacheEntry(requestDate,
+        return new MemCacheEntry(requestDate,
                               responseDate,
                               response.getStatusLine(),
                               response.getAllHeaders(),
@@ -69,7 +69,7 @@ class CacheEntryGenerator {
         while ((len = instream.read(buf)) != -1) {
             outstream.write(buf, 0, len);
         }
-        return new BasicHttpCacheEntry(
+        return new MemCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),

@@ -30,7 +30,7 @@ import java.util.Date;
 
 import org.apache.http.Header;
 
-public class CacheEntry extends BasicHttpCacheEntry {
+public class CacheEntry extends MemCacheEntry {
 
     private static final long serialVersionUID = 7964121802841871079L;
 

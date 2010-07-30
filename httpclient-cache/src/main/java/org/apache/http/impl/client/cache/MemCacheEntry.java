@@ -42,13 +42,13 @@ import org.apache.http.client.cache.Resource;
  * explicit deallocation.
  */
 @Immutable
-public class BasicHttpCacheEntry extends HttpCacheEntry {
+public class MemCacheEntry extends HttpCacheEntry {
 
     private static final long serialVersionUID = -8464486112875881235L;
 
     private final byte[] body;
 
-    public BasicHttpCacheEntry(
+    public MemCacheEntry(
             final Date requestDate,
             final Date responseDate,
             final StatusLine statusLine,
