@@ -29,8 +29,6 @@ package org.apache.http.impl.client.cache;
 import java.util.Date;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.StatusLine;
 
 public class CacheEntry extends BasicHttpCacheEntry {
 
@@ -40,26 +38,15 @@ public class CacheEntry extends BasicHttpCacheEntry {
 
     public CacheEntry(
             Date requestDate,
-            Date responseDate,
-            StatusLine statusLine,
-            Header[] responseHeaders,
-            HttpEntity body) {
-        super(requestDate, responseDate, statusLine, responseHeaders, body, null);
-    }
-
-    public CacheEntry(
-            Date requestDate,
             Date responseDate) {
-        super(requestDate, responseDate, new OKStatus(), new Header[] {},
-                new CacheEntity(new byte[] {}), null);
+        super(requestDate, responseDate, new OKStatus(), new Header[] {}, new byte[] {}, null);
     }
 
     public CacheEntry(
             Date requestDate,
             Date responseDate,
             Header[] headers) {
-        super(requestDate, responseDate, new OKStatus(), headers,
-                new CacheEntity(new byte[] {}), null);
+        super(requestDate, responseDate, new OKStatus(), headers, new byte[] {}, null);
     }
 
     public CacheEntry(
@@ -67,20 +54,17 @@ public class CacheEntry extends BasicHttpCacheEntry {
             Date responseDate,
             Header[] headers,
             byte[] content) {
-        super(requestDate, responseDate, new OKStatus(), headers,
-                new CacheEntity(content), null);
+        super(requestDate, responseDate, new OKStatus(), headers, content, null);
     }
 
     public CacheEntry(
             Header[] headers,
             byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), headers,
-                new CacheEntity(content), null);
+        super(new Date(), new Date(), new OKStatus(), headers, content, null);
     }
 
     public CacheEntry(Header[] headers) {
-        super(new Date(), new Date(), new OKStatus(), headers,
-                new CacheEntity(new byte[] {}), null);
+        super(new Date(), new Date(), new OKStatus(), headers, new byte[] {}, null);
     }
 
     public CacheEntry() {
@@ -88,8 +72,7 @@ public class CacheEntry extends BasicHttpCacheEntry {
     }
 
     public CacheEntry(byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), new Header[] {},
-                new CacheEntity(content), null);
+        super(new Date(), new Date(), new OKStatus(), new Header[] {}, content, null);
     }
 
 }

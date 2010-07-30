@@ -26,7 +26,9 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -69,10 +71,17 @@ class CacheEntryUpdater {
             HttpResponse response) throws IOException {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
+        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        InputStream instream = entry.getBody();
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = instream.read(buf)) != -1) {
+            outstream.write(buf, 0, len);
+        }
         HttpCacheEntry updated = new BasicHttpCacheEntry(requestDate, responseDate,
                                             entry.getStatusLine(),
                                             mergedHeaders,
-                                            entry.getBody(),
+                                            outstream.toByteArray(),
                                             null);
         return updated;
     }

@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,43 +34,27 @@ import java.io.Serializable;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.protocol.HTTP;
 
 @Immutable
-class CacheEntity implements HttpEntity, Cloneable, Serializable {
+class CacheEntity implements HttpEntity, Serializable {
 
     private static final long serialVersionUID = -3467082284120936233L;
 
-    private final byte[] content;
-    private final String contentType;
-    private final String contentEncoding;
+    private final HttpCacheEntry cacheEntry;
 
-    public CacheEntity(final byte[] b, final String contentType, final String contentEncoding) {
+    public CacheEntity(final HttpCacheEntry cacheEntry) {
         super();
-        this.content = b;
-        this.contentType  = contentType;
-        this.contentEncoding = contentEncoding;
-    }
-
-    public CacheEntity(final byte[] b) {
-        this(b, null, null);
+        this.cacheEntry = cacheEntry;
     }
 
     public Header getContentType() {
-        if (this.contentType == null) {
-            return null;
-        }
-
-        return new BasicHeader(HTTP.CONTENT_TYPE, this.contentType);
+        return this.cacheEntry.getFirstHeader(HTTP.CONTENT_TYPE);
     }
 
     public Header getContentEncoding() {
-        if (this.contentEncoding == null) {
-            return null;
-        }
-
-        return new BasicHeader(HTTP.CONTENT_ENCODING, this.contentEncoding);
+        return this.cacheEntry.getFirstHeader(HTTP.CONTENT_ENCODING);
     }
 
     public boolean isChunked() {
@@ -83,19 +66,23 @@ class CacheEntity implements HttpEntity, Cloneable, Serializable {
     }
 
     public long getContentLength() {
-        return this.content.length;
+        return this.cacheEntry.getBodyLength();
     }
 
     public InputStream getContent() {
-        return new ByteArrayInputStream(this.content);
+        return this.cacheEntry.getBody();
     }
 
     public void writeTo(final OutputStream outstream) throws IOException {
         if (outstream == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
-        outstream.write(this.content);
-        outstream.flush();
+        InputStream instream = this.cacheEntry.getBody();
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = instream.read(buf)) != -1) {
+            outstream.write(buf, 0, len);
+        }
     }
 
     public boolean isStreaming() {

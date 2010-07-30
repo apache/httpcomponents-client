@@ -632,10 +632,16 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
-            String host = requestURI.getHost();
+            String ssp = requestURI.getSchemeSpecificPart();
+            ssp = ssp.substring(2, ssp.length()); //remove "//" prefix
+            int end = ssp.indexOf(':') > 0 ? ssp.indexOf(':') :
+                    ssp.indexOf('/') > 0 ? ssp.indexOf('/') :
+                    ssp.indexOf('?') > 0 ? ssp.indexOf('?') : ssp.length();
+            String host = ssp.substring(0, end);
+
             int port = requestURI.getPort();
             String scheme = requestURI.getScheme();
-            if (host == null) {
+            if (host == null || "".equals(host)) {
                 throw new ClientProtocolException(
                         "URI does not specify a valid host name: " + requestURI);
             }

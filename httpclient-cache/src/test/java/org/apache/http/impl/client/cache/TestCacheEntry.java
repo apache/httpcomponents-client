@@ -103,7 +103,7 @@ public class TestCacheEntry {
     }
 
     @Test
-    public void testCacheEntryCanStoreMultipleVariantUris() {
+    public void testCacheEntryCanStoreMultipleVariantUris() throws Exception {
 
         Header[] headers = new Header[]{};
         CacheEntry entry = new CacheEntry(headers);

@@ -27,6 +27,7 @@
 package org.apache.http.client.cache;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -36,7 +37,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
@@ -60,7 +60,6 @@ public abstract class HttpCacheEntry implements Serializable {
     private final Date responseDate;
     private final StatusLine statusLine;
     private final CachedHeaderGroup responseHeaders;
-    private final HttpEntity body;
     private final Set<String> variantURIs;
 
     /**
@@ -72,23 +71,16 @@ public abstract class HttpCacheEntry implements Serializable {
      * @param responseDate
      *          Date/time that the response came back (Used for age
      *            calculations)
-     * @param version
-     *          HTTP Response Version
+     * @param statusLine
+     *          HTTP status line
      * @param responseHeaders
      *          Header[] from original HTTP Response
-     * @param body
-     *          HttpEntity representing the body of the response
-     * @param status
-     *          Numeric HTTP Status Code
-     * @param reason
-     *          String message from HTTP Status Line
      */
     public HttpCacheEntry(
             final Date requestDate,
             final Date responseDate,
             final StatusLine statusLine,
             final Header[] responseHeaders,
-            final HttpEntity body,
             final Set<String> variants) {
         super();
         if (requestDate == null) {
@@ -103,17 +95,12 @@ public abstract class HttpCacheEntry implements Serializable {
         if (responseHeaders == null) {
             throw new IllegalArgumentException("Response headers may not be null");
         }
-        if (body == null) {
-            throw new IllegalArgumentException("Response body may not be null");
-        }
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;
         this.responseHeaders = new CachedHeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
-        this.body = body;
         this.variantURIs = variants != null ? new HashSet<String>(variants) : new HashSet<String>();
-
     }
 
     public StatusLine getStatusLine() {
@@ -140,10 +127,6 @@ public abstract class HttpCacheEntry implements Serializable {
         return responseDate;
     }
 
-    public HttpEntity getBody() {
-        return body;
-    }
-
     public Header[] getAllHeaders() {
         return responseHeaders.getAllHeaders();
     }
@@ -163,6 +146,12 @@ public abstract class HttpCacheEntry implements Serializable {
     public Set<String> getVariantURIs() {
         return Collections.unmodifiableSet(this.variantURIs);
     }
+
+    public abstract Resource getResource();
+
+    public abstract InputStream getBody();
+
+    public abstract long getBodyLength();
 
     private void writeObject(ObjectOutputStream out) throws IOException {
 
@@ -200,8 +189,6 @@ public abstract class HttpCacheEntry implements Serializable {
 
         this.responseHeaders.setHeaders(headers);
     }
-
-    public abstract Resource getResource();
 
     @Override
     public String toString() {

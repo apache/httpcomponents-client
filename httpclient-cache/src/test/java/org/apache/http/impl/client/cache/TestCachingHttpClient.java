@@ -1220,7 +1220,7 @@ public class TestCachingHttpClient {
                                                  bytes)).andReturn(mockCacheEntry);
     }
 
-    private void copyCacheEntry(CacheEntry entry, String variantURI) {
+    private void copyCacheEntry(CacheEntry entry, String variantURI) throws IOException {
         EasyMock.expect(
                 mockEntryGenerator.copyWithVariant(entry, variantURI)).andReturn(entry);
     }

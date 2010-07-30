@@ -70,10 +70,10 @@ class CachedHttpResponseGenerator {
                 .getStatusCode(), entry.getReasonPhrase());
 
         if (entry.getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-            HttpEntity entity = entry.getBody();
-            response.setEntity(entity);
+            HttpEntity entity = new CacheEntity(entry);
             response.setHeaders(entry.getAllHeaders());
             addMissingContentLengthHeader(response, entity);
+            response.setEntity(entity);
         }
 
         long age = this.validityStrategy.getCurrentAgeSecs(entry);

@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
@@ -148,7 +149,7 @@ public class TestResponseCache {
                         existing.getRequestDate(),
                         existing.getStatusLine(),
                         existing.getAllHeaders(),
-                        new CacheEntity(expectedArray),
+                        expectedArray,
                         null);
                 return updated;
             }
@@ -156,9 +157,14 @@ public class TestResponseCache {
 
         HttpCacheEntry afterUpdate = cache.getEntry("foo");
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        afterUpdate.getBody().writeTo(stream);
-        byte[] bytes = stream.toByteArray();
+        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        InputStream instream = afterUpdate.getBody();
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = instream.read(buf)) != -1) {
+            outstream.write(buf, 0, len);
+        }
+        byte[] bytes = outstream.toByteArray();
         Assert.assertArrayEquals(expectedArray, bytes);
     }
 

@@ -519,7 +519,7 @@ public class CachingHttpClient implements HttpClient {
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
 
-            public HttpCacheEntry update(HttpCacheEntry existing) {
+            public HttpCacheEntry update(HttpCacheEntry existing) throws IOException {
                 return doGetUpdatedParentEntry(existing, entry, variantURI);
             }
 
@@ -530,7 +530,7 @@ public class CachingHttpClient implements HttpClient {
 
     HttpCacheEntry doGetUpdatedParentEntry(
             HttpCacheEntry existing,
-            HttpCacheEntry entry, String variantURI) {
+            HttpCacheEntry entry, String variantURI) throws IOException {
         if (existing != null) {
             return cacheEntryGenerator.copyWithVariant(existing, variantURI);
         } else {

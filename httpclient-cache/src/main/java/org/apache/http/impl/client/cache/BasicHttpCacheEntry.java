@@ -26,11 +26,12 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -45,14 +46,27 @@ public class BasicHttpCacheEntry extends HttpCacheEntry {
 
     private static final long serialVersionUID = -8464486112875881235L;
 
+    private final byte[] body;
+
     public BasicHttpCacheEntry(
             final Date requestDate,
             final Date responseDate,
             final StatusLine statusLine,
             final Header[] responseHeaders,
-            final HttpEntity body,
+            final byte[] body,
             final Set<String> variants) {
-        super(requestDate, responseDate, statusLine, responseHeaders, body, variants);
+        super(requestDate, responseDate, statusLine, responseHeaders, variants);
+        this.body = body;
+    }
+
+    @Override
+    public long getBodyLength() {
+        return this.body.length;
+    }
+
+    @Override
+    public InputStream getBody() {
+        return new ByteArrayInputStream(this.body);
     }
 
     @Override

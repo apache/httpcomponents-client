@@ -26,15 +26,16 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.protocol.HTTP;
 
 /**
  * Generates a {@link CacheEntry} from a {@link HttpResponse}
@@ -49,29 +50,32 @@ class CacheEntryGenerator {
             Date responseDate,
             HttpResponse response,
             byte[] body) {
-        Header ct = response.getFirstHeader(HTTP.CONTENT_TYPE);
-        Header ce = response.getFirstHeader(HTTP.CONTENT_ENCODING);
-        CacheEntity entity = new CacheEntity(
-                body,
-                ct != null ? ct.getValue() : null,
-                ce != null ? ce.getValue() : null);
         return new BasicHttpCacheEntry(requestDate,
                               responseDate,
                               response.getStatusLine(),
                               response.getAllHeaders(),
-                              entity,
+                              body,
                               null);
     }
 
-    public HttpCacheEntry copyWithVariant(final HttpCacheEntry entry, final String variantURI){
+    public HttpCacheEntry copyWithVariant(
+            final HttpCacheEntry entry, final String variantURI) throws IOException {
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
+        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        InputStream instream = entry.getBody();
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = instream.read(buf)) != -1) {
+            outstream.write(buf, 0, len);
+        }
         return new BasicHttpCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),
                 entry.getAllHeaders(),
-                entry.getBody(), variants);
+                outstream.toByteArray(),
+                variants);
       }
 
 }

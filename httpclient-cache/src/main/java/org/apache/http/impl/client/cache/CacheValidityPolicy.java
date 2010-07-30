@@ -140,7 +140,7 @@ class CacheValidityPolicy {
      * @return boolean indicating whether actual length matches Content-Length
      */
     protected boolean contentLengthHeaderMatchesActualLength(final HttpCacheEntry entry) {
-        return getContentLengthValue(entry) == entry.getBody().getContentLength();
+        return getContentLengthValue(entry) == entry.getBodyLength();
     }
 
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {
