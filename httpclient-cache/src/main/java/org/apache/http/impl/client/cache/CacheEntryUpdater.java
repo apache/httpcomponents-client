@@ -69,7 +69,7 @@ class CacheEntryUpdater {
             HttpResponse response) throws IOException {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
-        HttpCacheEntry updated = new HttpCacheEntry(requestDate, responseDate,
+        HttpCacheEntry updated = new BasicHttpCacheEntry(requestDate, responseDate,
                                             entry.getStatusLine(),
                                             mergedHeaders,
                                             entry.getBody(),

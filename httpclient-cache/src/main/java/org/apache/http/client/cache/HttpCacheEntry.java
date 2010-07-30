@@ -44,12 +44,15 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeader;
 
 /**
- * Structure used to store an {@link HttpResponse} in a cache
+ * Structure used to store an {@link HttpResponse} in a cache. Some entries can optionally depend
+ * on system resources that may require explicit deallocation. In such a case {@link #getResource()}
+ * should return a non-null instance of {@link Resource} that must be deallocated by calling
+ * {@link Resource#dispose()} method when no longer used.
  *
  * @since 4.1
  */
 @Immutable
-public class HttpCacheEntry implements Serializable {
+public abstract class HttpCacheEntry implements Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
 
@@ -198,21 +201,12 @@ public class HttpCacheEntry implements Serializable {
         this.responseHeaders.setHeaders(headers);
     }
 
+    public abstract Resource getResource();
+
     @Override
     public String toString() {
         return "[request date=" + this.requestDate + "; response date=" + this.responseDate
                 + "; statusLine=" + this.statusLine + "]";
-    }
-
-    public static HttpCacheEntry copyWithVariant(final HttpCacheEntry entry, final String variantURI){
-        Set<String> variants = new HashSet<String>(entry.getVariantURIs());
-        variants.add(variantURI);
-        return new HttpCacheEntry(
-                entry.getRequestDate(),
-                entry.getResponseDate(),
-                entry.getStatusLine(),
-                entry.getAllHeaders(),
-                entry.getBody(), variants);
     }
 
 }

@@ -26,8 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static junit.framework.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -319,18 +317,12 @@ public class TestCachingHttpClient {
 
     @Test
     public void testCacheUpdateAddsVariantURIToParentEntry() throws Exception {
-
         final String variantURI = "variantURI";
-
         final CacheEntry entry = new CacheEntry();
-
+        copyCacheEntry(entry, variantURI);
         replayMocks();
-
-        HttpCacheEntry updatedEntry = impl.doGetUpdatedParentEntry(null, entry, variantURI);
-
+        impl.doGetUpdatedParentEntry(null, entry, variantURI);
         verifyMocks();
-
-        assertTrue(updatedEntry.getVariantURIs().contains(variantURI));
     }
 
 
@@ -1226,6 +1218,11 @@ public class TestCachingHttpClient {
         EasyMock.expect(
                 mockEntryGenerator.generateEntry(requestDate, responseDate, mockBackendResponse,
                                                  bytes)).andReturn(mockCacheEntry);
+    }
+
+    private void copyCacheEntry(CacheEntry entry, String variantURI) {
+        EasyMock.expect(
+                mockEntryGenerator.copyWithVariant(entry, variantURI)).andReturn(entry);
     }
 
     private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)

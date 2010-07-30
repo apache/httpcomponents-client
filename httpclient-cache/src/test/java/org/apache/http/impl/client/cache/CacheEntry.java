@@ -31,9 +31,8 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
-import org.apache.http.client.cache.HttpCacheEntry;
 
-public class CacheEntry extends HttpCacheEntry {
+public class CacheEntry extends BasicHttpCacheEntry {
 
     private static final long serialVersionUID = 7964121802841871079L;
 
@@ -51,7 +50,7 @@ public class CacheEntry extends HttpCacheEntry {
     public CacheEntry(
             Date requestDate,
             Date responseDate) {
-        super(requestDate, responseDate, new OKStatus(), new Header[] {}, 
+        super(requestDate, responseDate, new OKStatus(), new Header[] {},
                 new CacheEntity(new byte[] {}), null);
     }
 
@@ -59,7 +58,7 @@ public class CacheEntry extends HttpCacheEntry {
             Date requestDate,
             Date responseDate,
             Header[] headers) {
-        super(requestDate, responseDate, new OKStatus(), headers, 
+        super(requestDate, responseDate, new OKStatus(), headers,
                 new CacheEntity(new byte[] {}), null);
     }
 
@@ -68,19 +67,19 @@ public class CacheEntry extends HttpCacheEntry {
             Date responseDate,
             Header[] headers,
             byte[] content) {
-        super(requestDate, responseDate, new OKStatus(), headers, 
+        super(requestDate, responseDate, new OKStatus(), headers,
                 new CacheEntity(content), null);
     }
 
     public CacheEntry(
             Header[] headers,
             byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), headers, 
+        super(new Date(), new Date(), new OKStatus(), headers,
                 new CacheEntity(content), null);
     }
 
     public CacheEntry(Header[] headers) {
-        super(new Date(), new Date(), new OKStatus(), headers, 
+        super(new Date(), new Date(), new OKStatus(), headers,
                 new CacheEntity(new byte[] {}), null);
     }
 
@@ -89,7 +88,7 @@ public class CacheEntry extends HttpCacheEntry {
     }
 
     public CacheEntry(byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), new Header[] {}, 
+        super(new Date(), new Date(), new OKStatus(), new Header[] {},
                 new CacheEntity(content), null);
     }
 

@@ -28,7 +28,6 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCache;
@@ -36,29 +35,19 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
 /**
- * Implements {@link HttpCache} using LinkedHashMap for backing store
+ * Basic {@link HttpCache} implementation backed by an instance of {@link LinkedHashMap}.
+ * This cache does NOT deallocate resources associated with the cache entries. It is intended
+ * for use with {@link BasicHttpCacheEntry} and similar.
  *
  * @since 4.1
  */
 @ThreadSafe
 public class BasicHttpCache implements HttpCache {
 
-    private final LinkedHashMap<String, HttpCacheEntry> baseMap = new LinkedHashMap<String, HttpCacheEntry>(
-            20, 0.75f, true) {
-
-        private static final long serialVersionUID = -7750025207539768511L;
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, HttpCacheEntry> eldest) {
-            return size() > maxEntries;
-        }
-
-    };
-
-    private final int maxEntries;
+    private final CacheMap entries;
 
     public BasicHttpCache(int maxEntries) {
-        this.maxEntries = maxEntries;
+        this.entries = new CacheMap(maxEntries);
     }
 
     /**
@@ -70,7 +59,7 @@ public class BasicHttpCache implements HttpCache {
      *            HttpCacheEntry to place in the cache
      */
     public synchronized void putEntry(String url, HttpCacheEntry entry) throws IOException {
-        baseMap.put(url, entry);
+        entries.put(url, entry);
     }
 
     /**
@@ -81,7 +70,7 @@ public class BasicHttpCache implements HttpCache {
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
     public synchronized HttpCacheEntry getEntry(String url) throws IOException {
-        return baseMap.get(url);
+        return entries.get(url);
     }
 
     /**
@@ -91,14 +80,14 @@ public class BasicHttpCache implements HttpCache {
      *            Url that is the cache key
      */
     public synchronized void removeEntry(String url) throws IOException {
-        baseMap.remove(url);
+        entries.remove(url);
     }
 
     public synchronized void updateEntry(
             String url,
             HttpCacheUpdateCallback callback) throws IOException {
-        HttpCacheEntry existingEntry = baseMap.get(url);
-        baseMap.put(url, callback.update(existingEntry));
+        HttpCacheEntry existingEntry = entries.get(url);
+        entries.put(url, callback.update(existingEntry));
     }
 
 }

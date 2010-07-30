@@ -27,51 +27,37 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.client.cache.Resource;
 
 /**
- * Generates a {@link CacheEntry} from a {@link HttpResponse}
- *
- * @since 4.1
+ * Basic {@link HttpCacheEntry} that does not depend on any system resources that may require
+ * explicit deallocation.
  */
 @Immutable
-class CacheEntryGenerator {
+public class BasicHttpCacheEntry extends HttpCacheEntry {
 
-    public HttpCacheEntry generateEntry(
-            Date requestDate,
-            Date responseDate,
-            HttpResponse response,
-            byte[] body) {
-        Header ct = response.getFirstHeader(HTTP.CONTENT_TYPE);
-        Header ce = response.getFirstHeader(HTTP.CONTENT_ENCODING);
-        CacheEntity entity = new CacheEntity(
-                body,
-                ct != null ? ct.getValue() : null,
-                ce != null ? ce.getValue() : null);
-        return new BasicHttpCacheEntry(requestDate,
-                              responseDate,
-                              response.getStatusLine(),
-                              response.getAllHeaders(),
-                              entity,
-                              null);
+    private static final long serialVersionUID = -8464486112875881235L;
+
+    public BasicHttpCacheEntry(
+            final Date requestDate,
+            final Date responseDate,
+            final StatusLine statusLine,
+            final Header[] responseHeaders,
+            final HttpEntity body,
+            final Set<String> variants) {
+        super(requestDate, responseDate, statusLine, responseHeaders, body, variants);
     }
 
-    public HttpCacheEntry copyWithVariant(final HttpCacheEntry entry, final String variantURI){
-        Set<String> variants = new HashSet<String>(entry.getVariantURIs());
-        variants.add(variantURI);
-        return new BasicHttpCacheEntry(
-                entry.getRequestDate(),
-                entry.getResponseDate(),
-                entry.getStatusLine(),
-                entry.getAllHeaders(),
-                entry.getBody(), variants);
-      }
+    @Override
+    public Resource getResource() {
+        return null;
+    }
 
 }

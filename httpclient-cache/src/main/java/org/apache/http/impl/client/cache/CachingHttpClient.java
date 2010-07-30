@@ -532,9 +532,9 @@ public class CachingHttpClient implements HttpClient {
             HttpCacheEntry existing,
             HttpCacheEntry entry, String variantURI) {
         if (existing != null) {
-            return HttpCacheEntry.copyWithVariant(existing, variantURI);
+            return cacheEntryGenerator.copyWithVariant(existing, variantURI);
         } else {
-            return HttpCacheEntry.copyWithVariant(entry, variantURI);
+            return cacheEntryGenerator.copyWithVariant(entry, variantURI);
         }
     }
 
