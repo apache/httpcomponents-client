@@ -50,6 +50,7 @@ import org.apache.http.protocol.HTTP;
 class ResponseCachingPolicy {
 
     private final int maxObjectSizeBytes;
+    private final boolean sharedCache;
     private final Log log = LogFactory.getLog(getClass());
 
     /**
@@ -57,9 +58,12 @@ class ResponseCachingPolicy {
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
      *
      * @param maxObjectSizeBytes the size to limit items into the cache
+     * @param sharedCache whether to behave as a shared cache (true) or a
+     * non-shared/private cache (false)
      */
-    public ResponseCachingPolicy(int maxObjectSizeBytes) {
+    public ResponseCachingPolicy(int maxObjectSizeBytes, boolean sharedCache) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
+        this.sharedCache = sharedCache;
     }
 
     /**
@@ -148,7 +152,7 @@ class ResponseCachingPolicy {
             for (HeaderElement elem : header.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elem.getName())
                         || HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elem.getName())
-                        || "private".equals(elem.getName())) {
+                        || (sharedCache && "private".equals(elem.getName()))) {
                     return true;
                 }
             }
@@ -202,12 +206,14 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        Header[] authNHeaders = request.getHeaders("Authorization");
-        if (authNHeaders != null && authNHeaders.length > 0) {
-            String[] authCacheableParams = {
-                    "s-maxage", "must-revalidate", "public"
-            };
-            return hasCacheControlParameterFrom(response, authCacheableParams);
+        if (sharedCache) {
+            Header[] authNHeaders = request.getHeaders("Authorization");
+            if (authNHeaders != null && authNHeaders.length > 0) {
+                String[] authCacheableParams = {
+                        "s-maxage", "must-revalidate", "public"
+                };
+                return hasCacheControlParameterFrom(response, authCacheableParams);
+            }
         }
 
         String method = request.getRequestLine().getMethod();

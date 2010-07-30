@@ -34,7 +34,6 @@ import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -43,8 +42,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
@@ -55,10 +52,8 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
-import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -71,91 +66,7 @@ import org.junit.Test;
  * pass downstream to the backend HttpClient are are conditionally compliant
  * with the rules for an HTTP/1.1 client.
  */
-public class TestProtocolRequirements {
-
-    private static final int MAX_BYTES = 1024;
-    private static final int MAX_ENTRIES = 100;
-    private int entityLength = 128;
-
-    private HttpHost host;
-    private HttpEntity body;
-    private HttpEntity mockEntity;
-    private HttpClient mockBackend;
-    private HttpCache mockCache;
-    private HttpRequest request;
-    private HttpResponse originResponse;
-    private CacheConfig params;
-
-    private CachingHttpClient impl;
-
-    @Before
-    public void setUp() {
-        host = new HttpHost("foo.example.com");
-
-        body = HttpTestUtils.makeBody(entityLength);
-
-        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
-
-        originResponse = make200Response();
-
-        HttpCache cache = new BasicHttpCache(MAX_ENTRIES);
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockEntity = EasyMock.createMock(HttpEntity.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
-        params = new CacheConfig();
-        params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, params);
-    }
-
-    private void replayMocks() {
-        EasyMock.replay(mockBackend);
-        EasyMock.replay(mockCache);
-        EasyMock.replay(mockEntity);
-    }
-
-    private void verifyMocks() {
-        EasyMock.verify(mockBackend);
-        EasyMock.verify(mockCache);
-        EasyMock.verify(mockEntity);
-    }
-
-    private HttpResponse make200Response() {
-        HttpResponse out = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        out.setHeader("Date", DateUtils.formatDate(new Date()));
-        out.setHeader("Server", "MockOrigin/1.0");
-        out.setHeader("Content-Length", "128");
-        out.setEntity(makeBody(128));
-        return out;
-    }
-
-    private HttpEntity makeBody(int nbytes) {
-        return HttpTestUtils.makeBody(nbytes);
-    }
-
-    private IExpectationSetters<HttpResponse> backendExpectsAnyRequest() throws Exception {
-        HttpResponse resp = mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                .isA(HttpRequest.class), (HttpContext) EasyMock.isNull());
-        return EasyMock.expect(resp);
-    }
-
-    private void emptyMockCacheExpectsNoPuts() throws Exception {
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
-        mockEntity = EasyMock.createMock(HttpEntity.class);
-
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
-
-        EasyMock.expect(mockCache.getEntry((String) EasyMock.anyObject())).andReturn(null)
-                .anyTimes();
-
-        mockCache.removeEntry(EasyMock.isA(String.class));
-        EasyMock.expectLastCall().anyTimes();
-    }
-
-    public static HttpRequest eqRequest(HttpRequest in) {
-        EasyMock.reportMatcher(new RequestEquivalent(in));
-        return null;
-    }
+public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testCacheMissOnGETUsesOriginResponse() throws Exception {

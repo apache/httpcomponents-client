@@ -53,7 +53,7 @@ public class TestResponseCachingPolicy {
 
     @Before
     public void setUp() throws Exception {
-        policy = new ResponseCachingPolicy(0);
+        policy = new ResponseCachingPolicy(0, true);
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
         response = new BasicHttpResponse(
                 new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, ""));
@@ -67,10 +67,18 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testResponsesToRequestsWithAuthorizationHeadersAreNotCacheable() {
+    public void testResponsesToRequestsWithAuthorizationHeadersAreNotCacheableBySharedCache() {
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
         Assert.assertFalse(policy.isResponseCacheable(request,response));
+    }
+
+    @Test
+    public void testResponsesToRequestsWithAuthorizationHeadersAreCacheableByNonSharedCache() {
+        policy = new ResponseCachingPolicy(0, false);
+        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request.setHeader("Authorization","Basic dXNlcjpwYXNzd2Q=");
+        Assert.assertTrue(policy.isResponseCacheable(request,response));
     }
 
     @Test
@@ -199,13 +207,20 @@ public class TestResponseCachingPolicy {
         Assert.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
-    // are we truly a non-shared cache? best be safe
     @Test
-    public void testNon206WithPrivateCacheControlIsNotCacheable() {
+    public void testNon206WithPrivateCacheControlIsNotCacheableBySharedCache() {
         int status = getRandomStatus();
         response.setStatusCode(status);
         response.setHeader("Cache-Control", "private");
         Assert.assertFalse(policy.isResponseCacheable("GET", response));
+    }
+
+    @Test
+    public void test200ResponseWithPrivateCacheControlIsCacheableByNonSharedCache() {
+        policy = new ResponseCachingPolicy(0, false);
+        response.setStatusCode(HttpStatus.SC_OK);
+        response.setHeader("Cache-Control", "private");
+        Assert.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
     @Test

@@ -112,7 +112,7 @@ public class CachingHttpClient implements HttpClient {
         this.backend = client;
         this.responseCache = cache;
         this.validityPolicy = new CacheValidityPolicy();
-        this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes);
+        this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheEntryGenerator = new CacheEntryGenerator();
         this.uriExtractor = new URIExtractor();
