@@ -43,7 +43,7 @@ public class TestCacheEntryGenerator {
     @Test
     public void testEntryMatchesInputs() {
 
-        CacheEntryGenerator gen = new CacheEntryGenerator();
+        MemCacheEntryFactory gen = new MemCacheEntryFactory();
 
         HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP", 1, 1),
                 HttpStatus.SC_OK, "Success");

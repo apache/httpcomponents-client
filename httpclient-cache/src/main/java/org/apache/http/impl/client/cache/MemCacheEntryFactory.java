@@ -46,7 +46,7 @@ import org.apache.http.client.cache.HttpCacheEntryFactory;
  * @since 4.1
  */
 @Immutable
-class CacheEntryGenerator implements HttpCacheEntryFactory {
+class MemCacheEntryFactory implements HttpCacheEntryFactory {
 
     public HttpCacheEntry generateEntry(
             Date requestDate,

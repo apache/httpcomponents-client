@@ -108,7 +108,7 @@ public class TestCacheEntry {
         Header[] headers = new Header[]{};
         CacheEntry entry = new CacheEntry(headers);
 
-        CacheEntryGenerator entryGenerator = new CacheEntryGenerator();
+        MemCacheEntryFactory entryGenerator = new MemCacheEntryFactory();
 
         HttpCacheEntry addedOne = entryGenerator.copyVariant(entry, "foo");
         HttpCacheEntry addedTwo = entryGenerator.copyVariant(addedOne, "bar");

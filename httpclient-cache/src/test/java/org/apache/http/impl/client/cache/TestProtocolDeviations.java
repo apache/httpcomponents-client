@@ -100,7 +100,7 @@ public class TestProtocolDeviations {
 
         CacheConfig params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, new CacheEntryGenerator(), params);
+        impl = new CachingHttpClient(mockBackend, cache, new MemCacheEntryFactory(), params);
     }
 
     private HttpResponse make200Response() {

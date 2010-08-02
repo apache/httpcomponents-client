@@ -52,7 +52,7 @@ public abstract class AbstractProtocolTest {
         originResponse = make200Response();
 
         cache = new BasicHttpCache(MAX_ENTRIES);
-        cacheEntryFactory = new CacheEntryGenerator();
+        cacheEntryFactory = new MemCacheEntryFactory();
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);

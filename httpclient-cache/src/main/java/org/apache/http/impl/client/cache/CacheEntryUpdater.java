@@ -58,7 +58,7 @@ class CacheEntryUpdater {
     private final HttpCacheEntryFactory cacheEntryFactory;
 
     CacheEntryUpdater() {
-        this(new CacheEntryGenerator());
+        this(new MemCacheEntryFactory());
     }
 
     CacheEntryUpdater(final HttpCacheEntryFactory cacheEntryFactory) {

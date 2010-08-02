@@ -138,28 +138,28 @@ public class CachingHttpClient implements HttpClient {
     public CachingHttpClient() {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new CacheEntryGenerator(),
+                new MemCacheEntryFactory(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(CacheConfig config) {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new CacheEntryGenerator(),
+                new MemCacheEntryFactory(),
                 config);
     }
 
     public CachingHttpClient(HttpClient client) {
         this(client,
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new CacheEntryGenerator(),
+                new MemCacheEntryFactory(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(HttpClient client, CacheConfig config) {
         this(client,
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new CacheEntryGenerator(),
+                new MemCacheEntryFactory(),
                 config);
     }
 
