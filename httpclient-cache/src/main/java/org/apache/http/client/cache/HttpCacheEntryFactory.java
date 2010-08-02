@@ -24,54 +24,30 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.cache;
+package org.apache.http.client.cache;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.Date;
-import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.Resource;
 
 /**
- * Basic {@link HttpCacheEntry} that does not depend on any system resources that may require
- * explicit deallocation.
+ * Generates {@link HttpCacheEntry} instances.
+ *
+ * @since 4.1
  */
-@Immutable
-class MemCacheEntry extends HttpCacheEntry {
+public interface HttpCacheEntryFactory {
 
-    private static final long serialVersionUID = -8464486112875881235L;
+    HttpCacheEntry generate(
+            Date requestDate,
+            Date responseDate,
+            StatusLine statusLine,
+            Header[] headers,
+            byte[] body) throws IOException;
 
-    private final byte[] body;
-
-    public MemCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final byte[] body,
-            final Set<String> variants) {
-        super(requestDate, responseDate, statusLine, responseHeaders, variants);
-        this.body = body;
-    }
-
-    @Override
-    public long getBodyLength() {
-        return this.body.length;
-    }
-
-    @Override
-    public InputStream getBody() {
-        return new ByteArrayInputStream(this.body);
-    }
-
-    @Override
-    public Resource getResource() {
-        return null;
-    }
+    HttpCacheEntry copyVariant(
+            HttpCacheEntry entry,
+            String variantURI) throws IOException;
 
 }

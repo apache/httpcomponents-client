@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -40,8 +39,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -49,16 +48,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
@@ -66,12 +59,9 @@ import org.apache.http.protocol.HttpContext;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestCachingHttpClient {
-
-    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP",1,1);
 
     private static final String GET_CURRENT_DATE = "getCurrentDate";
 
@@ -86,6 +76,9 @@ public class TestCachingHttpClient {
     private static final String STORE_IN_CACHE = "storeInCache";
 
     private static final String GET_RESPONSE_READER = "getResponseReader";
+
+    private static final StatusLine SC_OK = new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK");
+    private static final Header[] HEADERS = new Header[] {};
 
     private CachingHttpClient impl;
     private boolean mockedImpl;
@@ -103,7 +96,7 @@ public class TestCachingHttpClient {
     private CacheEntry mockVariantCacheEntry;
     private CacheEntry mockUpdatedCacheEntry;
     private URIExtractor mockExtractor;
-    private CacheEntryGenerator mockEntryGenerator;
+    private HttpCacheEntryFactory mockEntryGenerator;
     private CachedHttpResponseGenerator mockResponseGenerator;
 
     private SizeLimitedResponseReader mockResponseReader;
@@ -151,7 +144,7 @@ public class TestCachingHttpClient {
         mockUpdatedCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockVariantCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockExtractor = EasyMock.createMock(URIExtractor.class);
-        mockEntryGenerator = EasyMock.createMock(CacheEntryGenerator.class);
+        mockEntryGenerator = EasyMock.createMock(HttpCacheEntryFactory.class);
         mockResponseGenerator = EasyMock.createMock(CachedHttpResponseGenerator.class);
         mockCachedResponse = EasyMock.createMock(HttpResponse.class);
         mockConditionalRequestBuilder = EasyMock.createMock(ConditionalRequestBuilder.class);
@@ -259,6 +252,7 @@ public class TestCachingHttpClient {
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
         responseStatusLineIsInspectable();
+        responseGetHeaders();
         responseDoesNotHaveExplicitContentLength();
 
         replayMocks();
@@ -602,6 +596,7 @@ public class TestCachingHttpClient {
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
         responseStatusLineIsInspectable();
+        responseGetHeaders();
         responseDoesNotHaveExplicitContentLength();
 
         replayMocks();
@@ -864,34 +859,6 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    @Ignore
-    public void testRealResultsMatch() throws IOException {
-
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
-
-        ClientConnectionManager cm = new ThreadSafeClientConnManager(schemeRegistry);
-        HttpClient httpClient = new DefaultHttpClient(cm);
-
-        HttpCache cacheImpl = new BasicHttpCache(100);
-
-        CachingHttpClient cachingClient = new CachingHttpClient(httpClient, cacheImpl);
-
-        HttpUriRequest request = new HttpGet("http://www.fancast.com/static-28262/styles/base.css");
-
-        HttpClient baseClient = new DefaultHttpClient();
-
-        HttpResponse cachedResponse = cachingClient.execute(request);
-        HttpResponse realResponse = baseClient.execute(request);
-
-        byte[] cached = readResponse(cachedResponse);
-        byte[] real = readResponse(realResponse);
-
-        Assert.assertArrayEquals(cached, real);
-    }
-
-    @Test
     public void testResponseIsGeneratedWhenCacheEntryIsUsable() throws Exception {
 
         final String theURI = "http://foo";
@@ -936,7 +903,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseDoesNotCorrectComplete200Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","128");
@@ -948,7 +915,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseDoesNotCorrectComplete206Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","128");
@@ -961,7 +928,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseGenerates502ForIncomplete200Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
@@ -973,7 +940,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseDoesNotCorrectIncompleteNon200Or206Responses()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
@@ -985,7 +952,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseDoesNotCorrectResponsesWithoutExplicitContentLength()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
 
@@ -996,7 +963,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseDoesNotCorrectResponsesWithUnparseableContentLengthHeader()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setHeader("Content-Length","foo");
         resp.setEntity(new ByteArrayEntity(bytes));
@@ -1008,7 +975,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseProvidesPlainTextErrorMessage()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
@@ -1021,7 +988,7 @@ public class TestCachingHttpClient {
     @Test
     public void testCorrectIncompleteResponseProvidesNonEmptyErrorMessage()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
@@ -1046,18 +1013,6 @@ public class TestCachingHttpClient {
     @Test
     public void testIsSharedCache() {
         Assert.assertTrue(impl.isSharedCache());
-    }
-
-    private byte[] readResponse(HttpResponse response) {
-        try {
-            ByteArrayOutputStream s1 = new ByteArrayOutputStream();
-            response.getEntity().writeTo(s1);
-            return s1.toByteArray();
-        } catch (Exception ex) {
-            return new byte[]{};
-
-        }
-
     }
 
     private void cacheInvalidatorWasCalled()  throws IOException {
@@ -1182,9 +1137,11 @@ public class TestCachingHttpClient {
     }
 
     private void responseStatusLineIsInspectable() {
-        StatusLine statusLine = new BasicStatusLine(HTTP_1_1, HttpStatus.SC_OK, "OK");
-        EasyMock.expect(mockBackendResponse.getStatusLine())
-            .andReturn(statusLine).anyTimes();
+        EasyMock.expect(mockBackendResponse.getStatusLine()).andReturn(SC_OK).anyTimes();
+    }
+
+    private void responseGetHeaders() {
+        EasyMock.expect(mockBackendResponse.getAllHeaders()).andReturn(HEADERS).anyTimes();
     }
 
     private void responseIsGeneratedFromCache(CacheEntry entry) {
@@ -1214,15 +1171,15 @@ public class TestCachingHttpClient {
         mockCache.putEntry(theURI, entry);
     }
 
-    private void generateCacheEntry(Date requestDate, Date responseDate, byte[] bytes) {
+    private void generateCacheEntry(Date requestDate, Date responseDate,  byte[] bytes) throws IOException {
         EasyMock.expect(
-                mockEntryGenerator.generateEntry(requestDate, responseDate, mockBackendResponse,
-                                                 bytes)).andReturn(mockCacheEntry);
+                mockEntryGenerator.generate(requestDate, responseDate, SC_OK, HEADERS,
+                        bytes)).andReturn(mockCacheEntry);
     }
 
     private void copyCacheEntry(CacheEntry entry, String variantURI) throws IOException {
         EasyMock.expect(
-                mockEntryGenerator.copyWithVariant(entry, variantURI)).andReturn(entry);
+                mockEntryGenerator.copyVariant(entry, variantURI)).andReturn(entry);
     }
 
     private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)

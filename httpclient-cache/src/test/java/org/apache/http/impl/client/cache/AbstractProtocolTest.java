@@ -10,6 +10,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
@@ -32,7 +33,8 @@ public abstract class AbstractProtocolTest {
     protected HttpResponse originResponse;
     protected CacheConfig params;
     protected CachingHttpClient impl;
-    private HttpCache cache;
+    protected HttpCache cache;
+    protected HttpCacheEntryFactory cacheEntryFactory;
 
     public static HttpRequest eqRequest(HttpRequest in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
@@ -50,12 +52,13 @@ public abstract class AbstractProtocolTest {
         originResponse = make200Response();
 
         cache = new BasicHttpCache(MAX_ENTRIES);
+        cacheEntryFactory = new CacheEntryGenerator();
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
         params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        impl = new CachingHttpClient(mockBackend, cache, cacheEntryFactory, params);
     }
 
     protected void replayMocks() {
@@ -94,7 +97,7 @@ public abstract class AbstractProtocolTest {
         mockCache = EasyMock.createMock(HttpCache.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         EasyMock.expect(mockCache.getEntry((String) EasyMock.anyObject())).andReturn(null)
                 .anyTimes();
@@ -105,7 +108,7 @@ public abstract class AbstractProtocolTest {
 
     protected void behaveAsNonSharedCache() {
         params.setSharedCache(false);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        impl = new CachingHttpClient(mockBackend, cache, cacheEntryFactory, params);
     }
 
     public AbstractProtocolTest() {

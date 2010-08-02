@@ -110,8 +110,8 @@ public class TestCacheEntry {
 
         CacheEntryGenerator entryGenerator = new CacheEntryGenerator();
 
-        HttpCacheEntry addedOne = entryGenerator.copyWithVariant(entry, "foo");
-        HttpCacheEntry addedTwo = entryGenerator.copyWithVariant(addedOne, "bar");
+        HttpCacheEntry addedOne = entryGenerator.copyVariant(entry, "foo");
+        HttpCacheEntry addedTwo = entryGenerator.copyVariant(addedOne, "bar");
 
         Set<String> variants = addedTwo.getVariantURIs();
 

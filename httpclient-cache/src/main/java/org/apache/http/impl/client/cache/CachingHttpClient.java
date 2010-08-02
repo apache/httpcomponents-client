@@ -50,6 +50,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -75,9 +76,9 @@ public class CachingHttpClient implements HttpClient {
 
     private final HttpClient backend;
     private final HttpCache responseCache;
+    private final HttpCacheEntryFactory cacheEntryFactory;
     private final CacheValidityPolicy validityPolicy;
     private final ResponseCachingPolicy responseCachingPolicy;
-    private final CacheEntryGenerator cacheEntryGenerator;
     private final URIExtractor uriExtractor;
     private final CachedHttpResponseGenerator responseGenerator;
     private final CacheInvalidator cacheInvalidator;
@@ -96,13 +97,20 @@ public class CachingHttpClient implements HttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    public CachingHttpClient(HttpClient client, HttpCache cache, CacheConfig config) {
+    public CachingHttpClient(
+            HttpClient client,
+            HttpCache cache,
+            HttpCacheEntryFactory cacheEntryFactory,
+            CacheConfig config) {
         super();
         if (client == null) {
             throw new IllegalArgumentException("HttpClient may not be null");
         }
         if (cache == null) {
             throw new IllegalArgumentException("HttpCache may not be null");
+        }
+        if (cacheEntryFactory == null) {
+            throw new IllegalArgumentException("HttpCacheEntryFactory may not be null");
         }
         if (config == null) {
             throw new IllegalArgumentException("CacheConfig may not be null");
@@ -111,51 +119,81 @@ public class CachingHttpClient implements HttpClient {
         this.sharedCache = config.isSharedCache();
         this.backend = client;
         this.responseCache = cache;
+        this.cacheEntryFactory = cacheEntryFactory;
+
         this.validityPolicy = new CacheValidityPolicy();
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
-        this.cacheEntryGenerator = new CacheEntryGenerator();
         this.uriExtractor = new URIExtractor();
         this.cacheInvalidator = new CacheInvalidator(this.uriExtractor, this.responseCache);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy);
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
-        this.cacheEntryUpdater = new CacheEntryUpdater();
+        this.cacheEntryUpdater = new CacheEntryUpdater(this.cacheEntryFactory);
 
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
     }
 
     public CachingHttpClient() {
-        this(new DefaultHttpClient(), new BasicHttpCache(MAX_CACHE_ENTRIES), new CacheConfig());
+        this(new DefaultHttpClient(),
+                new BasicHttpCache(MAX_CACHE_ENTRIES),
+                new CacheEntryGenerator(),
+                new CacheConfig());
     }
 
     public CachingHttpClient(CacheConfig config) {
-        this(new DefaultHttpClient(), new BasicHttpCache(MAX_CACHE_ENTRIES), config);
+        this(new DefaultHttpClient(),
+                new BasicHttpCache(MAX_CACHE_ENTRIES),
+                new CacheEntryGenerator(),
+                config);
     }
 
     public CachingHttpClient(HttpClient client) {
-        this(client, new BasicHttpCache(MAX_CACHE_ENTRIES), new CacheConfig());
+        this(client,
+                new BasicHttpCache(MAX_CACHE_ENTRIES),
+                new CacheEntryGenerator(),
+                new CacheConfig());
     }
 
     public CachingHttpClient(HttpClient client, CacheConfig config) {
-        this(client, new BasicHttpCache(MAX_CACHE_ENTRIES), config);
+        this(client,
+                new BasicHttpCache(MAX_CACHE_ENTRIES),
+                new CacheEntryGenerator(),
+                config);
     }
 
-    public CachingHttpClient(HttpCache cache) {
-        this(new DefaultHttpClient(), cache, new CacheConfig());
+    public CachingHttpClient(
+            HttpCache cache,
+            HttpCacheEntryFactory cacheEntryFactory) {
+        this(new DefaultHttpClient(),
+                cache,
+                cacheEntryFactory,
+                new CacheConfig());
     }
 
-    public CachingHttpClient(HttpCache cache, CacheConfig config) {
-        this(new DefaultHttpClient(), cache, config);
+    public CachingHttpClient(
+            HttpCache cache,
+            HttpCacheEntryFactory cacheEntryFactory,
+            CacheConfig config) {
+        this(new DefaultHttpClient(),
+                cache,
+                cacheEntryFactory,
+                config);
     }
 
-    public CachingHttpClient(HttpClient client, HttpCache cache) {
-        this(client, cache, new CacheConfig());
+    public CachingHttpClient(
+            HttpClient client,
+            HttpCache cache,
+            HttpCacheEntryFactory cacheEntryFactory) {
+        this(client,
+                cache,
+                cacheEntryFactory,
+                new CacheConfig());
     }
 
     CachingHttpClient(HttpClient backend, CacheValidityPolicy validityPolicy, ResponseCachingPolicy responseCachingPolicy,
-                             CacheEntryGenerator cacheEntryGenerator, URIExtractor uriExtractor,
+                             HttpCacheEntryFactory cacheEntryFactory, URIExtractor uriExtractor,
                              HttpCache responseCache, CachedHttpResponseGenerator responseGenerator,
                              CacheInvalidator cacheInvalidator, CacheableRequestPolicy cacheableRequestPolicy,
                              CachedResponseSuitabilityChecker suitabilityChecker,
@@ -166,9 +204,9 @@ public class CachingHttpClient implements HttpClient {
         this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
         this.sharedCache = config.isSharedCache();
         this.backend = backend;
+        this.cacheEntryFactory = cacheEntryFactory;
         this.validityPolicy = validityPolicy;
         this.responseCachingPolicy = responseCachingPolicy;
-        this.cacheEntryGenerator = cacheEntryGenerator;
         this.uriExtractor = uriExtractor;
         this.responseCache = responseCache;
         this.responseGenerator = responseGenerator;
@@ -532,9 +570,9 @@ public class CachingHttpClient implements HttpClient {
             HttpCacheEntry existing,
             HttpCacheEntry entry, String variantURI) throws IOException {
         if (existing != null) {
-            return cacheEntryGenerator.copyWithVariant(existing, variantURI);
+            return cacheEntryFactory.copyVariant(existing, variantURI);
         } else {
-            return cacheEntryGenerator.copyWithVariant(entry, variantURI);
+            return cacheEntryFactory.copyVariant(entry, variantURI);
         }
     }
 
@@ -590,9 +628,12 @@ public class CachingHttpClient implements HttpClient {
                                                                responseBytes);
             int correctedStatus = corrected.getStatusLine().getStatusCode();
             if (HttpStatus.SC_BAD_GATEWAY != correctedStatus) {
-                HttpCacheEntry entry = cacheEntryGenerator
-                    .generateEntry(requestDate, responseDate, corrected,
-                                   responseBytes);
+                HttpCacheEntry entry = cacheEntryFactory.generate(
+                            requestDate,
+                            responseDate,
+                            corrected.getStatusLine(),
+                            corrected.getAllHeaders(),
+                            responseBytes);
                 storeInCache(target, request, entry);
                 return responseGenerator.generateResponse(entry);
             }

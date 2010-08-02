@@ -69,7 +69,7 @@ class CacheEntity implements HttpEntity, Serializable {
         return this.cacheEntry.getBodyLength();
     }
 
-    public InputStream getContent() {
+    public InputStream getContent() throws IOException {
         return this.cacheEntry.getBody();
     }
 

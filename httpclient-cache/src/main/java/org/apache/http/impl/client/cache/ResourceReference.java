@@ -26,52 +26,38 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.Set;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.Header;
-import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 
-/**
- * Basic {@link HttpCacheEntry} that does not depend on any system resources that may require
- * explicit deallocation.
- */
 @Immutable
-class MemCacheEntry extends HttpCacheEntry {
+class ResourceReference extends PhantomReference<HttpCacheEntry> {
 
-    private static final long serialVersionUID = -8464486112875881235L;
+    private final Resource resource;
 
-    private final byte[] body;
-
-    public MemCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final byte[] body,
-            final Set<String> variants) {
-        super(requestDate, responseDate, statusLine, responseHeaders, variants);
-        this.body = body;
+    public ResourceReference(final HttpCacheEntry entry, final ReferenceQueue<HttpCacheEntry> q) {
+        super(entry, q);
+        if (entry.getResource() == null) {
+            throw new IllegalArgumentException("Resource may not be null");
+        }
+        this.resource = entry.getResource();
     }
 
-    @Override
-    public long getBodyLength() {
-        return this.body.length;
-    }
-
-    @Override
-    public InputStream getBody() {
-        return new ByteArrayInputStream(this.body);
-    }
-
-    @Override
     public Resource getResource() {
-        return null;
+        return this.resource;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.resource.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return this.resource.equals(obj);
     }
 
 }

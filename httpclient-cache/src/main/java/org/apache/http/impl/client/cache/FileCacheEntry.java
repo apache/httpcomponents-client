@@ -26,7 +26,9 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
@@ -38,40 +40,59 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 
 /**
- * Basic {@link HttpCacheEntry} that does not depend on any system resources that may require
- * explicit deallocation.
+ * {@link File} backed {@link HttpCacheEntry} that requires explicit deallocation.
  */
 @Immutable
-class MemCacheEntry extends HttpCacheEntry {
+class FileCacheEntry extends HttpCacheEntry {
 
-    private static final long serialVersionUID = -8464486112875881235L;
+    private static final long serialVersionUID = -8396589100351931966L;
 
-    private final byte[] body;
+    private final File file;
+    private final FileResource resource;
 
-    public MemCacheEntry(
+    public FileCacheEntry(
             final Date requestDate,
             final Date responseDate,
             final StatusLine statusLine,
             final Header[] responseHeaders,
-            final byte[] body,
+            final File file,
             final Set<String> variants) {
         super(requestDate, responseDate, statusLine, responseHeaders, variants);
-        this.body = body;
+        this.file = file;
+        this.resource = new FileResource(file);
     }
 
     @Override
     public long getBodyLength() {
-        return this.body.length;
+        return this.file.length();
     }
 
     @Override
-    public InputStream getBody() {
-        return new ByteArrayInputStream(this.body);
+    public InputStream getBody() throws IOException {
+        return new FileInputStream(this.file);
     }
 
     @Override
     public Resource getResource() {
-        return null;
+        return this.resource;
+    }
+
+    class FileResource implements Resource {
+
+        private File file;
+
+        FileResource(final File file) {
+            super();
+            this.file = file;
+        }
+
+        public synchronized void dispose() {
+            if (this.file != null) {
+                this.file.delete();
+                this.file = null;
+            }
+        }
+
     }
 
 }

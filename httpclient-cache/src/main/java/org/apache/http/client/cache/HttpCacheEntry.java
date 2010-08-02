@@ -149,7 +149,7 @@ public abstract class HttpCacheEntry implements Serializable {
 
     public abstract Resource getResource();
 
-    public abstract InputStream getBody();
+    public abstract InputStream getBody() throws IOException;
 
     public abstract long getBodyLength();
 

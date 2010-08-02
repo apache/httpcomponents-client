@@ -2221,7 +2221,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         HttpRequest validate = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
@@ -2263,7 +2263,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2304,7 +2304,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
         EasyMock.expect(
@@ -2505,7 +2505,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2549,7 +2549,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
 
         HttpResponse validated = make200Response();
         validated.setHeader("Cache-Control", "public");

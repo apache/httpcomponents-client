@@ -33,17 +33,20 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheEntryFactory;
 
 /**
- * Generates a {@link CacheEntry} from a {@link HttpResponse}
+ * Generates {@link MemCacheEntry}s.
  *
  * @since 4.1
  */
 @Immutable
-class CacheEntryGenerator {
+class CacheEntryGenerator implements HttpCacheEntryFactory {
 
     public HttpCacheEntry generateEntry(
             Date requestDate,
@@ -51,14 +54,28 @@ class CacheEntryGenerator {
             HttpResponse response,
             byte[] body) {
         return new MemCacheEntry(requestDate,
-                              responseDate,
-                              response.getStatusLine(),
-                              response.getAllHeaders(),
-                              body,
-                              null);
+                responseDate,
+                response.getStatusLine(),
+                response.getAllHeaders(),
+                body,
+                null);
     }
 
-    public HttpCacheEntry copyWithVariant(
+    public HttpCacheEntry generate(
+            final Date requestDate,
+            final Date responseDate,
+            final StatusLine statusLine,
+            final Header[] headers,
+            byte[] body) throws IOException {
+        return new MemCacheEntry(requestDate,
+                responseDate,
+                statusLine,
+                headers,
+                body,
+                null);
+    }
+
+    public HttpCacheEntry copyVariant(
             final HttpCacheEntry entry, final String variantURI) throws IOException {
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
