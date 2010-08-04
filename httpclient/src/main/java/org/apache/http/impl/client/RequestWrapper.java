@@ -69,6 +69,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         }
         this.original = request;
         setParams(request.getParams());
+        setHeaders(request.getAllHeaders());
         // Make a copy of the original URI
         if (request instanceof HttpUriRequest) {
             this.uri = ((HttpUriRequest) request).getURI();
