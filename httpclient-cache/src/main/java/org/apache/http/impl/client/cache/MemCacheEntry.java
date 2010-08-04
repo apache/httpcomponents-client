@@ -59,6 +59,10 @@ class MemCacheEntry extends HttpCacheEntry {
         this.body = body;
     }
 
+    byte[] getRawBody() {
+        return this.body;
+    }
+
     @Override
     public long getBodyLength() {
         return this.body.length;

@@ -524,7 +524,12 @@ public class CachingHttpClient implements HttpClient {
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
             cacheUpdates.getAndIncrement();
-            HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(cacheEntry, requestDate, responseDate, backendResponse);
+            HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
+                    request.getRequestLine().getUri(),
+                    cacheEntry,
+                    requestDate,
+                    responseDate,
+                    backendResponse);
             storeInCache(target, request, updatedEntry);
             return responseGenerator.generateResponse(updatedEntry);
         }
@@ -552,27 +557,30 @@ public class CachingHttpClient implements HttpClient {
             final HttpHost target,
             final HttpRequest req,
             final HttpCacheEntry entry) throws IOException {
+        final String parentURI = uriExtractor.getURI(target, req);
         final String variantURI = uriExtractor.getVariantURI(target, req, entry);
         responseCache.putEntry(variantURI, entry);
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
 
             public HttpCacheEntry update(HttpCacheEntry existing) throws IOException {
-                return doGetUpdatedParentEntry(existing, entry, variantURI);
+                return doGetUpdatedParentEntry(
+                        req.getRequestLine().getUri(), existing, entry, variantURI);
             }
 
         };
-        String parentURI = uriExtractor.getURI(target, req);
         responseCache.updateEntry(parentURI, callback);
     }
 
     HttpCacheEntry doGetUpdatedParentEntry(
-            HttpCacheEntry existing,
-            HttpCacheEntry entry, String variantURI) throws IOException {
+            final String requestId,
+            final HttpCacheEntry existing,
+            final HttpCacheEntry entry,
+            final String variantURI) throws IOException {
         if (existing != null) {
-            return cacheEntryFactory.copyVariant(existing, variantURI);
+            return cacheEntryFactory.copyVariant(requestId, existing, variantURI);
         } else {
-            return cacheEntryFactory.copyVariant(entry, variantURI);
+            return cacheEntryFactory.copyVariant(requestId, entry, variantURI);
         }
     }
 
@@ -629,6 +637,7 @@ public class CachingHttpClient implements HttpClient {
             int correctedStatus = corrected.getStatusLine().getStatusCode();
             if (HttpStatus.SC_BAD_GATEWAY != correctedStatus) {
                 HttpCacheEntry entry = cacheEntryFactory.generate(
+                            request.getRequestLine().getUri(),
                             requestDate,
                             responseDate,
                             corrected.getStatusLine(),

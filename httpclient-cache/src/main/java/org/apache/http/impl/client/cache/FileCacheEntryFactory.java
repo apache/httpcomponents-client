@@ -26,38 +26,34 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntryFactory;
 
 /**
- * Generates {@link HttpCacheEntry} instances stored entirely in memory.
+ * Generates {@link HttpCacheEntry} instances whose body is stored in a temporary file.
  *
  * @since 4.1
  */
 @Immutable
-public class MemCacheEntryFactory implements HttpCacheEntryFactory {
+public class FileCacheEntryFactory implements HttpCacheEntryFactory {
 
-    public HttpCacheEntry generateEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final HttpResponse response,
-            final byte[] body) {
-        return new MemCacheEntry(requestDate,
-                responseDate,
-                response.getStatusLine(),
-                response.getAllHeaders(),
-                body,
-                null);
+    private final File cacheDir;
+    private final BasicIdGenerator idgen;
+
+    public FileCacheEntryFactory(final File cacheDir) {
+        super();
+        this.cacheDir = cacheDir;
+        this.idgen = new BasicIdGenerator();
     }
 
     public HttpCacheEntry generate(
@@ -67,11 +63,15 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final StatusLine statusLine,
             final Header[] headers,
             byte[] body) throws IOException {
-        return new MemCacheEntry(requestDate,
+
+        String uid = this.idgen.generate();
+        File file = new File(this.cacheDir, uid + "." + requestId);
+        return new FileCacheEntry(
+                requestDate,
                 responseDate,
                 statusLine,
                 headers,
-                body,
+                file,
                 null);
     }
 
@@ -79,24 +79,26 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final String requestId,
             final HttpCacheEntry entry,
             final String variantURI) throws IOException {
-        byte[] body;
-        if (entry instanceof MemCacheEntry) {
-            body = ((MemCacheEntry) entry).getRawBody();
-        } else {
-            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-            IOUtils.copyAndClose(entry.getBody(), outstream);
-            body = outstream.toByteArray();
-        }
+
+        String uid = this.idgen.generate();
+        File file = new File(this.cacheDir, uid + "-" + requestId);
 
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
 
-        return new MemCacheEntry(
+        if (entry instanceof FileCacheEntry) {
+            File src = ((FileCacheEntry) entry).getRawBody();
+            IOUtils.copyFile(src, file);
+        } else {
+            FileOutputStream out = new FileOutputStream(file);
+            IOUtils.copyAndClose(entry.getBody(), out);
+        }
+        return new FileCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),
                 entry.getAllHeaders(),
-                body,
+                file,
                 variants);
     }
 

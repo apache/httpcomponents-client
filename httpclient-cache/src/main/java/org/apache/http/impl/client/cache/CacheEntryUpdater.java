@@ -69,6 +69,7 @@ class CacheEntryUpdater {
     /**
      * Update the entry with the new information from the response.
      *
+     * @param request id
      * @param entry The cache Entry to be updated
      * @param requestDate When the request was performed
      * @param responseDate When the response was gotten
@@ -77,6 +78,7 @@ class CacheEntryUpdater {
      * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
      */
     public HttpCacheEntry updateCacheEntry(
+            String requestId,
             HttpCacheEntry entry,
             Date requestDate,
             Date responseDate,
@@ -91,6 +93,7 @@ class CacheEntryUpdater {
             outstream.write(buf, 0, len);
         }
         HttpCacheEntry updated = cacheEntryFactory.generate(
+                requestId,
                 requestDate,
                 responseDate,
                 entry.getStatusLine(),

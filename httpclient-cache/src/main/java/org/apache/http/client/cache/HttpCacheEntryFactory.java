@@ -40,6 +40,7 @@ import org.apache.http.StatusLine;
 public interface HttpCacheEntryFactory {
 
     HttpCacheEntry generate(
+            String requestId,
             Date requestDate,
             Date responseDate,
             StatusLine statusLine,
@@ -47,6 +48,7 @@ public interface HttpCacheEntryFactory {
             byte[] body) throws IOException;
 
     HttpCacheEntry copyVariant(
+            String requestId,
             HttpCacheEntry entry,
             String variantURI) throws IOException;
 

@@ -67,7 +67,7 @@ public class TestCacheEntryUpdater {
         CacheEntry entry = new CacheEntry();
         BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        HttpCacheEntry newEntry = impl.updateCacheEntry(entry, requestDate, responseDate, response);
+        HttpCacheEntry newEntry = impl.updateCacheEntry(null, entry, requestDate, responseDate, response);
 
         assertNotSame(newEntry, entry);
     }
@@ -85,7 +85,7 @@ public class TestCacheEntryUpdater {
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
         response.setHeaders(new Header[]{});
 
-        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, cacheEntry, new Date(), new Date(), response);
 
         Assert.assertEquals(2, updatedEntry.getAllHeaders().length);
 
@@ -110,7 +110,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public"),});
 
-        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, cacheEntry, new Date(), new Date(), response);
 
 
         Assert.assertEquals(4, updatedEntry.getAllHeaders().length);
@@ -136,7 +136,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public"),});
 
-        HttpCacheEntry updatedEntry = impl.updateCacheEntry(cacheEntry, new Date(), new Date(), response);
+        HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, cacheEntry, new Date(), new Date(), response);
 
 
         Assert.assertEquals(4, updatedEntry.getAllHeaders().length);
@@ -164,7 +164,7 @@ public class TestCacheEntryUpdater {
 
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        HttpCacheEntry updated = impl.updateCacheEntry(entry, twoSecondsAgo, oneSecondAgo, response);
+        HttpCacheEntry updated = impl.updateCacheEntry(null, entry, twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals(twoSecondsAgo, updated.getRequestDate());
         assertEquals(oneSecondAgo, updated.getResponseDate());

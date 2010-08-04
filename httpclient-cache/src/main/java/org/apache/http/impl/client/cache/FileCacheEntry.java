@@ -62,6 +62,10 @@ class FileCacheEntry extends HttpCacheEntry {
         this.resource = new FileResource(file);
     }
 
+    File getRawBody() {
+        return this.file;
+    }
+    
     @Override
     public long getBodyLength() {
         return this.file.length();

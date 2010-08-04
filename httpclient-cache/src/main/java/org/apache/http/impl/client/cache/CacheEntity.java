@@ -78,10 +78,10 @@ class CacheEntity implements HttpEntity, Serializable {
             throw new IllegalArgumentException("Output stream may not be null");
         }
         InputStream instream = this.cacheEntry.getBody();
-        byte[] buf = new byte[2048];
-        int len;
-        while ((len = instream.read(buf)) != -1) {
-            outstream.write(buf, 0, len);
+        try {
+            IOUtils.copy(instream, outstream);
+        } finally {
+            instream.close();
         }
     }
 
