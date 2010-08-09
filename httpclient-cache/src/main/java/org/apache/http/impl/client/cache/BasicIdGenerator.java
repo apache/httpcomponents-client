@@ -63,16 +63,20 @@ class BasicIdGenerator {
         this.rnd.setSeed(System.currentTimeMillis());
     }
 
-    public synchronized String generate() {
+    public synchronized void generate(final StringBuilder buffer) {
         this.count++;
         int rndnum = this.rnd.nextInt();
-        StringBuilder buffer = new StringBuilder();
         buffer.append(System.currentTimeMillis());
         buffer.append('.');
         Formatter formatter = new Formatter(buffer, Locale.US);
         formatter.format("%1$016x-%2$08x", this.count, rndnum);
         buffer.append('.');
         buffer.append(this.hostname);
+    }
+
+    public String generate() {
+        StringBuilder buffer = new StringBuilder();
+        generate(buffer);
         return buffer.toString();
     }
 

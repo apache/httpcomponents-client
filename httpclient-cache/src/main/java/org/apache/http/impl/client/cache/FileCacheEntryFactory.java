@@ -64,8 +64,25 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
             final Header[] headers,
             byte[] body) throws IOException {
 
-        String uid = this.idgen.generate();
-        File file = new File(this.cacheDir, uid + "." + requestId);
+        StringBuilder buffer = new StringBuilder();
+        this.idgen.generate(buffer);
+        buffer.append('.');
+        int len = Math.min(requestId.length(), 100);
+        for (int i = 0; i < len; i++) {
+            char ch = requestId.charAt(i);
+            if (Character.isLetterOrDigit(ch) || ch == '.') {
+                buffer.append(ch);
+            } else {
+                buffer.append('-');
+            }
+        }
+        File file = new File(this.cacheDir, buffer.toString());
+        FileOutputStream outstream = new FileOutputStream(file);
+        try {
+            outstream.write(body);
+        } finally {
+            outstream.close();
+        }
         return new FileCacheEntry(
                 requestDate,
                 responseDate,
