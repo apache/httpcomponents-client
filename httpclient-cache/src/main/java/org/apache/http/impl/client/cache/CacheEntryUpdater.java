@@ -86,7 +86,7 @@ class CacheEntryUpdater {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
         ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        InputStream instream = entry.getBody();
+        InputStream instream = entry.getResource().getInputStream();
         byte[] buf = new byte[2048];
         int len;
         while ((len = instream.read(buf)) != -1) {

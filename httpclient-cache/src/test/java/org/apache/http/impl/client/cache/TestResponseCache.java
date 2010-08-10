@@ -144,12 +144,12 @@ public class TestResponseCache {
         cache.updateEntry("foo", new HttpCacheUpdateCallback() {
 
             public HttpCacheEntry update(HttpCacheEntry existing) {
-                HttpCacheEntry updated = new MemCacheEntry(
+                HttpCacheEntry updated = new HttpCacheEntry(
                         existing.getRequestDate(),
                         existing.getRequestDate(),
                         existing.getStatusLine(),
                         existing.getAllHeaders(),
-                        expectedArray,
+                        new HeapResource(expectedArray),
                         null);
                 return updated;
             }
@@ -158,7 +158,7 @@ public class TestResponseCache {
         HttpCacheEntry afterUpdate = cache.getEntry("foo");
 
         ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        InputStream instream = afterUpdate.getBody();
+        InputStream instream = afterUpdate.getResource().getInputStream();
         byte[] buf = new byte[2048];
         int len;
         while ((len = instream.read(buf)) != -1) {

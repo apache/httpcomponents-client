@@ -38,6 +38,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntryFactory;
+import org.apache.http.client.cache.Resource;
 
 /**
  * Generates {@link HttpCacheEntry} instances whose body is stored in a temporary file.
@@ -56,14 +57,7 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
         this.idgen = new BasicIdGenerator();
     }
 
-    public HttpCacheEntry generate(
-            final String requestId,
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] headers,
-            byte[] body) throws IOException {
-
+    private File generateUniqueCacheFile(final String requestId) {
         StringBuilder buffer = new StringBuilder();
         this.idgen.generate(buffer);
         buffer.append('.');
@@ -76,19 +70,29 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
                 buffer.append('-');
             }
         }
-        File file = new File(this.cacheDir, buffer.toString());
+        return new File(this.cacheDir, buffer.toString());
+    }
+
+    public HttpCacheEntry generate(
+            final String requestId,
+            final Date requestDate,
+            final Date responseDate,
+            final StatusLine statusLine,
+            final Header[] headers,
+            byte[] body) throws IOException {
+        File file = generateUniqueCacheFile(requestId);
         FileOutputStream outstream = new FileOutputStream(file);
         try {
             outstream.write(body);
         } finally {
             outstream.close();
         }
-        return new FileCacheEntry(
+        return new HttpCacheEntry(
                 requestDate,
                 responseDate,
                 statusLine,
                 headers,
-                file,
+                new FileResource(file),
                 null);
     }
 
@@ -97,25 +101,25 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
             final HttpCacheEntry entry,
             final String variantURI) throws IOException {
 
-        String uid = this.idgen.generate();
-        File file = new File(this.cacheDir, uid + "-" + requestId);
+        File file = generateUniqueCacheFile(requestId);
 
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
 
-        if (entry instanceof FileCacheEntry) {
-            File src = ((FileCacheEntry) entry).getRawBody();
+        Resource orig = entry.getResource();
+        if (orig instanceof FileResource) {
+            File src = ((FileResource) orig).getFile();
             IOUtils.copyFile(src, file);
         } else {
             FileOutputStream out = new FileOutputStream(file);
-            IOUtils.copyAndClose(entry.getBody(), out);
+            IOUtils.copyAndClose(orig.getInputStream(), out);
         }
-        return new FileCacheEntry(
+        return new HttpCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),
                 entry.getAllHeaders(),
-                file,
+                new FileResource(file),
                 variants);
     }
 

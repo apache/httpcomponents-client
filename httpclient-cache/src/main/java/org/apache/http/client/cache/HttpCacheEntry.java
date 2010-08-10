@@ -27,7 +27,6 @@
 package org.apache.http.client.cache;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -52,7 +51,7 @@ import org.apache.http.message.BasicHeader;
  * @since 4.1
  */
 @Immutable
-public abstract class HttpCacheEntry implements Serializable {
+public class HttpCacheEntry implements Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
 
@@ -60,6 +59,7 @@ public abstract class HttpCacheEntry implements Serializable {
     private final Date responseDate;
     private final StatusLine statusLine;
     private final CachedHeaderGroup responseHeaders;
+    private final Resource resource;
     private final Set<String> variantURIs;
 
     /**
@@ -81,6 +81,7 @@ public abstract class HttpCacheEntry implements Serializable {
             final Date responseDate,
             final StatusLine statusLine,
             final Header[] responseHeaders,
+            final Resource resource,
             final Set<String> variants) {
         super();
         if (requestDate == null) {
@@ -95,11 +96,15 @@ public abstract class HttpCacheEntry implements Serializable {
         if (responseHeaders == null) {
             throw new IllegalArgumentException("Response headers may not be null");
         }
+        if (resource == null) {
+            throw new IllegalArgumentException("Resource may not be null");
+        }
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;
         this.responseHeaders = new CachedHeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
+        this.resource = resource;
         this.variantURIs = variants != null ? new HashSet<String>(variants) : new HashSet<String>();
     }
 
@@ -147,11 +152,9 @@ public abstract class HttpCacheEntry implements Serializable {
         return Collections.unmodifiableSet(this.variantURIs);
     }
 
-    public abstract Resource getResource();
-
-    public abstract InputStream getBody() throws IOException;
-
-    public abstract long getBodyLength();
+    public Resource getResource() {
+        return this.resource;
+    }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
 

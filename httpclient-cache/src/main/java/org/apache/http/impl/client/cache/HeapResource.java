@@ -28,54 +28,40 @@ package org.apache.http.impl.client.cache;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 
 /**
- * Basic {@link HttpCacheEntry} that does not depend on any system resources that may require
- * explicit deallocation.
+ * Cache resource backed by a byte array on the heap.
+ *
+ * @since 4.1
  */
 @Immutable
-class MemCacheEntry extends HttpCacheEntry {
+class HeapResource implements Resource {
 
-    private static final long serialVersionUID = -8464486112875881235L;
+    private static final long serialVersionUID = -2078599905620463394L;
 
-    private final byte[] body;
+    private final byte[] b;
 
-    public MemCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final byte[] body,
-            final Set<String> variants) {
-        super(requestDate, responseDate, statusLine, responseHeaders, variants);
-        this.body = body;
+    public HeapResource(final byte[] b) {
+        super();
+        this.b = b;
     }
 
-    byte[] getRawBody() {
-        return this.body;
+    byte[] getByteArray() {
+        return this.b;
     }
 
-    @Override
-    public long getBodyLength() {
-        return this.body.length;
+    public InputStream getInputStream() {
+        return new ByteArrayInputStream(this.b);
     }
 
-    @Override
-    public InputStream getBody() {
-        return new ByteArrayInputStream(this.body);
+    public long length() {
+        return this.b.length;
     }
 
-    @Override
-    public Resource getResource() {
-        return null;
+    public void dispose() {
     }
 
 }

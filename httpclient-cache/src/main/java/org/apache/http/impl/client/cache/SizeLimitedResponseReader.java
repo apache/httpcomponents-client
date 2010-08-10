@@ -74,7 +74,7 @@ class SizeLimitedResponseReader {
         return isTooLarge;
     }
 
-    private synchronized boolean consumeResponse() throws IOException {
+    private boolean consumeResponse() throws IOException {
 
         if (responseIsConsumed)
             throw new IllegalStateException(
@@ -106,7 +106,7 @@ class SizeLimitedResponseReader {
         return false;
     }
 
-    private synchronized void consumeOutputStream() {
+    private void consumeOutputStream() {
         if (outputStreamConsumed)
             throw new IllegalStateException(
                     "underlying output stream has already been written to byte[]");

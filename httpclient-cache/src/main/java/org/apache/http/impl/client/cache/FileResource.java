@@ -30,73 +30,57 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.Resource;
 
 /**
- * {@link File} backed {@link HttpCacheEntry} that requires explicit deallocation.
+ * Cache resource backed by a file.
+ *
+ * @since 4.1
  */
-@Immutable
-class FileCacheEntry extends HttpCacheEntry {
+@ThreadSafe
+class FileResource implements Resource {
 
-    private static final long serialVersionUID = -8396589100351931966L;
+    private static final long serialVersionUID = 4132244415919043397L;
 
     private final File file;
-    private final FileResource resource;
 
-    public FileCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final File file,
-            final Set<String> variants) {
-        super(requestDate, responseDate, statusLine, responseHeaders, variants);
+    private volatile boolean disposed;
+
+    public FileResource(final File file) {
+        super();
         this.file = file;
-        this.resource = new FileResource(file);
+        this.disposed = false;
     }
 
-    File getRawBody() {
+    private void ensureValid() {
+        if (this.disposed) {
+            throw new IllegalStateException("Resource has been deallocated");
+        }
+    }
+
+    synchronized File getFile() {
+        ensureValid();
         return this.file;
     }
-    
-    @Override
-    public long getBodyLength() {
-        return this.file.length();
-    }
 
-    @Override
-    public InputStream getBody() throws IOException {
+    public synchronized InputStream getInputStream() throws IOException {
+        ensureValid();
         return new FileInputStream(this.file);
     }
 
-    @Override
-    public Resource getResource() {
-        return this.resource;
+    public synchronized long length() {
+        ensureValid();
+        return this.file.length();
     }
 
-    class FileResource implements Resource {
-
-        private File file;
-
-        FileResource(final File file) {
-            super();
-            this.file = file;
+    public synchronized void dispose() {
+        if (this.disposed) {
+            return;
         }
-
-        public synchronized void dispose() {
-            if (this.file != null) {
-                this.file.delete();
-                this.file = null;
-            }
-        }
-
+        this.disposed = true;
+        this.file.delete();
     }
 
 }

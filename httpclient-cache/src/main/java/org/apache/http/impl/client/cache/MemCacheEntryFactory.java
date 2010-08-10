@@ -38,6 +38,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntryFactory;
+import org.apache.http.client.cache.Resource;
 
 /**
  * Generates {@link HttpCacheEntry} instances stored entirely in memory.
@@ -52,11 +53,11 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final Date responseDate,
             final HttpResponse response,
             final byte[] body) {
-        return new MemCacheEntry(requestDate,
+        return new HttpCacheEntry(requestDate,
                 responseDate,
                 response.getStatusLine(),
                 response.getAllHeaders(),
-                body,
+                new HeapResource(body),
                 null);
     }
 
@@ -67,11 +68,11 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final StatusLine statusLine,
             final Header[] headers,
             byte[] body) throws IOException {
-        return new MemCacheEntry(requestDate,
+        return new HttpCacheEntry(requestDate,
                 responseDate,
                 statusLine,
                 headers,
-                body,
+                new HeapResource(body),
                 null);
     }
 
@@ -80,23 +81,25 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final HttpCacheEntry entry,
             final String variantURI) throws IOException {
         byte[] body;
-        if (entry instanceof MemCacheEntry) {
-            body = ((MemCacheEntry) entry).getRawBody();
+
+        Resource orig = entry.getResource();
+        if (orig instanceof HeapResource) {
+            body = ((HeapResource) orig).getByteArray();
         } else {
             ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-            IOUtils.copyAndClose(entry.getBody(), outstream);
+            IOUtils.copyAndClose(orig.getInputStream(), outstream);
             body = outstream.toByteArray();
         }
 
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
 
-        return new MemCacheEntry(
+        return new HttpCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),
                 entry.getAllHeaders(),
-                body,
+                new HeapResource(body),
                 variants);
     }
 

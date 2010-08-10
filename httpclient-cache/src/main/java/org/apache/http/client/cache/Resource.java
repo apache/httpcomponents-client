@@ -26,12 +26,20 @@
  */
 package org.apache.http.client.cache;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+
 /**
  * Represents a disposable system resource.
  *
  * @since 4.1
  */
-public interface Resource {
+public interface Resource extends Serializable {
+
+    InputStream getInputStream() throws IOException;
+
+    long length();
 
     void dispose();
 

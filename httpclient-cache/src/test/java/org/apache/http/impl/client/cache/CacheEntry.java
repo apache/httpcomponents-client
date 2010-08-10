@@ -29,24 +29,27 @@ package org.apache.http.impl.client.cache;
 import java.util.Date;
 
 import org.apache.http.Header;
+import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.Resource;
 
-public class CacheEntry extends MemCacheEntry {
+public class CacheEntry extends HttpCacheEntry {
 
     private static final long serialVersionUID = 7964121802841871079L;
 
+    private static Resource BODY = new HeapResource(new byte[] {});
     public static final long MAX_AGE = CacheValidityPolicy.MAX_AGE;
 
     public CacheEntry(
             Date requestDate,
             Date responseDate) {
-        super(requestDate, responseDate, new OKStatus(), new Header[] {}, new byte[] {}, null);
+        super(requestDate, responseDate, new OKStatus(), new Header[] {}, BODY, null);
     }
 
     public CacheEntry(
             Date requestDate,
             Date responseDate,
             Header[] headers) {
-        super(requestDate, responseDate, new OKStatus(), headers, new byte[] {}, null);
+        super(requestDate, responseDate, new OKStatus(), headers, BODY, null);
     }
 
     public CacheEntry(
@@ -54,17 +57,17 @@ public class CacheEntry extends MemCacheEntry {
             Date responseDate,
             Header[] headers,
             byte[] content) {
-        super(requestDate, responseDate, new OKStatus(), headers, content, null);
+        super(requestDate, responseDate, new OKStatus(), headers, new HeapResource(content), null);
     }
 
     public CacheEntry(
             Header[] headers,
             byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), headers, content, null);
+        super(new Date(), new Date(), new OKStatus(), headers, new HeapResource(content), null);
     }
 
     public CacheEntry(Header[] headers) {
-        super(new Date(), new Date(), new OKStatus(), headers, new byte[] {}, null);
+        super(new Date(), new Date(), new OKStatus(), headers, BODY, null);
     }
 
     public CacheEntry() {
@@ -72,7 +75,7 @@ public class CacheEntry extends MemCacheEntry {
     }
 
     public CacheEntry(byte[] content) {
-        super(new Date(), new Date(), new OKStatus(), new Header[] {}, content, null);
+        super(new Date(), new Date(), new OKStatus(), new Header[] {}, new HeapResource(content), null);
     }
 
 }
