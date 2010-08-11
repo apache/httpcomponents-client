@@ -40,7 +40,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.HTTP;
@@ -55,13 +54,13 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class CacheEntryUpdater {
 
-    private final HttpCacheEntryFactory cacheEntryFactory;
+    private final CacheEntryFactory cacheEntryFactory;
 
     CacheEntryUpdater() {
-        this(new MemCacheEntryFactory());
+        this(new CacheEntryFactory(new HeapResourceFactory()));
     }
 
-    CacheEntryUpdater(final HttpCacheEntryFactory cacheEntryFactory) {
+    CacheEntryUpdater(final CacheEntryFactory cacheEntryFactory) {
         super();
         this.cacheEntryFactory = cacheEntryFactory;
     }

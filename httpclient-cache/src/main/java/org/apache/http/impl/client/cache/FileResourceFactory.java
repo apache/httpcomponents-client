@@ -29,29 +29,23 @@ package org.apache.http.impl.client.cache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.client.cache.Resource;
+import org.apache.http.client.cache.ResourceFactory;
 
 /**
- * Generates {@link HttpCacheEntry} instances whose body is stored in a temporary file.
+ * Generates {@link Resource} instances whose body is stored in a temporary file.
  *
  * @since 4.1
  */
 @Immutable
-public class FileCacheEntryFactory implements HttpCacheEntryFactory {
+public class FileResourceFactory implements ResourceFactory {
 
     private final File cacheDir;
     private final BasicIdGenerator idgen;
 
-    public FileCacheEntryFactory(final File cacheDir) {
+    public FileResourceFactory(final File cacheDir) {
         super();
         this.cacheDir = cacheDir;
         this.idgen = new BasicIdGenerator();
@@ -73,13 +67,7 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
         return new File(this.cacheDir, buffer.toString());
     }
 
-    public HttpCacheEntry generate(
-            final String requestId,
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] headers,
-            byte[] body) throws IOException {
+    public Resource generate(final String requestId, final byte[] body) throws IOException {
         File file = generateUniqueCacheFile(requestId);
         FileOutputStream outstream = new FileOutputStream(file);
         try {
@@ -87,40 +75,20 @@ public class FileCacheEntryFactory implements HttpCacheEntryFactory {
         } finally {
             outstream.close();
         }
-        return new HttpCacheEntry(
-                requestDate,
-                responseDate,
-                statusLine,
-                headers,
-                new FileResource(file),
-                null);
+        return new FileResource(file);
     }
 
-    public HttpCacheEntry copyVariant(
-            final String requestId,
-            final HttpCacheEntry entry,
-            final String variantURI) throws IOException {
-
+    public Resource copy(final String requestId, final Resource resource) throws IOException {
         File file = generateUniqueCacheFile(requestId);
 
-        Set<String> variants = new HashSet<String>(entry.getVariantURIs());
-        variants.add(variantURI);
-
-        Resource orig = entry.getResource();
-        if (orig instanceof FileResource) {
-            File src = ((FileResource) orig).getFile();
+        if (resource instanceof FileResource) {
+            File src = ((FileResource) resource).getFile();
             IOUtils.copyFile(src, file);
         } else {
             FileOutputStream out = new FileOutputStream(file);
-            IOUtils.copyAndClose(orig.getInputStream(), out);
+            IOUtils.copyAndClose(resource.getInputStream(), out);
         }
-        return new HttpCacheEntry(
-                entry.getRequestDate(),
-                entry.getResponseDate(),
-                entry.getStatusLine(),
-                entry.getAllHeaders(),
-                new FileResource(file),
-                variants);
+        return new FileResource(file);
     }
 
 }

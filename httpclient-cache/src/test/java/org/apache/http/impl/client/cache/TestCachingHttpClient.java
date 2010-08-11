@@ -48,7 +48,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ByteArrayEntity;
@@ -98,7 +97,7 @@ public class TestCachingHttpClient {
     private CacheEntry mockVariantCacheEntry;
     private CacheEntry mockUpdatedCacheEntry;
     private URIExtractor mockExtractor;
-    private HttpCacheEntryFactory mockEntryGenerator;
+    private CacheEntryFactory mockEntryGenerator;
     private CachedHttpResponseGenerator mockResponseGenerator;
     private SizeLimitedResponseReader mockResponseReader;
     private ClientConnectionManager mockConnectionManager;
@@ -141,7 +140,7 @@ public class TestCachingHttpClient {
         mockUpdatedCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockVariantCacheEntry = EasyMock.createMock(CacheEntry.class);
         mockExtractor = EasyMock.createMock(URIExtractor.class);
-        mockEntryGenerator = EasyMock.createMock(HttpCacheEntryFactory.class);
+        mockEntryGenerator = EasyMock.createMock(CacheEntryFactory.class);
         mockResponseGenerator = EasyMock.createMock(CachedHttpResponseGenerator.class);
         mockCachedResponse = EasyMock.createMock(HttpResponse.class);
         mockConditionalRequestBuilder = EasyMock.createMock(ConditionalRequestBuilder.class);

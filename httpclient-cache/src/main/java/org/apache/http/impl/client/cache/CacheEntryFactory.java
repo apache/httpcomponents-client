@@ -26,39 +26,25 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
-import org.apache.http.client.cache.Resource;
+import org.apache.http.client.cache.ResourceFactory;
 
-/**
- * Generates {@link HttpCacheEntry} instances stored entirely in memory.
- *
- * @since 4.1
- */
 @Immutable
-public class MemCacheEntryFactory implements HttpCacheEntryFactory {
+class CacheEntryFactory  {
 
-    public HttpCacheEntry generateEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final HttpResponse response,
-            final byte[] body) {
-        return new HttpCacheEntry(requestDate,
-                responseDate,
-                response.getStatusLine(),
-                response.getAllHeaders(),
-                new HeapResource(body),
-                null);
+    private final ResourceFactory resourceFactory;
+
+    public CacheEntryFactory(final ResourceFactory resourceFactory) {
+        super();
+        this.resourceFactory = resourceFactory;
     }
 
     public HttpCacheEntry generate(
@@ -72,7 +58,7 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
                 responseDate,
                 statusLine,
                 headers,
-                new HeapResource(body),
+                resourceFactory.generate(requestId, body),
                 null);
     }
 
@@ -80,26 +66,14 @@ public class MemCacheEntryFactory implements HttpCacheEntryFactory {
             final String requestId,
             final HttpCacheEntry entry,
             final String variantURI) throws IOException {
-        byte[] body;
-
-        Resource orig = entry.getResource();
-        if (orig instanceof HeapResource) {
-            body = ((HeapResource) orig).getByteArray();
-        } else {
-            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-            IOUtils.copyAndClose(orig.getInputStream(), outstream);
-            body = outstream.toByteArray();
-        }
-
         Set<String> variants = new HashSet<String>(entry.getVariantURIs());
         variants.add(variantURI);
-
         return new HttpCacheEntry(
                 entry.getRequestDate(),
                 entry.getResponseDate(),
                 entry.getStatusLine(),
                 entry.getAllHeaders(),
-                new HeapResource(body),
+                resourceFactory.copy(requestId, entry.getResource()),
                 variants);
     }
 

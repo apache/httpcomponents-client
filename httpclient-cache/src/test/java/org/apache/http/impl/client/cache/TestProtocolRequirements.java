@@ -43,6 +43,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.impl.cookie.DateUtils;
@@ -548,7 +549,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
                 BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
                 .addMockedMethods("expectContinue").createMock();
-        post.setEntity(mockEntity);
+        post.setEntity(new BasicHttpEntity());
         post.setHeader("Content-Length", "128");
 
         Capture<HttpEntityEnclosingRequest> reqCap = new Capture<HttpEntityEnclosingRequest>();
@@ -593,7 +594,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
                 BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
                 .addMockedMethods("expectContinue").createMock();
-        post.setEntity(mockEntity);
+        post.setEntity(new BasicHttpEntity());
         post.setHeader("Content-Length", "128");
 
         Capture<HttpEntityEnclosingRequest> reqCap = new Capture<HttpEntityEnclosingRequest>();
@@ -2221,7 +2222,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         HttpRequest validate = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
@@ -2263,7 +2264,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2304,7 +2305,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
         EasyMock.expect(
@@ -2505,7 +2506,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
 
@@ -2549,7 +2550,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         HttpResponse validated = make200Response();
         validated.setHeader("Cache-Control", "public");

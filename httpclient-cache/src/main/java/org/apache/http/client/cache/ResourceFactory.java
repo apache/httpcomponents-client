@@ -27,29 +27,16 @@
 package org.apache.http.client.cache;
 
 import java.io.IOException;
-import java.util.Date;
-
-import org.apache.http.Header;
-import org.apache.http.StatusLine;
 
 /**
- * Generates {@link HttpCacheEntry} instances.
+ * Generates {@link Resource} instances.
  *
  * @since 4.1
  */
-public interface HttpCacheEntryFactory {
+public interface ResourceFactory {
 
-    HttpCacheEntry generate(
-            String requestId,
-            Date requestDate,
-            Date responseDate,
-            StatusLine statusLine,
-            Header[] headers,
-            byte[] body) throws IOException;
+    Resource generate(String requestId, byte[] body) throws IOException;
 
-    HttpCacheEntry copyVariant(
-            String requestId,
-            HttpCacheEntry entry,
-            String variantURI) throws IOException;
+    Resource copy(String requestId, Resource resource) throws IOException;
 
 }

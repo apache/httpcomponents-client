@@ -82,7 +82,7 @@ public class DoNotTestProtocolRequirements {
         mockCache = EasyMock.createMock(HttpCache.class);
         CacheConfig params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, new MemCacheEntryFactory(), params);
+        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
     }
 
     private HttpResponse make200Response() {

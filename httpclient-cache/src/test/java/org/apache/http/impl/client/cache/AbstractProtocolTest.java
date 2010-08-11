@@ -10,7 +10,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
@@ -26,7 +25,6 @@ public abstract class AbstractProtocolTest {
     protected int entityLength = 128;
     protected HttpHost host;
     protected HttpEntity body;
-    protected HttpEntity mockEntity;
     protected HttpClient mockBackend;
     protected HttpCache mockCache;
     protected HttpRequest request;
@@ -34,7 +32,6 @@ public abstract class AbstractProtocolTest {
     protected CacheConfig params;
     protected CachingHttpClient impl;
     protected HttpCache cache;
-    protected HttpCacheEntryFactory cacheEntryFactory;
 
     public static HttpRequest eqRequest(HttpRequest in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
@@ -52,25 +49,21 @@ public abstract class AbstractProtocolTest {
         originResponse = make200Response();
 
         cache = new BasicHttpCache(MAX_ENTRIES);
-        cacheEntryFactory = new MemCacheEntryFactory();
         mockBackend = EasyMock.createMock(HttpClient.class);
-        mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
         params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
     }
 
     protected void replayMocks() {
         EasyMock.replay(mockBackend);
         EasyMock.replay(mockCache);
-        EasyMock.replay(mockEntity);
     }
 
     protected void verifyMocks() {
         EasyMock.verify(mockBackend);
         EasyMock.verify(mockCache);
-        EasyMock.verify(mockEntity);
     }
 
     protected HttpResponse make200Response() {
@@ -95,9 +88,8 @@ public abstract class AbstractProtocolTest {
     protected void emptyMockCacheExpectsNoPuts() throws Exception {
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockCache = EasyMock.createMock(HttpCache.class);
-        mockEntity = EasyMock.createMock(HttpEntity.class);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
 
         EasyMock.expect(mockCache.getEntry((String) EasyMock.anyObject())).andReturn(null)
                 .anyTimes();
@@ -108,7 +100,7 @@ public abstract class AbstractProtocolTest {
 
     protected void behaveAsNonSharedCache() {
         params.setSharedCache(false);
-        impl = new CachingHttpClient(mockBackend, cache, cacheEntryFactory, params);
+        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
     }
 
     public AbstractProtocolTest() {

@@ -26,34 +26,35 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.Date;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-import org.apache.http.Header;
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.message.BasicHeader;
-import org.junit.Assert;
-import org.junit.Test;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.Resource;
+import org.apache.http.client.cache.ResourceFactory;
 
-public class TestCacheEntryGenerator {
+/**
+ * Generates {@link Resource} instances stored entirely in heap.
+ *
+ * @since 4.1
+ */
+@Immutable
+public class HeapResourceFactory implements ResourceFactory {
 
-    @Test
-    public void testEntryMatchesInputs() throws Exception {
-
-        CacheEntryFactory gen = new CacheEntryFactory(new HeapResourceFactory());
-
-        Header h = new BasicHeader("fooHeader", "fooHeaderValue");
-
-        HttpCacheEntry entry = gen.generate(
-                null,
-                new Date(),
-                new Date(),
-                new OKStatus(),
-                new Header[] { h },
-                new byte[] {});
-
-        Assert.assertEquals("HTTP", entry.getProtocolVersion().getProtocol());
-        Assert.assertEquals(1, entry.getProtocolVersion().getMajor());
-        Assert.assertEquals(1, entry.getProtocolVersion().getMinor());
-        Assert.assertEquals("fooHeaderValue", entry.getFirstHeader("fooHeader").getValue());
+    public Resource generate(final String requestId, final byte[] body) throws IOException {
+        return new HeapResource(body);
     }
+
+    public Resource copy(final String requestId, final Resource resource) throws IOException {
+        byte[] body;
+        if (resource instanceof HeapResource) {
+            body = ((HeapResource) resource).getByteArray();
+        } else {
+            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+            IOUtils.copyAndClose(resource.getInputStream(), outstream);
+            body = outstream.toByteArray();
+        }
+        return new HeapResource(body);
+    }
+
 }

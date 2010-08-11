@@ -50,8 +50,8 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntryFactory;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ByteArrayEntity;
@@ -76,7 +76,7 @@ public class CachingHttpClient implements HttpClient {
 
     private final HttpClient backend;
     private final HttpCache responseCache;
-    private final HttpCacheEntryFactory cacheEntryFactory;
+    private final CacheEntryFactory cacheEntryFactory;
     private final CacheValidityPolicy validityPolicy;
     private final ResponseCachingPolicy responseCachingPolicy;
     private final URIExtractor uriExtractor;
@@ -100,7 +100,7 @@ public class CachingHttpClient implements HttpClient {
     public CachingHttpClient(
             HttpClient client,
             HttpCache cache,
-            HttpCacheEntryFactory cacheEntryFactory,
+            ResourceFactory resourceFactory,
             CacheConfig config) {
         super();
         if (client == null) {
@@ -109,8 +109,8 @@ public class CachingHttpClient implements HttpClient {
         if (cache == null) {
             throw new IllegalArgumentException("HttpCache may not be null");
         }
-        if (cacheEntryFactory == null) {
-            throw new IllegalArgumentException("HttpCacheEntryFactory may not be null");
+        if (resourceFactory == null) {
+            throw new IllegalArgumentException("ResourceFactory may not be null");
         }
         if (config == null) {
             throw new IllegalArgumentException("CacheConfig may not be null");
@@ -119,7 +119,7 @@ public class CachingHttpClient implements HttpClient {
         this.sharedCache = config.isSharedCache();
         this.backend = client;
         this.responseCache = cache;
-        this.cacheEntryFactory = cacheEntryFactory;
+        this.cacheEntryFactory = new CacheEntryFactory(resourceFactory);
 
         this.validityPolicy = new CacheValidityPolicy();
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
@@ -138,62 +138,62 @@ public class CachingHttpClient implements HttpClient {
     public CachingHttpClient() {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new MemCacheEntryFactory(),
+                new HeapResourceFactory(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(CacheConfig config) {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new MemCacheEntryFactory(),
+                new HeapResourceFactory(),
                 config);
     }
 
     public CachingHttpClient(HttpClient client) {
         this(client,
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new MemCacheEntryFactory(),
+                new HeapResourceFactory(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(HttpClient client, CacheConfig config) {
         this(client,
                 new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new MemCacheEntryFactory(),
+                new HeapResourceFactory(),
                 config);
     }
 
     public CachingHttpClient(
             HttpCache cache,
-            HttpCacheEntryFactory cacheEntryFactory) {
+            ResourceFactory resourceFactory) {
         this(new DefaultHttpClient(),
                 cache,
-                cacheEntryFactory,
+                resourceFactory,
                 new CacheConfig());
     }
 
     public CachingHttpClient(
             HttpCache cache,
-            HttpCacheEntryFactory cacheEntryFactory,
+            ResourceFactory resourceFactory,
             CacheConfig config) {
         this(new DefaultHttpClient(),
                 cache,
-                cacheEntryFactory,
+                resourceFactory,
                 config);
     }
 
     public CachingHttpClient(
             HttpClient client,
             HttpCache cache,
-            HttpCacheEntryFactory cacheEntryFactory) {
+            ResourceFactory resourceFactory) {
         this(client,
                 cache,
-                cacheEntryFactory,
+                resourceFactory,
                 new CacheConfig());
     }
 
     CachingHttpClient(HttpClient backend, CacheValidityPolicy validityPolicy, ResponseCachingPolicy responseCachingPolicy,
-                             HttpCacheEntryFactory cacheEntryFactory, URIExtractor uriExtractor,
+                             CacheEntryFactory cacheEntryFactory, URIExtractor uriExtractor,
                              HttpCache responseCache, CachedHttpResponseGenerator responseGenerator,
                              CacheInvalidator cacheInvalidator, CacheableRequestPolicy cacheableRequestPolicy,
                              CachedResponseSuitabilityChecker suitabilityChecker,
