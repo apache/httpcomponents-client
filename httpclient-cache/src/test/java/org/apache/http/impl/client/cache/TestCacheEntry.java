@@ -26,10 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.Set;
-
 import org.apache.http.Header;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Test;
@@ -100,23 +97,6 @@ public class TestCacheEntry {
         Header[] headers = { new BasicHeader("Vary", "*") };
         CacheEntry entry = new CacheEntry(headers);
         Assert.assertTrue(entry.hasVariants());
-    }
-
-    @Test
-    public void testCacheEntryCanStoreMultipleVariantUris() throws Exception {
-
-        Header[] headers = new Header[]{};
-        CacheEntry entry = new CacheEntry(headers);
-
-        CacheEntryFactory entryGenerator = new CacheEntryFactory(new HeapResourceFactory());
-
-        HttpCacheEntry addedOne = entryGenerator.copyVariant(null, entry, "foo");
-        HttpCacheEntry addedTwo = entryGenerator.copyVariant(null, addedOne, "bar");
-
-        Set<String> variants = addedTwo.getVariantURIs();
-
-        Assert.assertTrue(variants.contains("foo"));
-        Assert.assertTrue(variants.contains("bar"));
     }
 
 }

@@ -26,9 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -40,6 +38,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.Resource;
+import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.HTTP;
@@ -54,15 +54,15 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class CacheEntryUpdater {
 
-    private final CacheEntryFactory cacheEntryFactory;
+    private final ResourceFactory resourceFactory;
 
     CacheEntryUpdater() {
-        this(new CacheEntryFactory(new HeapResourceFactory()));
+        this(new HeapResourceFactory());
     }
 
-    CacheEntryUpdater(final CacheEntryFactory cacheEntryFactory) {
+    CacheEntryUpdater(final ResourceFactory resourceFactory) {
         super();
-        this.cacheEntryFactory = cacheEntryFactory;
+        this.resourceFactory = resourceFactory;
     }
 
     /**
@@ -84,21 +84,14 @@ class CacheEntryUpdater {
             HttpResponse response) throws IOException {
 
         Header[] mergedHeaders = mergeHeaders(entry, response);
-        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        InputStream instream = entry.getResource().getInputStream();
-        byte[] buf = new byte[2048];
-        int len;
-        while ((len = instream.read(buf)) != -1) {
-            outstream.write(buf, 0, len);
-        }
-        HttpCacheEntry updated = cacheEntryFactory.generate(
-                requestId,
+        Resource resource = resourceFactory.copy(requestId, entry.getResource());
+        return new HttpCacheEntry(
                 requestDate,
                 responseDate,
                 entry.getStatusLine(),
                 mergedHeaders,
-                outstream.toByteArray());
-        return updated;
+                resource,
+                null);
     }
 
     protected Header[] mergeHeaders(HttpCacheEntry entry, HttpResponse response) {
