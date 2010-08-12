@@ -29,8 +29,10 @@ package org.apache.http.impl.client.cache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.cache.InputLimit;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 
@@ -67,18 +69,33 @@ public class FileResourceFactory implements ResourceFactory {
         return new File(this.cacheDir, buffer.toString());
     }
 
-    public Resource generate(final String requestId, final byte[] body) throws IOException {
+    public Resource generate(
+            final String requestId,
+            final InputStream instream,
+            final InputLimit limit) throws IOException {
         File file = generateUniqueCacheFile(requestId);
         FileOutputStream outstream = new FileOutputStream(file);
         try {
-            outstream.write(body);
+            byte[] buf = new byte[2048];
+            long total = 0;
+            int l;
+            while ((l = instream.read(buf)) != -1) {
+                outstream.write(buf, 0, l);
+                total += l;
+                if (limit != null && total > limit.getValue()) {
+                    limit.reached();
+                    break;
+                }
+            }
         } finally {
             outstream.close();
         }
         return new FileResource(file);
     }
 
-    public Resource copy(final String requestId, final Resource resource) throws IOException {
+    public Resource copy(
+            final String requestId,
+            final Resource resource) throws IOException {
         File file = generateUniqueCacheFile(requestId);
 
         if (resource instanceof FileResource) {

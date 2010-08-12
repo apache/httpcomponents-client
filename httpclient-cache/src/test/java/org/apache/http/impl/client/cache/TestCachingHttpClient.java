@@ -239,10 +239,9 @@ public class TestCachingHttpClient {
         responseProtocolValidationIsCalled();
 
         getMockResponseReader();
-        responseIsTooLarge(false);
-        byte[] buf = responseReaderReturnsBufferOfSize(100);
-
-        generateResource(buf);
+        responseRead();
+        responseLimitReached(false);
+        responseGetResource();
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
         responseStatusLineIsInspectable();
@@ -553,8 +552,9 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(responseDate);
         responsePolicyAllowsCaching(true);
         getMockResponseReader();
-        responseIsTooLarge(true);
-        readerReturnsReconstructedResponse();
+        responseRead();
+        responseLimitReached(true);
+        responseGetReconstructed();
 
         replayMocks();
 
@@ -575,9 +575,9 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(responseDate);
         responsePolicyAllowsCaching(true);
         getMockResponseReader();
-        responseIsTooLarge(false);
-        byte[] buf = responseReaderReturnsBufferOfSize(100);
-        generateResource(buf);
+        responseRead();
+        responseLimitReached(false);
+        responseGetResource();
         storeInCacheWasCalled();
         responseIsGeneratedFromCache();
         responseStatusLineIsInspectable();
@@ -961,7 +961,7 @@ public class TestCachingHttpClient {
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","128");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
     }
 
@@ -974,7 +974,7 @@ public class TestCachingHttpClient {
         resp.setHeader("Content-Length","128");
         resp.setHeader("Content-Range","bytes 0-127/255");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
     }
 
@@ -986,7 +986,7 @@ public class TestCachingHttpClient {
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpStatus.SC_BAD_GATEWAY == result.getStatusLine().getStatusCode());
     }
 
@@ -998,7 +998,7 @@ public class TestCachingHttpClient {
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
     }
 
@@ -1009,7 +1009,7 @@ public class TestCachingHttpClient {
         byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
     }
 
@@ -1021,7 +1021,7 @@ public class TestCachingHttpClient {
         resp.setHeader("Content-Length","foo");
         resp.setEntity(new ByteArrayEntity(bytes));
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp, result));
     }
 
@@ -1033,7 +1033,7 @@ public class TestCachingHttpClient {
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         Header ctype = result.getFirstHeader("Content-Type");
         Assert.assertEquals("text/plain;charset=UTF-8", ctype.getValue());
     }
@@ -1046,7 +1046,7 @@ public class TestCachingHttpClient {
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.correctIncompleteResponse(resp, bytes);
+        HttpResponse result = impl.correctIncompleteResponse(resp, new HeapResource(bytes));
         int clen = Integer.parseInt(result.getFirstHeader("Content-Length").getValue());
         Assert.assertTrue(clen > 0);
         HttpEntity body = result.getEntity();
@@ -1130,6 +1130,7 @@ public class TestCachingHttpClient {
 
     private void getMockResponseReader() {
         EasyMock.expect(impl.getResponseReader(
+                EasyMock.<HttpRequest>anyObject(),
                 EasyMock.<HttpResponse>anyObject())).andReturn(mockResponseReader);
     }
 
@@ -1147,19 +1148,20 @@ public class TestCachingHttpClient {
             .andReturn(null).anyTimes();
     }
 
-    private byte[] responseReaderReturnsBufferOfSize(int bufferSize) {
-        byte[] buffer = new byte[bufferSize];
-        EasyMock.expect(mockResponseReader.getResponseBytes()).andReturn(buffer);
-        return buffer;
+    private void responseRead() throws Exception {
+        mockResponseReader.readResponse();
     }
 
-    private void readerReturnsReconstructedResponse() {
-        EasyMock.expect(mockResponseReader.getReconstructedResponse()).andReturn(
-                mockReconstructedResponse);
+    private void responseLimitReached(boolean limitReached) throws Exception {
+        EasyMock.expect(mockResponseReader.isLimitReached()).andReturn(limitReached);
     }
 
-    private void responseIsTooLarge(boolean tooLarge) throws Exception {
-        EasyMock.expect(mockResponseReader.isResponseTooLarge()).andReturn(tooLarge);
+    private void responseGetResource() throws Exception {
+        EasyMock.expect(mockResponseReader.getResource()).andReturn(new HeapResource(new byte[] {} ));
+    }
+
+    private void responseGetReconstructed() throws Exception {
+        EasyMock.expect(mockResponseReader.getReconstructedResponse()).andReturn(mockReconstructedResponse);
     }
 
     private void backendCallWasMadeWithRequest(HttpRequest request) throws IOException {
@@ -1243,13 +1245,6 @@ public class TestCachingHttpClient {
 
     private void putInCache(String theURI, CacheEntry entry) throws Exception {
         mockCache.putEntry(theURI, entry);
-    }
-
-    private void generateResource(byte [] b) throws IOException {
-        EasyMock.expect(
-                mockResourceFactory.generate(
-                        EasyMock.<String>anyObject(),
-                        EasyMock.same(b))).andReturn(new HeapResource(b));
     }
 
     private void copyResource() throws IOException {

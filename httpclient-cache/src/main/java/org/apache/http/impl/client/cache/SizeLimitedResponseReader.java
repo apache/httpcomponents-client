@@ -26,132 +26,101 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.cache.InputLimit;
+import org.apache.http.client.cache.Resource;
+import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.message.BasicHttpResponse;
 
 /**
  * @since 4.1
  */
+@NotThreadSafe
 class SizeLimitedResponseReader {
 
-    private final int maxResponseSizeBytes;
+    private final ResourceFactory resourceFactory;
+    private final long maxResponseSizeBytes;
+    private final HttpRequest request;
     private final HttpResponse response;
 
-    private ByteArrayOutputStream outputStream;
-    private InputStream contentInputStream;
-    private boolean isTooLarge;
-    private boolean responseIsConsumed;
-    private byte[] sizeLimitedContent;
-    private boolean outputStreamConsumed;
+    private InputStream instream;
+    private InputLimit limit;
+    private Resource resource;
+    private boolean consumed;
 
     /**
      * Create an {@link HttpResponse} that is limited in size, this allows for checking
      * the size of objects that will be stored in the cache.
-     *
-     * @param maxResponseSizeBytes
-     *      Maximum size that a response can be to be eligible for cache inclusion
-     *
-     * @param response
-     *      The {@link HttpResponse}
      */
-    public SizeLimitedResponseReader(int maxResponseSizeBytes, HttpResponse response) {
+    public SizeLimitedResponseReader(
+            ResourceFactory resourceFactory,
+            long maxResponseSizeBytes,
+            HttpRequest request,
+            HttpResponse response) {
+        super();
+        this.resourceFactory = resourceFactory;
         this.maxResponseSizeBytes = maxResponseSizeBytes;
+        this.request = request;
         this.response = response;
     }
 
-    protected boolean isResponseTooLarge() throws IOException {
-        if (!responseIsConsumed)
-            isTooLarge = consumeResponse();
-
-        return isTooLarge;
+    protected void readResponse() throws IOException {
+        if (!consumed) {
+            doConsume();
+        }
     }
 
-    private boolean consumeResponse() throws IOException {
+    private void ensureNotConsumed() {
+        if (consumed) {
+            throw new IllegalStateException("Response has already been consumed");
+        }
+    }
 
-        if (responseIsConsumed)
-            throw new IllegalStateException(
-                    "You cannot call this method more than once, because it consumes an underlying stream");
+    private void ensureConsumed() {
+        if (!consumed) {
+            throw new IllegalStateException("Response has not been consumed");
+        }
+    }
 
-        responseIsConsumed = true;
+    private void doConsume() throws IOException {
+        ensureNotConsumed();
+        consumed = true;
+
+        limit = new InputLimit(maxResponseSizeBytes);
 
         HttpEntity entity = response.getEntity();
-        if (entity == null)
-            return false;
-
-        contentInputStream = entity.getContent();
-        int bytes = 0;
-
-        outputStream = new ByteArrayOutputStream();
-
-        int current;
-
-        while (bytes < maxResponseSizeBytes && (current = contentInputStream.read()) != -1) {
-            outputStream.write(current);
-            bytes++;
+        if (entity == null) {
+            return;
         }
-
-        if ((current = contentInputStream.read()) != -1) {
-            outputStream.write(current);
-            return true;
-        }
-
-        return false;
+        String uri = request.getRequestLine().getUri();
+        instream = entity.getContent();
+        resource = resourceFactory.generate(uri, instream, limit);
     }
 
-    private void consumeOutputStream() {
-        if (outputStreamConsumed)
-            throw new IllegalStateException(
-                    "underlying output stream has already been written to byte[]");
-
-        if (!responseIsConsumed)
-            throw new IllegalStateException("Must call consumeResponse first.");
-
-        sizeLimitedContent = outputStream.toByteArray();
-        outputStreamConsumed = true;
+    boolean isLimitReached() {
+        ensureConsumed();
+        return limit.isReached();
     }
 
-    protected byte[] getResponseBytes() {
-        if (!outputStreamConsumed)
-            consumeOutputStream();
-
-        return sizeLimitedContent;
+    Resource getResource() {
+        ensureConsumed();
+        return resource;
     }
 
-    protected HttpResponse getReconstructedResponse() {
-
-        InputStream combinedStream = getCombinedInputStream();
-
-        return constructResponse(response, combinedStream);
-    }
-
-    protected InputStream getCombinedInputStream() {
-        InputStream input1 = new ByteArrayInputStream(getResponseBytes());
-        InputStream input2 = getContentInputStream();
-        return new CombinedInputStream(input1, input2);
-    }
-
-    protected InputStream getContentInputStream() {
-        return contentInputStream;
-    }
-
-    protected HttpResponse constructResponse(HttpResponse originalResponse,
-            InputStream combinedStream) {
-        HttpResponse response = new BasicHttpResponse(originalResponse.getProtocolVersion(),
+    HttpResponse getReconstructedResponse() throws IOException {
+        ensureConsumed();
+        HttpResponse reconstructed = new BasicHttpResponse(response.getProtocolVersion(),
                 HttpStatus.SC_OK, "Success");
-
-        HttpEntity entity = new InputStreamEntity(combinedStream, -1);
-        response.setEntity(entity);
-        response.setHeaders(originalResponse.getAllHeaders());
-
-        return response;
+        reconstructed.setHeaders(response.getAllHeaders());
+        reconstructed.setEntity(new CombinedEntity(resource, instream));
+        return reconstructed;
     }
 
 }

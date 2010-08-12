@@ -602,8 +602,7 @@ public class CachingHttpClient implements HttpClient {
                 variants);
     }
 
-    HttpResponse correctIncompleteResponse(HttpResponse resp,
-                                                     byte[] bodyBytes) {
+    HttpResponse correctIncompleteResponse(HttpResponse resp, Resource resource) {
         int status = resp.getStatusLine().getStatusCode();
         if (status != HttpStatus.SC_OK
             && status != HttpStatus.SC_PARTIAL_CONTENT) {
@@ -617,13 +616,14 @@ public class CachingHttpClient implements HttpClient {
         } catch (NumberFormatException nfe) {
             return resp;
         }
-        if (bodyBytes.length >= contentLength) return resp;
+        if (resource.length() >= contentLength) return resp;
         HttpResponse error =
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
         error.setHeader("Content-Type","text/plain;charset=UTF-8");
-        String msg = String.format("Received incomplete response with Content-Length %d but actual body length %d", contentLength, bodyBytes.length);
+        String msg = String.format("Received incomplete response " +
+                "with Content-Length %d but actual body length %d", contentLength, resource.length());
         byte[] msgBytes = msg.getBytes();
-        error.setHeader("Content-Length", String.format("%d",msgBytes.length));
+        error.setHeader("Content-Length", Integer.toString(msgBytes.length));
         error.setEntity(new ByteArrayEntity(msgBytes));
         return error;
     }
@@ -643,19 +643,17 @@ public class CachingHttpClient implements HttpClient {
         HttpResponse corrected = backendResponse;
         if (cacheable) {
 
-            SizeLimitedResponseReader responseReader = getResponseReader(backendResponse);
+            SizeLimitedResponseReader responseReader = getResponseReader(request, backendResponse);
+            responseReader.readResponse();
 
-            if (responseReader.isResponseTooLarge()) {
+            if (responseReader.isLimitReached()) {
                 return responseReader.getReconstructedResponse();
             }
 
-            byte[] responseBytes = responseReader.getResponseBytes();
-            corrected = correctIncompleteResponse(backendResponse,
-                                                               responseBytes);
+            Resource resource = responseReader.getResource();
+            corrected = correctIncompleteResponse(backendResponse, resource);
             int correctedStatus = corrected.getStatusLine().getStatusCode();
             if (HttpStatus.SC_BAD_GATEWAY != correctedStatus) {
-                Resource resource = resourceFactory.generate(
-                        request.getRequestLine().getUri(), responseBytes);
                 HttpCacheEntry entry = new HttpCacheEntry(
                             requestDate,
                             responseDate,
@@ -673,8 +671,9 @@ public class CachingHttpClient implements HttpClient {
         return corrected;
     }
 
-    SizeLimitedResponseReader getResponseReader(HttpResponse backEndResponse) {
-        return new SizeLimitedResponseReader(maxObjectSizeBytes, backEndResponse);
+    SizeLimitedResponseReader getResponseReader(HttpRequest request, HttpResponse backEndResponse) {
+        return new SizeLimitedResponseReader(
+                resourceFactory, maxObjectSizeBytes, request, backEndResponse);
     }
 
 }

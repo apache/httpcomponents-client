@@ -24,20 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.cache;
+package org.apache.http.impl.client.cache;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 
-/**
- * Generates {@link Resource} instances.
- *
- * @since 4.1
- */
-public interface ResourceFactory {
+import org.apache.http.client.cache.Resource;
+import org.apache.http.util.EntityUtils;
+import org.easymock.classextension.EasyMock;
+import org.junit.Assert;
+import org.junit.Test;
 
-    Resource generate(String requestId, InputStream instream, InputLimit limit) throws IOException;
+public class TestCombinedEntity {
 
-    Resource copy(String requestId, Resource resource) throws IOException;
+    @Test
+    public void testCombinedEntityBasics() throws Exception {
+        Resource resource = EasyMock.createMock(Resource.class);
+        EasyMock.expect(resource.getInputStream()).andReturn(
+                new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
+        resource.dispose();
+        EasyMock.replay(resource);
+
+        ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
+        CombinedEntity entity = new CombinedEntity(resource, instream);
+        Assert.assertEquals(-1, entity.getContentLength());
+        Assert.assertFalse(entity.isRepeatable());
+        Assert.assertTrue(entity.isStreaming());
+
+        byte[] result = EntityUtils.toByteArray(entity);
+        Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, result);
+
+        EasyMock.verify(resource);
+    }
 
 }

@@ -26,18 +26,30 @@
  */
 package org.apache.http.client.cache;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
- * Generates {@link Resource} instances.
- *
  * @since 4.1
  */
-public interface ResourceFactory {
+public class InputLimit {
 
-    Resource generate(String requestId, InputStream instream, InputLimit limit) throws IOException;
+    private final long value;
+    private boolean reached;
 
-    Resource copy(String requestId, Resource resource) throws IOException;
+    public InputLimit(long value) {
+        super();
+        this.value = value;
+        this.reached = false;
+    }
+
+    public long getValue() {
+        return this.value;
+    }
+
+    public void reached() {
+        this.reached = true;
+    }
+
+    public boolean isReached() {
+        return this.reached;
+    }
 
 }

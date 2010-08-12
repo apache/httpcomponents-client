@@ -32,8 +32,11 @@ import java.io.InputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
+import org.apache.http.HttpVersion;
+import org.apache.http.message.BasicRequestLine;
+import org.apache.http.util.EntityUtils;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,211 +44,134 @@ import org.junit.Test;
 
 public class TestSizeLimitedResponseReader {
 
-    private static final int MAX_SIZE = 4;
+    private static final long MAX_SIZE = 4;
 
     private SizeLimitedResponseReader impl;
+    private HttpRequest mockRequest;
     private HttpResponse mockResponse;
     private HttpEntity mockEntity;
-    private InputStream mockInputStream;
-    private ProtocolVersion mockVersion;
 
     private boolean mockedImpl;
 
     @Before
     public void setUp() {
+        mockRequest = EasyMock.createMock(HttpRequest.class);
         mockResponse = EasyMock.createMock(HttpResponse.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
-        mockInputStream = EasyMock.createMock(InputStream.class);
-        mockVersion = EasyMock.createMock(ProtocolVersion.class);
-
     }
 
     @Test
     public void testLargeResponseIsTooLarge() throws Exception {
-
-        responseHasValidEntity();
-        entityHasValidContentStream();
-        inputStreamReturnsValidBytes(5);
-
-        getReader();
-
+        byte[] buf = new byte[] { 1, 2, 3, 4, 5};
+        requestReturnsRequestLine();
+        responseReturnsProtocolVersion();
+        responseReturnsHeaders();
+        responseReturnsContent(new ByteArrayInputStream(buf));
+        initReader();
         replayMocks();
-        boolean tooLarge = impl.isResponseTooLarge();
-        byte[] result = impl.getResponseBytes();
+
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
+        HttpResponse response = impl.getReconstructedResponse();
+        byte[] result = EntityUtils.toByteArray(response.getEntity());
+
         verifyMocks();
-
         Assert.assertTrue(tooLarge);
-
-        Assert.assertArrayEquals(new byte[] { 1, 1, 1, 1, 1 }, result);
+        Assert.assertArrayEquals(buf, result);
     }
 
     @Test
     public void testExactSizeResponseIsNotTooLarge() throws Exception {
-        responseHasValidEntity();
-        entityHasValidContentStream();
-        inputStreamReturnsValidBytes(4);
-        inputStreamReturnsEndOfStream();
-
-        getReader();
+        byte[] buf = new byte[] { 1, 2, 3, 4 };
+        requestReturnsRequestLine();
+        responseReturnsProtocolVersion();
+        responseReturnsHeaders();
+        responseReturnsContent(new ByteArrayInputStream(buf));
+        initReader();
         replayMocks();
-        boolean tooLarge = impl.isResponseTooLarge();
-        byte[] result = impl.getResponseBytes();
+
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
+        HttpResponse response = impl.getReconstructedResponse();
+        byte[] result = EntityUtils.toByteArray(response.getEntity());
+
         verifyMocks();
-
         Assert.assertFalse(tooLarge);
-
-        Assert.assertArrayEquals(new byte[] { 1, 1, 1, 1 }, result);
+        Assert.assertArrayEquals(buf, result);
     }
 
     @Test
     public void testSmallResponseIsNotTooLarge() throws Exception {
-        responseHasValidEntity();
-        entityHasValidContentStream();
-
-        org.easymock.EasyMock.expect(mockInputStream.read()).andReturn(1).times(3);
-
-        org.easymock.EasyMock.expect(mockInputStream.read()).andReturn(-1).times(2);
-
-        getReader();
+        byte[] buf = new byte[] { 1, 2, 3 };
+        requestReturnsRequestLine();
+        responseReturnsProtocolVersion();
+        responseReturnsHeaders();
+        responseReturnsContent(new ByteArrayInputStream(buf));
+        initReader();
         replayMocks();
-        boolean tooLarge = impl.isResponseTooLarge();
-        byte[] result = impl.getResponseBytes();
+
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
+        HttpResponse response = impl.getReconstructedResponse();
+        byte[] result = EntityUtils.toByteArray(response.getEntity());
         verifyMocks();
 
         Assert.assertFalse(tooLarge);
-
-        Assert.assertArrayEquals(new byte[] { 1, 1, 1 }, result);
+        Assert.assertArrayEquals(buf, result);
     }
 
     @Test
     public void testResponseWithNoEntityIsNotTooLarge() throws Exception {
         responseHasNullEntity();
 
-        getReader();
+        initReader();
         replayMocks();
-        boolean tooLarge = impl.isResponseTooLarge();
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
         verifyMocks();
 
         Assert.assertFalse(tooLarge);
     }
 
-    @Test
-    public void testReconstructedSmallResponseHasCorrectLength() throws Exception {
-
-        byte[] expectedArray = new byte[] { 1, 1, 1, 1 };
-
-        InputStream stream = new ByteArrayInputStream(new byte[] {});
-
-        responseReturnsHeaders();
-        responseReturnsProtocolVersion();
-
-        getReader();
-        mockImplMethods("getResponseBytes", "getContentInputStream");
-        getContentInputStreamReturns(stream);
-        getResponseBytesReturns(expectedArray);
-        replayMocks();
-
-        HttpResponse response = impl.getReconstructedResponse();
-
-        verifyMocks();
-
-        Assert.assertNotNull("Response should not be null", response);
-        InputStream resultStream = response.getEntity().getContent();
-
-        byte[] buffer = new byte[expectedArray.length];
-        resultStream.read(buffer);
-
-        Assert.assertArrayEquals(expectedArray, buffer);
+    private void responseReturnsContent(InputStream buffer) throws IOException {
+        EasyMock.expect(mockResponse.getEntity()).andReturn(mockEntity);
+        EasyMock.expect(mockEntity.getContent()).andReturn(buffer);
     }
 
-    private void getContentInputStreamReturns(InputStream inputStream) {
-        org.easymock.EasyMock.expect(impl.getContentInputStream()).andReturn(inputStream);
-    }
-
-    @Test
-    public void testReconstructedLargeResponseHasCorrectLength() throws Exception {
-
-        byte[] expectedArray = new byte[] { 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1 };
-        byte[] arrayAfterConsumedBytes = new byte[] { 1, 1, 1, 1, 1, 1, 1 };
-        byte[] smallArray = new byte[] { 2, 2, 2, 2, };
-        InputStream is = new ByteArrayInputStream(arrayAfterConsumedBytes);
-
-        responseReturnsHeaders();
-        responseReturnsProtocolVersion();
-
-        getReader();
-        mockImplMethods("getResponseBytes", "getContentInputStream");
-        getResponseBytesReturns(smallArray);
-        getContentInputStreamReturns(is);
-
-        replayMocks();
-
-        HttpResponse response = impl.getReconstructedResponse();
-
-        verifyMocks();
-
-        InputStream resultStream = response.getEntity().getContent();
-
-        byte[] buffer = new byte[expectedArray.length];
-        resultStream.read(buffer);
-
-        Assert.assertArrayEquals(expectedArray, buffer);
-    }
-
-    private void getResponseBytesReturns(byte[] expectedArray) {
-        org.easymock.EasyMock.expect(impl.getResponseBytes()).andReturn(expectedArray);
-    }
-
-    private void responseReturnsHeaders() {
-        org.easymock.EasyMock.expect(mockResponse.getAllHeaders()).andReturn(new Header[] {});
-    }
-
-    private void entityHasValidContentStream() throws IOException {
-        org.easymock.EasyMock.expect(mockEntity.getContent()).andReturn(mockInputStream);
-    }
-
-    private void inputStreamReturnsEndOfStream() throws IOException {
-        org.easymock.EasyMock.expect(mockInputStream.read()).andReturn(-1);
-    }
-
-    private void responseHasValidEntity() {
-        org.easymock.EasyMock.expect(mockResponse.getEntity()).andReturn(mockEntity);
+    private void requestReturnsRequestLine() {
+        EasyMock.expect(mockRequest.getRequestLine()).andReturn(
+                new BasicRequestLine("GET", "/", HttpVersion.HTTP_1_1));
     }
 
     private void responseReturnsProtocolVersion() {
-        org.easymock.EasyMock.expect(mockResponse.getProtocolVersion()).andReturn(mockVersion);
+        EasyMock.expect(mockResponse.getProtocolVersion()).andReturn(HttpVersion.HTTP_1_1);
     }
 
-    private void inputStreamReturnsValidBytes(int times) throws IOException {
-        org.easymock.EasyMock.expect(mockInputStream.read()).andReturn(1).times(times);
+    private void responseReturnsHeaders() {
+        EasyMock.expect(mockResponse.getAllHeaders()).andReturn(new Header[] {});
     }
 
     private void responseHasNullEntity() {
-        org.easymock.EasyMock.expect(mockResponse.getEntity()).andReturn(null);
+        EasyMock.expect(mockResponse.getEntity()).andReturn(null);
     }
 
     private void verifyMocks() {
-        EasyMock.verify(mockResponse, mockEntity, mockInputStream, mockVersion);
+        EasyMock.verify(mockRequest, mockResponse, mockEntity);
         if (mockedImpl) {
             EasyMock.verify(impl);
         }
     }
 
     private void replayMocks() {
-        EasyMock.replay(mockResponse, mockEntity, mockInputStream, mockVersion);
+        EasyMock.replay(mockRequest, mockResponse, mockEntity);
         if (mockedImpl) {
             EasyMock.replay(impl);
         }
     }
 
-    private void getReader() {
-        impl = new SizeLimitedResponseReader(MAX_SIZE, mockResponse);
-    }
-
-    private void mockImplMethods(String... methods) {
-        mockedImpl = true;
-        impl = EasyMock.createMockBuilder(SizeLimitedResponseReader.class).withConstructor(
-                MAX_SIZE, mockResponse).addMockedMethods(methods).createMock();
+    private void initReader() {
+        impl = new SizeLimitedResponseReader(
+                new HeapResourceFactory(), MAX_SIZE, mockRequest, mockResponse);
     }
 
 }
