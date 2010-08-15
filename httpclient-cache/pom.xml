@@ -38,7 +38,7 @@
    HttpComponents HttpClient - Cache
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
-  <packaging>jar</packaging>  
+  <packaging>jar</packaging>
 
   <licenses>
     <license>
@@ -78,6 +78,20 @@
       <artifactId>easymockclassextension</artifactId>
       <version>${easymock.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache-core</artifactId>
+      <version>${ehcache.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jcl</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 
