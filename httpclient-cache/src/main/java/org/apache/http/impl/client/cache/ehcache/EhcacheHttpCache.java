@@ -37,7 +37,7 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
 public class EhcacheHttpCache implements HttpCache {
 
-    private Ehcache cache;
+    private final Ehcache cache;
 
     public EhcacheHttpCache(Ehcache cache) {
         this.cache = cache;
