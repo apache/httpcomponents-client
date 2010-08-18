@@ -37,7 +37,14 @@ public class CacheConfig {
      */
     public final static int DEFAULT_MAX_OBJECT_SIZE_BYTES = 8192;
 
+    /** Default setting for the maximum number of cache entries
+     * that will be retained.
+     */
+    public final static int DEFAULT_MAX_CACHE_ENTRIES = 1000;
+
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
+    private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
+
     private boolean isSharedCache = true;
 
     /**
@@ -74,4 +81,19 @@ public class CacheConfig {
         this.isSharedCache = isSharedCache;
     }
 
+    /**
+     * Returns the maximum number of cache entries the cache will retain.
+     * @return int
+     */
+    public int getMaxCacheEntries() {
+        return maxCacheEntries;
+    }
+
+    /**
+     * Sets the maximum number of cache entries the cache will retain.
+     * @param maxCacheEntries int
+     */
+    public void setMaxCacheEntries(int maxCacheEntries) {
+        this.maxCacheEntries = maxCacheEntries;
+    }
 }

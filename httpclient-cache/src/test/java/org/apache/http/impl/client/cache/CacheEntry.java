@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -76,6 +77,10 @@ public class CacheEntry extends HttpCacheEntry {
 
     public CacheEntry(byte[] content) {
         super(new Date(), new Date(), new OKStatus(), new Header[] {}, new HeapResource(content), null);
+    }
+
+    public CacheEntry(Set<String> variants) {
+        super(new Date(), new Date(), new OKStatus(), new Header[] {}, BODY, variants);
     }
 
 }

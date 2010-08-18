@@ -40,11 +40,11 @@ import org.junit.Test;
 public class TestEhcacheHttpCache extends TestCase {
 
     private Ehcache mockCache;
-    private EhcacheHttpCache impl;
+    private EhcacheHttpCacheStorage impl;
 
     public void setUp() {
         mockCache = EasyMock.createMock(Ehcache.class);
-        impl = new EhcacheHttpCache(mockCache);
+        impl = new EhcacheHttpCacheStorage(mockCache);
     }
 
     @Test

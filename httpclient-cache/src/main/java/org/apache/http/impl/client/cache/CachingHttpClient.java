@@ -29,14 +29,11 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -52,12 +49,8 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheUpdateCallback;
-import org.apache.http.client.cache.Resource;
-import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
@@ -70,7 +63,6 @@ import org.apache.http.protocol.HttpContext;
 @ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingHttpClient implements HttpClient {
 
-    private final static int MAX_CACHE_ENTRIES = 1000;
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
 
     private final AtomicLong cacheHits = new AtomicLong();
@@ -79,18 +71,13 @@ public class CachingHttpClient implements HttpClient {
 
     private final HttpClient backend;
     private final HttpCache responseCache;
-    private final ResourceFactory resourceFactory;
     private final CacheValidityPolicy validityPolicy;
     private final ResponseCachingPolicy responseCachingPolicy;
-    private final URIExtractor uriExtractor;
     private final CachedHttpResponseGenerator responseGenerator;
-    private final CacheInvalidator cacheInvalidator;
     private final CacheableRequestPolicy cacheableRequestPolicy;
     private final CachedResponseSuitabilityChecker suitabilityChecker;
 
     private final ConditionalRequestBuilder conditionalRequestBuilder;
-
-    private final CacheEntryUpdater cacheEntryUpdater;
 
     private final int maxObjectSizeBytes;
     private final boolean sharedCache;
@@ -103,7 +90,6 @@ public class CachingHttpClient implements HttpClient {
     public CachingHttpClient(
             HttpClient client,
             HttpCache cache,
-            ResourceFactory resourceFactory,
             CacheConfig config) {
         super();
         if (client == null) {
@@ -112,9 +98,6 @@ public class CachingHttpClient implements HttpClient {
         if (cache == null) {
             throw new IllegalArgumentException("HttpCache may not be null");
         }
-        if (resourceFactory == null) {
-            throw new IllegalArgumentException("ResourceFactory may not be null");
-        }
         if (config == null) {
             throw new IllegalArgumentException("CacheConfig may not be null");
         }
@@ -122,16 +105,12 @@ public class CachingHttpClient implements HttpClient {
         this.sharedCache = config.isSharedCache();
         this.backend = client;
         this.responseCache = cache;
-        this.resourceFactory = resourceFactory;
         this.validityPolicy = new CacheValidityPolicy();
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
-        this.uriExtractor = new URIExtractor();
-        this.cacheInvalidator = new CacheInvalidator(this.uriExtractor, this.responseCache);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy);
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
-        this.cacheEntryUpdater = new CacheEntryUpdater(this.resourceFactory);
 
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
@@ -139,91 +118,73 @@ public class CachingHttpClient implements HttpClient {
 
     public CachingHttpClient() {
         this(new DefaultHttpClient(),
-                new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new HeapResourceFactory(),
+                new BasicHttpCache(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(CacheConfig config) {
         this(new DefaultHttpClient(),
-                new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new HeapResourceFactory(),
+                new BasicHttpCache(config),
                 config);
     }
 
     public CachingHttpClient(HttpClient client) {
         this(client,
-                new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new HeapResourceFactory(),
+                new BasicHttpCache(),
                 new CacheConfig());
     }
 
     public CachingHttpClient(HttpClient client, CacheConfig config) {
         this(client,
-                new BasicHttpCache(MAX_CACHE_ENTRIES),
-                new HeapResourceFactory(),
+                new BasicHttpCache(config),
                 config);
     }
 
     public CachingHttpClient(
-            HttpCache cache,
-            ResourceFactory resourceFactory) {
+            HttpCache cache) {
         this(new DefaultHttpClient(),
                 cache,
-                resourceFactory,
                 new CacheConfig());
     }
 
     public CachingHttpClient(
             HttpCache cache,
-            ResourceFactory resourceFactory,
             CacheConfig config) {
         this(new DefaultHttpClient(),
                 cache,
-                resourceFactory,
                 config);
     }
 
     public CachingHttpClient(
             HttpClient client,
-            HttpCache cache,
-            ResourceFactory resourceFactory) {
+            HttpCache cache) {
         this(client,
                 cache,
-                resourceFactory,
                 new CacheConfig());
     }
 
     CachingHttpClient(
             HttpClient backend,
-            ResourceFactory resourceFactory,
             CacheValidityPolicy validityPolicy,
             ResponseCachingPolicy responseCachingPolicy,
-            URIExtractor uriExtractor,
             HttpCache responseCache,
             CachedHttpResponseGenerator responseGenerator,
-            CacheInvalidator cacheInvalidator,
             CacheableRequestPolicy cacheableRequestPolicy,
             CachedResponseSuitabilityChecker suitabilityChecker,
             ConditionalRequestBuilder conditionalRequestBuilder,
-            CacheEntryUpdater entryUpdater,
             ResponseProtocolCompliance responseCompliance,
             RequestProtocolCompliance requestCompliance) {
         CacheConfig config = new CacheConfig();
         this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
         this.sharedCache = config.isSharedCache();
         this.backend = backend;
-        this.resourceFactory = resourceFactory;
         this.validityPolicy = validityPolicy;
         this.responseCachingPolicy = responseCachingPolicy;
-        this.uriExtractor = uriExtractor;
         this.responseCache = responseCache;
         this.responseGenerator = responseGenerator;
-        this.cacheInvalidator = cacheInvalidator;
         this.cacheableRequestPolicy = cacheableRequestPolicy;
         this.suitabilityChecker = suitabilityChecker;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
-        this.cacheEntryUpdater = entryUpdater;
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
     }
@@ -409,13 +370,13 @@ public class CachingHttpClient implements HttpClient {
             throw new ClientProtocolException(e);
         }
 
-        cacheInvalidator.flushInvalidatedCacheEntries(target, request);
+        responseCache.flushInvalidatedCacheEntriesFor(target, request);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             return callBackend(target, request, context);
         }
 
-        HttpCacheEntry entry = getCacheEntry(target, request);
+        HttpCacheEntry entry = responseCache.getCacheEntry(target, request);
         if (entry == null) {
             cacheMisses.getAndIncrement();
             if (log.isDebugEnabled()) {
@@ -471,18 +432,6 @@ public class CachingHttpClient implements HttpClient {
         return new Date();
     }
 
-    HttpCacheEntry getCacheEntry(HttpHost target, HttpRequest request) throws IOException {
-        String uri = uriExtractor.getURI(target, request);
-        HttpCacheEntry entry = responseCache.getEntry(uri);
-
-        if (entry == null || !entry.hasVariants()) {
-            return entry;
-        }
-
-        String variantUri = uriExtractor.getVariantURI(target, request, entry);
-        return responseCache.getEntry(variantUri);
-    }
-
     boolean clientRequestsOurOptions(HttpRequest request) {
         RequestLine line = request.getRequestLine();
 
@@ -533,99 +482,12 @@ public class CachingHttpClient implements HttpClient {
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
             cacheUpdates.getAndIncrement();
-            HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
-                    request.getRequestLine().getUri(),
-                    cacheEntry,
-                    requestDate,
-                    responseDate,
-                    backendResponse);
-            storeInCache(target, request, updatedEntry);
-            return responseGenerator.generateResponse(updatedEntry);
+            return responseCache.updateCacheEntry(target, request, cacheEntry,
+                    backendResponse, requestDate, responseDate);
         }
 
         return handleBackendResponse(target, conditionalRequest, requestDate, responseDate,
                                      backendResponse);
-    }
-
-    void storeInCache(
-            HttpHost target, HttpRequest request, HttpCacheEntry entry) throws IOException {
-        if (entry.hasVariants()) {
-            storeVariantEntry(target, request, entry);
-        } else {
-            storeNonVariantEntry(target, request, entry);
-        }
-    }
-
-    void storeNonVariantEntry(
-            HttpHost target, HttpRequest req, HttpCacheEntry entry) throws IOException {
-        String uri = uriExtractor.getURI(target, req);
-        responseCache.putEntry(uri, entry);
-    }
-
-    void storeVariantEntry(
-            final HttpHost target,
-            final HttpRequest req,
-            final HttpCacheEntry entry) throws IOException {
-        final String parentURI = uriExtractor.getURI(target, req);
-        final String variantURI = uriExtractor.getVariantURI(target, req, entry);
-        responseCache.putEntry(variantURI, entry);
-
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
-
-            public HttpCacheEntry update(HttpCacheEntry existing) throws IOException {
-                return doGetUpdatedParentEntry(
-                        req.getRequestLine().getUri(), existing, entry, variantURI);
-            }
-
-        };
-        responseCache.updateEntry(parentURI, callback);
-    }
-
-    HttpCacheEntry doGetUpdatedParentEntry(
-            final String requestId,
-            final HttpCacheEntry existing,
-            final HttpCacheEntry entry,
-            final String variantURI) throws IOException {
-        HttpCacheEntry src = existing;
-        if (src == null) {
-            src = entry;
-        }
-        Set<String> variants = new HashSet<String>(src.getVariantURIs());
-        variants.add(variantURI);
-        Resource resource = resourceFactory.copy(requestId, src.getResource());
-        return new HttpCacheEntry(
-                src.getRequestDate(),
-                src.getResponseDate(),
-                src.getStatusLine(),
-                src.getAllHeaders(),
-                resource,
-                variants);
-    }
-
-    HttpResponse correctIncompleteResponse(HttpResponse resp, Resource resource) {
-        int status = resp.getStatusLine().getStatusCode();
-        if (status != HttpStatus.SC_OK
-            && status != HttpStatus.SC_PARTIAL_CONTENT) {
-            return resp;
-        }
-        Header hdr = resp.getFirstHeader("Content-Length");
-        if (hdr == null) return resp;
-        int contentLength;
-        try {
-            contentLength = Integer.parseInt(hdr.getValue());
-        } catch (NumberFormatException nfe) {
-            return resp;
-        }
-        if (resource.length() >= contentLength) return resp;
-        HttpResponse error =
-            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
-        error.setHeader("Content-Type","text/plain;charset=UTF-8");
-        String msg = String.format("Received incomplete response " +
-                "with Content-Length %d but actual body length %d", contentLength, resource.length());
-        byte[] msgBytes = msg.getBytes();
-        error.setHeader("Content-Length", Integer.toString(msgBytes.length));
-        error.setEntity(new ByteArrayEntity(msgBytes));
-        return error;
     }
 
     HttpResponse handleBackendResponse(
@@ -640,40 +502,13 @@ public class CachingHttpClient implements HttpClient {
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
 
-        HttpResponse corrected = backendResponse;
         if (cacheable) {
-
-            SizeLimitedResponseReader responseReader = getResponseReader(request, backendResponse);
-            responseReader.readResponse();
-
-            if (responseReader.isLimitReached()) {
-                return responseReader.getReconstructedResponse();
-            }
-
-            Resource resource = responseReader.getResource();
-            corrected = correctIncompleteResponse(backendResponse, resource);
-            int correctedStatus = corrected.getStatusLine().getStatusCode();
-            if (HttpStatus.SC_BAD_GATEWAY != correctedStatus) {
-                HttpCacheEntry entry = new HttpCacheEntry(
-                            requestDate,
-                            responseDate,
-                            corrected.getStatusLine(),
-                            corrected.getAllHeaders(),
-                            resource,
-                            null);
-                storeInCache(target, request, entry);
-                return responseGenerator.generateResponse(entry);
-            }
+            return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate,
+                    responseDate);
         }
 
-        String uri = uriExtractor.getURI(target, request);
-        responseCache.removeEntry(uri);
-        return corrected;
-    }
-
-    SizeLimitedResponseReader getResponseReader(HttpRequest request, HttpResponse backEndResponse) {
-        return new SizeLimitedResponseReader(
-                resourceFactory, maxObjectSizeBytes, request, backEndResponse);
+        responseCache.flushCacheEntriesFor(target, request);
+        return backendResponse;
     }
 
 }

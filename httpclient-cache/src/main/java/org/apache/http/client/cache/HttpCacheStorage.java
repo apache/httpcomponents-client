@@ -27,34 +27,19 @@
 package org.apache.http.client.cache;
 
 import java.io.IOException;
-import java.util.Date;
-
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 
 /**
  * @since 4.1
  */
-public interface HttpCache {
+public interface HttpCacheStorage {
 
-    void flushCacheEntriesFor(HttpHost host, HttpRequest request)
-        throws IOException;
+    void putEntry(String key, HttpCacheEntry entry) throws IOException;
 
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request)
-        throws IOException;
+    HttpCacheEntry getEntry(String key) throws IOException;
 
-    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request)
-        throws IOException;
+    void removeEntry(String key) throws IOException;
 
-    HttpResponse cacheAndReturnResponse(
-            HttpHost host, HttpRequest request, HttpResponse originResponse,
-            Date requestSent, Date responseReceived)
-        throws IOException;
-
-    HttpResponse updateCacheEntry(
-            HttpHost target, HttpRequest request, HttpCacheEntry stale, HttpResponse originResponse,
-            Date requestSent, Date responseReceived)
-        throws IOException;
+    void updateEntry(
+            String key, HttpCacheUpdateCallback callback) throws IOException;
 
 }

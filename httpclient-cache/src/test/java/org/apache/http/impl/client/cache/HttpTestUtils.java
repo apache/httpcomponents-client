@@ -195,9 +195,13 @@ public class HttpTestUtils {
      */
     public static boolean semanticallyTransparent(HttpResponse r1, HttpResponse r2)
             throws Exception {
-        return (equivalent(r1.getEntity(), r2.getEntity())
-                && semanticallyTransparent(r1.getStatusLine(), r2.getStatusLine()) && isEndToEndHeaderSubset(
-                r1, r2));
+        final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
+        if (!entitiesEquivalent) return false;
+        final boolean statusLinesEquivalent = semanticallyTransparent(r1.getStatusLine(), r2.getStatusLine());
+        if (!statusLinesEquivalent) return false;
+        final boolean e2eHeadersEquivalentSubset = isEndToEndHeaderSubset(
+        r1, r2);
+        return e2eHeadersEquivalentSubset;
     }
 
     /* Assert.asserts that two requests are morally equivalent. */

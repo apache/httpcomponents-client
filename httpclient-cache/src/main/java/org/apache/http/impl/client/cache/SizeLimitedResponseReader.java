@@ -32,7 +32,6 @@ import java.io.InputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.cache.InputLimit;
 import org.apache.http.client.cache.Resource;
@@ -116,8 +115,7 @@ class SizeLimitedResponseReader {
 
     HttpResponse getReconstructedResponse() throws IOException {
         ensureConsumed();
-        HttpResponse reconstructed = new BasicHttpResponse(response.getProtocolVersion(),
-                HttpStatus.SC_OK, "Success");
+        HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
         reconstructed.setHeaders(response.getAllHeaders());
         reconstructed.setEntity(new CombinedEntity(resource, instream));
         return reconstructed;

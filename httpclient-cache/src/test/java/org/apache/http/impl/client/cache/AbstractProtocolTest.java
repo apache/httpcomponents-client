@@ -48,12 +48,13 @@ public abstract class AbstractProtocolTest {
 
         originResponse = make200Response();
 
-        cache = new BasicHttpCache(MAX_ENTRIES);
+        params = new CacheConfig();
+        params.setMaxCacheEntries(MAX_ENTRIES);
+        params.setMaxObjectSizeBytes(MAX_BYTES);
+        cache = new BasicHttpCache(params);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockCache = EasyMock.createMock(HttpCache.class);
-        params = new CacheConfig();
-        params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
     protected void replayMocks() {
@@ -89,18 +90,23 @@ public abstract class AbstractProtocolTest {
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockCache = EasyMock.createMock(HttpCache.class);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
-        EasyMock.expect(mockCache.getEntry((String) EasyMock.anyObject())).andReturn(null)
-                .anyTimes();
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
+            .andReturn(null).anyTimes();
+        mockCache.flushCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
+        EasyMock.expectLastCall().anyTimes();
 
-        mockCache.removeEntry(EasyMock.isA(String.class));
+        mockCache.flushCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
+        EasyMock.expectLastCall().anyTimes();
+
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();
     }
 
     protected void behaveAsNonSharedCache() {
         params.setSharedCache(false);
-        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
     public AbstractProtocolTest() {

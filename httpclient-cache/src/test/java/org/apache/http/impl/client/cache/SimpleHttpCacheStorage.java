@@ -24,37 +24,41 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.cache;
+package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
-/**
- * @since 4.1
- */
-public interface HttpCache {
+class SimpleHttpCacheStorage implements HttpCacheStorage {
 
-    void flushCacheEntriesFor(HttpHost host, HttpRequest request)
-        throws IOException;
+    public final Map<String,HttpCacheEntry> map;
 
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request)
-        throws IOException;
+    public SimpleHttpCacheStorage() {
+        map = new HashMap<String,HttpCacheEntry>();
+    }
 
-    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request)
-        throws IOException;
+    public void putEntry(String key, HttpCacheEntry entry) throws IOException {
+        map.put(key, entry);
+    }
 
-    HttpResponse cacheAndReturnResponse(
-            HttpHost host, HttpRequest request, HttpResponse originResponse,
-            Date requestSent, Date responseReceived)
-        throws IOException;
+    public HttpCacheEntry getEntry(String key) throws IOException {
+        return map.get(key);
+    }
 
-    HttpResponse updateCacheEntry(
-            HttpHost target, HttpRequest request, HttpCacheEntry stale, HttpResponse originResponse,
-            Date requestSent, Date responseReceived)
-        throws IOException;
+    public void removeEntry(String key) throws IOException {
+        map.remove(key);
+    }
+
+    public void updateEntry(String key, HttpCacheUpdateCallback callback)
+            throws IOException {
+        HttpCacheEntry v1 = map.get(key);
+        HttpCacheEntry v2 = callback.update(v1);
+        map.put(key,v2);
+    }
 
 }

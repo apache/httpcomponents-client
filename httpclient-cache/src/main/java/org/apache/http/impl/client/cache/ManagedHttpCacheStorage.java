@@ -33,13 +33,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.Resource;
 
 /**
- * {@link HttpCache} implementation capable of deallocating resources associated with
+ * {@link HttpCacheStorage} implementation capable of deallocating resources associated with
  * the cache entries. This cache keeps track of cache entries using {@link PhantomReference}
  * and maintains a collection of all resources that are no longer in use. The cache, however,
  * does not automatically deallocates associated resources by invoking {@link Resource#dispose()}
@@ -47,13 +47,13 @@ import org.apache.http.client.cache.Resource;
  * resource deallocation. The cache can be permanently shut down using {@link #shutdown()}
  * method. All resources associated with the entries used by the cache will be deallocated.
  *
- * This {@link HttpCache} implementation is intended for use with {@link FileCacheEntry}
+ * This {@link HttpCacheStorage} implementation is intended for use with {@link FileCacheEntry}
  * and similar.
  *
  * @since 4.1
  */
 @ThreadSafe
-public class ManagedHttpCache implements HttpCache {
+public class ManagedHttpCacheStorage implements HttpCacheStorage {
 
     private final CacheMap entries;
     private final ReferenceQueue<HttpCacheEntry> morque;
@@ -61,9 +61,9 @@ public class ManagedHttpCache implements HttpCache {
 
     private volatile boolean shutdown;
 
-    public ManagedHttpCache(int maxEntries) {
+    public ManagedHttpCacheStorage(final CacheConfig config) {
         super();
-        this.entries = new CacheMap(maxEntries);
+        this.entries = new CacheMap(config.getMaxCacheEntries());
         this.morque = new ReferenceQueue<HttpCacheEntry>();
         this.resources = new HashSet<ResourceReference>();
     }

@@ -31,15 +31,15 @@ import java.io.IOException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
-public class EhcacheHttpCache implements HttpCache {
+public class EhcacheHttpCacheStorage implements HttpCacheStorage {
 
     private final Ehcache cache;
 
-    public EhcacheHttpCache(Ehcache cache) {
+    public EhcacheHttpCacheStorage(Ehcache cache) {
         this.cache = cache;
     }
 

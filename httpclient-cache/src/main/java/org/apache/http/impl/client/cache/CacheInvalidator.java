@@ -40,6 +40,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -50,7 +51,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 @ThreadSafe // so long as the cache implementation is thread-safe
 class CacheInvalidator {
 
-    private final HttpCache cache;
+    private final HttpCacheStorage storage;
     private final URIExtractor uriExtractor;
 
     private final Log log = LogFactory.getLog(getClass());
@@ -60,13 +61,13 @@ class CacheInvalidator {
      * {@link URIExtractor}.
      *
      * @param uriExtractor Provides identifiers for the keys to store cache entries
-     * @param cache the cache to store items away in
+     * @param storage the cache to store items away in
      */
     public CacheInvalidator(
             final URIExtractor uriExtractor,
-            final HttpCache cache) {
+            final HttpCacheStorage storage) {
         this.uriExtractor = uriExtractor;
-        this.cache = cache;
+        this.storage = storage;
     }
 
     /**
@@ -82,15 +83,15 @@ class CacheInvalidator {
 
             String theUri = uriExtractor.getURI(host, req);
 
-            HttpCacheEntry parent = cache.getEntry(theUri);
+            HttpCacheEntry parent = storage.getEntry(theUri);
 
             log.debug("parent entry: " + parent);
 
             if (parent != null) {
                 for (String variantURI : parent.getVariantURIs()) {
-                    cache.removeEntry(variantURI);
+                    storage.removeEntry(variantURI);
                 }
-                cache.removeEntry(theUri);
+                storage.removeEntry(theUri);
             }
             URL reqURL;
             try {
@@ -115,7 +116,7 @@ class CacheInvalidator {
 
     protected void flushUriIfSameHost(URL requestURL, URL targetURL) throws IOException {
         if (targetURL.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
-            cache.removeEntry(targetURL.toString());
+            storage.removeEntry(targetURL.toString());
         }
     }
 

@@ -42,7 +42,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
@@ -2220,9 +2219,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        mockCache.putEntry(EasyMock.eq("http://foo.example.com/thing"), EasyMock.isA(HttpCacheEntry.class));
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         HttpRequest validate = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         validate.setHeader("If-None-Match", "\"etag\"");
@@ -2232,17 +2231,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
+        HttpResponse reconstructed = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), eqRequest(validate), (HttpContext) EasyMock
                         .isNull())).andReturn(notModified);
+        EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(request),
+                EasyMock.same(entry), EasyMock.same(notModified), EasyMock.isA(Date.class),
+                EasyMock.isA(Date.class)))
+            .andReturn(reconstructed);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
-        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+        Assert.assertSame(reconstructed, result);
     }
 
     @Test
@@ -2264,12 +2269,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
-        EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2305,16 +2311,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
-        EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
                         (HttpContext) EasyMock.isNull())).andThrow(
                 new IOException("can't talk to origin!")).anyTimes();
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         HttpResponse result = impl.execute(host, request);
 
@@ -2506,12 +2513,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
-        EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 
@@ -2550,7 +2558,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, mockCache, params);
+
+        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         HttpResponse validated = make200Response();
         validated.setHeader("Cache-Control", "public");
@@ -2558,18 +2568,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         validated.setHeader("Content-Length", "128");
         validated.setEntity(new ByteArrayEntity(bytes));
 
+        HttpResponse reconstructed = make200Response();
+
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
 
-        EasyMock.expect(mockCache.getEntry("http://foo.example.com/thing")).andReturn(entry);
-
-        mockCache.putEntry(EasyMock.isA(String.class), EasyMock.isA(HttpCacheEntry.class));
-
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.capture(cap),
                         (HttpContext) EasyMock.isNull())).andReturn(validated).times(0, 1);
+        EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(request), EasyMock.same(entry),
+                EasyMock.same(validated), EasyMock.isA(Date.class), EasyMock.isA(Date.class)))
+            .andReturn(reconstructed).times(0, 1);
 
         replayMocks();
-        request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
         HttpResponse result = impl.execute(host, request);
         verifyMocks();
 

@@ -75,14 +75,15 @@ public class DoNotTestProtocolRequirements {
         request = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
 
         originResponse = make200Response();
+        CacheConfig params = new CacheConfig();
+        params.setMaxObjectSizeBytes(MAX_BYTES);
+        params.setMaxCacheEntries(MAX_ENTRIES);
 
-        HttpCache cache = new BasicHttpCache(MAX_ENTRIES);
+        HttpCache cache = new BasicHttpCache(params);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockEntity = EasyMock.createMock(HttpEntity.class);
         mockCache = EasyMock.createMock(HttpCache.class);
-        CacheConfig params = new CacheConfig();
-        params.setMaxObjectSizeBytes(MAX_BYTES);
-        impl = new CachingHttpClient(mockBackend, cache, new HeapResourceFactory(), params);
+        impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
     private HttpResponse make200Response() {

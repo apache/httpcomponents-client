@@ -34,7 +34,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.easymock.classextension.EasyMock;
@@ -46,7 +46,7 @@ public class TestCacheInvalidator {
     private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
     private CacheInvalidator impl;
-    private HttpCache mockCache;
+    private HttpCacheStorage mockStorage;
     private HttpHost host;
     private URIExtractor extractor;
     private CacheEntry mockEntry;
@@ -54,20 +54,20 @@ public class TestCacheInvalidator {
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
-        mockCache = EasyMock.createMock(HttpCache.class);
+        mockStorage = EasyMock.createMock(HttpCacheStorage.class);
         extractor = new URIExtractor();
         mockEntry = EasyMock.createMock(CacheEntry.class);
 
-        impl = new CacheInvalidator(extractor, mockCache);
+        impl = new CacheInvalidator(extractor, mockStorage);
     }
 
     private void replayMocks() {
-        EasyMock.replay(mockCache);
+        EasyMock.replay(mockStorage);
         EasyMock.replay(mockEntry);
     }
 
     private void verifyMocks() {
-        EasyMock.verify(mockCache);
+        EasyMock.verify(mockStorage);
         EasyMock.verify(mockEntry);
     }
 
@@ -283,16 +283,16 @@ public class TestCacheInvalidator {
     }
 
     private void cacheReturnsEntryForUri(String theUri) throws IOException {
-        org.easymock.EasyMock.expect(mockCache.getEntry(theUri)).andReturn(mockEntry);
+        org.easymock.EasyMock.expect(mockStorage.getEntry(theUri)).andReturn(mockEntry);
     }
 
     private void cacheReturnsExceptionForUri(String theUri) throws IOException {
-        org.easymock.EasyMock.expect(mockCache.getEntry(theUri)).andThrow(
+        org.easymock.EasyMock.expect(mockStorage.getEntry(theUri)).andThrow(
                 new IOException("TOTAL FAIL"));
     }
 
     private void entryIsRemoved(String theUri) throws IOException {
-        mockCache.removeEntry(theUri);
+        mockStorage.removeEntry(theUri);
     }
 
 }
