@@ -41,7 +41,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.RequestLine;
-import org.apache.http.StatusLine;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -53,7 +52,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -452,18 +450,10 @@ public class CachingHttpClient implements HttpClient {
 
         Date requestDate = getCurrentDate();
 
-        try {
-            log.debug("Calling the backend");
-            HttpResponse backendResponse = backend.execute(target, request, context);
-            return handleBackendResponse(target, request, requestDate, getCurrentDate(),
-                                         backendResponse);
-        } catch (ClientProtocolException cpex) {
-            throw cpex;
-        } catch (IOException ex) {
-            StatusLine status = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_SERVICE_UNAVAILABLE, ex
-                    .getMessage());
-            return new BasicHttpResponse(status);
-        }
+        log.debug("Calling the backend");
+        HttpResponse backendResponse = backend.execute(target, request, context);
+        return handleBackendResponse(target, request, requestDate, getCurrentDate(),
+                backendResponse);
 
     }
 
