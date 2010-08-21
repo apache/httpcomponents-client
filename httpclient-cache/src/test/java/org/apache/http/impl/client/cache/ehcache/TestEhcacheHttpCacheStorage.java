@@ -41,7 +41,7 @@ import org.apache.http.impl.client.cache.CacheEntry;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
-public class TestEhcacheHttpCache extends TestCase {
+public class TestEhcacheHttpCacheStorage extends TestCase {
 
     private Ehcache mockCache;
     private EhcacheHttpCacheStorage impl;
