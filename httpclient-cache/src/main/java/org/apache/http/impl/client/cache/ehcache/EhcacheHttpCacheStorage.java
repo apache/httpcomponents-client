@@ -26,49 +26,75 @@
  */
 package org.apache.http.impl.client.cache.ehcache;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
 public class EhcacheHttpCacheStorage implements HttpCacheStorage {
 
     private final Ehcache cache;
+    private final HttpCacheEntrySerializer serializer;
 
     public EhcacheHttpCacheStorage(Ehcache cache) {
+        this(cache, new DefaultHttpCacheEntrySerializer());
+    }
+
+    public EhcacheHttpCacheStorage(Ehcache cache, HttpCacheEntrySerializer serializer){
         this.cache = cache;
+        this.serializer = serializer;
     }
 
     public synchronized void putEntry(String key, HttpCacheEntry entry) throws IOException {
-        cache.put(new Element(key, entry));
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        serializer.writeTo(entry, bos);
+        cache.put(new Element(key, bos.toByteArray()));
     }
 
-    public synchronized HttpCacheEntry getEntry(String url) {
-        Element e = cache.get(url);
-        return (e != null) ? (HttpCacheEntry)e.getValue() : null;
+    public synchronized HttpCacheEntry getEntry(String key) throws IOException {
+        Element e = cache.get(key);
+        if(e == null){
+            return null;
+        }
+
+        byte[] data = (byte[])e.getValue();
+        return serializer.readFrom(new ByteArrayInputStream(data));
     }
 
-    public synchronized void removeEntry(String url) {
-        cache.remove(url);
+    public synchronized void removeEntry(String key) {
+        cache.remove(key);
     }
 
     public synchronized void updateEntry(String key, HttpCacheUpdateCallback callback)
             throws IOException {
-        Element e = cache.get(key);
-        HttpCacheEntry existingEntry = (e != null) ? (HttpCacheEntry)e.getValue() : null;
+        Element oldElement = cache.get(key);
+
+        HttpCacheEntry existingEntry = null;
+        if(oldElement != null){
+            byte[] data = (byte[])oldElement.getValue();
+            existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
+        }
+
         HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
-        if (e == null) {
+        if (existingEntry == null) {
             putEntry(key, updatedEntry);
         } else {
             // Attempt to do a CAS replace, if we fail throw an IOException for now
             // While this operation should work fine within this instance, multiple instances
             //  could trample each others' data
-            if (!cache.replace(e, new Element(key, updatedEntry))) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            serializer.writeTo(updatedEntry, bos);
+            Element newElement = new Element(key, bos.toByteArray());
+            if (!cache.replace(oldElement, newElement)) {
                 throw new IOException();
             }
         }

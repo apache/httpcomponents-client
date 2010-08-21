@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-978] Ehcache based HTTP cache implementation
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
+
 * [HTTPCLIENT-969] BasicCookieStore#getCookies() to return a copy of Cookie list 
   Contributed by David Smiley <dsmiley at mitre.org>
 
