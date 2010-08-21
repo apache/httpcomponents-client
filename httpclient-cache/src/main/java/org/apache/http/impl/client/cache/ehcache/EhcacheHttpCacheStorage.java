@@ -35,6 +35,7 @@ import net.sf.ehcache.Element;
 
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
+import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
@@ -95,7 +96,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
             serializer.writeTo(updatedEntry, bos);
             Element newElement = new Element(key, bos.toByteArray());
             if (!cache.replace(oldElement, newElement)) {
-                throw new IOException();
+                throw new HttpCacheOperationException("Replace operation failed");
             }
         }
     }
