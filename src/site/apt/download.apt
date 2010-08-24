@@ -32,8 +32,8 @@ HttpClient Downloads
 
     The latest release available for download:
 
-    {{{http://hc.apache.org/downloads.cgi}4.0}} - 
-    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
+    {{{http://hc.apache.org/downloads.cgi}4.0.2}} - 
+    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.0.x.txt}Release Notes}} -
     {{{http://www.apache.org/licenses/LICENSE-2.0.html}License}}
 
 {Dependency management with Maven}
@@ -48,7 +48,7 @@ HttpClient Downloads
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.0</version>
+    <version>4.0.2</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
@@ -59,7 +59,7 @@ HttpClient Downloads
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.0</version>
+    <version>4.0.2</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
