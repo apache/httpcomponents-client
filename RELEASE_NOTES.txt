@@ -1,4 +1,11 @@
-Changes since 4.0.1
+Release 4.0.2
+-------------------
+
+This is a maintenance release that fixes a number of bugs discovered since 
+the previous stable release. This is likely to be the last release from the
+4.0.x branch.
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-951] Non-repeatable entity enclosing requests are not correctly
