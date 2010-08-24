@@ -41,6 +41,8 @@ import org.apache.http.cookie.SetCookie2;
 @NotThreadSafe
 public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 {
 
+    private static final long serialVersionUID = -6913749905211574650L;
+
     private String commentURL;
     private int[] ports;
     private boolean discard;
