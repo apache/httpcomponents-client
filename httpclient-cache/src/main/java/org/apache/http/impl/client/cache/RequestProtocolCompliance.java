@@ -63,12 +63,12 @@ class RequestProtocolCompliance {
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {
         List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
 
-        RequestProtocolError anError = requestContainsBodyButNoLength(request);
-        if (anError != null) {
-            theErrors.add(anError);
-        }
+        //RequestProtocolError anError = requestContainsBodyButNoLength(request);
+        //if (anError != null) {
+        //    theErrors.add(anError);
+        //}
 
-        anError = requestHasWeakETagAndRange(request);
+        RequestProtocolError anError = requestHasWeakETagAndRange(request);
         if (anError != null) {
             theErrors.add(anError);
         }
@@ -328,18 +328,6 @@ class RequestProtocolCompliance {
         }
 
         return null;
-    }
-
-    private RequestProtocolError requestContainsBodyButNoLength(HttpRequest request) {
-        if (!(request instanceof HttpEntityEnclosingRequest)) {
-            return null;
-        }
-
-        if (request.getFirstHeader(HTTP.CONTENT_LEN) != null
-                && ((HttpEntityEnclosingRequest) request).getEntity() != null)
-            return null;
-
-        return RequestProtocolError.BODY_BUT_NO_LENGTH_ERROR;
     }
 
     private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(HttpRequest request) {

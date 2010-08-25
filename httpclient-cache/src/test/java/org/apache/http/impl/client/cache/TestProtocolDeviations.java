@@ -49,6 +49,7 @@ import org.easymock.Capture;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -146,8 +147,14 @@ public class TestProtocolDeviations {
      * receiving a valid Content-Length."
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.4
+     *
+     * 8/23/2010 JRC - This test has been moved to Ignore.  The caching client
+     * was set to return status code 411 on a missing content-length header when
+     * a request had a body.  It seems that somewhere deeper in the client stack
+     * this header is added automatically for us - so the caching client shouldn't
+     * specifically be worried about this requirement.
      */
-    @Test
+    @Ignore
     public void testHTTP1_1RequestsWithBodiesOfKnownLengthMustHaveContentLength() throws Exception {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HTTP_1_1);
@@ -180,8 +187,14 @@ public class TestProtocolDeviations {
      * needs to happen in order to compute the content length.
      *
      * In any event, this test just captures the behavior required.
+     *
+     * 8/23/2010 JRC - This test has been moved to Ignore.  The caching client
+     * was set to return status code 411 on a missing content-length header when
+     * a request had a body.  It seems that somewhere deeper in the client stack
+     * this header is added automatically for us - so the caching client shouldn't
+     * specifically be worried about this requirement.
      */
-    @Test
+    @Ignore
     public void testHTTP1_1RequestsWithUnknownBodyLengthAreRejectedOrHaveContentLengthAdded()
             throws Exception {
         BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
