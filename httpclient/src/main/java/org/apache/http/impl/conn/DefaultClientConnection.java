@@ -138,20 +138,26 @@ public class DefaultClientConnection extends SocketHttpClientConnection
      */
     @Override
     public void shutdown() throws IOException {
-        log.debug("Connection shut down");
         shutdown = true;
-        
-        super.shutdown();        
-        Socket sock = this.socket; // copy volatile attribute
-        if (sock != null)
-            sock.close();
-
+        try {
+            super.shutdown();
+            log.debug("Connection shut down");
+            Socket sock = this.socket; // copy volatile attribute
+            if (sock != null)
+                sock.close();
+        } catch (IOException ex) {
+            log.debug("I/O error shutting down connection", ex);
+        }
     }
-    
+
     @Override
     public void close() throws IOException {
-        log.debug("Connection closed");
-        super.close();
+        try {
+            super.close();
+            log.debug("Connection closed");
+        } catch (IOException ex) {
+            log.debug("I/O error closing connection", ex);
+        }
     }
 
     @Override
