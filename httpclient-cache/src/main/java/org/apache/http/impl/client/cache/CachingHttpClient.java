@@ -45,6 +45,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -60,6 +61,8 @@ import org.apache.http.protocol.HttpContext;
  */
 @ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingHttpClient implements HttpClient {
+
+    public static final String CACHE_RESPONSE_STATUS = "http.cache.response.status";
 
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
 
@@ -352,13 +355,18 @@ public class CachingHttpClient implements HttpClient {
     public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context)
             throws IOException {
 
+        // default response context
+        setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
+
         if (clientRequestsOurOptions(request)) {
+            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new OptionsHttp11Response();
         }
 
         List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
 
         for (RequestProtocolError error : fatalError) {
+            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return requestCompliance.getErrorForRequest(error);
         }
 
@@ -393,6 +401,7 @@ public class CachingHttpClient implements HttpClient {
         cacheHits.getAndIncrement();
 
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry)) {
+            setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
             return responseGenerator.generateResponse(entry);
         }
 
@@ -404,8 +413,10 @@ public class CachingHttpClient implements HttpClient {
             } catch (IOException ioex) {
                 if (validityPolicy.mustRevalidate(entry)
                     || (isSharedCache() && validityPolicy.proxyRevalidate(entry))) {
+                    setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
                     return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
                 } else {
+                    setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
                     HttpResponse response = responseGenerator.generateResponse(entry);
                     response.addHeader(HeaderConstants.WARNING, "111 Revalidation Failed - " + ioex.getMessage());
                     log.debug("111 revalidation failed due to exception: " + ioex);
@@ -416,6 +427,12 @@ public class CachingHttpClient implements HttpClient {
             }
         }
         return callBackend(target, request, context);
+    }
+
+    private void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
+        if (context != null) {
+            context.setAttribute(CACHE_RESPONSE_STATUS, value);
+        }
     }
 
     public boolean supportsRangeAndContentRangeHeaders() {
@@ -472,6 +489,7 @@ public class CachingHttpClient implements HttpClient {
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
             cacheUpdates.getAndIncrement();
+            setResponseStatus(context, CacheResponseStatus.VALIDATED);
             return responseCache.updateCacheEntry(target, request, cacheEntry,
                     backendResponse, requestDate, responseDate);
         }
