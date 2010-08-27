@@ -435,7 +435,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testOrderOfMultipleViaHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader("Via", "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
         originResponse.addHeader("Via", "1.0 ricky, 1.1 mertz, 1.0 lucy");
-        testOrderOfMultipleHeadersIsPreservedOnResponses("Pragma");
+        testOrderOfMultipleHeadersIsPreservedOnResponses("Via");
     }
 
     @Test
@@ -5172,5 +5172,296 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(host,request);
         verifyMocks();
     }
+
+    /* "If multiple encodings have been applied to an entity, the content
+     * codings MUST be listed in the order in which they were applied."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
+     */
+    @Test
+    public void testOrderOfMultipleContentEncodingHeaderValuesIsPreserved()
+        throws Exception {
+        originResponse.addHeader("Content-Encoding","gzip");
+        originResponse.addHeader("Content-Encoding","deflate");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host,request);
+        verifyMocks();
+        int total_encodings = 0;
+        for(Header hdr : result.getHeaders("Content-Encoding")) {
+            for(HeaderElement elt : hdr.getElements()) {
+                switch(total_encodings) {
+                case 0:
+                    Assert.assertEquals("gzip", elt.getName());
+                    break;
+                case 1:
+                    Assert.assertEquals("deflate", elt.getName());
+                    break;
+                default:
+                    Assert.fail("too many encodings");
+                }
+                total_encodings++;
+            }
+        }
+        Assert.assertEquals(2, total_encodings);
+    }
+
+    @Test
+    public void testOrderOfMultipleParametersInContentEncodingHeaderIsPreserved()
+        throws Exception {
+        originResponse.addHeader("Content-Encoding","gzip,deflate");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host,request);
+        verifyMocks();
+        int total_encodings = 0;
+        for(Header hdr : result.getHeaders("Content-Encoding")) {
+            for(HeaderElement elt : hdr.getElements()) {
+                switch(total_encodings) {
+                case 0:
+                    Assert.assertEquals("gzip", elt.getName());
+                    break;
+                case 1:
+                    Assert.assertEquals("deflate", elt.getName());
+                    break;
+                default:
+                    Assert.fail("too many encodings");
+                }
+                total_encodings++;
+            }
+        }
+        Assert.assertEquals(2, total_encodings);
+    }
+
+    /* "A cache cannot assume that an entity with a Content-Location
+     * different from the URI used to retrieve it can be used to respond
+     * to later requests on that Content-Location URI."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.14
+     */
+    @Test
+    public void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public,max-age=3600");
+        resp1.setHeader("Etag","\"etag\"");
+        resp1.setHeader("Content-Location","http://foo.example.com/bar");
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/bar", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = make200Response();
+        resp2.setHeader("Cache-Control","public,max-age=3600");
+        resp2.setHeader("Etag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
+    /* "A received message that does not have a Date header field MUST be
+     * assigned one by the recipient if the message will be cached by that
+     * recipient or gatewayed via a protocol which requires a Date."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
+     */
+    @Test
+    public void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne()
+        throws Exception {
+        originResponse.removeHeaders("Date");
+        originResponse.setHeader("Cache-Control","public");
+        originResponse.setHeader("ETag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        Assert.assertNotNull(result.getFirstHeader("Date"));
+    }
+
+    /* "The Expires entity-header field gives the date/time after which the
+     * response is considered stale.... HTTP/1.1 clients and caches MUST
+     * treat other invalid date formats, especially including the value '0',
+     * as in the past (i.e., 'already expired')."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.21
+     */
+    private void testInvalidExpiresHeaderIsTreatedAsStale(
+            final String expiresHeader) throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Expires", expiresHeader);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = make200Response();
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        // second request to origin MUST happen
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
+    @Test
+    public void testMalformedExpiresHeaderIsTreatedAsStale()
+        throws Exception {
+        testInvalidExpiresHeaderIsTreatedAsStale("garbage");
+    }
+
+    @Test
+    public void testExpiresZeroHeaderIsTreatedAsStale()
+        throws Exception {
+        testInvalidExpiresHeaderIsTreatedAsStale("0");
+    }
+
+    /* "To mark a response as 'already expired,' an origin server sends
+     * an Expires date that is equal to the Date header value."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.21
+     */
+    @Test
+    public void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Cache-Control","public");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Expires", resp1.getFirstHeader("Date").getValue());
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = make200Response();
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        // second request to origin MUST happen
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
+    /* "If the response is being forwarded through a proxy, the proxy
+     * application MUST NOT modify the Server response-header."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.38
+     */
+    @Test
+    public void testDoesNotModifyServerResponseHeader()
+        throws Exception {
+        final String server = "MockServer/1.0";
+        originResponse.setHeader("Server", server);
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        Assert.assertEquals(server, result.getFirstHeader("Server").getValue());
+    }
+
+    /* "If multiple encodings have been applied to an entity, the transfer-
+     * codings MUST be listed in the order in which they were applied."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.41
+     */
+    @Test
+    public void testOrderOfMultipleTransferEncodingHeadersIsPreserved()
+        throws Exception {
+        originResponse.addHeader("Transfer-Encoding","chunked");
+        originResponse.addHeader("Transfer-Encoding","x-transfer");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        int transfer_encodings = 0;
+        for(Header h : result.getHeaders("Transfer-Encoding")) {
+            for(HeaderElement elt : h.getElements()) {
+                switch(transfer_encodings) {
+                case 0:
+                    Assert.assertEquals("chunked",elt.getName());
+                    break;
+                case 1:
+                    Assert.assertEquals("x-transfer",elt.getName());
+                    break;
+                default:
+                    Assert.fail("too many transfer encodings");
+                }
+                transfer_encodings++;
+            }
+        }
+        Assert.assertEquals(2, transfer_encodings);
+    }
+
+    @Test
+    public void testOrderOfMultipleTransferEncodingsInSingleHeadersIsPreserved()
+        throws Exception {
+        originResponse.addHeader("Transfer-Encoding","chunked, x-transfer");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        int transfer_encodings = 0;
+        for(Header h : result.getHeaders("Transfer-Encoding")) {
+            for(HeaderElement elt : h.getElements()) {
+                switch(transfer_encodings) {
+                case 0:
+                    Assert.assertEquals("chunked",elt.getName());
+                    break;
+                case 1:
+                    Assert.assertEquals("x-transfer",elt.getName());
+                    break;
+                default:
+                    Assert.fail("too many transfer encodings");
+                }
+                transfer_encodings++;
+            }
+        }
+        Assert.assertEquals(2, transfer_encodings);
+    }
+
+    /* "A Vary field value of '*' signals that unspecified parameters
+     * not limited to the request-headers (e.g., the network address
+     * of the client), play a role in the selection of the response
+     * representation. The '*' value MUST NOT be generated by a proxy
+     * server; it may only be generated by an origin server."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44
+     */
+    @Test
+    public void testVaryStarIsNotGeneratedByProxy()
+        throws Exception {
+        request.setHeader("User-Agent","my-agent/1.0");
+        originResponse.setHeader("Cache-Control","public, max-age=3600");
+        originResponse.setHeader("Vary","User-Agent");
+        originResponse.setHeader("ETag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        for(Header h : result.getHeaders("Vary")) {
+            for(HeaderElement elt : h.getElements()) {
+                Assert.assertFalse("*".equals(elt.getName()));
+            }
+        }
+    }
+
 
 }
