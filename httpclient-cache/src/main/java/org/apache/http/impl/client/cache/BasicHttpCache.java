@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -15,6 +17,7 @@ import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.entity.ByteArrayEntity;
@@ -29,6 +32,8 @@ public class BasicHttpCache implements HttpCache {
     private final CachedHttpResponseGenerator responseGenerator;
     private final CacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
+
+    private final Log log = LogFactory.getLog(getClass());
 
     public BasicHttpCache(ResourceFactory resourceFactory, HttpCacheStorage storage, CacheConfig config) {
         this.resourceFactory = resourceFactory;
@@ -85,7 +90,12 @@ public class BasicHttpCache implements HttpCache {
             }
 
         };
-        storage.updateEntry(parentURI, callback);
+
+        try {
+            storage.updateEntry(parentURI, callback);
+        } catch (HttpCacheUpdateException e) {
+            log.warn("Could not update key [" + parentURI + "]", e);
+        }
     }
 
 

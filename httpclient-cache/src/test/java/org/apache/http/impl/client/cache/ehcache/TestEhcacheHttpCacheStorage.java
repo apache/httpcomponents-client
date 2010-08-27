@@ -37,6 +37,8 @@ import net.sf.ehcache.Element;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.HttpCacheUpdateException;
+import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CacheEntry;
 import org.easymock.EasyMock;
 import org.junit.Test;
@@ -49,8 +51,10 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
 
     public void setUp() {
         mockCache = EasyMock.createMock(Ehcache.class);
+        CacheConfig config = new CacheConfig();
+        config.setMaxUpdateRetries(1);
         mockSerializer = EasyMock.createMock(HttpCacheEntrySerializer.class);
-        impl = new EhcacheHttpCacheStorage(mockCache, mockSerializer);
+        impl = new EhcacheHttpCacheStorage(mockCache, config, mockSerializer);
     }
 
     private void replayMocks(){
@@ -122,7 +126,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheUpdateNullEntry() throws IOException {
+    public void testCacheUpdateNullEntry() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
         final HttpCacheEntry updatedValue = new CacheEntry();
 
@@ -148,7 +152,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheUpdate() throws IOException {
+    public void testCacheUpdate() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
         final HttpCacheEntry existingValue = new CacheEntry();
         final HttpCacheEntry updatedValue = new CacheEntry();
@@ -172,6 +176,70 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
 
         replayMocks();
         impl.updateEntry(key, callback);
+        verifyMocks();
+    }
+
+    @Test
+    public void testSingleCacheUpdateRetry() throws IOException, HttpCacheUpdateException {
+        final String key = "foo";
+        final HttpCacheEntry existingValue = new CacheEntry();
+        final HttpCacheEntry updatedValue = new CacheEntry();
+
+        Element existingElement = new Element(key, new byte[]{});
+
+        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            public HttpCacheEntry update(HttpCacheEntry old){
+                assertEquals(existingValue, old);
+                return updatedValue;
+            }
+        };
+
+        // get existing old entry, will happen twice
+        EasyMock.expect(mockCache.get(key)).andReturn(existingElement).times(2);
+        EasyMock.expect(mockSerializer.readFrom(EasyMock.isA(InputStream.class))).andReturn(existingValue).times(2);
+
+        // update but fail
+        mockSerializer.writeTo(EasyMock.same(updatedValue), EasyMock.isA(OutputStream.class));
+        EasyMock.expectLastCall().times(2);
+        EasyMock.expect(mockCache.replace(EasyMock.same(existingElement), EasyMock.isA(Element.class))).andReturn(false);
+
+        // update again and succeed
+        EasyMock.expect(mockCache.replace(EasyMock.same(existingElement), EasyMock.isA(Element.class))).andReturn(true);
+
+        replayMocks();
+        impl.updateEntry(key, callback);
+        verifyMocks();
+    }
+
+    @Test
+    public void testCacheUpdateFail() throws IOException, HttpCacheUpdateException {
+        final String key = "foo";
+        final HttpCacheEntry existingValue = new CacheEntry();
+        final HttpCacheEntry updatedValue = new CacheEntry();
+
+        Element existingElement = new Element(key, new byte[]{});
+
+        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            public HttpCacheEntry update(HttpCacheEntry old){
+                assertEquals(existingValue, old);
+                return updatedValue;
+            }
+        };
+
+        // get existing old entry
+        EasyMock.expect(mockCache.get(key)).andReturn(existingElement).times(2);
+        EasyMock.expect(mockSerializer.readFrom(EasyMock.isA(InputStream.class))).andReturn(existingValue).times(2);
+
+        // update but fail
+        mockSerializer.writeTo(EasyMock.same(updatedValue), EasyMock.isA(OutputStream.class));
+        EasyMock.expectLastCall().times(2);
+        EasyMock.expect(mockCache.replace(EasyMock.same(existingElement), EasyMock.isA(Element.class))).andReturn(false).times(2);
+
+        replayMocks();
+        try{
+            impl.updateEntry(key, callback);
+            fail("Expected HttpCacheUpdateException");
+        } catch (HttpCacheUpdateException e) { }
         verifyMocks();
     }
 }

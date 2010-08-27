@@ -739,7 +739,7 @@ public class TestCachingHttpClient {
 
         impl.execute(host, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -752,7 +752,7 @@ public class TestCachingHttpClient {
 
         impl.execute(host, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -771,7 +771,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MISS,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -796,7 +796,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -835,7 +835,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.VALIDATED,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -867,7 +867,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test
@@ -899,7 +899,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
-                context.getAttribute("http.cache.response.context"));
+                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
 
     @Test

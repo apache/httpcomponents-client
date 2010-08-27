@@ -35,24 +35,32 @@ import net.sf.ehcache.Element;
 
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
-import org.apache.http.client.cache.HttpCacheOperationException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.HttpCacheUpdateException;
+import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
 public class EhcacheHttpCacheStorage implements HttpCacheStorage {
 
     private final Ehcache cache;
     private final HttpCacheEntrySerializer serializer;
+    private final int maxUpdateRetries;
 
     public EhcacheHttpCacheStorage(Ehcache cache) {
-        this(cache, new DefaultHttpCacheEntrySerializer());
+        this(cache, new CacheConfig(), new DefaultHttpCacheEntrySerializer());
     }
 
-    public EhcacheHttpCacheStorage(Ehcache cache, HttpCacheEntrySerializer serializer){
+    public EhcacheHttpCacheStorage(Ehcache cache, CacheConfig config){
+        this(cache, config, new DefaultHttpCacheEntrySerializer());
+    }
+
+    public EhcacheHttpCacheStorage(Ehcache cache, CacheConfig config, HttpCacheEntrySerializer serializer){
         this.cache = cache;
+        this.maxUpdateRetries = config.getMaxUpdateRetries();
         this.serializer = serializer;
     }
+
 
     public synchronized void putEntry(String key, HttpCacheEntry entry) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -75,29 +83,36 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
     }
 
     public synchronized void updateEntry(String key, HttpCacheUpdateCallback callback)
-            throws IOException {
-        Element oldElement = cache.get(key);
+            throws IOException, HttpCacheUpdateException {
+        int numRetries = 0;
+        do{
+            Element oldElement = cache.get(key);
 
-        HttpCacheEntry existingEntry = null;
-        if(oldElement != null){
-            byte[] data = (byte[])oldElement.getValue();
-            existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
-        }
-
-        HttpCacheEntry updatedEntry = callback.update(existingEntry);
-
-        if (existingEntry == null) {
-            putEntry(key, updatedEntry);
-        } else {
-            // Attempt to do a CAS replace, if we fail throw an IOException for now
-            // While this operation should work fine within this instance, multiple instances
-            //  could trample each others' data
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            serializer.writeTo(updatedEntry, bos);
-            Element newElement = new Element(key, bos.toByteArray());
-            if (!cache.replace(oldElement, newElement)) {
-                throw new HttpCacheOperationException("Replace operation failed");
+            HttpCacheEntry existingEntry = null;
+            if(oldElement != null){
+                byte[] data = (byte[])oldElement.getValue();
+                existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
             }
-        }
+
+            HttpCacheEntry updatedEntry = callback.update(existingEntry);
+
+            if (existingEntry == null) {
+                putEntry(key, updatedEntry);
+                return;
+            } else {
+                // Attempt to do a CAS replace, if we fail then retry
+                // While this operation should work fine within this instance, multiple instances
+                //  could trample each others' data
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                serializer.writeTo(updatedEntry, bos);
+                Element newElement = new Element(key, bos.toByteArray());
+                if (cache.replace(oldElement, newElement)) {
+                    return;
+                }else{
+                    numRetries++;
+                }
+            }
+        }while(numRetries <= maxUpdateRetries);
+        throw new HttpCacheUpdateException("Failed to update");
     }
 }

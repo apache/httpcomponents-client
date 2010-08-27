@@ -40,6 +40,6 @@ public interface HttpCacheStorage {
     void removeEntry(String key) throws IOException;
 
     void updateEntry(
-            String key, HttpCacheUpdateCallback callback) throws IOException;
+            String key, HttpCacheUpdateCallback callback) throws IOException, HttpCacheUpdateException;
 
 }

@@ -42,8 +42,14 @@ public class CacheConfig {
      */
     public final static int DEFAULT_MAX_CACHE_ENTRIES = 1000;
 
+    /** Default setting for the number of retries on a failed
+     * cache update
+     */
+    public final static int DEFAULT_MAX_UPDATE_RETRIES = 1;
+
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
+    private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
 
     private boolean isSharedCache = true;
 
@@ -95,5 +101,21 @@ public class CacheConfig {
      */
     public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
+    }
+
+    /**
+     * Returns the number of times to retry a cache update on failure
+     * @return int
+     */
+    public int getMaxUpdateRetries(){
+        return maxUpdateRetries;
+    }
+
+    /**
+     * Sets the number of times to retry a cache update on failure
+     * @param maxUpdateRetries int
+     */
+    public void setMaxUpdateRetries(int maxUpdateRetries){
+        this.maxUpdateRetries = maxUpdateRetries;
     }
 }

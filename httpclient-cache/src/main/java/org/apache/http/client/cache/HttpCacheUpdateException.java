@@ -26,22 +26,20 @@
  */
 package org.apache.http.client.cache;
 
-import java.io.IOException;
-
 /**
- * Signals that {@link HttpCacheStorage} encountered an error performing an caching operation.
+ * Signals that {@link HttpCacheStorage} encountered an error performing an update operation.
  *
  * @since 4.1
  */
-public class HttpCacheOperationException extends IOException {
+public class HttpCacheUpdateException extends Exception {
 
     private static final long serialVersionUID = 823573584868632876L;
 
-    public HttpCacheOperationException(String message) {
+    public HttpCacheUpdateException(String message) {
         super(message);
     }
 
-    public HttpCacheOperationException(String message, Throwable cause) {
+    public HttpCacheUpdateException(String message, Throwable cause) {
         super(message);
         initCause(cause);
     }
