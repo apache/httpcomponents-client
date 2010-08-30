@@ -41,6 +41,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.HeaderGroup;
 
 /**
  * Structure used to store an {@link HttpResponse} in a cache. Some entries can optionally depend
@@ -58,7 +59,7 @@ public class HttpCacheEntry implements Serializable {
     private final Date requestDate;
     private final Date responseDate;
     private final StatusLine statusLine;
-    private final CachedHeaderGroup responseHeaders;
+    private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Set<String> variantURIs;
 
@@ -102,7 +103,7 @@ public class HttpCacheEntry implements Serializable {
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;
-        this.responseHeaders = new CachedHeaderGroup();
+        this.responseHeaders = new HeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
         this.variantURIs = variants != null ? new HashSet<String>(variants) : new HashSet<String>();

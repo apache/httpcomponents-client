@@ -31,21 +31,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializationException;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
-import org.apache.http.client.cache.Resource;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.BasicStatusLine;
 
 /**
  * {@link HttpCacheEntrySerializer} implementation that uses the default (native)
@@ -58,74 +48,19 @@ import org.apache.http.message.BasicStatusLine;
 @Immutable
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
-    /**
-     *
-     * @param cacheEntry
-     * @param os
-     * @throws IOException
-     */
     public void writeTo(HttpCacheEntry cacheEntry, OutputStream os) throws IOException {
-
         ObjectOutputStream oos = new ObjectOutputStream(os);
         try {
-            oos.writeObject(cacheEntry.getRequestDate());
-            oos.writeObject(cacheEntry.getResponseDate());
-
-            // workaround to nonserializable BasicStatusLine object
-            // TODO: can change to directly serialize once new httpcore is released
-            oos.writeObject(cacheEntry.getStatusLine().getProtocolVersion());
-            oos.writeObject(cacheEntry.getStatusLine().getStatusCode());
-            oos.writeObject(cacheEntry.getStatusLine().getReasonPhrase());
-
-            // workaround to nonserializable BasicHeader object
-            // TODO: can change to directly serialize once new httpcore is released
-            Header[] headers = cacheEntry.getAllHeaders();
-            NameValuePair[] headerNvps = new NameValuePair[headers.length];
-            for(int i = 0; i < headers.length; i++){
-                headerNvps[i] = new BasicNameValuePair(headers[i].getName(), headers[i].getValue());
-            }
-            oos.writeObject(headerNvps);
-
-            oos.writeObject(cacheEntry.getResource());
-            oos.writeObject(cacheEntry.getVariantURIs());
+            oos.writeObject(cacheEntry);
         } finally {
             oos.close();
         }
     }
 
-    /**
-     *
-     * @param is
-     * @return the cache entry
-     * @throws IOException
-     */
-    @SuppressWarnings("unchecked")
     public HttpCacheEntry readFrom(InputStream is) throws IOException {
-
         ObjectInputStream ois = new ObjectInputStream(is);
         try {
-            Date requestDate = (Date)ois.readObject();
-            Date responseDate = (Date)ois.readObject();
-
-            // workaround to nonserializable BasicStatusLine object
-            // TODO: can change to directly serialize once new httpcore is released
-            ProtocolVersion pv = (ProtocolVersion) ois.readObject();
-            int status = (Integer) ois.readObject();
-            String reason = (String) ois.readObject();
-            StatusLine statusLine = new BasicStatusLine(pv, status, reason);
-
-            // workaround to nonserializable BasicHeader object
-            // TODO: can change to directly serialize once new httpcore is released
-            NameValuePair[] headerNvps = (NameValuePair[]) ois.readObject();
-            Header[] headers = new Header[headerNvps.length];
-            for(int i = 0; i < headerNvps.length; i++){
-                headers[i] = new BasicHeader(headerNvps[i].getName(), headerNvps[i].getValue());
-            }
-
-            Resource resource = (Resource) ois.readObject();
-            Set<String> variants = (Set<String>) ois.readObject();
-
-            return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, resource, variants);
+            return (HttpCacheEntry) ois.readObject();
         } catch (ClassNotFoundException ex) {
             throw new HttpCacheEntrySerializationException("Class not found: " + ex.getMessage(), ex);
         } finally {
