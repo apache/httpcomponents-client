@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -60,6 +59,7 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -231,10 +231,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -257,10 +254,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -287,10 +281,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -325,10 +316,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -355,10 +343,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -385,10 +370,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -411,10 +393,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -437,10 +416,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -501,10 +477,7 @@ public class TestRedirects extends BasicServerTestBase {
         httppost.setEntity(new StringEntity("stuff"));
 
         HttpResponse response = client.execute(getServerHttp(), httppost, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -529,10 +502,7 @@ public class TestRedirects extends BasicServerTestBase {
         httppost.setEntity(new StringEntity("stuff"));
 
         HttpResponse response = client.execute(getServerHttp(), httppost, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -557,10 +527,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/oldlocation/");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -588,10 +555,7 @@ public class TestRedirects extends BasicServerTestBase {
         HttpGet httpget = new HttpGet("/test/oldlocation");
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -678,10 +642,7 @@ public class TestRedirects extends BasicServerTestBase {
 
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -714,10 +675,7 @@ public class TestRedirects extends BasicServerTestBase {
 
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);

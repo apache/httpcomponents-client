@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -74,6 +73,7 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -607,10 +607,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
 
         HttpResponse response = client.execute(httpget);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
 
@@ -630,10 +627,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         httpget.getParams().setParameter(ClientPNames.DEFAULT_HOST, target2);
 
         HttpResponse response = client.execute(httpget);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
 
@@ -717,10 +711,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);

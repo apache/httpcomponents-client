@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -59,6 +58,7 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -301,15 +301,13 @@ public class TestConnectionReuse {
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
         HttpResponse response = client.execute(target, new HttpGet("/random/2000"));
-        if(response.getEntity() != null)
-            response.getEntity().consumeContent();
+        EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(1, mgr.getConnectionsInPool());
         Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         response = client.execute(target, new HttpGet("/random/2000"));
-        if(response.getEntity() != null)
-            response.getEntity().consumeContent();
+        EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(1, mgr.getConnectionsInPool());
         Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
@@ -317,8 +315,7 @@ public class TestConnectionReuse {
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
         response = client.execute(target, new HttpGet("/random/2000"));
-        if(response.getEntity() != null)
-            response.getEntity().consumeContent();
+        EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(1, mgr.getConnectionsInPool());
         Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
@@ -327,8 +324,7 @@ public class TestConnectionReuse {
         // sure we reuse that connection.
         Thread.sleep(500);
         response = client.execute(target, new HttpGet("/random/2000"));
-        if(response.getEntity() != null)
-            response.getEntity().consumeContent();
+        EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(1, mgr.getConnectionsInPool());
         Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
@@ -372,10 +368,7 @@ public class TestConnectionReuse {
                     if (this.forceClose) {
                         httpget.abort();
                     } else {
-                        HttpEntity entity = response.getEntity();
-                        if (entity != null) {
-                            entity.consumeContent();
-                        }
+                        EntityUtils.consume(response.getEntity());
                     }
                 }
             } catch (Exception ex) {

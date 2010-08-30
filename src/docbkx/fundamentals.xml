@@ -296,16 +296,30 @@ important message
         </section>
         <section>
             <title>Ensuring release of low level resources</title>
-            <para>When finished with a response entity, it's important to ensure that all entity
-                content has been fully consumed, so that the connection could be safely returned to
-                the connection pool and re-used by the connection manager for subsequent requests.
-                The easiest way to do so is to call the
-                    <methodname>HttpEntity#consumeContent(</methodname>) method to consume any
-                available content on the stream. HttpClient will automatically release the
-                underlying connection back to the connection manager as soon as it detects that the
-                end of the content stream has been reached. The
-                    <methodname>HttpEntity#consumeContent()</methodname> method is safe to call more
-                than once.</para>
+            <para> In order to ensure proper release of system resources one must close the content
+                stream associated with the entity.</para>
+            <programlisting><![CDATA[
+HttpResponse response;
+HttpEntity entity = response.getEntity();
+if (entity != null) {
+    InputStream instream = entity.getContent();
+    try {
+        // do something useful
+    } finally {
+        instream.close();
+    }
+}
+]]></programlisting>
+            <para>Please note that <methodname>HttpEntity#writeTo(OutputStream)</methodname> 
+                method is also required to ensure proper release of system resources once the 
+                entity has been fully written out. If this method obtains an instance of 
+                <classname>java.io.InputStream</classname> by calling 
+                <methodname>HttpEntity#getContent()</methodname>, it is also expected to close
+                the stream in a finally clause.</para>
+            <para>When working with streaming entities, one can use the
+                <methodname>EntityUtils#consume(HttpEntity)</methodname> method to ensure that
+                the entity content has been fully consumed and the underlying stream has been
+                closed.</para>
             <para>There can be situations, however, when only a small portion of the entire response
                 content needs to be retrieved and the performance penalty for consuming the
                 remaining content and making the connection reusable is too high, one can simply

@@ -57,7 +57,7 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
 
     private HttpEntity entity;
     private boolean consumed;
-    
+
     public EntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request)
         throws ProtocolException {
         super(request);
@@ -84,11 +84,12 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
     }
 
     class EntityWrapper extends HttpEntityWrapper {
-        
+
         EntityWrapper(final HttpEntity entity) {
             super(entity);
         }
 
+        @Deprecated
         @Override
         public void consumeContent() throws IOException {
             consumed = true;
@@ -106,7 +107,7 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
             consumed = true;
             super.writeTo(outstream);
         }
-        
+
     }
-    
+
 }

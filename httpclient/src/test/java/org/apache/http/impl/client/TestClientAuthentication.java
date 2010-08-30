@@ -60,6 +60,7 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,12 +104,12 @@ public class TestClientAuthentication extends BasicServerTestBase {
     static class AuthExpectationVerifier implements HttpExpectationVerifier {
 
         private final BasicAuthTokenExtractor authTokenExtractor;
-        
+
         public AuthExpectationVerifier() {
             super();
             this.authTokenExtractor = new BasicAuthTokenExtractor();
         }
-        
+
         public void verify(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -166,7 +167,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
-        entity.consumeContent();
+        EntityUtils.consume(entity);
         AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
@@ -189,7 +190,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
-        entity.consumeContent();
+        EntityUtils.consume(entity);
         AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
@@ -212,7 +213,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
-        entity.consumeContent();
+        EntityUtils.consume(entity);
         AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
@@ -298,7 +299,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
-        entity.consumeContent();
+        EntityUtils.consume(entity);
         AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
@@ -384,13 +385,13 @@ public class TestClientAuthentication extends BasicServerTestBase {
         HttpEntity entity1 = response1.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity1);
-        entity1.consumeContent();
+        EntityUtils.consume(entity1);
 
         HttpResponse response2 = httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity entity2 = response1.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity2);
-        entity1.consumeContent();
+        EntityUtils.consume(entity2);
 
         Assert.assertEquals(1, authHandler.getCount());
     }

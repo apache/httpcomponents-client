@@ -42,6 +42,7 @@ import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,12 +90,12 @@ public class TestUriEscapes extends BasicServerTestBase {
             String request = "http://" + host + ":" + port + uri;
             HttpGet httpget = new HttpGet(request);
             response = client.execute(httpget);
-            response.getEntity().consumeContent();
+            EntityUtils.consume(response.getEntity());
         } else {
             HttpHost target = new HttpHost(host, port);
             HttpGet httpget = new HttpGet(uri);
             response = client.execute(target, httpget);
-            response.getEntity().consumeContent();
+            EntityUtils.consume(response.getEntity());
         }
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());

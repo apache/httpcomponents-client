@@ -27,7 +27,6 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -47,6 +46,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -185,10 +185,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
 
                     this.context.setAttribute("r" + r, conn.getState());
 
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        entity.consumeContent();
-                    }
+                    EntityUtils.consume(response.getEntity());
                 }
 
             } catch (Exception ex) {
@@ -229,10 +226,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         context1.setAttribute("user", "stuff");
         HttpResponse response1 = client.execute(
                 new HttpHost("localhost", port), new HttpGet("/"), context1);
-        HttpEntity entity1 = response1.getEntity();
-        if (entity1 != null) {
-            entity1.consumeContent();
-        }
+        EntityUtils.consume(response1.getEntity());
 
         // The ConnPoolByRoute now has 1 free connection, out of 2 max
         // The ConnPoolByRoute has one RouteSpcfcPool, that has one free connection
@@ -245,10 +239,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpContext context2 = new BasicHttpContext();
         HttpResponse response2 = client.execute(
                 new HttpHost("127.0.0.1", port), new HttpGet("/"), context2);
-        HttpEntity entity2 = response2.getEntity();
-        if (entity2 != null) {
-            entity2.consumeContent();
-        }
+        EntityUtils.consume(response2.getEntity());
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
         // The [localhost][stuff] RouteSpcfcPool is the same as earlier
         // And there is a [127.0.0.1][null] pool with 1 free connection
@@ -267,10 +258,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool
         // this may fail. Ex : if the ConnPool discared the route pool because it was empty,
         // but still used it to build the request3 connection.
-        HttpEntity entity3 = response3.getEntity();
-        if (entity3 != null) {
-            entity3.consumeContent();
-        }
+        EntityUtils.consume(response3.getEntity());
 
     }
 

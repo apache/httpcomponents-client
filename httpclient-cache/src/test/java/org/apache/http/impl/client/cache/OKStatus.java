@@ -32,6 +32,8 @@ import org.apache.http.message.BasicStatusLine;
 
 public class OKStatus extends BasicStatusLine {
 
+    private static final long serialVersionUID = -1639872615816850272L;
+
     public OKStatus() {
         super(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
     }

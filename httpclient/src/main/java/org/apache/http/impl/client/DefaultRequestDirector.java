@@ -89,6 +89,7 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Default implementation of {@link RequestDirector}.
@@ -485,9 +486,7 @@ public class DefaultRequestDirector implements RequestDirector {
                     if (reuse) {
                         // Make sure the response body is fully consumed, if present
                         HttpEntity entity = response.getEntity();
-                        if (entity != null) {
-                            entity.consumeContent();
-                        }
+                        EntityUtils.consume(entity);
                         // entity consumed above is not an auto-release entity,
                         // need to mark the connection re-usable explicitly
                         managedConn.markReusable();
@@ -875,9 +874,7 @@ public class DefaultRequestDirector implements RequestDirector {
                             this.log.debug("Connection kept alive");
                             // Consume response content
                             HttpEntity entity = response.getEntity();
-                            if (entity != null) {
-                                entity.consumeContent();
-                            }
+                            EntityUtils.consume(entity);
                         } else {
                             this.managedConn.close();
                         }

@@ -87,7 +87,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
         HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
-        e.consumeContent();
+        EntityUtils.consume(e);
 
         // Expect one connection in the pool
         Assert.assertEquals(1, mgr.getConnectionsInPool());

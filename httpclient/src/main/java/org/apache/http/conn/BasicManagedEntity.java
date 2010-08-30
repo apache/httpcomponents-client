@@ -35,6 +35,7 @@ import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.util.EntityUtils;
 
 /**
  * An entity that releases a {@link ManagedClientConnection connection}.
@@ -87,15 +88,14 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return new EofSensorInputStream(wrappedEntity.getContent(), this);
     }
 
-    @Override
-    public void consumeContent() throws IOException {
+    private void ensureConsumed() throws IOException {
         if (managedConn == null)
             return;
 
         try {
             if (attemptReuse) {
                 // this will not trigger a callback from EofSensorInputStream
-                wrappedEntity.consumeContent();
+                EntityUtils.consume(wrappedEntity);
                 managedConn.markReusable();
             }
         } finally {
@@ -103,14 +103,20 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
+    @Deprecated
+    @Override
+    public void consumeContent() throws IOException {
+        ensureConsumed();
+    }
+
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         super.writeTo(outstream);
-        consumeContent();
+        ensureConsumed();
     }
 
     public void releaseConnection() throws IOException {
-        this.consumeContent();
+        ensureConsumed();
     }
 
     public void abortConnection() throws IOException {

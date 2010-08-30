@@ -28,7 +28,6 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -41,6 +40,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,10 +85,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);
@@ -111,10 +108,7 @@ public class TestRequestWrapper extends BasicServerTestBase {
         HttpGet httpget = new HttpGet(s);
 
         HttpResponse response = client.execute(getServerHttp(), httpget, context);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
                 ExecutionContext.HTTP_REQUEST);

@@ -30,7 +30,6 @@ package org.apache.http.impl.conn;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -48,6 +47,7 @@ import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -128,10 +128,7 @@ public class TestIdleConnectionEviction extends ServerTestBase {
                         this.request.abort();
                         throw new ClientProtocolException("Unexpected status code: " + status);
                     }
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        entity.consumeContent();
-                    }
+                    EntityUtils.consume(response.getEntity());
                     Thread.sleep(10);
                 }
             } catch (Exception ex) {

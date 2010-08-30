@@ -29,9 +29,6 @@ package org.apache.http.impl.auth;
 import java.io.IOException;
 import java.security.Principal;
 
-import junit.framework.Assert;
-
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -51,12 +48,14 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -188,10 +187,7 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = client.execute(httpget);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         ((NegotiateSchemeFactoryWithMockGssManager)nsf).scheme.verify();
 
@@ -222,10 +218,7 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = client.execute(httpget);
-        HttpEntity e = response.getEntity();
-        if (e != null) {
-            e.consumeContent();
-        }
+        EntityUtils.consume(response.getEntity());
 
         nsf.scheme.verify();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());

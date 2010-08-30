@@ -52,6 +52,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,9 +99,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
-        if (e1 != null) {
-            e1.consumeContent();
-        }
+        EntityUtils.consume(e1);
 
         List<Cookie> cookies = cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -108,9 +107,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
-        if (e2 != null) {
-            e2.consumeContent();
-        }
+        EntityUtils.consume(e2);
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
@@ -150,9 +147,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
-        if (e1 != null) {
-            e1.consumeContent();
-        }
+        EntityUtils.consume(e1);
 
         List<Cookie> cookies = cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -160,9 +155,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
-        if (e2 != null) {
-            e2.consumeContent();
-        }
+        EntityUtils.consume(e2);
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
@@ -201,9 +194,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
-        if (e1 != null) {
-            e1.consumeContent();
-        }
+        EntityUtils.consume(e1);
 
         List<Cookie> cookies = cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -211,9 +202,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
-        if (e2 != null) {
-            e2.consumeContent();
-        }
+        EntityUtils.consume(e2);
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
@@ -253,9 +242,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
-        if (e1 != null) {
-            e1.consumeContent();
-        }
+        EntityUtils.consume(e1);
 
         List<Cookie> cookies = cookieStore.getCookies();
         Assert.assertNotNull(cookies);
