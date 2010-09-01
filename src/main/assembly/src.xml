@@ -33,7 +33,7 @@
         <!-- Release materials -->
         <fileSet>
           <directory></directory>
-          <outputDirectory>/</outputDirectory>
+          <outputDirectory></outputDirectory>
           <excludes>
             <exclude>**/.*</exclude>
             <exclude>**/.*/**</exclude>
