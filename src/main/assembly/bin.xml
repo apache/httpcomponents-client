@@ -40,7 +40,7 @@
           </excludes>
           <binaries>
             <includeDependencies>false</includeDependencies>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <unpack>false</unpack>
           </binaries>
         </moduleSet>
@@ -48,7 +48,7 @@
     <fileSets>
         <fileSet>
           <directory></directory>
-          <outputDirectory>/</outputDirectory>
+          <outputDirectory></outputDirectory>
           <includes>
             <include>README.txt</include>
             <include>LICENSE.txt</include>

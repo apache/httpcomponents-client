@@ -39,16 +39,18 @@
             <exclude>org.apache.httpcomponents:httpclient-osgi</exclude>
           </excludes>
           <binaries>
-            <includeDependencies>true</includeDependencies>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <unpack>false</unpack>
+            <dependencySets>
+                <dependencySet/>
+            </dependencySets>
           </binaries>
         </moduleSet>
     </moduleSets>
     <fileSets>
         <fileSet>
           <directory></directory>
-          <outputDirectory>/</outputDirectory>
+          <outputDirectory></outputDirectory>
           <includes>
             <include>README.txt</include>
             <include>LICENSE.txt</include>
