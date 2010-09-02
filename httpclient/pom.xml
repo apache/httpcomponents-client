@@ -113,6 +113,30 @@
         </includes>
       </resource>
     </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+            <include>*</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>..</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE.txt</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>../src/main/resources</directory>
+        <targetPath>META-INF</targetPath>
+        <filtering>true</filtering>
+        <includes>
+          <include>NOTICE.txt</include>
+        </includes>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
