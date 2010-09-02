@@ -111,12 +111,6 @@
         <artifactId>maven-site-plugin</artifactId>
       </plugin>
       <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <tagBase>https://svn.apache.org/repos/asf/httpcomponents/httpclient/tags/</tagBase>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
