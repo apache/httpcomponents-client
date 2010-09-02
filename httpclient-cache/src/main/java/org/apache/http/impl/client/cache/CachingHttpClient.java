@@ -35,11 +35,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
@@ -55,6 +57,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.VersionInfo;
 
 /**
  * @since 4.1
@@ -358,6 +361,8 @@ public class CachingHttpClient implements HttpClient {
         // default response context
         setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
 
+        String via = generateViaHeader(request);
+
         if (clientRequestsOurOptions(request)) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new OptionsHttp11Response();
@@ -375,6 +380,7 @@ public class CachingHttpClient implements HttpClient {
         } catch (ProtocolException e) {
             throw new ClientProtocolException(e);
         }
+        request.addHeader("Via",via);
 
         responseCache.flushInvalidatedCacheEntriesFor(target, request);
 
@@ -429,6 +435,19 @@ public class CachingHttpClient implements HttpClient {
         return callBackend(target, request, context);
     }
 
+    private String generateViaHeader(HttpMessage msg) {
+        final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
+        final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
+        final ProtocolVersion pv = msg.getProtocolVersion();
+        if ("http".equalsIgnoreCase(pv.getProtocol())) {
+            return String.format("%d.%d localhost (Apache-HttpClient/%s (cache))",
+                pv.getMajor(), pv.getMinor(), release);
+        } else {
+            return String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))",
+                    pv.getProtocol(), pv.getMajor(), pv.getMinor(), release);
+        }
+    }
+
     private void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
         if (context != null) {
             context.setAttribute(CACHE_RESPONSE_STATUS, value);
@@ -469,6 +488,7 @@ public class CachingHttpClient implements HttpClient {
 
         log.debug("Calling the backend");
         HttpResponse backendResponse = backend.execute(target, request, context);
+        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
         return handleBackendResponse(target, request, requestDate, getCurrentDate(),
                 backendResponse);
 

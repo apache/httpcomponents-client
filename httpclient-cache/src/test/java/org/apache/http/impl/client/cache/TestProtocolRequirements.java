@@ -31,6 +31,8 @@ import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -5463,5 +5465,147 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
     }
 
+    /* "The Via general-header field MUST be used by gateways and proxies
+     * to indicate the intermediate protocols and recipients between the
+     * user agent and the server on requests, and between the origin server
+     * and the client on responses."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45
+     */
+    @Test
+    public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        request.removeHeaders("Via");
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+            .andReturn(originResponse);
 
+        replayMocks();
+        impl.execute(host, request);
+        verifyMocks();
+
+        HttpRequest captured = cap.getValue();
+        String via = captured.getFirstHeader("Via").getValue();
+        assertValidViaHeader(via);
+    }
+
+    @Test
+    public void testProperlyFormattedViaHeaderIsAddedToResponses() throws Exception {
+        originResponse.removeHeaders("Via");
+        backendExpectsAnyRequest().andReturn(originResponse);
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        assertValidViaHeader(result.getFirstHeader("Via").getValue());
+    }
+
+
+    private void assertValidViaHeader(String via) {
+        //    	Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
+        //        received-protocol = [ protocol-name "/" ] protocol-version
+        //        protocol-name     = token
+        //        protocol-version  = token
+        //        received-by       = ( host [ ":" port ] ) | pseudonym
+        //        pseudonym         = token
+
+        String[] parts = via.split("\\s+");
+        Assert.assertTrue(parts.length >= 2);
+
+        // received protocol
+        String receivedProtocol = parts[0];
+        String[] protocolParts = receivedProtocol.split("/");
+        Assert.assertTrue(protocolParts.length >= 1);
+        Assert.assertTrue(protocolParts.length <= 2);
+
+        final String tokenRegexp = "[^\\p{Cntrl}()<>@,;:\\\\\"/\\[\\]?={} \\t]+";
+        for(String protocolPart : protocolParts) {
+            Assert.assertTrue(Pattern.matches(tokenRegexp, protocolPart));
+        }
+
+        // received-by
+        if (!Pattern.matches(tokenRegexp, parts[1])) {
+            // host : port
+            new HttpHost(parts[1]);
+        }
+
+        // comment
+        if (parts.length > 2) {
+            StringBuilder buf = new StringBuilder(parts[2]);
+            for(int i=3; i<parts.length; i++) {
+                buf.append(" "); buf.append(parts[i]);
+            }
+            Assert.assertTrue(isValidComment(buf.toString()));
+        }
+    }
+
+    private boolean isValidComment(String s) {
+        final String leafComment = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
+        final String nestedPrefix = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\(";
+        final String nestedSuffix = "\\)([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
+
+        if (Pattern.matches(leafComment,s)) return true;
+        Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
+        Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
+        if (!pref.find()) return false;
+        if (!suff.find()) return false;
+        return isValidComment(s.substring(pref.end() - 1, suff.start() + 1));
+    }
+
+
+    /*
+     * "The received-protocol indicates the protocol version of the message
+     * received by the server or client along each segment of the request/
+     * response chain. The received-protocol version is appended to the Via
+     * field value when the message is forwarded so that information about
+     * the protocol capabilities of upstream applications remains visible
+     * to all recipients."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45
+     */
+    @Test
+    public void testViaHeaderOnRequestProperlyRecordsClientProtocol()
+            throws Exception {
+        request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0);
+        request.removeHeaders("Via");
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+                .andReturn(originResponse);
+
+        replayMocks();
+        impl.execute(host, request);
+        verifyMocks();
+
+        HttpRequest captured = cap.getValue();
+        String via = captured.getFirstHeader("Via").getValue();
+        String protocol = via.split("\\s+")[0];
+        String[] protoParts = protocol.split("/");
+        if (protoParts.length > 1) {
+            Assert.assertTrue("http".equalsIgnoreCase(protoParts[0]));
+        }
+        Assert.assertEquals("1.0",protoParts[protoParts.length-1]);
+    }
+
+    @Test
+    public void testViaHeaderOnResponseProperlyRecordsOriginProtocol()
+        throws Exception {
+
+        originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_NO_CONTENT, "No Content");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        String via = result.getFirstHeader("Via").getValue();
+        String protocol = via.split("\\s+")[0];
+        String[] protoParts = protocol.split("/");
+        Assert.assertTrue(protoParts.length >= 1);
+        Assert.assertTrue(protoParts.length <= 2);
+        if (protoParts.length > 1) {
+            Assert.assertTrue("http".equalsIgnoreCase(protoParts[0]));
+        }
+        Assert.assertEquals("1.0", protoParts[protoParts.length - 1]);
+    }
 }
