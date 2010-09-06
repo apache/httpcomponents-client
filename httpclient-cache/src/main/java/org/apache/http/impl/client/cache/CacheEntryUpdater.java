@@ -107,9 +107,8 @@ class CacheEntryUpdater {
         }
 
         removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
-
-        cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
         removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
+        cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
 
         return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
     }

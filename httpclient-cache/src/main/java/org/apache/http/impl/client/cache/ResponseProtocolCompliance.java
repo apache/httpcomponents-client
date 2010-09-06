@@ -26,8 +26,11 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -38,7 +41,9 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.impl.client.RequestWrapper;
+import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -77,6 +82,38 @@ class ResponseProtocolCompliance {
         ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(request, response);
 
         ensure206ContainsDateHeader(response);
+
+        warningsWithNonMatchingWarnDatesAreRemoved(response);
+    }
+
+    private void warningsWithNonMatchingWarnDatesAreRemoved(
+            HttpResponse response) {
+        Date responseDate = null;
+        try {
+            responseDate = DateUtils.parseDate(response.getFirstHeader("Date").getValue());
+        } catch (DateParseException e) {
+        }
+        if (responseDate == null) return;
+        Header[] warningHeaders = response.getHeaders("Warning");
+        if (warningHeaders == null || warningHeaders.length == 0) return;
+        List<Header> newWarningHeaders = new ArrayList<Header>();
+        boolean modified = false;
+        for(Header h : warningHeaders) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                Date warnDate = wv.getWarnDate();
+                if (warnDate == null || warnDate.equals(responseDate)) {
+                    newWarningHeaders.add(new BasicHeader("Warning",wv.toString()));
+                } else {
+                    modified = true;
+                }
+            }
+        }
+        if (modified) {
+            response.removeHeaders("Warning");
+            for(Header h : newWarningHeaders) {
+                response.addHeader(h);
+            }
+        }
     }
 
     private void authenticationRequiredDidNotHaveAProxyAuthenticationHeader(HttpRequest request,

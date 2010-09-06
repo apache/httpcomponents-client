@@ -2291,6 +2291,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * there was a communication failure."
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.1.1
+     *
+     * "111 Revalidation failed MUST be included if a cache returns a stale
+     * response because an attempt to revalidate the response failed, due to an
+     * inability to reach the server."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
     public void testMustServeAppropriateErrorOrWarningIfNoOriginCommunicationPossible()
@@ -2538,6 +2544,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * been added."
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.4
+     *
+     * "113 Heuristic expiration MUST be included if the cache heuristically
+     * chose a freshness lifetime greater than 24 hours and the response's age
+     * is greater than 24 hours."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
     public void testHeuristicCacheOlderThan24HoursHasWarningAttached() throws Exception {
@@ -4705,6 +4717,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * is stale).
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
+     *
+     * "110 Response is stale MUST be included whenever the returned
+     * response is stale."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
     public void testWarning110IsAddedToStaleResponses()
@@ -5478,7 +5495,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request.removeHeaders("Via");
         EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
                 EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
-            .andReturn(originResponse);
+                .andReturn(originResponse);
 
         replayMocks();
         impl.execute(host, request);
@@ -5564,7 +5581,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testViaHeaderOnRequestProperlyRecordsClientProtocol()
-            throws Exception {
+    throws Exception {
         request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0);
         request.removeHeaders("Via");
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
@@ -5588,7 +5605,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testViaHeaderOnResponseProperlyRecordsOriginProtocol()
-        throws Exception {
+    throws Exception {
 
         originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_NO_CONTENT, "No Content");
 
@@ -5608,4 +5625,184 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
         Assert.assertEquals("1.0", protoParts[protoParts.length - 1]);
     }
+
+    /* "A cache MUST NOT delete any Warning header that it received with
+     * a message."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
+     */
+    @Test
+    public void testRetainsWarningHeadersReceivedFromUpstream()
+        throws Exception {
+        originResponse.removeHeaders("Warning");
+        final String warning = "199 fred \"misc\"";
+        originResponse.addHeader("Warning", warning);
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        Assert.assertEquals(warning,
+                result.getFirstHeader("Warning").getValue());
+    }
+
+    /* "However, if a cache successfully validates a cache entry, it
+     * SHOULD remove any Warning headers previously attached to that
+     * entry except as specified for specific Warning codes. It MUST
+     * then add any Warning headers received in the validating response."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
+     */
+    @Test
+    public void testUpdatesWarningHeadersOnValidation()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+
+        Date now = new Date();
+        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(twentySecondsAgo));
+        resp1.setHeader("Cache-Control","public,max-age=5");
+        resp1.setHeader("ETag", "\"etag1\"");
+        final String oldWarning = "113 wilma \"stale\"";
+        resp1.setHeader("Warning", oldWarning);
+
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("ETag", "\"etag1\"");
+        final String newWarning = "113 betty \"stale too\"";
+        resp2.setHeader("Warning", newWarning);
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        boolean oldWarningFound = false;
+        boolean newWarningFound = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(String warnValue : h.getValue().split("\\s*,\\s*")) {
+                if (oldWarning.equals(warnValue)) {
+                    oldWarningFound = true;
+                } else if (newWarning.equals(warnValue)) {
+                    newWarningFound = true;
+                }
+            }
+        }
+        Assert.assertFalse(oldWarningFound);
+        Assert.assertTrue(newWarningFound);
+    }
+
+    /* "If an implementation sends a message with one or more Warning
+     * headers whose version is HTTP/1.0 or lower, then the sender MUST
+     * include in each warning-value a warn-date that matches the date
+     * in the response."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
+     */
+    @Test
+    public void testWarnDatesAreAddedToWarningsOnLowerProtocolVersions()
+        throws Exception {
+        final String dateHdr = DateUtils.formatDate(new Date());
+        final String origWarning = "110 fred \"stale\"";
+        originResponse.setStatusLine(HttpVersion.HTTP_1_0, HttpStatus.SC_OK);
+        originResponse.addHeader("Warning", origWarning);
+        originResponse.setHeader("Date", dateHdr);
+        backendExpectsAnyRequest().andReturn(originResponse);
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        // note that currently the implementation acts as an HTTP/1.1 proxy,
+        // which means that all the responses from the caching module should
+        // be HTTP/1.1, so we won't actually be testing anything here until
+        // that changes.
+        if (HttpVersion.HTTP_1_0.greaterEquals(result.getProtocolVersion())) {
+            Assert.assertEquals(dateHdr, result.getFirstHeader("Date").getValue());
+            boolean warningFound = false;
+            String targetWarning = origWarning + " \"" + dateHdr + "\"";
+            for(Header h : result.getHeaders("Warning")) {
+                for(String warning : h.getValue().split("\\s*,\\s*")) {
+                    if (targetWarning.equals(warning)) {
+                        warningFound = true;
+                        break;
+                    }
+                }
+            }
+            Assert.assertTrue(warningFound);
+        }
+    }
+
+    /* "If an implementation receives a message with a warning-value that
+     * includes a warn-date, and that warn-date is different from the Date
+     * value in the response, then that warning-value MUST be deleted from
+     * the message before storing, forwarding, or using it. (This prevents
+     * bad consequences of naive caching of Warning header fields.) If all
+     * of the warning-values are deleted for this reason, the Warning
+     * header MUST be deleted as well."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
+     */
+    @Test
+    public void testStripsBadlyDatedWarningsFromForwardedResponses()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
+                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+        originResponse.setHeader("Cache-Control","no-cache,no-store");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        for(Header h : result.getHeaders("Warning")) {
+            Assert.assertFalse(h.getValue().contains("wilma"));
+        }
+    }
+
+    @Test
+    public void testStripsBadlyDatedWarningsFromStoredResponses()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
+                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+        originResponse.setHeader("Cache-Control","public,max-age=3600");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        for(Header h : result.getHeaders("Warning")) {
+            Assert.assertFalse(h.getValue().contains("wilma"));
+        }
+    }
+
+    @Test
+    public void testRemovesWarningHeaderIfAllWarnValuesAreBadlyDated()
+    throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        originResponse.addHeader("Warning", "110 wilma \"stale\" \""
+                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        Header[] warningHeaders = result.getHeaders("Warning");
+        Assert.assertTrue(warningHeaders == null || warningHeaders.length == 0);
+    }
+
 }
