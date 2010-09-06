@@ -115,8 +115,9 @@ class CacheInvalidator {
     }
 
     protected void flushUriIfSameHost(URL requestURL, URL targetURL) throws IOException {
-        if (targetURL.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
-            storage.removeEntry(targetURL.toString());
+        URL canonicalTarget = new URL(uriExtractor.canonicalizeUri(targetURL.toString()));
+        if (canonicalTarget.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
+            storage.removeEntry(canonicalTarget.toString());
         }
     }
 

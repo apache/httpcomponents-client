@@ -27,6 +27,11 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +61,51 @@ class URIExtractor {
      * @return String the extracted URI
      */
     public String getURI(HttpHost host, HttpRequest req) {
-        return String.format("%s%s", host.toString(), req.getRequestLine().getUri());
+        if (isRelativeRequest(req)) {
+            return canonicalizeUri(String.format("%s%s", host.toString(), req.getRequestLine().getUri()));
+        }
+        return canonicalizeUri(req.getRequestLine().getUri());
+    }
+
+    public String canonicalizeUri(String uri) {
+        try {
+            URL u = new URL(uri);
+            String protocol = u.getProtocol().toLowerCase();
+            String hostname = u.getHost().toLowerCase();
+            int port = canonicalizePort(u.getPort(), protocol);
+            String path = canonicalizePath(u.getPath());
+            if ("".equals(path)) path = "/";
+            String query = u.getQuery();
+            String file = (query != null) ? (path + "?" + query) : path;
+            URL out = new URL(protocol, hostname, port, file);
+            return out.toString();
+        } catch (MalformedURLException e) {
+            return uri;
+        }
+    }
+
+    private String canonicalizePath(String path) {
+        try {
+            String decoded = URLDecoder.decode(path, "UTF-8");
+            return (new URI(decoded)).getPath();
+        } catch (UnsupportedEncodingException e) {
+        } catch (URISyntaxException e) {
+        }
+        return path;
+    }
+
+    private int canonicalizePort(int port, String protocol) {
+        if (port == -1 && "http".equalsIgnoreCase(protocol)) {
+            return 80;
+        } else if (port == -1 && "https".equalsIgnoreCase(protocol)) {
+            return 443;
+        }
+        return port;
+    }
+
+    private boolean isRelativeRequest(HttpRequest req) {
+        String requestUri = req.getRequestLine().getUri();
+        return ("*".equals(requestUri) || requestUri.startsWith("/"));
     }
 
     protected String getFullHeaderValue(Header[] headers) {

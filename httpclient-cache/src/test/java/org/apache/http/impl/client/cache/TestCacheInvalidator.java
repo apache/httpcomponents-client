@@ -76,7 +76,7 @@ public class TestCacheInvalidator {
     public void testInvalidatesRequestsThatArentGETorHEAD() throws Exception {
         HttpRequest request = new BasicHttpRequest("POST","/path", HTTP_1_1);
 
-        final String theUri = "http://foo.example.com/path";
+        final String theUri = "http://foo.example.com:80/path";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
@@ -96,15 +96,15 @@ public class TestCacheInvalidator {
         request.setHeader("Content-Length","128");
 
         String contentLocation = "http://foo.example.com/content";
-        request.setHeader("Content-Location",contentLocation);
+        request.setHeader("Content-Location", contentLocation);
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
-        entryIsRemoved(contentLocation);
+        entryIsRemoved("http://foo.example.com:80/content");
 
         replayMocks();
 
@@ -122,13 +122,13 @@ public class TestCacheInvalidator {
         String contentLocation = "http://foo.example.com/content";
         request.setHeader("Location",contentLocation);
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
-        entryIsRemoved(contentLocation);
+        entryIsRemoved(extractor.canonicalizeUri(contentLocation));
 
         replayMocks();
 
@@ -143,17 +143,16 @@ public class TestCacheInvalidator {
         request.setEntity(HttpTestUtils.makeBody(128));
         request.setHeader("Content-Length","128");
 
-        String contentLocation = "http://foo.example.com/content";
         String relativePath = "/content";
         request.setHeader("Content-Location",relativePath);
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
-        entryIsRemoved(contentLocation);
+        entryIsRemoved("http://foo.example.com:80/content");
 
         replayMocks();
 
@@ -171,7 +170,7 @@ public class TestCacheInvalidator {
         String contentLocation = "http://bar.example.com/content";
         request.setHeader("Content-Location",contentLocation);
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
 
@@ -212,7 +211,7 @@ public class TestCacheInvalidator {
         HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Cache-Control","no-cache");
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         cacheReturnsEntryForUri(theUri);
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
@@ -230,7 +229,7 @@ public class TestCacheInvalidator {
         HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Pragma","no-cache");
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         cacheReturnsEntryForUri(theUri);
         Set<String> variantURIs = new HashSet<String>();
         cacheEntryHasVariantURIs(variantURIs);
@@ -247,7 +246,7 @@ public class TestCacheInvalidator {
     public void testVariantURIsAreFlushedAlso() throws Exception {
         HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
 
-        final String theUri = "http://foo.example.com/";
+        final String theUri = "http://foo.example.com:80/";
         final String variantUri = "theVariantURI";
 
         Set<String> listOfURIs = new HashSet<String>();
@@ -267,7 +266,7 @@ public class TestCacheInvalidator {
     @Test(expected=IOException.class)
     public void testCacheFlushException() throws Exception {
         HttpRequest request = new BasicHttpRequest("POST","/",HTTP_1_1);
-        String theURI = "http://foo.example.com/";
+        String theURI = "http://foo.example.com:80/";
 
         cacheReturnsExceptionForUri(theURI);
 
