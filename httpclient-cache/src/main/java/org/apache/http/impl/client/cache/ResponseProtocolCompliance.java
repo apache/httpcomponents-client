@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -83,6 +84,8 @@ class ResponseProtocolCompliance {
 
         ensure206ContainsDateHeader(response);
 
+        identityIsNotUsedInContentEncoding(response);
+
         warningsWithNonMatchingWarnDatesAreRemoved(response);
     }
 
@@ -113,6 +116,35 @@ class ResponseProtocolCompliance {
             for(Header h : newWarningHeaders) {
                 response.addHeader(h);
             }
+        }
+    }
+
+    private void identityIsNotUsedInContentEncoding(HttpResponse response) {
+        Header[] hdrs = response.getHeaders("Content-Encoding");
+        if (hdrs == null || hdrs.length == 0) return;
+        List<Header> newHeaders = new ArrayList<Header>();
+        boolean modified = false;
+        for (Header h : hdrs) {
+            StringBuilder buf = new StringBuilder();
+            boolean first = true;
+            for (HeaderElement elt : h.getElements()) {
+                if ("identity".equalsIgnoreCase(elt.getName())) {
+                    modified = true;
+                } else {
+                    if (!first) buf.append(",");
+                    buf.append(elt.toString());
+                    first = false;
+                }
+            }
+            String newHeaderValue = buf.toString();
+            if (!"".equals(newHeaderValue)) {
+                newHeaders.add(new BasicHeader("Content-Encoding", newHeaderValue));
+            }
+        }
+        if (!modified) return;
+        response.removeHeaders("Content-Encoding");
+        for (Header h : newHeaders) {
+            response.addHeader(h);
         }
     }
 

@@ -1354,7 +1354,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Language", "en");
-        originResponse.addHeader("Content-Encoding", "identity");
+        originResponse.addHeader("Content-Encoding", "x-coding");
         originResponse.addHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         originResponse.addHeader("Content-Length", "128");
         originResponse.addHeader("Content-Type", "application/octet-stream");
@@ -1401,7 +1401,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Language", "en");
-        originResponse.addHeader("Content-Encoding", "identity");
+        originResponse.addHeader("Content-Encoding", "x-coding");
         originResponse.addHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         originResponse.addHeader("Content-Length", "128");
         originResponse.addHeader("Content-Type", "application/octet-stream");
@@ -1425,7 +1425,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             Assert.assertEquals("GET,HEAD", result.getFirstHeader("Allow").getValue());
             Assert.assertEquals("max-age=3600", result.getFirstHeader("Cache-Control").getValue());
             Assert.assertEquals("en", result.getFirstHeader("Content-Language").getValue());
-            Assert.assertEquals("identity", result.getFirstHeader("Content-Encoding").getValue());
+            Assert.assertEquals("x-coding", result.getFirstHeader("Content-Encoding").getValue());
             Assert.assertEquals("Q2hlY2sgSW50ZWdyaXR5IQ==", result.getFirstHeader("Content-MD5")
                     .getValue());
             Assert.assertEquals(originResponse.getFirstHeader("Last-Modified").getValue(), result
@@ -1873,7 +1873,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         HttpResponse resp1 = make200Response();
         resp1.setHeader("ETag", "W/\"v1\"");
         resp1.setHeader("Allow", "GET,HEAD");
-        resp1.setHeader("Content-Encoding", "identity");
+        resp1.setHeader("Content-Encoding", "x-coding");
         resp1.setHeader("Content-Language", "en");
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
