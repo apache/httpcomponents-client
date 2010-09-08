@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
@@ -418,7 +420,8 @@ public class CachingHttpClient implements HttpClient {
                 return revalidateCacheEntry(target, request, context, entry);
             } catch (IOException ioex) {
                 if (validityPolicy.mustRevalidate(entry)
-                    || (isSharedCache() && validityPolicy.proxyRevalidate(entry))) {
+                    || (isSharedCache() && validityPolicy.proxyRevalidate(entry))
+                    || explicitFreshnessRequest(request, entry)) {
                     setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
                     return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
                 } else {
@@ -433,6 +436,27 @@ public class CachingHttpClient implements HttpClient {
             }
         }
         return callBackend(target, request, context);
+    }
+
+    private boolean explicitFreshnessRequest(HttpRequest request, HttpCacheEntry entry) {
+        for(Header h : request.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-stale".equals(elt.getName())) {
+                    try {
+                        int maxstale = Integer.parseInt(elt.getValue());
+                        long age = validityPolicy.getCurrentAgeSecs(entry);
+                        long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
+                        if (age - lifetime > maxstale) return true;
+                    } catch (NumberFormatException nfe) {
+                        return true;
+                    }
+                } else if ("min-fresh".equals(elt.getName())
+                            || "max-age".equals(elt.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private String generateViaHeader(HttpMessage msg) {

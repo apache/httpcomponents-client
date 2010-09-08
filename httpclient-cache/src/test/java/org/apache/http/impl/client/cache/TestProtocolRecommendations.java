@@ -75,6 +75,113 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     /*
+     * "For this reason, a cache SHOULD NOT return a stale response if the
+     * client explicitly requests a first-hand or fresh one, unless it is
+     * impossible to comply for technical or policy reasons."
+     */
+    private HttpRequest requestToPopulateStaleCacheEntry() throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","public,max-age=5");
+        resp1.setHeader("Etag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+        return req1;
+    }
+
+    private void testDoesNotReturnStaleResponseOnError(HttpRequest req2)
+    throws Exception, IOException {
+        HttpRequest req1 = requestToPopulateStaleCacheEntry();
+
+        backendExpectsAnyRequest().andThrow(new IOException());
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = null;
+        try {
+            result = impl.execute(host, req2);
+        } catch (IOException acceptable) {
+        }
+        verifyMocks();
+
+        if (result != null) {
+            assertFalse(result.getStatusLine().getStatusCode() == HttpStatus.SC_OK);
+        }
+    }
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFirstHandOneWithCacheControl()
+            throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Cache-Control","no-cache");
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFirstHandOneWithPragma()
+            throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Pragma","no-cache");
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFreshWithMaxAge()
+            throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Cache-Control","max-age=0");
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlySpecifiesLargerMaxAge()
+            throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Cache-Control","max-age=20");
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFreshWithMinFresh()
+    throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Cache-Control","min-fresh=2");
+
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+    @Test
+    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFreshWithMaxStale()
+    throws Exception {
+        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req.setHeader("Cache-Control","max-stale=2");
+
+        testDoesNotReturnStaleResponseOnError(req);
+    }
+
+    @Test
+    public void testMayReturnStaleResponseIfClientExplicitlySpecifiesAcceptableMaxStale()
+            throws Exception {
+        HttpRequest req1 = requestToPopulateStaleCacheEntry();
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("Cache-Control","max-stale=20");
+
+        backendExpectsAnyRequest().andThrow(new IOException());
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        assertNotNull(result.getFirstHeader("Warning"));
+    }
+
+    /*
      * "A correct cache MUST respond to a request with the most up-to-date
      * response held by the cache that is appropriate to the request
      * (see sections 13.2.5, 13.2.6, and 13.12) which meets one of the
