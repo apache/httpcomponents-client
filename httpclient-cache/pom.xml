@@ -47,7 +47,17 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
+  <repositories>
+    <repository>
+      <id>spy</id>
+      <name>Spy Repository</name>
+      <layout>default</layout>
+      <url>http://bleu.west.spy.net/~dustin/m2repo/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -91,6 +101,12 @@
       <artifactId>slf4j-jcl</artifactId>
       <version>${slf4j.version}</version>
       <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>spy</groupId>
+      <artifactId>memcached</artifactId>
+      <version>2.5</version>
       <optional>true</optional>
     </dependency>
   </dependencies>
