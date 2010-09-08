@@ -424,7 +424,7 @@ public class CachingHttpClient implements HttpClient {
                 } else {
                     setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
                     HttpResponse response = responseGenerator.generateResponse(entry);
-                    response.addHeader(HeaderConstants.WARNING, "111 Revalidation Failed - " + ioex.getMessage());
+                    response.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
                     log.debug("111 revalidation failed due to exception: " + ioex);
                     return response;
                 }

@@ -28,9 +28,17 @@ package org.apache.http.impl.client.cache;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.util.Date;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHttpRequest;
 import org.junit.Test;
 
 /*
@@ -64,5 +72,124 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             }
         }
         assertFalse(foundIdentity);
+    }
+
+    /*
+     * "A correct cache MUST respond to a request with the most up-to-date
+     * response held by the cache that is appropriate to the request
+     * (see sections 13.2.5, 13.2.6, and 13.12) which meets one of the
+     * following conditions:
+     *
+     * 1. It has been checked for equivalence with what the origin server
+     * would have returned by revalidating the response with the
+     * origin server (section 13.3);
+     *
+     * 2. It is "fresh enough" (see section 13.2). In the default case,
+     * this means it meets the least restrictive freshness requirement
+     * of the client, origin server, and cache (see section 14.9); if
+     * the origin server so specifies, it is the freshness requirement
+     * of the origin server alone.
+     *
+     * If a stored response is not "fresh enough" by the most
+     * restrictive freshness requirement of both the client and the
+     * origin server, in carefully considered circumstances the cache
+     * MAY still return the response with the appropriate Warning
+     * header (see section 13.1.5 and 14.46), unless such a response
+     * is prohibited (e.g., by a "no-store" cache-directive, or by a
+     * "no-cache" cache-request-directive; see section 14.9).
+     *
+     * 3. It is an appropriate 304 (Not Modified), 305 (Proxy Redirect),
+     * or error (4xx or 5xx) response message.
+     *
+     * If the cache can not communicate with the origin server, then a
+     * correct cache SHOULD respond as above if the response can be
+     * correctly served from the cache..."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.1.1
+     */
+    @Test
+    public void testReturnsCachedResponsesAppropriatelyWhenNoOriginCommunication()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+
+        backendExpectsAnyRequest().andThrow(new IOException()).anyTimes();
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning111Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 111) {
+                    warning111Found = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(warning111Found);
+    }
+
+    /*
+     * "If a cache receives a response (either an entire response, or a
+     * 304 (Not Modified) response) that it would normally forward to the
+     * requesting client, and the received response is no longer fresh,
+     * the cache SHOULD forward it to the requesting client without adding
+     * a new Warning (but without removing any existing Warning headers).
+     * A cache SHOULD NOT attempt to revalidate a response simply because
+     * that response became stale in transit; this might lead to an
+     * infinite loop."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.1.1
+     */
+    @Test
+    public void testDoesNotAddNewWarningHeaderIfResponseArrivesStale()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        originResponse.setHeader("Cache-Control","public, max-age=5");
+        originResponse.setHeader("ETag","\"etag\"");
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        assertNull(result.getFirstHeader("Warning"));
+    }
+
+    @Test
+    public void testForwardsExistingWarningHeadersOnResponseThatArrivesStale()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        originResponse.setHeader("Cache-Control","public, max-age=5");
+        originResponse.setHeader("ETag","\"etag\"");
+        originResponse.addHeader("Age","10");
+        final String warning = "110 fred \"Response is stale\"";
+        originResponse.addHeader("Warning",warning);
+
+        backendExpectsAnyRequest().andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+
+        assertEquals(warning, result.getFirstHeader("Warning").getValue());
     }
 }
