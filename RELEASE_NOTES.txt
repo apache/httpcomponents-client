@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-989] DefaultHttpRequestRetryHandler no longer retries non-idempotent http methods 
+  if NoHttpResponseException is thrown.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-978] Ehcache based HTTP cache implementation
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 

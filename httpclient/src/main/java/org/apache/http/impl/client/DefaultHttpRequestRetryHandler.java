@@ -91,10 +91,6 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // Do not retry if over max retry count
             return false;
         }
-        if (exception instanceof NoHttpResponseException) {
-            // Retry if the server dropped connection on us
-            return true;
-        }
         if (exception instanceof InterruptedIOException) {
             // Timeout
             return false;
