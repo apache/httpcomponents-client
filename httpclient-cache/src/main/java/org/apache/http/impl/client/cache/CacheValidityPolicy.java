@@ -30,7 +30,6 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -77,28 +76,6 @@ class CacheValidityPolicy {
     public boolean isRevalidatable(final HttpCacheEntry entry) {
         return entry.getFirstHeader(HeaderConstants.ETAG) != null
                 || entry.getFirstHeader(HeaderConstants.LAST_MODIFIED) != null;
-    }
-
-    public boolean modifiedSince(final HttpCacheEntry entry, final HttpRequest request) {
-        Header unmodHeader = request.getFirstHeader(HeaderConstants.IF_UNMODIFIED_SINCE);
-
-        if (unmodHeader == null) {
-            return false;
-        }
-
-        try {
-            Date unmodifiedSinceDate = DateUtils.parseDate(unmodHeader.getValue());
-            Date lastModifiedDate = DateUtils.parseDate(entry.getFirstHeader(
-                    HeaderConstants.LAST_MODIFIED).getValue());
-
-            if (unmodifiedSinceDate.before(lastModifiedDate)) {
-                return true;
-            }
-        } catch (DateParseException e) {
-            return false;
-        }
-
-        return false;
     }
 
     public boolean mustRevalidate(final HttpCacheEntry entry) {

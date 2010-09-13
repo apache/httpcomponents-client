@@ -2878,7 +2878,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("If-None-Match", "W/\"etag\"");
-        req2.setHeader("If-Unmodified-Since", DateUtils.formatDate(twentySecondsAgo));
+        req2.setHeader("If-Modified-Since", DateUtils.formatDate(twentySecondsAgo));
 
         // must hit the origin again for the second request
         EasyMock.expect(
@@ -2892,6 +2892,36 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         Assert.assertFalse(HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode());
     }
+
+    @Test
+    public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("ETag", "W/\"etag\"");
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("If-None-Match", "W/\"etag\"");
+        req2.setHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+
+        // may hit the origin again for the second request
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class),
+                        EasyMock.isA(HttpRequest.class),
+                        (HttpContext) EasyMock.isNull())).andReturn(resp1).times(1,2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
 
     /*
      * "However, a cache that does not support the Range and Content-Range

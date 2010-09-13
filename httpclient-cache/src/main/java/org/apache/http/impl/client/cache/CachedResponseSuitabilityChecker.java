@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -35,6 +37,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.impl.cookie.DateParseException;
+import org.apache.http.impl.cookie.DateUtils;
 
 /**
  * Determines whether a given {@link HttpCacheEntry} is suitable to be
@@ -81,8 +85,13 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
 
-        if (validityStrategy.modifiedSince(entry, request)) {
-            log.debug("Cache entry modified times didn't line up. Cache Entry should not be used");
+        if (hasUnsupportedConditionalHeaders(request)) {
+            log.debug("Request contained conditional headers we don't handle");
+            return false;
+        }
+
+        if (containsEtagAndLastModifiedValidators(request)
+            && !allConditionalsMatch(request, entry)) {
             return false;
         }
 
@@ -145,5 +154,94 @@ class CachedResponseSuitabilityChecker {
 
         log.debug("Response from cache was suitable");
         return true;
+    }
+
+    private boolean hasUnsupportedConditionalHeaders(HttpRequest request) {
+        return (request.getFirstHeader("If-Range") != null
+                || request.getFirstHeader("If-Match") != null
+                || hasValidDateField(request, "If-Unmodified-Since"));
+    }
+
+    /**
+     * Should return false if some conditionals would allow a
+     * normal request but some would not.
+     * @param request
+     * @param entry
+     * @return
+     */
+    private boolean allConditionalsMatch(HttpRequest request,
+            HttpCacheEntry entry) {
+        Header etagHeader = entry.getFirstHeader("ETag");
+        String etag = (etagHeader != null) ? etagHeader.getValue() : null;
+        Header[] ifNoneMatch = request.getHeaders("If-None-Match");
+        if (ifNoneMatch != null && ifNoneMatch.length > 0) {
+            boolean matched = false;
+            for(Header h : ifNoneMatch) {
+                for(HeaderElement elt : h.getElements()) {
+                    String reqEtag = elt.toString();
+                    if (("*".equals(reqEtag) && etag != null)
+                        || reqEtag.equals(etag)) {
+                        matched = true;
+                        break;
+                    }
+                }
+            }
+            if (!matched) return false;
+        }
+        Header lmHeader = entry.getFirstHeader("Last-Modified");
+        Date lastModified = null;
+        try {
+            if (lmHeader != null) {
+                lastModified = DateUtils.parseDate(lmHeader.getValue());
+            }
+        } catch (DateParseException dpe) {
+            // nop
+        }
+        for(Header h : request.getHeaders("If-Modified-Since")) {
+            try {
+                Date cond = DateUtils.parseDate(h.getValue());
+                if (lastModified == null
+                    || lastModified.after(cond)) {
+                    return false;
+                }
+            } catch (DateParseException dpe) {
+            }
+        }
+        return true;
+    }
+
+    private boolean containsEtagAndLastModifiedValidators(HttpRequest request) {
+        boolean hasEtagValidators = (hasEtagIfRangeHeader(request)
+                || request.getFirstHeader("If-Match") != null
+                || request.getFirstHeader("If-None-Match") != null);
+        if (!hasEtagValidators) return false;
+        final boolean hasLastModifiedValidators =
+            hasValidDateField(request, "If-Modified-Since")
+            || hasValidDateField(request, "If-Unmodified-Since")
+            || hasValidDateField(request, "If-Range");
+        return hasLastModifiedValidators;
+    }
+
+    private boolean hasEtagIfRangeHeader(HttpRequest request) {
+        for(Header h : request.getHeaders("If-Range")) {
+            try {
+                DateUtils.parseDate(h.getValue());
+            } catch (DateParseException dpe) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasValidDateField(HttpRequest request, String headerName) {
+        for(Header h : request.getHeaders(headerName)) {
+            try {
+                DateUtils.parseDate(h.getValue());
+                return true;
+            } catch (DateParseException dpe) {
+                // ignore malformed dates
+            }
+        }
+        return false;
     }
 }

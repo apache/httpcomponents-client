@@ -78,7 +78,6 @@ public class TestCachedResponseSuitabilityChecker {
     public void testSuitableIfContentLengthHeaderIsRight() {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
 
         replayMocks();
         boolean result = impl.canCachedResponseBeUsed(host, request, entry);
@@ -92,7 +91,6 @@ public class TestCachedResponseSuitabilityChecker {
     public void testSuitableIfCacheEntryIsFresh() {
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
 
         replayMocks();
 
@@ -120,7 +118,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader("Cache-Control", "no-cache");
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
 
         replayMocks();
 
@@ -134,7 +131,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader("Cache-Control", "max-age=10");
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
         currentAge(20L);
 
         replayMocks();
@@ -149,7 +145,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader("Cache-Control", "max-age=10");
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
         currentAge(5L);
 
         replayMocks();
@@ -164,7 +159,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader("Cache-Control", "min-fresh=10");
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
         freshnessLifetime(15L);
 
         replayMocks();
@@ -179,7 +173,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader("Cache-Control", "min-fresh=10");
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
         freshnessLifetime(5L);
 
         replayMocks();
@@ -208,7 +201,6 @@ public class TestCachedResponseSuitabilityChecker {
         request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
 
         replayMocks();
 
@@ -225,7 +217,6 @@ public class TestCachedResponseSuitabilityChecker {
 
         responseIsFresh(true);
         contentLengthMatchesActualLength(true);
-        modifiedSince(false, request);
 
         replayMocks();
 
@@ -249,11 +240,6 @@ public class TestCachedResponseSuitabilityChecker {
     private void responseIsFresh(boolean fresh) {
         EasyMock.expect(
                 mockValidityPolicy.isResponseFresh(entry)).andReturn(fresh);
-    }
-
-    private void modifiedSince(boolean modified, HttpRequest request) {
-        EasyMock.expect(
-                mockValidityPolicy.modifiedSince(entry, request)).andReturn(modified);
     }
 
     private void contentLengthMatchesActualLength(boolean b) {
