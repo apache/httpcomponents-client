@@ -1,6 +1,10 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-960] HttpMultipart doesn't generate Content-Type header for binary parts in
+  BROWSER_COMPATIBLE mode.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-989] DefaultHttpRequestRetryHandler no longer retries non-idempotent http methods 
   if NoHttpResponseException is thrown.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

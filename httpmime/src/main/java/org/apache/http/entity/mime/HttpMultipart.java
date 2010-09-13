@@ -73,6 +73,22 @@ public class HttpMultipart {
         writeBytes(b, out);
     }
 
+    private static void writeField(
+            final MinimalField field, final OutputStream out) throws IOException {
+        writeBytes(field.getName(), out);
+        writeBytes(FIELD_SEP, out);
+        writeBytes(field.getBody(), out);
+        writeBytes(CR_LF, out);
+    }
+
+    private static void writeField(
+            final MinimalField field, final Charset charset, final OutputStream out) throws IOException {
+        writeBytes(field.getName(), charset, out);
+        writeBytes(FIELD_SEP, out);
+        writeBytes(field.getBody(), charset, out);
+        writeBytes(CR_LF, out);
+    }
+
     private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
     private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
     private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
@@ -151,20 +167,19 @@ public class HttpMultipart {
             switch (mode) {
             case STRICT:
                 for (MinimalField field: header) {
-                    writeBytes(field.getName(), out);
-                    writeBytes(FIELD_SEP, out);
-                    writeBytes(field.getBody(), out);
-                    writeBytes(CR_LF, out);
+                    writeField(field, out);
                 }
                 break;
             case BROWSER_COMPATIBLE:
                 // Only write Content-Disposition
                 // Use content charset
                 MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
-                writeBytes(cd.getName(), this.charset, out);
-                writeBytes(FIELD_SEP, out);
-                writeBytes(cd.getBody(), this.charset, out);
-                writeBytes(CR_LF, out);
+                writeField(cd, this.charset, out);
+                String filename = part.getBody().getFilename();
+                if (filename != null) {
+                    MinimalField ct = part.getHeader().getField(MIME.CONTENT_TYPE);
+                    writeField(ct, this.charset, out);
+                }
                 break;
             }
             writeBytes(CR_LF, out);

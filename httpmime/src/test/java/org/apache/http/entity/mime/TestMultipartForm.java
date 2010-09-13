@@ -258,11 +258,13 @@ public class TestMultipartForm {
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + s1 + ".tmp\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"; " +
                 "filename=\"" + s2 + ".tmp\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
             "--foo--\r\n";
