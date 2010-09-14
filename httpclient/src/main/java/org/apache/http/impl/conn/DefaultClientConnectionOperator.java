@@ -142,7 +142,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 if (layeredsf != null) {
                     connsock = layeredsf.createSocket(
                             sock, 
-                            address.getHostAddress(),
+                            target.getHostName(),
                             schm.resolvePort(target.getPort()),
                             true);
                     if (sock != connsock) {
