@@ -1,11 +1,12 @@
 Release 4.0.3
 -------------------
 
-This is an emergency release fixing a critical regression in SSL connection
-management. 4.0.2 release included improved support for multihome hosts,
-which produced a side effect on the default SSL hostname verification
-algorithm. An attempt to establish an SSL connection fails with 
-javax.net.ssl.SSLException: "hostname in certificate didn't match ..." error.
+This is an emergency release fixing a critical regression in the SSL
+connection management code. HttpClient 4.0.2 release included an improved 
+support for multihome hosts, which unfortunately had a bug causing the default 
+SSL hostname verification logic to fail. An attempt to establish an SSL 
+connection with HttpClient 4.0.2 can result in javax.net.ssl.SSLException: 
+"hostname in certificate didn't match ..." error.
 
 Changelog
 -------------------

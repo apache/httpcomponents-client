@@ -48,7 +48,7 @@ HttpClient Downloads
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.0.2</version>
+    <version>4.0.3</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
@@ -59,7 +59,7 @@ HttpClient Downloads
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.0.2</version>
+    <version>4.0.3</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
