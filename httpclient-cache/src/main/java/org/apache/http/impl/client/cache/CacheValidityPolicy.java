@@ -49,8 +49,8 @@ class CacheValidityPolicy {
         super();
     }
 
-    public long getCurrentAgeSecs(final HttpCacheEntry entry) {
-        return getCorrectedInitialAgeSecs(entry) + getResidentTimeSecs(entry);
+    public long getCurrentAgeSecs(final HttpCacheEntry entry, Date now) {
+        return getCorrectedInitialAgeSecs(entry) + getResidentTimeSecs(entry, now);
     }
 
     public long getFreshnessLifetimeSecs(final HttpCacheEntry entry) {
@@ -69,8 +69,8 @@ class CacheValidityPolicy {
         return (diff / 1000);
     }
 
-    public boolean isResponseFresh(final HttpCacheEntry entry) {
-        return (getCurrentAgeSecs(entry) < getFreshnessLifetimeSecs(entry));
+    public boolean isResponseFresh(final HttpCacheEntry entry, Date now) {
+        return (getCurrentAgeSecs(entry, now) < getFreshnessLifetimeSecs(entry));
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
@@ -166,8 +166,8 @@ class CacheValidityPolicy {
         return new Date();
     }
 
-    protected long getResidentTimeSecs(final HttpCacheEntry entry) {
-        long diff = getCurrentDate().getTime() - entry.getResponseDate().getTime();
+    protected long getResidentTimeSecs(HttpCacheEntry entry, Date now) {
+        long diff = now.getTime() - entry.getResponseDate().getTime();
         return (diff / 1000L);
     }
 
@@ -204,7 +204,8 @@ class CacheValidityPolicy {
         return null;
     }
 
-    protected boolean hasCacheControlDirective(final HttpCacheEntry entry, final String directive) {
+    public boolean hasCacheControlDirective(final HttpCacheEntry entry,
+            final String directive) {
         for (Header h : entry.getHeaders("Cache-Control")) {
             for(HeaderElement elt : h.getElements()) {
                 if (directive.equalsIgnoreCase(elt.getName())) {
@@ -214,5 +215,13 @@ class CacheValidityPolicy {
         }
         return false;
     }
+
+    public long getStalenessSecs(HttpCacheEntry entry, Date now) {
+        long age = getCurrentAgeSecs(entry, now);
+        long freshness = getFreshnessLifetimeSecs(entry);
+        if (age <= freshness) return 0L;
+        return (age - freshness);
+    }
+
 
 }

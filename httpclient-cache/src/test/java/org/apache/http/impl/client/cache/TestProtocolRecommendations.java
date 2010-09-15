@@ -93,7 +93,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     private void testDoesNotReturnStaleResponseOnError(HttpRequest req2)
-    throws Exception, IOException {
+            throws Exception, IOException {
         HttpRequest req1 = requestToPopulateStaleCacheEntry();
 
         backendExpectsAnyRequest().andThrow(new IOException());
@@ -170,7 +170,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req2.setHeader("Cache-Control","max-stale=20");
 
-        backendExpectsAnyRequest().andThrow(new IOException());
+        backendExpectsAnyRequest().andThrow(new IOException()).times(0,1);
 
         replayMocks();
         impl.execute(host, req1);

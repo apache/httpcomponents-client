@@ -26,8 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Date;
+
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.easymock.classextension.EasyMock;
@@ -37,20 +43,34 @@ import org.junit.Test;
 
 public class TestCachedResponseSuitabilityChecker {
 
+    private Date now;
+    private Date elevenSecondsAgo;
+    private Date tenSecondsAgo;
+    private Date nineSecondsAgo;
+
     private HttpHost host;
     private HttpRequest request;
-    private CacheEntry entry;
+    private HttpCacheEntry entry;
     private CacheValidityPolicy mockValidityPolicy;
     private CachedResponseSuitabilityChecker impl;
 
     @Before
     public void setUp() {
-        host = new HttpHost("foo.example.com");
-        request = new BasicHttpRequest("GET", "/foo");
-        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
-        entry = new CacheEntry();
+        now = new Date();
+        elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+        tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
 
-        impl = new CachedResponseSuitabilityChecker(mockValidityPolicy);
+        host = new HttpHost("foo.example.com");
+        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
+        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
+        entry = HttpTestUtils.makeCacheEntry();
+
+        impl = new CachedResponseSuitabilityChecker(new CacheConfig());
+    }
+
+    private HttpCacheEntry getEntry(Header[] headers) {
+        return HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, headers);
     }
 
     public void replayMocks() {
@@ -63,187 +83,144 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testNotSuitableIfContentLengthHeaderIsWrong() {
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(false);
-
-        replayMocks();
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertFalse(result);
-    }
-
-    @Test
-    public void testSuitableIfContentLengthHeaderIsRight() {
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-
-        replayMocks();
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertTrue(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","1")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsFresh() {
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertTrue(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
-        responseIsFresh(false);
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfRequestHasNoCache() {
         request.addHeader("Cache-Control", "no-cache");
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfAgeExceedsRequestMaxAge() {
         request.addHeader("Cache-Control", "max-age=10");
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-        currentAge(20L);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testSuitableIfFreshAndAgeIsUnderRequestMaxAge() {
-        request.addHeader("Cache-Control", "max-age=10");
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-        currentAge(5L);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertTrue(result);
+        request.addHeader("Cache-Control", "max-age=15");
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testSuitableIfFreshAndFreshnessLifetimeGreaterThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-        freshnessLifetime(15L);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertTrue(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfFreshnessLifetimeLessThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-        freshnessLifetime(5L);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=15"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
-    // this is compliant but possibly misses some cache hits; would
-    // need to change logic to add Warning header if we allowed this
     @Test
-    public void testNotSuitableEvenIfStaleButPermittedByRequestMaxStale() {
+    public void testSuitableEvenIfStaleButPermittedByRequestMaxStale() {
         request.addHeader("Cache-Control", "max-stale=10");
-        responseIsFresh(false);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-        verifyMocks();
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
+
+    @Test
+    public void testNotSuitableIfStaleButTooStaleForRequestMaxStale() {
+        request.addHeader("Cache-Control", "max-stale=2");
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
 
     @Test
     public void testMalformedCacheControlMaxAgeRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
     @Test
     public void testMalformedCacheControlMinFreshRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "min-fresh=foo"));
-
-        responseIsFresh(true);
-        contentLengthMatchesActualLength(true);
-
-        replayMocks();
-
-        boolean result = impl.canCachedResponseBeUsed(host, request, entry);
-
-        verifyMocks();
-
-        Assert.assertFalse(result);
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
-    private void currentAge(long sec) {
-        EasyMock.expect(
-                mockValidityPolicy.getCurrentAgeSecs(entry)).andReturn(sec);
-    }
-
-    private void freshnessLifetime(long sec) {
-        EasyMock.expect(
-                mockValidityPolicy.getFreshnessLifetimeSecs(entry)).andReturn(sec);
-    }
-
-    private void responseIsFresh(boolean fresh) {
-        EasyMock.expect(
-                mockValidityPolicy.isResponseFresh(entry)).andReturn(fresh);
-    }
-
-    private void contentLengthMatchesActualLength(boolean b) {
-        EasyMock.expect(
-                mockValidityPolicy.contentLengthHeaderMatchesActualLength(entry)).andReturn(b);
-    }
 }

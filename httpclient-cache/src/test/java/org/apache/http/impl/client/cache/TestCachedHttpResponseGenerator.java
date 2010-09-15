@@ -30,6 +30,7 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.easymock.classextension.EasyMock;
@@ -39,13 +40,14 @@ import org.junit.Test;
 
 public class TestCachedHttpResponseGenerator {
 
-    private CacheEntry entry;
+    private HttpCacheEntry entry;
     private CacheValidityPolicy mockValidityPolicy;
     private CachedHttpResponseGenerator impl;
+    private Date now;
 
     @Before
     public void setUp() {
-        Date now = new Date();
+        now = new Date();
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
         Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -54,7 +56,7 @@ public class TestCachedHttpResponseGenerator {
                 new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
                 new BasicHeader("Content-Length", "150") };
 
-        entry = new CacheEntry(tenSecondsAgo, sixSecondsAgo, hdrs);
+        entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, sixSecondsAgo, hdrs);
         mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
     }
@@ -66,7 +68,7 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testResponseHasContentLength() {
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(buf);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(buf);
 
         HttpResponse response = impl.generateResponse(entry);
 
@@ -82,7 +84,7 @@ public class TestCachedHttpResponseGenerator {
 
         Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        CacheEntry entry = new CacheEntry(hdrs, buf);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(hdrs, buf);
 
         HttpResponse response = impl.generateResponse(entry);
 
@@ -134,19 +136,20 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
-        currentAge(CacheEntry.MAX_AGE + 1L);
+        currentAge(CacheValidityPolicy.MAX_AGE + 1L);
         replayMocks();
 
         HttpResponse response = impl.generateResponse(entry);
 
         Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
-        Assert.assertEquals(CacheEntry.MAX_AGE, Long.parseLong(ageHdr.getValue()));
+        Assert.assertEquals(CacheValidityPolicy.MAX_AGE, Long.parseLong(ageHdr.getValue()));
     }
 
     private void currentAge(long sec) {
         EasyMock.expect(
-                mockValidityPolicy.getCurrentAgeSecs(entry)).andReturn(sec);
+                mockValidityPolicy.getCurrentAgeSecs(EasyMock.same(entry),
+                        EasyMock.isA(Date.class))).andReturn(sec);
     }
 
 }

@@ -39,7 +39,10 @@ public class TestCacheValidityPolicy {
 
     @Test
     public void testApparentAgeIsMaxIntIfDateHeaderNotPresent() {
-        CacheEntry entry = new CacheEntry();
+        Header[] headers = {
+                new BasicHeader("Server", "MockServer/1.0")
+        };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(2147483648L, impl.getApparentAgeSecs(entry));
     }
@@ -53,7 +56,7 @@ public class TestCacheValidityPolicy {
         Header[] headers = new Header[] { new BasicHeader("Date", DateUtils
                 .formatDate(tenSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry(now, sixSecondsAgo, headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo, headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertEquals(4, impl.getApparentAgeSecs(entry));
@@ -68,7 +71,7 @@ public class TestCacheValidityPolicy {
         Header[] headers = new Header[] { new BasicHeader("Date", DateUtils
                 .formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry  = new CacheEntry(now,tenSecondsAgo,headers);
+        HttpCacheEntry entry  = HttpTestUtils.makeCacheEntry(now,tenSecondsAgo,headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(0, impl.getApparentAgeSecs(entry));
     }
@@ -76,7 +79,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testCorrectedReceivedAgeIsAgeHeaderIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "10"), };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
@@ -93,7 +96,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testCorrectedReceivedAgeIsApparentAgeIfLarger() {
         Header[] headers = new Header[] { new BasicHeader("Age", "6"), };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
@@ -113,7 +116,7 @@ public class TestCacheValidityPolicy {
         Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, sixSecondsAgo);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, sixSecondsAgo);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertEquals(4, impl.getResponseDelaySecs(entry));
@@ -121,7 +124,7 @@ public class TestCacheValidityPolicy {
 
     @Test
     public void testCorrectedInitialAgeIsCorrectedReceivedAgePlusResponseDelay() {
-        CacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
             @Override
@@ -143,7 +146,7 @@ public class TestCacheValidityPolicy {
         final Date now = new Date();
         final Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
 
-        CacheEntry entry = new CacheEntry(now, sixSecondsAgo);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo);
 
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
@@ -154,12 +157,12 @@ public class TestCacheValidityPolicy {
 
         };
 
-        Assert.assertEquals(6, impl.getResidentTimeSecs(entry));
+        Assert.assertEquals(6, impl.getResidentTimeSecs(entry, now));
     }
 
     @Test
     public void testCurrentAgeIsCorrectedInitialAgePlusResidentTime() {
-        CacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
             @Override
@@ -168,17 +171,17 @@ public class TestCacheValidityPolicy {
             }
 
             @Override
-            protected long getResidentTimeSecs(HttpCacheEntry entry) {
+            protected long getResidentTimeSecs(HttpCacheEntry entry, Date d) {
                 return 17;
             }
         };
-        Assert.assertEquals(28, impl.getCurrentAgeSecs(entry));
+        Assert.assertEquals(28, impl.getCurrentAgeSecs(entry, new Date()));
     }
 
     @Test
     public void testFreshnessLifetimeIsSMaxAgeIfPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "s-maxage=10") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
     }
@@ -186,7 +189,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testFreshnessLifetimeIsMaxAgeIfPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
     }
@@ -195,13 +198,13 @@ public class TestCacheValidityPolicy {
     public void testFreshnessLifetimeIsMostRestrictiveOfMaxAgeAndSMaxAge() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10"),
                 new BasicHeader("Cache-Control", "s-maxage=20") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
 
         headers = new Header[] { new BasicHeader("Cache-Control", "max-age=20"),
                 new BasicHeader("Cache-Control", "s-maxage=10") };
-        entry = new CacheEntry(headers);
+        entry = HttpTestUtils.makeCacheEntry(headers);
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
     }
 
@@ -214,7 +217,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
     }
@@ -228,7 +231,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
     }
@@ -242,66 +245,78 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Assert.assertEquals(4, impl.getFreshnessLifetimeSecs(entry));
     }
 
     @Test
     public void testResponseIsFreshIfFreshnessLifetimeExceedsCurrentAge() {
-        CacheEntry entry = new CacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final Date now = new Date();
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry entry) {
+            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+                Assert.assertSame(entry, e);
+                Assert.assertEquals(now, d);
                 return 6;
             }
 
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry entry) {
+            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+                Assert.assertSame(entry, e);
                 return 10;
             }
         };
 
-        Assert.assertTrue(impl.isResponseFresh(entry));
+        Assert.assertTrue(impl.isResponseFresh(entry, now));
     }
 
     @Test
     public void testResponseIsNotFreshIfFreshnessLifetimeEqualsCurrentAge() {
-        CacheEntry entry = new CacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final Date now = new Date();
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry entry) {
+            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+                Assert.assertEquals(now, d);
+                Assert.assertSame(entry, e);
                 return 6;
             }
 
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry entry) {
+            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+                Assert.assertSame(entry, e);
                 return 6;
             }
         };
 
-        Assert.assertFalse(impl.isResponseFresh(entry));
+        Assert.assertFalse(impl.isResponseFresh(entry, now));
     }
 
     @Test
     public void testResponseIsNotFreshIfCurrentAgeExceedsFreshnessLifetime() {
-        CacheEntry entry = new CacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final Date now = new Date();
         CacheValidityPolicy impl = new CacheValidityPolicy() {
 
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry entry) {
+            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+                Assert.assertEquals(now, d);
+                Assert.assertSame(entry, e);
                 return 10;
             }
 
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry entry) {
+            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+                Assert.assertSame(entry, e);
                 return 6;
             }
         };
 
-        Assert.assertFalse(impl.isResponseFresh(entry));
+        Assert.assertFalse(impl.isResponseFresh(entry, now));
     }
 
     @Test
@@ -311,7 +326,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
                 new BasicHeader("ETag", "somevalue")};
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertTrue(impl.isRevalidatable(entry));
@@ -324,7 +339,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())) };
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertTrue(impl.isRevalidatable(entry));
@@ -337,7 +352,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(new Date())),
                 new BasicHeader("Cache-Control", "public") };
 
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertFalse(impl.isRevalidatable(entry));
@@ -347,7 +362,7 @@ public class TestCacheValidityPolicy {
     public void testMalformedDateHeaderIsIgnored() {
 
         Header[] headers = new Header[] { new BasicHeader("Date", "asdf") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Date d = impl.getDateValue(entry);
@@ -359,7 +374,7 @@ public class TestCacheValidityPolicy {
     public void testMalformedContentLengthReturnsNegativeOne() {
 
         Header[] headers = new Header[] { new BasicHeader("Content-Length", "asdf") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         long length = impl.getContentLengthValue(entry);
@@ -371,31 +386,31 @@ public class TestCacheValidityPolicy {
     public void testNegativeAgeHeaderValueReturnsMaxAge() {
 
         Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         long length = impl.getAgeValue(entry);
 
-        Assert.assertEquals(CacheEntry.MAX_AGE, length);
+        Assert.assertEquals(CacheValidityPolicy.MAX_AGE, length);
     }
 
     @Test
     public void testMalformedAgeHeaderValueReturnsMaxAge() {
 
         Header[] headers = new Header[] { new BasicHeader("Age", "asdf") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         long length = impl.getAgeValue(entry);
 
-        Assert.assertEquals(CacheEntry.MAX_AGE, length);
+        Assert.assertEquals(CacheValidityPolicy.MAX_AGE, length);
     }
 
     @Test
     public void testMalformedCacheControlMaxAgeHeaderReturnsZero() {
 
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=asdf") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         long maxage = impl.getMaxAge(entry);
@@ -406,7 +421,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testMalformedExpirationDateReturnsNull() {
         Header[] headers = new Header[] { new BasicHeader("Expires", "asdf") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
         CacheValidityPolicy impl = new CacheValidityPolicy();
         Date expirationDate = impl.getExpirationDate(entry);
@@ -417,7 +432,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testMustRevalidateIsFalseIfDirectiveNotPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control","public") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertFalse(impl.mustRevalidate(entry));
@@ -426,7 +441,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testMustRevalidateIsTrueWhenDirectiveIsPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control","public, must-revalidate") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertTrue(impl.mustRevalidate(entry));
@@ -435,7 +450,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testProxyRevalidateIsFalseIfDirectiveNotPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control","public") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertFalse(impl.proxyRevalidate(entry));
@@ -444,7 +459,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testProxyRevalidateIsTrueWhenDirectiveIsPresent() {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control","public, proxy-revalidate") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         CacheValidityPolicy impl = new CacheValidityPolicy();
 
         Assert.assertTrue(impl.proxyRevalidate(entry));

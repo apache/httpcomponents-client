@@ -26,9 +26,6 @@
  */
 package org.apache.http.client.cache;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
@@ -40,7 +37,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.HeaderGroup;
 
 /**
@@ -155,43 +151,6 @@ public class HttpCacheEntry implements Serializable {
 
     public Resource getResource() {
         return this.resource;
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-
-        // write CacheEntry
-        out.defaultWriteObject();
-
-        // write (non-serializable) responseHeaders
-        if (null == responseHeaders || responseHeaders.getAllHeaders().length < 1)
-            return;
-        int headerCount = responseHeaders.getAllHeaders().length;
-        Header[] headers = responseHeaders.getAllHeaders();
-        String[][] sheaders = new String[headerCount][2];
-        for (int i = 0; i < headerCount; i++) {
-            sheaders[i][0] = headers[i].getName();
-            sheaders[i][1] = headers[i].getValue();
-        }
-        out.writeObject(sheaders);
-
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-
-        // read CacheEntry
-        in.defaultReadObject();
-
-        // read (non-serializable) responseHeaders
-        String[][] sheaders = (String[][]) in.readObject();
-        if (null == sheaders || sheaders.length < 1)
-            return;
-        BasicHeader[] headers = new BasicHeader[sheaders.length];
-        for (int i = 0; i < sheaders.length; i++) {
-            String[] sheader = sheaders[i];
-            headers[i] = new BasicHeader(sheader[0], sheader[1]);
-        }
-
-        this.responseHeaders.setHeaders(headers);
     }
 
     @Override

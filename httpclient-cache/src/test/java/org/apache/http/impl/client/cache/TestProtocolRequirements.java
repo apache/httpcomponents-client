@@ -44,6 +44,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.RequestWrapper;
@@ -2219,7 +2220,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
 
@@ -2269,7 +2270,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
@@ -2317,7 +2318,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
@@ -2519,7 +2520,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
@@ -2570,7 +2571,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        CacheEntry entry = new CacheEntry(requestTime, responseTime, hdrs, bytes);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
 

@@ -81,7 +81,7 @@ public class TestCachingHttpClient {
     private CachedResponseSuitabilityChecker mockSuitabilityChecker;
     private ResponseCachingPolicy mockResponsePolicy;
     private HttpResponse mockBackendResponse;
-    private CacheEntry mockCacheEntry;
+    private HttpCacheEntry mockCacheEntry;
     private CachedHttpResponseGenerator mockResponseGenerator;
     private ClientConnectionManager mockConnectionManager;
     private ResponseHandler<Object> mockHandler;
@@ -113,7 +113,7 @@ public class TestCachingHttpClient {
         mockHandler = EasyMock.createMock(ResponseHandler.class);
         mockBackendResponse = EasyMock.createMock(HttpResponse.class);
         mockUriRequest = EasyMock.createMock(HttpUriRequest.class);
-        mockCacheEntry = EasyMock.createMock(CacheEntry.class);
+        mockCacheEntry = EasyMock.createMock(HttpCacheEntry.class);
         mockResponseGenerator = EasyMock.createMock(CachedHttpResponseGenerator.class);
         mockCachedResponse = EasyMock.createMock(HttpResponse.class);
         mockConditionalRequestBuilder = EasyMock.createMock(ConditionalRequestBuilder.class);
@@ -361,6 +361,7 @@ public class TestCachingHttpClient {
         cacheEntrySuitable(true);
         responseIsGeneratedFromCache();
         requestIsFatallyNonCompliant(null);
+        entryHasStaleness(0L);
 
         replayMocks();
         HttpResponse result = impl.execute(host, request, context);
@@ -706,6 +707,7 @@ public class TestCachingHttpClient {
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
         responseIsGeneratedFromCache();
+        entryHasStaleness(0L);
 
         replayMocks();
         impl.execute(host, request, context);
@@ -1147,7 +1149,15 @@ public class TestCachingHttpClient {
                 mockSuitabilityChecker.canCachedResponseBeUsed(
                         EasyMock.<HttpHost>anyObject(),
                         EasyMock.<HttpRequest>anyObject(),
-                        EasyMock.<HttpCacheEntry>anyObject())).andReturn(suitable);
+                        EasyMock.<HttpCacheEntry>anyObject(),
+                        EasyMock.<Date>anyObject())).andReturn(suitable);
+    }
+
+    private void entryHasStaleness(long staleness) {
+        EasyMock.expect(mockValidityPolicy.getStalenessSecs(
+                EasyMock.<HttpCacheEntry>anyObject(),
+                EasyMock.<Date>anyObject()
+                )).andReturn(staleness);
     }
 
     private void responseIsGeneratedFromCache() {

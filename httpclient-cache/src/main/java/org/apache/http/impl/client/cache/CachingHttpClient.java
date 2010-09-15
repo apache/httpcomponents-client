@@ -115,7 +115,7 @@ public class CachingHttpClient implements HttpClient {
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
-        this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy);
+        this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, config);
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
 
         this.responseCompliance = new ResponseProtocolCompliance();
@@ -408,9 +408,14 @@ public class CachingHttpClient implements HttpClient {
         }
         cacheHits.getAndIncrement();
 
-        if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry)) {
+        Date now = getCurrentDate();
+        if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
+            final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
             setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-            return responseGenerator.generateResponse(entry);
+            if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
+                cachedResponse.addHeader("Warning","110 localhost \"Response is stale\"");
+            }
+            return cachedResponse;
         }
 
         if (validityPolicy.isRevalidatable(entry)) {
@@ -421,15 +426,15 @@ public class CachingHttpClient implements HttpClient {
             } catch (IOException ioex) {
                 if (validityPolicy.mustRevalidate(entry)
                     || (isSharedCache() && validityPolicy.proxyRevalidate(entry))
-                    || explicitFreshnessRequest(request, entry)) {
+                    || explicitFreshnessRequest(request, entry, now)) {
                     setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
                     return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
                 } else {
+                    final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
                     setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-                    HttpResponse response = responseGenerator.generateResponse(entry);
-                    response.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
+                    cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
                     log.debug("111 revalidation failed due to exception: " + ioex);
-                    return response;
+                    return cachedResponse;
                 }
             } catch (ProtocolException e) {
                 throw new ClientProtocolException(e);
@@ -438,13 +443,13 @@ public class CachingHttpClient implements HttpClient {
         return callBackend(target, request, context);
     }
 
-    private boolean explicitFreshnessRequest(HttpRequest request, HttpCacheEntry entry) {
+    private boolean explicitFreshnessRequest(HttpRequest request, HttpCacheEntry entry, Date now) {
         for(Header h : request.getHeaders("Cache-Control")) {
             for(HeaderElement elt : h.getElements()) {
                 if ("max-stale".equals(elt.getName())) {
                     try {
                         int maxstale = Integer.parseInt(elt.getValue());
-                        long age = validityPolicy.getCurrentAgeSecs(entry);
+                        long age = validityPolicy.getCurrentAgeSecs(entry, now);
                         long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
                         if (age - lifetime > maxstale) return true;
                     } catch (NumberFormatException nfe) {

@@ -27,16 +27,24 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicStatusLine;
 
 public class HttpTestUtils {
 
@@ -224,4 +232,60 @@ public class HttpTestUtils {
         return new ByteArrayEntity(getRandomBytes(nbytes));
     }
 
+    public static HttpCacheEntry makeCacheEntry(Date requestDate, Date responseDate) {
+        Date when = new Date((responseDate.getTime() + requestDate.getTime()) / 2);
+        return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
+    }
+
+    public static Header[] getStockHeaders(Date when) {
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(when)),
+                new BasicHeader("Server", "MockServer/1.0")
+        };
+        return headers;
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Date requestDate,
+            Date responseDate, Header[] headers) {
+        byte[] bytes = getRandomBytes(128);
+        return makeCacheEntry(requestDate, responseDate, headers, bytes);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Date requestDate,
+            Date responseDate, Header[] headers, byte[] bytes) {
+        Set<String> variants = null;
+        return makeCacheEntry(requestDate, responseDate, headers, bytes,
+                variants);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Set<String> variants) {
+        Date now = new Date();
+        return makeCacheEntry(now, now, getStockHeaders(now),
+                getRandomBytes(128), variants);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Date requestDate,
+            Date responseDate, Header[] headers, byte[] bytes,
+            Set<String> variants) {
+        StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variants);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Header[] headers, byte[] bytes) {
+        Date now = new Date();
+        return makeCacheEntry(now, now, headers, bytes);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(byte[] bytes) {
+        return makeCacheEntry(getStockHeaders(new Date()), bytes);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(Header[] headers) {
+        return makeCacheEntry(headers, getRandomBytes(128));
+    }
+
+    public static HttpCacheEntry makeCacheEntry() {
+        Date now = new Date();
+        return makeCacheEntry(now, now);
+    }
 }

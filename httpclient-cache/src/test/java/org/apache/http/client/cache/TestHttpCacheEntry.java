@@ -24,47 +24,83 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.cache;
+package org.apache.http.client.cache;
+
+import static org.easymock.classextension.EasyMock.*;
+import java.util.Date;
 
 import org.apache.http.Header;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.StatusLine;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicStatusLine;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestCacheEntry {
+public class TestHttpCacheEntry {
+
+    private Date now;
+    private Date elevenSecondsAgo;
+    private Date nineSecondsAgo;
+    private Resource mockResource;
+    private StatusLine statusLine;
+
+    @Before
+    public void setUp() {
+        now = new Date();
+        elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+        nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        mockResource = createMock(Resource.class);
+    }
+
+    private HttpCacheEntry makeEntry(Header[] headers) {
+        return new HttpCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                statusLine, headers, mockResource, null);
+    }
 
     @Test
     public void testGetHeadersReturnsCorrectHeaders() {
-        Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
-                new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
-        CacheEntry entry = new CacheEntry(headers);
+        Header[] headers = { new BasicHeader("foo", "fooValue"),
+                new BasicHeader("bar", "barValue1"),
+                new BasicHeader("bar", "barValue2")
+        };
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertEquals(2, entry.getHeaders("bar").length);
     }
 
     @Test
     public void testGetFirstHeaderReturnsCorrectHeader() {
-        Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
-                new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
-        CacheEntry entry = new CacheEntry(headers);
-
+        Header[] headers = { new BasicHeader("foo", "fooValue"),
+                new BasicHeader("bar", "barValue1"),
+                new BasicHeader("bar", "barValue2")
+        };
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertEquals("barValue1", entry.getFirstHeader("bar").getValue());
     }
 
     @Test
     public void testGetHeadersReturnsEmptyArrayIfNoneMatch() {
-        Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
-                new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
-
-        CacheEntry entry = new CacheEntry(headers);
+        Header[] headers = { new BasicHeader("foo", "fooValue"),
+                new BasicHeader("bar", "barValue1"),
+                new BasicHeader("bar", "barValue2")
+        };
+        HttpCacheEntry entry = makeEntry(headers);
 
         Assert.assertEquals(0, entry.getHeaders("baz").length);
     }
 
     @Test
     public void testGetFirstHeaderReturnsNullIfNoneMatch() {
-        Header[] headers = new Header[] { new BasicHeader("foo", "fooValue"),
-                new BasicHeader("bar", "barValue1"), new BasicHeader("bar", "barValue2") };
-        CacheEntry entry = new CacheEntry(headers);
+        Header[] headers = { new BasicHeader("foo", "fooValue"),
+                new BasicHeader("bar", "barValue1"),
+                new BasicHeader("bar", "barValue2")
+        };
+        HttpCacheEntry entry = makeEntry(headers);
 
         Assert.assertEquals(null, entry.getFirstHeader("quux"));
     }
@@ -72,30 +108,30 @@ public class TestCacheEntry {
     @Test
     public void testCacheEntryWithNoVaryHeaderDoesNotHaveVariants() {
         Header[] headers = new Header[0];
-
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertFalse(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithOneVaryHeaderHasVariants() {
         Header[] headers = { new BasicHeader("Vary", "User-Agent") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertTrue(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithMultipleVaryHeadersHasVariants() {
         Header[] headers = { new BasicHeader("Vary", "User-Agent"),
-                new BasicHeader("Vary", "Accept-Encoding") };
-        CacheEntry entry = new CacheEntry(headers);
+                new BasicHeader("Vary", "Accept-Encoding")
+        };
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertTrue(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithVaryStarHasVariants(){
         Header[] headers = { new BasicHeader("Vary", "*") };
-        CacheEntry entry = new CacheEntry(headers);
+        HttpCacheEntry entry = makeEntry(headers);
         Assert.assertTrue(entry.hasVariants());
     }
 

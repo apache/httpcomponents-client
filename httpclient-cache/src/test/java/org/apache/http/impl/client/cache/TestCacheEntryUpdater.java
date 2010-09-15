@@ -64,7 +64,7 @@ public class TestCacheEntryUpdater {
     @Test
     public void testUpdateCacheEntryReturnsDifferentEntryInstance() throws IOException {
 
-        CacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry =HttpTestUtils.makeCacheEntry();
         BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         HttpCacheEntry newEntry = impl.updateCacheEntry(null, entry, requestDate, responseDate, response);
@@ -79,7 +79,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", DateUtils.formatDate(responseDate)),
                 new BasicHeader("ETag", "\"etag\"")};
 
-        CacheEntry cacheEntry = new CacheEntry(headers);
+        HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
 
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
@@ -102,7 +102,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Cache-Control", "private"), new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(requestDate)),
                 new BasicHeader("Cache-Control", "max-age=0"),};
-        CacheEntry cacheEntry = new CacheEntry(headers);
+        HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
 
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
@@ -129,7 +129,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", DateUtils.formatDate(requestDate)),
                 new BasicHeader("ETag", "\"etag\"")};
 
-        CacheEntry cacheEntry = new CacheEntry(headers);
+        HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion(
                 "http", 1, 1), HttpStatus.SC_NOT_MODIFIED, ""));
         response.setHeaders(new Header[]{
@@ -160,7 +160,7 @@ public class TestCacheEntryUpdater {
         Date twoSecondsAgo = new Date(now.getTime() - 2000L);
         Date oneSecondAgo = new Date(now.getTime() - 1000L);
 
-        CacheEntry entry = new CacheEntry(tenSecondsAgo, eightSecondsAgo);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo);
 
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 

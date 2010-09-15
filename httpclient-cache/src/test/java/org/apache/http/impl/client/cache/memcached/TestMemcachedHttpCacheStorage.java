@@ -41,7 +41,7 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CacheEntry;
+import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +74,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     @Test
     public void testCachePut() throws IOException, HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry value = new CacheEntry();
+        final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
         mockSerializer.writeTo(EasyMock.isA(HttpCacheEntry.class), EasyMock
                 .isA(OutputStream.class));
         EasyMock.expect(
@@ -89,7 +89,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testCacheGet() throws UnsupportedEncodingException,
             IOException, HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry cacheEntry = new CacheEntry();
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
         EasyMock.expect(mockMemcachedClient.get(url)).andReturn(new byte[] {});
         EasyMock.expect(
                 mockSerializer.readFrom(EasyMock.isA(InputStream.class)))
@@ -126,7 +126,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testCacheUpdateNullEntry() throws IOException,
             HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(HttpCacheEntry old) {
@@ -154,8 +154,8 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     @Test
     public void testCacheUpdate() throws IOException, HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         CASValue<Object> v = new CASValue<Object>(1234, new byte[] {});
 
@@ -189,8 +189,8 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testSingleCacheUpdateRetry() throws IOException,
             HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
         CASValue<Object> v = new CASValue<Object>(1234, new byte[] {});
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
@@ -229,8 +229,8 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testCacheUpdateFail() throws IOException,
             HttpCacheUpdateException {
         final String url = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
         CASValue<Object> v = new CASValue<Object>(1234, new byte[] {});
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {

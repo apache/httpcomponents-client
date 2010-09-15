@@ -39,7 +39,7 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CacheEntry;
+import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
@@ -70,7 +70,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testCachePut() throws IOException {
         final String key = "foo";
-        final HttpCacheEntry value = new CacheEntry();
+        final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
         Element e = new Element(key, new byte[]{});
 
@@ -98,7 +98,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testCacheGet() throws IOException {
         final String key = "foo";
-        final HttpCacheEntry cachedValue = new CacheEntry();
+        final HttpCacheEntry cachedValue = HttpTestUtils.makeCacheEntry();
 
         Element element = new Element(key, new byte[]{});
 
@@ -128,7 +128,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testCacheUpdateNullEntry() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Element element = new Element(key, new byte[]{});
 
@@ -154,8 +154,8 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testCacheUpdate() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Element existingElement = new Element(key, new byte[]{});
 
@@ -182,8 +182,8 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testSingleCacheUpdateRetry() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Element existingElement = new Element(key, new byte[]{});
 
@@ -214,8 +214,8 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Test
     public void testCacheUpdateFail() throws IOException, HttpCacheUpdateException {
         final String key = "foo";
-        final HttpCacheEntry existingValue = new CacheEntry();
-        final HttpCacheEntry updatedValue = new CacheEntry();
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Element existingElement = new Element(key, new byte[]{});
 

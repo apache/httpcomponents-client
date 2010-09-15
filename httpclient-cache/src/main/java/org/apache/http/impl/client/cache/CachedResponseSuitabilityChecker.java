@@ -51,15 +51,59 @@ class CachedResponseSuitabilityChecker {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private final boolean sharedCache;
     private final CacheValidityPolicy validityStrategy;
 
-    CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy) {
+    CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
+            CacheConfig config) {
         super();
         this.validityStrategy = validityStrategy;
+        this.sharedCache = config.isSharedCache();
     }
 
-    CachedResponseSuitabilityChecker() {
-        this(new CacheValidityPolicy());
+    CachedResponseSuitabilityChecker(CacheConfig config) {
+        this(new CacheValidityPolicy(), config);
+    }
+
+    private boolean isFreshEnough(HttpCacheEntry entry, HttpRequest request, Date now) {
+        if (validityStrategy.isResponseFresh(entry, now)) return true;
+        if (originInsistsOnFreshness(entry)) return false;
+        long maxstale = getMaxStale(request);
+        if (maxstale == -1) return false;
+        return (maxstale > validityStrategy.getStalenessSecs(entry, now));
+    }
+
+    private boolean originInsistsOnFreshness(HttpCacheEntry entry) {
+        if (validityStrategy.mustRevalidate(entry)) return true;
+        if (!sharedCache) return false;
+        return validityStrategy.proxyRevalidate(entry) ||
+            validityStrategy.hasCacheControlDirective(entry, "s-maxage");
+    }
+
+    private long getMaxStale(HttpRequest request) {
+        long maxstale = -1;
+        for(Header h : request.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-stale".equals(elt.getName())) {
+                    if ((elt.getValue() == null || "".equals(elt.getValue().trim()))
+                            && maxstale == -1) {
+                        maxstale = Long.MAX_VALUE;
+                    } else {
+                        try {
+                            long val = Long.parseLong(elt.getValue());
+                            if (val < 0) val = 0;
+                            if (maxstale == -1 || val < maxstale) {
+                                maxstale = val;
+                            }
+                        } catch (NumberFormatException nfe) {
+                            // err on the side of preserving semantic transparency
+                            maxstale = 0;
+                        }
+                    }
+                }
+            }
+        }
+        return maxstale;
     }
 
     /**
@@ -74,8 +118,8 @@ class CachedResponseSuitabilityChecker {
      *            {@link HttpCacheEntry}
      * @return boolean yes/no answer
      */
-    public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry) {
-        if (!validityStrategy.isResponseFresh(entry)) {
+    public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry, Date now) {
+        if (!isFreshEnough(entry, request, now)) {
             log.debug("Cache entry was not fresh enough");
             return false;
         }
@@ -110,7 +154,7 @@ class CachedResponseSuitabilityChecker {
                 if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())) {
                     try {
                         int maxage = Integer.parseInt(elt.getValue());
-                        if (validityStrategy.getCurrentAgeSecs(entry) > maxage) {
+                        if (validityStrategy.getCurrentAgeSecs(entry, now) > maxage) {
                             log.debug("Response from cache was NOT suitable due to max age");
                             return false;
                         }
@@ -137,8 +181,11 @@ class CachedResponseSuitabilityChecker {
 
                 if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())) {
                     try {
-                        int minfresh = Integer.parseInt(elt.getValue());
-                        if (validityStrategy.getFreshnessLifetimeSecs(entry) < minfresh) {
+                        long minfresh = Long.parseLong(elt.getValue());
+                        if (minfresh < 0L) return false;
+                        long age = validityStrategy.getCurrentAgeSecs(entry, now);
+                        long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
+                        if (freshness - age < minfresh) {
                             log.debug("Response from cache was not suitable due to min fresh " +
                                     "freshness requirement");
                             return false;

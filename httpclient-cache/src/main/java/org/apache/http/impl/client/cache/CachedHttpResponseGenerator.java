@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Date;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -66,6 +68,7 @@ class CachedHttpResponseGenerator {
      */
     HttpResponse generateResponse(HttpCacheEntry entry) {
 
+        Date now = new Date();
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
 
@@ -76,7 +79,7 @@ class CachedHttpResponseGenerator {
             response.setEntity(entity);
         }
 
-        long age = this.validityStrategy.getCurrentAgeSecs(entry);
+        long age = this.validityStrategy.getCurrentAgeSecs(entry, now);
         if (age > 0) {
             if (age >= Integer.MAX_VALUE) {
                 response.setHeader(HeaderConstants.AGE, "2147483648");

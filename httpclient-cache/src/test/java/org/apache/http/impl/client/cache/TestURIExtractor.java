@@ -30,6 +30,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
@@ -46,13 +47,13 @@ public class TestURIExtractor {
 
     URIExtractor extractor;
     private HttpHost host;
-    private CacheEntry mockEntry;
+    private HttpCacheEntry mockEntry;
     private HttpRequest mockRequest;
 
     @Before
     public void setUp() throws Exception {
         host = new HttpHost("foo.example.com");
-        mockEntry = EasyMock.createMock(CacheEntry.class);
+        mockEntry = EasyMock.createMock(HttpCacheEntry.class);
         mockRequest = EasyMock.createMock(HttpRequest.class);
         extractor = new URIExtractor();
     }

@@ -34,6 +34,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -49,14 +50,14 @@ public class TestCacheInvalidator {
     private HttpCacheStorage mockStorage;
     private HttpHost host;
     private URIExtractor extractor;
-    private CacheEntry mockEntry;
+    private HttpCacheEntry mockEntry;
 
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
         mockStorage = EasyMock.createMock(HttpCacheStorage.class);
         extractor = new URIExtractor();
-        mockEntry = EasyMock.createMock(CacheEntry.class);
+        mockEntry = EasyMock.createMock(HttpCacheEntry.class);
 
         impl = new CacheInvalidator(extractor, mockStorage);
     }

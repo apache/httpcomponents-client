@@ -72,7 +72,7 @@ public class TestBasicHttpCache {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req = new HttpDelete("/bar");
         final String key = (new URIExtractor()).getURI(host, req);
-        HttpCacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
 
@@ -200,8 +200,8 @@ public class TestBasicHttpCache {
         final String existingVariantKey = "existingVariantKey";
         final Set<String> existingVariants = new HashSet<String>();
         existingVariants.add(existingVariantKey);
-        final CacheEntry parent = new CacheEntry(existingVariants);
-        final CacheEntry variant = new CacheEntry();
+        final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
+        final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
 
         HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentKey, parent, variant, variantKey);
         assertEquals(2, result.getVariantURIs().size());
@@ -211,7 +211,7 @@ public class TestBasicHttpCache {
 
     @Test
     public void testStoreInCachePutsNonVariantEntryInPlace() throws Exception {
-        CacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req = new HttpGet("http://foo.example.com/bar");
@@ -275,7 +275,7 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetCacheEntryFetchesFromCacheOnCacheHitIfNoVariants() throws Exception {
-        CacheEntry entry = new CacheEntry();
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest request = new HttpGet("http://foo.example.com/bar");
