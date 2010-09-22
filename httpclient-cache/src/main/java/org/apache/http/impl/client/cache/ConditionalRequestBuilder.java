@@ -58,8 +58,9 @@ class ConditionalRequestBuilder {
         Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
             wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
-        } else {
-            Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+        }
+        Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+        if (lastModified != null) {
             wrapperRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
         }
         boolean mustRevalidate = false;

@@ -86,6 +86,28 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
+    public void testConditionalRequestForEntryWithLastModifiedAndEtagIncludesBothAsValidators()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+        final String etag = "\"etag\"";
+        Header[] headers = {
+            new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+            new BasicHeader("Last-Modified", lmDate),
+            new BasicHeader("ETag", etag)
+        };
+        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
+        HttpRequest result = impl.buildConditionalRequest(request, entry);
+        Assert.assertEquals(lmDate,
+                result.getFirstHeader("If-Modified-Since").getValue());
+        Assert.assertEquals(etag,
+                result.getFirstHeader("If-None-Match").getValue());
+    }
+
+    @Test
     public void testBuildConditionalRequestWithETag() throws ProtocolException {
         String theMethod = "GET";
         String theUri = "/theuri";
@@ -110,7 +132,7 @@ public class TestConditionalRequestBuilder {
         Assert.assertEquals(request.getRequestLine().getProtocolVersion(), newRequest
                 .getRequestLine().getProtocolVersion());
 
-        Assert.assertEquals(2, newRequest.getAllHeaders().length);
+        Assert.assertEquals(3, newRequest.getAllHeaders().length);
 
         Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
         Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());

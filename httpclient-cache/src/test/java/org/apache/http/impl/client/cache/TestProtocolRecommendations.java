@@ -44,6 +44,7 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 /*
@@ -303,6 +304,100 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         verifyMocks();
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
+    }
+
+    /*
+     * "[HTTP/1.1 clients], If only a Last-Modified value has been provided
+     * by the origin server, SHOULD use that value in non-subrange cache-
+     * conditional requests (using If-Modified-Since)."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.4
+     */
+    @Test
+    public void testUsesLastModifiedDateForCacheConditionalRequests()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+
+        HttpRequest req1 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", lmDate);
+        resp1.setHeader("Cache-Control","max-age=5");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        HttpRequest req2 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+
+        EasyMock.expect(mockBackend.execute(EasyMock.same(host),
+                EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+            .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+
+        HttpRequest captured = cap.getValue();
+        Header ifModifiedSince =
+            captured.getFirstHeader("If-Modified-Since");
+        assertEquals(lmDate, ifModifiedSince.getValue());
+    }
+
+    /*
+     * "[HTTP/1.1 clients], if both an entity tag and a Last-Modified value
+     * have been provided by the origin server, SHOULD use both validators
+     * in cache-conditional requests. This allows both HTTP/1.0 and
+     * HTTP/1.1 caches to respond appropriately."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.4
+     */
+    @Test
+    public void testUsesBothLastModifiedAndETagForConditionalRequestsIfAvailable()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+        final String etag = "\"etag\"";
+
+        HttpRequest req1 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", lmDate);
+        resp1.setHeader("Cache-Control","max-age=5");
+        resp1.setHeader("ETag", etag);
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        HttpRequest req2 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+
+        EasyMock.expect(mockBackend.execute(EasyMock.same(host),
+                EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+            .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+
+        HttpRequest captured = cap.getValue();
+        Header ifModifiedSince =
+            captured.getFirstHeader("If-Modified-Since");
+        assertEquals(lmDate, ifModifiedSince.getValue());
+        Header ifNoneMatch =
+            captured.getFirstHeader("If-None-Match");
+        assertEquals(etag, ifNoneMatch.getValue());
     }
 
     /*
