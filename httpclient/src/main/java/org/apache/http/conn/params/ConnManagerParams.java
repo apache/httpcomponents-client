@@ -57,6 +57,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * 
      * @deprecated use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
+    @Deprecated
     public static long getTimeout(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
@@ -71,8 +72,9 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @param timeout the timeout in milliseconds
      * 
-     * @deprecated use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)
+     * @deprecated use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
+    @Deprecated
     public static void setTimeout(final HttpParams params, long timeout) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
@@ -98,6 +100,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated use {@link ThreadSafeClientConnManager#setMaxForRoute(org.apache.http.conn.routing.HttpRoute, int)}
      */
+    @Deprecated
     public static void setMaxConnectionsPerRoute(final HttpParams params,
                                                 final ConnPerRoute connPerRoute) {
         if (params == null) {
@@ -116,6 +119,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated use {@link ThreadSafeClientConnManager#getMaxForRoute(org.apache.http.conn.routing.HttpRoute)}
      */
+    @Deprecated
     public static ConnPerRoute getMaxConnectionsPerRoute(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException
@@ -136,6 +140,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated use {@link ThreadSafeClientConnManager#setMaxTotal(int)}
      */
+    @Deprecated
     public static void setMaxTotalConnections(
             final HttpParams params,
             int maxTotalConnections) {
@@ -155,6 +160,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated use {@link ThreadSafeClientConnManager#getMaxTotal()}
      */
+    @Deprecated
     public static int getMaxTotalConnections(
             final HttpParams params) {
         if (params == null) {

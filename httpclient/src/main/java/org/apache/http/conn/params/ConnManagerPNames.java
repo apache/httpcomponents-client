@@ -46,6 +46,7 @@ public interface ConnManagerPNames {
      * <p>
      * @deprecated use {@link CoreConnectionPNames#CONNECTION_TIMEOUT}
      */
+    @Deprecated
     public static final String TIMEOUT = "http.conn-manager.timeout";
 
     /**
@@ -58,6 +59,7 @@ public interface ConnManagerPNames {
      * @deprecated use {@link ThreadSafeClientConnManager#setMaxForRoute(org.apache.http.conn.routing.HttpRoute, int)},
      *  {@link ThreadSafeClientConnManager#getMaxForRoute(org.apache.http.conn.routing.HttpRoute)}
      */
+    @Deprecated
     public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
 
     /**
@@ -70,6 +72,7 @@ public interface ConnManagerPNames {
      * @deprecated use {@link ThreadSafeClientConnManager#setMaxTotal(int)},
      *  {@link ThreadSafeClientConnManager#getMaxTotal()}
      */
+    @Deprecated
     public static final String MAX_TOTAL_CONNECTIONS = "http.conn-manager.max-total";
 
 }
