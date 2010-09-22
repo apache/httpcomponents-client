@@ -48,7 +48,7 @@
       <item name="Quick Start" href="quickstart.html"/>
     </menu>
     <menu name="Documentation">
-      <item name="Tutorial" href="tutorial/html/"/>
+      <item name="Tutorial" href="tutorial/html/index.html"/>
       <item name="Examples" href="examples.html"/>
       <item name="Client HTTP Programming Primer" href="primer.html"/>
       <item name="NTLM support" href="ntlm.html"/>
