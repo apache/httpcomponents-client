@@ -34,12 +34,14 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
@@ -305,6 +307,284 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
     }
+
+    /*
+     * "A transparent proxy SHOULD NOT modify an end-to-end header unless
+     * the definition of that header requires or specifically allows that."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.2
+     */
+    private void testDoesNotModifyHeaderOnResponses(final String headerName)
+            throws Exception {
+        final String headerValue = HttpTestUtils
+            .getCanonicalHeaderValue(originResponse, headerName);
+        backendExpectsAnyRequest().andReturn(originResponse);
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        assertEquals(headerValue,
+            result.getFirstHeader(headerName).getValue());
+    }
+
+    private void testDoesNotModifyHeaderOnRequests(final String headerName)
+            throws Exception {
+        final String headerValue = HttpTestUtils.getCanonicalHeaderValue(request, headerName);
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+                .andReturn(originResponse);
+        replayMocks();
+        impl.execute(host, request);
+        verifyMocks();
+        assertEquals(headerValue,
+                HttpTestUtils.getCanonicalHeaderValue(cap.getValue(),
+                        headerName));
+    }
+
+    @Test
+    public void testDoesNotModifyAcceptRangesOnResponses()
+    throws Exception {
+        final String headerName = "Accept-Ranges";
+        originResponse.setHeader(headerName,"bytes");
+        testDoesNotModifyHeaderOnResponses(headerName);
+    }
+
+    @Test
+    public void testDoesNotModifyAuthorizationOnRequests()
+            throws Exception {
+        request.setHeader("Authorization", "Basic dXNlcjpwYXNzd2Q=");
+        testDoesNotModifyHeaderOnRequests("Authorization");
+    }
+
+    @Test
+    public void testDoesNotModifyContentLengthOnRequests()
+            throws Exception {
+        HttpEntityEnclosingRequest post =
+            new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
+        post.setEntity(HttpTestUtils.makeBody(128));
+        post.setHeader("Content-Length","128");
+        request = post;
+        testDoesNotModifyHeaderOnRequests("Content-Length");
+    }
+
+    @Test
+    public void testDoesNotModifyContentLengthOnResponses()
+            throws Exception {
+        originResponse.setEntity(HttpTestUtils.makeBody(128));
+        originResponse.setHeader("Content-Length","128");
+        testDoesNotModifyHeaderOnResponses("Content-Length");
+    }
+
+    @Test
+    public void testDoesNotModifyContentMD5OnRequests()
+            throws Exception {
+        HttpEntityEnclosingRequest post =
+            new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
+        post.setEntity(HttpTestUtils.makeBody(128));
+        post.setHeader("Content-Length","128");
+        post.setHeader("Content-MD5","Q2hlY2sgSW50ZWdyaXR5IQ==");
+        request = post;
+        testDoesNotModifyHeaderOnRequests("Content-MD5");
+    }
+
+    @Test
+    public void testDoesNotModifyContentMD5OnResponses()
+            throws Exception {
+        originResponse.setEntity(HttpTestUtils.makeBody(128));
+        originResponse.setHeader("Content-MD5","Q2hlY2sgSW50ZWdyaXR5IQ==");
+        testDoesNotModifyHeaderOnResponses("Content-MD5");
+    }
+
+    @Test
+    public void testDoesNotModifyContentRangeOnRequests()
+            throws Exception {
+        HttpEntityEnclosingRequest put =
+            new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
+        put.setEntity(HttpTestUtils.makeBody(128));
+        put.setHeader("Content-Length","128");
+        put.setHeader("Content-Range","bytes 0-127/256");
+        request = put;
+        testDoesNotModifyHeaderOnRequests("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotModifyContentRangeOnResponses()
+            throws Exception {
+        request.setHeader("Range","bytes=0-128");
+        originResponse.setStatusCode(HttpStatus.SC_PARTIAL_CONTENT);
+        originResponse.setReasonPhrase("Partial Content");
+        originResponse.setEntity(HttpTestUtils.makeBody(128));
+        originResponse.setHeader("Content-Range","bytes 0-127/256");
+        testDoesNotModifyHeaderOnResponses("Content-Range");
+    }
+
+    @Test
+    public void testDoesNotModifyContentTypeOnRequests()
+            throws Exception {
+        HttpEntityEnclosingRequest post =
+            new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
+        post.setEntity(HttpTestUtils.makeBody(128));
+        post.setHeader("Content-Length","128");
+        post.setHeader("Content-Type","application/octet-stream");
+        request = post;
+        testDoesNotModifyHeaderOnRequests("Content-Type");
+    }
+
+    @Test
+    public void testDoesNotModifyContentTypeOnResponses()
+            throws Exception {
+        originResponse.setHeader("Content-Type","application/octet-stream");
+        testDoesNotModifyHeaderOnResponses("Content-Type");
+    }
+
+    @Test
+    public void testDoesNotModifyDateOnRequests()
+        throws Exception {
+        request.setHeader("Date", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnRequests("Date");
+    }
+
+    @Test
+    public void testDoesNotModifyDateOnResponses()
+        throws Exception {
+        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnResponses("Date");
+    }
+
+    @Test
+    public void testDoesNotModifyETagOnResponses()
+        throws Exception {
+        originResponse.setHeader("ETag", "\"random-etag\"");
+        testDoesNotModifyHeaderOnResponses("ETag");
+    }
+
+    @Test
+    public void testDoesNotModifyExpiresOnResponses()
+        throws Exception {
+        originResponse.setHeader("Expires", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnResponses("Expires");
+    }
+
+    @Test
+    public void testDoesNotModifyFromOnRequests()
+        throws Exception {
+        request.setHeader("From", "foo@example.com");
+        testDoesNotModifyHeaderOnRequests("From");
+    }
+
+    @Test
+    public void testDoesNotModifyIfMatchOnRequests()
+        throws Exception {
+        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
+        request.setHeader("If-Match", "\"etag\"");
+        testDoesNotModifyHeaderOnRequests("If-Match");
+    }
+
+    @Test
+    public void testDoesNotModifyIfModifiedSinceOnRequests()
+        throws Exception {
+        request.setHeader("If-Modified-Since", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnRequests("If-Modified-Since");
+    }
+
+    @Test
+    public void testDoesNotModifyIfNoneMatchOnRequests()
+        throws Exception {
+        request.setHeader("If-None-Match", "\"etag\"");
+        testDoesNotModifyHeaderOnRequests("If-None-Match");
+    }
+
+    @Test
+    public void testDoesNotModifyIfRangeOnRequests()
+        throws Exception {
+        request.setHeader("Range","bytes=0-128");
+        request.setHeader("If-Range", "\"etag\"");
+        testDoesNotModifyHeaderOnRequests("If-Range");
+    }
+
+    @Test
+    public void testDoesNotModifyIfUnmodifiedSinceOnRequests()
+        throws Exception {
+        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
+        request.setHeader("If-Unmodified-Since", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnRequests("If-Unmodified-Since");
+    }
+
+    @Test
+    public void testDoesNotModifyLastModifiedOnResponses()
+        throws Exception {
+        originResponse.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+        testDoesNotModifyHeaderOnResponses("Last-Modified");
+    }
+
+    @Test
+    public void testDoesNotModifyLocationOnResponses()
+        throws Exception {
+        originResponse.setStatusCode(HttpStatus.SC_TEMPORARY_REDIRECT);
+        originResponse.setReasonPhrase("Temporary Redirect");
+        originResponse.setHeader("Location", "http://foo.example.com/bar");
+        testDoesNotModifyHeaderOnResponses("Location");
+    }
+
+    @Test
+    public void testDoesNotModifyRangeOnRequests()
+        throws Exception {
+        request.setHeader("Range", "bytes=0-128");
+        testDoesNotModifyHeaderOnRequests("Range");
+    }
+
+    @Test
+    public void testDoesNotModifyRefererOnRequests()
+        throws Exception {
+        request.setHeader("Referer", "http://foo.example.com/bar");
+        testDoesNotModifyHeaderOnRequests("Referer");
+    }
+
+    @Test
+    public void testDoesNotModifyRetryAfterOnResponses()
+        throws Exception {
+        originResponse.setStatusCode(HttpStatus.SC_SERVICE_UNAVAILABLE);
+        originResponse.setReasonPhrase("Service Unavailable");
+        originResponse.setHeader("Retry-After", "120");
+        testDoesNotModifyHeaderOnResponses("Retry-After");
+    }
+
+    @Test
+    public void testDoesNotModifyServerOnResponses()
+        throws Exception {
+        originResponse.setHeader("Server", "SomeServer/1.0");
+        testDoesNotModifyHeaderOnResponses("Server");
+    }
+
+    @Test
+    public void testDoesNotModifyUserAgentOnRequests()
+        throws Exception {
+        request.setHeader("User-Agent", "MyClient/1.0");
+        testDoesNotModifyHeaderOnRequests("User-Agent");
+    }
+
+    @Test
+    public void testDoesNotModifyVaryOnResponses()
+        throws Exception {
+        request.setHeader("Accept-Encoding","identity");
+        originResponse.setHeader("Vary", "Accept-Encoding");
+        testDoesNotModifyHeaderOnResponses("Vary");
+    }
+
+    @Test
+    public void testDoesNotModifyExtensionHeaderOnRequests()
+        throws Exception {
+        request.setHeader("X-Extension","x-value");
+        testDoesNotModifyHeaderOnRequests("X-Extension");
+    }
+
+    @Test
+    public void testDoesNotModifyExtensionHeaderOnResponses()
+        throws Exception {
+        originResponse.setHeader("X-Extension", "x-value");
+        testDoesNotModifyHeaderOnResponses("X-Extension");
+    }
+
 
     /*
      * "[HTTP/1.1 clients], If only a Last-Modified value has been provided
