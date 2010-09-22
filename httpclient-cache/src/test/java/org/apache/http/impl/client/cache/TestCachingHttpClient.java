@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -49,6 +50,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.BasicHttpParams;
@@ -99,6 +101,7 @@ public class TestCachingHttpClient {
     private HttpRequest request;
     private HttpContext context;
     private HttpParams params;
+    private HttpCacheEntry entry;
 
     @SuppressWarnings("unchecked")
     @Before
@@ -128,6 +131,7 @@ public class TestCachingHttpClient {
         request = new BasicHttpRequest("GET", "/stuff", HttpVersion.HTTP_1_1);
         context = new BasicHttpContext();
         params = new BasicHttpParams();
+        entry = HttpTestUtils.makeCacheEntry();
         impl = new CachingHttpClient(
                 mockBackend,
                 mockValidityPolicy,
@@ -195,6 +199,8 @@ public class TestCachingHttpClient {
 
         responseProtocolValidationIsCalled();
 
+        EasyMock.expect(mockCache.getCacheEntry(host, request))
+            .andReturn(null);
         EasyMock.expect(mockCache.cacheAndReturnResponse(host, request, mockBackendResponse, requestDate, responseDate))
             .andReturn(mockCachedResponse);
 
@@ -205,6 +211,60 @@ public class TestCachingHttpClient {
 
         Assert.assertSame(mockCachedResponse, result);
     }
+
+    @Test
+    public void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
+        responsePolicyAllowsCaching(true);
+        responseProtocolValidationIsCalled();
+
+        Date now = new Date();
+        Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
+        Header entryDateHeader = new BasicHeader("Date", DateUtils.formatDate(now));
+        Header[] headers = { entryDateHeader };
+        entry = HttpTestUtils.makeCacheEntry(headers);
+        Header responseDateHeader = new BasicHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+
+        EasyMock.expect(mockCache.getCacheEntry(host, request))
+            .andReturn(entry);
+        EasyMock.expect(mockBackendResponse.getFirstHeader("Date"))
+            .andReturn(responseDateHeader).anyTimes();
+
+        replayMocks();
+        HttpResponse result = impl.handleBackendResponse(host, request, requestDate,
+                                                         responseDate, mockBackendResponse);
+        verifyMocks();
+
+        Assert.assertSame(mockBackendResponse, result);
+    }
+
+    @Test
+    public void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
+        responsePolicyAllowsCaching(true);
+        responseProtocolValidationIsCalled();
+
+        Date now = new Date();
+        Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
+        Header entryDateHeader = new BasicHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        Header[] headers = { entryDateHeader };
+        entry = HttpTestUtils.makeCacheEntry(headers);
+        Header responseDateHeader = new BasicHeader("Date", DateUtils.formatDate(now));
+
+        EasyMock.expect(mockCache.getCacheEntry(host, request))
+            .andReturn(entry);
+        EasyMock.expect(mockBackendResponse.getFirstHeader("Date"))
+            .andReturn(responseDateHeader).anyTimes();
+        EasyMock.expect(mockCache.cacheAndReturnResponse(host, request,
+                mockBackendResponse, requestDate, responseDate))
+            .andReturn(mockCachedResponse);
+
+        replayMocks();
+        HttpResponse result = impl.handleBackendResponse(host, request, requestDate,
+                                                         responseDate, mockBackendResponse);
+        verifyMocks();
+
+        Assert.assertSame(mockCachedResponse, result);
+    }
+
 
     @Test
     public void testRequestThatCannotBeServedFromCacheCausesBackendRequest() throws Exception {
@@ -302,54 +362,139 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    public void testRevalidationCallsHandleBackEndResponseWhenNot304() throws Exception {
+    public void testRevalidationCallsHandleBackEndResponseWhenNot200Or304() throws Exception {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
 
-        conditionalRequestBuilderCalled();
+        HttpRequest validate =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse originResponse =
+            new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_NOT_FOUND, "Not Found");
+        HttpResponse finalResponse = HttpTestUtils.make200Response();
+
+        conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
-        backendCallWasMadeWithRequest(mockConditionalRequest);
+        backendCall(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        backendResponseCodeIs(HttpStatus.SC_OK);
-        EasyMock.expect(mockCache.updateCacheEntry(host, request,
-                mockCacheEntry, mockBackendResponse, requestDate, responseDate))
-            .andReturn(mockCachedResponse);
+        EasyMock.expect(impl.handleBackendResponse(host, validate,
+                requestDate, responseDate, originResponse))
+            .andReturn(finalResponse);
 
         replayMocks();
-
-        HttpResponse result = impl.revalidateCacheEntry(host, request, context,
-                                                        mockCacheEntry);
-
+        HttpResponse result =
+            impl.revalidateCacheEntry(host, request, context, entry);
         verifyMocks();
 
-        Assert.assertEquals(mockCachedResponse, result);
-        Assert.assertEquals(0, impl.getCacheMisses());
-        Assert.assertEquals(0, impl.getCacheHits());
-        Assert.assertEquals(1, impl.getCacheUpdates());
+        Assert.assertSame(finalResponse, result);
     }
 
     @Test
     public void testRevalidationUpdatesCacheEntryAndPutsItToCacheWhen304ReturningCachedResponse()
             throws Exception {
+
         mockImplMethods(GET_CURRENT_DATE);
-        conditionalRequestBuilderCalled();
+
+        HttpRequest validate =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse originResponse =
+            new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpResponse finalResponse = HttpTestUtils.make200Response();
+
+        conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
-        backendCallWasMadeWithRequest(mockConditionalRequest);
+        backendCall(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        backendResponseCodeIs(HttpStatus.SC_NOT_MODIFIED);
         EasyMock.expect(mockCache.updateCacheEntry(host, request,
-                mockCacheEntry, mockBackendResponse, requestDate, responseDate))
-            .andReturn(mockCachedResponse);
+                entry, originResponse, requestDate, responseDate))
+            .andReturn(finalResponse);
 
         replayMocks();
-
-        HttpResponse result = impl.revalidateCacheEntry(host, request, context, mockCacheEntry);
-
+        HttpResponse result =
+            impl.revalidateCacheEntry(host, request, context, entry);
         verifyMocks();
 
-        Assert.assertEquals(mockCachedResponse, result);
-        Assert.assertEquals(0, impl.getCacheMisses());
-        Assert.assertEquals(0, impl.getCacheHits());
-        Assert.assertEquals(1, impl.getCacheUpdates());
+        Assert.assertSame(finalResponse, result);
+    }
+
+    @Test
+    public void testRevalidationUpdatesCacheEntryAndPutsItToCacheWhen200ReturningCachedResponse()
+            throws Exception {
+
+        mockImplMethods(GET_CURRENT_DATE);
+
+        HttpRequest validate =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse originResponse = HttpTestUtils.make200Response();
+        HttpResponse finalResponse = HttpTestUtils.make200Response();
+
+        conditionalRequestBuilderReturns(validate);
+        getCurrentDateReturns(requestDate);
+        backendCall(validate, originResponse);
+        getCurrentDateReturns(responseDate);
+        EasyMock.expect(mockCache.updateCacheEntry(host, request,
+                entry, originResponse, requestDate, responseDate))
+            .andReturn(finalResponse);
+
+        replayMocks();
+        HttpResponse result =
+            impl.revalidateCacheEntry(host, request, context, entry);
+        verifyMocks();
+
+        Assert.assertSame(finalResponse, result);
+    }
+
+    @Test
+    public void testRevalidationRetriesUnconditionallyIfOlderResponseReceived()
+        throws Exception {
+// TODO
+        mockImplMethods(GET_CURRENT_DATE);
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+
+        Header[] headers = {
+            new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+            new BasicHeader("Cache-Control","max-age=5"),
+            new BasicHeader("ETag", "\"etag1\"")
+        };
+        entry = HttpTestUtils.makeCacheEntry(headers);
+
+        HttpRequest validate =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse originResponse1 =
+            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+                    "Not Modified");
+        originResponse1.setHeader("Date", DateUtils.formatDate(elevenSecondsAgo));
+        HttpRequest unconditional =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse originResponse2 = HttpTestUtils.make200Response();
+        HttpResponse finalResponse = HttpTestUtils.make200Response();
+
+        conditionalRequestBuilderReturns(validate);
+        getCurrentDateReturns(requestDate);
+        backendCall(validate, originResponse1);
+        getCurrentDateReturns(responseDate);
+        EasyMock.expect(mockConditionalRequestBuilder.buildUnconditionalRequest(request, entry))
+            .andReturn(unconditional);
+        final Date requestDate2 = new Date();
+        getCurrentDateReturns(requestDate2);
+        backendCall(unconditional, originResponse2);
+        final Date responseDate2 = new Date();
+        getCurrentDateReturns(responseDate2);
+
+        EasyMock.expect(mockCache.updateCacheEntry(host, request,
+                entry, originResponse2, requestDate2, responseDate2))
+            .andReturn(finalResponse);
+
+        replayMocks();
+        HttpResponse result =
+            impl.revalidateCacheEntry(host, request, context, entry);
+        verifyMocks();
+
+        Assert.assertSame(finalResponse, result);
+
     }
 
     @Test
@@ -1102,16 +1247,11 @@ public class TestCachingHttpClient {
                 EasyMock.<HttpCacheEntry>anyObject())).andReturn(b);
     }
 
-    private void backendResponseCodeIs(int code) {
-        EasyMock.expect(mockBackendResponse.getStatusLine()).andReturn(mockStatusLine);
-        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(code);
-    }
-
-    private void conditionalRequestBuilderCalled() throws ProtocolException {
-        EasyMock.expect(
-                mockConditionalRequestBuilder.buildConditionalRequest(
-                        EasyMock.<HttpRequest>anyObject(),
-                        EasyMock.<HttpCacheEntry>anyObject())).andReturn(mockConditionalRequest);
+    private void conditionalRequestBuilderReturns(HttpRequest validate)
+            throws Exception {
+        EasyMock.expect(mockConditionalRequestBuilder
+                .buildConditionalRequest(request, entry))
+            .andReturn(validate);
     }
 
     private void getCurrentDateReturns(Date date) {
@@ -1123,11 +1263,10 @@ public class TestCachingHttpClient {
                 EasyMock.<HttpRequest>anyObject())).andReturn(allow);
     }
 
-    private void backendCallWasMadeWithRequest(HttpRequest request) throws IOException {
-        EasyMock.expect(mockBackend.execute(
-                EasyMock.<HttpHost>anyObject(),
-                EasyMock.same(request),
-                EasyMock.<HttpContext>anyObject())).andReturn(mockBackendResponse);
+    private void backendCall(HttpRequest req, HttpResponse resp)
+            throws Exception {
+        EasyMock.expect(mockBackend.execute(host, req, context))
+            .andReturn(resp);
     }
 
     private void backendCallWasMade(HttpRequest request, HttpResponse response) throws IOException {

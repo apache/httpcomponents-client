@@ -79,4 +79,30 @@ class ConditionalRequestBuilder {
 
     }
 
+    /**
+     * Returns a request to unconditionally validate a cache entry with
+     * the origin. In certain cases (due to multiple intervening caches)
+     * our cache may actually receive a response to a normal conditional
+     * validation where the Date header is actually older than that of
+     * our current cache entry. In this case, the protocol recommendation
+     * is to retry the validation and force syncup with the origin.
+     * @param request client request we are trying to satisfy
+     * @param entry existing cache entry we are trying to validate
+     * @return an unconditional validation request
+     * @throws ProtocolException
+     */
+    public HttpRequest buildUnconditionalRequest(HttpRequest request,
+            HttpCacheEntry entry) throws ProtocolException {
+        RequestWrapper wrapped = new RequestWrapper(request);
+        wrapped.resetHeaders();
+        wrapped.addHeader("Cache-Control","no-cache");
+        wrapped.addHeader("Pragma","no-cache");
+        wrapped.removeHeaders("If-Range");
+        wrapped.removeHeaders("If-Match");
+        wrapped.removeHeaders("If-None-Match");
+        wrapped.removeHeaders("If-Unmodified-Since");
+        wrapped.removeHeaders("If-Modified-Since");
+        return wrapped;
+    }
+
 }

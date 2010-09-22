@@ -74,7 +74,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
 
         request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
 
-        originResponse = make200Response();
+        originResponse = HttpTestUtils.make200Response();
 
         params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);

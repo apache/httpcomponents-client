@@ -56,6 +56,8 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.DateParseException;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -529,11 +531,33 @@ public class CachingHttpClient implements HttpClient {
             HttpContext context,
             HttpCacheEntry cacheEntry) throws IOException, ProtocolException {
         HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
+
         Date requestDate = getCurrentDate();
-
         HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
-
         Date responseDate = getCurrentDate();
+
+
+        final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
+        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        if (entryDateHeader != null && responseDateHeader != null) {
+            try {
+                Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+                Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
+                if (respDate.before(entryDate)) {
+                    HttpRequest unconditional = conditionalRequestBuilder
+                    .buildUnconditionalRequest(request, cacheEntry);
+                    requestDate = getCurrentDate();
+                    backendResponse = backend.execute(target, unconditional, context);
+                    responseDate = getCurrentDate();
+                }
+            } catch (DateParseException e) {
+                // either backend response or cached entry did not have a valid
+                // Date header, so we can't tell if they are out of order
+                // according to the origin clock; thus we can skip the
+                // unconditional retry recommended in 13.2.6 of RFC 2616.
+            }
+        }
+
 
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
@@ -558,14 +582,32 @@ public class CachingHttpClient implements HttpClient {
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
-
-        if (cacheable) {
+        if (cacheable &&
+            !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
             return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate,
                     responseDate);
         }
-
-        responseCache.flushCacheEntriesFor(target, request);
+        if (!cacheable) {
+            responseCache.flushCacheEntriesFor(target, request);
+        }
         return backendResponse;
+    }
+
+    private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequest request,
+            HttpResponse backendResponse) throws IOException {
+        HttpCacheEntry existing = responseCache.getCacheEntry(target, request);
+        if (existing == null) return false;
+        Header entryDateHeader = existing.getFirstHeader("Date");
+        if (entryDateHeader == null) return false;
+        Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        if (responseDateHeader == null) return false;
+        try {
+            Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+            Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
+            return responseDate.before(entryDate);
+        } catch (DateParseException e) {
+        }
+        return false;
     }
 
 }

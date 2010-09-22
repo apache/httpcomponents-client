@@ -33,7 +33,6 @@ import java.net.URL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
@@ -145,45 +144,11 @@ class CacheInvalidator {
 
     protected boolean requestShouldNotBeCached(HttpRequest req) {
         String method = req.getRequestLine().getMethod();
-        return notGetOrHeadRequest(method) || containsCacheControlHeader(req)
-                || containsPragmaHeader(req);
+        return notGetOrHeadRequest(method);
     }
 
     private boolean notGetOrHeadRequest(String method) {
         return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD
                 .equals(method));
-    }
-
-    private boolean containsPragmaHeader(HttpRequest req) {
-        return req.getFirstHeader(HeaderConstants.PRAGMA) != null;
-    }
-
-    private boolean containsCacheControlHeader(HttpRequest request) {
-        Header[] cacheControlHeaders = request.getHeaders(HeaderConstants.CACHE_CONTROL);
-
-        if (cacheControlHeaders == null) {
-            return false;
-        }
-
-        for (Header cacheControl : cacheControlHeaders) {
-            HeaderElement[] cacheControlElements = cacheControl.getElements();
-            if (cacheControlElements == null) {
-                return false;
-            }
-
-            for (HeaderElement cacheControlElement : cacheControlElements) {
-                if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement
-                        .getName())) {
-                    return true;
-                }
-
-                if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement
-                        .getName())) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

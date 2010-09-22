@@ -1,18 +1,14 @@
 package org.apache.http.impl.client.cache;
 
-import java.util.Date;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
-import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
@@ -46,7 +42,7 @@ public abstract class AbstractProtocolTest {
 
         request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
 
-        originResponse = make200Response();
+        originResponse = HttpTestUtils.make200Response();
 
         params = new CacheConfig();
         params.setMaxCacheEntries(MAX_ENTRIES);
@@ -65,19 +61,6 @@ public abstract class AbstractProtocolTest {
     protected void verifyMocks() {
         EasyMock.verify(mockBackend);
         EasyMock.verify(mockCache);
-    }
-
-    protected HttpResponse make200Response() {
-        HttpResponse out = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        out.setHeader("Date", DateUtils.formatDate(new Date()));
-        out.setHeader("Server", "MockOrigin/1.0");
-        out.setHeader("Content-Length", "128");
-        out.setEntity(makeBody(128));
-        return out;
-    }
-
-    protected HttpEntity makeBody(int nbytes) {
-        return HttpTestUtils.makeBody(nbytes);
     }
 
     protected IExpectationSetters<HttpResponse> backendExpectsAnyRequest() throws Exception {

@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -33,12 +34,16 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.HttpContext;
+import org.easymock.Capture;
 import org.junit.Test;
 
 /*
@@ -81,7 +86,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      */
     private HttpRequest requestToPopulateStaleCacheEntry() throws Exception {
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpResponse resp1 = make200Response();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
@@ -218,7 +223,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     public void testReturnsCachedResponsesAppropriatelyWhenNoOriginCommunication()
         throws Exception {
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpResponse resp1 = make200Response();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Cache-Control", "public, max-age=5");
@@ -298,5 +303,132 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         verifyMocks();
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
+    }
+
+    /*
+     * "If an origin server wishes to force a semantically transparent cache
+     * to validate every request, it MAY assign an explicit expiration time
+     * in the past. This means that the response is always stale, and so the
+     * cache SHOULD validate it before using it for subsequent requests."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.1
+     */
+    @Test
+    public void testRevalidatesCachedResponseWithExpirationInThePast()
+            throws Exception {
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date oneSecondFromNow = new Date(now.getTime() + 1 * 1000L);
+        Date twoSecondsFromNow = new Date(now.getTime() + 2 * 1000L);
+        HttpRequest req1 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Expires",DateUtils.formatDate(oneSecondAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequest revalidate =
+            new BasicHttpRequest("GET", "/",HttpVersion.HTTP_1_1);
+        revalidate.setHeader("If-None-Match","\"etag\"");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Date", DateUtils.formatDate(twoSecondsFromNow));
+        resp2.setHeader("Expires", DateUtils.formatDate(oneSecondFromNow));
+        resp2.setHeader("ETag","\"etag\"");
+
+        expect(mockBackend.execute(isA(HttpHost.class),
+                eqRequest(revalidate), (HttpContext)isNull()))
+            .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK,
+                result.getStatusLine().getStatusCode());
+    }
+
+    /* "When a client tries to revalidate a cache entry, and the response
+     * it receives contains a Date header that appears to be older than the
+     * one for the existing entry, then the client SHOULD repeat the
+     * request unconditionally, and include
+     *     Cache-Control: max-age=0
+     * to force any intermediate caches to validate their copies directly
+     * with the origin server, or
+     *     Cache-Control: no-cache
+     * to force any intermediate caches to obtain a new copy from the
+     * origin server."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.6
+     */
+    @Test
+    public void testRetriesValidationThatResultsInAnOlderDated304Response()
+        throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+        HttpRequest req1 =
+            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=5");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("ETag","\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(elevenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        HttpResponse resp3 = HttpTestUtils.make200Response();
+        resp3.setHeader("ETag","\"etag2\"");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Cache-Control","max-age=5");
+
+        expect(mockBackend.execute(isA(HttpHost.class), capture(cap),
+                (HttpContext)isNull()))
+            .andReturn(resp3);
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+
+        HttpRequest captured = cap.getValue();
+        boolean hasMaxAge0 = false;
+        boolean hasNoCache = false;
+        for(Header h : captured.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("max-age".equals(elt.getName())) {
+                    try {
+                        int maxage = Integer.parseInt(elt.getValue());
+                        if (maxage == 0) {
+                            hasMaxAge0 = true;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        // nop
+                    }
+                } else if ("no-cache".equals(elt.getName())) {
+                    hasNoCache = true;
+                }
+            }
+        }
+        assertTrue(hasMaxAge0 || hasNoCache);
+        assertNull(captured.getFirstHeader("If-None-Match"));
+        assertNull(captured.getFirstHeader("If-Modified-Since"));
+        assertNull(captured.getFirstHeader("If-Range"));
+        assertNull(captured.getFirstHeader("If-Match"));
+        assertNull(captured.getFirstHeader("If-Unmodified-Since"));
     }
 }

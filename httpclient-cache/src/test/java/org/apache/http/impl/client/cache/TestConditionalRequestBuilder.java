@@ -44,10 +44,14 @@ import org.junit.Test;
 public class TestConditionalRequestBuilder {
 
     private ConditionalRequestBuilder impl;
+    private HttpRequest request;
+    private HttpCacheEntry entry;
 
     @Before
     public void setUp() throws Exception {
         impl = new ConditionalRequestBuilder();
+        request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        entry = HttpTestUtils.makeCacheEntry();
     }
 
     @Test
@@ -170,4 +174,107 @@ public class TestConditionalRequestBuilder {
         }
         Assert.assertTrue(foundMaxAge0);
     }
+
+    @Test
+    public void testBuildUnconditionalRequestUsesGETMethod()
+        throws Exception {
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertEquals("GET", result.getRequestLine().getMethod());
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestUsesRequestUri()
+        throws Exception {
+        final String uri = "/theURI";
+        request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertEquals(uri, result.getRequestLine().getUri());
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestUsesHTTP_1_1()
+        throws Exception {
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestAddsCacheControlNoCache()
+        throws Exception {
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        boolean ccNoCacheFound = false;
+        for(Header h : result.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("no-cache".equals(elt.getName())) {
+                    ccNoCacheFound = true;
+                }
+            }
+        }
+        Assert.assertTrue(ccNoCacheFound);
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestAddsPragmaNoCache()
+        throws Exception {
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        boolean ccNoCacheFound = false;
+        for(Header h : result.getHeaders("Pragma")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("no-cache".equals(elt.getName())) {
+                    ccNoCacheFound = true;
+                }
+            }
+        }
+        Assert.assertTrue(ccNoCacheFound);
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestDoesNotUseIfRange()
+        throws Exception {
+        request.addHeader("If-Range","\"etag\"");
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertNull(result.getFirstHeader("If-Range"));
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestDoesNotUseIfMatch()
+        throws Exception {
+        request.addHeader("If-Match","\"etag\"");
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertNull(result.getFirstHeader("If-Match"));
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestDoesNotUseIfNoneMatch()
+        throws Exception {
+        request.addHeader("If-None-Match","\"etag\"");
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertNull(result.getFirstHeader("If-None-Match"));
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestDoesNotUseIfUnmodifiedSince()
+        throws Exception {
+        request.addHeader("If-Unmodified-Since", DateUtils.formatDate(new Date()));
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertNull(result.getFirstHeader("If-Unmodified-Since"));
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestDoesNotUseIfModifiedSince()
+        throws Exception {
+        request.addHeader("If-Modified-Since", DateUtils.formatDate(new Date()));
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertNull(result.getFirstHeader("If-Modified-Since"));
+    }
+
+    @Test
+    public void testBuildUnconditionalRequestCarriesOtherRequestHeaders()
+        throws Exception {
+        request.addHeader("User-Agent","MyBrowser/1.0");
+        HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        Assert.assertEquals("MyBrowser/1.0",
+                result.getFirstHeader("User-Agent").getValue());
+    }
+
 }

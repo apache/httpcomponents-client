@@ -208,16 +208,10 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testInvalidatesRequestsWithClientCacheControlHeaders() throws Exception {
+    public void testDoesNotInvalidateRequestsWithClientCacheControlHeaders() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Cache-Control","no-cache");
 
-        final String theUri = "http://foo.example.com:80/";
-        cacheReturnsEntryForUri(theUri);
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
-
-        entryIsRemoved(theUri);
         replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, request);
@@ -226,16 +220,10 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testInvalidatesRequestsWithClientPragmaHeaders() throws Exception {
+    public void testDoesNotInvalidateRequestsWithClientPragmaHeaders() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Pragma","no-cache");
 
-        final String theUri = "http://foo.example.com:80/";
-        cacheReturnsEntryForUri(theUri);
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
-
-        entryIsRemoved(theUri);
         replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, request);

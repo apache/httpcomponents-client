@@ -44,6 +44,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 
 public class HttpTestUtils {
@@ -287,5 +288,14 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry() {
         Date now = new Date();
         return makeCacheEntry(now, now);
+    }
+
+    public static HttpResponse make200Response() {
+        HttpResponse out = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        out.setHeader("Date", DateUtils.formatDate(new Date()));
+        out.setHeader("Server", "MockOrigin/1.0");
+        out.setHeader("Content-Length", "128");
+        out.setEntity(makeBody(128));
+        return out;
     }
 }
