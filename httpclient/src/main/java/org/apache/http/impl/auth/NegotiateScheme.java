@@ -61,7 +61,7 @@ public class NegotiateScheme extends AuthSchemeBase {
         TOKEN_GENERATED,
         FAILED,
     }
-    
+
     private static final String SPNEGO_OID       = "1.3.6.1.5.5.2";
     private static final String KERBEROS_OID     = "1.2.840.113554.1.2.2";
 
@@ -227,7 +227,7 @@ public class NegotiateScheme extends AuthSchemeBase {
                 gssContext.requestCredDeleg(true);
             }
             if (token == null) {
-                token = new byte[0];                
+                token = new byte[0];
             }
             token = gssContext.initSecContext(token, 0, token.length);
             if (token == null) {
@@ -308,7 +308,7 @@ public class NegotiateScheme extends AuthSchemeBase {
 
     @Override
     protected void parseChallenge(
-            final CharArrayBuffer buffer, 
+            final CharArrayBuffer buffer,
             int beginIndex, int endIndex) throws MalformedChallengeException {
         String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (log.isDebugEnabled()) {
@@ -322,5 +322,5 @@ public class NegotiateScheme extends AuthSchemeBase {
             state = State.FAILED;
         }
     }
-    
+
 }

@@ -81,7 +81,7 @@ public abstract class AbstractConnPool implements RefQueueHandler {
     protected ReferenceQueue<Object> refQueue;
 
     protected IdleConnectionHandler idleConnHandler;
-    
+
     /**
      * Creates a new connection pool.
      */

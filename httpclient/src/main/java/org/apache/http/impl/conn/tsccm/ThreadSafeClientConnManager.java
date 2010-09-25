@@ -96,7 +96,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @param schreg    the scheme registry.
      * @param connTTL   max connection lifetime, <=0 implies "infinity"
      * @param connTTLTimeUnit   TimeUnit of connTTL
-     * 
+     *
      * @since 4.1
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg,
@@ -112,7 +112,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.pool = createConnectionPool(connTTL, connTTLTimeUnit) ;
         this.connectionPool = this.pool;
     }
-    
+
     /**
      * Creates a new thread safe connection manager.
      *

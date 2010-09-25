@@ -99,7 +99,7 @@ public class NTLMScheme extends AuthSchemeBase {
 
     @Override
     protected void parseChallenge(
-            final CharArrayBuffer buffer, 
+            final CharArrayBuffer buffer,
             int beginIndex, int endIndex) throws MalformedChallengeException {
         String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (challenge.length() == 0) {

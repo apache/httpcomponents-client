@@ -88,7 +88,7 @@ public final class PlainSocketFactory implements SocketFactory, SchemeSocketFact
      * @param params Optional parameters. Parameters passed to this method will have no effect.
      *               This method will create a unconnected instance of {@link Socket} class
      *               using default constructor.
-     * 
+     *
      * @since 4.1
      */
     public Socket createSocket(final HttpParams params) {

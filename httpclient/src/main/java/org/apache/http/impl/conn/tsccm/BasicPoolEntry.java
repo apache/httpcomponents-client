@@ -44,11 +44,11 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
 public class BasicPoolEntry extends AbstractPoolEntry {
 
     private final long created;
-    
+
     private long updated;
     private long validUntil;
     private long expiry;
-    
+
     /**
      * @deprecated do not use
      */
@@ -75,7 +75,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
                           HttpRoute route) {
         this(op, route, -1, TimeUnit.MILLISECONDS);
     }
-    
+
     /**
      * Creates a new pool entry with a specified maximum lifetime.
      *
@@ -83,7 +83,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      * @param route     the planned route for the connection
      * @param connTTL   maximum lifetime of this entry, <=0 implies "infinity"
      * @param timeunit  TimeUnit of connTTL
-     * 
+     *
      * @since 4.1
      */
     public BasicPoolEntry(ClientConnectionOperator op,
@@ -139,7 +139,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     public long getExpiry() {
         return this.expiry;
     }
-    
+
     public long getValidUntil() {
         return this.validUntil;
     }
@@ -164,7 +164,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     public boolean isExpired(long now) {
         return now >= this.expiry;
     }
-    
+
 }
 
 

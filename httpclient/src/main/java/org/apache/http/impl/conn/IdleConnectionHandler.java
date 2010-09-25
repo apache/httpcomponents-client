@@ -44,7 +44,7 @@ import org.apache.http.HttpConnection;
  * @see org.apache.http.conn.ClientConnectionManager#closeIdleConnections
  *
  * @since 4.0
- * 
+ *
  * @deprecated no longer used
  */
 @Deprecated

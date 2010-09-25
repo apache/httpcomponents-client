@@ -54,7 +54,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * {@link org.apache.http.conn.ClientConnectionManager}.
      *
      * @return timeout in milliseconds.
-     * 
+     *
      * @deprecated use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
     @Deprecated
@@ -71,7 +71,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * {@link org.apache.http.conn.ClientConnectionManager}.
      *
      * @param timeout the timeout in milliseconds
-     * 
+     *
      * @deprecated use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
     @Deprecated

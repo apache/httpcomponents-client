@@ -83,7 +83,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
         return createTSCCM(schreg, -1, TimeUnit.MILLISECONDS);
     }
-    
+
     public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg,
             long connTTL, TimeUnit connTTLTimeUnit) {
         if (schreg == null)
@@ -394,7 +394,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         mgr.shutdown();
     }
-    
+
     @Test
     public void testCloseExpiredTTLConnections() throws Exception {
 

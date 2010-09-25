@@ -71,7 +71,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
     private final Log log = LogFactory.getLog(getClass());
 
     private final Lock poolLock;
-    
+
     /** Connection operator for this pool */
     protected final ClientConnectionOperator operator;
 
@@ -80,7 +80,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
 
     /** References to issued connections */
     protected final Set<BasicPoolEntry> leasedConnections;
-    
+
     /** The list of free connections */
     protected final Queue<BasicPoolEntry> freeConnections;
 
@@ -89,17 +89,17 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
 
     /** Map of route-specific pools */
     protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
-    
+
     private final long connTTL;
-    
+
     private final TimeUnit connTTLTimeUnit;
 
     protected volatile boolean shutdown;
-    
+
     protected volatile int maxTotalConnections;
 
     protected volatile int numConnections;
-    
+
     /**
      * Creates a new connection pool, managed by route.
      *
@@ -111,7 +111,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             int maxTotalConnections) {
         this(operator, connPerRoute, maxTotalConnections, -1, TimeUnit.MILLISECONDS);
     }
-    
+
     /**
      * @since 4.1
      */
@@ -143,7 +143,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
     protected Lock getLock() {
         return this.poolLock;
     }
-    
+
     /**
      * Creates a new connection pool, managed by route.
      *
@@ -274,7 +274,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             poolLock.unlock();
         }
     }
-    
+
     @Override
     public PoolEntryRequest requestPoolEntry(
             final HttpRoute route,
@@ -705,7 +705,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             poolLock.unlock();
         }
     }
-    
+
     /**
      * Closes idle connections.
      *
@@ -748,7 +748,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
         long now = System.currentTimeMillis();
-        
+
         poolLock.lock();
         try {
             Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
@@ -766,7 +766,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             poolLock.unlock();
         }
     }
-    
+
     @Override
     public void shutdown() {
         poolLock.lock();
