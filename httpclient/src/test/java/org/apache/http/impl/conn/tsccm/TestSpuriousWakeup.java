@@ -27,20 +27,20 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.conn.params.ConnPerRoute;
-
 import org.apache.http.impl.conn.GetConnThread;
 import org.junit.Assert;
 import org.junit.Test;
@@ -101,7 +101,7 @@ public class TestSpuriousWakeup {
         }
 
         @Override
-        protected ConnPoolByRoute createConnectionPool() {
+        protected ConnPoolByRoute createConnectionPool(long connTTL, TimeUnit connTTLUnit) {
             extendedCPBR = new XConnPoolByRoute(connOperator, connPerRoute, 20);
             // no connection GC required
             return extendedCPBR;

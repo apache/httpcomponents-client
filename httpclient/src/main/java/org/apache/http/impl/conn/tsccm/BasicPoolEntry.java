@@ -46,6 +46,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     private final long created;
     
     private long updated;
+    private long validUntil;
     private long expiry;
     
     /**
@@ -60,6 +61,8 @@ public class BasicPoolEntry extends AbstractPoolEntry {
             throw new IllegalArgumentException("HTTP route may not be null");
         }
         this.created = System.currentTimeMillis();
+        this.validUntil = Long.MAX_VALUE;
+        this.expiry = this.validUntil;
     }
 
     /**
@@ -70,11 +73,32 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      */
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route) {
+        this(op, route, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * Creates a new pool entry with a specified maximum lifetime.
+     *
+     * @param op        the connection operator
+     * @param route     the planned route for the connection
+     * @param connTTL   maximum lifetime of this entry, <=0 implies "infinity"
+     * @param timeunit  TimeUnit of connTTL
+     * 
+     * @since 4.1
+     */
+    public BasicPoolEntry(ClientConnectionOperator op,
+                          HttpRoute route, long connTTL, TimeUnit timeunit) {
         super(op, route);
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
         }
         this.created = System.currentTimeMillis();
+        if (connTTL > 0) {
+            this.validUntil = this.created + timeunit.toMillis(connTTL);
+        } else {
+            this.validUntil = Long.MAX_VALUE;
+        }
+        this.expiry = this.validUntil;
     }
 
     protected final OperatedClientConnection getConnection() {
@@ -115,17 +139,23 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     public long getExpiry() {
         return this.expiry;
     }
+    
+    public long getValidUntil() {
+        return this.validUntil;
+    }
 
     /**
      * @since 4.1
      */
     public void updateExpiry(long time, TimeUnit timeunit) {
         this.updated = System.currentTimeMillis();
+        long newExpiry;
         if (time > 0) {
-            this.expiry = this.updated + timeunit.toMillis(time);
+            newExpiry = this.updated + timeunit.toMillis(time);
         } else {
-            this.expiry = Long.MAX_VALUE;
+            newExpiry = Long.MAX_VALUE;
         }
+        this.expiry = Math.min(validUntil, newExpiry);
     }
 
     /**

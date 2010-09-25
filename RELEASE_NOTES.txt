@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-1000] Maximum connection lifetimes settings for ThreadSafeClientConnManager.
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
+
 * [HTTPCLIENT-960] HttpMultipart doesn't generate Content-Type header for binary parts in
   BROWSER_COMPATIBLE mode.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

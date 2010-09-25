@@ -87,6 +87,20 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @param schreg    the scheme registry.
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg) {
+        this(schreg, -1, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Creates a new thread safe connection manager.
+     *
+     * @param schreg    the scheme registry.
+     * @param connTTL   max connection lifetime, <=0 implies "infinity"
+     * @param connTTLTimeUnit   TimeUnit of connTTL
+     * 
+     * @since 4.1
+     */
+    public ThreadSafeClientConnManager(final SchemeRegistry schreg,
+            long connTTL, TimeUnit connTTLTimeUnit) {
         super();
         if (schreg == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
@@ -95,10 +109,10 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.schemeRegistry = schreg;
         this.connPerRoute = new ConnPerRouteBean();
         this.connOperator = createConnectionOperator(schreg);
-        this.pool = createConnectionPool() ;
+        this.pool = createConnectionPool(connTTL, connTTLTimeUnit) ;
         this.connectionPool = this.pool;
     }
-
+    
     /**
      * Creates a new thread safe connection manager.
      *
@@ -149,8 +163,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @since 4.1
      */
-    protected ConnPoolByRoute createConnectionPool() {
-        return new ConnPoolByRoute(connOperator, connPerRoute, 20);
+    protected ConnPoolByRoute createConnectionPool(long connTTL, TimeUnit connTTLTimeUnit) {
+        return new ConnPoolByRoute(connOperator, connPerRoute, 20, connTTL, connTTLTimeUnit);
     }
 
     /**

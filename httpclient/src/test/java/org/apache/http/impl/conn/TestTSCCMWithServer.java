@@ -81,9 +81,14 @@ public class TestTSCCMWithServer extends ServerTestBase {
      * @return  a connection manager to test
      */
     public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
+        return createTSCCM(schreg, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg,
+            long connTTL, TimeUnit connTTLTimeUnit) {
         if (schreg == null)
             schreg = supportedSchemes;
-        return new ThreadSafeClientConnManager(schreg);
+        return new ThreadSafeClientConnManager(schreg, connTTL, connTTLTimeUnit);
     }
 
     /**
@@ -354,7 +359,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     }
 
     @Test
-    public void testCloseExpiredConnections() throws Exception {
+    public void testCloseExpiredIdleConnections() throws Exception {
 
         ThreadSafeClientConnManager mgr = createTSCCM(null);
         mgr.setMaxTotal(1);
@@ -384,6 +389,44 @@ public class TestTSCCMWithServer extends ServerTestBase {
         mgr.closeExpiredConnections();
 
         // Time expired now, connections are destroyed.
+        Assert.assertEquals("connectionsInPool", 0, mgr.getConnectionsInPool());
+        Assert.assertEquals("connectionsInPool(host)", 0, mgr.getConnectionsInPool(route));
+
+        mgr.shutdown();
+    }
+    
+    @Test
+    public void testCloseExpiredTTLConnections() throws Exception {
+
+        ThreadSafeClientConnManager mgr = createTSCCM(null, 100, TimeUnit.MILLISECONDS);
+        mgr.setMaxTotal(1);
+
+        final HttpHost target = getServerHttp();
+        final HttpRoute route = new HttpRoute(target, null, false);
+
+        ManagedClientConnection conn = getConnection(mgr, route);
+        conn.open(route, httpContext, defaultParams);
+
+        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
+        Assert.assertEquals("connectionsInPool(host)", 1, mgr.getConnectionsInPool(route));
+        // Release, let remain idle for forever
+        mgr.releaseConnection(conn, -1, TimeUnit.MILLISECONDS);
+
+        // Released, still active.
+        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
+        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+
+        mgr.closeExpiredConnections();
+
+        // Time has not expired yet.
+        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
+        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+
+        Thread.sleep(150);
+
+        mgr.closeExpiredConnections();
+
+        // TTL expired now, connections are destroyed.
         Assert.assertEquals("connectionsInPool", 0, mgr.getConnectionsInPool());
         Assert.assertEquals("connectionsInPool(host)", 0, mgr.getConnectionsInPool(route));
 

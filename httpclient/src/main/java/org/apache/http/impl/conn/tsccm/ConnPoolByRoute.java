@@ -89,6 +89,10 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
 
     /** Map of route-specific pools */
     protected final Map<HttpRoute, RouteSpecificPool> routeToPool;
+    
+    private final long connTTL;
+    
+    private final TimeUnit connTTLTimeUnit;
 
     protected volatile boolean shutdown;
     
@@ -105,6 +109,18 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             final ClientConnectionOperator operator,
             final ConnPerRoute connPerRoute,
             int maxTotalConnections) {
+        this(operator, connPerRoute, maxTotalConnections, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * @since 4.1
+     */
+    public ConnPoolByRoute(
+            final ClientConnectionOperator operator,
+            final ConnPerRoute connPerRoute,
+            int maxTotalConnections,
+            long connTTL,
+            final TimeUnit connTTLTimeUnit) {
         super();
         if (operator == null) {
             throw new IllegalArgumentException("Connection operator may not be null");
@@ -120,6 +136,8 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
         this.freeConnections = createFreeConnQueue();
         this.waitingThreads  = createWaitingThreadQueue();
         this.routeToPool     = createRouteToPoolMap();
+        this.connTTL = connTTL;
+        this.connTTLTimeUnit = connTTLTimeUnit;
     }
 
     protected Lock getLock() {
@@ -532,7 +550,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
         }
 
         // the entry will create the connection when needed
-        BasicPoolEntry entry = new BasicPoolEntry(op, rospl.getRoute());
+        BasicPoolEntry entry = new BasicPoolEntry(op, rospl.getRoute(), connTTL, connTTLTimeUnit);
 
         poolLock.lock();
         try {
