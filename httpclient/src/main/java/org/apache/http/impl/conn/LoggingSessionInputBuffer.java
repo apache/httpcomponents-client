@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import org.apache.http.annotation.Immutable;
 
+import org.apache.http.io.EofSensor;
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.protocol.HTTP;
@@ -42,10 +43,12 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @Immutable
-public class LoggingSessionInputBuffer implements SessionInputBuffer {
+public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor {
 
     /** Original session input buffer. */
     private final SessionInputBuffer in;
+
+    private final EofSensor eofSensor;
 
     /** The wire log to use for writing. */
     private final Wire wire;
@@ -62,6 +65,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
             final SessionInputBuffer in, final Wire wire, final String charset) {
         super();
         this.in = in;
+        this.eofSensor = in instanceof EofSensor ? (EofSensor) in : null;
         this.wire = wire;
         this.charset = charset != null ? charset : HTTP.ASCII;
     }
@@ -120,6 +124,14 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer {
 
     public HttpTransportMetrics getMetrics() {
         return this.in.getMetrics();
+    }
+
+    public boolean isEof() {
+        if (this.eofSensor != null) {
+            return this.eofSensor.isEof();
+        } else {
+            return false;
+        }
     }
 
 }
