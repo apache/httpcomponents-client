@@ -558,13 +558,16 @@ public class CachingHttpClient implements HttpClient {
             }
         }
 
+        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
             cacheUpdates.getAndIncrement();
             setResponseStatus(context, CacheResponseStatus.VALIDATED);
-            return responseCache.updateCacheEntry(target, request, cacheEntry,
-                    backendResponse, requestDate, responseDate);
+            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+                return responseCache.updateCacheEntry(target, request, cacheEntry,
+                        backendResponse, requestDate, responseDate);
+            }
         }
 
         return handleBackendResponse(target, conditionalRequest, requestDate, responseDate,

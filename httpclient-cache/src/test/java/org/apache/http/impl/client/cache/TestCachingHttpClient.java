@@ -432,8 +432,10 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(requestDate);
         backendCall(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        EasyMock.expect(mockCache.updateCacheEntry(host, request,
-                entry, originResponse, requestDate, responseDate))
+        responsePolicyAllowsCaching(true);
+        responseProtocolValidationIsCalled();
+        EasyMock.expect(mockCache.getCacheEntry(host, validate)).andReturn(null);
+        EasyMock.expect(mockCache.cacheAndReturnResponse(host, validate, originResponse, requestDate, responseDate))
             .andReturn(finalResponse);
 
         replayMocks();
@@ -484,8 +486,10 @@ public class TestCachingHttpClient {
         final Date responseDate2 = new Date();
         getCurrentDateReturns(responseDate2);
 
-        EasyMock.expect(mockCache.updateCacheEntry(host, request,
-                entry, originResponse2, requestDate2, responseDate2))
+        responsePolicyAllowsCaching(true);
+        responseProtocolValidationIsCalled();
+        EasyMock.expect(mockCache.getCacheEntry(host, validate)).andReturn(null);
+        EasyMock.expect(mockCache.cacheAndReturnResponse(host, validate, originResponse2, requestDate2, responseDate2))
             .andReturn(finalResponse);
 
         replayMocks();

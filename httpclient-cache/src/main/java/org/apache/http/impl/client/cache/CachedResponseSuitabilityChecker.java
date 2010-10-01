@@ -147,7 +147,7 @@ class CachedResponseSuitabilityChecker {
                 }
 
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elt.getName())) {
-                    log.debug("Response contained NO SORE directive, cache was not suitable");
+                    log.debug("Response contained NO STORE directive, cache was not suitable");
                     return false;
                 }
 

@@ -65,7 +65,7 @@ public class TestCacheEntryUpdater {
     public void testUpdateCacheEntryReturnsDifferentEntryInstance() throws IOException {
 
         HttpCacheEntry entry =HttpTestUtils.makeCacheEntry();
-        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "");
 
         HttpCacheEntry newEntry = impl.updateCacheEntry(null, entry, requestDate, responseDate, response);
 
@@ -162,7 +162,7 @@ public class TestCacheEntryUpdater {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo);
 
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "");
 
         HttpCacheEntry updated = impl.updateCacheEntry(null, entry, twoSecondsAgo, oneSecondAgo, response);
 

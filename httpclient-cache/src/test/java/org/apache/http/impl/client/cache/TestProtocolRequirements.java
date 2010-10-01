@@ -2592,9 +2592,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.capture(cap),
                         (HttpContext) EasyMock.isNull())).andReturn(validated).times(0, 1);
-        EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(request), EasyMock.same(entry),
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
+                .andReturn(entry).times(0, 1);
+        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class),
                 EasyMock.same(validated), EasyMock.isA(Date.class), EasyMock.isA(Date.class)))
-            .andReturn(reconstructed).times(0, 1);
+              .andReturn(reconstructed).times(0, 1);
 
         replayMocks();
         HttpResponse result = impl.execute(host, request);

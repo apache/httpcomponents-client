@@ -35,6 +35,7 @@ import java.util.ListIterator;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -46,7 +47,7 @@ import org.apache.http.protocol.HTTP;
 
 /**
  * Update a {@link HttpCacheEntry} with new or updated information based on the latest
- * 200 or 304 status responses from the Server.  Use the {@link HttpResponse} to perform
+ * 304 status response from the Server.  Use the {@link HttpResponse} to perform
  * the update.
  *
  * @since 4.1
@@ -66,7 +67,8 @@ class CacheEntryUpdater {
     }
 
     /**
-     * Update the entry with the new information from the response.
+     * Update the entry with the new information from the response.  Should only be used for
+     * 304 responses.
      *
      * @param request id
      * @param entry The cache Entry to be updated
@@ -82,7 +84,8 @@ class CacheEntryUpdater {
             Date requestDate,
             Date responseDate,
             HttpResponse response) throws IOException {
-
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED)
+            throw new IllegalArgumentException("Response must have 304 status code");
         Header[] mergedHeaders = mergeHeaders(entry, response);
         Resource resource = resourceFactory.copy(requestId, entry.getResource());
         return new HttpCacheEntry(
