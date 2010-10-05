@@ -2234,8 +2234,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        HttpResponse reconstructed = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
         EasyMock.expect(
@@ -2244,13 +2242,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(request),
                 EasyMock.same(entry), EasyMock.same(notModified), EasyMock.isA(Date.class),
                 EasyMock.isA(Date.class)))
-            .andReturn(reconstructed);
+            .andReturn(HttpTestUtils.makeCacheEntry());
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request);
+        impl.execute(host, request);
         verifyMocks();
-
-        Assert.assertSame(reconstructed, result);
     }
 
     @Test

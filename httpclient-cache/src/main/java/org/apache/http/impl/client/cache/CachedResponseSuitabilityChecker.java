@@ -134,8 +134,7 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
 
-        if (containsEtagAndLastModifiedValidators(request)
-            && !allConditionalsMatch(request, entry)) {
+        if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
             return false;
         }
 
@@ -203,81 +202,112 @@ class CachedResponseSuitabilityChecker {
         return true;
     }
 
+    /**
+     * Is this request the type of conditional request we support?
+     * @param request
+     * @return
+     */
+    public boolean isConditional(HttpRequest request) {
+        return hasSupportedEtagVadlidator(request) || hasSupportedLastModifiedValidator(request);
+    }
+
+    /**
+     * Check that conditionals that are part of this request match
+     * @param request
+     * @param entry
+     * @param now
+     * @return
+     */
+    public boolean allConditionalsMatch(HttpRequest request, HttpCacheEntry entry, Date now) {
+        boolean hasEtagValidator = hasSupportedEtagVadlidator(request);
+        boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
+
+        boolean etagValidatorMatches = (hasEtagValidator) ? etagValidtorMatches(request, entry) : false;
+        boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) ? lastModifiedValidatorMatches(request, entry, now) : false;
+
+        if ((hasEtagValidator && hasLastModifiedValidator)
+            && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
+            return false;
+        } else if (hasEtagValidator && !etagValidatorMatches) {
+            return false;
+        } if (hasLastModifiedValidator && !lastModifiedValidatorMatches) {
+            return false;
+        }
+        return true;
+    }
+
     private boolean hasUnsupportedConditionalHeaders(HttpRequest request) {
         return (request.getFirstHeader("If-Range") != null
                 || request.getFirstHeader("If-Match") != null
                 || hasValidDateField(request, "If-Unmodified-Since"));
     }
 
+    private boolean hasSupportedEtagVadlidator(HttpRequest request) {
+        return request.containsHeader(HeaderConstants.IF_NONE_MATCH);
+    }
+
+    private boolean hasSupportedLastModifiedValidator(HttpRequest request) {
+        return hasValidDateField(request, HeaderConstants.IF_MODIFIED_SINCE);
+    }
+
     /**
-     * Should return false if some conditionals would allow a
-     * normal request but some would not.
+     * Check entry against If-None-Match
      * @param request
      * @param entry
      * @return
      */
-    private boolean allConditionalsMatch(HttpRequest request,
-            HttpCacheEntry entry) {
-        Header etagHeader = entry.getFirstHeader("ETag");
+    private boolean etagValidtorMatches(HttpRequest request, HttpCacheEntry entry) {
+        Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         String etag = (etagHeader != null) ? etagHeader.getValue() : null;
-        Header[] ifNoneMatch = request.getHeaders("If-None-Match");
-        if (ifNoneMatch != null && ifNoneMatch.length > 0) {
-            boolean matched = false;
-            for(Header h : ifNoneMatch) {
-                for(HeaderElement elt : h.getElements()) {
+        Header[] ifNoneMatch = request.getHeaders(HeaderConstants.IF_NONE_MATCH);
+        if (ifNoneMatch != null) {
+            for (Header h : ifNoneMatch) {
+                for (HeaderElement elt : h.getElements()) {
                     String reqEtag = elt.toString();
                     if (("*".equals(reqEtag) && etag != null)
-                        || reqEtag.equals(etag)) {
-                        matched = true;
-                        break;
+                            || reqEtag.equals(etag)) {
+                        return true;
                     }
                 }
             }
-            if (!matched) return false;
         }
-        Header lmHeader = entry.getFirstHeader("Last-Modified");
+        return false;
+    }
+
+    /**
+     * Check entry against If-Modified-Since, if If-Modified-Since is in the future it is invalid as per
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+     * @param request
+     * @param entry
+     * @param now
+     * @return
+     */
+    private boolean lastModifiedValidatorMatches(HttpRequest request, HttpCacheEntry entry, Date now) {
+        Header lastModifiedHeader = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         Date lastModified = null;
         try {
-            if (lmHeader != null) {
-                lastModified = DateUtils.parseDate(lmHeader.getValue());
+            if(lastModifiedHeader != null) {
+                lastModified = DateUtils.parseDate(lastModifiedHeader.getValue());
             }
         } catch (DateParseException dpe) {
             // nop
         }
-        for(Header h : request.getHeaders("If-Modified-Since")) {
+
+        if (lastModified == null) {
+            return false;
+        }
+
+        for (Header h : request.getHeaders(HeaderConstants.IF_MODIFIED_SINCE)) {
             try {
-                Date cond = DateUtils.parseDate(h.getValue());
-                if (lastModified == null
-                    || lastModified.after(cond)) {
+                Date ifModifiedSince = DateUtils.parseDate(h.getValue());
+                if (ifModifiedSince.after(now) || lastModified.after(ifModifiedSince)) {
                     return false;
                 }
             } catch (DateParseException dpe) {
+                // nop
             }
         }
         return true;
-    }
-
-    private boolean containsEtagAndLastModifiedValidators(HttpRequest request) {
-        boolean hasEtagValidators = (hasEtagIfRangeHeader(request)
-                || request.getFirstHeader("If-Match") != null
-                || request.getFirstHeader("If-None-Match") != null);
-        if (!hasEtagValidators) return false;
-        final boolean hasLastModifiedValidators =
-            hasValidDateField(request, "If-Modified-Since")
-            || hasValidDateField(request, "If-Unmodified-Since")
-            || hasValidDateField(request, "If-Range");
-        return hasLastModifiedValidators;
-    }
-
-    private boolean hasEtagIfRangeHeader(HttpRequest request) {
-        for(Header h : request.getHeaders("If-Range")) {
-            try {
-                DateUtils.parseDate(h.getValue());
-            } catch (DateParseException dpe) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean hasValidDateField(HttpRequest request, String headerName) {

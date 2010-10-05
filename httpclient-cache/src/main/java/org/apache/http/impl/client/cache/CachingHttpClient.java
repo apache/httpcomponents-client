@@ -412,7 +412,13 @@ public class CachingHttpClient implements HttpClient {
 
         Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
-            final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
+            final HttpResponse cachedResponse;
+            if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
+                    || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
+                cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
+            } else {
+                cachedResponse = responseGenerator.generateResponse(entry);
+            }
             setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
             if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
                 cachedResponse.addHeader("Warning","110 localhost \"Response is stale\"");
@@ -564,10 +570,16 @@ public class CachingHttpClient implements HttpClient {
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
             cacheUpdates.getAndIncrement();
             setResponseStatus(context, CacheResponseStatus.VALIDATED);
-            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                return responseCache.updateCacheEntry(target, request, cacheEntry,
-                        backendResponse, requestDate, responseDate);
+        }
+
+        if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+            HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(target, request, cacheEntry,
+                    backendResponse, requestDate, responseDate);
+            if (suitabilityChecker.isConditional(request)
+                    && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
+                return responseGenerator.generateNotModifiedResponse(updatedEntry);
             }
+            return responseGenerator.generateResponse(updatedEntry);
         }
 
         return handleBackendResponse(target, conditionalRequest, requestDate, responseDate,

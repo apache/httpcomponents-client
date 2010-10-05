@@ -38,21 +38,61 @@ import org.apache.http.HttpResponse;
  */
 public interface HttpCache {
 
+    /**
+     * Clear all matching {@link HttpCacheEntry}s.
+     * @param host
+     * @param request
+     * @throws IOException
+     */
     void flushCacheEntriesFor(HttpHost host, HttpRequest request)
         throws IOException;
 
+    /**
+     * Clear invalidated matching {@link HttpCacheEntry}s
+     * @param host
+     * @param request
+     * @throws IOException
+     */
     void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request)
         throws IOException;
 
+    /**
+     * Retrieve matching {@link HttpCacheEntry} from the cache if it exists
+     * @param host
+     * @param request
+     * @return
+     * @throws IOException
+     */
     HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request)
         throws IOException;
 
+    /**
+     * Store a {@link HttpResponse} in the cache if possible, and return
+     * @param host
+     * @param request
+     * @param originResponse
+     * @param requestSent
+     * @param responseReceived
+     * @return
+     * @throws IOException
+     */
     HttpResponse cacheAndReturnResponse(
             HttpHost host, HttpRequest request, HttpResponse originResponse,
             Date requestSent, Date responseReceived)
         throws IOException;
 
-    HttpResponse updateCacheEntry(
+    /**
+     * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
+     * @param target
+     * @param request
+     * @param stale
+     * @param originResponse
+     * @param requestSent
+     * @param responseReceived
+     * @return
+     * @throws IOException
+     */
+    HttpCacheEntry updateCacheEntry(
             HttpHost target, HttpRequest request, HttpCacheEntry stale, HttpResponse originResponse,
             Date requestSent, Date responseReceived)
         throws IOException;

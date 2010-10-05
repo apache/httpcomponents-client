@@ -152,7 +152,7 @@ public class BasicHttpCache implements HttpCache {
                 variants);
     }
 
-    public HttpResponse updateCacheEntry(HttpHost target, HttpRequest request,
+    public HttpCacheEntry updateCacheEntry(HttpHost target, HttpRequest request,
             HttpCacheEntry stale, HttpResponse originResponse,
             Date requestSent, Date responseReceived) throws IOException {
         HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
@@ -162,7 +162,7 @@ public class BasicHttpCache implements HttpCache {
                 responseReceived,
                 originResponse);
         storeInCache(target, request, updatedEntry);
-        return responseGenerator.generateResponse(updatedEntry);
+        return updatedEntry;
     }
 
     public HttpResponse cacheAndReturnResponse(HttpHost host, HttpRequest request,

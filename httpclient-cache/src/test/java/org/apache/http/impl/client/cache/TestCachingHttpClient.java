@@ -399,7 +399,7 @@ public class TestCachingHttpClient {
         HttpResponse originResponse =
             new BasicHttpResponse(HttpVersion.HTTP_1_1,
                     HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        HttpResponse finalResponse = HttpTestUtils.make200Response();
+        HttpCacheEntry updatedEntry = HttpTestUtils.makeCacheEntry();
 
         conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
@@ -407,14 +407,13 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(responseDate);
         EasyMock.expect(mockCache.updateCacheEntry(host, request,
                 entry, originResponse, requestDate, responseDate))
-            .andReturn(finalResponse);
+            .andReturn(updatedEntry);
+        EasyMock.expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
+        responseIsGeneratedFromCache();
 
         replayMocks();
-        HttpResponse result =
-            impl.revalidateCacheEntry(host, request, context, entry);
+        impl.revalidateCacheEntry(host, request, context, entry);
         verifyMocks();
-
-        Assert.assertSame(finalResponse, result);
     }
 
     @Test
@@ -1041,6 +1040,246 @@ public class TestCachingHttpClient {
     }
 
     @Test
+    public void testReturns304ForIfModifiedSinceHeaderIfRequestServedFromCache()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+
+        // The variant has been modified since this date
+        req2.addHeader("If-Modified-Since", DateUtils
+                        .formatDate(tenSecondsAgo));
+
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class),
+                        EasyMock.isA(HttpRequest.class),
+                        (HttpContext) EasyMock.isNull()))
+                        .andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns200ForIfModifiedSinceDateIsInvalid()
+            throws Exception {
+        Date now = new Date();
+        Date tenSecondsAfter = new Date(now.getTime() + 10 * 1000L);
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+
+        // invalid date (date in the future)
+        req2.addHeader("If-Modified-Since", DateUtils
+                .formatDate(tenSecondsAfter));
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1).times(2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns304ForIfNoneMatchHeaderIfRequestServedFromCache()
+            throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        req2.addHeader("If-None-Match", "*");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns200ForIfNoneMatchHeaderFails() throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        req2.addHeader("If-None-Match", "\"abc\"");
+
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns304ForIfNoneMatchHeaderAndIfModifiedSinceIfRequestServedFromCache()
+            throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+
+        req2.addHeader("If-None-Match", "*");
+        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void testReturns200ForIfNoneMatchHeaderFailsIfModifiedSinceIgnored()
+            throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        req2.addHeader("If-None-Match", "\"abc\"");
+        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
     public void testSetsValidatedContextIfRequestWasSuccessfullyValidated()
         throws Exception {
         Date now = new Date();
@@ -1212,7 +1451,184 @@ public class TestCachingHttpClient {
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
+    @Test
+    public void testReturns304ForIfNoneMatchPassesIfRequestServedFromOrigin()
+            throws Exception {
 
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        req2.addHeader("If-None-Match", "\"etag\"");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("ETag", "\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control", "public, max-age=5");
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testReturns200ForIfNoneMatchFailsIfRequestServedFromOrigin()
+            throws Exception {
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        req2.addHeader("If-None-Match", "\"etag\"");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("ETag", "\"newetag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Cache-Control", "public, max-age=5");
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testReturns304ForIfModifiedSincePassesIfRequestServedFromOrigin()
+            throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("ETag", "\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Cache-Control", "public, max-age=5");
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testReturns200ForIfModifiedSinceFailsIfRequestServedFromOrigin()
+            throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("ETag", "\"newetag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control", "public, max-age=5");
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+    }
 
     @Test
     public void testIsSharedCache() {
