@@ -113,4 +113,23 @@ public class TestSizeLimitedResponseReader {
         Assert.assertFalse(tooLarge);
     }
 
+    @Test
+    public void testResponseCopiesAllOriginalHeaders() throws Exception {
+        byte[] buf = new byte[] { 1, 2, 3 };
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        response.setEntity(new ByteArrayEntity(buf));
+        response.setHeader("Content-Encoding", "gzip");
+
+        impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
+
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
+        HttpResponse reconstructed = impl.getReconstructedResponse();
+        byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
+
+        Assert.assertFalse(tooLarge);
+        Assert.assertArrayEquals(buf, result);
+        Assert.assertEquals("gzip", reconstructed.getFirstHeader("Content-Encoding").getValue());
+    }
+
 }
