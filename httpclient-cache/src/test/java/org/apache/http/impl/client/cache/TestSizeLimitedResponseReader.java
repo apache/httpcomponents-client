@@ -26,12 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
@@ -111,6 +113,27 @@ public class TestSizeLimitedResponseReader {
         boolean tooLarge = impl.isLimitReached();
 
         Assert.assertFalse(tooLarge);
+    }
+
+    @Test
+    public void testTooLargeEntityHasOriginalContentTypes() throws Exception {
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        StringEntity entity = new StringEntity("large entity content", "text/plain", "utf-8");
+        response.setEntity(entity);
+
+        impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
+
+        impl.readResponse();
+        boolean tooLarge = impl.isLimitReached();
+        HttpResponse result = impl.getReconstructedResponse();
+        HttpEntity reconstructedEntity = result.getEntity();
+        Assert.assertEquals(entity.getContentEncoding(), reconstructedEntity.getContentEncoding());
+        Assert.assertEquals(entity.getContentType(), reconstructedEntity.getContentType());
+
+        String content = EntityUtils.toString(reconstructedEntity);
+
+        Assert.assertTrue(tooLarge);
+        Assert.assertEquals("large entity content", content);
     }
 
     @Test
