@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -407,8 +408,22 @@ public class CachingHttpClient implements HttpClient {
             if (log.isDebugEnabled()) {
                 RequestLine rl = request.getRequestLine();
                 log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
-
             }
+
+            Set<HttpCacheEntry> variantEntries = null;
+            try {
+                responseCache.getVariantCacheEntries(target, request);
+            } catch (IOException ioe) {
+                log.warn("Unable to retrieve variant entries from cache", ioe);
+            }
+            if (variantEntries != null && variantEntries.size() > 0) {
+                try {
+                    return negotiateResponseFromVariants(target, request, context, variantEntries);
+                } catch (ProtocolException e) {
+                    throw new ClientProtocolException(e);
+                }
+            }
+
             return callBackend(target, request, context);
         }
 
@@ -540,6 +555,95 @@ public class CachingHttpClient implements HttpClient {
 
     }
 
+    HttpResponse negotiateResponseFromVariants(HttpHost target,
+            HttpRequest request, HttpContext context,
+            Set<HttpCacheEntry> variantEntries) throws IOException, ProtocolException {
+        HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries);
+
+        Date requestDate = getCurrentDate();
+        HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
+        Date responseDate = getCurrentDate();
+
+        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+
+        if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
+            return handleBackendResponse(target, conditionalRequest, requestDate, responseDate, backendResponse);
+        }
+
+        Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
+        if (resultEtagHeader == null) {
+            log.debug("304 response did not contain ETag");
+            return callBackend(target, request, context);
+        }
+
+        HttpCacheEntry matchedEntry = null;
+
+        String resultEtag = resultEtagHeader.getValue();
+        for (HttpCacheEntry variantEntry : variantEntries) {
+            Header variantEtagHeader = variantEntry.getFirstHeader(HeaderConstants.ETAG);
+            if (variantEtagHeader != null) {
+                String variantEtag = variantEtagHeader.getValue();
+                if (resultEtag.equals(variantEtag)) {
+                    matchedEntry = variantEntry;
+                    break;
+                }
+            }
+        }
+
+        if (matchedEntry == null) {
+            log.debug("304 response did not contain ETag matching one sent in If-None-Match");
+            return callBackend(target, request, context);
+        }
+
+        // make sure this cache entry is indeed new enough to update with,
+        // if not force to refresh
+        final Header entryDateHeader = matchedEntry.getFirstHeader("Date");
+        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        if (entryDateHeader != null && responseDateHeader != null) {
+            try {
+                Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+                Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
+                if (respDate.before(entryDate)) {
+                    // TODO: what to do here?  what if the initial request was a conditional
+                    //  request.  It would get the same result whether it went through our
+                    //  cache or not...
+                    HttpRequest unconditional = conditionalRequestBuilder
+                    .buildUnconditionalRequest(request, matchedEntry);
+                    return callBackend(target, unconditional, context);
+                }
+            } catch (DateParseException e) {
+                // either backend response or cached entry did not have a valid
+                // Date header, so we can't tell if they are out of order
+                // according to the origin clock; thus we can skip the
+                // unconditional retry recommended in 13.2.6 of RFC 2616.
+            }
+        }
+
+        cacheUpdates.getAndIncrement();
+        setResponseStatus(context, CacheResponseStatus.VALIDATED);
+
+        // SHOULD update cache entry according to rfc
+        HttpCacheEntry responseEntry = matchedEntry;
+        try {
+            responseEntry = responseCache.updateCacheEntry(target, conditionalRequest, matchedEntry, backendResponse, requestDate, responseDate);
+        } catch (IOException ioe) {
+            log.warn("Could not update cache entry", ioe);
+        }
+
+        HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+        try {
+            resp = responseCache.cacheAndReturnResponse(target, request, resp, requestDate, responseDate);
+        } catch (IOException ioe) {
+            log.warn("Could not cache entry", ioe);
+        }
+
+        if (suitabilityChecker.isConditional(request) && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date())) {
+            return responseGenerator.generateNotModifiedResponse(responseEntry);
+        }
+
+        return resp;
+    }
+
     HttpResponse revalidateCacheEntry(
             HttpHost target,
             HttpRequest request,
@@ -550,7 +654,6 @@ public class CachingHttpClient implements HttpClient {
         Date requestDate = getCurrentDate();
         HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
         Date responseDate = getCurrentDate();
-
 
         final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
         final Header responseDateHeader = backendResponse.getFirstHeader("Date");

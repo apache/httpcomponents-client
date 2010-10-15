@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Set;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
@@ -78,6 +80,47 @@ class ConditionalRequestBuilder {
         }
         return wrapperRequest;
 
+    }
+
+    /**
+     * When a {@link HttpCacheEntry} does not exist for a specific {@link HttpRequest}
+     * we attempt to see if an existing {@link HttpCacheEntry} is appropriate by building
+     * a conditional {@link HttpRequest} using the variants' ETag values.  If no such values
+     * exist, the request is unmodified
+     *
+     * @param request the original request from the caller
+     * @param cacheEntry the entry that needs to be revalidated
+     * @return the wrapped request
+     * @throws ProtocolException when I am unable to build a new origin request.
+     */
+    public HttpRequest buildConditionalRequestFromVariants(HttpRequest request, Set<HttpCacheEntry> variantEntries)
+            throws ProtocolException {
+        RequestWrapper wrapperRequest = new RequestWrapper(request);
+        wrapperRequest.resetHeaders();
+
+        // we do not support partial content so all etags are used
+        StringBuilder etags = new StringBuilder();
+        boolean first = true;
+        for (HttpCacheEntry entry : variantEntries) {
+            Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+            if (etagHeader != null) {
+                if (first) {
+                    etags.append(etagHeader.getValue());
+                    first = false;
+                } else {
+                    etags.append(",").append(etagHeader.getValue());
+                }
+            }
+        }
+        // if first is still true than no variants had a cache entry, return
+        //  unmodified wrapped request
+        if(first) {
+            return wrapperRequest;
+        }
+
+        wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
+
+        return wrapperRequest;
     }
 
     /**

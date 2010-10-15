@@ -28,6 +28,7 @@ package org.apache.http.client.cache;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -64,6 +65,17 @@ public interface HttpCache {
      * @throws IOException
      */
     HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request)
+        throws IOException;
+
+    /**
+     * Retrieve all variants from the cache, if there are no variants than an empty
+     * {@link Set} is returned
+     * @param host
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    Set<HttpCacheEntry> getVariantCacheEntries(HttpHost host, HttpRequest request)
         throws IOException;
 
     /**

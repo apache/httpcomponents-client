@@ -211,4 +211,20 @@ public class BasicHttpCache implements HttpCache {
 
     }
 
+    public Set<HttpCacheEntry> getVariantCacheEntries(HttpHost host, HttpRequest request)
+            throws IOException {
+        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
+
+        HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
+        if (root != null) {
+            if (root.hasVariants()) {
+                for(String variantUri : root.getVariantURIs()) {
+                    variants.add(storage.getEntry(variantUri));
+                }
+            }
+        }
+
+        return variants;
+    }
+
 }

@@ -1,6 +1,8 @@
 package org.apache.http.impl.client.cache;
 
 
+import java.util.HashSet;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -8,6 +10,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCache;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.IExpectationSetters;
@@ -77,6 +80,9 @@ public abstract class AbstractProtocolTest {
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
             .andReturn(null).anyTimes();
+        EasyMock.expect(mockCache.getVariantCacheEntries(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
+            .andReturn(new HashSet<HttpCacheEntry>()).anyTimes();
+
         mockCache.flushCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();
 

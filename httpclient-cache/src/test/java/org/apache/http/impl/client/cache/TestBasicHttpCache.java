@@ -331,5 +331,50 @@ public class TestBasicHttpCache {
         assertNotNull(result);
     }
 
+    @Test
+    public void testGetVariantCacheEntriesReturnsEmptySetOnNoVariants() throws Exception {
+        HttpHost host = new HttpHost("foo.example.com");
+        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+
+        Set<HttpCacheEntry> variants = impl.getVariantCacheEntries(host, request);
+
+        assertNotNull(variants);
+        assertEquals(0, variants.size());
+    }
+
+    @Test
+    public void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
+        HttpHost host = new HttpHost("foo.example.com");
+        HttpRequest req1 = new HttpGet("http://foo.example.com/bar");
+        req1.setHeader("Accept-Encoding", "gzip");
+
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Cache-Control", "max-age=3600, public");
+        resp1.setHeader("ETag", "\"etag1\"");
+        resp1.setHeader("Vary", "Accept-Encoding");
+        resp1.setHeader("Content-Encoding","gzip");
+        resp1.setHeader("Vary", "Accept-Encoding");
+
+        HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
+        req2.setHeader("Accept-Encoding", "identity");
+
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Cache-Control", "max-age=3600, public");
+        resp2.setHeader("ETag", "\"etag1\"");
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setHeader("Content-Encoding","gzip");
+        resp2.setHeader("Vary", "Accept-Encoding");
+
+        impl.cacheAndReturnResponse(host, req1, resp1, new Date(), new Date());
+        impl.cacheAndReturnResponse(host, req2, resp2, new Date(), new Date());
+
+        Set<HttpCacheEntry> variants = impl.getVariantCacheEntries(host, req1);
+
+        assertNotNull(variants);
+        assertEquals(2, variants.size());
+
+    }
 
 }

@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -44,6 +46,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
@@ -299,6 +302,7 @@ public class TestCachingHttpClient {
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(null);
+        getVariantCacheEntriesReturns(new HashSet<HttpCacheEntry>());
 
         requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
@@ -1066,7 +1070,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
     }
 
@@ -1107,7 +1111,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
 
     }
 
@@ -1142,7 +1146,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
 
     }
 
@@ -1170,7 +1174,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
     }
 
@@ -1239,7 +1243,7 @@ public class TestCachingHttpClient {
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        Assert.assertEquals(304, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
     }
 
@@ -1451,6 +1455,7 @@ public class TestCachingHttpClient {
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
+
     @Test
     public void testReturns304ForIfNoneMatchPassesIfRequestServedFromOrigin()
             throws Exception {
@@ -1473,8 +1478,6 @@ public class TestCachingHttpClient {
         req2.addHeader("If-None-Match", "\"etag\"");
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setEntity(HttpTestUtils.makeBody(128));
-        resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
@@ -1562,8 +1565,6 @@ public class TestCachingHttpClient {
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setEntity(HttpTestUtils.makeBody(128));
-        resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
@@ -1583,6 +1584,125 @@ public class TestCachingHttpClient {
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testNegotiateResponseFromVariantsForwardsCallIfNoVariantETags() throws ProtocolException, IOException {
+        impl = new CachingHttpClient(mockBackend);
+
+        HttpResponse originResponse = HttpTestUtils.make200Response();
+
+        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
+        variants.add(HttpTestUtils.makeCacheEntry());
+        variants.add(HttpTestUtils.makeCacheEntry());
+        variants.add(HttpTestUtils.makeCacheEntry());
+
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+
+        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
+                EasyMock.capture(cap), EasyMock.isA(HttpContext.class)))
+                .andReturn(originResponse);
+
+        replayMocks();
+        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
+        verifyMocks();
+
+        Assert.assertTrue(cap.hasCaptured());
+
+        HttpRequest captured = cap.getValue();
+        Assert.assertNull(captured.getFirstHeader(HeaderConstants.IF_NONE_MATCH));
+
+        Assert.assertEquals(resp.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testNegotiateResponseFromVariantsReturnsVariantAndUpdatesEntryOnBackend304() throws Exception {
+        HttpCacheEntry variant1 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag1") });
+        HttpCacheEntry variant2 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+        HttpCacheEntry variant3 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag3") });
+
+        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
+        variants.add(variant1);
+        variants.add(variant2);
+        variants.add(variant3);
+
+        HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
+        variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
+
+        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        originResponse.addHeader(HeaderConstants.ETAG, "etag2");
+
+        HttpCacheEntry updatedMatchedEntry =  HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+
+        HttpResponse matchedResponse = HttpTestUtils.make200Response();
+        HttpResponse response = HttpTestUtils.make200Response();
+
+        conditionalVariantRequestBuilderReturns(variants, variantConditionalRequest);
+
+        backendCall(variantConditionalRequest, originResponse);
+
+        EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(variant2), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(updatedMatchedEntry);
+
+        EasyMock.expect(mockResponseGenerator.generateResponse(updatedMatchedEntry)).andReturn(matchedResponse);
+
+        EasyMock.expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
+
+        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(request), EasyMock.same(matchedResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
+
+        replayMocks();
+        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_OK,resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testNegotiateResponseFromVariantsReturns200OnBackend200() throws Exception {
+        HttpCacheEntry variant1 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag1") });
+        HttpCacheEntry variant2 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+        HttpCacheEntry variant3 = HttpTestUtils
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag3") });
+
+        HttpCacheEntry cacheEntry = null;
+
+        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
+        variants.add(variant1);
+        variants.add(variant2);
+        variants.add(variant3);
+
+        HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
+        variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
+
+        HttpResponse originResponse = HttpTestUtils.make200Response();
+        originResponse.addHeader(HeaderConstants.ETAG, "etag4");
+
+        HttpResponse response = HttpTestUtils.make200Response();
+
+        conditionalVariantRequestBuilderReturns(variants, variantConditionalRequest);
+
+        backendCall(variantConditionalRequest, originResponse);
+
+        responseProtocolValidationIsCalled();
+
+        responsePolicyAllowsCaching(true);
+
+        EasyMock.expect(mockCache.getCacheEntry(host, variantConditionalRequest)).andReturn(cacheEntry);
+
+        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
+
+        replayMocks();
+        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_OK,resp.getStatusLine().getStatusCode());
+
     }
 
     @Test
@@ -1631,6 +1751,154 @@ public class TestCachingHttpClient {
     }
 
     @Test
+    public void testVariantMissServerIfReturns304CacheReturns200() throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        Date now = new Date();
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com");
+        req1.addHeader("Accept-Encoding", "gzip");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("Etag", "\"gzip_etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Vary", "Accept-Encoding");
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        HttpRequest req2 = new HttpGet("http://foo.example.com");
+        req2.addHeader("Accept-Encoding", "deflate");
+
+        HttpRequest req2Server = new HttpGet("http://foo.example.com");
+        req2Server.addHeader("Accept-Encoding", "deflate");
+        req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("Etag", "\"deflate_etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setHeader("Cache-Control", "public, max-age=3600");
+
+        HttpRequest req3 = new HttpGet("http://foo.example.com");
+        req3.addHeader("Accept-Encoding", "gzip,deflate");
+
+        HttpRequest req3Server = new HttpGet("http://foo.example.com");
+        req3Server.addHeader("Accept-Encoding", "gzip,deflate");
+        req3Server.addHeader("If-None-Match", "\"gzip_etag\",\"deflate_etag\"");
+
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp3.setEntity(HttpTestUtils.makeBody(128));
+        resp3.setHeader("Content-Length", "128");
+        resp3.setHeader("Etag", "\"gzip_etag\"");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Vary", "Accept-Encoding");
+        resp3.setHeader("Cache-Control", "public, max-age=3600");
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp3);
+
+
+        replayMocks();
+        HttpResponse result1 = impl.execute(host, req1);
+
+        HttpResponse result2 = impl.execute(host, req2);
+
+        HttpResponse result3 = impl.execute(host, req3);
+
+        verifyMocks();
+        Assert.assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result3.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testVariantsMissServerReturns304CacheReturns304() throws Exception {
+        impl = new CachingHttpClient(mockBackend);
+        Date now = new Date();
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com");
+        req1.addHeader("Accept-Encoding", "gzip");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("Etag", "\"gzip_etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Vary", "Accept-Encoding");
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        HttpRequest req2 = new HttpGet("http://foo.example.com");
+        req2.addHeader("Accept-Encoding", "deflate");
+
+        HttpRequest req2Server = new HttpGet("http://foo.example.com");
+        req2Server.addHeader("Accept-Encoding", "deflate");
+        req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+        resp2.setHeader("Content-Length", "128");
+        resp2.setHeader("Etag", "\"deflate_etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setHeader("Cache-Control", "public, max-age=3600");
+
+        HttpRequest req4 = new HttpGet("http://foo.example.com");
+        req4.addHeader("Accept-Encoding", "gzip,identity");
+        req4.addHeader("If-None-Match", "\"gzip_etag\"");
+
+        HttpRequest req4Server = new HttpGet("http://foo.example.com");
+        req4Server.addHeader("Accept-Encoding", "gzip,identity");
+        req4Server.addHeader("If-None-Match", "\"gzip_etag\"");
+
+        HttpResponse resp4 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp4.setHeader("Etag", "\"gzip_etag\"");
+        resp4.setHeader("Date", DateUtils.formatDate(now));
+        resp4.setHeader("Vary", "Accept-Encoding");
+        resp4.setHeader("Cache-Control", "public, max-age=3600");
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp1);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp2);
+
+        EasyMock.expect(
+                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
+                        .isA(HttpRequest.class), (HttpContext) EasyMock
+                        .isNull())).andReturn(resp4);
+
+        replayMocks();
+        HttpResponse result1 = impl.execute(host, req1);
+
+        HttpResponse result2 = impl.execute(host, req2);
+
+        HttpResponse result4 = impl.execute(host, req4);
+        verifyMocks();
+        Assert.assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result4.getStatusLine().getStatusCode());
+
+    }
+
+    @Test
     public void testIsSharedCache() {
         Assert.assertTrue(impl.isSharedCache());
     }
@@ -1645,6 +1913,9 @@ public class TestCachingHttpClient {
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
         EasyMock.expectLastCall().andThrow(new IOException()).anyTimes();
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.same(host),
+                EasyMock.isA(HttpRequest.class)))
+            .andThrow(new IOException()).anyTimes();
+        EasyMock.expect(mockCache.getVariantCacheEntries(EasyMock.same(host),
                 EasyMock.isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
         EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host),
@@ -1663,6 +1934,10 @@ public class TestCachingHttpClient {
 
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(result);
+    }
+
+    private void getVariantCacheEntriesReturns(Set<HttpCacheEntry> result) throws IOException {
+        EasyMock.expect(mockCache.getVariantCacheEntries(host, request)).andReturn(result);
     }
 
     private void cacheInvalidatorWasCalled()  throws IOException {
@@ -1693,12 +1968,18 @@ public class TestCachingHttpClient {
                 EasyMock.<HttpCacheEntry>anyObject())).andReturn(b);
     }
 
+    private void conditionalVariantRequestBuilderReturns(Set<HttpCacheEntry> variantEntries, HttpRequest validate)
+            throws Exception {
+        EasyMock.expect(mockConditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries))
+            .andReturn(validate);
+    }
+
     private void conditionalRequestBuilderReturns(HttpRequest validate)
             throws Exception {
         EasyMock.expect(mockConditionalRequestBuilder
-                .buildConditionalRequest(request, entry))
-            .andReturn(validate);
-    }
+        .buildConditionalRequest(request, entry))
+    .andReturn(validate);
+}
 
     private void getCurrentDateReturns(Date date) {
         EasyMock.expect(impl.getCurrentDate()).andReturn(date);
