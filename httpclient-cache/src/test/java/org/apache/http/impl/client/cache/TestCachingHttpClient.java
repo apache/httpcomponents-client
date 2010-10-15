@@ -1635,6 +1635,32 @@ public class TestCachingHttpClient {
         Assert.assertTrue(impl.isSharedCache());
     }
 
+    @Test
+    public void testTreatsCacheIOExceptionsAsCacheMiss()
+        throws Exception {
+
+        impl = new CachingHttpClient(mockBackend, mockCache);
+        HttpResponse resp = HttpTestUtils.make200Response();
+
+        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        EasyMock.expectLastCall().andThrow(new IOException()).anyTimes();
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.same(host),
+                EasyMock.isA(HttpRequest.class)))
+            .andThrow(new IOException()).anyTimes();
+        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host),
+                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class),
+                EasyMock.isA(Date.class), EasyMock.isA(Date.class)))
+            .andThrow(new IOException()).anyTimes();
+        EasyMock.expect(mockBackend.execute(EasyMock.same(host),
+                EasyMock.isA(HttpRequest.class), (HttpContext)EasyMock.isNull()))
+            .andReturn(resp);
+
+        replayMocks();
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        Assert.assertSame(resp, result);
+    }
+
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }

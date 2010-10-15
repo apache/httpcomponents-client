@@ -386,13 +386,22 @@ public class CachingHttpClient implements HttpClient {
         }
         request.addHeader("Via",via);
 
-        responseCache.flushInvalidatedCacheEntriesFor(target, request);
+        try {
+            responseCache.flushInvalidatedCacheEntriesFor(target, request);
+        } catch (IOException ioe) {
+            log.warn("Unable to flush invalidated entries from cache", ioe);
+        }
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             return callBackend(target, request, context);
         }
 
-        HttpCacheEntry entry = responseCache.getCacheEntry(target, request);
+        HttpCacheEntry entry = null;
+        try {
+            entry = responseCache.getCacheEntry(target, request);
+        } catch (IOException ioe) {
+            log.warn("Unable to retrieve entries from cache", ioe);
+        }
         if (entry == null) {
             cacheMisses.getAndIncrement();
             if (log.isDebugEnabled()) {
@@ -599,18 +608,31 @@ public class CachingHttpClient implements HttpClient {
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
         if (cacheable &&
             !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
-            return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate,
-                    responseDate);
+            try {
+                return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate,
+                        responseDate);
+            } catch (IOException ioe) {
+                log.warn("Unable to store entries in cache", ioe);
+            }
         }
         if (!cacheable) {
-            responseCache.flushCacheEntriesFor(target, request);
+            try {
+                responseCache.flushCacheEntriesFor(target, request);
+            } catch (IOException ioe) {
+                log.warn("Unable to flush invalid cache entries", ioe);
+            }
         }
         return backendResponse;
     }
 
     private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequest request,
             HttpResponse backendResponse) throws IOException {
-        HttpCacheEntry existing = responseCache.getCacheEntry(target, request);
+        HttpCacheEntry existing = null;
+        try {
+            existing = responseCache.getCacheEntry(target, request);
+        } catch (IOException ioe) {
+            // nop
+        }
         if (existing == null) return false;
         Header entryDateHeader = existing.getFirstHeader("Date");
         if (entryDateHeader == null) return false;
