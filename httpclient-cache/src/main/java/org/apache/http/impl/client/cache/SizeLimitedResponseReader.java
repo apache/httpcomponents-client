@@ -117,11 +117,13 @@ class SizeLimitedResponseReader {
         ensureConsumed();
         HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
         reconstructed.setHeaders(response.getAllHeaders());
+
         CombinedEntity combinedEntity = new CombinedEntity(resource, instream);
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             combinedEntity.setContentType(entity.getContentType());
             combinedEntity.setContentEncoding(entity.getContentEncoding());
+            combinedEntity.setChunked(entity.isChunked());
         }
         reconstructed.setEntity(combinedEntity);
         return reconstructed;
