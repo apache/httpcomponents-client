@@ -13,7 +13,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
@@ -23,7 +22,7 @@ import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 
-public class BasicHttpCache implements HttpCache {
+class BasicHttpCache implements HttpCache {
 
     private final URIExtractor uriExtractor;
     private final ResourceFactory resourceFactory;

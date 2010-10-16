@@ -31,18 +31,12 @@ import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.impl.client.cache.BasicHttpCache;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClient;
 import org.apache.http.impl.client.cache.HeapResourceFactory;
-import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.apache.http.impl.client.cache.TestProtocolRequirements;
-import org.apache.http.message.BasicHttpRequest;
 import org.easymock.classextension.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -68,14 +62,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
     @Override
     @Before
     public void setUp() {
-        host = new HttpHost("foo.example.com");
-
-        body = HttpTestUtils.makeBody(entityLength);
-
-        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
-
-        originResponse = HttpTestUtils.make200Response();
-
+        super.setUp();
         params = new CacheConfig();
         params.setMaxObjectSizeBytes(MAX_BYTES);
 
@@ -84,11 +71,9 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
         }
         CACHE_MANAGER.addCache(TEST_EHCACHE_NAME);
         HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
-        cache = new BasicHttpCache(new HeapResourceFactory(), storage, params);
         mockBackend = EasyMock.createMock(HttpClient.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
 
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        impl = new CachingHttpClient(mockBackend, new HeapResourceFactory(), storage, params);
     }
 
     @After

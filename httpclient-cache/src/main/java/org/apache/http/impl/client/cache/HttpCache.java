@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.cache;
+package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.util.Date;
@@ -33,11 +33,12 @@ import java.util.Set;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.cache.HttpCacheEntry;
 
 /**
  * @since 4.1
  */
-public interface HttpCache {
+interface HttpCache {
 
     /**
      * Clear all matching {@link HttpCacheEntry}s.

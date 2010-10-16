@@ -52,8 +52,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -96,7 +97,7 @@ public class CachingHttpClient implements HttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    public CachingHttpClient(
+    CachingHttpClient(
             HttpClient client,
             HttpCache cache,
             CacheConfig config) {
@@ -150,26 +151,22 @@ public class CachingHttpClient implements HttpClient {
     }
 
     public CachingHttpClient(
-            HttpCache cache) {
-        this(new DefaultHttpClient(),
-                cache,
-                new CacheConfig());
-    }
-
-    public CachingHttpClient(
-            HttpCache cache,
+            HttpClient client,
+            ResourceFactory resourceFactory,
+            HttpCacheStorage storage,
             CacheConfig config) {
-        this(new DefaultHttpClient(),
-                cache,
+        this(client,
+                new BasicHttpCache(resourceFactory, storage, config),
                 config);
     }
 
     public CachingHttpClient(
             HttpClient client,
-            HttpCache cache) {
+            HttpCacheStorage storage,
+            CacheConfig config) {
         this(client,
-                cache,
-                new CacheConfig());
+                new BasicHttpCache(new HeapResourceFactory(), storage, config),
+                config);
     }
 
     CachingHttpClient(

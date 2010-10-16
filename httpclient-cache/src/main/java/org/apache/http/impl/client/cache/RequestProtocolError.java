@@ -29,7 +29,7 @@ package org.apache.http.impl.client.cache;
 /**
  * @since 4.1
  */
-public enum RequestProtocolError {
+enum RequestProtocolError {
 
     UNKNOWN,
     BODY_BUT_NO_LENGTH_ERROR,

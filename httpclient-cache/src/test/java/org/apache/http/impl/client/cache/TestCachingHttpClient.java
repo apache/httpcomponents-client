@@ -47,7 +47,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
-import org.apache.http.client.cache.HttpCache;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -1907,7 +1906,7 @@ public class TestCachingHttpClient {
     public void testTreatsCacheIOExceptionsAsCacheMiss()
         throws Exception {
 
-        impl = new CachingHttpClient(mockBackend, mockCache);
+        impl = new CachingHttpClient(mockBackend, mockCache, new CacheConfig());
         HttpResponse resp = HttpTestUtils.make200Response();
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
