@@ -105,12 +105,9 @@ public class TestHttpRoute {
                      PROXY3, route.getHopTarget(2));
         Assert.assertEquals("wrong hop 3",
                      TARGET1, route.getHopTarget(3));
-        Assert.assertEquals("wrong flag: secured",
-                     false, route.isSecure());
-        Assert.assertEquals("wrong flag: tunnelled",
-                     false, route.isTunnelled());
-        Assert.assertEquals("wrong flag: layered",
-                     false, route.isLayered());
+        Assert.assertFalse("wrong flag: secured", route.isSecure());
+        Assert.assertFalse("wrong flag: tunnelled", route.isTunnelled());
+        Assert.assertFalse("wrong flag: layered", route.isLayered());
 
         String routestr = route.toString();
         Assert.assertTrue("missing target in toString",
