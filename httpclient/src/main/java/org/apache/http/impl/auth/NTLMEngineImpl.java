@@ -56,12 +56,14 @@ final class NTLMEngineImpl implements NTLMEngine {
     protected final static int FLAG_NEGOTIATE_KEY_EXCH = 0x40000000;
 
     /** Secure random generator */
-    private static java.security.SecureRandom RND_GEN;
+    private static final java.security.SecureRandom RND_GEN;
     static {
+        java.security.SecureRandom rnd = null;
         try {
-            RND_GEN = java.security.SecureRandom.getInstance("SHA1PRNG");
+            rnd = java.security.SecureRandom.getInstance("SHA1PRNG");
         } catch (Exception e) {
         }
+        RND_GEN = rnd;
     }
 
     /** Character encoding */
@@ -774,6 +776,7 @@ final class NTLMEngineImpl implements NTLMEngine {
          * Getting the response involves building the message before returning
          * it
          */
+        @Override
         String getResponse() {
             // Now, build the message. Calculate its length first, including
             // signature or type.
@@ -951,6 +954,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Assemble the response */
+        @Override
         String getResponse() {
             int ntRespLen = ntResp.length;
             int lmRespLen = lmResp.length;
