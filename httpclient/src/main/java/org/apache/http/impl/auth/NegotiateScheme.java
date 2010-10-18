@@ -144,6 +144,7 @@ public class NegotiateScheme extends AuthSchemeBase {
      *
      * @return an Negotiate authorisation Header
      */
+    @Override
     public Header authenticate(
             final Credentials credentials,
             final HttpRequest request,

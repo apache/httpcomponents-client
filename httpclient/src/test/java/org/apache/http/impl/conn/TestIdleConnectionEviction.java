@@ -53,6 +53,7 @@ import org.junit.Test;
 
 public class TestIdleConnectionEviction extends ServerTestBase {
 
+    @Override
     @Before
     public void setUp() throws Exception {
         this.localServer = new LocalTestServer(null, null);
