@@ -1,6 +1,9 @@
 Changes since 4.1 ALPHA2
 -------------------
 
+* [HTTPCLIENT-919] Support for NTLMv1, NTLMv2, and NTLM2 Session authentication.
+  Contributed by Karl Wright <karl.wright at nokia.com>
+
 * [HTTPCLIENT-1000] Maximum connection lifetimes settings for ThreadSafeClientConnManager.
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 
@@ -8,21 +11,21 @@ Changes since 4.1 ALPHA2
   BROWSER_COMPATIBLE mode.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-989] DefaultHttpRequestRetryHandler no longer retries non-idempotent http methods 
+* [HTTPCLIENT-989] DefaultHttpRequestRetryHandler no longer retries non-idempotent http methods
   if NoHttpResponseException is thrown.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-978] Ehcache based HTTP cache implementation
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 
-* [HTTPCLIENT-969] BasicCookieStore#getCookies() to return a copy of Cookie list 
+* [HTTPCLIENT-969] BasicCookieStore#getCookies() to return a copy of Cookie list
   Contributed by David Smiley <dsmiley at mitre.org>
 
-* [HTTPCLIENT-965] Fixed problem with cache not honoring must-revalidate or 
+* [HTTPCLIENT-965] Fixed problem with cache not honoring must-revalidate or
   proxy-revalidate Cache-Control directives.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
-* [HTTPCLIENT-964] 'no-cache' directives with field names are no longer transmitted 
+* [HTTPCLIENT-964] 'no-cache' directives with field names are no longer transmitted
   downstream.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
@@ -32,11 +35,11 @@ Changes since 4.1 ALPHA2
 * [HTTPCLIENT-962] Fixed handling of Authorization headers in shared cache mode.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
-* [HTTPCLIENT-961] Not all applicable URIs are invalidated on PUT/POST/DELETEs 
+* [HTTPCLIENT-961] Not all applicable URIs are invalidated on PUT/POST/DELETEs
   that pass through client cache.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
-* [HTTPCLIENT-958] Client cache no longer allows incomplete responses to be 
+* [HTTPCLIENT-958] Client cache no longer allows incomplete responses to be
   passed on to the client.
   Contributed by Jonathan Moore <jonathan_moore at comcast.com>
 
@@ -44,50 +47,50 @@ Changes since 4.1 ALPHA2
   retried when 'expect-continue' handshake is active.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-948] In rare circumstances the idle connection handling code  
+* [HTTPCLIENT-948] In rare circumstances the idle connection handling code
   can leave closed connections in a inconsistent state.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-953] IllegalStateException thrown by RouteSpecificPool.
   Contributed by Guillaume <gueugaie at gmail.com>
 
-* [HTTPCLIENT-952] Trust store parameter is ignored by SSLSocketFactory 
+* [HTTPCLIENT-952] Trust store parameter is ignored by SSLSocketFactory
   (affects version 4.1-alpha2 only)
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-937] CacheEntry made immutable; now uses immutable HttpEntity 
-  to store cached content. 
-  Contributed by David Mays <david_mays at comcast.com> and 
+* [HTTPCLIENT-937] CacheEntry made immutable; now uses immutable HttpEntity
+  to store cached content.
+  Contributed by David Mays <david_mays at comcast.com> and
   Oleg Kalnichevski <olegk at apache.org>
 
 Release 4.1 ALPHA2
 -------------------
 
-HttpClient 4.1 ALPHA2 fixes a number of non-severe bugs discovered since 
+HttpClient 4.1 ALPHA2 fixes a number of non-severe bugs discovered since
 the last release and introduces support for two frequently requested features:
 
 * HTTP/1.1 response caching
 
 * transparent support for host multihoming
 
-* a mechanism to bypass the standard certificate trust verification 
+* a mechanism to bypass the standard certificate trust verification
 (useful when dealing with self-signed certificates)
 
 Compatibility notes
 -------------------
-(1) Please note the HTTP caching module is still considered experimental and 
+(1) Please note the HTTP caching module is still considered experimental and
 its API may change significantly in the future releases.
 
-(2) This release eliminates Mime4J as a dependency for the HttpMime module. 
-HttpMime is no longer binary compatible with the previous releases. 
+(2) This release eliminates Mime4J as a dependency for the HttpMime module.
+HttpMime is no longer binary compatible with the previous releases.
 Full API and binary compatibility between minor versions of HttpMime will be
 maintained as of 4.1 GA release.
 
 Changelog
 -------------------
 
-* [HTTPCLIENT-936] Fixed bug causing NPE or an infinite loop in 
-  the authentication code in case of a SPNEGO authentication failure. 
+* [HTTPCLIENT-936] Fixed bug causing NPE or an infinite loop in
+  the authentication code in case of a SPNEGO authentication failure.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-427] HTTP caching support

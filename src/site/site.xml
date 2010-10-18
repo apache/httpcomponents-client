@@ -51,7 +51,6 @@
       <item name="Tutorial" href="tutorial/html/index.html"/>
       <item name="Examples" href="examples.html"/>
       <item name="Client HTTP Programming Primer" href="primer.html"/>
-      <item name="NTLM support" href="ntlm.html"/>
       <item name="Logging" href="logging.html"/>
     </menu>
     <menu name="Modules">
