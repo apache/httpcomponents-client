@@ -251,6 +251,48 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
+    public void testHeuristicFreshnessLifetime() {
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
+
+        Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(oneSecondAgo)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(elevenSecondsAgo))
+        };
+
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        Assert.assertEquals(1, impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, 0));
+    }
+
+    @Test
+    public void testHeuristicFreshnessLifetimeDefaultsProperly() {
+        long defaultFreshness = 10;
+
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        Assert.assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, defaultFreshness));
+    }
+
+    @Test
+    public void testHeuristicFreshnessLifetimeIsNonNegative() {
+        Date now = new Date();
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date elevenSecondsAgo = new Date(now.getTime() - 1 * 1000L);
+
+        Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(elevenSecondsAgo)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(oneSecondAgo))
+        };
+
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        Assert.assertTrue(impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, 10) >= 0);
+    }
+
+    @Test
     public void testResponseIsFreshIfFreshnessLifetimeExceedsCurrentAge() {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         final Date now = new Date();

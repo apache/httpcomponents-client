@@ -73,6 +73,39 @@ class CacheValidityPolicy {
         return (getCurrentAgeSecs(entry, now) < getFreshnessLifetimeSecs(entry));
     }
 
+    /**
+     * Decides if this response is fresh enough based Last-Modified and Date, if available.
+     * This entry is meant to be used when isResponseFresh returns false.  The algorithm is as follows:
+     *
+     * if last-modified and date are defined, freshness lifetime is coefficient*(date-lastModified),
+     * else freshness lifetime is defaultLifetime
+     *
+     * @param entry
+     * @param now
+     * @param coefficient
+     * @param defaultLifetime
+     * @return
+     */
+    public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
+            Date now, float coefficient, long defaultLifetime) {
+        return (getCurrentAgeSecs(entry, now) < getHeuristicFreshnessLifetimeSecs(entry, coefficient, defaultLifetime));
+    }
+
+    public long getHeuristicFreshnessLifetimeSecs(HttpCacheEntry entry,
+            float coefficient, long defaultLifetime) {
+        Date dateValue = getDateValue(entry);
+        Date lastModifiedValue = getLastModifiedValue(entry);
+
+        if (dateValue != null && lastModifiedValue != null) {
+            long diff = dateValue.getTime() - lastModifiedValue.getTime();
+            if (diff < 0)
+                return 0;
+            return (long)(coefficient * (diff / 1000));
+        }
+
+        return defaultLifetime;
+    }
+
     public boolean isRevalidatable(final HttpCacheEntry entry) {
         return entry.getFirstHeader(HeaderConstants.ETAG) != null
                 || entry.getFirstHeader(HeaderConstants.LAST_MODIFIED) != null;
@@ -88,6 +121,18 @@ class CacheValidityPolicy {
 
     protected Date getDateValue(final HttpCacheEntry entry) {
         Header dateHdr = entry.getFirstHeader(HTTP.DATE_HEADER);
+        if (dateHdr == null)
+            return null;
+        try {
+            return DateUtils.parseDate(dateHdr.getValue());
+        } catch (DateParseException dpe) {
+            // ignore malformed date
+        }
+        return null;
+    }
+
+    protected Date getLastModifiedValue(final HttpCacheEntry entry) {
+        Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (dateHdr == null)
             return null;
         try {

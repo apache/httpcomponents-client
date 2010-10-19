@@ -47,10 +47,25 @@ public class CacheConfig {
      */
     public final static int DEFAULT_MAX_UPDATE_RETRIES = 1;
 
+    /** Default setting for heuristic caching
+     */
+    public final static boolean DEFAULT_HEURISTIC_CACHING_ENABLED = false;
+
+    /** Default coefficient used to heuristically determine freshness lifetime from
+     * cache entry.
+     */
+    public final static float DEFAULT_HEURISTIC_COEFFICIENT = 0.1f;
+
+    /** Default lifetime to be assumed when we cannot calculate freshness heuristically
+     */
+    public final static long DEFAULT_HEURISTIC_LIFETIME = 0;
+
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
     private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-
+    private boolean heuristicCachingEnabled = false;
+    private float heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
+    private long heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
     private boolean isSharedCache = true;
 
     /**
@@ -118,4 +133,55 @@ public class CacheConfig {
     public void setMaxUpdateRetries(int maxUpdateRetries){
         this.maxUpdateRetries = maxUpdateRetries;
     }
+
+    /**
+     * Returns if heuristic freshness caching is in enabled
+     * @return
+     */
+    public boolean isHeuristicCachingEnabled() {
+        return heuristicCachingEnabled;
+    }
+
+    /**
+     * Set if heuristic freshness caching is enabled
+     * @param heursiticCachingEnabled
+     */
+    public void setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
+        this.heuristicCachingEnabled = heuristicCachingEnabled;
+    }
+
+    /**
+     * Returns coefficient used in heuristic freshness caching
+     * @return
+     */
+    public float getHeuristicCoefficient() {
+        return heuristicCoefficient;
+    }
+
+    /**
+     * Set coefficient to be used in heuristic freshness caching
+     * @param heuristicCoefficient
+     */
+    public void setHeuristicCoefficient(float heuristicCoefficient) {
+        this.heuristicCoefficient = heuristicCoefficient;
+    }
+
+    /**
+     * Get the default lifetime to be used if heuristic freshness calculation is
+     * not possible
+     * @return
+     */
+    public long getHeuristicDefaultLifetime() {
+        return heuristicDefaultLifetime;
+    }
+
+    /**
+     * Set default lifetime to be used if heuristic freshness calculation is not possible
+     * @param heuristicDefaultLifetime
+     */
+    public void setHeuristicDefaultLifetime(long heuristicDefaultLifetime) {
+        this.heuristicDefaultLifetime = heuristicDefaultLifetime;
+    }
+
+
 }
