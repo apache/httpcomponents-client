@@ -1931,6 +1931,59 @@ public class TestCachingHttpClient {
         Assert.assertSame(resp, result);
     }
 
+    @Test
+    public void testIfOnlyIfCachedAndNoCacheEntryBackendNotCalled() throws IOException {
+        impl = new CachingHttpClient(mockBackend);
+
+        request.addHeader("Cache-Control", "only-if-cached");
+
+        HttpResponse resp = impl.execute(host, request);
+
+        Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testIfOnlyIfCachedAndEntryNotSuitableBackendNotCalled() throws Exception {
+
+        request.setHeader("Cache-Control", "only-if-cached");
+
+        entry = HttpTestUtils.makeCacheEntry(new Header[]{new BasicHeader("Cache-Control", "must-revalidate")});
+
+        requestIsFatallyNonCompliant(null);
+        requestProtocolValidationIsCalled();
+        cacheInvalidatorWasCalled();
+        requestPolicyAllowsCaching(true);
+        getCacheEntryReturns(entry);
+        cacheEntrySuitable(false);
+
+        replayMocks();
+        HttpResponse resp = impl.execute(host, request);
+        verifyMocks();
+
+        Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testIfOnlyIfCachedAndEntryExistsAndIsSuitableReturnsEntry() throws Exception {
+
+        request.setHeader("Cache-Control", "only-if-cached");
+
+        requestIsFatallyNonCompliant(null);
+        requestProtocolValidationIsCalled();
+        cacheInvalidatorWasCalled();
+        requestPolicyAllowsCaching(true);
+        getCacheEntryReturns(entry);
+        cacheEntrySuitable(true);
+        responseIsGeneratedFromCache();
+        entryHasStaleness(0);
+
+        replayMocks();
+        HttpResponse resp = impl.execute(host, request);
+        verifyMocks();
+
+        Assert.assertSame(mockCachedResponse, resp);
+    }
+
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
