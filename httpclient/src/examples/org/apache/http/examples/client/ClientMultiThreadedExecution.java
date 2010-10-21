@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  *
  */
- 
+
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
@@ -41,24 +41,24 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * An example that performs GETs from multiple threads.
- * 
+ *
  */
 public class ClientMultiThreadedExecution {
 
     public static void main(String[] args) throws Exception {
-        // Create and initialize scheme registry 
+        // Create and initialize scheme registry
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         // Create an HttpClient with the ThreadSafeClientConnManager.
         // This connection manager must be used if more than one thread will
         // be using the HttpClient.
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
         cm.setMaxTotal(100);
-        
+
         HttpClient httpClient = new DefaultHttpClient(cm);
-        
+
         // create an array of URIs to perform GETs on
         String[] urisToGet = {
             "http://hc.apache.org/",
@@ -66,60 +66,60 @@ public class ClientMultiThreadedExecution {
             "http://hc.apache.org/httpcomponents-client/",
             "http://svn.apache.org/viewvc/httpcomponents/"
         };
-        
+
         // create a thread for each URI
         GetThread[] threads = new GetThread[urisToGet.length];
         for (int i = 0; i < threads.length; i++) {
             HttpGet httpget = new HttpGet(urisToGet[i]);
             threads[i] = new GetThread(httpClient, httpget, i + 1);
         }
-        
+
         // start the threads
         for (int j = 0; j < threads.length; j++) {
             threads[j].start();
         }
-        
+
         // join the threads
         for (int j = 0; j < threads.length; j++) {
             threads[j].join();
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpClient.getConnectionManager().shutdown();        
+        httpClient.getConnectionManager().shutdown();
     }
-    
+
     /**
      * A thread that performs a GET.
      */
     static class GetThread extends Thread {
-        
+
         private final HttpClient httpClient;
         private final HttpContext context;
         private final HttpGet httpget;
         private final int id;
-        
+
         public GetThread(HttpClient httpClient, HttpGet httpget, int id) {
             this.httpClient = httpClient;
             this.context = new BasicHttpContext();
             this.httpget = httpget;
             this.id = id;
         }
-        
+
         /**
          * Executes the GetMethod and prints some status information.
          */
         @Override
         public void run() {
-            
+
             System.out.println(id + " - about to get something from " + httpget.getURI());
 
             try {
-                
+
                 // execute the method
                 HttpResponse response = httpClient.execute(httpget, context);
-                
+
                 System.out.println(id + " - get executed");
                 // get the response body as an array of bytes
                 HttpEntity entity = response.getEntity();
@@ -127,13 +127,13 @@ public class ClientMultiThreadedExecution {
                     byte[] bytes = EntityUtils.toByteArray(entity);
                     System.out.println(id + " - " + bytes.length + " bytes read");
                 }
-                
+
             } catch (Exception e) {
                 httpget.abort();
                 System.out.println(id + " - error: " + e);
             }
         }
-       
+
     }
-    
+
 }

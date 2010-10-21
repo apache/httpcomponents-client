@@ -77,7 +77,7 @@ public class OperatorConnectDirect {
 
         HttpRequest req = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
         req.addHeader("Host", target.getHostName());
-        
+
         HttpContext ctx = new BasicHttpContext();
 
         OperatedClientConnection conn = scop.createConnection();

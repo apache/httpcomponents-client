@@ -81,12 +81,12 @@ public class ClientExecuteSOCKS {
             System.out.println(EntityUtils.toString(entity));
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
     static class MySchemeSocketFactory implements SchemeSocketFactory {
 
         public Socket createSocket(final HttpParams params) throws IOException {
@@ -96,16 +96,16 @@ public class ClientExecuteSOCKS {
             String proxyHost = (String) params.getParameter("socks.host");
             Integer proxyPort = (Integer) params.getParameter("socks.port");
 
-            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort); 
+            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort);
             Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
             return new Socket(proxy);
         }
 
         public Socket connectSocket(
-                final Socket socket, 
+                final Socket socket,
                 final InetSocketAddress remoteAddress,
-                final InetSocketAddress localAddress, 
-                final HttpParams params) 
+                final InetSocketAddress localAddress,
+                final HttpParams params)
                     throws IOException, UnknownHostException, ConnectTimeoutException {
             if (remoteAddress == null) {
                 throw new IllegalArgumentException("Remote address may not be null");
@@ -127,7 +127,7 @@ public class ClientExecuteSOCKS {
             try {
                 sock.connect(remoteAddress, timeout);
             } catch (SocketTimeoutException ex) {
-                throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/" 
+                throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
                         + remoteAddress.getAddress() + " timed out");
             }
             return sock;
@@ -136,7 +136,7 @@ public class ClientExecuteSOCKS {
         public boolean isSecure(final Socket sock) throws IllegalArgumentException {
             return false;
         }
-        
+
     }
 
 }

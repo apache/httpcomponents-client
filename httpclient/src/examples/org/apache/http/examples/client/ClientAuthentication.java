@@ -35,7 +35,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
- * a target site that requires user authentication. 
+ * a target site that requires user authentication.
  */
 public class ClientAuthentication {
 
@@ -43,11 +43,11 @@ public class ClientAuthentication {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope("localhost", 443), 
+                new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));
-        
+
         HttpGet httpget = new HttpGet("https://localhost/protected");
-        
+
         System.out.println("executing request" + httpget.getRequestLine());
         HttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
@@ -59,9 +59,9 @@ public class ClientAuthentication {
         }
         EntityUtils.consume(entity);
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 }

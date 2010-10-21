@@ -69,10 +69,10 @@ public class ClientExecuteProxy {
             System.out.println(EntityUtils.toString(entity));
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 
 }

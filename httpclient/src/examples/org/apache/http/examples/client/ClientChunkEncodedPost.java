@@ -21,7 +21,7 @@
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
- * 
+ *
  */
 
 package org.apache.http.examples.client;
@@ -58,14 +58,14 @@ public class ClientChunkEncodedPost {
                 new FileInputStream(file), -1);
         reqEntity.setContentType("binary/octet-stream");
         reqEntity.setChunked(true);
-        // It may be more appropriate to use FileEntity class in this particular 
+        // It may be more appropriate to use FileEntity class in this particular
         // instance but we are using a more generic InputStreamEntity to demonstrate
         // the capability to stream out data from any arbitrary source
-        // 
-        // FileEntity entity = new FileEntity(file, "binary/octet-stream"); 
-        
+        //
+        // FileEntity entity = new FileEntity(file, "binary/octet-stream");
+
         httppost.setEntity(reqEntity);
-        
+
         System.out.println("executing request " + httppost.getRequestLine());
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity resEntity = response.getEntity();
@@ -78,10 +78,10 @@ public class ClientChunkEncodedPost {
         }
         EntityUtils.consume(resEntity);
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
 }

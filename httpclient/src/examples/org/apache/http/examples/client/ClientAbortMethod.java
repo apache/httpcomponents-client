@@ -41,7 +41,7 @@ public class ClientAbortMethod {
     public final static void main(String[] args) throws Exception {
         HttpClient httpclient = new DefaultHttpClient();
 
-        HttpGet httpget = new HttpGet("http://www.apache.org/"); 
+        HttpGet httpget = new HttpGet("http://www.apache.org/");
 
         System.out.println("executing request " + httpget.getURI());
         HttpResponse response = httpclient.execute(httpget);
@@ -57,11 +57,11 @@ public class ClientAbortMethod {
         // Do not feel like reading the response body
         // Call abort on the request object
         httpget.abort();
-        
-        // When HttpClient instance is no longer needed, 
+
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 
 }

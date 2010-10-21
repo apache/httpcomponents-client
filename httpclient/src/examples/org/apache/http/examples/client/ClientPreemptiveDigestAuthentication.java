@@ -40,7 +40,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
- * An example of HttpClient can be customized to authenticate 
+ * An example of HttpClient can be customized to authenticate
  * preemptively using DIGEST scheme.
  * <b/>
  * Generally, preemptive authentication can be considered less
@@ -51,34 +51,34 @@ public class ClientPreemptiveDigestAuthentication {
 
     public static void main(String[] args) throws Exception {
 
-        HttpHost targetHost = new HttpHost("localhost", 80, "http"); 
+        HttpHost targetHost = new HttpHost("localhost", 80, "http");
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope(targetHost.getHostName(), targetHost.getPort()), 
+                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
                 new UsernamePasswordCredentials("username", "password"));
 
         // Create AuthCache instance
         AuthCache authCache = new BasicAuthCache();
-        // Generate DIGEST scheme object, initialize it and add it to the local 
+        // Generate DIGEST scheme object, initialize it and add it to the local
         // auth cache
         DigestScheme digestAuth = new DigestScheme();
         // Suppose we already know the realm name
-        digestAuth.overrideParamter("realm", "some realm");        
-        // Suppose we already know the expected nonce value 
-        digestAuth.overrideParamter("nonce", "whatever");        
+        digestAuth.overrideParamter("realm", "some realm");
+        // Suppose we already know the expected nonce value
+        digestAuth.overrideParamter("nonce", "whatever");
         authCache.put(targetHost, digestAuth);
-        
+
         // Add AuthCache to the execution context
         BasicHttpContext localcontext = new BasicHttpContext();
-        localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
-        
+        localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
         HttpGet httpget = new HttpGet("/");
 
         System.out.println("executing request: " + httpget.getRequestLine());
         System.out.println("to target: " + targetHost);
-        
+
         for (int i = 0; i < 3; i++) {
             HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
             HttpEntity entity = response.getEntity();
@@ -90,11 +90,11 @@ public class ClientPreemptiveDigestAuthentication {
             }
             EntityUtils.consume(entity);
         }
-        
-        // When HttpClient instance is no longer needed, 
+
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
 }

@@ -85,7 +85,7 @@ public class ManagerConnectDirect {
 
         HttpRequest req = new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1);
         req.addHeader("Host", target.getHostName());
-        
+
         HttpContext ctx = new BasicHttpContext();
 
         System.out.println("preparing route to " + target);

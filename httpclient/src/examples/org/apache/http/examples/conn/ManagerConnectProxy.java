@@ -105,7 +105,7 @@ public class ManagerConnectProxy {
             String authority = target.getHostName() + ":" + target.getPort();
             HttpRequest connect = new BasicHttpRequest("CONNECT", authority, HttpVersion.HTTP_1_1);
             connect.addHeader("Host", authority);
-                
+
             System.out.println("opening tunnel to " + target);
             conn.sendRequestHeader(connect);
             // there is no request entity
