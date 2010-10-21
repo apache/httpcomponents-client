@@ -31,6 +31,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
@@ -56,9 +57,7 @@ public class ClientAuthentication {
         if (entity != null) {
             System.out.println("Response content length: " + entity.getContentLength());
         }
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
 
         // When HttpClient instance is no longer needed, 
         // shut down the connection manager to ensure

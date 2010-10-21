@@ -55,7 +55,7 @@ public class ClientMultiThreadedExecution {
         // This connection manager must be used if more than one thread will
         // be using the HttpClient.
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
-        cm.setMaxTotalConnections(100);
+        cm.setMaxTotal(100);
         
         HttpClient httpClient = new DefaultHttpClient(cm);
         

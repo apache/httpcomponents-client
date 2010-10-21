@@ -40,6 +40,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
@@ -65,9 +66,7 @@ public class ClientInteractiveAuthentication {
 
             // Consume response content
             HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                entity.consumeContent();
-            }
+            EntityUtils.consume(entity);
             
             int sc = response.getStatusLine().getStatusCode();
             

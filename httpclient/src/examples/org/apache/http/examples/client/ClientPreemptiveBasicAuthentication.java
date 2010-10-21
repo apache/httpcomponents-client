@@ -37,6 +37,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
  * An example of HttpClient can be customized to authenticate 
@@ -82,8 +83,8 @@ public class ClientPreemptiveBasicAuthentication {
             System.out.println(response.getStatusLine());
             if (entity != null) {
                 System.out.println("Response content length: " + entity.getContentLength());
-                entity.consumeContent();
             }
+            EntityUtils.consume(entity);
         }
         
         // When HttpClient instance is no longer needed, 

@@ -162,9 +162,7 @@ public class ClientKerberosAuthentication {
         System.out.println("----------------------------------------");
         
         // This ensures the connection gets released back to the manager
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
 
         // When HttpClient instance is no longer needed, 
         // shut down the connection manager to ensure

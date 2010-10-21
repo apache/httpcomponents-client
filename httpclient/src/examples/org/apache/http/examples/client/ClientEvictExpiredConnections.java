@@ -38,6 +38,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Example demonstrating how to evict expired and idle connections
@@ -52,7 +53,7 @@ public class ClientEvictExpiredConnections {
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
-        cm.setMaxTotalConnections(100);
+        cm.setMaxTotal(100);
         
         HttpClient httpclient = new DefaultHttpClient(cm);
         
@@ -83,9 +84,7 @@ public class ClientEvictExpiredConnections {
             }
             System.out.println("----------------------------------------");
 
-            if (entity != null) {
-                entity.consumeContent();
-            }
+            EntityUtils.consume(entity);
         }
         
         // Sleep 10 sec and let the connection evictor do its job

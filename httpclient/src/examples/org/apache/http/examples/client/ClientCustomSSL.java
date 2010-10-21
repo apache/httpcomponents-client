@@ -36,6 +36,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates how to create secure connections with a custom SSL
@@ -70,9 +71,7 @@ public class ClientCustomSSL {
         if (entity != null) {
             System.out.println("Response content length: " + entity.getContentLength());
         }
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
 
         // When HttpClient instance is no longer needed, 
         // shut down the connection manager to ensure

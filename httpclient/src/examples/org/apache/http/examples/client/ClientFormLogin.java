@@ -38,6 +38,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 /**
  * A example that demonstrates how HttpClient APIs can be used to perform
@@ -55,9 +56,8 @@ public class ClientFormLogin {
         HttpEntity entity = response.getEntity();
 
         System.out.println("Login form get: " + response.getStatusLine());
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
+
         System.out.println("Initial set of cookies:");
         List<Cookie> cookies = httpclient.getCookieStore().getCookies();
         if (cookies.isEmpty()) {
@@ -83,9 +83,7 @@ public class ClientFormLogin {
         entity = response.getEntity();
 
         System.out.println("Login form get: " + response.getStatusLine());
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
 
         System.out.println("Post logon cookies:");
         cookies = httpclient.getCookieStore().getCookies();

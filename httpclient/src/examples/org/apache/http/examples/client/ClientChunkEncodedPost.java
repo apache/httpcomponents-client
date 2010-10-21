@@ -35,6 +35,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Example how to use unbuffered chunk-encoded POST request.
@@ -75,9 +76,7 @@ public class ClientChunkEncodedPost {
             System.out.println("Response content length: " + resEntity.getContentLength());
             System.out.println("Chunked?: " + resEntity.isChunked());
         }
-        if (resEntity != null) {
-            resEntity.consumeContent();
-        }
+        EntityUtils.consume(resEntity);
 
         // When HttpClient instance is no longer needed, 
         // shut down the connection manager to ensure
