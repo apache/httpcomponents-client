@@ -407,6 +407,11 @@ public class CachingHttpClient implements HttpClient {
                 log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
             }
 
+            if (!mayCallBackend(request)) {
+                return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
+                        "Gateway Timeout");
+            }
+
             Set<HttpCacheEntry> variantEntries = null;
             try {
                 responseCache.getVariantCacheEntries(target, request);
@@ -447,6 +452,11 @@ public class CachingHttpClient implements HttpClient {
             return cachedResponse;
         }
 
+        if (!mayCallBackend(request)) {
+            return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
+                    "Gateway Timeout");
+        }
+
         if (validityPolicy.isRevalidatable(entry)) {
             log.debug("Revalidating the cache entry");
 
@@ -470,6 +480,17 @@ public class CachingHttpClient implements HttpClient {
             }
         }
         return callBackend(target, request, context);
+    }
+
+    private boolean mayCallBackend(HttpRequest request) {
+        for (Header h: request.getHeaders("Cache-Control")) {
+            for (HeaderElement elt : h.getElements()) {
+                if ("only-if-cached".equals(elt.getName())) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private boolean explicitFreshnessRequest(HttpRequest request, HttpCacheEntry entry, Date now) {

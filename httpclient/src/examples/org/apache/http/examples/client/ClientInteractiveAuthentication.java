@@ -40,10 +40,11 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
- * a target site that requires user authentication. 
+ * a target site that requires user authentication.
  */
 public class ClientInteractiveAuthentication {
 
@@ -54,7 +55,7 @@ public class ClientInteractiveAuthentication {
         HttpContext localContext = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("http://localhost/test");
-        
+
         boolean trying = true;
         while (trying) {
             System.out.println("executing request " + httpget.getRequestLine());
@@ -65,37 +66,35 @@ public class ClientInteractiveAuthentication {
 
             // Consume response content
             HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                entity.consumeContent();
-            }
-            
+            EntityUtils.consume(entity);
+
             int sc = response.getStatusLine().getStatusCode();
-            
+
             AuthState authState = null;
             if (sc == HttpStatus.SC_UNAUTHORIZED) {
                 // Target host authentication required
                 authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
-            } 
+            }
             if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
                 // Proxy authentication required
                 authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
             }
-            
+
             if (authState != null) {
                 System.out.println("----------------------------------------");
                 AuthScope authScope = authState.getAuthScope();
                 System.out.println("Please provide credentials");
                 System.out.println(" Host: " + authScope.getHost() + ":" + authScope.getPort());
                 System.out.println(" Realm: " + authScope.getRealm());
-                
-                
+
+
                 BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-                
+
                 System.out.print("Enter username: ");
-                String user = console.readLine();   
+                String user = console.readLine();
                 System.out.print("Enter password: ");
                 String password = console.readLine();
-                
+
                 if (user != null && user.length() > 0) {
                     Credentials creds = new UsernamePasswordCredentials(user, password);
                     httpclient.getCredentialsProvider().setCredentials(authScope, creds);
@@ -108,9 +107,9 @@ public class ClientInteractiveAuthentication {
             }
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 }

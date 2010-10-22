@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  *
  */
- 
+
 package org.apache.http.examples.client;
 
 import java.util.concurrent.TimeUnit;
@@ -38,6 +38,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Example demonstrating how to evict expired and idle connections
@@ -46,16 +47,16 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 public class ClientEvictExpiredConnections {
 
     public static void main(String[] args) throws Exception {
-        // Create and initialize scheme registry 
+        // Create and initialize scheme registry
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        
+
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
-        cm.setMaxTotalConnections(100);
-        
+        cm.setMaxTotal(100);
+
         HttpClient httpclient = new DefaultHttpClient(cm);
-        
+
         // create an array of URIs to perform GETs on
         String[] urisToGet = {
             "http://jakarta.apache.org/",
@@ -63,10 +64,10 @@ public class ClientEvictExpiredConnections {
             "http://jakarta.apache.org/commons/httpclient/",
             "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
         };
-        
+
         IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
         connEvictor.start();
-        
+
         for (int i = 0; i < urisToGet.length; i++) {
             String requestURI = urisToGet[i];
             HttpGet req = new HttpGet(requestURI);
@@ -83,30 +84,28 @@ public class ClientEvictExpiredConnections {
             }
             System.out.println("----------------------------------------");
 
-            if (entity != null) {
-                entity.consumeContent();
-            }
+            EntityUtils.consume(entity);
         }
-        
+
         // Sleep 10 sec and let the connection evictor do its job
         Thread.sleep(20000);
-        
+
         // Shut down the evictor thread
         connEvictor.shutdown();
         connEvictor.join();
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
     public static class IdleConnectionEvictor extends Thread {
-        
+
         private final ClientConnectionManager connMgr;
-        
+
         private volatile boolean shutdown;
-        
+
         public IdleConnectionEvictor(ClientConnectionManager connMgr) {
             super();
             this.connMgr = connMgr;
@@ -129,14 +128,14 @@ public class ClientEvictExpiredConnections {
                 // terminate
             }
         }
-        
+
         public void shutdown() {
             shutdown = true;
             synchronized (this) {
                 notifyAll();
             }
         }
-        
+
     }
-    
+
 }

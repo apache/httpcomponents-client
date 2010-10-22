@@ -52,6 +52,9 @@ class CachedResponseSuitabilityChecker {
     private final Log log = LogFactory.getLog(getClass());
 
     private final boolean sharedCache;
+    private final boolean useHeuristicCaching;
+    private final float heuristicCoefficient;
+    private final long heuristicDefaultLifetime;
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
@@ -59,6 +62,9 @@ class CachedResponseSuitabilityChecker {
         super();
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
+        this.useHeuristicCaching = config.isHeuristicCachingEnabled();
+        this.heuristicCoefficient = config.getHeuristicCoefficient();
+        this.heuristicDefaultLifetime = config.getHeuristicDefaultLifetime();
     }
 
     CachedResponseSuitabilityChecker(CacheConfig config) {
@@ -67,6 +73,9 @@ class CachedResponseSuitabilityChecker {
 
     private boolean isFreshEnough(HttpCacheEntry entry, HttpRequest request, Date now) {
         if (validityStrategy.isResponseFresh(entry, now)) return true;
+        if (useHeuristicCaching &&
+                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime))
+            return true;
         if (originInsistsOnFreshness(entry)) return false;
         long maxstale = getMaxStale(request);
         if (maxstale == -1) return false;

@@ -38,7 +38,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * How to send a request directly using {@link HttpClient}.
- * 
+ *
  * @since 4.0
  */
 public class ClientExecuteDirect {
@@ -66,10 +66,10 @@ public class ClientExecuteDirect {
             System.out.println(EntityUtils.toString(entity));
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 
 }

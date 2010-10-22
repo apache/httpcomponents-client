@@ -40,27 +40,28 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
 
 
 /**
- * This example demonstrates the use of a local HTTP context populated with 
+ * This example demonstrates the use of a local HTTP context populated with
  * custom attributes.
  */
 public class ClientCustomContext {
 
     public final static void main(String[] args) throws Exception {
-        
+
         HttpClient httpclient = new DefaultHttpClient();
 
         // Create a local instance of cookie store
         CookieStore cookieStore = new BasicCookieStore();
-        
+
         // Create local HTTP context
         HttpContext localContext = new BasicHttpContext();
         // Bind custom cookie store to the local context
         localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-        
-        HttpGet httpget = new HttpGet("http://www.google.com/"); 
+
+        HttpGet httpget = new HttpGet("http://www.google.com/");
 
         System.out.println("executing request " + httpget.getURI());
 
@@ -77,19 +78,17 @@ public class ClientCustomContext {
         for (int i = 0; i < cookies.size(); i++) {
             System.out.println("Local cookie: " + cookies.get(i));
         }
-        
+
         // Consume response content
-        if (entity != null) {
-            entity.consumeContent();
-        }
-        
+        EntityUtils.consume(entity);
+
         System.out.println("----------------------------------------");
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
 }
 

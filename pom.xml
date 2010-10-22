@@ -87,6 +87,19 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-notice-plugin</artifactId>
+        <groupId>org.apache.httpcomponents</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>attach-notice-license</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-source-plugin</artifactId>
         <executions>
           <execution>

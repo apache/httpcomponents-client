@@ -223,4 +223,41 @@ public class TestCachedResponseSuitabilityChecker {
         Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
 
+    @Test
+    public void testSuitableIfCacheEntryIsHeuristicallyFreshEnough() {
+        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        Date twentyOneSecondsAgo = new Date(now.getTime() - 21 * 1000L);
+
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(oneSecondAgo)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(twentyOneSecondsAgo)),
+                new BasicHeader("Content-Length", "128")
+        };
+
+        entry = HttpTestUtils.makeCacheEntry(oneSecondAgo, oneSecondAgo, headers);
+
+        CacheConfig config = new CacheConfig();
+        config.setHeuristicCachingEnabled(true);
+        config.setHeuristicCoefficient(0.1f);
+        impl = new CachedResponseSuitabilityChecker(config);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
+    @Test
+    public void testSuitableIfCacheEntryIsHeuristicallyFreshEnoughByDefault() {
+        Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Content-Length", "128")
+        };
+
+        entry = getEntry(headers);
+
+        CacheConfig config = new CacheConfig();
+        config.setHeuristicCachingEnabled(true);
+        config.setHeuristicDefaultLifetime(20);
+        impl = new CachedResponseSuitabilityChecker(config);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
 }

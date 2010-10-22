@@ -37,9 +37,10 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
- * An example of HttpClient can be customized to authenticate 
+ * An example of HttpClient can be customized to authenticate
  * preemptively using BASIC scheme.
  * <b/>
  * Generally, preemptive authentication can be considered less
@@ -50,30 +51,30 @@ public class ClientPreemptiveBasicAuthentication {
 
     public static void main(String[] args) throws Exception {
 
-        HttpHost targetHost = new HttpHost("localhost", 80, "http"); 
-        
+        HttpHost targetHost = new HttpHost("localhost", 80, "http");
+
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope(targetHost.getHostName(), targetHost.getPort()), 
+                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
                 new UsernamePasswordCredentials("username", "password"));
 
         // Create AuthCache instance
         AuthCache authCache = new BasicAuthCache();
-        // Generate BASIC scheme object and add it to the local 
+        // Generate BASIC scheme object and add it to the local
         // auth cache
         BasicScheme basicAuth = new BasicScheme();
         authCache.put(targetHost, basicAuth);
-        
+
         // Add AuthCache to the execution context
         BasicHttpContext localcontext = new BasicHttpContext();
-        localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
-        
+        localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
         HttpGet httpget = new HttpGet("/");
 
         System.out.println("executing request: " + httpget.getRequestLine());
         System.out.println("to target: " + targetHost);
-        
+
         for (int i = 0; i < 3; i++) {
             HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
             HttpEntity entity = response.getEntity();
@@ -82,14 +83,14 @@ public class ClientPreemptiveBasicAuthentication {
             System.out.println(response.getStatusLine());
             if (entity != null) {
                 System.out.println("Response content length: " + entity.getContentLength());
-                entity.consumeContent();
             }
+            EntityUtils.consume(entity);
         }
-        
-        // When HttpClient instance is no longer needed, 
+
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
 }

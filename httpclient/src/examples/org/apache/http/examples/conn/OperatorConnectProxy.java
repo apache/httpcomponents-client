@@ -67,9 +67,9 @@ public class OperatorConnectProxy {
         // Register the "http" and "https" protocol schemes, they are
         // required by the default operator to look up socket factories.
         SchemeRegistry supportedSchemes = new SchemeRegistry();
-        supportedSchemes.register(new Scheme("http", 
+        supportedSchemes.register(new Scheme("http",
                 80, PlainSocketFactory.getSocketFactory()));
-        supportedSchemes.register(new Scheme("https", 
+        supportedSchemes.register(new Scheme("https",
                 443, SSLSocketFactory.getSocketFactory()));
 
         // Prepare parameters.
@@ -86,7 +86,7 @@ public class OperatorConnectProxy {
         // In a real application, request interceptors should be used
         // to add the required headers.
         req.addHeader("Host", target.getHostName());
-        
+
         HttpContext ctx = new BasicHttpContext();
 
         OperatedClientConnection conn = scop.createConnection();
@@ -97,7 +97,7 @@ public class OperatorConnectProxy {
             // Creates a request to tunnel a connection.
             // For details see RFC 2817, section 5.2
             String authority = target.getHostName() + ":" + target.getPort();
-            HttpRequest connect = new BasicHttpRequest("CONNECT", authority, 
+            HttpRequest connect = new BasicHttpRequest("CONNECT", authority,
                     HttpVersion.HTTP_1_1);
             // In a real application, request interceptors should be used
             // to add the required headers.

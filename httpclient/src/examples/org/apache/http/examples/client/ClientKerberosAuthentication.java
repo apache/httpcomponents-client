@@ -40,9 +40,9 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * Kerberos auth example.
- * 
+ *
  * <p><b>Information</b></p>
- * <p>For the best compatibility use Java >= 1.6 as it supports SPNEGO authentication more 
+ * <p>For the best compatibility use Java >= 1.6 as it supports SPNEGO authentication more
       completely.</p>
  * <p><em>NegotiateSchemeFactory</em> kas two custom methods</p>
  * <p><em>#setStripPort(boolean)</em> - default is false, with strip the port off the Kerberos
@@ -92,7 +92,7 @@ import org.apache.http.util.EntityUtils;
  * </pre>
  * <p><b>Windows specific configuration</b></p>
  * <p>
- * The registry key <em>allowtgtsessionkey</em> should be added, and set correctly, to allow 
+ * The registry key <em>allowtgtsessionkey</em> should be added, and set correctly, to allow
  * session keys to be sent in the Kerberos Ticket-Granting Ticket.
  * </p>
  * <p>
@@ -102,7 +102,7 @@ import org.apache.http.util.EntityUtils;
  * HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\Parameters
  *   Value Name: allowtgtsessionkey
  *   Value Type: REG_DWORD
- *   Value: 0x01 
+ *   Value: 0x01
  * </pre>
  * <p>
  * Here is the location of the registry setting on Windows XP SP2:
@@ -113,7 +113,7 @@ import org.apache.http.util.EntityUtils;
  *   Value Type: REG_DWORD
  *   Value: 0x01
  * </pre>
- * 
+ *
  * @since 4.1
  */
 public class ClientKerberosAuthentication {
@@ -124,13 +124,13 @@ public class ClientKerberosAuthentication {
         System.setProperty("java.security.krb5.conf", "krb5.conf");
         System.setProperty("sun.security.krb5.debug", "true");
         System.setProperty("javax.security.auth.useSubjectCredsOnly","false");
-        
+
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
 //        nsf.setStripPort(false);
 //        nsf.setSpengoGenerator(new BouncySpnegoTokenGenerator());
-        
+
         httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new Credentials() {
@@ -142,7 +142,7 @@ public class ClientKerberosAuthentication {
             public Principal getUserPrincipal() {
                 return null;
             }
-            
+
         };
 
         httpclient.getCredentialsProvider().setCredentials(
@@ -160,16 +160,14 @@ public class ClientKerberosAuthentication {
             System.out.println(EntityUtils.toString(entity));
         }
         System.out.println("----------------------------------------");
-        
-        // This ensures the connection gets released back to the manager
-        if (entity != null) {
-            entity.consumeContent();
-        }
 
-        // When HttpClient instance is no longer needed, 
+        // This ensures the connection gets released back to the manager
+        EntityUtils.consume(entity);
+
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 
 }

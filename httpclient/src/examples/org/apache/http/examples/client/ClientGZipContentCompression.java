@@ -46,15 +46,15 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Demonstration of the use of protocol interceptors to transparently 
+ * Demonstration of the use of protocol interceptors to transparently
  * modify properties of HTTP messages sent / received by the HTTP client.
  * <p/>
- * In this particular case HTTP client is made capable of transparent content 
+ * In this particular case HTTP client is made capable of transparent content
  * GZIP compression by adding two protocol interceptors: a request interceptor
  * that adds 'Accept-Encoding: gzip' header to all outgoing requests and
  * a response interceptor that automatically expands compressed response
  * entities by wrapping them with a uncompressing decorator class. The use of
- * protocol interceptors makes content compression completely transparent to 
+ * protocol interceptors makes content compression completely transparent to
  * the consumer of the {@link org.apache.http.client.HttpClient HttpClient}
  * interface.
  */
@@ -64,9 +64,9 @@ public class ClientGZipContentCompression {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
-           
+
             public void process(
-                    final HttpRequest request, 
+                    final HttpRequest request,
                     final HttpContext context) throws HttpException, IOException {
                 if (!request.containsHeader("Accept-Encoding")) {
                     request.addHeader("Accept-Encoding", "gzip");
@@ -74,11 +74,11 @@ public class ClientGZipContentCompression {
             }
 
         });
-        
+
         httpclient.addResponseInterceptor(new HttpResponseInterceptor() {
-           
+
             public void process(
-                    final HttpResponse response, 
+                    final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 HttpEntity entity = response.getEntity();
                 Header ceheader = entity.getContentEncoding();
@@ -87,17 +87,17 @@ public class ClientGZipContentCompression {
                     for (int i = 0; i < codecs.length; i++) {
                         if (codecs[i].getName().equalsIgnoreCase("gzip")) {
                             response.setEntity(
-                                    new GzipDecompressingEntity(response.getEntity())); 
+                                    new GzipDecompressingEntity(response.getEntity()));
                             return;
                         }
                     }
                 }
             }
-            
+
         });
-        
-        HttpGet httpget = new HttpGet("http://www.apache.org/"); 
-        
+
+        HttpGet httpget = new HttpGet("http://www.apache.org/");
+
         // Execute HTTP request
         System.out.println("executing request " + httpget.getURI());
         HttpResponse response = httpclient.execute(httpget);
@@ -109,7 +109,7 @@ public class ClientGZipContentCompression {
         System.out.println("----------------------------------------");
 
         HttpEntity entity = response.getEntity();
-        
+
         if (entity != null) {
             String content = EntityUtils.toString(entity);
             System.out.println(content);
@@ -117,10 +117,10 @@ public class ClientGZipContentCompression {
             System.out.println("Uncompressed size: "+content.length());
         }
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 
     static class GzipDecompressingEntity extends HttpEntityWrapper {
@@ -128,7 +128,7 @@ public class ClientGZipContentCompression {
         public GzipDecompressingEntity(final HttpEntity entity) {
             super(entity);
         }
-    
+
         @Override
         public InputStream getContent()
             throws IOException, IllegalStateException {
@@ -145,7 +145,7 @@ public class ClientGZipContentCompression {
             return -1;
         }
 
-    } 
-    
+    }
+
 }
 

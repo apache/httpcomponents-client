@@ -34,16 +34,16 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * This example demonstrates the use of the {@link ResponseHandler} to simplify 
+ * This example demonstrates the use of the {@link ResponseHandler} to simplify
  * the process of processing the HTTP response and releasing associated resources.
  */
 public class ClientWithResponseHandler {
 
     public final static void main(String[] args) throws Exception {
-        
+
         HttpClient httpclient = new DefaultHttpClient();
 
-        HttpGet httpget = new HttpGet("http://www.google.com/"); 
+        HttpGet httpget = new HttpGet("http://www.google.com/");
 
         System.out.println("executing request " + httpget.getURI());
 
@@ -54,11 +54,11 @@ public class ClientWithResponseHandler {
         System.out.println(responseBody);
         System.out.println("----------------------------------------");
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
-    
+
 }
 

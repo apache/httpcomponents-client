@@ -31,10 +31,11 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
- * a target site that requires user authentication. 
+ * a target site that requires user authentication.
  */
 public class ClientAuthentication {
 
@@ -42,11 +43,11 @@ public class ClientAuthentication {
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope("localhost", 443), 
+                new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));
-        
+
         HttpGet httpget = new HttpGet("https://localhost/protected");
-        
+
         System.out.println("executing request" + httpget.getRequestLine());
         HttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
@@ -56,13 +57,11 @@ public class ClientAuthentication {
         if (entity != null) {
             System.out.println("Response content length: " + entity.getContentLength());
         }
-        if (entity != null) {
-            entity.consumeContent();
-        }
+        EntityUtils.consume(entity);
 
-        // When HttpClient instance is no longer needed, 
+        // When HttpClient instance is no longer needed,
         // shut down the connection manager to ensure
         // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();        
+        httpclient.getConnectionManager().shutdown();
     }
 }
