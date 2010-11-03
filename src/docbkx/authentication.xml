@@ -24,9 +24,8 @@
 <chapter id="authentication">
     <title>HTTP authentication</title>
     <para>HttpClient provides full support for authentication schemes defined by the HTTP standard
-        specification. HttpClient's authentication framework can also be extended to support
-        non-standard authentication schemes such as <literal>NTLM</literal> and
-            <literal>SPNEGO</literal>.</para>
+        specification as well as a number of widely used non-standard authentication schemes such 
+        as <literal>NTLM</literal> and <literal>SPNEGO</literal>.</para>
     <section>
         <title>User credentials</title>
         <para>Any process of user authentication requires a set of credentials that can be used to
@@ -109,9 +108,7 @@ pwd
                     <title>NTLM:</title>
                     <para>NTLM is a proprietary authentication scheme developed by Microsoft and
                         optimized for Windows platforms. NTLM is believed to be more secure than
-                        Digest. This scheme is requires an external NTLM engine to be functional. 
-                        For details please refer to the <literal>NTLM_SUPPORT.txt</literal> document 
-                        included with HttpClient distributions.</para>
+                        Digest.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -194,23 +191,28 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
             <listitem>
                 <formalpara>
                     <title>Basic:</title>
-                    <para>Basic authentication scheme</para>
+                    <para>Basic authentication</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
                     <title>Digest:</title>
-                    <para>Digest authentication scheme</para>
+                    <para>Digest authentication</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>NTLM:</title>
+                    <para>NTLMv1, NTLMv2, and NTLM2 Session authentication</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>SPNEGO:</title>
+                    <para>SPNEGO/Kerberos authentication</para>
                 </formalpara>
             </listitem>
         </itemizedlist>
-        <para>Please note <literal>NTLM</literal> and <literal>SPNEGO</literal> schemes are
-                <emphasis>NOT</emphasis> registered per default. The <literal>NTLM</literal> cannot
-            be enabled per default due to licensing and legal reasons. For details on how to 
-            enable <literal>NTLM</literal> support please see <link linkend="ntlm">this</link>
-            section. <literal>SPNEGO</literal> setup tends to be system specific and must be 
-            properly configured in order to be functional. See <link linkend="spnego">this </link> 
-            section for details. </para>
     </section>
     <section>
         <title>Credentials provider</title>
@@ -376,23 +378,18 @@ HttpGet httpget = new HttpGet("/");
 for (int i = 0; i < 3; i++) {
     HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
     HttpEntity entity = response.getEntity();
-    if (entity != null) {
-        entity.consumeContent();
-    }
+    EntityUtils.consume(entity);
 }
 ]]></programlisting>
     </section>
 
     <section id="ntlm">
         <title>NTLM Authentication</title>
-        <para>Currently HttpClient does not provide support for the NTLM authentication scheme out
-            of the box and probably never will. The reasons for that are legal rather than 
-            technical. However, NTLM authentication can be enabled by using an external 
+        <para>As of version 4.1 HttpClient provides full support for NTLMv1, NTLMv2, and NTLM2 
+            Session authentication out of the box. One can still continue using an external 
             <literal>NTLM</literal> engine such as <ulink url="http://jcifs.samba.org/">JCIFS
             </ulink> library developed by the <ulink url="http://www.samba.org/">Samba</ulink>
-            project as a part of their Windows interoperability suite of programs. For details 
-            please refer to the <literal>NTLM_SUPPORT.txt</literal> document included with 
-            HttpClient distributions.
+            project as a part of their Windows interoperability suite of programs.
         </para>
         <section>
             <title>NTLM connection persistence</title>
@@ -432,18 +429,14 @@ HttpContext localContext = new BasicHttpContext();
 HttpGet httpget = new HttpGet("/ntlm-protected/info");
 HttpResponse response1 = httpclient.execute(target, httpget, localContext);
 HttpEntity entity1 = response1.getEntity();
-if (entity1 != null) {
-    entity1.consumeContent();
-}
+EntityUtils.consume(entity1);
 
 // Execute an expensive method next reusing the same context (and connection)
 HttpPost httppost = new HttpPost("/ntlm-protected/form");
 httppost.setEntity(new StringEntity("lots and lots of data"));
 HttpResponse response2 = httpclient.execute(target, httppost, localContext);
 HttpEntity entity2 = response2.getEntity();
-if (entity2 != null) {
-    entity2.consumeContent();
-}
+EntityUtils.consume(entity2);
 ]]></programlisting>
         </section>
     </section>
@@ -590,11 +583,8 @@ Value: 0x01
             </programlisting>
         </section>
         <section>
-            <title>Activating and customizing <literal>SPNEGO</literal> authentication
-                scheme</title>
-            <para>Please note <literal>SPNEGO</literal> authentication scheme is NOT active per
-                default! </para>
-            <para>In order to activate <literal>SPNEGO</literal> support an instance of
+            <title>Customizing <literal>SPNEGO</literal> authentication scheme</title>
+            <para>In order to customize <literal>SPNEGO</literal> support a new instance of
                     <classname>NegotiateSchemeFactory</classname> class must be created and
                 registered with the authentication scheme registry of HttpClient. </para>
             <programlisting><![CDATA[

@@ -595,9 +595,7 @@ HttpGet httpget = new HttpGet("http://www.google.com/");
 HttpResponse response = httpclient.execute(httpget);
 HttpEntity entity = response.getEntity();
 System.out.println(response.getStatusLine());
-if (entity != null) {
-    entity.consumeContent();
-}
+EntityUtils.consume(entity);
 httpclient.getConnectionManager().shutdown();
 ]]></programlisting>
         </section>
@@ -668,10 +666,9 @@ static class GetThread extends Thread {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 // do something useful with the entity
-                // ...
-                // ensure the connection gets released to the manager
-                entity.consumeContent();
             }
+            // ensure the connection gets released to the manager
+            EntityUtils.consume(entity);
         } catch (Exception ex) {
             this.httpget.abort();
         }

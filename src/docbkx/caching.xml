@@ -114,16 +114,6 @@
   </section>
 
   <section>
-    <title>Cache Implementation</title>
-
-    <para>The provided implementation for an HttpCache&lt;T&gt; is called
-    BasicHttpCache. It uses an in-memory LinkedHashMap to provide basic
-    least-recently-used (LRU) functionality. Because we provide the
-    HttpCache&lt;T&gt; interface, other implementations of caching may be
-    used, e.g. EHCache, memcached, etc.</para>
-  </section>
-
-  <section>
     <title>Example Usage</title>
 
     <para>This is a simple example of how to set up a basic CachingHttpClient.
@@ -132,13 +122,37 @@
     here are for example only and not intended to be prescriptive or
     considered as recommendations.</para>
 
-    <programlisting>
-HttpClient client = new DefaultHttpClient();
-int maxCacheEntries = 1000;
-int maxCacheEntrySizeBytes = 8192;
-HttpCache&lt;CacheEntry&gt; cache = new
-BasicHttpCache(maxCacheEntries);
-HttpClient cachingClient = new CachingHttpClient(client, cache, maxCacheEntrySizeBytes);
-</programlisting>
+    <programlisting><![CDATA[
+CacheConfig cacheConfig = new CacheConfig();  
+cacheConfig.setMaxCacheEntries(1000);
+cacheConfig.setMaxObjectSizeBytes(8192);
+
+HttpClient cachingClient = new CachingHttpClient(new DefaultHttpClient(), cacheConfig);
+
+HttpContext localContext = new BasicHttpContext();
+HttpGet httpget = new HttpGet("http://www.mydomain.com/content/");
+HttpResponse response = cachingClient.execute(httpget, localContext);
+HttpEntity entity = response.getEntity();
+EntityUtils.consume(entity);
+CacheResponseStatus responseStatus = (CacheResponseStatus) localContext.getAttribute(
+        CachingHttpClient.CACHE_RESPONSE_STATUS);
+switch (responseStatus) {
+case CACHE_HIT:
+    System.out.println("A response was generated from the cache with no requests " +
+            "sent upstream");
+    break;
+case CACHE_MODULE_RESPONSE:
+    System.out.println("The response was generated directly by the caching module");
+    break;
+case CACHE_MISS:
+    System.out.println("The response came from an upstream server");
+    break;
+case VALIDATED:
+    System.out.println("The response was generated from the cache after validating " +
+            "the entry with the origin server");
+    break;
+}
+]]>
+    </programlisting>
   </section>
 </chapter>

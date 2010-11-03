@@ -576,8 +576,7 @@ HttpHost target = (HttpHost) localContext.getAttribute(
 System.out.println("Final target: " + target);
 
 HttpEntity entity = response.getEntity();
-if (entity != null) {
-entity.consumeContent();
+EntityUtils.consume(entity);
 }
 ]]></programlisting>
         <para>stdout &gt;</para>
@@ -765,9 +764,7 @@ for (int i = 0; i < 10; i++) {
     HttpResponse response = httpclient.execute(httpget, localContext);
     
     HttpEntity entity = response.getEntity();
-    if (entity != null) {
-        entity.consumeContent();
-    }
+    EntityUtils.consume(entity);
 }
 ]]></programlisting>
     </section>

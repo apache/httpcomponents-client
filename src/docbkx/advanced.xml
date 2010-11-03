@@ -181,9 +181,7 @@ HttpContext localContext = new BasicHttpContext();
 HttpGet httpget = new HttpGet("http://localhost:8080/"); 
 HttpResponse response = httpclient.execute(httpget, localContext);
 HttpEntity entity = response.getEntity();
-if (entity != null) {
-    entity.consumeContent();
-}
+EntityUtils.consume(entity);
 Object userToken = localContext.getAttribute(ClientContext.USER_TOKEN);
 System.out.println(userToken);
 ]]></programlisting>
@@ -200,9 +198,7 @@ HttpContext localContext1 = new BasicHttpContext();
 HttpGet httpget1 = new HttpGet("http://localhost:8080/"); 
 HttpResponse response1 = httpclient.execute(httpget1, localContext1);
 HttpEntity entity1 = response1.getEntity();
-if (entity1 != null) {
-    entity1.consumeContent();
-}
+EntityUtils.consume(entity1);
 Principal principal = (Principal) localContext1.getAttribute(
         ClientContext.USER_TOKEN);
 
@@ -211,9 +207,7 @@ localContext2.setAttribute(ClientContext.USER_TOKEN, principal);
 HttpGet httpget2 = new HttpGet("http://localhost:8080/"); 
 HttpResponse response2 = httpclient.execute(httpget2, localContext2);
 HttpEntity entity2 = response2.getEntity();
-if (entity2 != null) {
-    entity2.consumeContent();
-}
+EntityUtils.consume(entity2);
 ]]></programlisting>
             </section>
         </section>
