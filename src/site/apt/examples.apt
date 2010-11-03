@@ -30,7 +30,7 @@
 
 HttpClient Examples
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientWithResponseHandler.java}Response handling}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientWithResponseHandler.java}Response handling}}
 
     This example demonstrates how to process HTTP responses using a response handler. This is 
     the recommended way of executing HTTP requests and processing HTTP responses. This approach 
@@ -39,50 +39,50 @@ HttpClient Examples
     that the underlying HTTP connection will be released back to the connection manager automatically
     in all cases.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientConnectionRelease.java}Manual connection release}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientConnectionRelease.java}Manual connection release}}
     
     This example demonstrates how to ensure the release of the underlying HTTP connection back to 
     the connection manager in case of a manual processing of HTTP responses.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientAbortMethod.java}Abort method}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientAbortMethod.java}Abort method}}
     
     This example demonstrates how to abort an HTTP request before its normal completion.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientAuthentication.java}Client authentication}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientAuthentication.java}Client authentication}}
     
     This example uses HttpClient to execute an HTTP request against a target site that requires user
     authentication.  
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientExecuteProxy.java}Request via a proxy}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientExecuteProxy.java}Request via a proxy}}
     
     This example demonstrates how to send an HTTP request via a proxy.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientProxyAuthentication.java}Proxy authentication}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientProxyAuthentication.java}Proxy authentication}}
     
     A simple example showing execution of an HTTP request over a secure connection tunneled through 
     an authenticating proxy.  
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientChunkEncodedPost.java}Chunk encoded POST}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientChunkEncodedPost.java}Chunk encoded POST}}
     
     This example shows how to stream out a request entity using chunk encoding.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientCustomContext.java}Custom execution context}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientCustomContext.java}Custom execution context}}
     
     This example demonstrates the use of a local HTTP context populated custom attributes.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientFormLogin.java}Form based logon}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientFormLogin.java}Form based logon}}
     
     This example demonstrates how HttpClient can be used to perform form-based logon.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientMultiThreadedExecution.java}Threaded request execution}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientMultiThreadedExecution.java}Threaded request execution}}
     
     An example that executes HTTP requests from multiple worker threads.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientCustomSSL.java}Custom SSL context}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientCustomSSL.java}Custom SSL context}}
     
     This example demonstrates how to create secure connections with a custom SSL context.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientGZipContentCompression.java}Custom protocol interceptors}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientGZipContentCompression.java}Custom protocol interceptors}}
 
     This example shows the use of protocol interceptors to transparently modify properties of HTTP 
     messages sent / received by the HTTP client.
@@ -94,14 +94,18 @@ HttpClient Examples
     interceptors makes content compression completely transparent to the consumer of the HttpClient
     interface.
     
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientPreemptiveBasicAuthentication.java}Preemptive BASIC authentication}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientPreemptiveBasicAuthentication.java}Preemptive BASIC authentication}}
     
     This example shows how HttpClient can be customized to authenticate preemptively using BASIC 
     scheme. Generally, preemptive authentication can be considered less secure than a response to 
     an authentication challenge and therefore discouraged.
 
-    * {{{http://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.0.x/httpclient/src/examples/org/apache/http/examples/client/ClientPreemptiveDigestAuthentication.java}Preemptive DIGEST authentication}}
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientPreemptiveDigestAuthentication.java}Preemptive DIGEST authentication}}
     
     This example shows how HttpClient can be customized to authenticate preemptively using DIGEST 
     scheme. Generally, preemptive authentication can be considered less secure than a response to 
     an authentication challenge and therefore discouraged.
+    
+    * {{{./httpmime/examples/org/apache/http/examples/entity/mime/ClientMultipartFormPost.java}Multipart encoded request entity}}
+    
+    This example shows how to execute requests enclosing a multipart encoded entity. 

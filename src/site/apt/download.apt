@@ -42,57 +42,57 @@ HttpClient Downloads
     in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
     by adding the following block to the dependency descriptor:
 
-* {HttpComponents Client 4.0.1}
+* {HttpComponents Client 4.0.3}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.0.1</version>
+    <version>4.0.3</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime 4.0.1}
+* {HttpComponents HttpMime 4.0.3}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.0.1</version>
+    <version>4.0.3</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents Client 4.1-alpha2 (development branch)}
+* {HttpComponents Client 4.1-beta1 (development branch)}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.1-alpha2</version>
+    <version>4.1-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime 4.1-alpha2 (development branch)}
+* {HttpComponents HttpMime 4.1-beta1 (development branch)}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.1-alpha1</version>
+    <version>4.1-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpClient Cache 4.1-alpha2 (development branch)}
+* {HttpComponents HttpClient Cache 4.1-beta1 (development branch)}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient-cache</artifactId>
-    <version>4.1-alpha2</version>
+    <version>4.1-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------

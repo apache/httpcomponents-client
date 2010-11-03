@@ -1,8 +1,36 @@
-Changes since 4.1 ALPHA2
+Release 4.1 BETA1
 -------------------
+
+HttpClient 4.1 BETA1 finalizes the 4.1 API and brings a number of major improvements to the HTTP
+caching module. This release also adds full support for NTLMv1, NTLMv2, and NTLM2 Session 
+authentication. The NTLM protocol code was kindly contributed by the Lucene Connector Framework 
+project.
+
+Changelog
+-------------------
+
+* [HTTPCLIENT-1015] Support only-if-cached directive.
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
+
+* [HTTPCLIENT-990] Allow heuristic freshness caching.
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 
 * [HTTPCLIENT-919] Support for NTLMv1, NTLMv2, and NTLM2 Session authentication.
   Contributed by Karl Wright <karl.wright at nokia.com>
+
+* [HTTPCLIENT-1008] Send all variants' ETags on "variant miss".
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com> and 
+  Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>
+
+* [HTTPCLIENT-1011] Handling of IOExceptions thrown by cache components.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-1003] Handle conditional requests in cache.
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com> and 
+  Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>
+
+* [HTTPCLIENT-1002] Stale connection check fails if wire logging is on.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1000] Maximum connection lifetimes settings for ThreadSafeClientConnManager.
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
@@ -11,13 +39,69 @@ Changes since 4.1 ALPHA2
   BROWSER_COMPATIBLE mode.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
+* [HTTPCLIENT-998] Cache should use both Last-Modified and ETag for validations when available.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com> 
+
+* [HTTPCLIENT-997] Cache module should handle out-of-order validations properly and unconditionally 
+  refresh.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com> 
+
+* [HTTPCLIENT-994] Cache does not allow client to override origin-specified freshness using 
+  max-stale.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-995] Cache returns cached responses even if validators not consistent with all 
+  conditional headers.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-977] Memcached implementation for HttpCache.
+  Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>
+
+* [HTTPCLIENT-992] cache should not generate stale responses to requests explicitly requesting 
+  first-hand or fresh ones.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-991] cache module produces improperly formatted Warning header when revalidation 
+  fails.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
 * [HTTPCLIENT-989] DefaultHttpRequestRetryHandler no longer retries non-idempotent http methods
   if NoHttpResponseException is thrown.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
+* [HTTPCLIENT-988] Cache module should strip 'Content-Encoding: identity' from responses
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-987] cache module does not recognize equivalent URIs.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-986] cache module does not completely handle upstream Warning headers correctly
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-985] cache module should populate Via header to capture upstream and downstream protocols
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-984] Additional conditional compliance tests for the caching module for 
+  Content-Encoding, Content-Location, Date, Expires, Server, Transfer-Encoding, and Vary headers.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
+* [HTTPCLIENT-978] HTTP cache update exception handling
+  Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
+
+* [HTTPCLIENT-981] CachingHttpClient returns a 411 respones when executing a POST (HttpPost) 
+  request.
+  Contributed by Joe Campbell <joseph.r.campbell at gmail.com>
+
+* [HTTPCLIENT-980] CachingHttpClient returns a 503 response when the backend HttpClient produces 
+  an IOException.
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+
 * [HTTPCLIENT-978] Ehcache based HTTP cache implementation
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 
+* [HTTPCLIENT-967] support for non-shared (private) caches
+  Contributed by Jonathan Moore <jonathan_moore at comcast.com>
+  
 * [HTTPCLIENT-969] BasicCookieStore#getCookies() to return a copy of Cookie list
   Contributed by David Smiley <dsmiley at mitre.org>
 
