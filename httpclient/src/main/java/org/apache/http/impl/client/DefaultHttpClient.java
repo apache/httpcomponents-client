@@ -62,6 +62,7 @@ import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
+import org.apache.http.impl.auth.NegotiateSchemeFactory;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
@@ -300,6 +301,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         registry.register(
                 AuthPolicy.NTLM,
                 new NTLMSchemeFactory());
+        registry.register(
+                AuthPolicy.SPNEGO,
+                new NegotiateSchemeFactory());
         return registry;
     }
 

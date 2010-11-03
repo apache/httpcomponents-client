@@ -149,7 +149,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @return  the connection pool to use
      *
-     * @deprecated use {@link #createConnectionPool()}
+     * @deprecated use #createConnectionPool(long, TimeUnit))
      */
     @Deprecated
     protected AbstractConnPool createConnectionPool(final HttpParams params) {

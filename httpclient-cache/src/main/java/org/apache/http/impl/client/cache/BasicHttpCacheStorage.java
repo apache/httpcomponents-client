@@ -37,7 +37,7 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 /**
  * Basic {@link HttpCacheStorage} implementation backed by an instance of {@link LinkedHashMap}.
  * This cache does NOT deallocate resources associated with the cache entries. It is intended
- * for use with {@link MemCacheEntry} and similar.
+ * for use with {@link HeapResource} and similar.
  *
  * @since 4.1
  */

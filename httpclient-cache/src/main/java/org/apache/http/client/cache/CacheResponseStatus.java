@@ -28,8 +28,8 @@ package org.apache.http.client.cache;
 
 /**
  * This enumeration represents the various ways a response can be generated
- * by the {@link CachingHttpClient}; if a request is executed with an
- * {@link org.apache.http.protocol.HttpContext}
+ * by the {@link org.apache.http.impl.client.cache.CachingHttpClient}; 
+ * if a request is executed with an {@link org.apache.http.protocol.HttpContext}
  * then a parameter with one of these values will be registered in the
  * context.
  */

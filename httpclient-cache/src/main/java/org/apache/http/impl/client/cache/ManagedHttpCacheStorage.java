@@ -47,7 +47,7 @@ import org.apache.http.client.cache.Resource;
  * resource deallocation. The cache can be permanently shut down using {@link #shutdown()}
  * method. All resources associated with the entries used by the cache will be deallocated.
  *
- * This {@link HttpCacheStorage} implementation is intended for use with {@link FileCacheEntry}
+ * This {@link HttpCacheStorage} implementation is intended for use with {@link FileResource}
  * and similar.
  *
  * @since 4.1

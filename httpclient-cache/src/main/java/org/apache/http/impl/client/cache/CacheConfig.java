@@ -104,7 +104,6 @@ public class CacheConfig {
 
     /**
      * Returns the maximum number of cache entries the cache will retain.
-     * @return int
      */
     public int getMaxCacheEntries() {
         return maxCacheEntries;
@@ -112,7 +111,6 @@ public class CacheConfig {
 
     /**
      * Sets the maximum number of cache entries the cache will retain.
-     * @param maxCacheEntries int
      */
     public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
@@ -120,7 +118,6 @@ public class CacheConfig {
 
     /**
      * Returns the number of times to retry a cache update on failure
-     * @return int
      */
     public int getMaxUpdateRetries(){
         return maxUpdateRetries;
@@ -128,7 +125,6 @@ public class CacheConfig {
 
     /**
      * Sets the number of times to retry a cache update on failure
-     * @param maxUpdateRetries int
      */
     public void setMaxUpdateRetries(int maxUpdateRetries){
         this.maxUpdateRetries = maxUpdateRetries;
@@ -136,7 +132,6 @@ public class CacheConfig {
 
     /**
      * Returns if heuristic freshness caching is in enabled
-     * @return
      */
     public boolean isHeuristicCachingEnabled() {
         return heuristicCachingEnabled;
@@ -144,7 +139,6 @@ public class CacheConfig {
 
     /**
      * Set if heuristic freshness caching is enabled
-     * @param heursiticCachingEnabled
      */
     public void setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
         this.heuristicCachingEnabled = heuristicCachingEnabled;
@@ -152,7 +146,6 @@ public class CacheConfig {
 
     /**
      * Returns coefficient used in heuristic freshness caching
-     * @return
      */
     public float getHeuristicCoefficient() {
         return heuristicCoefficient;
@@ -160,7 +153,6 @@ public class CacheConfig {
 
     /**
      * Set coefficient to be used in heuristic freshness caching
-     * @param heuristicCoefficient
      */
     public void setHeuristicCoefficient(float heuristicCoefficient) {
         this.heuristicCoefficient = heuristicCoefficient;
@@ -169,7 +161,6 @@ public class CacheConfig {
     /**
      * Get the default lifetime to be used if heuristic freshness calculation is
      * not possible
-     * @return
      */
     public long getHeuristicDefaultLifetime() {
         return heuristicDefaultLifetime;
@@ -177,7 +168,6 @@ public class CacheConfig {
 
     /**
      * Set default lifetime to be used if heuristic freshness calculation is not possible
-     * @param heuristicDefaultLifetime
      */
     public void setHeuristicDefaultLifetime(long heuristicDefaultLifetime) {
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
