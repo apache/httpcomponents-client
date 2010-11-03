@@ -36,6 +36,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Example how to use multipart/form encoded POST request.
@@ -69,11 +70,8 @@ public class ClientMultipartFormPost {
         System.out.println(response.getStatusLine());
         if (resEntity != null) {
             System.out.println("Response content length: " + resEntity.getContentLength());
-            System.out.println("Chunked?: " + resEntity.isChunked());
         }
-        if (resEntity != null) {
-            resEntity.consumeContent();
-        }
+        EntityUtils.consume(resEntity);
     }
     
 }
