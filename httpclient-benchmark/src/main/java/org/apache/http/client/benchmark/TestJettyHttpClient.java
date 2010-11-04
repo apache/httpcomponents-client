@@ -41,104 +41,68 @@ public class TestJettyHttpClient implements TestHttpAgent {
     public TestJettyHttpClient() {
         super();
         this.client = new HttpClient();
-        this.client.setConnectorType(HttpClient.CONNECTOR_SOCKET);
         this.client.setRequestBufferSize(8 * 1024);
         this.client.setResponseBufferSize(8 * 1024);
+        this.client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+        this.client.setTimeout(15000);
     }
 
     public void init() throws Exception {
         this.client.start();
     }
 
-    public Stats execute(final URI targetURI, byte[] content, int n) throws Exception {
+    public void shutdown() throws Exception {
+        this.client.stop();
+    }
 
-        Stats stats = new Stats();
-
-        int successCount = 0;
-        int failureCount = 0;
-        long totalContentLen = 0;
+    Stats execute(final URI targetURI, byte[] content, int n, int c) throws Exception {
+        this.client.setMaxConnectionsPerAddress(c);
+        Stats stats = new Stats(n, c);
 
         for (int i = 0; i < n; i++) {
-            SimpleHttpExchange exchange = new SimpleHttpExchange();
+            SimpleHttpExchange exchange = new SimpleHttpExchange(stats);
             exchange.setURL(targetURI.toASCIIString());
 
             if (content != null) {
                 exchange.setMethod("POST");
                 exchange.setRequestContent(new ByteArrayBuffer(content));
             }
-
             try {
                 this.client.send(exchange);
-                exchange.waitForDone();
-                if (exchange.status == 200) {
-                    successCount++;
-                } else {
-                    failureCount++;
-                }
-                stats.setContentLen(exchange.contentLen);
-                totalContentLen += exchange.contentLen;
             } catch (IOException ex) {
-                failureCount++;
-            }
-            if (exchange.server != null) {
-                stats.setServerName(exchange.server);
             }
         }
-        stats.setSuccessCount(successCount);
-        stats.setFailureCount(failureCount);
-        stats.setTotalContentLen(totalContentLen);
+        stats.waitFor();
         return stats;
     }
 
-    public Stats get(final URI target, int n) throws Exception {
-        return execute(target, null, n);
+    public Stats get(final URI target, int n, int c) throws Exception {
+        return execute(target, null, n, c);
     }
 
-    public Stats post(final URI target, byte[] content, int n) throws Exception {
-        return execute(target, content, n);
+    public Stats post(final URI target, byte[] content, int n, int c) throws Exception {
+        return execute(target, content, n, c);
     }
 
     public String getClientName() {
         return "Jetty " + Server.getVersion();
     }
 
-    public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
-            System.exit(-1);
-        }
-        URI targetURI = new URI(args[0]);
-        int n = Integer.parseInt(args[1]);
-
-        TestJettyHttpClient test = new TestJettyHttpClient();
-
-        long startTime = System.currentTimeMillis();
-        Stats stats = test.get(targetURI, n);
-        long finishTime = System.currentTimeMillis();
-
-        Stats.printStats(targetURI, startTime, finishTime, stats);
-    }
-
     static class SimpleHttpExchange extends HttpExchange {
 
-        private final Buffer serverHeader = new ByteArrayBuffer("Server");
+        private final Stats stats;
+        private int status = 0;
+        private long contentLen = 0;
 
-        long contentLen = 0;
-        int status = 0;
-        String server;
-
+        SimpleHttpExchange(final Stats stats) {
+            super();
+            this.stats = stats;
+        }
+        
         protected void onResponseStatus(
                 final Buffer version, int status, final Buffer reason) throws IOException {
             this.status = status;
             super.onResponseStatus(version, status, reason);
-        }
-
-        @Override
-        protected void onResponseHeader(final Buffer name, final Buffer value) throws IOException {
-            super.onResponseHeader(name, value);
-            if (name.equalsIgnoreCase(this.serverHeader)) {
-                this.server = value.toString("ASCII");
-            }
         }
 
         @Override
@@ -147,6 +111,53 @@ public class TestJettyHttpClient implements TestHttpAgent {
             super.onResponseContent(content);
         }
 
+        @Override
+        protected void onResponseComplete() throws IOException {
+            if (this.status == 200) {
+                this.stats.success(this.contentLen);
+            } else {
+                this.stats.failure(this.contentLen);
+            }
+            super.onResponseComplete();
+        }
+
+        @Override
+        protected void onConnectionFailed(final Throwable x) {
+            this.stats.failure(this.contentLen);
+            super.onConnectionFailed(x);
+        }
+
+        @Override
+        protected void onException(final Throwable x) {
+            this.stats.failure(this.contentLen);
+            super.onException(x);
+        }
+        
     };
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.out.println("Usage: <target URI> <no of requests> <concurrent connections>");
+            System.exit(-1);
+        }
+        URI targetURI = new URI(args[0]);
+        int n = Integer.parseInt(args[1]);
+        int c = 1;
+        if (args.length > 2) {
+            c = Integer.parseInt(args[2]);
+        }
+        
+        TestJettyHttpClient test = new TestJettyHttpClient();
+        test.init();
+        try {
+            long startTime = System.currentTimeMillis();
+            Stats stats = test.get(targetURI, n, c);
+            long finishTime = System.currentTimeMillis();
+
+            Stats.printStats(targetURI, startTime, finishTime, stats);
+        } finally {
+            test.shutdown();
+        }
+    }
 
 }

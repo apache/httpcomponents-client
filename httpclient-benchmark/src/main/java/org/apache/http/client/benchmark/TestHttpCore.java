@@ -31,9 +31,9 @@ import java.net.Socket;
 import java.net.URI;
 
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
@@ -78,6 +78,8 @@ public class TestHttpCore implements TestHttpAgent {
                 false);
         this.params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
+        this.params.setIntParameter(HttpConnectionParams.SO_TIMEOUT, 
+                15000);
 
         this.httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
                 new RequestContent(),
@@ -94,98 +96,127 @@ public class TestHttpCore implements TestHttpAgent {
     public void init() {
     }
 
-    public Stats execute(
-            final HttpHost targetHost, final HttpRequest request, int n) throws Exception {
+    public void shutdown() {
+    }
 
-        Stats stats = new Stats();
-
-        int successCount = 0;
-        int failureCount = 0;
-        long contentLen = 0;
-        long totalContentLen = 0;
-
-        byte[] buffer = new byte[4096];
-        HttpContext context = new BasicHttpContext();
-
-        DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
-        for (int i = 0; i < n; i++) {
-            if (!conn.isOpen()) {
-                Socket socket = new Socket(
-                        targetHost.getHostName(),
-                        targetHost.getPort() > 0 ? targetHost.getPort() : 80);
-                conn.bind(socket, this.params);
-            }
-
-            context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, targetHost);
-
-            this.httpexecutor.preProcess(request, this.httpproc, context);
-            HttpResponse response = this.httpexecutor.execute(request, conn, context);
-            this.httpexecutor.postProcess(response, this.httpproc, context);
-
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream instream = entity.getContent();
-                try {
-                    contentLen = 0;
-                    if (instream != null) {
-                        int l = 0;
-                        while ((l = instream.read(buffer)) != -1) {
-                            contentLen += l;
-                        }
-                    }
-                    successCount++;
-                    totalContentLen += contentLen;
-                } catch (IOException ex) {
-                    conn.shutdown();
-                    failureCount++;
-                } finally {
-                    instream.close();
-                }
-            }
-            if (!this.connStrategy.keepAlive(response, context)) {
-                conn.close();
-            }
-            Header header = response.getFirstHeader("Server");
-            if (header != null) {
-                stats.setServerName(header.getValue());
-            }
-            for (HeaderIterator it = request.headerIterator(); it.hasNext();) {
-                it.next();
-                it.remove();
-            }
+    Stats execute(final URI target, final byte[] content, int n, int c) throws Exception {
+        HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(target.getPath());
+        if (target.getQuery() != null) {
+            buffer.append("?");
+            buffer.append(target.getQuery());
         }
-        stats.setSuccessCount(successCount);
-        stats.setFailureCount(failureCount);
-        stats.setContentLen(contentLen);
-        stats.setTotalContentLen(totalContentLen);
+        String requestUri = buffer.toString();
+        
+        Stats stats = new Stats(n, c);
+        WorkerThread[] workers = new WorkerThread[c];
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new WorkerThread(stats, targetHost, requestUri, content);
+        }
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].start();
+        }
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].join();
+        }
         return stats;
     }
 
-    public Stats get(final URI target, int n) throws Exception {
-        HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(target.getPath());
-        if (target.getQuery() != null) {
-            buffer.append("?");
-            buffer.append(target.getQuery());
+    class WorkerThread extends Thread {
+
+        private final Stats stats;
+        private final HttpHost targetHost;
+        private final String requestUri;
+        private final byte[] content;
+        
+        WorkerThread(final Stats stats, 
+                final HttpHost targetHost, final String requestUri, final byte[] content) {
+            super();
+            this.stats = stats;
+            this.targetHost = targetHost;
+            this.requestUri = requestUri;
+            this.content = content;
         }
-        BasicHttpRequest httpget = new BasicHttpRequest("GET", buffer.toString());
-        return execute(targetHost, httpget, n);
+        
+        @Override
+        public void run() {
+            byte[] buffer = new byte[4096];
+            HttpContext context = new BasicHttpContext();
+            DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
+            try {
+                while (!this.stats.isComplete()) {
+                    HttpRequest request;
+                    if (this.content == null) {
+                        BasicHttpRequest httpget = new BasicHttpRequest("GET", this.requestUri);
+                        request = httpget;
+                    } else {
+                        BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST",
+                                this.requestUri);
+                        httppost.setEntity(new ByteArrayEntity(this.content));
+                        request = httppost;
+                    }
+
+                    long contentLen = 0;
+                    try {
+                        if (!conn.isOpen()) {
+                            Socket socket = new Socket(
+                                    this.targetHost.getHostName(),
+                                    this.targetHost.getPort() > 0 ? this.targetHost.getPort() : 80);
+                            conn.bind(socket, params);
+                        }
+                        
+                        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+                        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, targetHost);
+
+                        httpexecutor.preProcess(request, httpproc, context);
+                        HttpResponse response = httpexecutor.execute(request, conn, context);
+                        httpexecutor.postProcess(response, httpproc, context);
+
+                        HttpEntity entity = response.getEntity();
+                        if (entity != null) {
+                            InputStream instream = entity.getContent();
+                            try {
+                                contentLen = 0;
+                                if (instream != null) {
+                                    int l = 0;
+                                    while ((l = instream.read(buffer)) != -1) {
+                                        contentLen += l;
+                                    }
+                                }
+                            } finally {
+                                instream.close();
+                            }
+                        }
+                        if (!connStrategy.keepAlive(response, context)) {
+                            conn.close();
+                        }
+                        for (HeaderIterator it = request.headerIterator(); it.hasNext();) {
+                            it.next();
+                            it.remove();
+                        }
+                        this.stats.success(contentLen);
+                    } catch (IOException ex) {
+                        this.stats.failure(contentLen);
+                    } catch (HttpException ex) {
+                        this.stats.failure(contentLen);
+                    }
+                }
+            } finally {
+                try {
+                    conn.shutdown();
+                } catch (IOException ignore) {}
+            }
+        }
+        
+    }
+    
+    public Stats get(final URI target, int n, int c) throws Exception {
+        return execute(target, null, n, c);
     }
 
-    public Stats post(final URI target, byte[] content, int n) throws Exception {
-        HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(target.getPath());
-        if (target.getQuery() != null) {
-            buffer.append("?");
-            buffer.append(target.getQuery());
-        }
-        BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST",
-                buffer.toString());
-        httppost.setEntity(new ByteArrayEntity(content));
-        return execute(targetHost, httppost, n);
+    public Stats post(final URI target, byte[] content, int n, int c) throws Exception {
+        return execute(target, content, n, c);
     }
 
     public String getClientName() {
@@ -197,19 +228,27 @@ public class TestHttpCore implements TestHttpAgent {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
+            System.out.println("Usage: <target URI> <no of requests> <concurrent connections>");
             System.exit(-1);
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
+        int c = 1;
+        if (args.length > 2) {
+            c = Integer.parseInt(args[2]);
+        }
 
         TestHttpCore test = new TestHttpCore();
+        test.init();
+        try {
+            long startTime = System.currentTimeMillis();
+            Stats stats = test.get(targetURI, n, c);
+            long finishTime = System.currentTimeMillis();
 
-        long startTime = System.currentTimeMillis();
-        Stats stats = test.get(targetURI, n);
-        long finishTime = System.currentTimeMillis();
-
-        Stats.printStats(targetURI, startTime, finishTime, stats);
+            Stats.printStats(targetURI, startTime, finishTime, stats);
+        } finally {
+            test.shutdown();
+        }
     }
 
 }

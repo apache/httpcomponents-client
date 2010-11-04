@@ -29,25 +29,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.params.SyncBasicHttpParams;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.VersionInfo;
 
 public class TestHttpClient4 implements TestHttpAgent {
 
-    private final HttpClient httpclient;
+    private final ThreadSafeClientConnManager mgr;
+    private final DefaultHttpClient httpclient;
 
     public TestHttpClient4() {
         super();
@@ -60,66 +66,107 @@ public class TestHttpClient4 implements TestHttpAgent {
                 false);
         params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
-
-        this.httpclient = new DefaultHttpClient(params);
+        params.setIntParameter(HttpConnectionParams.SO_TIMEOUT, 
+                15000);
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
+        this.mgr = new ThreadSafeClientConnManager(schemeRegistry);
+        this.httpclient = new DefaultHttpClient(this.mgr, params);
+        this.httpclient.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
+            
+            public boolean retryRequest(
+                    final IOException exception, int executionCount, final HttpContext context) {
+                return false;
+            }
+            
+        });
     }
 
     public void init() {
     }
 
-    public Stats execute(final HttpUriRequest request, int n) throws Exception {
-        Stats stats = new Stats();
+    public void shutdown() {
+        this.mgr.shutdown();
+    }
 
-        int successCount = 0;
-        int failureCount = 0;
-        long contentLen = 0;
-        long totalContentLen = 0;
-
-        byte[] buffer = new byte[4096];
-
-        for (int i = 0; i < n; i++) {
-            HttpResponse response = this.httpclient.execute(request);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream instream = entity.getContent();
-                try {
-                    contentLen = 0;
-                    if (instream != null) {
-                        int l = 0;
-                        while ((l = instream.read(buffer)) != -1) {
-                            contentLen += l;
-                        }
-                    }
-                    successCount++;
-                    totalContentLen += contentLen;
-                } catch (IOException ex) {
-                    request.abort();
-                    failureCount++;
-                } finally {
-                    instream.close();
-                }
-            }
-            Header header = response.getFirstHeader("Server");
-            if (header != null) {
-                stats.setServerName(header.getValue());
-            }
+    Stats execute(final URI target, final byte[] content, int n, int c) throws Exception {
+        this.mgr.setMaxTotal(2000);
+        this.mgr.setDefaultMaxPerRoute(c);
+        Stats stats = new Stats(n, c);
+        WorkerThread[] workers = new WorkerThread[c];
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new WorkerThread(stats, target, content);
         }
-        stats.setSuccessCount(successCount);
-        stats.setFailureCount(failureCount);
-        stats.setContentLen(contentLen);
-        stats.setTotalContentLen(totalContentLen);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].start();
+        }
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].join();
+        }
         return stats;
     }
+    
+    class WorkerThread extends Thread {
 
-    public Stats get(final URI target, int n) throws Exception {
-        HttpGet httpget = new HttpGet(target);
-        return execute(httpget, n);
+        private final Stats stats;
+        private final URI target;
+        private final byte[] content;
+        
+        WorkerThread(final Stats stats, final URI target, final byte[] content) {
+            super();
+            this.stats = stats;
+            this.target = target;
+            this.content = content;
+        }
+        
+        @Override
+        public void run() {
+            byte[] buffer = new byte[4096];
+            while (!this.stats.isComplete()) {
+                HttpUriRequest request;
+                if (this.content == null) {
+                    HttpGet httpget = new HttpGet(target);
+                    request = httpget;
+                } else {
+                    HttpPost httppost = new HttpPost(target);
+                    httppost.setEntity(new ByteArrayEntity(content));
+                    request = httppost;
+                }
+                long contentLen = 0;
+                try {
+                    HttpResponse response = httpclient.execute(request);
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        InputStream instream = entity.getContent();
+                        try {
+                            contentLen = 0;
+                            if (instream != null) {
+                                int l = 0;
+                                while ((l = instream.read(buffer)) != -1) {
+                                    contentLen += l;
+                                }
+                            }
+                        } finally {
+                            instream.close();
+                        }
+                    }
+                    this.stats.success(contentLen);
+                } catch (IOException ex) {
+                    this.stats.failure(contentLen);
+                    request.abort();
+                }
+            }
+        }
+        
+    }
+    
+    public Stats get(final URI target, int n, int c) throws Exception {
+        return execute(target, null, n ,c);
     }
 
-    public Stats post(final URI target, byte[] content, int n) throws Exception {
-        HttpPost httppost = new HttpPost(target);
-        httppost.setEntity(new ByteArrayEntity(content));
-        return execute(httppost, n);
+    public Stats post(final URI target, byte[] content, int n, int c) throws Exception {
+        return execute(target, content, n, c);
     }
 
     public String getClientName() {
@@ -131,19 +178,27 @@ public class TestHttpClient4 implements TestHttpAgent {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
+            System.out.println("Usage: <target URI> <no of requests> <concurrent connections>");
             System.exit(-1);
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
+        int c = 1;
+        if (args.length > 2) {
+            c = Integer.parseInt(args[2]);
+        }
 
         TestHttpClient4 test = new TestHttpClient4();
+        test.init();
+        try {
+            long startTime = System.currentTimeMillis();
+            Stats stats = test.get(targetURI, n, c);
+            long finishTime = System.currentTimeMillis();
 
-        long startTime = System.currentTimeMillis();
-        Stats stats = test.get(targetURI, n);
-        long finishTime = System.currentTimeMillis();
-
-        Stats.printStats(targetURI, startTime, finishTime, stats);
+            Stats.printStats(targetURI, startTime, finishTime, stats);
+        } finally {
+            test.shutdown();
+        }
     }
 
 }

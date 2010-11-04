@@ -31,10 +31,12 @@ public interface TestHttpAgent {
 
     void init() throws Exception;
 
+    void shutdown() throws Exception;
+
     String getClientName();
 
-    Stats get(URI target, int count) throws Exception;
+    Stats get(URI target, int n, int c) throws Exception;
 
-    Stats post(URI target, byte[] content, int n) throws Exception;
+    Stats post(URI target, byte[] content, int n, int c) throws Exception;
 
 }

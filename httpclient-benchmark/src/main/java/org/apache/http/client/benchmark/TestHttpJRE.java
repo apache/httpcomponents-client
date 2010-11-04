@@ -41,68 +41,91 @@ public class TestHttpJRE implements TestHttpAgent {
     public void init() {
     }
 
-    public Stats execute(final URI targetURI, byte[] content, int n) throws Exception {
+    public void shutdown() {
+    }
 
-        Stats stats = new Stats();
-
-        int successCount = 0;
-        int failureCount = 0;
-        long contentLen = 0;
-        long totalContentLen = 0;
-
-        byte[] buffer = new byte[4096];
-
-        URL url = targetURI.toURL();
-        for (int i = 0; i < n; i++) {
-            HttpURLConnection c = (HttpURLConnection) url.openConnection();
-
-            if (content != null) {
-                c.setRequestMethod("POST");
-                c.setFixedLengthStreamingMode(content.length);
-                c.setUseCaches (false);
-                c.setDoInput(true);
-                c.setDoOutput(true);
-                OutputStream out = c.getOutputStream();
-                out.write(content);
-                out.flush ();
-                out.close();
-            }
-            InputStream instream = c.getInputStream();
-            try {
-                contentLen = 0;
-                if (instream != null) {
-                    int l = 0;
-                    while ((l = instream.read(buffer)) != -1) {
-                        contentLen += l;
-                    }
-                }
-                if (c.getResponseCode() == 200) {
-                    successCount++;
-                } else {
-                    failureCount++;
-                }
-                totalContentLen += contentLen;
-            } catch (IOException ex) {
-                failureCount++;
-            }
-            String s = c.getHeaderField("Server");
-            if (s != null) {
-                stats.setServerName(s);
-            }
+    Stats execute(final URI targetURI, byte[] content, int n, int c) throws Exception {
+        System.setProperty("http.maxConnections", Integer.toString(c));
+        URL target = targetURI.toURL();
+        Stats stats = new Stats(n, c);
+        WorkerThread[] workers = new WorkerThread[c];
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new WorkerThread(stats, target, content);
         }
-        stats.setSuccessCount(successCount);
-        stats.setFailureCount(failureCount);
-        stats.setContentLen(contentLen);
-        stats.setTotalContentLen(totalContentLen);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].start();
+        }
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].join();
+        }
         return stats;
     }
 
-    public Stats get(final URI target, int n) throws Exception {
-        return execute(target, null, n);
+    class WorkerThread extends Thread {
+
+        private final Stats stats;
+        private final URL target;
+        private final byte[] content;
+        
+        WorkerThread(final Stats stats, final URL target, final byte[] content) {
+            super();
+            this.stats = stats;
+            this.target = target;
+            this.content = content;
+        }
+        
+        @Override
+        public void run() {
+            byte[] buffer = new byte[4096];
+            while (!this.stats.isComplete()) {
+                long contentLen = 0;
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) this.target.openConnection();
+                    conn.setReadTimeout(15000);
+
+                    if (this.content != null) {
+                        conn.setRequestMethod("POST");
+                        conn.setFixedLengthStreamingMode(this.content.length);
+                        conn.setUseCaches (false);
+                        conn.setDoInput(true);
+                        conn.setDoOutput(true);
+                        OutputStream out = conn.getOutputStream();
+                        try {
+                            out.write(this.content);
+                            out.flush ();
+                        } finally {
+                            out.close();
+                        }
+                    }
+                    InputStream instream = conn.getInputStream();
+                    if (instream != null) {
+                        try {
+                            int l = 0;
+                            while ((l = instream.read(buffer)) != -1) {
+                                contentLen += l;
+                            }
+                        } finally {
+                            instream.close();
+                        }
+                    }
+                    if (conn.getResponseCode() == 200) {
+                        this.stats.success(contentLen);
+                    } else {
+                        this.stats.failure(contentLen);
+                    }
+                } catch (IOException ex) {
+                    this.stats.failure(contentLen);
+                }
+            }
+        }
+    }
+    
+    public Stats get(final URI target, int n, int c) throws Exception {
+        return execute(target, null, n, c);
     }
 
-    public Stats post(final URI target, byte[] content, int n) throws Exception {
-        return execute(target, content, n);
+    public Stats post(final URI target, byte[] content, int n, int c) throws Exception {
+        return execute(target, content, n, c);
     }
 
     public String getClientName() {
@@ -111,19 +134,27 @@ public class TestHttpJRE implements TestHttpAgent {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
+            System.out.println("Usage: <target URI> <no of requests> <concurrent connections>");
             System.exit(-1);
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
+        int c = 1;
+        if (args.length > 2) {
+            c = Integer.parseInt(args[2]);
+        }
 
         TestHttpJRE test = new TestHttpJRE();
+        test.init();
+        try {
+            long startTime = System.currentTimeMillis();
+            Stats stats = test.get(targetURI, n, c);
+            long finishTime = System.currentTimeMillis();
 
-        long startTime = System.currentTimeMillis();
-        Stats stats = test.get(targetURI, n);
-        long finishTime = System.currentTimeMillis();
-
-        Stats.printStats(targetURI, startTime, finishTime, stats);
+            Stats.printStats(targetURI, startTime, finishTime, stats);
+        } finally {
+            test.shutdown();
+        }
     }
 
 }

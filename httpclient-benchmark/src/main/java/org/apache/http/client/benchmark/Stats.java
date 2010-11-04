@@ -29,25 +29,49 @@ import java.net.URI;
 
 public class Stats {
 
+    private final int expectedCount;
+    private final int concurrency;
+    
     private int successCount = 0;
     private int failureCount = 0;
-    private String serverName = "unknown";
     private long contentLen = 0;
     private long totalContentLen = 0;
 
-    public Stats() {
+    public Stats(int expectedCount, int concurrency) {
         super();
+        this.expectedCount = expectedCount;
+        this.concurrency = concurrency;
     }
 
-    public int getSuccessCount() {
+    public synchronized boolean isComplete() {
+        return this.successCount + this.failureCount >= this.expectedCount;
+    }
+
+    public synchronized void success(long contentLen) {
+        if (isComplete()) return;        
+        this.successCount++;
+        this.contentLen = contentLen;
+        this.totalContentLen += contentLen;
+        notifyAll();
+    }
+
+    public synchronized void failure(long contentLen) {
+        if (isComplete()) return;        
+        this.failureCount++;
+        this.contentLen = contentLen;
+        this.totalContentLen += contentLen;
+        notifyAll();
+    }
+
+    public int getConcurrency() {
+        return this.concurrency;
+    }
+    
+    public synchronized int getSuccessCount() {
         return successCount;
     }
 
-    public void setSuccessCount(int successCount) {
-        this.successCount = successCount;
-    }
-
-    public int getFailureCount() {
+    public synchronized int getFailureCount() {
         return failureCount;
     }
 
@@ -55,28 +79,18 @@ public class Stats {
         this.failureCount = failureCount;
     }
 
-    public String getServerName() {
-        return serverName;
-    }
-
-    public void setServerName(String serverName) {
-        this.serverName = serverName;
-    }
-
-    public long getContentLen() {
+    public synchronized long getContentLen() {
         return contentLen;
     }
 
-    public void setContentLen(long contentLen) {
-        this.contentLen = contentLen;
-    }
-
-    public long getTotalContentLen() {
+    public synchronized long getTotalContentLen() {
         return totalContentLen;
     }
-
-    public void setTotalContentLen(long totalContentLen) {
-        this.totalContentLen = totalContentLen;
+    
+    public synchronized void waitFor() throws InterruptedException {
+        while (!isComplete()) {
+            wait();
+        }
     }
 
     public static void printStats(
@@ -85,15 +99,14 @@ public class Stats {
         float reqsPerSec = (float) stats.getSuccessCount() / totalTimeSec;
         float timePerReqMs = (float) (finishTime - startTime) / (float) stats.getSuccessCount();
 
-        System.out.print("Server Software:\t");
-        System.out.println(stats.getServerName());
-        System.out.println();
         System.out.print("Document URI:\t\t");
         System.out.println(targetURI);
         System.out.print("Document Length:\t");
         System.out.print(stats.getContentLen());
         System.out.println(" bytes");
         System.out.println();
+        System.out.print("Concurrency level:\t");
+        System.out.println(stats.getConcurrency());
         System.out.print("Time taken for tests:\t");
         System.out.print(totalTimeSec);
         System.out.println(" seconds");

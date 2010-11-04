@@ -47,6 +47,15 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 public class Benchmark {
 
    public static void main(String[] args) throws Exception {
+       
+       String ns = System.getProperty("hc.benchmark.n-requests", "100000");
+       String nc = System.getProperty("hc.benchmark.concurrent", "25");
+       String cls = System.getProperty("hc.benchmark.content-len", "2048");
+       
+       int n = Integer.parseInt(ns);
+       int c = Integer.parseInt(nc);
+       int contentLen = Integer.parseInt(cls);
+       
        SocketConnector connector = new SocketConnector();
        connector.setPort(0);
        connector.setRequestBufferSize(12 * 1024);
@@ -54,8 +63,8 @@ public class Benchmark {
        connector.setAcceptors(2);
 
        QueuedThreadPool threadpool = new QueuedThreadPool();
-       threadpool.setMinThreads(25);
-       threadpool.setMaxThreads(200);
+       threadpool.setMinThreads(c);
+       threadpool.setMaxThreads(2000);
 
        Server server = new Server();
        server.addConnector(connector);
@@ -64,9 +73,10 @@ public class Benchmark {
 
        server.start();
        int port = connector.getLocalPort();
-       int n = 200000;
-       int contentLen = 2048;
 
+       // Sleep a little
+       Thread.sleep(2000);
+       
        TestHttpAgent[] agents = new TestHttpAgent[] {
                new TestHttpClient3(),
                new TestHttpJRE(),
@@ -74,10 +84,6 @@ public class Benchmark {
                new TestHttpClient4(),
                new TestJettyHttpClient()
        };
-
-       for (TestHttpAgent agent: agents) {
-           agent.init();
-       }
 
        byte[] content = new byte[contentLen];
        int r = Math.abs(content.hashCode());
@@ -90,24 +96,30 @@ public class Benchmark {
 
        try {
            for (TestHttpAgent agent: agents) {
-               System.out.println("=================================");
-               System.out.println("HTTP agent: " + agent.getClientName());
-               System.out.println("---------------------------------");
-               System.out.println(n + " GET requests");
-               System.out.println("---------------------------------");
+               agent.init();
+               try {
+                   System.out.println("=================================");
+                   System.out.println("HTTP agent: " + agent.getClientName());
+                   System.out.println("---------------------------------");
+                   System.out.println(n + " GET requests");
+                   System.out.println("---------------------------------");
 
-               long startTime1 = System.currentTimeMillis();
-               Stats stats1 = agent.get(target1, n);
-               long finishTime1 = System.currentTimeMillis();
-               Stats.printStats(target1, startTime1, finishTime1, stats1);
-               System.out.println("---------------------------------");
-               System.out.println(n + " POST requests");
-               System.out.println("---------------------------------");
+                   long startTime1 = System.currentTimeMillis();
+                   Stats stats1 = agent.get(target1, n, c);
+                   long finishTime1 = System.currentTimeMillis();
+                   Stats.printStats(target1, startTime1, finishTime1, stats1);
+                   System.out.println("---------------------------------");
+                   System.out.println(n + " POST requests");
+                   System.out.println("---------------------------------");
 
-               long startTime2 = System.currentTimeMillis();
-               Stats stats2 = agent.post(target2, content, n);
-               long finishTime2 = System.currentTimeMillis();
-               Stats.printStats(target2, startTime2, finishTime2, stats2);
+                   long startTime2 = System.currentTimeMillis();
+                   Stats stats2 = agent.post(target2, content, n, c);
+                   long finishTime2 = System.currentTimeMillis();
+                   Stats.printStats(target2, startTime2, finishTime2, stats2);
+               } finally {
+                   agent.shutdown();
+               }
+               agent.init();
                System.out.println("---------------------------------");
            }
        } finally {

@@ -29,10 +29,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpVersion;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -40,73 +41,107 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 
 public class TestHttpClient3 implements TestHttpAgent {
 
+    private final MultiThreadedHttpConnectionManager mgr;
     private final HttpClient httpclient;
 
     public TestHttpClient3() {
         super();
-        this.httpclient = new HttpClient();
+        this.mgr = new MultiThreadedHttpConnectionManager();         
+        this.httpclient = new HttpClient(this.mgr);
         this.httpclient.getParams().setVersion(
                 HttpVersion.HTTP_1_1);
         this.httpclient.getParams().setBooleanParameter(
                 HttpMethodParams.USE_EXPECT_CONTINUE, false);
         this.httpclient.getHttpConnectionManager().getParams()
                 .setStaleCheckingEnabled(false);
-    }
+        this.httpclient.getParams().setSoTimeout(15000);
+        
+        HttpMethodRetryHandler retryhandler = new HttpMethodRetryHandler() {
+
+            public boolean retryMethod(final HttpMethod httpmethod, final IOException ex, int count) {
+                return false;
+            }
+            
+        };
+        this.httpclient.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryhandler);    }
 
     public void init() {
     }
 
-    public Stats execute(final HttpMethod httpmethod, int n) throws Exception {
+    public void shutdown() {
+        this.mgr.shutdown();
+    }
 
-        Stats stats = new Stats();
-
-        int successCount = 0;
-        int failureCount = 0;
-        long contentLen = 0;
-        long totalContentLen = 0;
-
-        byte[] buffer = new byte[4096];
-
-        for (int i = 0; i < n; i++) {
-            try {
-                this.httpclient.executeMethod(httpmethod);
-                InputStream instream = httpmethod.getResponseBodyAsStream();
-                contentLen = 0;
-                if (instream != null) {
-                    int l = 0;
-                    while ((l = instream.read(buffer)) != -1) {
-                        contentLen += l;
-                    }
-                }
-                successCount++;
-                totalContentLen += contentLen;
-            } catch (IOException ex) {
-                failureCount++;
-            } finally {
-                httpmethod.releaseConnection();
-            }
+    Stats execute(final URI target, final byte[] content, int n, int c) throws Exception {
+        this.mgr.getParams().setMaxTotalConnections(2000);
+        this.mgr.getParams().setDefaultMaxConnectionsPerHost(c);
+        Stats stats = new Stats(n, c);
+        WorkerThread[] workers = new WorkerThread[c];
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new WorkerThread(stats, target, content);
         }
-        Header header = httpmethod.getResponseHeader("Server");
-        if (header != null) {
-            stats.setServerName(header.getValue());
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].start();
         }
-
-        stats.setSuccessCount(successCount);
-        stats.setFailureCount(failureCount);
-        stats.setContentLen(contentLen);
-        stats.setTotalContentLen(totalContentLen);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].join();
+        }
         return stats;
     }
+    
+    class WorkerThread extends Thread {
 
-    public Stats get(final URI target, int n) throws Exception {
-        GetMethod httpget = new GetMethod(target.toASCIIString());
-        return execute(httpget, n);
+        private final Stats stats;
+        private final URI target;
+        private final byte[] content;
+        
+        WorkerThread(final Stats stats, final URI target, final byte[] content) {
+            super();
+            this.stats = stats;
+            this.target = target;
+            this.content = content;
+        }
+        
+        @Override
+        public void run() {
+            byte[] buffer = new byte[4096];
+            while (!this.stats.isComplete()) {
+                HttpMethod httpmethod;
+                if (this.content == null) {
+                    GetMethod httpget = new GetMethod(target.toASCIIString());
+                    httpmethod = httpget;
+                } else {
+                    PostMethod httppost = new PostMethod(target.toASCIIString());
+                    httppost.setRequestEntity(new ByteArrayRequestEntity(content));
+                    httpmethod = httppost;
+                }
+                long contentLen = 0;
+                try {
+                    httpclient.executeMethod(httpmethod);
+                    InputStream instream = httpmethod.getResponseBodyAsStream();
+                    if (instream != null) {
+                        int l = 0;
+                        while ((l = instream.read(buffer)) != -1) {
+                            contentLen += l;
+                        }
+                    }
+                    this.stats.success(contentLen);
+                } catch (IOException ex) {
+                    this.stats.failure(contentLen);
+                } finally {
+                    httpmethod.releaseConnection();
+                }
+            }
+        }
+        
     }
 
-    public Stats post(URI target, byte[] content, int n) throws Exception {
-        PostMethod httppost = new PostMethod(target.toASCIIString());
-        httppost.setRequestEntity(new ByteArrayRequestEntity(content));
-        return execute(httppost, n);
+    public Stats get(final URI target, int n, int c) throws Exception {
+        return execute(target, null, n, c);
+    }
+
+    public Stats post(URI target, byte[] content, int n, int c) throws Exception {
+        return execute(target, content, n, c);
     }
 
     public String getClientName() {
@@ -115,19 +150,27 @@ public class TestHttpClient3 implements TestHttpAgent {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.out.println("Usage: <target URI> <no of requests>");
+            System.out.println("Usage: <target URI> <no of requests> <concurrent connections>");
             System.exit(-1);
         }
         URI targetURI = new URI(args[0]);
         int n = Integer.parseInt(args[1]);
+        int c = 1;
+        if (args.length > 2) {
+            c = Integer.parseInt(args[2]);
+        }
 
         TestHttpClient3 test = new TestHttpClient3();
+        test.init();
+        try {
+            long startTime = System.currentTimeMillis();
+            Stats stats = test.get(targetURI, n, c);
+            long finishTime = System.currentTimeMillis();
 
-        long startTime = System.currentTimeMillis();
-        Stats stats = test.get(targetURI, n);
-        long finishTime = System.currentTimeMillis();
-
-        Stats.printStats(targetURI, startTime, finishTime, stats);
+            Stats.printStats(targetURI, startTime, finishTime, stats);
+        } finally {
+            test.shutdown();
+        }
     }
 
 }
