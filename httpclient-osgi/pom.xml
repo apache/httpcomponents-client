@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
    or more contributor license agreements.  See the NOTICE file
@@ -39,7 +39,7 @@
    HttpComponents Client (OSGi bundle)
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
-  <packaging>bundle</packaging>  
+  <packaging>bundle</packaging>
 
   <licenses>
     <license>
@@ -81,31 +81,9 @@
     <resources>
       <resource>
         <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-        <includes>
-            <include>META-INF/*</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <includes>
             <include>**/*.properties</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>..</directory>
-        <targetPath>META-INF</targetPath>
-        <includes>
-          <include>LICENSE.txt</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>../src/main/resources</directory>
-        <targetPath>META-INF</targetPath>
-        <filtering>true</filtering>
-        <includes>
-          <include>NOTICE.txt</include>
         </includes>
       </resource>
     </resources>

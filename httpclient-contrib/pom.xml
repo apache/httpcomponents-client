@@ -38,15 +38,7 @@
    HttpComponents HttpClient - Contributed Components
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
-  <packaging>jar</packaging>  
-
-  <licenses>
-    <license>
-      <name>Apache License</name>
-      <url>../LICENSE.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+  <packaging>jar</packaging>
 
   <dependencies>
     <dependency>

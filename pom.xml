@@ -87,6 +87,18 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-notice-plugin</artifactId>
+        <groupId>org.apache.httpcomponents</groupId>
+        <executions>
+          <execution>
+            <id>attach-notice-license</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-source-plugin</artifactId>
         <executions>
           <execution>
@@ -102,8 +114,8 @@
         <configuration>
           <source>1.5</source>
           <links>
-            <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core/httpcore/apidocs/</link>
+            <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
+            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
           </links>
         </configuration>
       </plugin>
@@ -200,13 +212,13 @@
               </goals>
               <configuration>
                 <outputDirectory>${basedir}/target/site/examples</outputDirectory>
-                <resources>          
+                <resources>
                   <resource>
                     <directory>src/examples</directory>
                     <filtering>false</filtering>
                   </resource>
-                </resources>              
-              </configuration>            
+                </resources>
+              </configuration>
             </execution>
           </executions>
         </plugin>

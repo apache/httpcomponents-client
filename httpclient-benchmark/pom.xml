@@ -38,15 +38,7 @@
    HttpComponents HttpClient - Benchmarks
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
-  <packaging>jar</packaging>  
-
-  <licenses>
-    <license>
-      <name>Apache License</name>
-      <url>../LICENSE.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+  <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
@@ -126,7 +118,7 @@
               <goal>java</goal>
             </goals>
             <configuration>
-              <mainClass>org.apache.http.client.benchmark.Benchmark</mainClass>        
+              <mainClass>org.apache.http.client.benchmark.Benchmark</mainClass>
             </configuration>
           </execution>
         </executions>
