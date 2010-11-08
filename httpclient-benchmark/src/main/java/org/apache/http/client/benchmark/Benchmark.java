@@ -48,8 +48,8 @@ public class Benchmark {
 
    public static void main(String[] args) throws Exception {
        
-       String ns = System.getProperty("hc.benchmark.n-requests", "100000");
-       String nc = System.getProperty("hc.benchmark.concurrent", "25");
+       String ns = System.getProperty("hc.benchmark.n-requests", "200000");
+       String nc = System.getProperty("hc.benchmark.concurrent", "100");
        String cls = System.getProperty("hc.benchmark.content-len", "2048");
        
        int n = Integer.parseInt(ns);
@@ -82,7 +82,8 @@ public class Benchmark {
                new TestHttpJRE(),
                new TestHttpCore(),
                new TestHttpClient4(),
-               new TestJettyHttpClient()
+               new TestJettyHttpClient(),
+               new TestNingHttpClient()
        };
 
        byte[] content = new byte[contentLen];

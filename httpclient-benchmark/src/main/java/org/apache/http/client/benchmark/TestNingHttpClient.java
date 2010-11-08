@@ -28,47 +28,56 @@ package org.apache.http.client.benchmark;
 import java.io.IOException;
 import java.net.URI;
 
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.HttpExchange;
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.io.ByteArrayBuffer;
-import org.eclipse.jetty.server.Server;
+import com.ning.http.client.AsyncHandler;
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.HttpResponseBodyPart;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
+import com.ning.http.client.Request;
 
-public class TestJettyHttpClient implements TestHttpAgent {
+public class TestNingHttpClient implements TestHttpAgent {
 
-    private final HttpClient client;
+    private AsyncHttpClient client;
 
-    public TestJettyHttpClient() {
+    public TestNingHttpClient() {
         super();
-        this.client = new HttpClient();
-        this.client.setRequestBufferSize(8 * 1024);
-        this.client.setResponseBufferSize(8 * 1024);
-        this.client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-        this.client.setTimeout(15000);
     }
 
     public void init() throws Exception {
-        this.client.start();
     }
 
     public void shutdown() throws Exception {
-        this.client.stop();
+        this.client.close();
     }
 
     Stats execute(final URI targetURI, byte[] content, int n, int c) throws Exception {
-        this.client.setMaxConnectionsPerAddress(c);
+        if (this.client != null) {
+            this.client.close();
+        }
+        AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
+            .setKeepAlive(true)
+            .setCompressionEnabled(false)
+            .setMaximumConnectionsPerHost(c)
+            .setMaximumConnectionsTotal(2000)
+            .setRequestTimeoutInMs(15000)
+            .build(); 
+        this.client = new AsyncHttpClient(config);
+
         Stats stats = new Stats(n, c);
 
         for (int i = 0; i < n; i++) {
-            SimpleHttpExchange exchange = new SimpleHttpExchange(stats);
-            exchange.setURL(targetURI.toASCIIString());
-
-            if (content != null) {
-                exchange.setMethod("POST");
-                exchange.setRequestContent(new ByteArrayBuffer(content));
+            Request request;
+            if (content == null) {
+                request = this.client.prepareGet(targetURI.toASCIIString())
+                    .build();            
+            } else {
+                request = this.client.preparePost(targetURI.toASCIIString())
+                    .setBody(content)
+                    .build();            
             }
             try {
-                this.client.send(exchange);
+                this.client.executeRequest(request, new SimpleAsyncHandler(stats));
             } catch (IOException ex) {
             }
         }
@@ -85,54 +94,47 @@ public class TestJettyHttpClient implements TestHttpAgent {
     }
 
     public String getClientName() {
-        return "Jetty " + Server.getVersion();
+        return "Ning Async HTTP client 1.3"; 
     }
 
-    static class SimpleHttpExchange extends HttpExchange {
+    static class SimpleAsyncHandler implements AsyncHandler<Object> {
 
         private final Stats stats;
         private int status = 0;
         private long contentLen = 0;
 
-        SimpleHttpExchange(final Stats stats) {
+        SimpleAsyncHandler(final Stats stats) {
             super();
             this.stats = stats;
         }
         
-        protected void onResponseStatus(
-                final Buffer version, int status, final Buffer reason) throws IOException {
-            this.status = status;
-            super.onResponseStatus(version, status, reason);
+        public STATE onStatusReceived(final HttpResponseStatus responseStatus) throws Exception {
+            this.status = responseStatus.getStatusCode();
+            return STATE.CONTINUE;
         }
 
-        @Override
-        protected void onResponseContent(final Buffer content) throws IOException {
-            this.contentLen += content.asArray().length;
-            super.onResponseContent(content);
+        public STATE onHeadersReceived(final HttpResponseHeaders headers) throws Exception {
+            return STATE.CONTINUE;
         }
 
-        @Override
-        protected void onResponseComplete() throws IOException {
+        public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
+            this.contentLen += bodyPart.getBodyPartBytes().length;
+            return STATE.CONTINUE;
+        }
+
+        public Object onCompleted() throws Exception {
             if (this.status == 200) {
                 this.stats.success(this.contentLen);
             } else {
                 this.stats.failure(this.contentLen);
             }
-            super.onResponseComplete();
+            return STATE.CONTINUE;
         }
 
-        @Override
-        protected void onConnectionFailed(final Throwable x) {
+        public void onThrowable(final Throwable t) {
             this.stats.failure(this.contentLen);
-            super.onConnectionFailed(x);
         }
 
-        @Override
-        protected void onException(final Throwable x) {
-            this.stats.failure(this.contentLen);
-            super.onException(x);
-        }
-        
     };
 
     public static void main(String[] args) throws Exception {
@@ -147,7 +149,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             c = Integer.parseInt(args[2]);
         }
         
-        TestJettyHttpClient test = new TestJettyHttpClient();
+        TestNingHttpClient test = new TestNingHttpClient();
         test.init();
         try {
             long startTime = System.currentTimeMillis();
