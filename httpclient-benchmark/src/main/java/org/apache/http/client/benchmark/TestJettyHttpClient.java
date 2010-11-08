@@ -98,7 +98,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             super();
             this.stats = stats;
         }
-        
+
         protected void onResponseStatus(
                 final Buffer version, int status, final Buffer reason) throws IOException {
             this.status = status;
@@ -132,7 +132,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             this.stats.failure(this.contentLen);
             super.onException(x);
         }
-        
+
     };
 
     public static void main(String[] args) throws Exception {
@@ -146,7 +146,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
         if (args.length > 2) {
             c = Integer.parseInt(args[2]);
         }
-        
+
         TestJettyHttpClient test = new TestJettyHttpClient();
         test.init();
         try {

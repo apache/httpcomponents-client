@@ -66,7 +66,7 @@ public class TestHttpClient4 implements TestHttpAgent {
                 false);
         params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
-        params.setIntParameter(HttpConnectionParams.SO_TIMEOUT, 
+        params.setIntParameter(HttpConnectionParams.SO_TIMEOUT,
                 15000);
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
@@ -74,12 +74,12 @@ public class TestHttpClient4 implements TestHttpAgent {
         this.mgr = new ThreadSafeClientConnManager(schemeRegistry);
         this.httpclient = new DefaultHttpClient(this.mgr, params);
         this.httpclient.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
-            
+
             public boolean retryRequest(
                     final IOException exception, int executionCount, final HttpContext context) {
                 return false;
             }
-            
+
         });
     }
 
@@ -106,20 +106,20 @@ public class TestHttpClient4 implements TestHttpAgent {
         }
         return stats;
     }
-    
+
     class WorkerThread extends Thread {
 
         private final Stats stats;
         private final URI target;
         private final byte[] content;
-        
+
         WorkerThread(final Stats stats, final URI target, final byte[] content) {
             super();
             this.stats = stats;
             this.target = target;
             this.content = content;
         }
-        
+
         @Override
         public void run() {
             byte[] buffer = new byte[4096];
@@ -158,9 +158,9 @@ public class TestHttpClient4 implements TestHttpAgent {
                 }
             }
         }
-        
+
     }
-    
+
     public Stats get(final URI target, int n, int c) throws Exception {
         return execute(target, null, n ,c);
     }

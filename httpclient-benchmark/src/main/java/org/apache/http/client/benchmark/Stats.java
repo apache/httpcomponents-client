@@ -31,7 +31,7 @@ public class Stats {
 
     private final int expectedCount;
     private final int concurrency;
-    
+
     private int successCount = 0;
     private int failureCount = 0;
     private long contentLen = 0;
@@ -48,7 +48,7 @@ public class Stats {
     }
 
     public synchronized void success(long contentLen) {
-        if (isComplete()) return;        
+        if (isComplete()) return;
         this.successCount++;
         this.contentLen = contentLen;
         this.totalContentLen += contentLen;
@@ -56,7 +56,7 @@ public class Stats {
     }
 
     public synchronized void failure(long contentLen) {
-        if (isComplete()) return;        
+        if (isComplete()) return;
         this.failureCount++;
         this.contentLen = contentLen;
         this.totalContentLen += contentLen;
@@ -66,7 +66,7 @@ public class Stats {
     public int getConcurrency() {
         return this.concurrency;
     }
-    
+
     public synchronized int getSuccessCount() {
         return successCount;
     }
@@ -86,7 +86,7 @@ public class Stats {
     public synchronized long getTotalContentLen() {
         return totalContentLen;
     }
-    
+
     public synchronized void waitFor() throws InterruptedException {
         while (!isComplete()) {
             wait();

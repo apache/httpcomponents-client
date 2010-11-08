@@ -66,14 +66,14 @@ public class TestHttpJRE implements TestHttpAgent {
         private final Stats stats;
         private final URL target;
         private final byte[] content;
-        
+
         WorkerThread(final Stats stats, final URL target, final byte[] content) {
             super();
             this.stats = stats;
             this.target = target;
             this.content = content;
         }
-        
+
         @Override
         public void run() {
             byte[] buffer = new byte[4096];
@@ -119,7 +119,7 @@ public class TestHttpJRE implements TestHttpAgent {
             }
         }
     }
-    
+
     public Stats get(final URI target, int n, int c) throws Exception {
         return execute(target, null, n, c);
     }

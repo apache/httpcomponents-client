@@ -78,7 +78,7 @@ public class TestHttpCore implements TestHttpAgent {
                 false);
         this.params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,
                 8 * 1024);
-        this.params.setIntParameter(HttpConnectionParams.SO_TIMEOUT, 
+        this.params.setIntParameter(HttpConnectionParams.SO_TIMEOUT,
                 15000);
 
         this.httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
@@ -108,7 +108,7 @@ public class TestHttpCore implements TestHttpAgent {
             buffer.append(target.getQuery());
         }
         String requestUri = buffer.toString();
-        
+
         Stats stats = new Stats(n, c);
         WorkerThread[] workers = new WorkerThread[c];
         for (int i = 0; i < workers.length; i++) {
@@ -129,8 +129,8 @@ public class TestHttpCore implements TestHttpAgent {
         private final HttpHost targetHost;
         private final String requestUri;
         private final byte[] content;
-        
-        WorkerThread(final Stats stats, 
+
+        WorkerThread(final Stats stats,
                 final HttpHost targetHost, final String requestUri, final byte[] content) {
             super();
             this.stats = stats;
@@ -138,7 +138,7 @@ public class TestHttpCore implements TestHttpAgent {
             this.requestUri = requestUri;
             this.content = content;
         }
-        
+
         @Override
         public void run() {
             byte[] buffer = new byte[4096];
@@ -165,7 +165,7 @@ public class TestHttpCore implements TestHttpAgent {
                                     this.targetHost.getPort() > 0 ? this.targetHost.getPort() : 80);
                             conn.bind(socket, params);
                         }
-                        
+
                         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
                         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, targetHost);
 
@@ -208,9 +208,9 @@ public class TestHttpCore implements TestHttpAgent {
                 } catch (IOException ignore) {}
             }
         }
-        
+
     }
-    
+
     public Stats get(final URI target, int n, int c) throws Exception {
         return execute(target, null, n, c);
     }

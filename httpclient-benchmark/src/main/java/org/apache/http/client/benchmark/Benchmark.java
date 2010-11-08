@@ -47,20 +47,21 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 public class Benchmark {
 
    public static void main(String[] args) throws Exception {
-       
+
        String ns = System.getProperty("hc.benchmark.n-requests", "200000");
        String nc = System.getProperty("hc.benchmark.concurrent", "100");
        String cls = System.getProperty("hc.benchmark.content-len", "2048");
-       
+
        int n = Integer.parseInt(ns);
        int c = Integer.parseInt(nc);
        int contentLen = Integer.parseInt(cls);
-       
+
        SocketConnector connector = new SocketConnector();
        connector.setPort(0);
        connector.setRequestBufferSize(12 * 1024);
        connector.setResponseBufferSize(12 * 1024);
        connector.setAcceptors(2);
+       connector.setAcceptQueueSize(c);
 
        QueuedThreadPool threadpool = new QueuedThreadPool();
        threadpool.setMinThreads(c);
@@ -76,7 +77,7 @@ public class Benchmark {
 
        // Sleep a little
        Thread.sleep(2000);
-       
+
        TestHttpAgent[] agents = new TestHttpAgent[] {
                new TestHttpClient3(),
                new TestHttpJRE(),

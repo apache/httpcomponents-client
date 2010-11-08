@@ -46,7 +46,7 @@ public class TestHttpClient3 implements TestHttpAgent {
 
     public TestHttpClient3() {
         super();
-        this.mgr = new MultiThreadedHttpConnectionManager();         
+        this.mgr = new MultiThreadedHttpConnectionManager();
         this.httpclient = new HttpClient(this.mgr);
         this.httpclient.getParams().setVersion(
                 HttpVersion.HTTP_1_1);
@@ -55,13 +55,13 @@ public class TestHttpClient3 implements TestHttpAgent {
         this.httpclient.getHttpConnectionManager().getParams()
                 .setStaleCheckingEnabled(false);
         this.httpclient.getParams().setSoTimeout(15000);
-        
+
         HttpMethodRetryHandler retryhandler = new HttpMethodRetryHandler() {
 
             public boolean retryMethod(final HttpMethod httpmethod, final IOException ex, int count) {
                 return false;
             }
-            
+
         };
         this.httpclient.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryhandler);    }
 
@@ -88,20 +88,20 @@ public class TestHttpClient3 implements TestHttpAgent {
         }
         return stats;
     }
-    
+
     class WorkerThread extends Thread {
 
         private final Stats stats;
         private final URI target;
         private final byte[] content;
-        
+
         WorkerThread(final Stats stats, final URI target, final byte[] content) {
             super();
             this.stats = stats;
             this.target = target;
             this.content = content;
         }
-        
+
         @Override
         public void run() {
             byte[] buffer = new byte[4096];
@@ -133,7 +133,7 @@ public class TestHttpClient3 implements TestHttpAgent {
                 }
             }
         }
-        
+
     }
 
     public Stats get(final URI target, int n, int c) throws Exception {

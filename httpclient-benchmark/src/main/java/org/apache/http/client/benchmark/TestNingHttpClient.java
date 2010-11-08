@@ -61,7 +61,7 @@ public class TestNingHttpClient implements TestHttpAgent {
             .setMaximumConnectionsPerHost(c)
             .setMaximumConnectionsTotal(2000)
             .setRequestTimeoutInMs(15000)
-            .build(); 
+            .build();
         this.client = new AsyncHttpClient(config);
 
         Stats stats = new Stats(n, c);
@@ -70,11 +70,11 @@ public class TestNingHttpClient implements TestHttpAgent {
             Request request;
             if (content == null) {
                 request = this.client.prepareGet(targetURI.toASCIIString())
-                    .build();            
+                    .build();
             } else {
                 request = this.client.preparePost(targetURI.toASCIIString())
                     .setBody(content)
-                    .build();            
+                    .build();
             }
             try {
                 this.client.executeRequest(request, new SimpleAsyncHandler(stats));
@@ -94,7 +94,7 @@ public class TestNingHttpClient implements TestHttpAgent {
     }
 
     public String getClientName() {
-        return "Ning Async HTTP client 1.3"; 
+        return "Ning Async HTTP client 1.3";
     }
 
     static class SimpleAsyncHandler implements AsyncHandler<Object> {
@@ -107,7 +107,7 @@ public class TestNingHttpClient implements TestHttpAgent {
             super();
             this.stats = stats;
         }
-        
+
         public STATE onStatusReceived(final HttpResponseStatus responseStatus) throws Exception {
             this.status = responseStatus.getStatusCode();
             return STATE.CONTINUE;
@@ -148,7 +148,7 @@ public class TestNingHttpClient implements TestHttpAgent {
         if (args.length > 2) {
             c = Integer.parseInt(args[2]);
         }
-        
+
         TestNingHttpClient test = new TestNingHttpClient();
         test.init();
         try {
