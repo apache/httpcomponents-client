@@ -41,14 +41,6 @@
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>bundle</packaging>
 
-  <licenses>
-    <license>
-      <name>Apache License</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
