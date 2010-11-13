@@ -28,7 +28,7 @@
   <parent>
     <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
-    <version>4.1</version>
+    <version>4.1.1</version>
     <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -89,7 +89,6 @@
       <plugin>
         <artifactId>maven-notice-plugin</artifactId>
         <groupId>org.apache.httpcomponents</groupId>
-        <version>0.0.1</version>
         <executions>
           <execution>
             <id>attach-notice-license</id>
