@@ -40,7 +40,7 @@ import org.apache.http.client.cache.Resource;
  * @since 4.1
  */
 @ThreadSafe
-class FileResource implements Resource {
+public class FileResource implements Resource {
 
     private static final long serialVersionUID = 4132244415919043397L;
 

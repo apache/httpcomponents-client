@@ -38,7 +38,7 @@ import org.apache.http.client.cache.Resource;
  * @since 4.1
  */
 @Immutable
-class HeapResource implements Resource {
+public class HeapResource implements Resource {
 
     private static final long serialVersionUID = -2078599905620463394L;
 
