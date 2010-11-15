@@ -42,7 +42,13 @@
             <outputDirectory>lib</outputDirectory>
             <unpack>false</unpack>
             <dependencySets>
-                <dependencySet/>
+                <dependencySet>
+                  <excludes>
+                    <exclude>net.sf.ehcache:*</exclude>
+                    <exclude>spy:*</exclude>
+                    <exclude>org.slf4j:*</exclude>
+                  </excludes>
+                </dependencySet>
             </dependencySets>
           </binaries>
         </moduleSet>
