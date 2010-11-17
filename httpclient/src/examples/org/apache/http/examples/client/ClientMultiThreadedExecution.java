@@ -62,8 +62,8 @@ public class ClientMultiThreadedExecution {
         // create an array of URIs to perform GETs on
         String[] urisToGet = {
             "http://hc.apache.org/",
-            "http://hc.apache.org/httpcomponents-core/",
-            "http://hc.apache.org/httpcomponents-client/",
+            "http://hc.apache.org/httpcomponents-core-ga/",
+            "http://hc.apache.org/httpcomponents-client-ga/",
             "http://svn.apache.org/viewvc/httpcomponents/"
         };
 

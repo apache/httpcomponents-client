@@ -57,9 +57,9 @@ public interface HttpUriRequest extends HttpRequest {
      *
      * To find the final URI after any redirects have been processed,
      * please see the section entitled
-     * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
+     * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
      * in the
-     * <a href="http://hc.apache.org/httpcomponents-client/tutorial/html">HttpClient Tutorial</a>
+     * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html">HttpClient Tutorial</a>
      */
     URI getURI();
 
