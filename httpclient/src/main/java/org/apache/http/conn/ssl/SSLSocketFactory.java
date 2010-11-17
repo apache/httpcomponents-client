@@ -336,27 +336,23 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
 
     /**
      * @param params Optional parameters. Parameters passed to this method will have no effect.
-     *               This method will create a unconnected instance of {@link Socket} class
-     *               using {@link javax.net.ssl.SSLSocketFactory#createSocket()} method.
+     *               This method will create a unconnected instance of {@link Socket} class.
      * @since 4.1
      */
-    @SuppressWarnings("cast")
     public Socket createSocket(final HttpParams params) throws IOException {
-        // the cast makes sure that the factory is working as expected
-        return (SSLSocket) this.socketfactory.createSocket();
+        return new Socket();
     }
 
-    @SuppressWarnings("cast")
+    @Deprecated
     public Socket createSocket() throws IOException {
-        // the cast makes sure that the factory is working as expected
-        return (SSLSocket) this.socketfactory.createSocket();
+        return new Socket();
     }
 
     /**
      * @since 4.1
      */
     public Socket connectSocket(
-            final Socket sock,
+            final Socket socket,
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
@@ -366,22 +362,30 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        SSLSocket sslsock = (SSLSocket) (sock != null ? sock : createSocket());
+        Socket sock = socket != null ? socket : new Socket();
         if (localAddress != null) {
-            sslsock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
-            sslsock.bind(localAddress);
+            sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
+            sock.bind(localAddress);
         }
 
         int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
         int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
         try {
-            sslsock.connect(remoteAddress, connTimeout);
+            sock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
                     + remoteAddress.getAddress() + " timed out");
         }
-        sslsock.setSoTimeout(soTimeout);
+        sock.setSoTimeout(soTimeout);
+        SSLSocket sslsock;
+        // Setup SSL layering if necessary
+        if (sock instanceof SSLSocket) {
+            sslsock = (SSLSocket) sock;
+        } else {
+            sslsock = (SSLSocket) this.socketfactory.createSocket(
+                    sock, remoteAddress.getHostName(), remoteAddress.getPort(), true);
+        }
         if (this.hostnameVerifier != null) {
             try {
                 this.hostnameVerifier.verify(remoteAddress.getHostName(), sslsock);

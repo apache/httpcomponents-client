@@ -54,7 +54,7 @@ import org.apache.http.params.HttpParams;
  */
 @SuppressWarnings("deprecation")
 @Immutable
-public final class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
+public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
 
     /**
      * The default factory.
