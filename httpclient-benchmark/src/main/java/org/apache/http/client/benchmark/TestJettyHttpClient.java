@@ -107,7 +107,9 @@ public class TestJettyHttpClient implements TestHttpAgent {
 
         @Override
         protected void onResponseContent(final Buffer content) throws IOException {
-            this.contentLen += content.asArray().length;
+            byte[] tmp = new byte[content.length()];
+            content.get(tmp, 0, tmp.length);
+            this.contentLen += tmp.length;
             super.onResponseContent(content);
         }
 

@@ -56,7 +56,7 @@ public class TestNingHttpClient implements TestHttpAgent {
             this.client.close();
         }
         AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
-            .setKeepAlive(true)
+            .setAllowPoolingConnection(true)
             .setCompressionEnabled(false)
             .setMaximumConnectionsPerHost(c)
             .setMaximumConnectionsTotal(2000)
@@ -94,7 +94,7 @@ public class TestNingHttpClient implements TestHttpAgent {
     }
 
     public String getClientName() {
-        return "Ning Async HTTP client 1.3";
+        return "Ning Async HTTP client 1.4.0";
     }
 
     static class SimpleAsyncHandler implements AsyncHandler<Object> {
