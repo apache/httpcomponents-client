@@ -98,7 +98,7 @@ httpclient.getConnectionManager().shutdown();
                     <title>'http.protocol.handle-redirects':</title>
                     <para>defines whether redirects should be handled automatically. This parameter
                         expects a value of type <classname>java.lang.Boolean</classname>. If this
-                        parameter is not HttpClient will handle redirects automatically.</para>
+                        parameter is not set HttpClient will handle redirects automatically.</para>
                 </formalpara>
             </listitem>
             <listitem>

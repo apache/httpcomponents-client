@@ -26,7 +26,7 @@
     <section>
         <title>Custom client connections</title>
         <para>In certain situations it may be necessary to customize the way HTTP messages get
-            transmitted across the wire beyond what is possible possible using HTTP parameters in
+            transmitted across the wire beyond what is possible using HTTP parameters in
             order to be able to deal non-standard, non-compliant behaviours. For instance, for web
             crawlers it may be necessary to force HttpClient into accepting malformed response heads
             in order to salvage the content of the messages. </para>

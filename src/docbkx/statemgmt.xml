@@ -42,7 +42,7 @@
         <title>HTTP cookies</title>
         <para>Cookie is a token or short packet of state information that the HTTP agent and the
             target server can exchange to maintain a session. Netscape engineers used to refer to it
-            as as a "magic cookie" and the name stuck.</para>
+            as a "magic cookie" and the name stuck.</para>
         <para>HttpClient uses <interfacename>Cookie</interfacename> interface to represent an
             abstract cookie token. In its simples form an HTTP cookie is merely a name / value pair.
             Usually an HTTP cookie also contains a number of attributes such as version, a domain
