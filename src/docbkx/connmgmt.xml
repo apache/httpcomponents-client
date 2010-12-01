@@ -23,9 +23,9 @@
 -->
 <chapter id="connmgmt">
     <title>Connection management</title>
-    <para>HttpClient has a complete control over the process of connection initialization and
+    <para>HttpClient assumes complete control over the process of connection initialization and
         termination as well as I/O operations on active connections. However various aspects of
-        connection operations can be controlled using a number of parameters.</para>
+        connection operations can be influenced using a number of parameters.</para>
     <section>
         <title>Connection parameters</title>
         <para>These are parameters that can influence connection operations:</para>
@@ -38,19 +38,19 @@
                         a maximum period inactivity between two consecutive data packets). A timeout
                         value of zero is interpreted as an infinite timeout. This parameter expects
                         a value of type <classname>java.lang.Integer</classname>. If this parameter
-                        is not set read operations will not time out (infinite timeout).</para>
+                        is not set, read operations will not time out (infinite timeout).</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
                     <title>'http.tcp.nodelay':</title>
-                    <para>determines whether Nagle's algorithm is to be used. The Nagle's algorithm
+                    <para>determines whether Nagle's algorithm is to be used. Nagle's algorithm
                         tries to conserve bandwidth by minimizing the number of segments that are
                         sent. When applications wish to decrease network latency and increase
                         performance, they can disable Nagle's algorithm (that is enable
                             <literal>TCP_NODELAY</literal>. Data will be sent earlier, at the cost
                         of an increase in bandwidth consumption. This parameter expects a value of
-                        type <classname>java.lang.Boolean</classname>. If this parameter is not,
+                        type <classname>java.lang.Boolean</classname>. If this parameter is not set,
                             <literal>TCP_NODELAY</literal> will be enabled (no delay).</para>
                 </formalpara>
             </listitem>
@@ -60,7 +60,7 @@
                     <para>determines the size of the internal socket buffer used to buffer data
                         while receiving / transmitting HTTP messages. This parameter expects a value
                         of type <classname>java.lang.Integer</classname>. If this parameter is not
-                        set HttpClient will allocate 8192 byte socket buffers.</para>
+                        set, HttpClient will allocate 8192 byte socket buffers.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -70,7 +70,7 @@
                         seconds. The maximum timeout value is platform specific. Value 0 implies
                         that the option is disabled. Value -1 implies that the JRE default is used.
                         The setting only affects the socket close operation. If this parameter is
-                        not set value -1 (JRE default) will be assumed.</para>
+                        not set, the value -1 (JRE default) will be assumed.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -79,7 +79,7 @@
                     <para>determines the timeout in milliseconds until a connection is established.
                         A timeout value of zero is interpreted as an infinite timeout. This
                         parameter expects a value of type <classname>java.lang.Integer</classname>.
-                        If this parameter is not set connect operations will not time out (infinite
+                        If this parameter is not set, connect operations will not time out (infinite
                         timeout).</para>
                 </formalpara>
             </listitem>
@@ -92,8 +92,8 @@
                         getting an I/O error when executing a request over a connection that has
                         been closed at the server side. This parameter expects a value of type
                             <classname>java.lang.Boolean</classname>. For performance critical
-                        operations the check should be disabled. If this parameter is not set the
-                        stale connection will be performed before each request execution.</para>
+                        operations the check should be disabled. If this parameter is not set, the
+                        stale connection check will be performed before each request execution.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -130,7 +130,7 @@
                         skip those surplus lines this way. This parameter expects a value of type
                         java.lang.Integer. 0 disallows all garbage/empty lines before the status
                         line. Use <constant>java.lang.Integer#MAX_VALUE</constant> for unlimited
-                        number. If this parameter is not set unlimited number will be
+                        number. If this parameter is not set, unlimited number will be
                         assumed.</para>
                 </formalpara>
             </listitem>
@@ -144,17 +144,17 @@
             small HTTP messages. One can achieve a much higher data throughput if open connections
             can be re-used to execute multiple requests.</para>
         <para>HTTP/1.1 states that HTTP connections can be re-used for multiple requests per
-            default. HTTP/1.0 compliant endpoints can also use similar mechanism to explicitly
+            default. HTTP/1.0 compliant endpoints can also use a mechanism to explicitly
             communicate their preference to keep connection alive and use it for multiple requests.
             HTTP agents can also keep idle connections alive for a certain period time in case a
-            connection to the same target host may be needed for subsequent requests. The ability to
+            connection to the same target host is needed for subsequent requests. The ability to
             keep connections alive is usually refered to as connection persistence. HttpClient fully
             supports connection persistence.</para>
     </section>
     <section>
         <title>HTTP connection routing</title>
         <para>HttpClient is capable of establishing connections to the target host either directly
-            or via a route that may involve multiple intermediate connections also referred to as
+            or via a route that may involve multiple intermediate connections - also referred to as
             hops. HttpClient differentiates connections of a route into plain, tunneled and layered.
             The use of multiple intermediate proxies to tunnel connections to the target host is
             referred to as proxy chaining.</para>
@@ -166,10 +166,10 @@
             proxies.</para>
         <section>
             <title>Route computation</title>
-            <para><interfacename>RouteInfo</interfacename> interface represents information about a
+            <para>The <interfacename>RouteInfo</interfacename> interface represents information about a
                 definitive route to a target host involving one or more intermediate steps or hops.
                     <classname>HttpRoute</classname> is a concrete implementation of
-                    <interfacename>RouteInfo</interfacename>, which cannot be changed (is
+                the <interfacename>RouteInfo</interfacename>, which cannot be changed (is
                 immutable). <classname>HttpTracker</classname> is a mutable
                     <interfacename>RouteInfo</interfacename> implementation used internally by
                 HttpClient to track the remaining hops to the ultimate route target.
@@ -180,13 +180,13 @@
             <para><interfacename>HttpRoutePlanner</interfacename> is an interface representing a
                 strategy to compute a complete route to a given target based on the execution
                 context. HttpClient ships with two default
-                    <interfacename>HttpRoutePlanner</interfacename> implementation.
+                    <interfacename>HttpRoutePlanner</interfacename> implementations.
                     <classname>ProxySelectorRoutePlanner</classname> is based on
                     <classname>java.net.ProxySelector</classname>. By default, it will pick up the
                 proxy settings of the JVM, either from system properties or from the browser running
-                the application. <classname>DefaultHttpRoutePlanner</classname> implementation does
-                not make use of any Java system properties, nor of system or browser proxy settings.
-                It computes routes based exclusively on HTTP parameters described below.</para>
+                the application. The <classname>DefaultHttpRoutePlanner</classname> implementation does
+                not make use of any Java system properties, nor any system or browser proxy settings.
+                It computes routes based exclusively on the HTTP parameters described below.</para>
         </section>
         <section>
             <title>Secure HTTP connections</title>
@@ -199,14 +199,14 @@
     </section>
     <section>
         <title>HTTP route parameters</title>
-        <para>These are parameters that can influence route computation:</para>
+        <para>These are the parameters that can influence route computation:</para>
         <itemizedlist>
             <listitem>
                 <formalpara>
                     <title>'http.route.default-proxy':</title>
                     <para>defines a proxy host to be used by default route planners that do not make
                         use of JRE settings. This parameter expects a value of type
-                            <classname>HttpHost</classname>. If this parameter is not set direct
+                            <classname>HttpHost</classname>. If this parameter is not set, direct
                         connections to the target will be attempted.</para>
                 </formalpara>
             </listitem>
@@ -218,7 +218,7 @@
                         select the network interface from which the connection originates. This
                         parameter expects a value of type
                             <classname>java.net.InetAddress</classname>. If this parameter is not
-                        set a default local address will be used automatically.</para>
+                        set, a default local address will be used automatically.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -235,8 +235,8 @@
     <section>
         <title>Socket factories</title>
         <para>HTTP connections make use of a <classname>java.net.Socket</classname> object
-            internally to handle transmission of data across the wire. They, however, rely on
-            <interfacename>SchemeSocketFactory</interfacename> interface to create, initialize and 
+            internally to handle transmission of data across the wire. However they rely on
+            the <interfacename>SchemeSocketFactory</interfacename> interface to create, initialize and 
             connect sockets. This enables the users of HttpClient to provide application specific
             socket initialization code at runtime. <classname>PlainSocketFactory</classname> is the
             default factory for creating and initializing plain (unencrypted) sockets.</para>
@@ -254,7 +254,7 @@ sf.connectSocket(socket, address, null, params);
         <section>
             <title>Secure socket layering</title>
             <para><interfacename>LayeredSchemeSocketFactory</interfacename> is an extension of
-                <interfacename>SchemeSocketFactory</interfacename> interface. Layered socket 
+                the <interfacename>SchemeSocketFactory</interfacename> interface. Layered socket 
                 factories are capable of creating sockets layered over an existing plain socket. 
                 Socket layering is used primarily for creating secure sockets through proxies.
                 HttpClient ships with <classname>SSLSocketFactory</classname> that implements 
@@ -319,9 +319,11 @@ sf.connectSocket(socket, address, null, params);
                 the SSL/TLS protocol level, HttpClient can optionally verify whether the target
                 hostname matches the names stored inside the server's X.509 certificate, once the
                 connection has been established. This verification can provide additional guarantees
-                of authenticity of the server trust material. X509HostnameVerifier interface
+                of authenticity of the server trust material.
+                The <interfacename>X509HostnameVerifier</interfacename> interface
                 represents a strategy for hostname verification. HttpClient ships with three
-                X509HostnameVerifier. Important: hostname verification should not be confused with
+                <interfacename>X509HostnameVerifier</interfacename> implementations.
+                Important: hostname verification should not be confused with
                 SSL trust verification.</para>
             <itemizedlist>
                 <listitem>
@@ -337,7 +339,7 @@ sf.connectSocket(socket, address, null, params);
                 <listitem>
                     <formalpara>
                         <title><classname>BrowserCompatHostnameVerifier</classname>:</title>
-                        <para>The hostname verifier that works the same way as Curl and Firefox. The
+                        <para>This hostname verifier that works the same way as Curl and Firefox. The
                             hostname must match either the first CN, or any of the subject-alts. A
                             wildcard can occur in the CN, and in any of the subject-alts. The only
                             difference between <classname>BrowserCompatHostnameVerifier</classname>
@@ -351,12 +353,12 @@ sf.connectSocket(socket, address, null, params);
                     <formalpara>
                         <title><classname>AllowAllHostnameVerifier</classname>:</title>
                         <para>This hostname verifier essentially turns hostname verification off.
-                            This implementation is a no-op, and never throws the
+                            This implementation is a no-op, and never throws
                                 <exceptionname>javax.net.ssl.SSLException</exceptionname>.</para>
                     </formalpara>
                 </listitem>
             </itemizedlist>
-            <para>Per default HttpClient uses <classname>BrowserCompatHostnameVerifier</classname>
+            <para>Per default HttpClient uses the <classname>BrowserCompatHostnameVerifier</classname>
                 implementation. One can specify a different hostname verifier implementation if
                 desired</para>
             <programlisting><![CDATA[
@@ -368,11 +370,11 @@ SSLSocketFactory sf = new SSLSocketFactory(
     </section>
     <section>
         <title>Protocol schemes</title>
-        <para><classname>Scheme</classname> class represents a protocol scheme such as "http" or
+        <para>The <classname>Scheme</classname> class represents a protocol scheme such as "http" or
             "https" and contains a number of protocol properties such as the default port and the
-            socket factory to be used to creating <classname>java.net.Socket</classname> instances
-            for the given protocol. <classname>SchemeRegistry</classname> class is used to maintain
-            a set of <classname>Scheme</classname>s HttpClient can choose from when trying to
+            socket factory to be used to create the <classname>java.net.Socket</classname> instances
+            for the given protocol. The <classname>SchemeRegistry</classname> class is used to maintain
+            a set of <classname>Scheme</classname>s that HttpClient can choose from when trying to
             establish a connection by a request URI:</para>
         <programlisting><![CDATA[
 Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
@@ -399,7 +401,7 @@ DefaultHttpClient httpclient = new DefaultHttpClient();
 HttpHost proxy = new HttpHost("someproxy", 8080);
 httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 ]]></programlisting>
-        <para>One can also instruct HttpClient to use standard JRE proxy selector to obtain proxy
+        <para>One can also instruct HttpClient to use the standard JRE proxy selector to obtain proxy
             information:</para>
         <programlisting><![CDATA[
 DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -431,19 +433,19 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
         <title>HTTP connection managers</title>
         <section>
             <title>Connection operators</title>
-            <para>Operated connections are client side connections whose underlying socket or its
+            <para>Operated connections are client side connections whose underlying socket or
                 state can be manipulated by an external entity, usually referred to as a connection
-                operator. <interfacename>OperatedClientConnection</interfacename> interface extends
-                    <interfacename>HttpClientConnection</interfacename> interface and define
-                additional methods to manage connection socket. The
+                operator. The <interfacename>OperatedClientConnection</interfacename> interface extends
+                the <interfacename>HttpClientConnection</interfacename> interface and defines
+                additional methods to manage connection sockets. The
                     <interfacename>ClientConnectionOperator</interfacename> interface represents a
                 strategy for creating <interfacename>OperatedClientConnection</interfacename>
                 instances and updating the underlying socket of those objects. Implementations will
-                most likely make use <interfacename>SchemeSocketFactory</interfacename>s to create
+                most likely make use a <interfacename>SchemeSocketFactory</interfacename> to create
                     <classname>java.net.Socket</classname> instances. The
-                    <interfacename>ClientConnectionOperator</interfacename> interface enables the
+                    <interfacename>ClientConnectionOperator</interfacename> interface enables
                 users of HttpClient to provide a custom strategy for connection operators as well as
-                an ability to provide alternative implementation of the
+                the ability to provide an alternative implementation of the
                     <interfacename>OperatedClientConnection</interfacename> interface.</para>
         </section>
         <section>
@@ -457,7 +459,7 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
                 persistent connections and synchronize access to persistent connections making sure
                 that only one thread can have access to a connection at a time.</para>
             <para>Internally HTTP connection managers work with instances of
-                    <interfacename>OperatedClientConnection</interfacename>, but they hands out
+                    <interfacename>OperatedClientConnection</interfacename>, but they return
                 instances of <interfacename>ManagedClientConnection</interfacename> to the service
                 consumers. <interfacename>ManagedClientConnection</interfacename> acts as a wrapper
                 for a <interfacename>OperatedClientConnection</interfacename> instance that manages
@@ -468,7 +470,7 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
                 their link to the connection manager that spawned them and of the fact that they
                 must be returned back to the manager when no longer in use.
                     <interfacename>ManagedClientConnection</interfacename> classes also implement
-                    <interfacename>ConnectionReleaseTrigger</interfacename> interface that can be
+                the <interfacename>ConnectionReleaseTrigger</interfacename> interface that can be
                 used to trigger the release of the connection back to the manager. Once the
                 connection release has been triggered the wrapped connection gets detached from the
                     <interfacename>ManagedClientConnection</interfacename> wrapper and the
@@ -542,9 +544,9 @@ try {
                 ought to be used by one execution thread only.
                     <classname>SingleClientConnManager</classname> will make an effort to reuse the
                 connection for subsequent requests with the same route. It will, however, close the
-                existing connection and open it for the given route, if the route of the persistent
+                existing connection and re-open it for the given route, if the route of the persistent
                 connection does not match that of the connection request. If the connection has been
-                already been allocated
+                already been allocated, then
                     <exceptionname>java.lang.IllegalStateException</exceptionname> is thrown.</para>
             <para><classname>SingleClientConnManager</classname> is used by HttpClient per
                 default.</para>
@@ -554,15 +556,15 @@ try {
             <para><classname>ThreadSafeClientConnManager</classname> is a more complex
                 implementation that manages a pool of client connections and is able to service
                 connection requests from multiple execution threads. Connections are pooled on a per
-                route basis. A request for a route which already the manager has persistent
-                connections for available in the pool will be services by leasing a connection from
+                route basis. A request for a route for which the manager already has a persistent
+                connection available in the pool will be serviced by leasing a connection from
                 the pool rather than creating a brand new connection.</para>
             <para><classname>ThreadSafeClientConnManager</classname> maintains a maximum limit of
-                connection on a per route basis and in total. Per default this implementation will
+                connections on a per route basis and in total. Per default this implementation will
                 create no more than 2 concurrent connections per given route and no more 20
                 connections in total. For many real-world applications these limits may prove too
                 constraining, especially if they use HTTP as a transport protocol for their
-                services. Connection limits, however, can be adjusted using HTTP parameters.</para>
+                services. Connection limits can be adjusted using the appropriate HTTP parameters.</para>
             <para>This example shows how the connection pool parameters can be adjusted:</para>
             <programlisting><![CDATA[
 SchemeRegistry schemeRegistry = new SchemeRegistry();
@@ -602,12 +604,12 @@ httpclient.getConnectionManager().shutdown();
     </section>
     <section>
         <title>Multithreaded request execution</title>
-        <para>When equipped with a pooling connection manager such as ThreadSafeClientConnManager
+        <para>When equipped with a pooling connection manager such as ThreadSafeClientConnManager,
             HttpClient can be used to execute multiple requests simultaneously using multiple
             threads of execution.</para>
-        <para><classname>ThreadSafeClientConnManager</classname> will allocate connections based on
+        <para>The <classname>ThreadSafeClientConnManager</classname> will allocate connections based on
             its configuration. If all connections for a given route have already been leased, a
-            request for connection will block until a connection is released back to the pool. One
+            request for a connection will block until a connection is released back to the pool. One
             can ensure the connection manager does not block indefinitely in the connection request
             operation by setting <literal>'http.conn-manager.timeout'</literal> to a positive value.
             If the connection request cannot be serviced within the given time period
@@ -679,12 +681,12 @@ static class GetThread extends Thread {
     </section>
     <section>
         <title>Connection eviction policy</title>
-        <para>One of the major shortcoming of the classic blocking I/O model is that the network
+        <para>One of the major shortcomings of the classic blocking I/O model is that the network
             socket can react to I/O events only when blocked in an I/O operation. When a connection
             is released back to the manager, it can be kept alive however it is unable to monitor
             the status of the socket and react to any I/O events. If the connection gets closed on
             the server side, the client side connection is unable to detect the change in the
-            connection state and react appropriately by closing the socket on its end.</para>
+            connection state (and react appropriately by closing the socket on its end).</para>
         <para>HttpClient tries to mitigate the problem by testing whether the connection is 'stale',
             that is no longer valid because it was closed on the server side, prior to using the
             connection for executing an HTTP request. The stale connection check is not 100%
@@ -738,12 +740,12 @@ public static class IdleConnectionMonitorThread extends Thread {
     <section>
         <title>Connection keep alive strategy</title>
         <para>The HTTP specification does not specify how long a persistent connection may be and
-            should be kept alive. Some HTTP servers use non-standard <literal>Keep-Alive</literal>
+            should be kept alive. Some HTTP servers use a non-standard <literal>Keep-Alive</literal>
             header to communicate to the client the period of time in seconds they intend to keep
             the connection alive on the server side. HttpClient makes use of this information if
             available. If the <literal>Keep-Alive</literal> header is not present in the response,
             HttpClient assumes the connection can be kept alive indefinitely. However, many HTTP
-            servers out there are configured to drop persistent connections after a certain period
+            servers in general use are configured to drop persistent connections after a certain period
             of inactivity in order to conserve system resources, quite often without informing the
             client. In case the default strategy turns out to be too optimistic, one may want to
             provide a custom keep-alive strategy.</para>
