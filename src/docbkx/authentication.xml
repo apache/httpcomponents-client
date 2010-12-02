@@ -29,7 +29,7 @@
     <section>
         <title>User credentials</title>
         <para>Any process of user authentication requires a set of credentials that can be used to
-            establish user identity. In the simplest form user crednetials can be just a user name /
+            establish user identity. In the simplest form user credentials can be just a user name /
             password pair. <classname>UsernamePasswordCredentials</classname> represents a set of
             credentials consisting of a security principal and a password in clear text. This
             implementation is sufficient for standard authentication schemes defined by the HTTP
@@ -46,8 +46,8 @@ pwd
 ]]></programlisting>
         <para><classname>NTCredentials</classname> is a Microsoft Windows specific implementation
             that includes in addition to the user name / password pair a set of additional Windows
-            specific attributes such as a name of the user domain, as in Microsoft Windows network
-            the same user can belong to multiple domains with a different set of
+            specific attributes such as the name of the user domain. In a Microsoft Windows network
+            the same user can belong to multiple domains each with a different set of
             authorizations.</para>
         <programlisting><![CDATA[
 NTCredentials creds = new NTCredentials("user", "pwd", "workstation", "domain");
@@ -76,11 +76,11 @@ pwd
                     if available</para>
             </listitem>
             <listitem>
-                <para>Generate authorization string for the given set of credentials and the HTTP
+                <para>Generate the authorization string for the given set of credentials and the HTTP
                     request in response to the actual authorization challenge.</para>
             </listitem>
         </itemizedlist>
-        <para>Please note authentication schemes may be stateful involving a series of
+        <para>Please note that authentication schemes may be stateful involving a series of
             challenge-response exchanges.</para>
         <para>HttpClient ships with several <interfacename>AuthScheme</interfacename>
             implementations:</para>
@@ -121,14 +121,14 @@ pwd
                         real mechanisms. SPNEGO's most visible use is in Microsoft's <literal>HTTP
                             Negotiate</literal> authentication extension. The negotiable
                         sub-mechanisms include NTLM and Kerberos supported by Active Directory.
-                        Presently HttpClient supports Kerberos sub-mechanism only. </para>
+                        At present HttpClient only supports the Kerberos sub-mechanism. </para>
                 </formalpara>
             </listitem>
         </itemizedlist>
     </section>
     <section>
         <title>HTTP authentication parameters</title>
-        <para>These are parameters that be used to customize HTTP authentication process and
+        <para>These are parameters that be used to customize the HTTP authentication process and
             behaviour of individual authentication schemes:</para>
         <itemizedlist>
             <listitem>
@@ -136,7 +136,7 @@ pwd
                     <title>'http.protocol.handle-authentication':</title>
                     <para>defines whether authentication should be handled automatically. This
                         parameter expects a value of type <classname>java.lang.Boolean</classname>.
-                        If this parameter is not set HttpClient will handle authentication
+                        If this parameter is not set, HttpClient will handle authentication
                         automatically.</para>
                 </formalpara>
             </listitem>
@@ -145,7 +145,7 @@ pwd
                     <title>'http.auth.credential-charset':</title>
                     <para>defines the charset to be used when encoding user credentials. This
                         parameter expects a value of type <literal>java.lang.String</literal>. If
-                        this parameter is not set <literal>US-ASCII</literal> will be used.</para>
+                        this parameter is not set, <literal>US-ASCII</literal> will be used.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -184,8 +184,8 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
     </section>
     <section>
         <title>Authentication scheme registry</title>
-        <para>HttpClient maintains a registry of available authentication scheme using
-                <classname>AuthSchemeRegistry</classname> class. The following schemes are
+        <para>HttpClient maintains a registry of available authentication schemes using
+            the <classname>AuthSchemeRegistry</classname> class. The following schemes are
             registered per default:</para>
         <itemizedlist>
             <listitem>
@@ -317,7 +317,7 @@ null
             </listitem>
         </itemizedlist>
         <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
-            the HTTP authentication context prior to request execution or examine its state after
+            the HTTP authentication context prior to request execution, or to examine its state after
             the request has been executed:</para>
         <programlisting><![CDATA[
 HttpClient httpclient = new DefaultHttpClient();
@@ -339,7 +339,7 @@ System.out.println("Target auth credentials: " + targetAuthState.getCredentials(
     </section>
     <section>
         <title>Caching of authentication data</title>
-        <para>As of version 4.1 HttpClient automatically caches information about hosts it 
+        <para>As of version 4.1 HttpClient automatically caches information about hosts it has 
             successfully authenticated with. Please note that one must use the same execution 
             context to execute logically related requests in order for cached authentication data
             to propagate from one request to another. Authentication data will be lost as soon as 
@@ -393,7 +393,7 @@ for (int i = 0; i < 3; i++) {
         </para>
         <section>
             <title>NTLM connection persistence</title>
-            <para><literal>NTLM</literal> authentication scheme is significantly more expensive
+            <para>The <literal>NTLM</literal> authentication scheme is significantly more expensive
                 in terms of computational overhead and performance impact than the standard 
                 <literal>Basic</literal> and <literal>Digest</literal> schemes. This is likely to be
                 one of the main reasons why Microsoft chose to make <literal>NTLM</literal> 
@@ -443,7 +443,7 @@ EntityUtils.consume(entity2);
 
     <section id="spnego">
         <title><literal>SPNEGO</literal>/Kerberos Authentication</title>
-        <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
+        <para>The <literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
             <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
             <emphasis>Nego</emphasis>tiation Mechanism) is designed to allow for authentication to
             services when neither end knows what the other can use/provide. It is most commonly used
@@ -484,29 +484,29 @@ EntityUtils.consume(entity2);
         </sidebar>
         <section>
             <title><literal>SPNEGO</literal> support in HttpClient</title>
-            <para><literal>SPNEGO</literal> authentication scheme is compatible with Sun Java
+            <para>The <literal>SPNEGO</literal> authentication scheme is compatible with Sun Java
                 versions 1.5 and up. However the use of Java >= 1.6 is strongly recommended as it 
                 supports <literal>SPNEGO</literal> authentication more completely.</para>
-            <para>The Sun JRE provides the supporting classes to do nearly all the kerberos and
+            <para>The Sun JRE provides the supporting classes to do nearly all the Kerberos and
                     <literal>SPNEGO</literal> token handling. This means that a lot of the setup is
                 for the GSS classes. The <classname>NegotiateScheme</classname> is a simple class to
                 handle marshalling the tokens and reading and writing the correct headers.</para>
             <para>The best way to start is to grab the <literal>KerberosHttpClient.java</literal>
                 file in examples and try and get it to work. There are a lot of issues that can
-                happen but if lucky it'll work without too much problem. It should also provide some
+                happen but if lucky it'll work without too much of a problem. It should also provide some
                 output to debug with.</para>
 
-            <para>In windows it should default to using the logged in credentials, this can be
+            <para>In Windows it should default to using the logged in credentials; this can be
                 overridden by using 'kinit' e.g. <literal>$JAVA_HOME\bin\kinit
                     testuser@AD.EXAMPLE.NET</literal>, which is very helpful for testing and
-                debugging issues. Remove the cache file created to revert back to the windows
+                debugging issues. Remove the cache file created by kinit to revert back to the windows
                 Kerberos cache.</para>
             <para>Make sure to list <literal>domain_realms</literal> in the
                     <literal>krb5.conf</literal> file. This is a major source of problems.</para>
         </section>
         <section>
             <title>GSS/Java Kerberos Setup</title>
-            <para>This documentation assumes you are using windows but much of the information
+            <para>This documentation assumes you are using Windows but much of the information
                 applies to Unix as well.</para>
             <para>The <classname>org.ietf.jgss</classname> classes have lots of possible
                 configuration parameters, mainly in the
@@ -519,7 +519,7 @@ EntityUtils.consume(entity2);
             <title><literal>login.conf</literal> file</title>
             <para>The following configuration is a basic setup that works in Windows XP against both
                     <literal>IIS</literal> and <literal>JBoss Negotiation</literal> modules.</para>
-            <para>The system property <literal>java.security.auth.login.config</literal> can be use
+            <para>The system property <literal>java.security.auth.login.config</literal> can be used
                 to point at the <literal>login.conf</literal> file.</para>
             <para><literal>login.conf</literal> content may look like the following:</para>
             <programlisting><![CDATA[
@@ -539,8 +539,8 @@ com.sun.security.jgss.accept {
         </section>
         <section>
             <title><literal>krb5.conf</literal> / <literal>krb5.ini</literal> file</title>
-            <para>If unspecified the system default will be used. Override if needed by the setting
-                system property <literal>java.security.krb5.conf</literal> to point at a custom
+            <para>If unspecified, the system default will be used. Override if needed by setting the
+                system property <literal>java.security.krb5.conf</literal> to point to a custom
                     <literal>krb5.conf</literal> file.</para>
             <para><literal>krb5.conf</literal> content may look like the following:</para>
             <programlisting><![CDATA[
@@ -559,9 +559,9 @@ ad.example.net=AD.EXAMPLE.NET
         </section>
         <section>
             <title>Windows Specific configuration</title>
-            <para>To allow windows to use the current users tickets system property
+            <para>To allow Windows to use the current user's tickets, the system property
                     <literal>javax.security.auth.useSubjectCredsOnly</literal> must be set to
-                    <literal>false</literal> and Windows registry key
+                    <literal>false</literal> and the Windows registry key
                     <literal>allowtgtsessionkey</literal> should be added and set correctly to allow
                 session keys to be sent in the Kerberos Ticket-Granting Ticket.</para>
             <para>On the Windows Server 2003 and Windows 2000 SP4, here is the required registry
@@ -585,7 +585,7 @@ Value: 0x01
         <section>
             <title>Customizing <literal>SPNEGO</literal> authentication scheme</title>
             <para>In order to customize <literal>SPNEGO</literal> support a new instance of
-                    <classname>NegotiateSchemeFactory</classname> class must be created and
+                the <classname>NegotiateSchemeFactory</classname> class must be created and
                 registered with the authentication scheme registry of HttpClient. </para>
             <programlisting><![CDATA[
 DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -607,11 +607,11 @@ httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
                 <para>Use this method to inject a custom
                         <interfacename>SpnegoTokenGenerator</interfacename> class to do the Kerberos
                     to <literal>SPNEGO</literal> token wrapping.
-                        <classname>BouncySpnegoTokenGenerator</classname> implementation is provided
-                    as unsupported contribution from the contrib package. This requires the
-                    BouncyCastle libs <ulink url="http://www.bouncycastle.org/java.html"
+                    The <classname>BouncySpnegoTokenGenerator</classname> implementation is provided
+                    as an unsupported contribution from the contrib package. This requires the
+                    BouncyCastle libraries <ulink url="http://www.bouncycastle.org/java.html"
                         >"http://www.bouncycastle.org/java.html"</ulink>. Found especially useful 
-                    when using Java 1.5 that is known to provide only a limited support for 
+                    when using Java 1.5, which is known to provide only a limited support for 
                     <literal>SPNEGO</literal> authentication.    
                 </para>
             </section>
