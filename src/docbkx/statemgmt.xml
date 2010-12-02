@@ -40,22 +40,22 @@
         compliance.</para>
     <section>
         <title>HTTP cookies</title>
-        <para>Cookie is a token or short packet of state information that the HTTP agent and the
+        <para>An HTTP cookie is a token or short packet of state information that the HTTP agent and the
             target server can exchange to maintain a session. Netscape engineers used to refer to it
             as a "magic cookie" and the name stuck.</para>
-        <para>HttpClient uses <interfacename>Cookie</interfacename> interface to represent an
-            abstract cookie token. In its simples form an HTTP cookie is merely a name / value pair.
+        <para>HttpClient uses the <interfacename>Cookie</interfacename> interface to represent an
+            abstract cookie token. In its simplest form an HTTP cookie is merely a name / value pair.
             Usually an HTTP cookie also contains a number of attributes such as version, a domain
             for which is valid, a path that specifies the subset of URLs on the origin server to
-            which this cookie applies, and maximum period of time the cookie is valid for.</para>
-        <para><interfacename>SetCookie</interfacename> interface represents a
+            which this cookie applies, and the maximum period of time for which the cookie is valid.</para>
+        <para>The <interfacename>SetCookie</interfacename> interface represents a
                 <literal>Set-Cookie</literal> response header sent by the origin server to the HTTP
             agent in order to maintain a conversational state.
-                <interfacename>SetCookie2</interfacename> interface extends SetCookie with
+            The <interfacename>SetCookie2</interfacename> interface extends SetCookie with
                 <literal>Set-Cookie2</literal> specific methods.</para>
-        <para><interfacename>ClientCookie</interfacename> interface extends
+        <para>The <interfacename>ClientCookie</interfacename> interface extends
                 <interfacename>Cookie</interfacename> interface with additional client specific
-            functionality such ability to retrieve original cookie attributes exactly as they were
+            functionality such as the ability to retrieve original cookie attributes exactly as they were
             specified by the origin server. This is important for generating the
                 <literal>Cookie</literal> header because some cookie specifications require that the
                 <literal>Cookie</literal> header should include certain attributes only if they were
@@ -105,8 +105,8 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
     </section>
     <section>
         <title>Cookie specifications</title>
-        <para><interfacename>CookieSpec</interfacename> interface represents a cookie management
-            specification. Cookie management specification is expected to enforce:</para>
+        <para>The <interfacename>CookieSpec</interfacename> interface represents a cookie management
+            specification. The cookie management specification is expected to enforce:</para>
         <itemizedlist>
             <listitem>
                 <para>rules of parsing <literal>Set-Cookie</literal> and optionally
@@ -147,7 +147,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             <listitem>
                 <formalpara>
                     <title>Browser compatibility:</title>
-                    <para>This implementations strives to closely mimic (mis)behavior of common web
+                    <para>This implementation strives to closely mimic the (mis)behavior of common web
                         browser applications such as Microsoft Internet Explorer and Mozilla
                         FireFox.</para>
                 </formalpara>
@@ -167,7 +167,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
     </section>
     <section>
         <title>HTTP cookie and state management parameters</title>
-        <para>These are parameters that be used to customize HTTP state management and behaviour of
+        <para>These are parameters that be used to customize HTTP state management and the behaviour of
             individual cookie specifications:</para>
         <itemizedlist>
             <listitem>
@@ -193,7 +193,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                             <literal>Cookie</literal> request header. Otherwise, each cookie is
                         formatted as a separate <literal>Cookie</literal> header. This parameter
                         expects a value of type <classname>java.lang.Boolean</classname>. If this
-                        parameter is not set the choice of a default value is CookieSpec
+                        parameter is not set, the choice of a default value is CookieSpec
                         implementation specific. Please note this parameter applies to strict cookie
                         specifications (RFC 2109 and RFC 2965) only. Browser compatibility and
                         netscape draft policies will always put all cookies into one request
@@ -205,7 +205,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                     <title>'http.protocol.cookie-policy':</title>
                     <para>defines the name of a cookie specification to be used for HTTP state
                         management. This parameter expects a value of type
-                            <classname>java.lang.String</classname>. If this parameter is not set
+                            <classname>java.lang.String</classname>. If this parameter is not set,
                         valid date patterns are <interfacename>CookieSpec</interfacename>
                         implementation specific.</para>
                 </formalpara>
@@ -215,7 +215,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
     <section>
         <title>Cookie specification registry</title>
         <para>HttpClient maintains a registry of available cookie specifications using
-                <classname>CookieSpecRegistry</classname> class. The following specifications are
+            the <classname>CookieSpecRegistry</classname> class. The following specifications are
             registered per default:</para>
         <itemizedlist>
             <listitem>
@@ -269,11 +269,11 @@ httpget.getParams().setParameter(
     <section>
         <title>Custom cookie policy</title>
         <para>In order to implement a custom cookie policy one should create a custom implementation
-            of <interfacename>CookieSpec</interfacename> interface, create a
+            of the <interfacename>CookieSpec</interfacename> interface, create a
                 <interfacename>CookieSpecFactory</interfacename> implementation to create and
             initialize instances of the custom specification and register the factory with
             HttpClient. Once the custom specification has been registered, it can be activated the
-            same way as the standard cookie specifications.</para>
+            same way as a standard cookie specification.</para>
         <programlisting><![CDATA[
 CookieSpecFactory csf = new CookieSpecFactory() {
     public CookieSpec newInstance(HttpParams params) {
@@ -347,14 +347,14 @@ httpclient.setCookieStore(cookieStore);
             <listitem>
                 <formalpara>
                     <title>'http.cookie-store':</title>
-                    <para><interfacename>CookieStore</interfacename> instance represents the actual
+                    <para><interfacename>CookieStore</interfacename> instance representing the actual
                         cookie store. The value of this attribute set in the local context takes
                         precedence over the default one.</para>
                 </formalpara>
             </listitem>
         </itemizedlist>
         <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
-            the HTTP state management context prior to request execution or examine its state after
+            the HTTP state management context prior to request execution, or to examine its state after
             the request has been executed:</para>
         <programlisting><![CDATA[
 HttpClient httpclient = new DefaultHttpClient();
@@ -373,7 +373,7 @@ System.out.println("Cookie spec used: " + cookieSpec);
     <section>
         <title>Per user / thread state management</title>
         <para>One can use an individual local execution context in order to implement per user (or
-            per thread) state management. Cookie specification registry and cookie store defined in
+            per thread) state management. A cookie specification registry and cookie store defined in
             the local context will take precedence over the default ones set at the HTTP client
             level.</para>
         <programlisting><![CDATA[
