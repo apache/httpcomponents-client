@@ -182,8 +182,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                         elements must be of type <classname>java.lang.String</classname> compatible
                         with the syntax of <classname>java.text.SimpleDateFormat</classname>. If
                         this parameter is not set the choice of a default value is
-                            <interfacename>CookieSpec</interfacename> implementation specific.
-                        Please note this parameter applies</para>
+                            <interfacename>CookieSpec</interfacename> implementation specific.</para>
                 </formalpara>
             </listitem>
             <listitem>
