@@ -773,7 +773,7 @@ for (int i = 0; i < 10; i++) {
     </section>
     <section>
         <title>HTTP parameters</title>
-        <para>Thw HttpParams interface represents a collection of immutable values that define a runtime
+        <para>The HttpParams interface represents a collection of immutable values that define a runtime
             behavior of a component. In many ways <interfacename>HttpParams</interfacename> is
             similar to <interfacename>HttpContext</interfacename>. The main distinction between the
             two lies in their use at runtime. Both interfaces represent a collection of objects that
@@ -806,7 +806,7 @@ for (int i = 0; i < 10; i++) {
                 of the <interfacename>HttpRequest</interfacename> object are linked together with
                     <interfacename>HttpParams</interfacename> of the
                     <interfacename>HttpClient</interfacename> instance used to execute the request.
-                This enables parameters set at the HTTP request level take precedence over
+                This enables parameters set at the HTTP request level to take precedence over
                     <interfacename>HttpParams</interfacename> set at the HTTP client level. The
                 recommended practice is to set common parameters shared by all HTTP requests at the
                 HTTP client level and selectively override specific parameters at the HTTP request
