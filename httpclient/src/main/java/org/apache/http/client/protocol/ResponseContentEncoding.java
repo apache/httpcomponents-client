@@ -52,7 +52,18 @@ import org.apache.http.protocol.HttpContext;
 public class ResponseContentEncoding implements HttpResponseInterceptor {
 
     /**
-     * {@inheritDoc}
+     * Handles the following {@code Content-Encoding}s by 
+     * using the appropriate decompressor to wrap the response Entity:
+     * <ul>
+     * <li>gzip - see {@link GzipDecompressingEntity}</li>
+     * <li>deflate - see {@link DeflateDecompressingEntity}</li>
+     * <li>identity - no action needed</li>
+     * </ul>
+     * 
+     * @param response the response which contains the entity
+     * @param  context not currently used
+     * 
+     * @throws HttpException if the {@code Content-Encoding} is none of the above
      */
     public void process(
             final HttpResponse response,

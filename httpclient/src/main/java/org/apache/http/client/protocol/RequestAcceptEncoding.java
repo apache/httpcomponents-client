@@ -45,7 +45,7 @@ import org.apache.http.protocol.HttpContext;
 public class RequestAcceptEncoding implements HttpRequestInterceptor {
 
     /**
-     * {@inheritDoc}
+     * Adds the header {@code "Accept-Encoding: gzip,deflate"} to the request.
      */
     public void process(
             final HttpRequest request,
