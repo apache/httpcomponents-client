@@ -170,7 +170,7 @@ httpclient.getConnectionManager().shutdown();
         </itemizedlist>
     </section>
     <section>
-        <title>Automcatic redirect handling</title>
+        <title>Automatic redirect handling</title>
         <para>HttpClient handles all types of redirects automatically, except those explicitly
             prohibited by the HTTP specification as requiring user intervention. <literal>See
                 Other</literal> (status code 303) redirects on <literal>POST</literal> and
