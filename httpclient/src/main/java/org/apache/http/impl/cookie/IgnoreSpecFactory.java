@@ -25,53 +25,23 @@
  *
  */
 
-package org.apache.http.client.params;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.params.HttpParams;
 
 /**
- * Standard cookie specifications supported by HttpClient.
- *
- * @since 4.0
+ * {@link CookieSpecFactory} implementation that ignores all cookies.
+ * 
+ * @since 4.1
  */
 @Immutable
-public final class CookiePolicy {
+public class IgnoreSpecFactory implements CookieSpecFactory {
 
-    /**
-     * The policy that provides high degree of compatibilty
-     * with common cookie management of popular HTTP agents.
-     */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
-
-    /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
-
-    /**
-     * The RFC 2109 compliant policy.
-     */
-    public static final String RFC_2109 = "rfc2109";
-
-    /**
-     * The RFC 2965 compliant policy.
-     */
-    public static final String RFC_2965 = "rfc2965";
-
-    /**
-     * The default 'best match' policy.
-     */
-    public static final String BEST_MATCH = "best-match";
-
-    /**
-     * The policy that ignores cookies. 
-     * 
-     * @since 4.1-beta1
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-    
-    private CookiePolicy() {
-        super();
+    public CookieSpec newInstance(final HttpParams params) {
+        return new IgnoreSpec();
     }
 
 }

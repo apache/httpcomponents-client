@@ -25,53 +25,39 @@
  *
  */
 
-package org.apache.http.client.params;
+package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.http.Header;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.MalformedCookieException;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * CookieSpec that ignores all cookies
  *
- * @since 4.0
+ * @since 4.1
  */
-@Immutable
-public final class CookiePolicy {
+@NotThreadSafe // superclass is @NotThreadSafe
+public class IgnoreSpec extends CookieSpecBase {
 
-    /**
-     * The policy that provides high degree of compatibilty
-     * with common cookie management of popular HTTP agents.
-     */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
-
-    /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
-
-    /**
-     * The RFC 2109 compliant policy.
-     */
-    public static final String RFC_2109 = "rfc2109";
-
-    /**
-     * The RFC 2965 compliant policy.
-     */
-    public static final String RFC_2965 = "rfc2965";
-
-    /**
-     * The default 'best match' policy.
-     */
-    public static final String BEST_MATCH = "best-match";
-
-    /**
-     * The policy that ignores cookies. 
-     * 
-     * @since 4.1-beta1
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-    
-    private CookiePolicy() {
-        super();
+    public int getVersion() {
+        return 0;
     }
 
+    public List<Cookie> parse(Header header, CookieOrigin origin)
+            throws MalformedCookieException {
+        return Collections.emptyList();
+    }
+
+    public List<Header> formatCookies(List<Cookie> cookies) {
+        return Collections.emptyList();
+    }
+
+    public Header getVersionHeader() {
+        return null;
+    }
 }

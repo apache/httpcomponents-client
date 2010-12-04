@@ -67,6 +67,7 @@ import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
@@ -326,6 +327,9 @@ public class DefaultHttpClient extends AbstractHttpClient {
         registry.register(
                 CookiePolicy.RFC_2965,
                 new RFC2965SpecFactory());
+        registry.register(
+                CookiePolicy.IGNORE_COOKIES,
+                new IgnoreSpecFactory());
         return registry;
     }
 
