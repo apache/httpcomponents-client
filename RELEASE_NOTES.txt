@@ -1,3 +1,9 @@
+Changes since 4.1 BETA1
+-----------------------
+
+* [HTTPCLIENT-1030) Implement "ignoreCookies" CookieSpec
+ Contributed by Sebastian Bazley <sebb at apache.org>
+
 Release 4.1 BETA1
 -------------------
 
