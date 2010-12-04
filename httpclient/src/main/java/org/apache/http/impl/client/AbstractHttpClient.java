@@ -828,7 +828,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             if (entity != null) {
                 try {
                     entity.consumeContent();
-                } catch (Throwable t2) {
+                } catch (Exception t2) {
                     // Log this exception. The original exception is more
                     // important and will be thrown to the caller.
                     this.log.warn("Error consuming content after an exception.", t2);
