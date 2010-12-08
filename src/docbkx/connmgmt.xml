@@ -212,7 +212,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>.ConnRoutePNames.LOCAL_ADDRESS</constant>='http.route.local-address':</title>
+                    <title><constant>ConnRoutePNames.LOCAL_ADDRESS</constant>='http.route.local-address':</title>
                     <para>defines a local address to be used by all default route planner. On
                         machines with multiple network interfaces, this parameter can be used to
                         select the network interface from which the connection originates. This
