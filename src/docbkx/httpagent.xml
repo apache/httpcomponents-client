@@ -95,7 +95,7 @@ httpclient.getConnectionManager().shutdown();
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.handle-redirects':</title>
+                    <title><constant>ClientPNames.HANDLE_REDIRECTS</constant>='http.protocol.handle-redirects':</title>
                     <para>defines whether redirects should be handled automatically. This parameter
                         expects a value of type <classname>java.lang.Boolean</classname>. If this
                         parameter is not set HttpClient will handle redirects automatically.</para>
@@ -103,7 +103,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.reject-relative-redirect':</title>
+                    <title><constant>ClientPNames.REJECT_RELATIVE_REDIRECT</constant>='http.protocol.reject-relative-redirect':</title>
                     <para>defines whether relative redirects should be rejected. HTTP specification
                         requires the location value be an absolute URI. This parameter expects a
                         value of type <classname>java.lang.Boolean</classname>. If this parameter is
@@ -112,7 +112,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.max-redirects':</title>
+                    <title><constant>ClientPNames.MAX_REDIRECTS</constant>='http.protocol.max-redirects':</title>
                     <para>defines the maximum number of redirects to be followed. The limit on
                         number of redirects is intended to prevent infinite loops caused by broken
                         server side scripts. This parameter expects a value of type
@@ -122,7 +122,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.allow-circular-redirects':</title>
+                    <title><constant>ClientPNames.ALLOW_CIRCULAR_REDIRECTS</constant>='http.protocol.allow-circular-redirects':</title>
                     <para>defines whether circular redirects (redirects to the same location) should
                         be allowed. The HTTP spec is not sufficiently clear whether circular
                         redirects are permitted, therefore optionally they can be enabled. This
@@ -132,7 +132,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection-manager.factory-class-name':</title>
+                    <title><constant>ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME</constant>='http.connection-manager.factory-class-name':</title>
                     <para>defines the class name of the default
                             <interfacename>ClientConnectionManager</interfacename> implementation.
                         This parameter expects a value of type
@@ -143,7 +143,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.virtual-host':</title>
+                    <title><constant>ClientPNames.VIRTUAL_HOST</constant>='http.virtual-host':</title>
                     <para>defines the virtual host name to be used in the <literal>Host</literal>
                         header instead of the physical host name. This parameter expects a value of
                         type <classname>HttpHost</classname>. If this parameter is not set name or
@@ -152,7 +152,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.default-headers':</title>
+                    <title><constant>ClientPNames.DEFAULT_HEADERS</constant>='http.default-headers':</title>
                     <para>defines the request headers to be sent per default with each request. This
                         parameter expects a value of type
                             <interfacename>java.util.Collection</interfacename> containing
@@ -161,7 +161,7 @@ httpclient.getConnectionManager().shutdown();
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.default-host':</title>
+                    <title><constant>ClientPNames.DEFAULT_HOST</constant>='http.default-host':</title>
                     <para>defines the default host. The default value will be used if the target
                         host is not explicitly specified in the request URI (relative URIs). This
                         parameter expects a value of type <classname>HttpHost</classname>.</para>

@@ -172,7 +172,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.cookie-datepatterns':</title>
+                    <title><constant>CookieSpecPNames.DATE_PATTERNS</constant>='http.protocol.cookie-datepatterns':</title>
                     <para>defines valid date patterns to be used for parsing non-standard
                             <literal>expires</literal> attribute. Only required for compatibility
                         with non-compliant servers that still use <literal>expires</literal> defined
@@ -187,7 +187,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.single-cookie-header':</title>
+                    <title><constant>CookieSpecPNames.SINGLE_COOKIE_HEADER</constant>='http.protocol.single-cookie-header':</title>
                     <para>defines whether cookies should be forced into a single
                             <literal>Cookie</literal> request header. Otherwise, each cookie is
                         formatted as a separate <literal>Cookie</literal> header. This parameter
@@ -201,7 +201,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.cookie-policy':</title>
+                    <title><constant>ClientPNames.COOKIE_POLICY</constant>='http.protocol.cookie-policy':</title>
                     <para>defines the name of a cookie specification to be used for HTTP state
                         management. This parameter expects a value of type
                             <classname>java.lang.String</classname>. If this parameter is not set,
@@ -323,7 +323,7 @@ httpclient.setCookieStore(cookieStore);
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.cookiespec-registry':</title>
+                    <title><constant>ClientContext.COOKIESPEC_REGISTRY</constant>='http.cookiespec-registry':</title>
                     <para><classname>CookieSpecRegistry</classname> instance representing the actual
                         cookie specification registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
@@ -331,21 +331,21 @@ httpclient.setCookieStore(cookieStore);
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.cookie-spec':</title>
+                    <title><constant>ClientContext.COOKIE_SPEC</constant>='http.cookie-spec':</title>
                     <para><interfacename>CookieSpec</interfacename> instance representing the actual
                         cookie specification.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.cookie-origin':</title>
+                    <title><constant>ClientContext.COOKIE_ORIGIN</constant>='http.cookie-origin':</title>
                     <para><classname>CookieOrigin</classname> instance representing the actual
                         details of the origin server.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.cookie-store':</title>
+                    <title><constant>ClientContext.COOKIE_STORE</constant>='http.cookie-store':</title>
                     <para><interfacename>CookieStore</interfacename> instance representing the actual
                         cookie store. The value of this attribute set in the local context takes
                         precedence over the default one.</para>

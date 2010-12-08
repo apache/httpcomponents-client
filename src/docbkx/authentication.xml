@@ -133,7 +133,7 @@ pwd
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.protocol.handle-authentication':</title>
+                    <title><constant>ClientPNames.HANDLE_AUTHENTICATION</constant>='http.protocol.handle-authentication':</title>
                     <para>defines whether authentication should be handled automatically. This
                         parameter expects a value of type <classname>java.lang.Boolean</classname>.
                         If this parameter is not set, HttpClient will handle authentication
@@ -142,7 +142,7 @@ pwd
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.credential-charset':</title>
+                    <title><constant>AuthPNames.CREDENTIAL_CHARSET</constant>='http.auth.credential-charset':</title>
                     <para>defines the charset to be used when encoding user credentials. This
                         parameter expects a value of type <literal>java.lang.String</literal>. If
                         this parameter is not set, <literal>US-ASCII</literal> will be used.</para>
@@ -150,7 +150,7 @@ pwd
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.target-scheme-pref':</title>
+                    <title><constant>AuthPNames.TARGET_AUTH_PREF</constant>='http.auth.target-scheme-pref':</title>
                     <para>Defines the order of preference for supported
                             <interfacename>AuthScheme</interfacename>s when authenticating with the
                         target host. This parameter expects a value of type
@@ -161,7 +161,7 @@ pwd
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.proxy-scheme-pref':</title>
+                    <title><constant>AuthPNames.PROXY_AUTH_PREF</constant>='http.auth.proxy-scheme-pref':</title>
                     <para>Defines the order of preference for supported
                             <interfacename>AuthScheme</interfacename>s when authenticating with the
                         proxy host. This parameter expects a value of type
@@ -190,25 +190,25 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>Basic:</title>
+                    <title>AuthPolicy.BASIC:</title>
                     <para>Basic authentication</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>Digest:</title>
+                    <title>AuthPolicy.DIGEST:</title>
                     <para>Digest authentication</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>NTLM:</title>
+                    <title>AuthPolicy.NTLM:</title>
                     <para>NTLMv1, NTLMv2, and NTLM2 Session authentication</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>SPNEGO:</title>
+                    <title>AuthPolicy.SPNEGO:</title>
                     <para>SPNEGO/Kerberos authentication</para>
                 </formalpara>
             </listitem>
@@ -277,7 +277,7 @@ null
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.authscheme-registry':</title>
+                    <title><constant>ClientContext.AUTHSCHEME_REGISTRY</constant>='http.authscheme-registry':</title>
                     <para><classname>AuthSchemeRegistry</classname> instance representing the actual
                         authentication scheme registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
@@ -285,7 +285,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.credentials-provider':</title>
+                    <title><constant>ClientContext.CREDS_PROVIDER</constant>='http.auth.credentials-provider':</title>
                     <para><interfacename>CookieSpec</interfacename> instance representing the actual
                         credentials provider. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
@@ -293,7 +293,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.target-scope':</title>
+                    <title><constant>ClientContext.TARGET_AUTH_STATE</constant>='http.auth.target-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual target
                         authentication state. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
@@ -301,7 +301,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.proxy-scope':</title>
+                    <title><constant>ClientContext.PROXY_AUTH_STATE</constant>='http.auth.proxy-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual proxy
                         authentication state. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
@@ -309,7 +309,7 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.auth.auth-cache':</title>
+                    <title><constant>ClientContext.AUTH_CACHE</constant>='http.auth.auth-cache':</title>
                     <para><interfacename>AuthCache</interfacename> instance representing the actual
                         authentication data cache. The value of this attribute set in the local 
                         context takes precedence over the default one.</para>
@@ -409,6 +409,7 @@ for (int i = 0; i < 3; i++) {
                 HTTP request against <literal>NTLM</literal> protected resources. For detailed 
                 discussion on stateful HTTP connections please refer to 
                 <link linkend="stateful_conn">this </link> section. </para>
+                <!-- Note: the stateful_conn anchor is in the file advanced.xml -->
             <para>As <literal>NTLM</literal> connections are stateful it is generally recommended
                 to trigger <literal>NTLM</literal> authentication using a relatively cheap method,
                 such as <literal>GET</literal> or <literal>HEAD</literal>, and re-use the same 

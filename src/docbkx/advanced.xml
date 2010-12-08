@@ -165,7 +165,7 @@ httpclient.setUserTokenHandler(new UserTokenHandler() {
             <itemizedlist>
                 <listitem>
                     <formalpara>
-                        <title>'http.user-token':</title>
+                        <title><constant>ClientContext.USER_TOKEN</constant>='http.user-token':</title>
                         <para>Object instance representing the actual user identity, usually
                             expected to be an instance of <interfacename>Principle</interfacename>
                             interface</para>

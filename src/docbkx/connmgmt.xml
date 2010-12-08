@@ -32,7 +32,7 @@
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.socket.timeout':</title>
+                    <title><constant>CoreConnectionPNames.SO_TIMEOUT</constant>='http.socket.timeout':</title>
                     <para>defines the socket timeout (<literal>SO_TIMEOUT</literal>) in
                         milliseconds, which is the timeout for waiting for data or, put differently,
                         a maximum period inactivity between two consecutive data packets). A timeout
@@ -43,7 +43,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.tcp.nodelay':</title>
+                    <title><constant>CoreConnectionPNames.TCP_NODELAY</constant>='http.tcp.nodelay':</title>
                     <para>determines whether Nagle's algorithm is to be used. Nagle's algorithm
                         tries to conserve bandwidth by minimizing the number of segments that are
                         sent. When applications wish to decrease network latency and increase
@@ -56,7 +56,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.socket.buffer-size':</title>
+                    <title><constant>CoreConnectionPNames.SOCKET_BUFFER_SIZE</constant>='http.socket.buffer-size':</title>
                     <para>determines the size of the internal socket buffer used to buffer data
                         while receiving / transmitting HTTP messages. This parameter expects a value
                         of type <classname>java.lang.Integer</classname>. If this parameter is not
@@ -65,7 +65,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.socket.linger':</title>
+                    <title><constant>CoreConnectionPNames.SO_LINGER</constant>='http.socket.linger':</title>
                     <para>sets <literal>SO_LINGER</literal> with the specified linger time in
                         seconds. The maximum timeout value is platform specific. Value 0 implies
                         that the option is disabled. Value -1 implies that the JRE default is used.
@@ -75,7 +75,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection.timeout':</title>
+                    <title><constant>CoreConnectionPNames.CONNECTION_TIMEOUT</constant>='http.connection.timeout':</title>
                     <para>determines the timeout in milliseconds until a connection is established.
                         A timeout value of zero is interpreted as an infinite timeout. This
                         parameter expects a value of type <classname>java.lang.Integer</classname>.
@@ -85,7 +85,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection.stalecheck':</title>
+                    <title><constant>CoreConnectionPNames.STALE_CONNECTION_CHECK</constant>='http.connection.stalecheck':</title>
                     <para>determines whether stale connection check is to be used. Disabling stale
                         connection check may result in a noticeable performance improvement (the
                         check can cause up to 30 millisecond overhead per request) at the risk of
@@ -98,7 +98,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection.max-line-length':</title>
+                    <title><constant>CoreConnectionPNames.MAX_LINE_LENGTH</constant>='http.connection.max-line-length':</title>
                     <para>determines the maximum line length limit. If set to a positive value, any
                         HTTP line exceeding this limit will cause an
                             <exceptionname>java.io.IOException</exceptionname>. A negative or zero
@@ -109,7 +109,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection.max-header-count':</title>
+                    <title><constant>CoreConnectionPNames.MAX_HEADER_COUNT</constant>='http.connection.max-header-count':</title>
                     <para>determines the maximum HTTP header count allowed. If set to a positive
                         value, the number of HTTP headers received from the data stream exceeding
                         this limit will cause an <exceptionname>java.io.IOException</exceptionname>.
@@ -120,7 +120,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.connection.max-status-line-garbage':</title>
+                    <title><constant>ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE</constant>='http.connection.max-status-line-garbage':</title>
                     <para>defines the maximum number of ignorable lines before we expect a HTTP
                         response's status line. With HTTP/1.1 persistent connections, the problem
                         arises that broken scripts could return a wrong
@@ -203,7 +203,7 @@
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>'http.route.default-proxy':</title>
+                    <title><constant>ConnRoutePNames.DEFAULT_PROXY</constant>='http.route.default-proxy':</title>
                     <para>defines a proxy host to be used by default route planners that do not make
                         use of JRE settings. This parameter expects a value of type
                             <classname>HttpHost</classname>. If this parameter is not set, direct
@@ -212,7 +212,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.route.local-address':</title>
+                    <title><constant>.ConnRoutePNames.LOCAL_ADDRESS</constant>='http.route.local-address':</title>
                     <para>defines a local address to be used by all default route planner. On
                         machines with multiple network interfaces, this parameter can be used to
                         select the network interface from which the connection originates. This
@@ -223,7 +223,7 @@
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>'http.route.forced-route':</title>
+                    <title><constant>ConnRoutePNames.FORCED_ROUTE</constant>='http.route.forced-route':</title>
                     <para>defines an forced route to be used by all default route planner. Instead
                         of computing a route, the given forced route will be returned, even if it
                         points to a completely different target host. This parameter expects a value
