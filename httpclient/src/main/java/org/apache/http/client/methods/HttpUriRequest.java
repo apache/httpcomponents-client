@@ -64,11 +64,6 @@ public interface HttpUriRequest extends HttpRequest {
      * in the
      * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html">HttpClient Tutorial</a>
      * </p>
-     * <p>
-     * The final HttpRequest object in the execution context always represents
-     * the state of the message _exactly_ as it was sent to the target server.
-     * Per default HTTP/1.0 and HTTP/1.1 use relative request URIs.
-     * </p>
      */
     URI getURI();
 
