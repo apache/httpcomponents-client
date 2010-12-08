@@ -51,15 +51,24 @@ public interface HttpUriRequest extends HttpRequest {
     /**
      * Returns the URI this request uses, such as
      * <code>http://example.org/path/to/file</code>.
-     *
+     * <br/>
+     * Note that the URI may be absolute URI (as above) or may be a relative URI.
+     * <p>
      * Implementations are encouraged to return
      * the URI that was initially requested.
-     *
+     * </p>
+     * <p>
      * To find the final URI after any redirects have been processed,
      * please see the section entitled
      * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
      * in the
      * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html">HttpClient Tutorial</a>
+     * </p>
+     * <p>
+     * The final HttpRequest object in the execution context always represents
+     * the state of the message _exactly_ as it was sent to the target server.
+     * Per default HTTP/1.0 and HTTP/1.1 use relative request URIs.
+     * </p>
      */
     URI getURI();
 
