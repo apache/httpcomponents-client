@@ -414,7 +414,7 @@ public class CachingHttpClient implements HttpClient {
 
             Set<HttpCacheEntry> variantEntries = null;
             try {
-                responseCache.getVariantCacheEntries(target, request);
+                variantEntries = responseCache.getVariantCacheEntries(target, request);
             } catch (IOException ioe) {
                 log.warn("Unable to retrieve variant entries from cache", ioe);
             }

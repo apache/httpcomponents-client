@@ -806,4 +806,63 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertNull(captured.getFirstHeader("If-Match"));
         assertNull(captured.getFirstHeader("If-Unmodified-Since"));
     }
+    
+    /* "If an entity tag was assigned to a cached representation, the
+     * forwarded request SHOULD be conditional and include the entity
+     * tags in an If-None-Match header field from all its cache entries
+     * for the resource."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void testSendsAllVariantEtagsInConditionalRequest()
+    	throws Exception {
+    	HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    	req1.setHeader("User-Agent","agent1");
+    	HttpResponse resp1 = HttpTestUtils.make200Response();
+    	resp1.setHeader("Cache-Control","max-age=3600");
+    	resp1.setHeader("Vary","User-Agent");
+    	resp1.setHeader("Etag","\"etag1\"");
+    	
+    	backendExpectsAnyRequest().andReturn(resp1);
+
+    	HttpRequest req2 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    	req2.setHeader("User-Agent","agent2");
+    	HttpResponse resp2 = HttpTestUtils.make200Response();
+    	resp2.setHeader("Cache-Control","max-age=3600");
+    	resp2.setHeader("Vary","User-Agent");
+    	resp2.setHeader("Etag","\"etag2\"");
+
+    	backendExpectsAnyRequest().andReturn(resp2);
+    	
+    	Capture<HttpRequest> cap = new Capture<HttpRequest>();
+    	HttpRequest req3 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    	req3.setHeader("User-Agent","agent3");
+    	HttpResponse resp3 = HttpTestUtils.make200Response();
+    	
+    	EasyMock.expect(mockBackend.execute(EasyMock.eq(host),
+    			EasyMock.capture(cap), (HttpContext)EasyMock.isNull()))
+    		.andReturn(resp3);
+    	
+    	replayMocks();
+    	impl.execute(host,req1);
+    	impl.execute(host,req2);
+    	impl.execute(host,req3);
+    	verifyMocks();
+    	
+    	HttpRequest captured = cap.getValue();
+    	boolean foundEtag1 = false;
+    	boolean foundEtag2 = false;
+    	for(Header h : captured.getHeaders("If-None-Match")) {
+    		for(String etag : h.getValue().split(",")) {
+    			if ("\"etag1\"".equals(etag.trim())) {
+    				foundEtag1 = true;
+    			}
+    			if ("\"etag2\"".equals(etag.trim())) {
+    				foundEtag2 = true;
+    			}
+    		}
+    	}
+    	assertTrue(foundEtag1 && foundEtag2);
+    }
 }
