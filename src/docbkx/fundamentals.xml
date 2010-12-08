@@ -543,7 +543,11 @@ byte[] response = httpclient.execute(httpget, handler);
                 <formalpara>
                     <title><constant>ExecutionContext.HTTP_REQUEST</constant>='http.request':</title>
                     <para><interfacename>HttpRequest</interfacename> instance representing the
-                        actual HTTP request.</para>
+                        actual HTTP request.
+                        The final HttpRequest object in the execution context always represents
+                        the state of the message _exactly_ as it was sent to the target server.
+                        Per default HTTP/1.0 and HTTP/1.1 use relative request URIs.
+                    </para>
                 </formalpara>
             </listitem>
             <listitem>
