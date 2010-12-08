@@ -187,7 +187,7 @@ System.out.println(userToken);
 ]]></programlisting>
             <section>
                 <title>Persistent stateful connections</title>
-                <para>Please note that persistent connection that carry a state object can be reused
+                <para>Please note that a persistent connection that carries a state object can be reused
                     only if the same state object is bound to the execution context when requests
                     are executed. So, it is really important to ensure the either same context is
                     reused for execution of subsequent HTTP requests by the same user or the user
