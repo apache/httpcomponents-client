@@ -72,6 +72,21 @@ public class TestBasicClientCookie2 {
     }
 
     @Test
+    public void testHTTPCLIENT_1031() throws Exception {
+        BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
+        orig.setDomain("domain");
+        orig.setPath("/");
+        orig.setAttribute("attrib", "stuff");
+        BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
+        Assert.assertEquals(orig.getName(), clone.getName());
+        Assert.assertEquals(orig.getValue(), clone.getValue());
+        Assert.assertEquals(orig.getDomain(), clone.getDomain());
+        Assert.assertEquals(orig.getPath(), clone.getPath());
+        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assert.assertNull(clone.getPorts());
+    }
+
+    @Test
     public void testSerialization() throws Exception {
         BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");

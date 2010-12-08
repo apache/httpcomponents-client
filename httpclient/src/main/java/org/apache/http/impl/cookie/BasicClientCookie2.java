@@ -93,7 +93,9 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2,
     @Override
     public Object clone() throws CloneNotSupportedException {
         BasicClientCookie2 clone = (BasicClientCookie2) super.clone();
-        clone.ports = this.ports.clone();
+        if (this.ports != null) {
+            clone.ports = this.ports.clone();
+        }
         return clone;
     }
 
