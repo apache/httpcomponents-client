@@ -187,9 +187,8 @@ httpclient.getConnectionManager().shutdown();
             local HTTP context after the request has been executed.</para>
         <para>The final HttpRequest object in the execution context always represents
             the state of the message _exactly_ as it was sent to the target server.
-            Per default HTTP/1.0 and HTTP/1.1 use relative request URIs.
-            However if the request is sent via a proxy without creating a tunnel
-            (direct proxy mode) then the URI will be absolute.</para>
+            Per default HTTP/1.0 and HTTP/1.1 use relative request URIs. However if the request 
+            is sent via a proxy in a non-tunneling mode then the URI will be absolute.</para>
         <programlisting><![CDATA[
 DefaultHttpClient httpclient = new DefaultHttpClient();
 
