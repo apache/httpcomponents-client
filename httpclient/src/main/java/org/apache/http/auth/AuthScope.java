@@ -88,16 +88,16 @@ public class AuthScope {
      * <tt>authentication scheme</tt>.
      *
      * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credenticals are applicable to
+     *   to <tt>null</tt> if credentials are applicable to
      *   any host.
      * @param port the port the credentials apply to. May be set
-     *   to negative value if credenticals are applicable to
+     *   to negative value if credentials are applicable to
      *   any port.
      * @param realm the realm the credentials apply to. May be set
-     *   to <tt>null</tt> if credenticals are applicable to
+     *   to <tt>null</tt> if credentials are applicable to
      *   any realm.
      * @param scheme the authentication scheme the credentials apply to.
-     *   May be set to <tt>null</tt> if credenticals are applicable to
+     *   May be set to <tt>null</tt> if credentials are applicable to
      *   any authentication scheme.
      */
     public AuthScope(final String host, int port,
@@ -114,13 +114,13 @@ public class AuthScope {
      * authentication scheme.
      *
      * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credenticals are applicable to
+     *   to <tt>null</tt> if credentials are applicable to
      *   any host.
      * @param port the port the credentials apply to. May be set
-     *   to negative value if credenticals are applicable to
+     *   to negative value if credentials are applicable to
      *   any port.
      * @param realm the realm the credentials apply to. May be set
-     *   to <tt>null</tt> if credenticals are applicable to
+     *   to <tt>null</tt> if credentials are applicable to
      *   any realm.
      */
     public AuthScope(final String host, int port, final String realm) {
@@ -132,10 +132,10 @@ public class AuthScope {
      * authentication scheme.
      *
      * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credenticals are applicable to
+     *   to <tt>null</tt> if credentials are applicable to
      *   any host.
      * @param port the port the credentials apply to. May be set
-     *   to negative value if credenticals are applicable to
+     *   to negative value if credentials are applicable to
      *   any port.
      */
     public AuthScope(final String host, int port) {
