@@ -1,7 +1,7 @@
 Changes since 4.1 BETA1
 -----------------------
 
-* [HTTPCLIENT-1030] HttpRoute.equals(Object o) is quite inefficient, as it does not take full advantage of shortcut logic
+* [HTTPCLIENT-1033] HttpRoute.equals(Object o) is quite inefficient, as it does not take full advantage of shortcut logic
  Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-1030] Implement "ignoreCookies" CookieSpec
