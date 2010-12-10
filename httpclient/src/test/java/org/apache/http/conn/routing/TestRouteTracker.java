@@ -372,6 +372,9 @@ public class TestRouteTracker {
         throws CloneNotSupportedException {
 
         RouteTracker rt0 = new RouteTracker(TARGET1, null);
+        RouteTracker rt1 = new RouteTracker(TARGET2, null);
+        RouteTracker rt2 = new RouteTracker(TARGET1, null);
+        RouteTracker rt3 = new RouteTracker(TARGET1, null);
         RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
         RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
 
@@ -380,6 +383,20 @@ public class TestRouteTracker {
         Assert.assertFalse("rt0", rt0.equals(rt0.toString()));
 
         Assert.assertFalse("rt0 == rt4", rt0.equals(rt4));
+        Assert.assertFalse("rt0 == rt1", rt0.equals(rt1)); // Check host takes part in equals
+
+        // Check that connection takes part in equals
+        Assert.assertTrue("rt0 != rt2", rt0.equals(rt2));
+        rt2.connectTarget(false);
+        Assert.assertFalse("rt0 == rt2", rt0.equals(rt2));
+
+        Assert.assertTrue("rt0 != rt3", rt0.equals(rt3));
+        rt3.connectTarget(true);
+        Assert.assertFalse("rt0 == rt3", rt0.equals(rt3));
+        Assert.assertFalse("rt2 == rt3", rt2.equals(rt3)); // Test secure takes part
+
+        // TODO needs tests for tunnel and layered
+
         Assert.assertFalse("rt4 == rt0", rt4.equals(rt0));
         Assert.assertFalse("rt0 == rt6", rt0.equals(rt6));
         Assert.assertFalse("rt6 == rt0", rt6.equals(rt0));
