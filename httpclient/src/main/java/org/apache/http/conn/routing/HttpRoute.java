@@ -336,27 +336,31 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             return false;
 
         HttpRoute that = (HttpRoute) o;
-        boolean equal = this.targetHost.equals(that.targetHost);
-        equal &=
-            ( this.localAddress == that.localAddress) ||
-            ((this.localAddress != null) &&
-              this.localAddress.equals(that.localAddress));
-        equal &=
-            ( this.proxyChain        == that.proxyChain) ||
-            ( this.proxyChain.length == that.proxyChain.length);
-        // comparison of actual proxies follows below
-        equal &=
+        
+        if (
+            this.targetHost.equals(that.targetHost) &&
+            (  ( this.localAddress == that.localAddress) ||
+              (( this.localAddress != null) &&
+                 this.localAddress.equals(that.localAddress)) 
+            ) &&
+            ( ( this.proxyChain        == that.proxyChain) ||
+              ( this.proxyChain.length == that.proxyChain.length)
+              // comparison of actual proxies follows below
+            ) &&
             (this.secure    == that.secure) &&
             (this.tunnelled == that.tunnelled) &&
-            (this.layered   == that.layered);
-
-        // chain length has been compared above, now check the proxies
-        if (equal && (this.proxyChain != null)) {
-            for (int i=0; equal && (i<this.proxyChain.length); i++)
-                equal = this.proxyChain[i].equals(that.proxyChain[i]);
+            (this.layered   == that.layered)
+            ) {
+            boolean equal = true;
+            // chain length has been compared above, now check the proxies
+            if (this.proxyChain != null) {
+                for (int i=0; equal && (i<this.proxyChain.length); i++)
+                    equal = this.proxyChain[i].equals(that.proxyChain[i]);
+            }
+            return equal;
+        } else {
+            return false;
         }
-
-        return equal;
     }
 
 
