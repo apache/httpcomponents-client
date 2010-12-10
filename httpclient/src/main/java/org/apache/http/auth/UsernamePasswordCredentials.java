@@ -103,7 +103,6 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
         if (this == o) return true;
         if (o instanceof UsernamePasswordCredentials) {
             UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;

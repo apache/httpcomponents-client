@@ -66,7 +66,6 @@ public final class BasicUserPrincipal implements Principal, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
         if (this == o) return true;
         if (o instanceof BasicUserPrincipal) {
             BasicUserPrincipal that = (BasicUserPrincipal) o;

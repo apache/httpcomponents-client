@@ -94,7 +94,6 @@ public class NTUserPrincipal implements Principal, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
         if (this == o) return true;
         if (o instanceof NTUserPrincipal) {
             NTUserPrincipal that = (NTUserPrincipal) o;
