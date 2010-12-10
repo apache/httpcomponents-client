@@ -30,6 +30,7 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.LangUtils;
 
 import org.apache.http.HttpHost;
 
@@ -293,30 +294,15 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             return false;
 
         RouteTracker that = (RouteTracker) o;
-        boolean equal = this.targetHost.equals(that.targetHost);
-        equal &=
-            ( this.localAddress == that.localAddress) ||
-            ((this.localAddress != null) &&
-              this.localAddress.equals(that.localAddress));
-        equal &=
-            ( this.proxyChain        == that.proxyChain) ||
-            ((this.proxyChain        != null) &&
-             (that.proxyChain        != null) &&
-             (this.proxyChain.length == that.proxyChain.length));
-        // comparison of actual proxies follows below
-        equal &=
+        return 
+            // Do the cheapest checks first
             (this.connected == that.connected) &&
             (this.secure    == that.secure) &&
             (this.tunnelled == that.tunnelled) &&
-            (this.layered   == that.layered);
-
-        // chain length has been compared above, now check the proxies
-        if (equal && (this.proxyChain != null)) {
-            for (int i=0; equal && (i<this.proxyChain.length); i++)
-                equal = this.proxyChain[i].equals(that.proxyChain[i]);
-        }
-
-        return equal;
+            (this.layered   == that.layered) &&
+            LangUtils.equals(this.targetHost, that.targetHost) &&
+            LangUtils.equals(this.localAddress, that.localAddress) &&
+            LangUtils.equals(this.proxyChain, that.proxyChain);
     }
 
     /**

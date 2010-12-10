@@ -324,22 +324,23 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     /**
      * Compares this route to another.
      *
-     * @param o         the object to compare with
+     * @param obj         the object to compare with
      *
      * @return  <code>true</code> if the argument is the same route,
      *          <code>false</code>
      */
     @Override
     public final boolean equals(Object obj) {
-        if (obj == null) return false;
         if (this == obj) return true;
         if (obj instanceof HttpRoute) {
             HttpRoute that = (HttpRoute) obj;
-            return LangUtils.equals(this.targetHost, that.targetHost) &&
-                LangUtils.equals(this.localAddress, that.localAddress) &&
+            return 
+                // Do the cheapest tests first
                 (this.secure    == that.secure) &&
                 (this.tunnelled == that.tunnelled) &&
                 (this.layered   == that.layered) &&
+                LangUtils.equals(this.targetHost, that.targetHost) &&
+                LangUtils.equals(this.localAddress, that.localAddress) &&
                 LangUtils.equals(this.proxyChain, that.proxyChain);
         } else {
             return false;
