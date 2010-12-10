@@ -30,6 +30,7 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.LangUtils;
 
 import org.apache.http.HttpHost;
 
@@ -329,35 +330,17 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *          <code>false</code>
      */
     @Override
-    public final boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (!(o instanceof HttpRoute))
-            return false;
-
-        HttpRoute that = (HttpRoute) o;
-        
-        if (
-            this.targetHost.equals(that.targetHost) &&
-            (  ( this.localAddress == that.localAddress) ||
-              (( this.localAddress != null) &&
-                 this.localAddress.equals(that.localAddress)) 
-            ) &&
-            ( ( this.proxyChain        == that.proxyChain) ||
-              ( this.proxyChain.length == that.proxyChain.length)
-              // comparison of actual proxies follows below
-            ) &&
-            (this.secure    == that.secure) &&
-            (this.tunnelled == that.tunnelled) &&
-            (this.layered   == that.layered)
-            ) {
-            boolean equal = true;
-            // chain length has been compared above, now check the proxies
-            if (this.proxyChain != null) {
-                for (int i=0; equal && (i<this.proxyChain.length); i++)
-                    equal = this.proxyChain[i].equals(that.proxyChain[i]);
-            }
-            return equal;
+    public final boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (obj instanceof HttpRoute) {
+            HttpRoute that = (HttpRoute) obj;
+            return LangUtils.equals(this.targetHost, that.targetHost) &&
+                LangUtils.equals(this.localAddress, that.localAddress) &&
+                (this.secure    == that.secure) &&
+                (this.tunnelled == that.tunnelled) &&
+                (this.layered   == that.layered) &&
+                LangUtils.equals(this.proxyChain, that.proxyChain);
         } else {
             return false;
         }
@@ -371,21 +354,16 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     @Override
     public final int hashCode() {
-
-        int hc = this.targetHost.hashCode();
-
-        if (this.localAddress != null)
-            hc ^= localAddress.hashCode();
-        hc ^= proxyChain.length;
-        for (HttpHost aProxyChain : proxyChain) hc ^= aProxyChain.hashCode();
-
-        if (this.secure)
-            hc ^= 0x11111111;
-
-        hc ^= this.tunnelled.hashCode();
-        hc ^= this.layered.hashCode();
-
-        return hc;
+        int hash = LangUtils.HASH_SEED;
+        hash = LangUtils.hashCode(hash, this.targetHost);
+        hash = LangUtils.hashCode(hash, this.localAddress);
+        for (int i = 0; i < this.proxyChain.length; i++) {
+            hash = LangUtils.hashCode(hash, this.proxyChain[i]);
+        }
+        hash = LangUtils.hashCode(hash, this.secure);
+        hash = LangUtils.hashCode(hash, this.tunnelled);
+        hash = LangUtils.hashCode(hash, this.layered);
+        return hash;
     }
 
 
