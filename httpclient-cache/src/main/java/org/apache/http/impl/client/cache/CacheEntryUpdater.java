@@ -98,17 +98,15 @@ class CacheEntryUpdater {
     }
 
     protected Header[] mergeHeaders(HttpCacheEntry entry, HttpResponse response) {
-        List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
-                .getAllHeaders()));
 
         if (entryAndResponseHaveDateHeader(entry, response)
                 && entryDateHeaderNewerThenResponse(entry, response)) {
-            // Don't merge Headers, keep the entries headers as they are newer.
-            removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
-
-            return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
+        	// Don't merge headers, keep the entry's headers as they are newer.
+        	return entry.getAllHeaders();
         }
 
+        List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
+        		.getAllHeaders()));
         removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
         removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
         cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
