@@ -196,18 +196,21 @@ public class TestBasicHttpCache {
 
     @Test
     public void testCacheUpdateAddsVariantURIToParentEntry() throws Exception {
-        final String parentKey = "parentKey";
-        final String variantKey = "variantKey";
+        final String parentCacheKey = "parentCacheKey";
+        final String variantCacheKey = "variantCacheKey";
         final String existingVariantKey = "existingVariantKey";
+        final String newVariantCacheKey = "newVariantCacheKey";
+        final String newVariantKey = "newVariantKey";
         final Map<String,String> existingVariants = new HashMap<String,String>();
-        existingVariants.put(existingVariantKey,existingVariantKey);
+        existingVariants.put(existingVariantKey, variantCacheKey);
         final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
         final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
 
-        HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentKey, parent, variant, variantKey);
-        assertEquals(2, result.getVariantMap().size());
-        assertTrue(result.getVariantMap().containsKey(existingVariantKey));
-        assertTrue(result.getVariantMap().containsKey(variantKey));
+        HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentCacheKey, parent, variant, newVariantKey, newVariantCacheKey);
+        Map<String,String> resultMap = result.getVariantMap();
+        assertEquals(2, resultMap.size());
+        assertEquals(variantCacheKey, resultMap.get(existingVariantKey));
+        assertEquals(newVariantCacheKey, resultMap.get(newVariantKey));
     }
 
     @Test

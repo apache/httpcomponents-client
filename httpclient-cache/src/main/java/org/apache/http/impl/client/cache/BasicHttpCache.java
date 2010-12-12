@@ -113,7 +113,9 @@ class BasicHttpCache implements HttpCache {
 
             public HttpCacheEntry update(HttpCacheEntry existing) throws IOException {
                 return doGetUpdatedParentEntry(
-                        req.getRequestLine().getUri(), existing, entry, variantURI);
+                        req.getRequestLine().getUri(), existing, entry,
+                        uriExtractor.getVariantKey(req, entry),
+                        variantURI);
             }
 
         };
@@ -162,14 +164,15 @@ class BasicHttpCache implements HttpCache {
             final String requestId,
             final HttpCacheEntry existing,
             final HttpCacheEntry entry,
-            final String variantURI) throws IOException {
+            final String variantKey,
+            final String variantCacheKey) throws IOException {
         HttpCacheEntry src = existing;
         if (src == null) {
             src = entry;
         }
         
         Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
-        variantMap.put(variantURI, variantURI);
+        variantMap.put(variantKey, variantCacheKey);
         Resource resource = resourceFactory.copy(requestId, src.getResource());
         return new HttpCacheEntry(
                 src.getRequestDate(),
@@ -228,8 +231,9 @@ class BasicHttpCache implements HttpCache {
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null) return null;
         if (!root.hasVariants()) return root;
-        HttpCacheEntry variant = storage.getEntry(uriExtractor.getVariantURI(host, request, root));
-        return variant;
+        String variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
+        if (variantCacheKey == null) return null;
+        return storage.getEntry(variantCacheKey);
     }
 
     public void flushInvalidatedCacheEntriesFor(HttpHost host,
