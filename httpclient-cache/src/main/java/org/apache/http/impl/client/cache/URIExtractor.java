@@ -136,16 +136,22 @@ class URIExtractor {
      * @return String the extracted variant URI
      */
     public String getVariantURI(HttpHost host, HttpRequest req, HttpCacheEntry entry) {
-        Header[] varyHdrs = entry.getHeaders(HeaderConstants.VARY);
-        if (varyHdrs == null || varyHdrs.length == 0) {
-            return getURI(host, req);
-        }
-        return getVariantKey(req, varyHdrs) + getURI(host, req);
+        if (!entry.hasVariants()) return getURI(host, req);
+        return getVariantKey(req, entry) + getURI(host, req);
     }
 
-    public String getVariantKey(HttpRequest req, Header[] varyHdrs) {
+    /**
+     * Compute a "variant key" from the headers of a given request that are
+     * covered by the Vary header of a given cache entry. Any request whose
+     * varying headers match those of this request should have the same
+     * variant key. 
+     * @param req originating request
+     * @param entry cache entry in question that has variants
+     * @return a <code>String</code> variant key
+     */
+    public String getVariantKey(HttpRequest req, HttpCacheEntry entry) {
         List<String> variantHeaderNames = new ArrayList<String>();
-        for (Header varyHdr : varyHdrs) {
+        for (Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
             for (HeaderElement elt : varyHdr.getElements()) {
                 variantHeaderNames.add(elt.getName());
             }

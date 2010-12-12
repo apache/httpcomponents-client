@@ -235,22 +235,16 @@ class BasicHttpCache implements HttpCache {
     public void flushInvalidatedCacheEntriesFor(HttpHost host,
             HttpRequest request) throws IOException {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
-
     }
 
     public Set<HttpCacheEntry> getVariantCacheEntries(HttpHost host, HttpRequest request)
             throws IOException {
         Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
-
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
-        if (root != null) {
-            if (root.hasVariants()) {
-                for(String variantUri : root.getVariantMap().values()) {
-                    variants.add(storage.getEntry(variantUri));
-                }
-            }
+        if (root == null || !root.hasVariants()) return variants;
+        for(String variantCacheKey : root.getVariantMap().values()) {
+            variants.add(storage.getEntry(variantCacheKey));
         }
-
         return variants;
     }
 

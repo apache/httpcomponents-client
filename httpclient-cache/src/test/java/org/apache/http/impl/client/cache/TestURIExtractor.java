@@ -123,8 +123,7 @@ public class TestURIExtractor {
     @Test
     public void testGetVariantURIWithNoVaryHeaderReturnsNormalURI() {
         final String theURI = "theURI";
-        Header[] noHdrs = new Header[0];
-        org.easymock.EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(noHdrs);
+        org.easymock.EasyMock.expect(mockEntry.hasVariants()).andReturn(false);
         extractor = new URIExtractor() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
@@ -154,8 +153,9 @@ public class TestURIExtractor {
                 return theURI;
             }
         };
-        org.easymock.EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
+        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
+        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
+        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
                 encHeaders);
         replayMocks();
 
@@ -178,8 +178,9 @@ public class TestURIExtractor {
                 return theURI;
             }
         };
-        org.easymock.EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Accept-Encoding"))
+        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
+        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
+        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding"))
                 .andReturn(noHeaders);
         replayMocks();
 
@@ -203,10 +204,11 @@ public class TestURIExtractor {
                 return theURI;
             }
         };
-        org.easymock.EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
+        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
+        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
+        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
                 encHeaders);
-        org.easymock.EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
+        EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
         String result = extractor.getVariantURI(host, mockRequest, mockEntry);
@@ -230,6 +232,7 @@ public class TestURIExtractor {
                 return theURI;
             }
         };
+        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
         EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
         EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(encHeaders);
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
@@ -256,6 +259,7 @@ public class TestURIExtractor {
                 return theURI;
             }
         };
+        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
         EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
         EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(encHeaders);
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
