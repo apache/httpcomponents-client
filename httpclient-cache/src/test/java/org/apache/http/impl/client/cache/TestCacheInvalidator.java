@@ -27,9 +27,8 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -78,8 +77,8 @@ public class TestCacheInvalidator {
         HttpRequest request = new BasicHttpRequest("POST","/path", HTTP_1_1);
 
         final String theUri = "http://foo.example.com:80/path";
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
+        Map<String,String> variantMap = new HashMap<String,String>();
+        cacheEntryHasVariantMap(variantMap);
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
@@ -100,8 +99,7 @@ public class TestCacheInvalidator {
         request.setHeader("Content-Location", contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
+        cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
@@ -124,8 +122,7 @@ public class TestCacheInvalidator {
         request.setHeader("Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
+        cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
@@ -148,8 +145,7 @@ public class TestCacheInvalidator {
         request.setHeader("Content-Location",relativePath);
 
         final String theUri = "http://foo.example.com:80/";
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
+        cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
@@ -172,8 +168,7 @@ public class TestCacheInvalidator {
         request.setHeader("Content-Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
-        Set<String> variantURIs = new HashSet<String>();
-        cacheEntryHasVariantURIs(variantURIs);
+        cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
         entryIsRemoved(theUri);
@@ -238,11 +233,11 @@ public class TestCacheInvalidator {
         final String theUri = "http://foo.example.com:80/";
         final String variantUri = "theVariantURI";
 
-        Set<String> listOfURIs = new HashSet<String>();
-        listOfURIs.add(variantUri);
+        Map<String,String> mapOfURIs = new HashMap<String,String>();
+        mapOfURIs.put(variantUri,variantUri);
 
         cacheReturnsEntryForUri(theUri);
-        cacheEntryHasVariantURIs(listOfURIs);
+        cacheEntryHasVariantMap(mapOfURIs);
 
         entryIsRemoved(variantUri);
         entryIsRemoved(theUri);
@@ -264,10 +259,8 @@ public class TestCacheInvalidator {
     }
 
     // Expectations
-
-
-    private void cacheEntryHasVariantURIs(Set<String> variantURIs) {
-        org.easymock.EasyMock.expect(mockEntry.getVariantURIs()).andReturn(variantURIs);
+    private void cacheEntryHasVariantMap(Map<String,String> variantMap) {
+        org.easymock.EasyMock.expect(mockEntry.getVariantMap()).andReturn(variantMap);
     }
 
     private void cacheReturnsEntryForUri(String theUri) throws IOException {

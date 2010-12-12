@@ -30,7 +30,9 @@ import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -65,7 +67,7 @@ public class TestHttpCacheEntry {
 
     private HttpCacheEntry makeEntry(Header[] headers) {
         return new HttpCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                statusLine, headers, mockResource, null);
+                statusLine, headers, mockResource);
     }
 
     @Test
@@ -142,7 +144,7 @@ public class TestHttpCacheEntry {
     public void mustProvideRequestDate() {
         try {
             new HttpCacheEntry(null, new Date(), statusLine,
-                    new Header[]{}, mockResource, null);
+                    new Header[]{}, mockResource);
             fail("Should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
@@ -152,7 +154,7 @@ public class TestHttpCacheEntry {
     public void mustProvideResponseDate() {
         try {
             new HttpCacheEntry(new Date(), null, statusLine,
-                    new Header[]{}, mockResource, null);
+                    new Header[]{}, mockResource);
             fail("Should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
@@ -162,7 +164,7 @@ public class TestHttpCacheEntry {
     public void mustProvideStatusLine() {
         try {
             new HttpCacheEntry(new Date(), new Date(), null,
-                    new Header[]{}, mockResource, null);
+                    new Header[]{}, mockResource);
             fail("Should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
@@ -172,7 +174,7 @@ public class TestHttpCacheEntry {
     public void mustProvideResponseHeaders() {
         try {
             new HttpCacheEntry(new Date(), new Date(), statusLine,
-                    null, mockResource, null);
+                    null, mockResource);
             fail("Should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
@@ -182,29 +184,23 @@ public class TestHttpCacheEntry {
     public void mustProvideResource() {
         try {
             new HttpCacheEntry(new Date(), new Date(), statusLine,
-                    new Header[]{}, null, null);
+                    new Header[]{}, null);
             fail("Should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
     }
 
     @Test
-    public void canProvideVariantSet() {
-        new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, new HashSet<String>());
-    }
-
-    @Test
     public void canRetrieveOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(statusLine, entry.getStatusLine());
     }
 
     @Test
     public void protocolVersionComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(statusLine.getProtocolVersion(),
                 entry.getProtocolVersion());        
     }
@@ -212,14 +208,14 @@ public class TestHttpCacheEntry {
     @Test
     public void reasonPhraseComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(statusLine.getReasonPhrase(), entry.getReasonPhrase());        
     }
 
     @Test
     public void statusCodeComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertEquals(statusLine.getStatusCode(), entry.getStatusCode());        
     }
 
@@ -227,7 +223,7 @@ public class TestHttpCacheEntry {
     public void canGetOriginalRequestDate() {
         final Date requestDate = new Date();
         entry = new HttpCacheEntry(requestDate, new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(requestDate, entry.getRequestDate());        
     }
 
@@ -235,14 +231,14 @@ public class TestHttpCacheEntry {
     public void canGetOriginalResponseDate() {
         final Date responseDate = new Date();
         entry = new HttpCacheEntry(new Date(), responseDate, statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(responseDate, entry.getResponseDate());        
     }
 
     @Test
     public void canGetOriginalResource() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertSame(mockResource, entry.getResource());        
     }
 
@@ -253,7 +249,7 @@ public class TestHttpCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(now))
         };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                headers, mockResource, null);
+                headers, mockResource);
         Header[] result = entry.getAllHeaders();
         assertEquals(headers.length, result.length);
         for(int i=0; i<headers.length; i++) {
@@ -261,6 +257,7 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void canRetrieveOriginalVariantSet() {
         Set<String> variants = new HashSet<String>();
@@ -275,6 +272,22 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    @Test
+    public void throwsExceptionWhenRetrievingVariantMapIfConstructedWithVariantSet() {
+        Set<String> variants = new HashSet<String>();
+        variants.add("variant1");
+        variants.add("variant2");
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource, variants);
+        try {
+            entry.getVariantMap();
+            fail("should have thrown exception");
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+    
+    @SuppressWarnings("deprecation")
     @Test
     public void variantSetIsNotModifiable() {
         Set<String> variants = new HashSet<String>();
@@ -294,11 +307,74 @@ public class TestHttpCacheEntry {
         } catch (UnsupportedOperationException expected) {
         }
     }
+    
+    @Test
+    public void canConstructWithoutVariants() {
+        new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource);
+    }
 
+    @Test
+    public void canProvideVariantMap() {
+        new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource,
+                new HashMap<String,String>());
+    }
+    
+    @Test
+    public void canRetrieveOriginalVariantMap() {
+        Map<String,String> variantMap = new HashMap<String,String>();
+        variantMap.put("A","B");
+        variantMap.put("C","D");
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource,
+                variantMap);
+        Map<String,String> result = entry.getVariantMap();
+        assertEquals(2, result.size());
+        assertEquals("B", result.get("A"));
+        assertEquals("D", result.get("C"));
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void returnsVariantMapValuesForVariantSet() {
+        Map<String,String> variantMap = new HashMap<String,String>();
+        variantMap.put("A","B");
+        variantMap.put("C","D");
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource,
+                variantMap);
+        Set<String> result = entry.getVariantURIs();
+        assertEquals(2, result.size());
+        assertTrue(result.contains("B"));
+        assertTrue(result.contains("D"));
+    }
+    
+    @Test
+    public void retrievedVariantMapIsNotModifiable() {
+        Map<String,String> variantMap = new HashMap<String,String>();
+        variantMap.put("A","B");
+        variantMap.put("C","D");
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                new Header[]{}, mockResource,
+                variantMap);
+        Map<String,String> result = entry.getVariantMap();
+        try {
+            result.remove("A");
+            fail("Should have thrown exception");
+        } catch (UnsupportedOperationException expected) {
+        }
+        try {
+            result.put("E","F");
+            fail("Should have thrown exception");
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+    
     @Test
     public void canConvertToString() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, null);
+                new Header[]{}, mockResource);
         assertNotNull(entry.toString());
         assertFalse("".equals(entry.toString()));
     }

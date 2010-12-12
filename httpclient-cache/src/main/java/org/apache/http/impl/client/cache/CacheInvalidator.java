@@ -86,7 +86,7 @@ class CacheInvalidator {
             log.debug("parent entry: " + parent);
 
             if (parent != null) {
-                for (String variantURI : parent.getVariantURIs()) {
+                for (String variantURI : parent.getVariantMap().values()) {
                     storage.removeEntry(variantURI);
                 }
                 storage.removeEntry(theUri);

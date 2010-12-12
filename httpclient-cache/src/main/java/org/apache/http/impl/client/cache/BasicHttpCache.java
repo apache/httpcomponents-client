@@ -28,7 +28,9 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -165,8 +167,9 @@ class BasicHttpCache implements HttpCache {
         if (src == null) {
             src = entry;
         }
-        Set<String> variants = new HashSet<String>(src.getVariantURIs());
-        variants.add(variantURI);
+        
+        Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
+        variantMap.put(variantURI, variantURI);
         Resource resource = resourceFactory.copy(requestId, src.getResource());
         return new HttpCacheEntry(
                 src.getRequestDate(),
@@ -174,7 +177,7 @@ class BasicHttpCache implements HttpCache {
                 src.getStatusLine(),
                 src.getAllHeaders(),
                 resource,
-                variants);
+                variantMap);
     }
 
     public HttpCacheEntry updateCacheEntry(HttpHost target, HttpRequest request,
@@ -211,8 +214,7 @@ class BasicHttpCache implements HttpCache {
                 responseReceived,
                 originResponse.getStatusLine(),
                 originResponse.getAllHeaders(),
-                resource,
-                null);
+                resource);
         storeInCache(host, request, entry);
         return responseGenerator.generateResponse(entry);
     }
@@ -243,7 +245,7 @@ class BasicHttpCache implements HttpCache {
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root != null) {
             if (root.hasVariants()) {
-                for(String variantUri : root.getVariantURIs()) {
+                for(String variantUri : root.getVariantMap().values()) {
                     variants.add(storage.getEntry(variantUri));
                 }
             }

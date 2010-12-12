@@ -140,7 +140,10 @@ class URIExtractor {
         if (varyHdrs == null || varyHdrs.length == 0) {
             return getURI(host, req);
         }
+        return getVariantKey(req, varyHdrs) + getURI(host, req);
+    }
 
+    public String getVariantKey(HttpRequest req, Header[] varyHdrs) {
         List<String> variantHeaderNames = new ArrayList<String>();
         for (Header varyHdr : varyHdrs) {
             for (HeaderElement elt : varyHdr.getElements()) {
@@ -149,8 +152,9 @@ class URIExtractor {
         }
         Collections.sort(variantHeaderNames);
 
+        StringBuilder buf;
         try {
-            StringBuilder buf = new StringBuilder("{");
+            buf = new StringBuilder("{");
             boolean first = true;
             for (String headerName : variantHeaderNames) {
                 if (!first) {
@@ -163,11 +167,10 @@ class URIExtractor {
                 first = false;
             }
             buf.append("}");
-            buf.append(getURI(host, req));
-            return buf.toString();
         } catch (UnsupportedEncodingException uee) {
             throw new RuntimeException("couldn't encode to UTF-8", uee);
         }
+        return buf.toString();
     }
 
 }

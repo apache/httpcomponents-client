@@ -28,9 +28,8 @@ package org.apache.http.impl.client.cache;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
@@ -254,24 +253,24 @@ public class HttpTestUtils {
 
     public static HttpCacheEntry makeCacheEntry(Date requestDate,
             Date responseDate, Header[] headers, byte[] bytes) {
-        Set<String> variants = null;
+        Map<String,String> variantMap = null;
         return makeCacheEntry(requestDate, responseDate, headers, bytes,
-                variants);
+                variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Set<String> variants) {
+    public static HttpCacheEntry makeCacheEntry(Map<String,String> variantMap) {
         Date now = new Date();
         return makeCacheEntry(now, now, getStockHeaders(now),
-                getRandomBytes(128), variants);
+                getRandomBytes(128), variantMap);
     }
-
+    
     public static HttpCacheEntry makeCacheEntry(Date requestDate,
             Date responseDate, Header[] headers, byte[] bytes,
-            Set<String> variants) {
+            Map<String,String> variantMap) {
         StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variants);
+        return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variantMap);
     }
-
+    
     public static HttpCacheEntry makeCacheEntry(Header[] headers, byte[] bytes) {
         Date now = new Date();
         return makeCacheEntry(now, now, headers, bytes);

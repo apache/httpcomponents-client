@@ -35,7 +35,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -198,15 +199,15 @@ public class TestBasicHttpCache {
         final String parentKey = "parentKey";
         final String variantKey = "variantKey";
         final String existingVariantKey = "existingVariantKey";
-        final Set<String> existingVariants = new HashSet<String>();
-        existingVariants.add(existingVariantKey);
+        final Map<String,String> existingVariants = new HashMap<String,String>();
+        existingVariants.put(existingVariantKey,existingVariantKey);
         final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
         final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
 
         HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentKey, parent, variant, variantKey);
-        assertEquals(2, result.getVariantURIs().size());
-        assertTrue(result.getVariantURIs().contains(existingVariantKey));
-        assertTrue(result.getVariantURIs().contains(variantKey));
+        assertEquals(2, result.getVariantMap().size());
+        assertTrue(result.getVariantMap().containsKey(existingVariantKey));
+        assertTrue(result.getVariantMap().containsKey(variantKey));
     }
 
     @Test
