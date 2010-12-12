@@ -100,7 +100,8 @@ public class HttpCacheEntry implements Serializable {
     }
     
     /**
-     * Create a new {@link HttpCacheEntry}
+     * Create a new {@link HttpCacheEntry} with a set of variant
+     * URIs.
      *
      * @param requestDate
      *          Date/time when the request was made (Used for age
@@ -109,9 +110,12 @@ public class HttpCacheEntry implements Serializable {
      *          Date/time that the response came back (Used for age
      *            calculations)
      * @param statusLine
-     *          HTTP status line
+     *          HTTP status line from origin response
      * @param responseHeaders
      *          Header[] from original HTTP Response
+     * @param resource representing origin response body
+     * @param variants set of cache keys that are variants of this
+     *   "parent" entry
      */
     @Deprecated
     public HttpCacheEntry(
@@ -125,12 +129,43 @@ public class HttpCacheEntry implements Serializable {
                 resource, variants, null);
     }
 
+    /**
+     * Create a new {@link HttpCacheEntry}.
+     *
+     * @param requestDate
+     *          Date/time when the request was made (Used for age
+     *            calculations)
+     * @param responseDate
+     *          Date/time that the response came back (Used for age
+     *            calculations)
+     * @param statusLine
+     *          HTTP status line from origin response
+     * @param responseHeaders
+     *          Header[] from original HTTP Response
+     * @param resource representing origin response body
+     */
     public HttpCacheEntry(Date requestDate, Date responseDate, StatusLine statusLine,
             Header[] headers, Resource resource) {
         this(requestDate, responseDate, statusLine, headers, resource, null,
                 new HashMap<String,String>());
     }
 
+    /**
+     * Create a new {@link HttpCacheEntry} with variants.
+     * @param requestDate
+     *          Date/time when the request was made (Used for age
+     *            calculations)
+     * @param responseDate
+     *          Date/time that the response came back (Used for age
+     *            calculations)
+     * @param statusLine
+     *          HTTP status line from origin response
+     * @param responseHeaders
+     *          Header[] from original HTTP Response
+     * @param resource representing origin response body
+     * @param variantMap describing cache entries that are variants
+     *   of this parent entry; each cache key should map to itself
+     */
     public HttpCacheEntry(Date requestDate, Date responseDate,
             StatusLine statusLine, Header[] headers,
             Resource resource, Map<String, String> variantMap) {
