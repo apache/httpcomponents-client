@@ -37,8 +37,6 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -340,7 +338,7 @@ public class TestBasicHttpCache {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Set<HttpCacheEntry> variants = impl.getVariantCacheEntries(host, request);
+        Map<String,HttpCacheEntry> variants = impl.getVariantCacheEntriesWithEtags(host, request);
 
         assertNotNull(variants);
         assertEquals(0, variants.size());
@@ -366,7 +364,7 @@ public class TestBasicHttpCache {
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
-        resp2.setHeader("ETag", "\"etag1\"");
+        resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
@@ -374,7 +372,7 @@ public class TestBasicHttpCache {
         impl.cacheAndReturnResponse(host, req1, resp1, new Date(), new Date());
         impl.cacheAndReturnResponse(host, req2, resp2, new Date(), new Date());
 
-        Set<HttpCacheEntry> variants = impl.getVariantCacheEntries(host, req1);
+        Map<String,HttpCacheEntry> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 
         assertNotNull(variants);
         assertEquals(2, variants.size());

@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -412,9 +412,9 @@ public class CachingHttpClient implements HttpClient {
                         "Gateway Timeout");
             }
 
-            Set<HttpCacheEntry> variantEntries = null;
+            Map<String,HttpCacheEntry> variantEntries = null;
             try {
-                variantEntries = responseCache.getVariantCacheEntries(target, request);
+                variantEntries = responseCache.getVariantCacheEntriesWithEtags(target, request);
             } catch (IOException ioe) {
                 log.warn("Unable to retrieve variant entries from cache", ioe);
             }
@@ -575,7 +575,7 @@ public class CachingHttpClient implements HttpClient {
 
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
-            Set<HttpCacheEntry> variantEntries) throws IOException, ProtocolException {
+            Map<String, HttpCacheEntry> variantEntries) throws IOException, ProtocolException {
         HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries);
 
         Date requestDate = getCurrentDate();
@@ -594,19 +594,9 @@ public class CachingHttpClient implements HttpClient {
             return callBackend(target, request, context);
         }
 
-        HttpCacheEntry matchedEntry = null;
 
         String resultEtag = resultEtagHeader.getValue();
-        for (HttpCacheEntry variantEntry : variantEntries) {
-            Header variantEtagHeader = variantEntry.getFirstHeader(HeaderConstants.ETAG);
-            if (variantEtagHeader != null) {
-                String variantEtag = variantEtagHeader.getValue();
-                if (resultEtag.equals(variantEtag)) {
-                    matchedEntry = variantEntry;
-                    break;
-                }
-            }
-        }
+        HttpCacheEntry matchedEntry = variantEntries.get(resultEtag);
 
         if (matchedEntry == null) {
             log.debug("304 response did not contain ETag matching one sent in If-None-Match");
@@ -626,7 +616,7 @@ public class CachingHttpClient implements HttpClient {
                     //  request.  It would get the same result whether it went through our
                     //  cache or not...
                     HttpRequest unconditional = conditionalRequestBuilder
-                    .buildUnconditionalRequest(request, matchedEntry);
+                        .buildUnconditionalRequest(request, matchedEntry);
                     return callBackend(target, unconditional, context);
                 }
             } catch (DateParseException e) {

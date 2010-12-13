@@ -30,10 +30,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-
+import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -301,7 +300,7 @@ public class TestCachingHttpClient {
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(null);
-        getVariantCacheEntriesReturns(new HashSet<HttpCacheEntry>());
+        getVariantCacheEntriesReturns(new HashMap<String,HttpCacheEntry>());
 
         requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
@@ -1586,57 +1585,28 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    public void testNegotiateResponseFromVariantsForwardsCallIfNoVariantETags() throws ProtocolException, IOException {
-        impl = new CachingHttpClient(mockBackend);
-
-        HttpResponse originResponse = HttpTestUtils.make200Response();
-
-        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
-        variants.add(HttpTestUtils.makeCacheEntry());
-        variants.add(HttpTestUtils.makeCacheEntry());
-        variants.add(HttpTestUtils.makeCacheEntry());
-
-        Capture<HttpRequest> cap = new Capture<HttpRequest>();
-
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.capture(cap), EasyMock.isA(HttpContext.class)))
-                .andReturn(originResponse);
-
-        replayMocks();
-        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
-        verifyMocks();
-
-        Assert.assertTrue(cap.hasCaptured());
-
-        HttpRequest captured = cap.getValue();
-        Assert.assertNull(captured.getFirstHeader(HeaderConstants.IF_NONE_MATCH));
-
-        Assert.assertEquals(resp.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
-    }
-
-    @Test
     public void testNegotiateResponseFromVariantsReturnsVariantAndUpdatesEntryOnBackend304() throws Exception {
         HttpCacheEntry variant1 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag1") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag1\"") });
         HttpCacheEntry variant2 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
         HttpCacheEntry variant3 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag3") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag3\"") });
 
-        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
-        variants.add(variant1);
-        variants.add(variant2);
-        variants.add(variant3);
+        Map<String,HttpCacheEntry> variants = new HashMap<String,HttpCacheEntry>();
+        variants.put("\"etag1\"", variant1);
+        variants.put("\"etag2\"", variant2);
+        variants.put("\"etag3\"", variant3);
 
         HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
         variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
 
         HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        originResponse.addHeader(HeaderConstants.ETAG, "etag2");
+        originResponse.addHeader(HeaderConstants.ETAG, "\"etag2\"");
 
         HttpCacheEntry updatedMatchedEntry =  HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
 
         HttpResponse matchedResponse = HttpTestUtils.make200Response();
         HttpResponse response = HttpTestUtils.make200Response();
@@ -1663,18 +1633,18 @@ public class TestCachingHttpClient {
     @Test
     public void testNegotiateResponseFromVariantsReturns200OnBackend200() throws Exception {
         HttpCacheEntry variant1 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag1") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag1\"") });
         HttpCacheEntry variant2 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag2") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
         HttpCacheEntry variant3 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "etag3") });
+                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag3\"") });
 
         HttpCacheEntry cacheEntry = null;
 
-        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
-        variants.add(variant1);
-        variants.add(variant2);
-        variants.add(variant3);
+        Map<String,HttpCacheEntry> variants = new HashMap<String,HttpCacheEntry>();
+        variants.put("\"etag1\"", variant1);
+        variants.put("\"etag2\"", variant2);
+        variants.put("\"etag3\"", variant3);
 
         HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
         variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
@@ -1914,7 +1884,7 @@ public class TestCachingHttpClient {
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.same(host),
                 EasyMock.isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
-        EasyMock.expect(mockCache.getVariantCacheEntries(EasyMock.same(host),
+        EasyMock.expect(mockCache.getVariantCacheEntriesWithEtags(EasyMock.same(host),
                 EasyMock.isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
         EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host),
@@ -1988,8 +1958,8 @@ public class TestCachingHttpClient {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
 
-    private void getVariantCacheEntriesReturns(Set<HttpCacheEntry> result) throws IOException {
-        EasyMock.expect(mockCache.getVariantCacheEntries(host, request)).andReturn(result);
+    private void getVariantCacheEntriesReturns(Map<String,HttpCacheEntry> result) throws IOException {
+        EasyMock.expect(mockCache.getVariantCacheEntriesWithEtags(host, request)).andReturn(result);
     }
 
     private void cacheInvalidatorWasCalled()  throws IOException {
@@ -2020,7 +1990,7 @@ public class TestCachingHttpClient {
                 EasyMock.<HttpCacheEntry>anyObject())).andReturn(b);
     }
 
-    private void conditionalVariantRequestBuilderReturns(Set<HttpCacheEntry> variantEntries, HttpRequest validate)
+    private void conditionalVariantRequestBuilderReturns(Map<String,HttpCacheEntry> variantEntries, HttpRequest validate)
             throws Exception {
         EasyMock.expect(mockConditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries))
             .andReturn(validate);

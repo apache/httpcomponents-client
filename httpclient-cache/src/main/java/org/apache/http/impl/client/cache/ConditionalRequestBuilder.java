@@ -26,8 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.Set;
-
+import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
@@ -93,33 +92,24 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public HttpRequest buildConditionalRequestFromVariants(HttpRequest request, Set<HttpCacheEntry> variantEntries)
-            throws ProtocolException {
+    public HttpRequest buildConditionalRequestFromVariants(HttpRequest request,
+            Map<String, HttpCacheEntry> variantEntries)
+                throws ProtocolException {
         RequestWrapper wrapperRequest = new RequestWrapper(request);
         wrapperRequest.resetHeaders();
 
         // we do not support partial content so all etags are used
         StringBuilder etags = new StringBuilder();
         boolean first = true;
-        for (HttpCacheEntry entry : variantEntries) {
-            Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
-            if (etagHeader != null) {
-                if (first) {
-                    etags.append(etagHeader.getValue());
-                    first = false;
-                } else {
-                    etags.append(",").append(etagHeader.getValue());
-                }
+        for(String etag : variantEntries.keySet()) {
+            if (!first) {
+                etags.append(",");
             }
+            first = false;
+            etags.append(etag);
         }
-        // if first is still true than no variants had a cache entry, return
-        //  unmodified wrapped request
-        if(first) {
-            return wrapperRequest;
-        }
-
+        
         wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
-
         return wrapperRequest;
     }
 

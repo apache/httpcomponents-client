@@ -27,9 +27,8 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
@@ -304,14 +303,14 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testBuildConditionalRequestFromVariants() throws Exception {
-        String etag1 = "123";
-        String etag2 = "456";
-        String etag3 = "789";
+        String etag1 = "\"123\"";
+        String etag2 = "\"456\"";
+        String etag3 = "\"789\"";
 
-        Set<HttpCacheEntry> variantEntries = new HashSet<HttpCacheEntry>();
-        variantEntries.add(HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) }));
-        variantEntries.add(HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) }));
-        variantEntries.add(HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) }));
+        Map<String,HttpCacheEntry> variantEntries = new HashMap<String,HttpCacheEntry>();
+        variantEntries.put(etag1, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) }));
+        variantEntries.put(etag2, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) }));
+        variantEntries.put(etag3, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) }));
 
         HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 
@@ -328,38 +327,4 @@ public class TestConditionalRequestBuilder {
         Assert.assertEquals(ifNoneMatch, "");
     }
 
-    @Test
-    public void testBuildConditionalRequestFromVariantsWithNoETags() throws Exception {
-        Set<HttpCacheEntry> variantEntries = new HashSet<HttpCacheEntry>();
-        variantEntries.add(HttpTestUtils.makeCacheEntry());
-        variantEntries.add(HttpTestUtils.makeCacheEntry());
-        variantEntries.add(HttpTestUtils.makeCacheEntry());
-
-        HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
-
-        Assert.assertNull(conditional.getFirstHeader(HeaderConstants.IF_NONE_MATCH));
-    }
-
-    @Test
-    public void testBuildConditionalRequestFromVariantsMixedETagPresence() throws Exception {
-        String etag1 = "123";
-        String etag2 = "456";
-
-        Set<HttpCacheEntry> variantEntries = new HashSet<HttpCacheEntry>();
-        variantEntries.add(HttpTestUtils.makeCacheEntry());
-        variantEntries.add(HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) }));
-        variantEntries.add(HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) }));
-
-        HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
-
-        // seems like a lot of work, but necessary, check for existence and exclusiveness
-        String ifNoneMatch = conditional.getFirstHeader(HeaderConstants.IF_NONE_MATCH).getValue();
-        Assert.assertTrue(ifNoneMatch.contains(etag1));
-        Assert.assertTrue(ifNoneMatch.contains(etag2));
-        ifNoneMatch = ifNoneMatch.replace(etag1, "");
-        ifNoneMatch = ifNoneMatch.replace(etag2, "");
-        ifNoneMatch = ifNoneMatch.replace(",","");
-        ifNoneMatch = ifNoneMatch.replace(" ", "");
-        Assert.assertEquals(ifNoneMatch, "");
-    }
 }

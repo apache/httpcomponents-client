@@ -26,8 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import java.util.HashSet;
-
+import java.util.HashMap;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -104,8 +103,8 @@ public abstract class AbstractProtocolTest {
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
             .andReturn(null).anyTimes();
-        EasyMock.expect(mockCache.getVariantCacheEntries(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
-            .andReturn(new HashSet<HttpCacheEntry>()).anyTimes();
+        EasyMock.expect(mockCache.getVariantCacheEntriesWithEtags(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
+            .andReturn(new HashMap<String,HttpCacheEntry>()).anyTimes();
 
         mockCache.flushCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();

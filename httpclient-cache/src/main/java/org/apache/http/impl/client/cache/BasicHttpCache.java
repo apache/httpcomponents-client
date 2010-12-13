@@ -29,10 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -41,6 +38,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
@@ -241,13 +239,17 @@ class BasicHttpCache implements HttpCache {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
     }
 
-    public Set<HttpCacheEntry> getVariantCacheEntries(HttpHost host, HttpRequest request)
+    public Map<String, HttpCacheEntry> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
             throws IOException {
-        Set<HttpCacheEntry> variants = new HashSet<HttpCacheEntry>();
+        Map<String,HttpCacheEntry> variants = new HashMap<String,HttpCacheEntry>();
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null || !root.hasVariants()) return variants;
         for(String variantCacheKey : root.getVariantMap().values()) {
-            variants.add(storage.getEntry(variantCacheKey));
+            HttpCacheEntry entry = storage.getEntry(variantCacheKey);
+            Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+            if (etagHeader != null) {
+                variants.put(etagHeader.getValue(), entry);
+            }
         }
         return variants;
     }

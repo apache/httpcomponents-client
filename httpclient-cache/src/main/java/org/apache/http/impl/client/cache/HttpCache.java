@@ -28,8 +28,7 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Set;
-
+import java.util.Map;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -69,14 +68,14 @@ interface HttpCache {
         throws IOException;
 
     /**
-     * Retrieve all variants from the cache, if there are no variants than an empty
-     * {@link Set} is returned
+     * Retrieve all variants from the cache, if there are no variants then an empty
+     * {@link Map} is returned
      * @param host
      * @param request
-     * @return
+     * @return a <code>Map</code> mapping Etags to variant cache entries
      * @throws IOException
      */
-    Set<HttpCacheEntry> getVariantCacheEntries(HttpHost host, HttpRequest request)
+    Map<String,HttpCacheEntry> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
         throws IOException;
 
     /**
