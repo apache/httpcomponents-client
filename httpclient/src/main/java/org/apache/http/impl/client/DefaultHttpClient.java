@@ -193,7 +193,19 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     /**
-     * Creates the default set of HttpParams.
+     * Creates the default set of HttpParams by invoking {@link DefaultHttpClient#setDefaultHttpParams(HttpParams)}
+     * 
+     * @return a new instance of {@link SyncBasicHttpParams} with the defaults applied to it.
+     */
+    @Override
+    protected HttpParams createHttpParams() {
+        HttpParams params = new SyncBasicHttpParams();
+        setDefaultHttpParams(params);
+        return params;
+    }
+
+    /**
+     * Saves the default set of HttpParams in the provided parameter.
      * These are:
      * <ul>
      * <li>{@link CoreProtocolPNames#PROTOCOL_VERSION}: 1.1</li>
@@ -203,27 +215,19 @@ public class DefaultHttpClient extends AbstractHttpClient {
      * <li>{@link CoreProtocolPNames#USER_AGENT}: Apache-HttpClient/<release> (java 1.5)</li>
      * </ul>
      */
-    @Override
-    protected HttpParams createHttpParams() {
-        HttpParams params = new SyncBasicHttpParams();
-        HttpProtocolParams.setVersion(params,
-                HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params,
-                HTTP.DEFAULT_CONTENT_CHARSET);
-        HttpConnectionParams.setTcpNoDelay(params,
-                true);
-        HttpConnectionParams.setSocketBufferSize(params,
-                8192);
+    public static void setDefaultHttpParams(HttpParams params) {
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
+        HttpConnectionParams.setTcpNoDelay(params, true);
+        HttpConnectionParams.setSocketBufferSize(params, 8192);
 
         // determine the release version from packaged version info
         final VersionInfo vi = VersionInfo.loadVersionInfo
-            ("org.apache.http.client", getClass().getClassLoader());
+            ("org.apache.http.client", DefaultHttpClient.class.getClassLoader());
         final String release = (vi != null) ?
             vi.getRelease() : VersionInfo.UNAVAILABLE;
         HttpProtocolParams.setUserAgent(params,
                 "Apache-HttpClient/" + release + " (java 1.5)");
-
-        return params;
     }
 
 
