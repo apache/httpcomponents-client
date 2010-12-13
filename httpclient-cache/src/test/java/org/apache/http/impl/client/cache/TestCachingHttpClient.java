@@ -1662,9 +1662,8 @@ public class TestCachingHttpClient {
 
         responsePolicyAllowsCaching(true);
 
-        EasyMock.expect(mockCache.getCacheEntry(host, variantConditionalRequest)).andReturn(cacheEntry);
-
-        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
+        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(cacheEntry);
+        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(request), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
 
         replayMocks();
         HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);

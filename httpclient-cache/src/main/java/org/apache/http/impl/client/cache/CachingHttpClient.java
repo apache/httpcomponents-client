@@ -604,12 +604,13 @@ public class CachingHttpClient implements HttpClient {
         backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
         if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-            return handleBackendResponse(target, conditionalRequest, requestDate, responseDate, backendResponse);
+            return handleBackendResponse(target, request, requestDate, responseDate, backendResponse);
+//            return handleBackendResponse(target, conditionalRequest, requestDate, responseDate, backendResponse);
         }
 
         Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
         if (resultEtagHeader == null) {
-            log.debug("304 response did not contain ETag");
+            log.warn("304 response did not contain ETag");
             return callBackend(target, request, context);
         }
 
