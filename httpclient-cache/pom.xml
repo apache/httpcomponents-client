@@ -114,9 +114,8 @@
     <!-- cache was not present in 4.0; it first appeared in 4.1-alpha2 -->
     <comparisonVersion>4.1-alpha2</comparisonVersion>
     <!-- 
-     -- Allow separate override of cache version, e.g.
-     --
-     -- mvn clirr:clirr -DcomparisonVersion=4.1-alpha1 -Dcache.comparisonVersion=4.1-alpha2
+     Allow separate override of cache version, e.g.
+     $ mvn clirr:clirr -DcomparisonVersion=4.1-alpha1 -Dcache.comparisonVersion=4.1-alpha2
      -->
     <cache.comparisonVersion>${comparisonVersion}</cache.comparisonVersion>
   </properties>
