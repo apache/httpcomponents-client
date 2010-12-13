@@ -71,6 +71,8 @@ import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -190,6 +192,17 @@ public class DefaultHttpClient extends AbstractHttpClient {
     }
 
 
+    /**
+     * Creates the default set of HttpParams.
+     * These are:
+     * <ul>
+     * <li>{@link CoreProtocolPNames#PROTOCOL_VERSION}: 1.1</li>
+     * <li>{@link CoreProtocolPNames#HTTP_CONTENT_CHARSET}: ISO-8859-1</li>
+     * <li>{@link CoreConnectionPNames#TCP_NODELAY}: true</li>
+     * <li>{@link CoreConnectionPNames#SOCKET_BUFFER_SIZE}: 8192</li>
+     * <li>{@link CoreProtocolPNames#USER_AGENT}: Apache-HttpClient/<release> (java 1.5)</li>
+     * </ul>
+     */
     @Override
     protected HttpParams createHttpParams() {
         HttpParams params = new SyncBasicHttpParams();
