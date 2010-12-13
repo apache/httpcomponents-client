@@ -573,6 +573,25 @@ public class CachingHttpClient implements HttpClient {
 
     }
 
+	private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
+			HttpCacheEntry cacheEntry) {
+        final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
+        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        if (entryDateHeader != null && responseDateHeader != null) {
+            try {
+                Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+                Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
+                if (respDate.before(entryDate)) return true;
+            } catch (DateParseException e) {
+                // either backend response or cached entry did not have a valid
+                // Date header, so we can't tell if they are out of order
+                // according to the origin clock; thus we can skip the
+                // unconditional retry recommended in 13.2.6 of RFC 2616.
+            }
+        }
+		return false;
+	}
+    
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
             Map<String, HttpCacheEntry> variantEntries) throws IOException, ProtocolException {
@@ -594,7 +613,6 @@ public class CachingHttpClient implements HttpClient {
             return callBackend(target, request, context);
         }
 
-
         String resultEtag = resultEtagHeader.getValue();
         HttpCacheEntry matchedEntry = variantEntries.get(resultEtag);
 
@@ -603,30 +621,12 @@ public class CachingHttpClient implements HttpClient {
             return callBackend(target, request, context);
         }
 
-        // make sure this cache entry is indeed new enough to update with,
-        // if not force to refresh
-        final Header entryDateHeader = matchedEntry.getFirstHeader("Date");
-        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
-        if (entryDateHeader != null && responseDateHeader != null) {
-            try {
-                Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-                Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
-                if (respDate.before(entryDate)) {
-                    // TODO: what to do here?  what if the initial request was a conditional
-                    //  request.  It would get the same result whether it went through our
-                    //  cache or not...
-                    HttpRequest unconditional = conditionalRequestBuilder
-                        .buildUnconditionalRequest(request, matchedEntry);
-                    return callBackend(target, unconditional, context);
-                }
-            } catch (DateParseException e) {
-                // either backend response or cached entry did not have a valid
-                // Date header, so we can't tell if they are out of order
-                // according to the origin clock; thus we can skip the
-                // unconditional retry recommended in 13.2.6 of RFC 2616.
-            }
+        if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
+        	HttpRequest unconditional = conditionalRequestBuilder
+        		.buildUnconditionalRequest(request, matchedEntry);
+        	return callBackend(target, unconditional, context);
         }
-
+        
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
 
@@ -657,31 +657,19 @@ public class CachingHttpClient implements HttpClient {
             HttpRequest request,
             HttpContext context,
             HttpCacheEntry cacheEntry) throws IOException, ProtocolException {
-        HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
+
+    	HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
 
         Date requestDate = getCurrentDate();
         HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
         Date responseDate = getCurrentDate();
 
-        final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
-        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
-        if (entryDateHeader != null && responseDateHeader != null) {
-            try {
-                Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-                Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
-                if (respDate.before(entryDate)) {
-                    HttpRequest unconditional = conditionalRequestBuilder
-                    .buildUnconditionalRequest(request, cacheEntry);
-                    requestDate = getCurrentDate();
-                    backendResponse = backend.execute(target, unconditional, context);
-                    responseDate = getCurrentDate();
-                }
-            } catch (DateParseException e) {
-                // either backend response or cached entry did not have a valid
-                // Date header, so we can't tell if they are out of order
-                // according to the origin clock; thus we can skip the
-                // unconditional retry recommended in 13.2.6 of RFC 2616.
-            }
+        if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
+        	HttpRequest unconditional = conditionalRequestBuilder
+        		.buildUnconditionalRequest(request, cacheEntry);
+        	requestDate = getCurrentDate();
+        	backendResponse = backend.execute(target, unconditional, context);
+        	responseDate = getCurrentDate();
         }
 
         backendResponse.addHeader("Via", generateViaHeader(backendResponse));
