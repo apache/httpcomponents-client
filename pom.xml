@@ -75,6 +75,7 @@
     <slf4j.version>1.5.11</slf4j.version>
     <junit.version>4.8.1</junit.version>
     <easymock.version>2.5.2</easymock.version>
+    <comparisonVersion>4.0</comparisonVersion>
   </properties>
 
   <modules>
@@ -225,6 +226,13 @@
             </execution>
           </executions>
         </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <comparisonVersion>${comparisonVersion}</comparisonVersion>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -244,6 +252,14 @@
              </reports>
            </reportSet>
          </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <comparisonVersion>${comparisonVersion}</comparisonVersion>
+        </configuration>
       </plugin>
 
     </plugins>
