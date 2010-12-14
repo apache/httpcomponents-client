@@ -70,7 +70,7 @@ public class TestBasicHttpCache {
     public void testCanFlushCacheEntriesAtUri() throws Exception {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req = new HttpDelete("/bar");
-        final String key = (new URIExtractor()).getURI(host, req);
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -217,7 +217,7 @@ public class TestBasicHttpCache {
         assertFalse(entry.hasVariants());
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req = new HttpGet("http://foo.example.com/bar");
-        String key = (new URIExtractor()).getURI(host, req);
+        String key = (new CacheKeyGenerator()).getURI(host, req);
 
         impl.storeInCache(host, req, entry);
         assertSame(entry, backing.map.get(key));
@@ -263,7 +263,7 @@ public class TestBasicHttpCache {
 
         HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         assertEquals(1, backing.map.size());
-        assertTrue(backing.map.containsKey((new URIExtractor()).getURI(host, request)));
+        assertTrue(backing.map.containsKey((new CacheKeyGenerator()).getURI(host, request)));
         assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
     }
 
@@ -282,7 +282,7 @@ public class TestBasicHttpCache {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        String key = (new URIExtractor()).getURI(host, request);
+        String key = (new CacheKeyGenerator()).getURI(host, request);
 
         backing.map.put(key,entry);
 

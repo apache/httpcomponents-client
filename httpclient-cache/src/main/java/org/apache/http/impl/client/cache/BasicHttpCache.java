@@ -50,7 +50,7 @@ import org.apache.http.message.BasicHttpResponse;
 
 class BasicHttpCache implements HttpCache {
 
-    private final URIExtractor uriExtractor;
+    private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
     private final int maxObjectSizeBytes;
     private final CacheEntryUpdater cacheEntryUpdater;
@@ -62,7 +62,7 @@ class BasicHttpCache implements HttpCache {
 
     public BasicHttpCache(ResourceFactory resourceFactory, HttpCacheStorage storage, CacheConfig config) {
         this.resourceFactory = resourceFactory;
-        this.uriExtractor = new URIExtractor();
+        this.uriExtractor = new CacheKeyGenerator();
         this.cacheEntryUpdater = new CacheEntryUpdater(resourceFactory);
         this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
         this.responseGenerator = new CachedHttpResponseGenerator();

@@ -50,19 +50,19 @@ import org.apache.http.client.cache.HttpCacheStorage;
 class CacheInvalidator {
 
     private final HttpCacheStorage storage;
-    private final URIExtractor uriExtractor;
+    private final CacheKeyGenerator uriExtractor;
 
     private final Log log = LogFactory.getLog(getClass());
 
     /**
      * Create a new {@link CacheInvalidator} for a given {@link HttpCache} and
-     * {@link URIExtractor}.
+     * {@link CacheKeyGenerator}.
      *
      * @param uriExtractor Provides identifiers for the keys to store cache entries
      * @param storage the cache to store items away in
      */
     public CacheInvalidator(
-            final URIExtractor uriExtractor,
+            final CacheKeyGenerator uriExtractor,
             final HttpCacheStorage storage) {
         this.uriExtractor = uriExtractor;
         this.storage = storage;

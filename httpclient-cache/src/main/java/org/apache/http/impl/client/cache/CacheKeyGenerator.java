@@ -50,7 +50,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.1
  */
 @Immutable
-class URIExtractor {
+class CacheKeyGenerator {
 
     /**
      * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the

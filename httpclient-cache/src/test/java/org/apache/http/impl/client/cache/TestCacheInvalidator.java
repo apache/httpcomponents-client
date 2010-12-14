@@ -48,14 +48,14 @@ public class TestCacheInvalidator {
     private CacheInvalidator impl;
     private HttpCacheStorage mockStorage;
     private HttpHost host;
-    private URIExtractor extractor;
+    private CacheKeyGenerator extractor;
     private HttpCacheEntry mockEntry;
 
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");
         mockStorage = EasyMock.createMock(HttpCacheStorage.class);
-        extractor = new URIExtractor();
+        extractor = new CacheKeyGenerator();
         mockEntry = EasyMock.createMock(HttpCacheEntry.class);
 
         impl = new CacheInvalidator(extractor, mockStorage);

@@ -39,13 +39,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestURIExtractor {
+public class TestCacheKeyGenerator {
 
     private static final BasicHttpRequest REQUEST_FULL_EPISODES = new BasicHttpRequest("GET",
             "/full_episodes");
     private static final BasicHttpRequest REQUEST_ROOT = new BasicHttpRequest("GET", "/");
 
-    URIExtractor extractor;
+    CacheKeyGenerator extractor;
     private HttpHost host;
     private HttpCacheEntry mockEntry;
     private HttpRequest mockRequest;
@@ -55,7 +55,7 @@ public class TestURIExtractor {
         host = new HttpHost("foo.example.com");
         mockEntry = EasyMock.createMock(HttpCacheEntry.class);
         mockRequest = EasyMock.createMock(HttpRequest.class);
-        extractor = new URIExtractor();
+        extractor = new CacheKeyGenerator();
     }
 
     private void replayMocks() {
@@ -124,7 +124,7 @@ public class TestURIExtractor {
     public void testGetVariantURIWithNoVaryHeaderReturnsNormalURI() {
         final String theURI = "theURI";
         org.easymock.EasyMock.expect(mockEntry.hasVariants()).andReturn(false);
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
@@ -145,7 +145,7 @@ public class TestURIExtractor {
         Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
         Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
 
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
@@ -170,7 +170,7 @@ public class TestURIExtractor {
         final String theURI = "theURI";
         Header[] noHeaders = new Header[0];
         Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
@@ -196,7 +196,7 @@ public class TestURIExtractor {
         Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
         Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
@@ -224,7 +224,7 @@ public class TestURIExtractor {
                 new BasicHeader("Vary", "Accept-Encoding") };
         Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
@@ -251,7 +251,7 @@ public class TestURIExtractor {
         Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip"),
                 new BasicHeader("Accept-Encoding", "deflate") };
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new URIExtractor() {
+        extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(HttpHost h, HttpRequest req) {
                 Assert.assertSame(host, h);
