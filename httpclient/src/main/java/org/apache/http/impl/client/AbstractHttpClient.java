@@ -625,15 +625,41 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(determineTarget(request), request, context);
     }
 
-    private HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
+    // Package-protected so can be accessed from unit tests
+    static HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
 
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
+            int port = requestURI.getPort(); // may be overridden later
             String host = requestURI.getHost();
-            int port = requestURI.getPort();
+            if (host == null) { // normal parse failed; let's do it ourselves
+                // authority does not seem to care about the valid character-set for host names
+                host = requestURI.getAuthority();
+                if (host != null) {
+                    // Strip off any leading user credentials
+                    int at = host.indexOf('@');
+                    if (at >= 0) {
+                        if (host.length() > at+1 ) {
+                            host = host.substring(at+1);
+                        } else {
+                            host = null; // @ on its own
+                        }
+                    }
+                    // Extract the port suffix, if present
+                    if (host != null) { 
+                        int colon = host.indexOf(':');
+                        if (colon >= 0) {
+                            if (colon+1 < host.length()) {
+                                port = Integer.parseInt(host.substring(colon+1));
+                            }
+                            host = host.substring(0,colon);
+                        }                
+                    }                    
+                }
+            }
             String scheme = requestURI.getScheme();
             if (host == null) {
                 throw new ClientProtocolException(
