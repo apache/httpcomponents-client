@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
@@ -43,8 +44,10 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.junit.Assert;
 
 public class HttpTestUtils {
 
@@ -54,7 +57,7 @@ public class HttpTestUtils {
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.1
      */
     private static final String[] HOP_BY_HOP_HEADERS = { "Connection", "Keep-Alive", "Proxy-Authenticate",
-            "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade" };
+        "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade" };
 
     /*
      * "Multiple message-header fields with the same field-name MAY be present
@@ -64,15 +67,15 @@ public class HttpTestUtils {
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
     private static final String[] MULTI_HEADERS = { "Accept", "Accept-Charset", "Accept-Encoding",
-            "Accept-Language", "Allow", "Cache-Control", "Connection", "Content-Encoding",
-            "Content-Language", "Expect", "Pragma", "Proxy-Authenticate", "TE", "Trailer",
-            "Transfer-Encoding", "Upgrade", "Via", "Warning", "WWW-Authenticate" };
+        "Accept-Language", "Allow", "Cache-Control", "Connection", "Content-Encoding",
+        "Content-Language", "Expect", "Pragma", "Proxy-Authenticate", "TE", "Trailer",
+        "Transfer-Encoding", "Upgrade", "Via", "Warning", "WWW-Authenticate" };
     private static final String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
-            "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
-            "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
-            "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
-            "Max-Forwards", "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
-            "User-Agent", "Vary" };
+        "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
+        "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
+        "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
+        "Max-Forwards", "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
+        "User-Agent", "Vary" };
 
     /*
      * Determines whether the given header name is considered a hop-by-hop
@@ -150,7 +153,7 @@ public class HttpTestUtils {
     public static boolean equivalent(RequestLine l1, RequestLine l2) {
         return (l1.getMethod().equals(l2.getMethod())
                 && l1.getProtocolVersion().equals(l2.getProtocolVersion()) && l1.getUri().equals(
-                l2.getUri()));
+                        l2.getUri()));
     }
 
     /*
@@ -202,13 +205,13 @@ public class HttpTestUtils {
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec1.html#sec1.3
      */
     public static boolean semanticallyTransparent(HttpResponse r1, HttpResponse r2)
-            throws Exception {
+    throws Exception {
         final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
         if (!entitiesEquivalent) return false;
         final boolean statusLinesEquivalent = semanticallyTransparent(r1.getStatusLine(), r2.getStatusLine());
         if (!statusLinesEquivalent) return false;
         final boolean e2eHeadersEquivalentSubset = isEndToEndHeaderSubset(
-        r1, r2);
+                r1, r2);
         return e2eHeadersEquivalentSubset;
     }
 
@@ -263,14 +266,14 @@ public class HttpTestUtils {
         return makeCacheEntry(now, now, getStockHeaders(now),
                 getRandomBytes(128), variantMap);
     }
-    
+
     public static HttpCacheEntry makeCacheEntry(Date requestDate,
             Date responseDate, Header[] headers, byte[] bytes,
             Map<String,String> variantMap) {
         StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variantMap);
     }
-    
+
     public static HttpCacheEntry makeCacheEntry(Header[] headers, byte[] bytes) {
         Date now = new Date();
         return makeCacheEntry(now, now, headers, bytes);
@@ -296,5 +299,36 @@ public class HttpTestUtils {
         out.setHeader("Content-Length", "128");
         out.setEntity(makeBody(128));
         return out;
+    }
+
+    public static final HttpResponse make200Response(Date date, String cacheControl) {
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Date", DateUtils.formatDate(date));
+        response.setHeader("Cache-Control",cacheControl);
+        response.setHeader("Etag","\"etag\"");
+        return response;
+    }
+
+    public static final void assert110WarningFound(HttpResponse response) {
+        boolean found110Warning = false;
+        for(Header h : response.getHeaders("Warning")) {
+            for(HeaderElement elt : h.getElements()) {
+                String[] parts = elt.getName().split("\\s");
+                if ("110".equals(parts[0])) {
+                    found110Warning = true;
+                    break;
+                }
+            }
+        }
+        Assert.assertTrue(found110Warning);
+    }
+
+    public static HttpRequest makeDefaultRequest() {
+        return new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    }
+
+    public static HttpResponse make500Response() {
+        return new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
     }
 }

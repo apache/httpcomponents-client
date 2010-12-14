@@ -513,7 +513,7 @@ public class CachingHttpClient implements HttpClient {
         }
         return false;
     }
-
+    
     private String generateViaHeader(HttpMessage msg) {
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
@@ -691,9 +691,23 @@ public class CachingHttpClient implements HttpClient {
             }
             return responseGenerator.generateResponse(updatedEntry);
         }
+        
+        if (staleIfErrorAppliesTo(statusCode)
+            && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
+            final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
+            cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+            return cachedResponse; 
+        }
 
         return handleBackendResponse(target, conditionalRequest, requestDate, responseDate,
                                      backendResponse);
+    }
+
+	private boolean staleIfErrorAppliesTo(int statusCode) {
+	    return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR  
+        		|| statusCode == HttpStatus.SC_BAD_GATEWAY  
+        		|| statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE  
+        		|| statusCode == HttpStatus.SC_GATEWAY_TIMEOUT;
     }
 
     HttpResponse handleBackendResponse(

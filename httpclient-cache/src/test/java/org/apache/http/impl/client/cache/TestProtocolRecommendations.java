@@ -307,7 +307,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
     }
-
+    
     /*
      * "A transparent proxy SHOULD NOT modify an end-to-end header unless
      * the definition of that header requires or specifically allows that."

@@ -30,6 +30,7 @@ import java.util.Date;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -117,6 +118,35 @@ class CacheValidityPolicy {
 
     public boolean proxyRevalidate(final HttpCacheEntry entry) {
         return hasCacheControlDirective(entry, "proxy-revalidate");
+    }
+    
+    public boolean mayReturnStaleIfError(HttpRequest request,
+            HttpCacheEntry entry, Date now) {
+        long stalenessSecs = getStalenessSecs(entry, now);
+        return mayReturnStaleIfError(request.getHeaders("Cache-Control"),
+                                     stalenessSecs)
+                || mayReturnStaleIfError(entry.getHeaders("Cache-Control"),
+                                         stalenessSecs);
+    }
+    
+    private boolean mayReturnStaleIfError(Header[] headers, long stalenessSecs) {
+        boolean result = false;
+        for(Header h : headers) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("stale-if-error".equals(elt.getName())) {
+                    try {
+                        int staleIfErrorSecs = Integer.parseInt(elt.getValue());
+                        if (stalenessSecs <= staleIfErrorSecs) {
+                            result = true;
+                            break;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        // skip malformed directive
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     protected Date getDateValue(final HttpCacheEntry entry) {
