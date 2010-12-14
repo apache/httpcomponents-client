@@ -194,6 +194,19 @@ class BasicHttpCache implements HttpCache {
         return updatedEntry;
     }
 
+    public HttpCacheEntry updateVariantCacheEntry(HttpHost target, HttpRequest request,
+            HttpCacheEntry stale, HttpResponse originResponse,
+            Date requestSent, Date responseReceived, String cacheKey) throws IOException {
+        HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
+                request.getRequestLine().getUri(),
+                stale,
+                requestSent,
+                responseReceived,
+                originResponse);
+        storage.putEntry(cacheKey, updatedEntry);
+        return updatedEntry;
+    }
+    
     public HttpResponse cacheAndReturnResponse(HttpHost host, HttpRequest request,
             HttpResponse originResponse, Date requestSent, Date responseReceived)
             throws IOException {

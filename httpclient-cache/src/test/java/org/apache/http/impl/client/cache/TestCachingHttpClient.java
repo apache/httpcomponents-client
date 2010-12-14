@@ -1615,7 +1615,7 @@ public class TestCachingHttpClient {
 
         backendCall(variantConditionalRequest, originResponse);
 
-        EasyMock.expect(mockCache.updateCacheEntry(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(variant2), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(updatedMatchedEntry);
+        EasyMock.expect(mockCache.updateVariantCacheEntry(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(variant2), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class), EasyMock.eq("D"))).andReturn(updatedMatchedEntry);
 
         EasyMock.expect(mockResponseGenerator.generateResponse(updatedMatchedEntry)).andReturn(matchedResponse);
 

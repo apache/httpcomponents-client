@@ -109,4 +109,22 @@ interface HttpCache {
             Date requestSent, Date responseReceived)
         throws IOException;
 
+    /**
+     * Update a specific {@link HttpCacheEntry} representing a cached variant
+     * using a 304 {@link HttpResponse}.
+     * @param target host for client request
+     * @param request actual request from upstream client 
+     * @param stale current variant cache entry
+     * @param originResponse 304 response received from origin
+     * @param requestSent when the validating request was sent
+     * @param responseReceived when the validating response was received
+     * @param cacheKey where in the cache this entry is currently stored
+     * @return
+     * @throws IOException
+     */
+    HttpCacheEntry updateVariantCacheEntry(HttpHost target, HttpRequest request,
+            HttpCacheEntry stale, HttpResponse originResponse, Date requestSent,
+            Date responseReceived, String cacheKey)
+        throws IOException;
+
 }

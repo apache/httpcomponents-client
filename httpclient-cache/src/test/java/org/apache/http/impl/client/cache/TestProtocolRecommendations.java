@@ -865,4 +865,66 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         }
         assertTrue(foundEtag1 && foundEtag2);
     }
+    
+    /* "If the entity-tag of the new response matches that of an existing
+     * entry, the new response SHOULD be used to update the header fields
+     * of the existing entry, and the result MUST be returned to the
+     * client."
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void testResponseToExistingVariantsUpdatesEntry()
+        throws Exception {
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req1.setHeader("User-Agent", "agent1");
+
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Vary", "User-Agent");
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("ETag", "\"etag1\"");
+
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("User-Agent", "agent2");
+
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Vary", "User-Agent");
+        resp2.setHeader("Cache-Control", "max-age=3600");
+        resp2.setHeader("ETag", "\"etag2\"");
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req3.setHeader("User-Agent", "agent3");
+
+        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("ETag", "\"etag1\"");
+
+        backendExpectsAnyRequest().andReturn(resp3);
+
+        HttpRequest req4 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req4.setHeader("User-Agent", "agent1");
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        HttpResponse result1 = impl.execute(host, req3);
+        HttpResponse result2 = impl.execute(host, req4);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
+        assertEquals("\"etag1\"", result1.getFirstHeader("ETag").getValue());
+        assertEquals(DateUtils.formatDate(now), result1.getFirstHeader("Date").getValue());
+        assertEquals(DateUtils.formatDate(now), result2.getFirstHeader("Date").getValue());
+    }
 }

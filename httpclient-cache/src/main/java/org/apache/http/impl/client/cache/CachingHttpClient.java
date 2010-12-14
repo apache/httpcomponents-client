@@ -635,7 +635,8 @@ public class CachingHttpClient implements HttpClient {
         // SHOULD update cache entry according to rfc
         HttpCacheEntry responseEntry = matchedEntry;
         try {
-            responseEntry = responseCache.updateCacheEntry(target, conditionalRequest, matchedEntry, backendResponse, requestDate, responseDate);
+            responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
+                    matchedEntry, backendResponse, requestDate, responseDate, matchingVariant.getCacheKey());
         } catch (IOException ioe) {
             log.warn("Could not update cache entry", ioe);
         }
