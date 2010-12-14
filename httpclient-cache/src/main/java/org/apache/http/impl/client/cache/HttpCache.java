@@ -127,4 +127,14 @@ interface HttpCache {
             Date responseReceived, String cacheKey)
         throws IOException;
 
+    /**
+     * Specifies cache should reuse the given cached variant to satisfy
+     * requests whose varying headers match those of the given client request.
+     * @param target host of the upstream client request
+     * @param req request sent by upstream client
+     * @param variant variant cache entry to reuse
+     * @throws IOException may be thrown during cache update
+     */
+    void reuseVariantEntryFor(HttpHost target, final HttpRequest req,
+            final Variant variant) throws IOException;
 }

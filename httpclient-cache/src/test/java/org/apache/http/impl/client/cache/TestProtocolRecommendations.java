@@ -927,4 +927,42 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertEquals(DateUtils.formatDate(now), result1.getFirstHeader("Date").getValue());
         assertEquals(DateUtils.formatDate(now), result2.getFirstHeader("Date").getValue());
     }
+    
+    @Test
+    public void testResponseToExistingVariantsIsCachedForFutureResponses()
+        throws Exception {
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req1.setHeader("User-Agent", "agent1");
+
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Vary", "User-Agent");
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("ETag", "\"etag1\"");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("User-Agent", "agent2");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("ETag", "\"etag1\"");
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req3.setHeader("User-Agent", "agent2");
+
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+    }
+
 }

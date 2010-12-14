@@ -632,7 +632,6 @@ public class CachingHttpClient implements HttpClient {
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
 
-        // SHOULD update cache entry according to rfc
         HttpCacheEntry responseEntry = matchedEntry;
         try {
             responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
@@ -643,9 +642,9 @@ public class CachingHttpClient implements HttpClient {
 
         HttpResponse resp = responseGenerator.generateResponse(responseEntry);
         try {
-            resp = responseCache.cacheAndReturnResponse(target, request, resp, requestDate, responseDate);
+            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
         } catch (IOException ioe) {
-            log.warn("Could not cache entry", ioe);
+            log.warn("Could not update cache entry to reuse variant", ioe);
         }
 
         if (suitabilityChecker.isConditional(request) && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date())) {

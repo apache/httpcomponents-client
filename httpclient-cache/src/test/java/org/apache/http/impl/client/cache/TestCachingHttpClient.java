@@ -1585,52 +1585,6 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    public void testNegotiateResponseFromVariantsReturnsVariantAndUpdatesEntryOnBackend304() throws Exception {
-        HttpCacheEntry variant1 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag1\"") });
-        HttpCacheEntry variant2 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
-        HttpCacheEntry variant3 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag3\"") });
-
-        Map<String,Variant> variants = new HashMap<String,Variant>();
-        variants.put("\"etag1\"", new Variant("A","B",variant1));
-        variants.put("\"etag2\"", new Variant("C","D",variant2));
-        variants.put("\"etag3\"", new Variant("E","F",variant3));
-
-        HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
-        variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
-
-        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        originResponse.addHeader(HeaderConstants.ETAG, "\"etag2\"");
-
-        HttpCacheEntry updatedMatchedEntry =  HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
-
-        HttpResponse matchedResponse = HttpTestUtils.make200Response();
-        HttpResponse response = HttpTestUtils.make200Response();
-
-        conditionalVariantRequestBuilderReturns(variants, variantConditionalRequest);
-
-        backendCall(variantConditionalRequest, originResponse);
-
-        EasyMock.expect(mockCache.updateVariantCacheEntry(EasyMock.same(host), EasyMock.same(variantConditionalRequest), EasyMock.same(variant2), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class), EasyMock.eq("D"))).andReturn(updatedMatchedEntry);
-
-        EasyMock.expect(mockResponseGenerator.generateResponse(updatedMatchedEntry)).andReturn(matchedResponse);
-
-        EasyMock.expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
-
-        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(request), EasyMock.same(matchedResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
-
-        replayMocks();
-        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
-        verifyMocks();
-
-        Assert.assertEquals(HttpStatus.SC_OK,resp.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void testNegotiateResponseFromVariantsReturns200OnBackend200() throws Exception {
         HttpCacheEntry variant1 = HttpTestUtils
                 .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag1\"") });

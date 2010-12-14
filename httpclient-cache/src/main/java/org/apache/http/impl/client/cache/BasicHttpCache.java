@@ -125,6 +125,27 @@ class BasicHttpCache implements HttpCache {
         }
     }
 
+    public void reuseVariantEntryFor(HttpHost target, final HttpRequest req,
+            final Variant variant) throws IOException {
+        final String parentCacheKey = uriExtractor.getURI(target, req);
+        final HttpCacheEntry entry = variant.getEntry();
+        final String variantKey = uriExtractor.getVariantKey(req, entry);
+        final String variantCacheKey = variant.getCacheKey();
+
+        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            public HttpCacheEntry update(HttpCacheEntry existing)
+                    throws IOException {
+                return doGetUpdatedParentEntry(req.getRequestLine().getUri(),
+                        existing, entry, variantKey, variantCacheKey);
+            }
+        };
+
+        try {
+            storage.updateEntry(parentCacheKey, callback);
+        } catch (HttpCacheUpdateException e) {
+            log.warn("Could not update key [" + parentCacheKey + "]", e);
+        }
+    }
 
     boolean isIncompleteResponse(HttpResponse resp, Resource resource) {
         int status = resp.getStatusLine().getStatusCode();
