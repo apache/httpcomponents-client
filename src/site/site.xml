@@ -56,6 +56,7 @@
     <menu name="Modules">
       <item name="HttpClient" href="httpclient/index.html"/>
       <item name="HttpMime" href="httpmime/index.html"/>
+      <item name="HttpClient Cache" href="httpclient-cache/index.html"/>
     </menu>
     <!-- Reports don't really apply at this level; in particular the dependecy report is misleading -->
     <!-- menu ref="reports"/-->

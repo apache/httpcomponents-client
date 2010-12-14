@@ -40,3 +40,6 @@ HttpClient Cache
     
     {{{./issue-tracking.html}Issue Tracking}}    
 
+{External Documentation}
+
+    * {{{http://labs.xfinity.com/benchmarking-the-httpclient-caching-module}"Benchmarking the HttpClient Caching Module"}} by Comcast Interactive Media
