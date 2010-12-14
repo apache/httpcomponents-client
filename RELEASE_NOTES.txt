@@ -17,6 +17,10 @@ project.
 
 Changelog
 -------------------
+* [HTTPCLIENT-975] Support stale-if-error extension directive (RFC5861).
+  Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>,
+  Michajlo Matijkiw <michajlo_matijkiw at comcast.com>, and
+  Matthew Hawthorne <matthew_hawthorne at comcast.com>.
 
 * [HTTPCLIENT-1015] Support only-if-cached directive.
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
