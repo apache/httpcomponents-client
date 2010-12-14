@@ -338,7 +338,7 @@ public class TestBasicHttpCache {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Map<String,HttpCacheEntry> variants = impl.getVariantCacheEntriesWithEtags(host, request);
+        Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, request);
 
         assertNotNull(variants);
         assertEquals(0, variants.size());
@@ -372,7 +372,7 @@ public class TestBasicHttpCache {
         impl.cacheAndReturnResponse(host, req1, resp1, new Date(), new Date());
         impl.cacheAndReturnResponse(host, req2, resp2, new Date(), new Date());
 
-        Map<String,HttpCacheEntry> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
+        Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 
         assertNotNull(variants);
         assertEquals(2, variants.size());

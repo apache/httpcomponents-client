@@ -239,17 +239,19 @@ class BasicHttpCache implements HttpCache {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
     }
 
-    public Map<String, HttpCacheEntry> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
+    public Map<String, Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
             throws IOException {
-        Map<String,HttpCacheEntry> variants = new HashMap<String,HttpCacheEntry>();
+        Map<String,Variant> variants = new HashMap<String,Variant>();
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null || !root.hasVariants()) return variants;
-        for(String variantCacheKey : root.getVariantMap().values()) {
+        for(Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
+            String variantKey = variant.getKey();
+            String variantCacheKey = variant.getValue();
             HttpCacheEntry entry = storage.getEntry(variantCacheKey);
+            if (entry == null) continue;
             Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
-            if (etagHeader != null) {
-                variants.put(etagHeader.getValue(), entry);
-            }
+            if (etagHeader == null) continue;
+            variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
         }
         return variants;
     }

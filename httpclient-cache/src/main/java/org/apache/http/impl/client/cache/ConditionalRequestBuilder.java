@@ -93,7 +93,7 @@ class ConditionalRequestBuilder {
      * @throws ProtocolException when I am unable to build a new origin request.
      */
     public HttpRequest buildConditionalRequestFromVariants(HttpRequest request,
-            Map<String, HttpCacheEntry> variantEntries)
+            Map<String, Variant> variants)
                 throws ProtocolException {
         RequestWrapper wrapperRequest = new RequestWrapper(request);
         wrapperRequest.resetHeaders();
@@ -101,7 +101,7 @@ class ConditionalRequestBuilder {
         // we do not support partial content so all etags are used
         StringBuilder etags = new StringBuilder();
         boolean first = true;
-        for(String etag : variantEntries.keySet()) {
+        for(String etag : variants.keySet()) {
             if (!first) {
                 etags.append(",");
             }

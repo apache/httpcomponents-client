@@ -307,10 +307,10 @@ public class TestConditionalRequestBuilder {
         String etag2 = "\"456\"";
         String etag3 = "\"789\"";
 
-        Map<String,HttpCacheEntry> variantEntries = new HashMap<String,HttpCacheEntry>();
-        variantEntries.put(etag1, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) }));
-        variantEntries.put(etag2, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) }));
-        variantEntries.put(etag3, HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) }));
+        Map<String,Variant> variantEntries = new HashMap<String,Variant>();
+        variantEntries.put(etag1, new Variant("A","B",HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) })));
+        variantEntries.put(etag2, new Variant("C","D",HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) })));
+        variantEntries.put(etag3, new Variant("E","F",HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) })));
 
         HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 

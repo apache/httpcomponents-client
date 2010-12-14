@@ -412,15 +412,15 @@ public class CachingHttpClient implements HttpClient {
                         "Gateway Timeout");
             }
 
-            Map<String,HttpCacheEntry> variantEntries = null;
+            Map<String,Variant> variants = null;
             try {
-                variantEntries = responseCache.getVariantCacheEntriesWithEtags(target, request);
+                variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
             } catch (IOException ioe) {
                 log.warn("Unable to retrieve variant entries from cache", ioe);
             }
-            if (variantEntries != null && variantEntries.size() > 0) {
+            if (variants != null && variants.size() > 0) {
                 try {
-                    return negotiateResponseFromVariants(target, request, context, variantEntries);
+                    return negotiateResponseFromVariants(target, request, context, variants);
                 } catch (ProtocolException e) {
                     throw new ClientProtocolException(e);
                 }
@@ -594,8 +594,8 @@ public class CachingHttpClient implements HttpClient {
     
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
-            Map<String, HttpCacheEntry> variantEntries) throws IOException, ProtocolException {
-        HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries);
+            Map<String, Variant> variants) throws IOException, ProtocolException {
+        HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variants);
 
         Date requestDate = getCurrentDate();
         HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
@@ -605,7 +605,6 @@ public class CachingHttpClient implements HttpClient {
 
         if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
             return handleBackendResponse(target, request, requestDate, responseDate, backendResponse);
-//            return handleBackendResponse(target, conditionalRequest, requestDate, responseDate, backendResponse);
         }
 
         Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
@@ -615,13 +614,15 @@ public class CachingHttpClient implements HttpClient {
         }
 
         String resultEtag = resultEtagHeader.getValue();
-        HttpCacheEntry matchedEntry = variantEntries.get(resultEtag);
+        Variant matchingVariant = variants.get(resultEtag);
 
-        if (matchedEntry == null) {
+        if (matchingVariant == null) {
             log.debug("304 response did not contain ETag matching one sent in If-None-Match");
             return callBackend(target, request, context);
         }
 
+        HttpCacheEntry matchedEntry = matchingVariant.getEntry();
+        
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
         	HttpRequest unconditional = conditionalRequestBuilder
         		.buildUnconditionalRequest(request, matchedEntry);

@@ -75,7 +75,7 @@ interface HttpCache {
      * @return a <code>Map</code> mapping Etags to variant cache entries
      * @throws IOException
      */
-    Map<String,HttpCacheEntry> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
+    Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
         throws IOException;
 
     /**
