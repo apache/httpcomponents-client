@@ -965,4 +965,63 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         verifyMocks();
     }
 
+    /* "If any of the existing cache entries contains only partial content
+     * for the associated entity, its entity-tag SHOULD NOT be included in
+     * the If-None-Match header field unless the request is for a range
+     * that would be fully satisfied by that entry."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
+     */
+    @Test
+    public void variantNegotiationsDoNotIncludeEtagsForPartialResponses()
+            throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        req1.setHeader("User-Agent", "agent1");
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Vary", "User-Agent");
+        resp1.setHeader("ETag", "\"etag1\"");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("User-Agent", "agent2");
+        req2.setHeader("Range", "bytes=0-49");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp2.setEntity(HttpTestUtils.makeBody(50));
+        resp2.setHeader("Content-Length","50");
+        resp2.setHeader("Content-Range","bytes 0-49/100");
+        resp2.setHeader("Vary","User-Agent");
+        resp2.setHeader("ETag", "\"etag2\"");
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
+        req3.setHeader("User-Agent", "agent3");
+        
+        HttpResponse resp3 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Vary", "User-Agent");
+        resp1.setHeader("ETag", "\"etag3\"");
+        
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        expect(mockBackend.execute(isA(HttpHost.class), capture(cap),
+                (HttpContext)isNull())).andReturn(resp3);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
+        
+        HttpRequest captured = cap.getValue();
+        for(Header h : captured.getHeaders("If-None-Match")) {
+            for(HeaderElement elt : h.getElements()) {
+                assertFalse("\"etag2\"".equals(elt.toString()));
+            }
+        }
+    }
 }
