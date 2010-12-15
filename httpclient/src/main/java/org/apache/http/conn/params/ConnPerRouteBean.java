@@ -61,6 +61,9 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this(DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
     }
 
+    /**
+     * @deprecated Use {@link #getDefaultMaxPerRoute()} instead
+     */
     @Deprecated
     public int getDefaultMax() {
         return this.defaultMax;
