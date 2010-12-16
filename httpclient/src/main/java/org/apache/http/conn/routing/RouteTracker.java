@@ -294,7 +294,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             return false;
 
         RouteTracker that = (RouteTracker) o;
-        return 
+        return
             // Do the cheapest checks first
             (this.connected == that.connected) &&
             (this.secure    == that.secure) &&
@@ -315,26 +315,19 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     @Override
     public final int hashCode() {
-
-        int hc = this.targetHost.hashCode();
-
-        if (this.localAddress != null)
-            hc ^= localAddress.hashCode();
+        int hash = LangUtils.HASH_SEED;
+        hash = LangUtils.hashCode(hash, this.targetHost);
+        hash = LangUtils.hashCode(hash, this.localAddress);
         if (this.proxyChain != null) {
-            hc ^= proxyChain.length;
-            for (int i=0; i<proxyChain.length; i++)
-                hc ^= proxyChain[i].hashCode();
+            for (int i = 0; i < this.proxyChain.length; i++) {
+                hash = LangUtils.hashCode(hash, this.proxyChain[i]);
+            }
         }
-
-        if (this.connected)
-            hc ^= 0x11111111;
-        if (this.secure)
-            hc ^= 0x22222222;
-
-        hc ^= this.tunnelled.hashCode();
-        hc ^= this.layered.hashCode();
-
-        return hc;
+        hash = LangUtils.hashCode(hash, this.connected);
+        hash = LangUtils.hashCode(hash, this.secure);
+        hash = LangUtils.hashCode(hash, this.tunnelled);
+        hash = LangUtils.hashCode(hash, this.layered);
+        return hash;
     }
 
     /**

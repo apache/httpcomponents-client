@@ -760,19 +760,15 @@ public class DefaultRequestDirector implements RequestDirector {
                 break;
 
             case HttpRouteDirector.UNREACHABLE:
-                throw new IllegalStateException
-                    ("Unable to establish route." +
-                     "\nplanned = " + route +
-                     "\ncurrent = " + fact);
-
+                throw new HttpException("Unable to establish route: " +
+                        "planned = " + route + "; current = " + fact);
             case HttpRouteDirector.COMPLETE:
                 // do nothing
                 break;
-
             default:
-                throw new IllegalStateException
-                    ("Unknown step indicator "+step+" from RouteDirector.");
-            } // switch
+                throw new IllegalStateException("Unknown step indicator "
+                        + step + " from RouteDirector.");
+            }
 
         } while (step > HttpRouteDirector.COMPLETE);
 
@@ -945,8 +941,7 @@ public class DefaultRequestDirector implements RequestDirector {
         // complexity. Feel free to submit patches that refactor the code in
         // createTunnelToTarget to facilitate re-use for proxy tunnelling.
 
-        throw new UnsupportedOperationException
-            ("Proxy chains are not supported.");
+        throw new HttpException("Proxy chains are not supported.");
     }
 
 
