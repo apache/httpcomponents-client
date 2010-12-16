@@ -52,13 +52,20 @@ public class CacheConfig {
     public final static boolean DEFAULT_HEURISTIC_CACHING_ENABLED = false;
 
     /** Default coefficient used to heuristically determine freshness lifetime from
-     * cache entry.
+     *  cache entry.
      */
     public final static float DEFAULT_HEURISTIC_COEFFICIENT = 0.1f;
 
-    /** Default lifetime to be assumed when we cannot calculate freshness heuristically
+    /** Default lifetime in seconds to be assumed when we cannot calculate freshness
+     *  heuristically
      */
     public final static long DEFAULT_HEURISTIC_LIFETIME = 0;
+
+    /** Default number of worker threads to allow for background revalidations
+     * resulting from the stale-while-revalidate directive; 0 disables handling
+     * asynchronous revalidations.
+     */
+    private static final int DEFAULT_STALE_WHILE_REVALIDATE_WORKERS = 0; 
 
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
@@ -67,6 +74,7 @@ public class CacheConfig {
     private float heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
     private long heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
     private boolean isSharedCache = true;
+    private int staleWhileRevalidateWorkers = DEFAULT_STALE_WHILE_REVALIDATE_WORKERS;
 
     /**
      * Returns the current maximum object size that will be cached.
@@ -173,5 +181,21 @@ public class CacheConfig {
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
     }
 
+    /**
+     * Set number of worker threads to allow for background revalidations resulting from,
+     *  the stale-while-revalidate directive, 0 disables handling of directive
+     * @return
+     */
+    public int getStaleWhileRevalidateWorkers() {
+        return staleWhileRevalidateWorkers;
+    }
+
+    /**
+     * Get number of worker threads to allow for background revalidations resulting from,
+     *  the stale-while-revalidate directive, 0 disables handling of directive
+     */
+    public void setStaleWhileRevalidateWorkers(int staleWhileRevalidateWorkers) {
+        this.staleWhileRevalidateWorkers = staleWhileRevalidateWorkers;
+    }
 
 }

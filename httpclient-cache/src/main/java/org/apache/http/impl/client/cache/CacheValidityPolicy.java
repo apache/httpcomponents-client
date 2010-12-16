@@ -120,6 +120,25 @@ class CacheValidityPolicy {
         return hasCacheControlDirective(entry, "proxy-revalidate");
     }
     
+    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, Date now) {
+        for (Header h : entry.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if ("stale-while-revalidate".equalsIgnoreCase(elt.getName())) {
+                    try {
+                        int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
+                        if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
+                            return true;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        // skip malformed directive
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+    
     public boolean mayReturnStaleIfError(HttpRequest request,
             HttpCacheEntry entry, Date now) {
         long stalenessSecs = getStalenessSecs(entry, now);

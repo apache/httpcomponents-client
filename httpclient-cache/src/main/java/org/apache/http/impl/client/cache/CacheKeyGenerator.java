@@ -132,7 +132,7 @@ class CacheKeyGenerator {
      *
      * @param host The host for this request
      * @param req the {@link HttpRequest}
-     * @param entry the parent entry used to track the varients
+     * @param entry the parent entry used to track the variants
      * @return String the extracted variant URI
      */
     public String getVariantURI(HttpHost host, HttpRequest req, HttpCacheEntry entry) {

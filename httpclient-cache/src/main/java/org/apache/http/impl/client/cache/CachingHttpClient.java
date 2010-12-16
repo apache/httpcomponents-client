@@ -95,6 +95,8 @@ public class CachingHttpClient implements HttpClient {
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
 
+    private final AsynchronousValidator asynchRevalidator;
+    
     private final Log log = LogFactory.getLog(getClass());
 
     CachingHttpClient(
@@ -124,6 +126,8 @@ public class CachingHttpClient implements HttpClient {
 
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
+
+        this.asynchRevalidator = makeAsynchronousValidator(config.getStaleWhileRevalidateWorkers());
     }
 
     public CachingHttpClient() {
@@ -193,6 +197,15 @@ public class CachingHttpClient implements HttpClient {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
+        this.asynchRevalidator = makeAsynchronousValidator(config.getStaleWhileRevalidateWorkers());
+    }
+    
+    private AsynchronousValidator makeAsynchronousValidator(
+            int numWorkers) {
+        if (numWorkers > 0) {
+            return new AsynchronousValidator(this, numWorkers);
+        }
+        return null;
     }
 
     /**
@@ -461,6 +474,14 @@ public class CachingHttpClient implements HttpClient {
             log.debug("Revalidating the cache entry");
 
             try {
+                if (asynchRevalidator != null && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
+                    final HttpResponse resp = responseGenerator.generateResponse(entry);
+                    resp.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+                    
+                    asynchRevalidator.revalidateCacheEntry(target, request, context, entry);
+                    
+                    return resp;
+                }
                 return revalidateCacheEntry(target, request, context, entry);
             } catch (IOException ioex) {
                 if (validityPolicy.mustRevalidate(entry)

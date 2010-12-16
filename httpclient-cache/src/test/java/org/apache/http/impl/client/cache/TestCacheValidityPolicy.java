@@ -411,7 +411,7 @@ public class TestCacheValidityPolicy {
         HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
-
+    
     @Test
     public void testMayReturnStaleIfErrorInRequestIsTrueWithinStaleness(){
         Header[] headers = new Header[] {
@@ -445,5 +445,62 @@ public class TestCacheValidityPolicy {
         HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         req.setHeader("Cache-Control","stale-if-error=1");
         assertFalse(impl.mayReturnStaleIfError(req, entry, now));
+    }
+
+    @Test
+    public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveIsAbsent() {
+        Date now = new Date();
+        
+        Header[] headers = new Header[] { new BasicHeader("Cache-control", "public") };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
+        
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
+    }
+    
+    @Test
+    public void testMayReturnStaleWhileRevalidatingIsTrueWhenWithinStaleness() {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=15")
+        };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
+        
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        
+        assertTrue(impl.mayReturnStaleWhileRevalidating(entry, now));
+    }
+    
+    @Test
+    public void testMayReturnStaleWhileRevalidatingIsFalseWhenPastStaleness() {
+        Date now = new Date();
+        Date twentyFiveSecondsAgo = new Date(now.getTime() - 25 * 1000L);
+        Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(twentyFiveSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=15")
+        };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
+        
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
+    }
+    
+    @Test
+    public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveEmpty() {
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=")
+        };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
+        
+        CacheValidityPolicy impl = new CacheValidityPolicy();
+        
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 }

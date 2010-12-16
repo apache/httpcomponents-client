@@ -27,12 +27,17 @@
 package org.apache.http.impl.client.cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHttpRequest;
 import org.junit.Test;
 
 /** 
@@ -153,5 +158,50 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                 result.getStatusLine().getStatusCode());
+    }
+    
+    /*
+     * When present in an HTTP response, the stale-while-revalidate Cache-
+     * Control extension indicates that caches MAY serve the response in
+     * which it appears after it becomes stale, up to the indicated number
+     * of seconds.
+     * 
+     * http://tools.ietf.org/html/rfc5861
+     */
+    @Test
+    public void testStaleWhileRevalidateReturnsStaleEntryWithWarning()
+        throws Exception {
+        
+        params.setStaleWhileRevalidateWorkers(1);
+        impl = new CachingHttpClient(mockBackend, cache, params);
+        
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1).times(1,2);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(warning110Found);
     }
 }
