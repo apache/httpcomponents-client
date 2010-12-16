@@ -76,6 +76,15 @@ public class StringBody extends AbstractContentBody {
         return create(text, null, null);
     }
 
+    /**
+     * Create a StringBody from the specified text, mime type and character set.
+     * 
+     * @param text to be used for the body, not {@code null}
+     * @param mimeType the mime type, may be {@code null}
+     * @param charset the character set, may be {@code null}, in which case the hosts default charset is used
+     * @throws UnsupportedEncodingException
+     * @throws IllegalArgumentException if the {@code text} parameter is null
+     */
     public StringBody(
             final String text,
             final String mimeType,
@@ -91,10 +100,28 @@ public class StringBody extends AbstractContentBody {
         this.charset = charset;
     }
 
+    /**
+     * Create a StringBody from the specified text and character set.
+     * The mime type is set to "text/plain".
+     * 
+     * @param text to be used for the body, not {@code null}
+     * @param charset the character set, may be {@code null}, in which case the hosts default charset is used
+     * @throws UnsupportedEncodingException
+     * @throws IllegalArgumentException if the {@code text} parameter is null
+     */
     public StringBody(final String text, final Charset charset) throws UnsupportedEncodingException {
         this(text, "text/plain", charset);
     }
 
+    /**
+     * Create a StringBody from the specified text.
+     * The mime type is set to "text/plain".
+     * The hosts default charset is used.
+     * 
+     * @param text to be used for the body, not {@code null}
+     * @throws UnsupportedEncodingException
+     * @throws IllegalArgumentException if the {@code text} parameter is null
+     */
     public StringBody(final String text) throws UnsupportedEncodingException {
         this(text, "text/plain", null);
     }
