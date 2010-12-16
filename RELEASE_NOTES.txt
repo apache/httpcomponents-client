@@ -1,6 +1,9 @@
 Changes since 4.1 BETA1
 -----------------------
 
+* [HTTPCLIENT-1036] StringBody has incorrect default for characterset. (Default changed to US-ASCII)
+ Contributed by Sebastian Bazley <sebb at apache.org>
+
 * [HTTPCLIENT-1033] HttpRoute.equals(Object o) is quite inefficient, as it does not take full advantage of shortcut logic
  Contributed by Sebastian Bazley <sebb at apache.org>
 

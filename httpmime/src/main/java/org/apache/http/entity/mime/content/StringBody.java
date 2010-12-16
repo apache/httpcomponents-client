@@ -81,7 +81,7 @@ public class StringBody extends AbstractContentBody {
      * 
      * @param text to be used for the body, not {@code null}
      * @param mimeType the mime type, may be {@code null}
-     * @param charset the character set, may be {@code null}, in which case the hosts default charset is used
+     * @param charset the character set, may be {@code null}, in which case the US-ASCII charset is used
      * @throws UnsupportedEncodingException
      * @throws IllegalArgumentException if the {@code text} parameter is null
      */
@@ -94,7 +94,7 @@ public class StringBody extends AbstractContentBody {
             throw new IllegalArgumentException("Text may not be null");
         }
         if (charset == null) {
-            charset = Charset.defaultCharset();
+            charset = Charset.forName("US-ASCII");
         }
         this.content = text.getBytes(charset.name());
         this.charset = charset;
@@ -105,7 +105,7 @@ public class StringBody extends AbstractContentBody {
      * The mime type is set to "text/plain".
      * 
      * @param text to be used for the body, not {@code null}
-     * @param charset the character set, may be {@code null}, in which case the hosts default charset is used
+     * @param charset the character set, may be {@code null}, in which case the US-ASCII charset is used
      * @throws UnsupportedEncodingException
      * @throws IllegalArgumentException if the {@code text} parameter is null
      */
