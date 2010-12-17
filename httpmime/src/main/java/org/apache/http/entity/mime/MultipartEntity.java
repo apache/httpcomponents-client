@@ -35,7 +35,6 @@ import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
