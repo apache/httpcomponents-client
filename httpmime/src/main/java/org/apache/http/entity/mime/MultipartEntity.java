@@ -57,7 +57,7 @@ public class MultipartEntity implements HttpEntity {
     private final HttpMultipart multipart;
     private final Header contentType;
 
-    @GuardedBy("dirty") // we always read dirty before accessing length
+    // @GuardedBy("dirty") // we always read dirty before accessing length
     private long length;
     private volatile boolean dirty; // used to decide whether to recalculate length
 
