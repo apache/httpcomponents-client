@@ -4,6 +4,11 @@ Changes since 4.1 BETA1
 * [HTTPCLIENT-1036] StringBody has incorrect default for characterset. (Default changed to US-ASCII)
  Contributed by Sebastian Bazley <sebb at apache.org>
 
+* [HTTPCLIENT-975] Support stale-if-error extension directive (RFC5861).
+  Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>,
+  Michajlo Matijkiw <michajlo_matijkiw at comcast.com>, and
+  Matthew Hawthorne <matthew_hawthorne at comcast.com>.
+
 * [HTTPCLIENT-1033] HttpRoute.equals(Object o) is quite inefficient, as it does not take full advantage of shortcut logic
  Contributed by Sebastian Bazley <sebb at apache.org>
 
@@ -20,11 +25,6 @@ project.
 
 Changelog
 -------------------
-* [HTTPCLIENT-975] Support stale-if-error extension directive (RFC5861).
-  Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>,
-  Michajlo Matijkiw <michajlo_matijkiw at comcast.com>, and
-  Matthew Hawthorne <matthew_hawthorne at comcast.com>.
-
 * [HTTPCLIENT-1015] Support only-if-cached directive.
   Contributed by Michajlo Matijkiw <michajlo_matijkiw at comcast.com>
 
