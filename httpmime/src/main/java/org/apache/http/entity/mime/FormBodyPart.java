@@ -41,7 +41,7 @@ public class FormBodyPart {
     private final String name;
     private final Header header;
 
-    private ContentBody body;
+    private final ContentBody body;
 
     public FormBodyPart(final String name, final ContentBody body) {
         super();
