@@ -29,10 +29,12 @@ package org.apache.http.impl.client.cache;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,8 +61,14 @@ public class AsynchronousValidator {
      * @param cachingClient
      * @param numThreads
      */
-    public AsynchronousValidator(CachingHttpClient cachingClient, int numThreads) {
-        this(cachingClient, Executors.newFixedThreadPool(numThreads));
+    public AsynchronousValidator(CachingHttpClient cachingClient, CacheConfig config) {
+        this(cachingClient,
+                new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
+                        config.getAsynchronousWorkersMax(),
+                        (long)config.getAsynchronousWorkerIdleLifetimeSecs(),
+                        TimeUnit.SECONDS,
+                        new ArrayBlockingQueue<Runnable>(config.getRevalidationQueueSize()))
+                );
     }
     
     /**

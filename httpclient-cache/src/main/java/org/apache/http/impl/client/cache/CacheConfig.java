@@ -51,22 +51,35 @@ public class CacheConfig {
      */
     public final static boolean DEFAULT_HEURISTIC_CACHING_ENABLED = false;
 
-    /** Default coefficient used to heuristically determine freshness lifetime from
-     *  cache entry.
+    /** Default coefficient used to heuristically determine freshness
+     * lifetime from the Last-Modified time of a cache entry.
      */
     public final static float DEFAULT_HEURISTIC_COEFFICIENT = 0.1f;
 
-    /** Default lifetime in seconds to be assumed when we cannot calculate freshness
-     *  heuristically
+    /** Default lifetime in seconds to be assumed when we cannot calculate
+     * freshness heuristically.
      */
     public final static long DEFAULT_HEURISTIC_LIFETIME = 0;
 
     /** Default number of worker threads to allow for background revalidations
-     * resulting from the stale-while-revalidate directive; 0 disables handling
-     * asynchronous revalidations.
+     * resulting from the stale-while-revalidate directive.
      */
-    private static final int DEFAULT_STALE_WHILE_REVALIDATE_WORKERS = 0; 
+    private static final int DEFAULT_ASYNCHRONOUS_WORKERS_MAX = 1; 
 
+    /** Default minimum number of worker threads to allow for background
+     * revalidations resulting from the stale-while-revalidate directive.
+     */
+    private static final int DEFAULT_ASYNCHRONOUS_WORKERS_CORE = 1;
+    
+    /** Default maximum idle lifetime for a background revalidation thread
+     * before it gets reclaimed.
+     */
+    private static final int DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS = 60;
+    
+    /** Default maximum queue length for background revalidation requests. 
+     */
+    private static final int DEFAULT_REVALIDATION_QUEUE_SIZE = 100;
+    
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
     private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
@@ -74,7 +87,10 @@ public class CacheConfig {
     private float heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
     private long heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
     private boolean isSharedCache = true;
-    private int staleWhileRevalidateWorkers = DEFAULT_STALE_WHILE_REVALIDATE_WORKERS;
+    private int asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
+    private int asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
+    private int asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
+    private int revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
 
     /**
      * Returns the current maximum object size that will be cached.
@@ -182,20 +198,76 @@ public class CacheConfig {
     }
 
     /**
-     * Set number of worker threads to allow for background revalidations resulting from,
-     *  the stale-while-revalidate directive, 0 disables handling of directive
-     * @return
+     * Returns the maximum number of threads to allow for background
+     * revalidations due to the stale-while-revalidate directive. A
+     * value of 0 means background revalidations are disabled.
      */
-    public int getStaleWhileRevalidateWorkers() {
-        return staleWhileRevalidateWorkers;
+    public int getAsynchronousWorkersMax() {
+        return asynchronousWorkersMax;
     }
 
     /**
-     * Get number of worker threads to allow for background revalidations resulting from,
-     *  the stale-while-revalidate directive, 0 disables handling of directive
+     * Sets the maximum number of threads to allow for background
+     * revalidations due to the stale-while-revalidate directive. 
+     * @param max number of threads; a value of 0 disables background
+     * revalidations. 
      */
-    public void setStaleWhileRevalidateWorkers(int staleWhileRevalidateWorkers) {
-        this.staleWhileRevalidateWorkers = staleWhileRevalidateWorkers;
+    public void setAsynchronousWorkersMax(int max) {
+        this.asynchronousWorkersMax = max;
     }
 
+    /**
+     * Returns the minimum number of threads to keep alive for background
+     * revalidations due to the stale-while-revalidate directive. 
+     */
+    public int getAsynchronousWorkersCore() {
+        return asynchronousWorkersCore;
+    }
+
+    /**
+     * Sets the minimum number of threads to keep alive for background
+     * revalidations due to the stale-while-revalidate directive.
+     * @param min should be greater than zero and less than or equal
+     *   to <code>getAsynchronousWorkersMax()</code> 
+     */
+    public void setAsynchronousWorkersCore(int min) {
+        this.asynchronousWorkersCore = min;
+    }
+
+    /**
+     * Returns the current maximum idle lifetime in seconds for a
+     * background revalidation worker thread. If a worker thread is idle
+     * for this long, and there are more than the core number of worker
+     * threads alive, the worker will be reclaimed.
+     */
+    public int getAsynchronousWorkerIdleLifetimeSecs() {
+        return asynchronousWorkerIdleLifetimeSecs;
+    }
+
+    /**
+     * Sets the current maximum idle lifetime in seconds for a
+     * background revalidation worker thread. If a worker thread is idle
+     * for this long, and there are more than the core number of worker
+     * threads alive, the worker will be reclaimed.
+     * @param secs idle lifetime in seconds
+     */
+    public void setAsynchronousWorkerIdleLifetimeSecs(int secs) {
+        this.asynchronousWorkerIdleLifetimeSecs = secs;
+    }
+
+    /**
+     * Returns the current maximum queue size for background revalidations.
+     */
+    public int getRevalidationQueueSize() {
+        return revalidationQueueSize;
+    }
+
+    /**
+     * Sets the current maximum queue size for background revalidations.
+     */
+    public void setRevalidationQueueSize(int size) {
+        this.revalidationQueueSize = size;
+    }
+
+    
 }

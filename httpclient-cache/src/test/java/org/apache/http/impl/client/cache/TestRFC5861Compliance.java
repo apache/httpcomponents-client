@@ -172,7 +172,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testStaleWhileRevalidateReturnsStaleEntryWithWarning()
         throws Exception {
         
-        params.setStaleWhileRevalidateWorkers(1);
+        params.setAsynchronousWorkersMax(1);
         impl = new CachingHttpClient(mockBackend, cache, params);
         
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);

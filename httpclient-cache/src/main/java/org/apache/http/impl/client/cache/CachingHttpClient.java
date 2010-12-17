@@ -127,7 +127,7 @@ public class CachingHttpClient implements HttpClient {
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
 
-        this.asynchRevalidator = makeAsynchronousValidator(config.getStaleWhileRevalidateWorkers());
+        this.asynchRevalidator = makeAsynchronousValidator(config);
     }
 
     public CachingHttpClient() {
@@ -197,13 +197,13 @@ public class CachingHttpClient implements HttpClient {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
-        this.asynchRevalidator = makeAsynchronousValidator(config.getStaleWhileRevalidateWorkers());
+        this.asynchRevalidator = makeAsynchronousValidator(config);
     }
     
     private AsynchronousValidator makeAsynchronousValidator(
-            int numWorkers) {
-        if (numWorkers > 0) {
-            return new AsynchronousValidator(this, numWorkers);
+            CacheConfig config) {
+        if (config.getAsynchronousWorkersMax() > 0) {
+            return new AsynchronousValidator(this, config);
         }
         return null;
     }

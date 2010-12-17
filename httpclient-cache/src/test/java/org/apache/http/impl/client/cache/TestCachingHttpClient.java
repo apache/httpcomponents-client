@@ -62,7 +62,6 @@ import org.easymock.Capture;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestCachingHttpClient {
@@ -341,9 +340,6 @@ public class TestCachingHttpClient {
         Assert.assertEquals(0, impl.getCacheUpdates());
     }
 
-    // TODO: re-enable when background validation enabled by default, or adjust
-    // test to specify background validation in CacheConfig
-    @Ignore
     @Test
     public void testUnsuitableValidatableCacheEntryCausesRevalidation() throws Exception {
         mockImplMethods(REVALIDATE_CACHE_ENTRY);

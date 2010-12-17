@@ -166,7 +166,10 @@ public class TestAsynchronousValidator {
     
     @Test
     public void testRevalidateCacheEntryEndToEnd() throws ProtocolException, IOException, InterruptedException {
-        impl = new AsynchronousValidator(mockClient, 1);
+        CacheConfig config = new CacheConfig();
+        config.setAsynchronousWorkersMax(1);
+        config.setAsynchronousWorkersCore(1);
+        impl = new AsynchronousValidator(mockClient, config);
         
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(null);
