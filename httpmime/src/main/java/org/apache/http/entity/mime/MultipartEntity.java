@@ -35,6 +35,7 @@ import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
@@ -56,6 +57,7 @@ public class MultipartEntity implements HttpEntity {
     private final HttpMultipart multipart;
     private final Header contentType;
 
+    @GuardedBy("dirty") // we always read dirty before accessing length
     private long length;
     private volatile boolean dirty; // used to decide whether to recalculate length
 
