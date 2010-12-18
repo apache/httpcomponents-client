@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,12 +55,19 @@ class AsynchronousValidator {
     private final Log log = LogFactory.getLog(getClass());
     
     /**
-     * Create AsynchronousValidator which will make revalidation requests using the supplied {@link CachingHttpClient}, and 
-     * a {@link ThreadPoolExecutor} returned by {@link Executors#newFixedThreadPool(int)}.
-     * @param cachingClient
-     * @param numThreads
+     * Create AsynchronousValidator which will make revalidation requests
+     * using the supplied {@link CachingHttpClient}, and 
+     * a {@link ThreadPoolExecutor} generated according to the thread
+     * pool settings provided in the given {@link CacheConfig}. 
+     * @param cachingClient used to execute asynchronous requests
+     * @param config specifies thread pool settings. See
+     * {@link CacheConfig#getAsynchronousWorkersMax()},
+     * {@link CacheConfig#getAsynchronousWorkersCore()},
+     * {@link CacheConfig#getAsynchronousWorkerIdleLifetimeSecs()},
+     * and {@link CacheConfig#getRevalidationQueueSize()}. 
      */
-    public AsynchronousValidator(CachingHttpClient cachingClient, CacheConfig config) {
+    public AsynchronousValidator(CachingHttpClient cachingClient,
+            CacheConfig config) {
         this(cachingClient,
                 new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
                         config.getAsynchronousWorkersMax(),
@@ -72,12 +78,14 @@ class AsynchronousValidator {
     }
     
     /**
-     * Create AsynchronousValidator which will make revalidation requests using the supplied {@link CachingHttpClient} and
+     * Create AsynchronousValidator which will make revalidation requests
+     * using the supplied {@link CachingHttpClient} and
      * {@link ExecutorService}.
-     * @param cachingClient
-     * @param executor
+     * @param cachingClient used to execute asynchronous requests
+     * @param executor used to manage a thread pool of revalidation workers
      */
-    AsynchronousValidator(CachingHttpClient cachingClient, ExecutorService executor) {
+    AsynchronousValidator(CachingHttpClient cachingClient,
+            ExecutorService executor) {
         this.cachingClient = cachingClient;
         this.executor = executor;
         this.queued = new HashSet<String>();
@@ -92,13 +100,15 @@ class AsynchronousValidator {
      * @param context
      * @param entry
      */
-    public synchronized void revalidateCacheEntry(HttpHost target, HttpRequest request, HttpContext context, HttpCacheEntry entry) {
+    public synchronized void revalidateCacheEntry(HttpHost target,
+            HttpRequest request, HttpContext context, HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
         String uri = cacheKeyGenerator.getVariantURI(target, request, entry);
         
         if (!queued.contains(uri)) {
-            AsynchronousValidationRequest revalidationRequest = new AsynchronousValidationRequest(
-                    this, cachingClient, target, request, context, entry, uri);
+            AsynchronousValidationRequest revalidationRequest =
+                new AsynchronousValidationRequest(this, cachingClient, target,
+                        request, context, entry, uri);
 
             try {
                 executor.execute(revalidationRequest);
@@ -110,27 +120,20 @@ class AsynchronousValidator {
     }
 
     /**
-     * Will remove identifier from internal list of jobs in progress.  This is meant to be called
-     * by {@link AsynchrnousValidationRequest#run()} once the revalidation is complete, using the identifier
-     * passed in durinc constructions.
+     * Removes an identifier from the internal list of revalidation jobs in
+     * progress.  This is meant to be called by 
+     * {@link AsynchronousValidationRequest#run()} once the revalidation is
+     * complete, using the identifier passed in during constructions.
      * @param identifier
      */
     synchronized void markComplete(String identifier) {
         queued.remove(identifier);
     }
     
-    /**
-     * Get the set of identifiers (URIs) for revalidations
-     * @return
-     */
     Set<String> getScheduledIdentifiers() {
         return Collections.unmodifiableSet(queued);
     }
     
-    /**
-     * Return underlying {@link ExecutorService}
-     * @return
-     */
     ExecutorService getExecutor() {
         return executor;
     }
