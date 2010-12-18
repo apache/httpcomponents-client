@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpContext;
  * Class used for asynchronous revalidations to be used when the "stale-
  * while-revalidate" directive is present
  */
-public class AsynchronousValidator {
+class AsynchronousValidator {
     private final CachingHttpClient cachingClient;
     private final ExecutorService executor;
     private final Set<String> queued;
