@@ -27,8 +27,6 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
@@ -38,7 +36,8 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Class used to represent an asynchronous revalidation event, such as with "stale-while-revalidate" 
+ * Class used to represent an asynchronous revalidation event, such as with
+ * "stale-while-revalidate" 
  */
 class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
@@ -52,10 +51,8 @@ class AsynchronousValidationRequest implements Runnable {
     private final Log log = LogFactory.getLog(getClass());
     
     /**
-     * Used internally by {@link AsynchronousValidator} to schedule a revalidation. Once revalidation
-     * is complete, the {@link Set} bookKeeping will be locked and the {@link String} identifier will be
-     * removed from it. 
-     * 
+     * Used internally by {@link AsynchronousValidator} to schedule a
+     * revalidation.   
      * @param cachingClient
      * @param target
      * @param request
