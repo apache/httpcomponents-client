@@ -397,11 +397,7 @@ public class CachingHttpClient implements HttpClient {
         }
         request.addHeader("Via",via);
 
-        try {
-            responseCache.flushInvalidatedCacheEntriesFor(target, request);
-        } catch (IOException ioe) {
-            log.warn("Unable to flush invalidated entries from cache", ioe);
-        }
+        flushEntriesInvalidatedByRequest(target, request);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             return callBackend(target, request, context);
@@ -445,29 +441,16 @@ public class CachingHttpClient implements HttpClient {
         if (log.isDebugEnabled()) {
             RequestLine rl = request.getRequestLine();
             log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
-
         }
         cacheHits.getAndIncrement();
 
         Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
-            final HttpResponse cachedResponse;
-            if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
-                    || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
-                cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
-            } else {
-                cachedResponse = responseGenerator.generateResponse(entry);
-            }
-            setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-            if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
-                cachedResponse.addHeader("Warning","110 localhost \"Response is stale\"");
-            }
-            return cachedResponse;
+            return generateCachedResponse(request, context, entry, now);
         }
 
         if (!mayCallBackend(request)) {
-            return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
-                    "Gateway Timeout");
+            return generateGatewayTimeout(context);
         }
 
         if (validityPolicy.isRevalidatable(entry)) {
@@ -484,23 +467,67 @@ public class CachingHttpClient implements HttpClient {
                 }
                 return revalidateCacheEntry(target, request, context, entry);
             } catch (IOException ioex) {
-                if (validityPolicy.mustRevalidate(entry)
-                    || (isSharedCache() && validityPolicy.proxyRevalidate(entry))
-                    || explicitFreshnessRequest(request, entry, now)) {
-                    setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
-                    return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
-                } else {
-                    final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
-                    setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-                    cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
-                    log.debug("111 revalidation failed due to exception: " + ioex);
-                    return cachedResponse;
-                }
+                return handleRevalidationFailure(request, context, entry, now);
             } catch (ProtocolException e) {
                 throw new ClientProtocolException(e);
             }
         }
         return callBackend(target, request, context);
+    }
+
+    private void flushEntriesInvalidatedByRequest(HttpHost target,
+            HttpRequest request) {
+        try {
+            responseCache.flushInvalidatedCacheEntriesFor(target, request);
+        } catch (IOException ioe) {
+            log.warn("Unable to flush invalidated entries from cache", ioe);
+        }
+    }
+
+    private HttpResponse generateCachedResponse(HttpRequest request,
+            HttpContext context, HttpCacheEntry entry, Date now) {
+        final HttpResponse cachedResponse;
+        if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
+                || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
+            cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
+        } else {
+            cachedResponse = responseGenerator.generateResponse(entry);
+        }
+        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
+        if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
+            cachedResponse.addHeader("Warning","110 localhost \"Response is stale\"");
+        }
+        return cachedResponse;
+    }
+
+    private HttpResponse handleRevalidationFailure(HttpRequest request,
+            HttpContext context, HttpCacheEntry entry, Date now) {
+        if (staleResponseNotAllowed(request, entry, now)) {
+            return generateGatewayTimeout(context);
+        } else {
+            return unvalidatedCacheHit(context, entry);
+        }
+    }
+
+    private HttpResponse generateGatewayTimeout(HttpContext context) {
+        setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+        return new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+    }
+
+    private HttpResponse unvalidatedCacheHit(HttpContext context,
+            HttpCacheEntry entry) {
+        final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
+        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
+        cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
+        return cachedResponse;
+    }
+
+    private boolean staleResponseNotAllowed(HttpRequest request,
+            HttpCacheEntry entry, Date now) {
+        return validityPolicy.mustRevalidate(entry)
+            || (isSharedCache() && validityPolicy.proxyRevalidate(entry))
+            || explicitFreshnessRequest(request, entry, now);
     }
 
     private boolean mayCallBackend(HttpRequest request) {
