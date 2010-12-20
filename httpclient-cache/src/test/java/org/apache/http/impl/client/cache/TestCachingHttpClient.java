@@ -868,7 +868,7 @@ public class TestCachingHttpClient {
     @Test
     public void testNonCompliantRequestWrapsAndReThrowsProtocolException() throws Exception {
 
-        ProtocolException expected = new ProtocolException("ouch");
+        ClientProtocolException expected = new ClientProtocolException("ouch");
 
         requestIsFatallyNonCompliant(null);
         requestCannotBeMadeCompliantThrows(expected);
@@ -878,7 +878,7 @@ public class TestCachingHttpClient {
         try {
             impl.execute(host, request, context);
         } catch (ClientProtocolException ex) {
-            Assert.assertTrue(ex.getCause().getMessage().equals(expected.getMessage()));
+            Assert.assertSame(expected, ex);
             gotException = true;
         }
         verifyMocks();
@@ -2039,7 +2039,7 @@ public class TestCachingHttpClient {
                         EasyMock.<HttpRequest>anyObject())).andReturn(request);
     }
 
-    private void requestCannotBeMadeCompliantThrows(ProtocolException exception) throws Exception {
+    private void requestCannotBeMadeCompliantThrows(ClientProtocolException exception) throws Exception {
         EasyMock.expect(
                 mockRequestProtocolCompliance.makeRequestCompliant(
                         EasyMock.<HttpRequest>anyObject())).andThrow(exception);

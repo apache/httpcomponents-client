@@ -390,11 +390,7 @@ public class CachingHttpClient implements HttpClient {
             return requestCompliance.getErrorForRequest(error);
         }
 
-        try {
-            request = requestCompliance.makeRequestCompliant(request);
-        } catch (ProtocolException e) {
-            throw new ClientProtocolException(e);
-        }
+        request = requestCompliance.makeRequestCompliant(request);
         request.addHeader("Via",via);
 
         flushEntriesInvalidatedByRequest(target, request);
@@ -674,7 +670,6 @@ public class CachingHttpClient implements HttpClient {
 
         String resultEtag = resultEtagHeader.getValue();
         Variant matchingVariant = variants.get(resultEtag);
-
         if (matchingVariant == null) {
             log.debug("304 response did not contain ETag matching one sent in If-None-Match");
             return callBackend(target, request, context);
@@ -683,14 +678,43 @@ public class CachingHttpClient implements HttpClient {
         HttpCacheEntry matchedEntry = matchingVariant.getEntry();
         
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
-        	HttpRequest unconditional = conditionalRequestBuilder
-        		.buildUnconditionalRequest(request, matchedEntry);
-        	return callBackend(target, unconditional, context);
+        	return retryRequestUnconditionally(target, request, context,
+                    matchedEntry);
         }
         
+        recordCacheUpdate(context);
+
+        HttpCacheEntry responseEntry = getUpdatedVariantEntry(target,
+                conditionalRequest, requestDate, responseDate, backendResponse,
+                matchingVariant, matchedEntry);
+
+        HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+        tryToUpdateVariantMap(target, request, matchingVariant);
+
+        if (shouldSendNotModifiedResponse(request, responseEntry)) {
+            return responseGenerator.generateNotModifiedResponse(responseEntry);
+        }
+
+        return resp;
+    }
+
+    private HttpResponse retryRequestUnconditionally(HttpHost target,
+            HttpRequest request, HttpContext context,
+            HttpCacheEntry matchedEntry) throws IOException {
+        HttpRequest unconditional = conditionalRequestBuilder
+        	.buildUnconditionalRequest(request, matchedEntry);
+        return callBackend(target, unconditional, context);
+    }
+
+    private void recordCacheUpdate(HttpContext context) {
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
+    }
 
+    private HttpCacheEntry getUpdatedVariantEntry(HttpHost target,
+            HttpRequest conditionalRequest, Date requestDate,
+            Date responseDate, HttpResponse backendResponse,
+            Variant matchingVariant, HttpCacheEntry matchedEntry) {
         HttpCacheEntry responseEntry = matchedEntry;
         try {
             responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
@@ -698,19 +722,22 @@ public class CachingHttpClient implements HttpClient {
         } catch (IOException ioe) {
             log.warn("Could not update cache entry", ioe);
         }
+        return responseEntry;
+    }
 
-        HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+    private void tryToUpdateVariantMap(HttpHost target, HttpRequest request,
+            Variant matchingVariant) {
         try {
             responseCache.reuseVariantEntryFor(target, request, matchingVariant);
         } catch (IOException ioe) {
             log.warn("Could not update cache entry to reuse variant", ioe);
         }
+    }
 
-        if (suitabilityChecker.isConditional(request) && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date())) {
-            return responseGenerator.generateNotModifiedResponse(responseEntry);
-        }
-
-        return resp;
+    private boolean shouldSendNotModifiedResponse(HttpRequest request,
+            HttpCacheEntry responseEntry) {
+        return (suitabilityChecker.isConditional(request)
+                && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date()));
     }
 
     HttpResponse revalidateCacheEntry(
@@ -737,8 +764,7 @@ public class CachingHttpClient implements HttpClient {
 
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
-            cacheUpdates.getAndIncrement();
-            setResponseStatus(context, CacheResponseStatus.VALIDATED);
+            recordCacheUpdate(context);
         }
 
         if (statusCode == HttpStatus.SC_NOT_MODIFIED) {

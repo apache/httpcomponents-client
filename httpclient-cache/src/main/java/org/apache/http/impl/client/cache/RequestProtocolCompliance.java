@@ -39,6 +39,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.RequestWrapper;
@@ -92,9 +93,11 @@ class RequestProtocolCompliance {
      *
      * @param request the request to check for compliance
      * @return the updated request
-     * @throws ProtocolException when we have trouble making the request compliant
+     * @throws ClientProtocolException when we have trouble making the request compliant
      */
-    public HttpRequest makeRequestCompliant(HttpRequest request) throws ProtocolException {
+    public HttpRequest makeRequestCompliant(HttpRequest request)
+        throws ClientProtocolException {
+    
         if (requestMustNotHaveEntity(request)) {
             ((HttpEntityEnclosingRequest) request).setEntity(null);
         }
@@ -212,16 +215,26 @@ class RequestProtocolCompliance {
     }
 
     private HttpRequest upgradeRequestTo(HttpRequest request, ProtocolVersion version)
-            throws ProtocolException {
-        RequestWrapper newRequest = new RequestWrapper(request);
+            throws ClientProtocolException {
+        RequestWrapper newRequest;
+        try {
+            newRequest = new RequestWrapper(request);
+        } catch (ProtocolException pe) {
+            throw new ClientProtocolException(pe);
+        }
         newRequest.setProtocolVersion(version);
 
         return newRequest;
     }
 
     private HttpRequest downgradeRequestTo(HttpRequest request, ProtocolVersion version)
-            throws ProtocolException {
-        RequestWrapper newRequest = new RequestWrapper(request);
+            throws ClientProtocolException {
+        RequestWrapper newRequest;
+        try {
+            newRequest = new RequestWrapper(request);
+        } catch (ProtocolException pe) {
+            throw new ClientProtocolException(pe);
+        }
         newRequest.setProtocolVersion(version);
 
         return newRequest;
