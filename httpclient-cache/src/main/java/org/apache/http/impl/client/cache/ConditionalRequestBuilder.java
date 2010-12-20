@@ -27,6 +27,9 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
@@ -42,6 +45,8 @@ import org.apache.http.impl.client.RequestWrapper;
 @Immutable
 class ConditionalRequestBuilder {
 
+    private static final Log log = LogFactory.getLog(ConditionalRequestBuilder.class);
+    
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
      * to an {@link HttpRequest} we will attempt to revalidate the entry with
@@ -90,12 +95,16 @@ class ConditionalRequestBuilder {
      * @param request the original request from the caller
      * @param cacheEntry the entry that needs to be revalidated
      * @return the wrapped request
-     * @throws ProtocolException when I am unable to build a new origin request.
      */
     public HttpRequest buildConditionalRequestFromVariants(HttpRequest request,
-            Map<String, Variant> variants)
-                throws ProtocolException {
-        RequestWrapper wrapperRequest = new RequestWrapper(request);
+            Map<String, Variant> variants) {
+        RequestWrapper wrapperRequest;
+        try {
+            wrapperRequest = new RequestWrapper(request);
+        } catch (ProtocolException pe) {
+            log.warn("unable to build conditional request", pe);
+            return request;
+        }
         wrapperRequest.resetHeaders();
 
         // we do not support partial content so all etags are used
@@ -126,8 +135,14 @@ class ConditionalRequestBuilder {
      * @throws ProtocolException
      */
     public HttpRequest buildUnconditionalRequest(HttpRequest request,
-            HttpCacheEntry entry) throws ProtocolException {
-        RequestWrapper wrapped = new RequestWrapper(request);
+            HttpCacheEntry entry) { 
+        RequestWrapper wrapped;
+        try {
+            wrapped = new RequestWrapper(request);
+        } catch (ProtocolException e) {
+            log.warn("unable to build proper unconditional request", e);
+            return request;
+        }
         wrapped.resetHeaders();
         wrapped.addHeader("Cache-Control","no-cache");
         wrapped.addHeader("Pragma","no-cache");

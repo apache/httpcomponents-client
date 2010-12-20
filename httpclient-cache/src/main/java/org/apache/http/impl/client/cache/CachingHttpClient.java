@@ -410,39 +410,23 @@ public class CachingHttpClient implements HttpClient {
             log.warn("Unable to retrieve entries from cache", ioe);
         }
         if (entry == null) {
-            cacheMisses.getAndIncrement();
-            if (log.isDebugEnabled()) {
-                RequestLine rl = request.getRequestLine();
-                log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
-            }
+            recordCacheMiss(target, request);
 
             if (!mayCallBackend(request)) {
                 return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
                         "Gateway Timeout");
             }
 
-            Map<String,Variant> variants = null;
-            try {
-                variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
-            } catch (IOException ioe) {
-                log.warn("Unable to retrieve variant entries from cache", ioe);
-            }
+            Map<String, Variant> variants =
+                getExistingCacheVariants(target, request);
             if (variants != null && variants.size() > 0) {
-                try {
-                    return negotiateResponseFromVariants(target, request, context, variants);
-                } catch (ProtocolException e) {
-                    throw new ClientProtocolException(e);
-                }
+                return negotiateResponseFromVariants(target, request, context, variants);
             }
 
             return callBackend(target, request, context);
         }
 
-        if (log.isDebugEnabled()) {
-            RequestLine rl = request.getRequestLine();
-            log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
-        }
-        cacheHits.getAndIncrement();
+        recordCacheHit(target, request);
 
         Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
@@ -473,6 +457,33 @@ public class CachingHttpClient implements HttpClient {
             }
         }
         return callBackend(target, request, context);
+    }
+
+    private Map<String, Variant> getExistingCacheVariants(HttpHost target,
+            HttpRequest request) {
+        Map<String,Variant> variants = null;
+        try {
+            variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
+        } catch (IOException ioe) {
+            log.warn("Unable to retrieve variant entries from cache", ioe);
+        }
+        return variants;
+    }
+
+    private void recordCacheMiss(HttpHost target, HttpRequest request) {
+        cacheMisses.getAndIncrement();
+        if (log.isDebugEnabled()) {
+            RequestLine rl = request.getRequestLine();
+            log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
+        }
+    }
+
+    private void recordCacheHit(HttpHost target, HttpRequest request) {
+        if (log.isDebugEnabled()) {
+            RequestLine rl = request.getRequestLine();
+            log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
+        }
+        cacheHits.getAndIncrement();
     }
 
     private void flushEntriesInvalidatedByRequest(HttpHost target,
@@ -642,7 +653,7 @@ public class CachingHttpClient implements HttpClient {
     
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
-            Map<String, Variant> variants) throws IOException, ProtocolException {
+            Map<String, Variant> variants) throws IOException {
         HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variants);
 
         Date requestDate = getCurrentDate();
