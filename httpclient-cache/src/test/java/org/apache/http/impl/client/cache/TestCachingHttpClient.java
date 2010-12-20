@@ -351,6 +351,8 @@ public class TestCachingHttpClient {
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(false);
         cacheEntryValidatable(true);
+        cacheEntryMustRevalidate(false);
+        cacheEntryProxyRevalidate(false);
         mayReturnStaleWhileRevalidating(false);
         revalidateCacheEntryReturns(mockBackendResponse);
 
@@ -1942,6 +1944,16 @@ public class TestCachingHttpClient {
     private void cacheEntryValidatable(boolean b) {
         EasyMock.expect(mockValidityPolicy.isRevalidatable(
                 EasyMock.<HttpCacheEntry>anyObject())).andReturn(b);
+    }
+    
+    private void cacheEntryMustRevalidate(boolean b) {
+        EasyMock.expect(mockValidityPolicy.mustRevalidate(mockCacheEntry))
+            .andReturn(b);
+    }
+
+    private void cacheEntryProxyRevalidate(boolean b) {
+        EasyMock.expect(mockValidityPolicy.proxyRevalidate(mockCacheEntry))
+            .andReturn(b);
     }
     
     private void mayReturnStaleWhileRevalidating(boolean b) {

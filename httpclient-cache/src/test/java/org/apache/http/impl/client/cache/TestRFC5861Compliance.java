@@ -300,4 +300,140 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         }
         assertTrue(warning110Found);
     }
+    
+    @Test
+    public void testStaleWhileRevalidateYieldsToMustRevalidate()
+        throws Exception {
+        
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        
+        params.setAsynchronousWorkersMax(1);
+        impl = new CachingHttpClient(mockBackend, cache, params);
+        
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
+        resp2.setHeader("ETag","\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertFalse(warning110Found);
+    }
+
+    @Test
+    public void testStaleWhileRevalidateYieldsToProxyRevalidateForSharedCache()
+        throws Exception {
+        
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        
+        params.setAsynchronousWorkersMax(1);
+        params.setSharedCache(true);
+        impl = new CachingHttpClient(mockBackend, cache, params);
+        
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
+        resp2.setHeader("ETag","\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertFalse(warning110Found);
+    }
+
+    @Test
+    public void testStaleWhileRevalidateYieldsToExplicitFreshnessRequest()
+        throws Exception {
+        
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        
+        params.setAsynchronousWorkersMax(1);
+        params.setSharedCache(true);
+        impl = new CachingHttpClient(mockBackend, cache, params);
+        
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("Cache-Control","min-fresh=2");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
+        resp2.setHeader("ETag","\"etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertFalse(warning110Found);
+    }
+    
 }

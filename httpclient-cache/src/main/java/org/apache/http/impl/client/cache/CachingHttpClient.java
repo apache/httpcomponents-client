@@ -430,7 +430,9 @@ public class CachingHttpClient implements HttpClient {
         log.debug("Revalidating the cache entry");
 
         try {
-            if (asynchRevalidator != null && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
+            if (asynchRevalidator != null
+                && !staleResponseNotAllowed(request, entry, now)
+                && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
                 final HttpResponse resp = responseGenerator.generateResponse(entry);
                 resp.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
                 
