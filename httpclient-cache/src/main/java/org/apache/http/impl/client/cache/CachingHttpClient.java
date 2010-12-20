@@ -383,12 +383,9 @@ public class CachingHttpClient implements HttpClient {
             return new OptionsHttp11Response();
         }
 
-        List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
-
-        for (RequestProtocolError error : fatalError) {
-            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
-            return requestCompliance.getErrorForRequest(error);
-        }
+        HttpResponse fatalErrorResponse = getFatallyNoncompliantResponse(
+                request, context);
+        if (fatalErrorResponse != null) return fatalErrorResponse;
 
         request = requestCompliance.makeRequestCompliant(request);
         request.addHeader("Via",via);
@@ -452,7 +449,20 @@ public class CachingHttpClient implements HttpClient {
                 throw new ClientProtocolException(e);
             }
         }
-        return callBackend(target, request, context);
+        return callBackend(target, request, context); 
+
+    }
+    
+    private HttpResponse getFatallyNoncompliantResponse(HttpRequest request,
+            HttpContext context) {
+        HttpResponse fatalErrorResponse = null;
+        List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
+        
+        for (RequestProtocolError error : fatalError) {
+            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+            fatalErrorResponse = requestCompliance.getErrorForRequest(error);
+        }
+        return fatalErrorResponse;
     }
 
     private Map<String, Variant> getExistingCacheVariants(HttpHost target,
