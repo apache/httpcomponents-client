@@ -26,9 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.*;
 import java.util.Date;
 
 import org.apache.http.Header;
@@ -84,7 +82,105 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         
         HttpTestUtils.assert110WarningFound(result);
     }
+    
+    @Test
+    public void testStaleIfErrorInResponseYieldsToMustRevalidate()
+            throws Exception{
+        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+                "public, max-age=5, stale-if-error=60, must-revalidate");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
 
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp2 = HttpTestUtils.make500Response();
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+        
+        assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
+    }
+    
+    @Test
+    public void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
+            throws Exception{
+        assertTrue(impl.isSharedCache());
+        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+                "public, max-age=5, stale-if-error=60, proxy-revalidate");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp2 = HttpTestUtils.make500Response();
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+        
+        assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
+    }
+    
+    @Test
+    public void testStaleIfErrorInResponseNeedNotYieldToProxyRevalidateForPrivateCache()
+            throws Exception{
+        CacheConfig config = new CacheConfig();
+        config.setSharedCache(false);
+        impl = new CachingHttpClient(mockBackend, config);
+        
+        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+                "public, max-age=5, stale-if-error=60, proxy-revalidate");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp2 = HttpTestUtils.make500Response();
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+        
+        HttpTestUtils.assert110WarningFound(result);
+    }
+
+    @Test
+    public void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
+            throws Exception{
+        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+                "public, max-age=5, stale-if-error=60");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control","min-fresh=2");
+        HttpResponse resp2 = HttpTestUtils.make500Response();
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host,req1);
+        HttpResponse result = impl.execute(host,req2);
+        verifyMocks();
+        
+        assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
+    }
+    
     @Test
     public void testStaleIfErrorInRequestIsTrueReturnsStaleEntryWithWarning()
     		throws Exception{
@@ -96,7 +192,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(resp1);
 
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        req2.setHeader("Cache-Control","public, max-age=5, stale-if-error=60");
+        req2.setHeader("Cache-Control","public, stale-if-error=60");
         HttpResponse resp2 = HttpTestUtils.make500Response();
         
         backendExpectsAnyRequest().andReturn(resp2);

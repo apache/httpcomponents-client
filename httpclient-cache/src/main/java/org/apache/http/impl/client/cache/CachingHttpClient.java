@@ -506,11 +506,16 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private void recordCacheHit(HttpHost target, HttpRequest request) {
+        cacheHits.getAndIncrement();
         if (log.isDebugEnabled()) {
             RequestLine rl = request.getRequestLine();
             log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
         }
-        cacheHits.getAndIncrement();
+    }
+    
+    private void recordCacheUpdate(HttpContext context) {
+        cacheUpdates.getAndIncrement();
+        setResponseStatus(context, CacheResponseStatus.VALIDATED);
     }
 
     private void flushEntriesInvalidatedByRequest(HttpHost target,
@@ -737,11 +742,6 @@ public class CachingHttpClient implements HttpClient {
         return callBackend(target, unconditional, context);
     }
 
-    private void recordCacheUpdate(HttpContext context) {
-        cacheUpdates.getAndIncrement();
-        setResponseStatus(context, CacheResponseStatus.VALIDATED);
-    }
-
     private HttpCacheEntry getUpdatedVariantEntry(HttpHost target,
             HttpRequest conditionalRequest, Date requestDate,
             Date responseDate, HttpResponse backendResponse,
@@ -809,6 +809,7 @@ public class CachingHttpClient implements HttpClient {
         }
         
         if (staleIfErrorAppliesTo(statusCode)
+            && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
             final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
