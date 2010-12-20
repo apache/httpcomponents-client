@@ -396,29 +396,17 @@ public class CachingHttpClient implements HttpClient {
             return callBackend(target, request, context);
         }
 
-        HttpCacheEntry entry = null;
-        try {
-            entry = responseCache.getCacheEntry(target, request);
-        } catch (IOException ioe) {
-            log.warn("Unable to retrieve entries from cache", ioe);
-        }
+        HttpCacheEntry entry = satisfyFromCache(target, request);
         if (entry == null) {
-            recordCacheMiss(target, request);
-
-            if (!mayCallBackend(request)) {
-                return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
-                        "Gateway Timeout");
-            }
-
-            Map<String, Variant> variants =
-                getExistingCacheVariants(target, request);
-            if (variants != null && variants.size() > 0) {
-                return negotiateResponseFromVariants(target, request, context, variants);
-            }
-
-            return callBackend(target, request, context);
+            return handleCacheMiss(target, request, context);
         }
 
+        return handleCacheHit(target, request, context, entry); 
+    }
+
+    private HttpResponse handleCacheHit(HttpHost target, HttpRequest request,
+            HttpContext context, HttpCacheEntry entry)
+            throws ClientProtocolException, IOException {
         recordCacheHit(target, request);
 
         Date now = getCurrentDate();
@@ -431,26 +419,59 @@ public class CachingHttpClient implements HttpClient {
         }
 
         if (validityPolicy.isRevalidatable(entry)) {
-            log.debug("Revalidating the cache entry");
-
-            try {
-                if (asynchRevalidator != null && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
-                    final HttpResponse resp = responseGenerator.generateResponse(entry);
-                    resp.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
-                    
-                    asynchRevalidator.revalidateCacheEntry(target, request, context, entry);
-                    
-                    return resp;
-                }
-                return revalidateCacheEntry(target, request, context, entry);
-            } catch (IOException ioex) {
-                return handleRevalidationFailure(request, context, entry, now);
-            } catch (ProtocolException e) {
-                throw new ClientProtocolException(e);
-            }
+            return revalidateCacheEntry(target, request, context, entry, now);
         }
-        return callBackend(target, request, context); 
+        return callBackend(target, request, context);
+    }
 
+    private HttpResponse revalidateCacheEntry(HttpHost target,
+            HttpRequest request, HttpContext context, HttpCacheEntry entry,
+            Date now) throws ClientProtocolException {
+        log.debug("Revalidating the cache entry");
+
+        try {
+            if (asynchRevalidator != null && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
+                final HttpResponse resp = responseGenerator.generateResponse(entry);
+                resp.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+                
+                asynchRevalidator.revalidateCacheEntry(target, request, context, entry);
+                
+                return resp;
+            }
+            return revalidateCacheEntry(target, request, context, entry);
+        } catch (IOException ioex) {
+            return handleRevalidationFailure(request, context, entry, now);
+        } catch (ProtocolException e) {
+            throw new ClientProtocolException(e);
+        }
+    }
+
+    private HttpResponse handleCacheMiss(HttpHost target, HttpRequest request,
+            HttpContext context) throws IOException {
+        recordCacheMiss(target, request);
+
+        if (!mayCallBackend(request)) {
+            return new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
+                    "Gateway Timeout");
+        }
+
+        Map<String, Variant> variants =
+            getExistingCacheVariants(target, request);
+        if (variants != null && variants.size() > 0) {
+            return negotiateResponseFromVariants(target, request, context, variants);
+        }
+
+        return callBackend(target, request, context);
+    }
+
+    private HttpCacheEntry satisfyFromCache(HttpHost target, HttpRequest request) {
+        HttpCacheEntry entry = null;
+        try {
+            entry = responseCache.getCacheEntry(target, request);
+        } catch (IOException ioe) {
+            log.warn("Unable to retrieve entries from cache", ioe);
+        }
+        return entry;
     }
     
     private HttpResponse getFatallyNoncompliantResponse(HttpRequest request,
