@@ -80,7 +80,7 @@ public class StringBody extends AbstractContentBody {
      * Create a StringBody from the specified text, mime type and character set.
      * 
      * @param text to be used for the body, not {@code null}
-     * @param mimeType the mime type, may be {@code null}
+     * @param mimeType the mime type, not {@code null}
      * @param charset the character set, may be {@code null}, in which case the US-ASCII charset is used
      * @throws UnsupportedEncodingException
      * @throws IllegalArgumentException if the {@code text} parameter is null
