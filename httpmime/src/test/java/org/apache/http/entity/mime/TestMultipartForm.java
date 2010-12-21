@@ -151,7 +151,7 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
+        HttpMultipart multipart = new HttpMultipart("form-data", null, "foo", HttpMultipartMode.STRICT);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -165,8 +165,6 @@ public class TestMultipartForm {
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
         multipart.addBodyPart(p3);
-
-        multipart.setMode(HttpMultipartMode.STRICT);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -235,7 +233,7 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo");
+        HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo", HttpMultipartMode.BROWSER_COMPATIBLE);
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
@@ -245,8 +243,6 @@ public class TestMultipartForm {
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
-
-        multipart.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);

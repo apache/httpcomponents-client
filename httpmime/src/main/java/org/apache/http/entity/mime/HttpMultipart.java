@@ -99,9 +99,18 @@ public class HttpMultipart {
     private final String boundary;
     private final List<FormBodyPart> parts;
 
-    private HttpMultipartMode mode;
+    private final HttpMultipartMode mode;
 
-    public HttpMultipart(final String subType, final Charset charset, final String boundary) {
+    /**
+     * Creates an instance with the specified settings.
+     * 
+     * @param subType mime subtype - must not be {@code null}
+     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param boundary to use  - must not be {@code null}
+     * @param mode the mode to use
+     * @throws IllegalArgumentException if charset is null or boundary is null
+     */
+    public HttpMultipart(final String subType, final Charset charset, final String boundary, HttpMultipartMode mode) {
         super();
         if (subType == null) {
             throw new IllegalArgumentException("Multipart subtype may not be null");
@@ -113,7 +122,20 @@ public class HttpMultipart {
         this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
         this.boundary = boundary;
         this.parts = new ArrayList<FormBodyPart>();
-        this.mode = HttpMultipartMode.STRICT;
+        this.mode = mode;
+    }
+
+    /**
+     * Creates an instance with the specified settings.
+     * Mode is set to {@link HttpMultipartMode#STRICT}
+     * 
+     * @param subType mime subtype - must not be {@code null}
+     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param boundary to use  - must not be {@code null}
+     * @throws IllegalArgumentException if charset is null or boundary is null
+     */
+    public HttpMultipart(final String subType, final Charset charset, final String boundary) {
+        this(subType, charset, boundary, HttpMultipartMode.STRICT);
     }
 
     public HttpMultipart(final String subType, final String boundary) {
@@ -130,10 +152,6 @@ public class HttpMultipart {
 
     public HttpMultipartMode getMode() {
         return this.mode;
-    }
-
-    public void setMode(final HttpMultipartMode mode) {
-        this.mode = mode;
     }
 
     public List<FormBodyPart> getBodyParts() {

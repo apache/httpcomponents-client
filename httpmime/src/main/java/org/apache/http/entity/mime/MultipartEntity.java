@@ -60,6 +60,12 @@ public class MultipartEntity implements HttpEntity {
     private long length;
     private volatile boolean dirty; // used to decide whether to recalculate length
 
+    /**
+     * Creates an instance using the specified parameters
+     * @param mode the mode to use, may be {@code null}, in which case {@link HttpMultipartMode#STRICT} is used
+     * @param boundary the boundary string, may be {@code null}, in which case {@link #generateBoundary()} is invoked to create the string
+     * @param charset the character set to use, may be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     */
     public MultipartEntity(
             HttpMultipartMode mode,
             String boundary,
@@ -68,21 +74,28 @@ public class MultipartEntity implements HttpEntity {
         if (boundary == null) {
             boundary = generateBoundary();
         }
-        this.multipart = new HttpMultipart("form-data", charset, boundary);
+        if (mode == null) {
+            mode = HttpMultipartMode.STRICT;
+        }
+        this.multipart = new HttpMultipart("form-data", charset, boundary, mode);
         this.contentType = new BasicHeader(
                 HTTP.CONTENT_TYPE,
                 generateContentType(boundary, charset));
         this.dirty = true;
-        if (mode == null) {
-            mode = HttpMultipartMode.STRICT;
-        }
-        this.multipart.setMode(mode);
     }
 
+    /**
+     * Creates an instance using the specified {@link HttpMultipartMode} mode.
+     * Boundary and charset are set to {@code null}.
+     * @param mode the desired mode
+     */
     public MultipartEntity(final HttpMultipartMode mode) {
         this(mode, null, null);
     }
 
+    /**
+     * Creates an instance using mode {@link HttpMultipartMode#STRICT}
+     */
     public MultipartEntity() {
         this(HttpMultipartMode.STRICT, null, null);
     }
