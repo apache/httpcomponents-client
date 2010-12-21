@@ -93,21 +93,17 @@ public class FormBodyPart {
     }
 
     protected void generateContentType(final ContentBody body) {
-        if (body.getMimeType() != null) {
-            StringBuilder buffer = new StringBuilder();
-            buffer.append(body.getMimeType());
-            if (body.getCharset() != null) {
-                buffer.append("; charset=");
-                buffer.append(body.getCharset());
-            }
-            addField(MIME.CONTENT_TYPE, buffer.toString());
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(body.getMimeType()); // MimeType cannot be null
+        if (body.getCharset() != null) { // charset may legitimately be null
+            buffer.append("; charset=");
+            buffer.append(body.getCharset());
         }
+        addField(MIME.CONTENT_TYPE, buffer.toString());
     }
 
     protected void generateTransferEncoding(final ContentBody body) {
-        if (body.getTransferEncoding() != null) {
-            addField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding());
-        }
+        addField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding()); // TE cannot be null
     }
 
 }
