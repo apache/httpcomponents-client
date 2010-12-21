@@ -53,7 +53,7 @@ public class TestMultipartForm {
                 new StringBody("this stuff"));
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
-                new StringBody("that stuff", Charset.forName("US-ASCII")));
+                new StringBody("that stuff", Charset.forName("UTF-8")));
         FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new StringBody("all kind of stuff"));
@@ -69,21 +69,19 @@ public class TestMultipartForm {
         String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
-            "Content-Type: text/plain; charset=" +
-                Charset.defaultCharset() + "\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "this stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"\r\n" +
-            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "that stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field3\"\r\n" +
-            "Content-Type: text/plain; charset=" +
-                Charset.defaultCharset() + "\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +

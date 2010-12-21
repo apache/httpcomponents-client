@@ -28,7 +28,6 @@
 package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -42,9 +41,7 @@ public class TestMultipartContentBody {
         StringBody b1 = new StringBody("text");
         Assert.assertEquals(4, b1.getContentLength());
 
-        Charset defCharset = Charset.defaultCharset();
-
-        Assert.assertEquals(defCharset.name(), b1.getCharset());
+        Assert.assertEquals("US-ASCII", b1.getCharset());
 
         Assert.assertNull(b1.getFilename());
         Assert.assertEquals("text/plain", b1.getMimeType());
