@@ -29,16 +29,20 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.impl.cookie.DateParseException;
+import org.apache.http.impl.cookie.DateUtils;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -149,5 +153,46 @@ class CacheInvalidator {
     private boolean notGetOrHeadRequest(String method) {
         return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD
                 .equals(method));
+    }
+
+    /** Flushes entries that were invalidated by the given response
+     * received for the given host/request pair. 
+     * @throws IOException 
+     */
+    public void flushInvalidatedCacheEntries(HttpHost host,
+            HttpRequest request, HttpResponse response) throws IOException {
+        Header contentLocation = response.getFirstHeader("Content-Location");
+        if (contentLocation == null) return;
+        HttpCacheEntry entry = storage.getEntry(contentLocation.getValue());
+        if (entry == null) return;
+
+        if (!responseDateNewerThanEntryDate(response, entry)) return;
+        if (!responseAndEntryEtagsDiffer(response, entry)) return;
+        
+        storage.removeEntry(contentLocation.getValue());
+    }
+
+    private boolean responseAndEntryEtagsDiffer(HttpResponse response,
+            HttpCacheEntry entry) {
+        Header entryEtag = entry.getFirstHeader("ETag");
+        Header responseEtag = response.getFirstHeader("ETag");
+        if (entryEtag == null || responseEtag == null) return false;
+        return (!entryEtag.getValue().equals(responseEtag.getValue()));
+    }
+
+    private boolean responseDateNewerThanEntryDate(HttpResponse response,
+            HttpCacheEntry entry) {
+        Header entryDateHeader = entry.getFirstHeader("Date");
+        Header responseDateHeader = response.getFirstHeader("Date");
+        if (entryDateHeader == null || responseDateHeader == null) {
+            return false;
+        }
+        try {
+            Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+            Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
+            return responseDate.after(entryDate);
+        } catch (DateParseException e) {
+            return false;
+        }
     }
 }
