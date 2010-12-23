@@ -54,7 +54,7 @@ import org.apache.http.impl.cookie.DateUtils;
 class CacheInvalidator {
 
     private final HttpCacheStorage storage;
-    private final CacheKeyGenerator uriExtractor;
+    private final CacheKeyGenerator cacheKeyGenerator;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -68,7 +68,7 @@ class CacheInvalidator {
     public CacheInvalidator(
             final CacheKeyGenerator uriExtractor,
             final HttpCacheStorage storage) {
-        this.uriExtractor = uriExtractor;
+        this.cacheKeyGenerator = uriExtractor;
         this.storage = storage;
     }
 
@@ -79,26 +79,24 @@ class CacheInvalidator {
      * @param host The backend host we are talking to
      * @param req The HttpRequest to that host
      */
-    public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req) throws IOException {
+    public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req)  {
         if (requestShouldNotBeCached(req)) {
             log.debug("Request should not be cached");
 
-            String theUri = uriExtractor.getURI(host, req);
+            String theUri = cacheKeyGenerator.getURI(host, req);
 
-            HttpCacheEntry parent = storage.getEntry(theUri);
+            HttpCacheEntry parent = getEntry(theUri);
 
             log.debug("parent entry: " + parent);
 
             if (parent != null) {
                 for (String variantURI : parent.getVariantMap().values()) {
-                    storage.removeEntry(variantURI);
+                    flushEntry(variantURI);
                 }
-                storage.removeEntry(theUri);
+                flushEntry(theUri);
             }
-            URL reqURL;
-            try {
-                reqURL = new URL(theUri);
-            } catch (MalformedURLException mue) {
+            URL reqURL = getAbsoluteURL(theUri);
+            if (reqURL == null) {
                 log.error("Couldn't transform request into valid URL");
                 return;
             }
@@ -116,35 +114,65 @@ class CacheInvalidator {
         }
     }
 
-    protected void flushUriIfSameHost(URL requestURL, URL targetURL) throws IOException {
-        URL canonicalTarget = new URL(uriExtractor.canonicalizeUri(targetURL.toString()));
-        if (canonicalTarget.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
-            storage.removeEntry(canonicalTarget.toString());
+    private void flushEntry(String uri) {
+        try {
+            storage.removeEntry(uri);
+        } catch (IOException ioe) {
+            log.warn("unable to flush cache entry", ioe);
         }
     }
 
-    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri) throws IOException {
-        URL relURL;
+    private HttpCacheEntry getEntry(String theUri) {
         try {
-            relURL = new URL(reqURL,relUri);
-        } catch (MalformedURLException e) {
-            log.debug("Invalid relative URI",e);
-            return;
+            return storage.getEntry(theUri);
+        } catch (IOException ioe) {
+            log.warn("could not retrieve entry from storage", ioe);
         }
+        return null;
+    }
+
+    protected void flushUriIfSameHost(URL requestURL, URL targetURL) {
+        URL canonicalTarget = getAbsoluteURL(cacheKeyGenerator.canonicalizeUri(targetURL.toString()));
+        if (canonicalTarget == null) return;
+        if (canonicalTarget.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
+            flushEntry(canonicalTarget.toString());
+        }
+    }
+
+    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri) {
+        URL relURL = getRelativeURL(reqURL, relUri);
+        if (relURL == null) return;
         flushUriIfSameHost(reqURL, relURL);
     }
 
-    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri) throws IOException {
-        URL absURL;
-        try {
-            absURL = new URL(uri);
-        } catch (MalformedURLException mue) {
-            return false;
-        }
+
+    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri) {
+        URL absURL = getAbsoluteURL(uri);
+        if (absURL == null) return false;
         flushUriIfSameHost(reqURL,absURL);
         return true;
     }
 
+    private URL getAbsoluteURL(String uri) {
+        URL absURL = null;
+        try {
+            absURL = new URL(uri);
+        } catch (MalformedURLException mue) {
+            // nop
+        }
+        return absURL;
+    }
+
+    private URL getRelativeURL(URL reqURL, String relUri) {
+        URL relURL = null;
+        try {
+            relURL = new URL(reqURL,relUri);
+        } catch (MalformedURLException e) {
+            // nop
+        }
+        return relURL;
+    }
+    
     protected boolean requestShouldNotBeCached(HttpRequest req) {
         String method = req.getRequestLine().getMethod();
         return notGetOrHeadRequest(method);
@@ -160,16 +188,28 @@ class CacheInvalidator {
      * @throws IOException 
      */
     public void flushInvalidatedCacheEntries(HttpHost host,
-            HttpRequest request, HttpResponse response) throws IOException {
-        Header contentLocation = response.getFirstHeader("Content-Location");
-        if (contentLocation == null) return;
-        HttpCacheEntry entry = storage.getEntry(contentLocation.getValue());
+            HttpRequest request, HttpResponse response) {
+        URL reqURL = getAbsoluteURL(cacheKeyGenerator.getURI(host, request));
+        if (reqURL == null) return;
+        URL canonURL = getContentLocationURL(reqURL, response);
+        if (canonURL == null) return;
+        String cacheKey = cacheKeyGenerator.canonicalizeUri(canonURL.toString());
+        HttpCacheEntry entry = getEntry(cacheKey);
         if (entry == null) return;
 
         if (!responseDateNewerThanEntryDate(response, entry)) return;
         if (!responseAndEntryEtagsDiffer(response, entry)) return;
         
-        storage.removeEntry(contentLocation.getValue());
+        flushUriIfSameHost(reqURL, canonURL);
+    }
+
+    private URL getContentLocationURL(URL reqURL, HttpResponse response) {
+        Header clHeader = response.getFirstHeader("Content-Location");
+        if (clHeader == null) return null;
+        String contentLocation = clHeader.getValue();
+        URL canonURL = getAbsoluteURL(contentLocation);
+        if (canonURL != null) return canonURL;
+        return getRelativeURL(reqURL, contentLocation); 
     }
 
     private boolean responseAndEntryEtagsDiffer(HttpResponse response,
