@@ -36,6 +36,8 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
@@ -44,6 +46,8 @@ import static org.apache.http.impl.cookie.DateUtils.formatDate;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.message.BasicHttpResponse;
+
 import static org.easymock.classextension.EasyMock.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -285,6 +289,27 @@ public class TestCacheInvalidator {
         
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(theURI);
+        
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request, response);
+        verifyMocks();
+    }
+    
+    @Test
+    public void doesNotFlushEntryForUnsuccessfulResponse()
+            throws Exception {
+        response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request");
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", formatDate(now));
+        String theURI = "http://foo.example.com:80/bar";
+        response.setHeader("Content-Location", theURI);
+        
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("ETag", "\"old-etag\"")
+        });
+        
+        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);

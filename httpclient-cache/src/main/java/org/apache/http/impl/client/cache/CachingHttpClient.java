@@ -840,6 +840,7 @@ public class CachingHttpClient implements HttpClient {
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
+        responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
         if (cacheable &&
             !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
             try {

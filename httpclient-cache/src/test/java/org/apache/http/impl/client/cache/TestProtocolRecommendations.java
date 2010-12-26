@@ -40,13 +40,16 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.impl.cookie.DateUtils;
+import static org.apache.http.impl.cookie.DateUtils.formatDate;
+
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Before;
 import org.junit.Test;
 
 /*
@@ -56,6 +59,17 @@ import org.junit.Test;
  */
 public class TestProtocolRecommendations extends AbstractProtocolTest {
 
+    private Date now;
+    private Date tenSecondsAgo;
+    
+    @Override
+    @Before
+    public void setUp() {
+        super.setUp();
+        now = new Date();
+        tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+    }
+    
     /* "identity: The default (identity) encoding; the use of no
      * transformation whatsoever. This content-coding is used only in the
      * Accept-Encoding header, and SHOULD NOT be used in the
@@ -92,7 +106,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp1 = HttpTestUtils.make200Response();
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public,max-age=5");
         resp1.setHeader("Etag","\"etag\"");
 
@@ -231,7 +245,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Cache-Control", "public, max-age=5");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -274,7 +288,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        originResponse.setHeader("Date", formatDate(tenSecondsAgo));
         originResponse.setHeader("Cache-Control","public, max-age=5");
         originResponse.setHeader("ETag","\"etag\"");
 
@@ -292,7 +306,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        originResponse.setHeader("Date", formatDate(tenSecondsAgo));
         originResponse.setHeader("Cache-Control","public, max-age=5");
         originResponse.setHeader("ETag","\"etag\"");
         originResponse.addHeader("Age","10");
@@ -440,14 +454,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyDateOnRequests()
         throws Exception {
-        request.setHeader("Date", DateUtils.formatDate(new Date()));
+        request.setHeader("Date", formatDate(new Date()));
         testDoesNotModifyHeaderOnRequests("Date");
     }
 
     @Test
     public void testDoesNotModifyDateOnResponses()
         throws Exception {
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", formatDate(new Date()));
         testDoesNotModifyHeaderOnResponses("Date");
     }
 
@@ -461,7 +475,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyExpiresOnResponses()
         throws Exception {
-        originResponse.setHeader("Expires", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Expires", formatDate(new Date()));
         testDoesNotModifyHeaderOnResponses("Expires");
     }
 
@@ -483,7 +497,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyIfModifiedSinceOnRequests()
         throws Exception {
-        request.setHeader("If-Modified-Since", DateUtils.formatDate(new Date()));
+        request.setHeader("If-Modified-Since", formatDate(new Date()));
         testDoesNotModifyHeaderOnRequests("If-Modified-Since");
     }
 
@@ -506,14 +520,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     public void testDoesNotModifyIfUnmodifiedSinceOnRequests()
         throws Exception {
         request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
-        request.setHeader("If-Unmodified-Since", DateUtils.formatDate(new Date()));
+        request.setHeader("If-Unmodified-Since", formatDate(new Date()));
         testDoesNotModifyHeaderOnRequests("If-Unmodified-Since");
     }
 
     @Test
     public void testDoesNotModifyLastModifiedOnResponses()
         throws Exception {
-        originResponse.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Last-Modified", formatDate(new Date()));
         testDoesNotModifyHeaderOnResponses("Last-Modified");
     }
 
@@ -599,12 +613,12 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
-        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+        final String lmDate = formatDate(twentySecondsAgo);
 
         HttpRequest req1 =
             new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Last-Modified", lmDate);
         resp1.setHeader("Cache-Control","max-age=5");
 
@@ -644,13 +658,13 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
-        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+        final String lmDate = formatDate(twentySecondsAgo);
         final String etag = "\"etag\"";
 
         HttpRequest req1 =
             new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Last-Modified", lmDate);
         resp1.setHeader("Cache-Control","max-age=5");
         resp1.setHeader("ETag", etag);
@@ -699,8 +713,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(now));
-        resp1.setHeader("Expires",DateUtils.formatDate(oneSecondAgo));
+        resp1.setHeader("Date", formatDate(now));
+        resp1.setHeader("Expires",formatDate(oneSecondAgo));
 
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -712,8 +726,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(twoSecondsFromNow));
-        resp2.setHeader("Expires", DateUtils.formatDate(oneSecondFromNow));
+        resp2.setHeader("Date", formatDate(twoSecondsFromNow));
+        resp2.setHeader("Expires", formatDate(oneSecondFromNow));
         resp2.setHeader("ETag","\"etag\"");
 
         expect(mockBackend.execute(isA(HttpHost.class),
@@ -752,7 +766,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
 
         backendExpectsAnyRequest().andReturn(resp1);
@@ -761,14 +775,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(elevenSecondsAgo));
+        resp2.setHeader("Date", formatDate(elevenSecondsAgo));
 
         backendExpectsAnyRequest().andReturn(resp2);
 
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
         HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("ETag","\"etag2\"");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", formatDate(now));
         resp3.setHeader("Cache-Control","max-age=5");
 
         expect(mockBackend.execute(isA(HttpHost.class), capture(cap),
@@ -884,7 +898,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req1.setHeader("User-Agent", "agent1");
 
         HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Vary", "User-Agent");
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -896,7 +910,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("User-Agent", "agent2");
 
         HttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", formatDate(tenSecondsAgo));
         resp2.setHeader("Vary", "User-Agent");
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("ETag", "\"etag2\"");
@@ -907,7 +921,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req3.setHeader("User-Agent", "agent3");
 
         HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", formatDate(now));
         resp3.setHeader("ETag", "\"etag1\"");
 
         backendExpectsAnyRequest().andReturn(resp3);
@@ -924,8 +938,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
         assertEquals("\"etag1\"", result1.getFirstHeader("ETag").getValue());
-        assertEquals(DateUtils.formatDate(now), result1.getFirstHeader("Date").getValue());
-        assertEquals(DateUtils.formatDate(now), result2.getFirstHeader("Date").getValue());
+        assertEquals(formatDate(now), result1.getFirstHeader("Date").getValue());
+        assertEquals(formatDate(now), result2.getFirstHeader("Date").getValue());
     }
     
     @Test
@@ -939,7 +953,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req1.setHeader("User-Agent", "agent1");
 
         HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Vary", "User-Agent");
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -950,7 +964,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("User-Agent", "agent2");
 
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", formatDate(now));
         resp2.setHeader("ETag", "\"etag1\"");
 
         backendExpectsAnyRequest().andReturn(resp2);
@@ -995,7 +1009,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp2.setHeader("Vary","User-Agent");
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=3600");
-        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Date", formatDate(new Date()));
         
         backendExpectsAnyRequest().andReturn(resp2);
         
@@ -1023,5 +1037,45 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
                 assertFalse("\"etag2\"".equals(elt.toString()));
             }
         }
+    }
+    
+    /* "If a cache receives a successful response whose Content-Location
+     * field matches that of an existing cache entry for the same Request-
+     * URI, whose entity-tag differs from that of the existing entry, and
+     * whose Date is more recent than that of the existing entry, the
+     * existing entry SHOULD NOT be returned in response to future requests
+     * and SHOULD be deleted from the cache.
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6 
+     */
+    @Test
+    public void cachedEntryShouldNotBeUsedIfMoreRecentMentionInContentLocation()
+            throws Exception {
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("ETag", "\"old-etag\"");
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"new-etag\"");
+        resp2.setHeader("Date", formatDate(now));
+        resp2.setHeader("Content-Location", "http://foo.example.com/");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        HttpRequest req3 = new HttpGet("http://foo.example.com");
+        HttpResponse resp3 = HttpTestUtils.make200Response();
+        
+        backendExpectsAnyRequest().andReturn(resp3);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        verifyMocks();
     }
 }

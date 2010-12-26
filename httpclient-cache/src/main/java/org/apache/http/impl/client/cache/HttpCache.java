@@ -56,6 +56,15 @@ interface HttpCache {
      */
     void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request)
         throws IOException;
+    
+    /** Clear any entries that may be invalidated by the given response to
+     * a particular request. 
+     * @param host
+     * @param request
+     * @param response
+     */
+    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request,
+            HttpResponse response);
 
     /**
      * Retrieve matching {@link HttpCacheEntry} from the cache if it exists

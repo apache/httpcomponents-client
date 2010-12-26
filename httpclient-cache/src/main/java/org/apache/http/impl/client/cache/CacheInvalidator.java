@@ -189,6 +189,8 @@ class CacheInvalidator {
      */
     public void flushInvalidatedCacheEntries(HttpHost host,
             HttpRequest request, HttpResponse response) {
+        int status = response.getStatusLine().getStatusCode();
+        if (status < 200 || status > 299) return;
         URL reqURL = getAbsoluteURL(cacheKeyGenerator.getURI(host, request));
         if (reqURL == null) return;
         URL canonURL = getContentLocationURL(reqURL, response);

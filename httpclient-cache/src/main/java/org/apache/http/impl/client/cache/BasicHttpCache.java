@@ -83,6 +83,10 @@ class BasicHttpCache implements HttpCache {
         String uri = uriExtractor.getURI(host, request);
         storage.removeEntry(uri);
     }
+    
+    public void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request, HttpResponse response) {
+        cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
+    }
 
     void storeInCache(
             HttpHost target, HttpRequest request, HttpCacheEntry entry) throws IOException {

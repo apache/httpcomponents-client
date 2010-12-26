@@ -2584,6 +2584,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class),
+                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class));
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock.capture(cap),

@@ -47,6 +47,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
@@ -59,7 +60,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
-import org.easymock.classextension.EasyMock;
+import static org.easymock.classextension.EasyMock.*;
+import static org.junit.Assert.*;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,6 +84,7 @@ public class TestCachingHttpClient {
     private CacheableRequestPolicy mockRequestPolicy;
     private HttpClient mockBackend;
     private HttpCache mockCache;
+    private HttpCacheStorage mockStorage;
     private CachedResponseSuitabilityChecker mockSuitabilityChecker;
     private ResponseCachingPolicy mockResponsePolicy;
     private HttpResponse mockBackendResponse;
@@ -107,24 +111,25 @@ public class TestCachingHttpClient {
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
-        mockRequestPolicy = EasyMock.createMock(CacheableRequestPolicy.class);
-        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
-        mockSuitabilityChecker = EasyMock.createMock(CachedResponseSuitabilityChecker.class);
-        mockResponsePolicy = EasyMock.createMock(ResponseCachingPolicy.class);
-        mockConnectionManager = EasyMock.createMock(ClientConnectionManager.class);
-        mockHandler = EasyMock.createMock(ResponseHandler.class);
-        mockBackendResponse = EasyMock.createMock(HttpResponse.class);
-        mockUriRequest = EasyMock.createMock(HttpUriRequest.class);
-        mockCacheEntry = EasyMock.createMock(HttpCacheEntry.class);
-        mockResponseGenerator = EasyMock.createMock(CachedHttpResponseGenerator.class);
-        mockCachedResponse = EasyMock.createMock(HttpResponse.class);
-        mockConditionalRequestBuilder = EasyMock.createMock(ConditionalRequestBuilder.class);
-        mockConditionalRequest = EasyMock.createMock(HttpRequest.class);
-        mockStatusLine = EasyMock.createMock(StatusLine.class);
-        mockResponseProtocolCompliance = EasyMock.createMock(ResponseProtocolCompliance.class);
-        mockRequestProtocolCompliance = EasyMock.createMock(RequestProtocolCompliance.class);
+        mockRequestPolicy = createMock(CacheableRequestPolicy.class);
+        mockValidityPolicy = createMock(CacheValidityPolicy.class);
+        mockBackend = createMock(HttpClient.class);
+        mockCache = createMock(HttpCache.class);
+        mockSuitabilityChecker = createMock(CachedResponseSuitabilityChecker.class);
+        mockResponsePolicy = createMock(ResponseCachingPolicy.class);
+        mockConnectionManager = createMock(ClientConnectionManager.class);
+        mockHandler = createMock(ResponseHandler.class);
+        mockBackendResponse = createMock(HttpResponse.class);
+        mockUriRequest = createMock(HttpUriRequest.class);
+        mockCacheEntry = createMock(HttpCacheEntry.class);
+        mockResponseGenerator = createMock(CachedHttpResponseGenerator.class);
+        mockCachedResponse = createMock(HttpResponse.class);
+        mockConditionalRequestBuilder = createMock(ConditionalRequestBuilder.class);
+        mockConditionalRequest = createMock(HttpRequest.class);
+        mockStatusLine = createMock(StatusLine.class);
+        mockResponseProtocolCompliance = createMock(ResponseProtocolCompliance.class);
+        mockRequestProtocolCompliance = createMock(RequestProtocolCompliance.class);
+        mockStorage = createMock(HttpCacheStorage.class);
 
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
@@ -147,123 +152,144 @@ public class TestCachingHttpClient {
     }
 
     private void replayMocks() {
-        EasyMock.replay(mockRequestPolicy);
-        EasyMock.replay(mockValidityPolicy);
-        EasyMock.replay(mockSuitabilityChecker);
-        EasyMock.replay(mockResponsePolicy);
-        EasyMock.replay(mockCacheEntry);
-        EasyMock.replay(mockResponseGenerator);
-        EasyMock.replay(mockBackend);
-        EasyMock.replay(mockCache);
-        EasyMock.replay(mockConnectionManager);
-        EasyMock.replay(mockHandler);
-        EasyMock.replay(mockBackendResponse);
-        EasyMock.replay(mockUriRequest);
-        EasyMock.replay(mockCachedResponse);
-        EasyMock.replay(mockConditionalRequestBuilder);
-        EasyMock.replay(mockConditionalRequest);
-        EasyMock.replay(mockStatusLine);
-        EasyMock.replay(mockResponseProtocolCompliance);
-        EasyMock.replay(mockRequestProtocolCompliance);
+        replay(mockRequestPolicy);
+        replay(mockValidityPolicy);
+        replay(mockSuitabilityChecker);
+        replay(mockResponsePolicy);
+        replay(mockCacheEntry);
+        replay(mockResponseGenerator);
+        replay(mockBackend);
+        replay(mockCache);
+        replay(mockConnectionManager);
+        replay(mockHandler);
+        replay(mockBackendResponse);
+        replay(mockUriRequest);
+        replay(mockCachedResponse);
+        replay(mockConditionalRequestBuilder);
+        replay(mockConditionalRequest);
+        replay(mockStatusLine);
+        replay(mockResponseProtocolCompliance);
+        replay(mockRequestProtocolCompliance);
+        replay(mockStorage);
         if (mockedImpl) {
-            EasyMock.replay(impl);
+            replay(impl);
         }
     }
 
     private void verifyMocks() {
-        EasyMock.verify(mockRequestPolicy);
-        EasyMock.verify(mockValidityPolicy);
-        EasyMock.verify(mockSuitabilityChecker);
-        EasyMock.verify(mockResponsePolicy);
-        EasyMock.verify(mockCacheEntry);
-        EasyMock.verify(mockResponseGenerator);
-        EasyMock.verify(mockBackend);
-        EasyMock.verify(mockCache);
-        EasyMock.verify(mockConnectionManager);
-        EasyMock.verify(mockHandler);
-        EasyMock.verify(mockBackendResponse);
-        EasyMock.verify(mockUriRequest);
-        EasyMock.verify(mockCachedResponse);
-        EasyMock.verify(mockConditionalRequestBuilder);
-        EasyMock.verify(mockConditionalRequest);
-        EasyMock.verify(mockStatusLine);
-        EasyMock.verify(mockResponseProtocolCompliance);
-        EasyMock.verify(mockRequestProtocolCompliance);
+        verify(mockRequestPolicy);
+        verify(mockValidityPolicy);
+        verify(mockSuitabilityChecker);
+        verify(mockResponsePolicy);
+        verify(mockCacheEntry);
+        verify(mockResponseGenerator);
+        verify(mockBackend);
+        verify(mockCache);
+        verify(mockConnectionManager);
+        verify(mockHandler);
+        verify(mockBackendResponse);
+        verify(mockUriRequest);
+        verify(mockCachedResponse);
+        verify(mockConditionalRequestBuilder);
+        verify(mockConditionalRequest);
+        verify(mockStatusLine);
+        verify(mockResponseProtocolCompliance);
+        verify(mockRequestProtocolCompliance);
+        verify(mockStorage);
         if (mockedImpl) {
-            EasyMock.verify(impl);
+            verify(impl);
         }
     }
 
     @Test
     public void testCacheableResponsesGoIntoCache() throws Exception {
-        responsePolicyAllowsCaching(true);
-
-        responseProtocolValidationIsCalled();
-
-        EasyMock.expect(mockCache.getCacheEntry(host, request))
-            .andReturn(null);
-        EasyMock.expect(mockCache.cacheAndReturnResponse(host, request, mockBackendResponse, requestDate, responseDate))
-            .andReturn(mockCachedResponse);
-
+        impl = new CachingHttpClient(mockBackend);
+        
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        
         replayMocks();
-        HttpResponse result = impl.handleBackendResponse(host, request, requestDate,
-                                                         responseDate, mockBackendResponse);
+        impl.execute(host, req1);
+        impl.execute(host, req2);
         verifyMocks();
-
-        Assert.assertSame(mockCachedResponse, result);
     }
 
     @Test
     public void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
-        responsePolicyAllowsCaching(true);
-        responseProtocolValidationIsCalled();
-
+        impl = new CachingHttpClient(mockBackend);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
-        Header entryDateHeader = new BasicHeader("Date", DateUtils.formatDate(now));
-        Header[] headers = { entryDateHeader };
-        entry = HttpTestUtils.makeCacheEntry(headers);
-        Header responseDateHeader = new BasicHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Etag", "\"new-etag\"");
 
-        EasyMock.expect(mockCache.getCacheEntry(host, request))
-            .andReturn(entry);
-        EasyMock.expect(mockBackendResponse.getFirstHeader("Date"))
-            .andReturn(responseDateHeader).anyTimes();
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control","no-cache");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"old-etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        resp2.setHeader("Cache-Control","max-age=3600");
+
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp2);
+
+        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
 
         replayMocks();
-        HttpResponse result = impl.handleBackendResponse(host, request, requestDate,
-                                                         responseDate, mockBackendResponse);
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        HttpResponse result = impl.execute(host, req3);
         verifyMocks();
 
-        Assert.assertSame(mockBackendResponse, result);
+        assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
     }
 
     @Test
     public void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
-        responsePolicyAllowsCaching(true);
-        responseProtocolValidationIsCalled();
-
+        impl = new CachingHttpClient(mockBackend);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
-        Header entryDateHeader = new BasicHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
-        Header[] headers = { entryDateHeader };
-        entry = HttpTestUtils.makeCacheEntry(headers);
-        Header responseDateHeader = new BasicHeader("Date", DateUtils.formatDate(now));
+        
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Etag", "\"old-etag\"");
 
-        EasyMock.expect(mockCache.getCacheEntry(host, request))
-            .andReturn(entry);
-        EasyMock.expect(mockBackendResponse.getFirstHeader("Date"))
-            .andReturn(responseDateHeader).anyTimes();
-        EasyMock.expect(mockCache.cacheAndReturnResponse(host, request,
-                mockBackendResponse, requestDate, responseDate))
-            .andReturn(mockCachedResponse);
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control","max-age=0");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"new-etag\"");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","max-age=3600");
+
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp2);
+
+        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
 
         replayMocks();
-        HttpResponse result = impl.handleBackendResponse(host, request, requestDate,
-                                                         responseDate, mockBackendResponse);
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        HttpResponse result = impl.execute(host, req3);
         verifyMocks();
 
-        Assert.assertSame(mockCachedResponse, result);
+        assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
     }
 
 
@@ -289,7 +315,7 @@ public class TestCachingHttpClient {
         if (error != null) {
             errors.add(error);
         }
-        EasyMock.expect(
+        expect(
                 mockRequestProtocolCompliance.requestIsFatallyNonCompliant(request)).andReturn(
                 errors);
     }
@@ -381,7 +407,7 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(requestDate);
         backendCall(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        EasyMock.expect(impl.handleBackendResponse(host, validate,
+        expect(impl.handleBackendResponse(host, validate,
                 requestDate, responseDate, originResponse))
             .andReturn(finalResponse);
 
@@ -410,99 +436,15 @@ public class TestCachingHttpClient {
         getCurrentDateReturns(requestDate);
         backendCall(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        EasyMock.expect(mockCache.updateCacheEntry(host, request,
+        expect(mockCache.updateCacheEntry(host, request,
                 entry, originResponse, requestDate, responseDate))
             .andReturn(updatedEntry);
-        EasyMock.expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
+        expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
         responseIsGeneratedFromCache();
 
         replayMocks();
         impl.revalidateCacheEntry(host, request, context, entry);
         verifyMocks();
-    }
-
-    @Test
-    public void testRevalidationUpdatesCacheEntryAndPutsItToCacheWhen200ReturningCachedResponse()
-            throws Exception {
-
-        mockImplMethods(GET_CURRENT_DATE);
-
-        HttpRequest validate =
-            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpResponse originResponse = HttpTestUtils.make200Response();
-        HttpResponse finalResponse = HttpTestUtils.make200Response();
-
-        conditionalRequestBuilderReturns(validate);
-        getCurrentDateReturns(requestDate);
-        backendCall(validate, originResponse);
-        getCurrentDateReturns(responseDate);
-        responsePolicyAllowsCaching(true);
-        responseProtocolValidationIsCalled();
-        EasyMock.expect(mockCache.getCacheEntry(host, validate)).andReturn(null);
-        EasyMock.expect(mockCache.cacheAndReturnResponse(host, validate, originResponse, requestDate, responseDate))
-            .andReturn(finalResponse);
-
-        replayMocks();
-        HttpResponse result =
-            impl.revalidateCacheEntry(host, request, context, entry);
-        verifyMocks();
-
-        Assert.assertSame(finalResponse, result);
-    }
-
-    @Test
-    public void testRevalidationRetriesUnconditionallyIfOlderResponseReceived()
-        throws Exception {
-
-        mockImplMethods(GET_CURRENT_DATE);
-
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
-
-        Header[] headers = {
-            new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
-            new BasicHeader("Cache-Control","max-age=5"),
-            new BasicHeader("ETag", "\"etag1\"")
-        };
-        entry = HttpTestUtils.makeCacheEntry(headers);
-
-        HttpRequest validate =
-            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpResponse originResponse1 =
-            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
-                    "Not Modified");
-        originResponse1.setHeader("Date", DateUtils.formatDate(elevenSecondsAgo));
-        HttpRequest unconditional =
-            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpResponse originResponse2 = HttpTestUtils.make200Response();
-        HttpResponse finalResponse = HttpTestUtils.make200Response();
-
-        conditionalRequestBuilderReturns(validate);
-        getCurrentDateReturns(requestDate);
-        backendCall(validate, originResponse1);
-        getCurrentDateReturns(responseDate);
-        EasyMock.expect(mockConditionalRequestBuilder.buildUnconditionalRequest(request, entry))
-            .andReturn(unconditional);
-        final Date requestDate2 = new Date();
-        getCurrentDateReturns(requestDate2);
-        backendCall(unconditional, originResponse2);
-        final Date responseDate2 = new Date();
-        getCurrentDateReturns(responseDate2);
-
-        responsePolicyAllowsCaching(true);
-        responseProtocolValidationIsCalled();
-        EasyMock.expect(mockCache.getCacheEntry(host, validate)).andReturn(null);
-        EasyMock.expect(mockCache.cacheAndReturnResponse(host, validate, originResponse2, requestDate2, responseDate2))
-            .andReturn(finalResponse);
-
-        replayMocks();
-        HttpResponse result =
-            impl.revalidateCacheEntry(host, request, context, entry);
-        verifyMocks();
-
-        Assert.assertSame(finalResponse, result);
-
     }
 
     @Test
@@ -541,18 +483,26 @@ public class TestCachingHttpClient {
 
     @Test
     public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
-        Date currentDate = new Date();
-        responsePolicyAllowsCaching(false);
-        responseProtocolValidationIsCalled();
+        CacheConfig config = new CacheConfig();
+        impl = new CachingHttpClient(mockBackend,
+                new BasicHttpCache(new HeapResourceFactory(), mockStorage, config),
+                config);
+        
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","no-cache");
 
-        flushCache();
+        expect(mockStorage.getEntry(isA(String.class))).andReturn(null).anyTimes();
+        mockStorage.removeEntry(isA(String.class));
+        expectLastCall().anyTimes();
+        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
+                (HttpContext)isNull())).andReturn(resp1);
 
         replayMocks();
-        HttpResponse result = impl.handleBackendResponse(host, request, currentDate,
-                                                         currentDate, mockBackendResponse);
+        HttpResponse result = impl.execute(host, req1);
         verifyMocks();
 
-        Assert.assertSame(mockBackendResponse, result);
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
     }
 
 
@@ -627,7 +577,7 @@ public class TestCachingHttpClient {
             }
         };
 
-        EasyMock.expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
+        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 value);
 
         replayMocks();
@@ -669,7 +619,7 @@ public class TestCachingHttpClient {
 
         final Object theObject = new Object();
 
-        EasyMock.expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
+        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 theObject);
 
         replayMocks();
@@ -743,7 +693,7 @@ public class TestCachingHttpClient {
             }
         };
 
-        EasyMock.expect(mockUriRequest.getURI()).andReturn(uri);
+        expect(mockUriRequest.getURI()).andReturn(uri);
 
         replayMocks();
         HttpResponse result = impl.execute(mockUriRequest, context);
@@ -780,7 +730,7 @@ public class TestCachingHttpClient {
             }
         };
 
-        EasyMock.expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
+        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 theValue);
 
         replayMocks();
@@ -821,7 +771,7 @@ public class TestCachingHttpClient {
             }
         };
 
-        EasyMock.expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
+        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 theValue);
 
         replayMocks();
@@ -833,7 +783,7 @@ public class TestCachingHttpClient {
 
     @Test
     public void testUsesBackendsConnectionManager() {
-        EasyMock.expect(mockBackend.getConnectionManager()).andReturn(
+        expect(mockBackend.getConnectionManager()).andReturn(
                 mockConnectionManager);
         replayMocks();
         ClientConnectionManager result = impl.getConnectionManager();
@@ -843,7 +793,7 @@ public class TestCachingHttpClient {
 
     @Test
     public void testUsesBackendsHttpParams() {
-        EasyMock.expect(mockBackend.getParams()).andReturn(params);
+        expect(mockBackend.getParams()).andReturn(params);
         replayMocks();
         HttpParams result = impl.getParams();
         verifyMocks();
@@ -921,8 +871,8 @@ public class TestCachingHttpClient {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.capture(cap), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                capture(cap), isA(HttpContext.class)))
             .andReturn(resp);
 
         replayMocks();
@@ -944,8 +894,8 @@ public class TestCachingHttpClient {
         req.setHeader("Cache-Control","no-cache");
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp);
 
         replayMocks();
@@ -963,8 +913,8 @@ public class TestCachingHttpClient {
         req.setHeader("Cache-Control","no-cache");
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), (HttpContext)EasyMock.isNull()))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), (HttpContext)isNull()))
                 .andReturn(resp);
 
         replayMocks();
@@ -985,8 +935,8 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
 
         replayMocks();
@@ -1008,8 +958,8 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
 
         replayMocks();
@@ -1033,8 +983,8 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), (HttpContext)EasyMock.isNull()))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), (HttpContext)isNull()))
             .andReturn(resp1);
 
         replayMocks();
@@ -1062,10 +1012,10 @@ public class TestCachingHttpClient {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1098,14 +1048,14 @@ public class TestCachingHttpClient {
 
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class),
-                        EasyMock.isA(HttpRequest.class),
-                        (HttpContext) EasyMock.isNull()))
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class),
+                        (HttpContext) isNull()))
                         .andReturn(resp2);
 
         replayMocks();
@@ -1138,10 +1088,10 @@ public class TestCachingHttpClient {
         req2.addHeader("If-Modified-Since", DateUtils
                 .formatDate(tenSecondsAfter));
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1).times(2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1).times(2);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1166,10 +1116,10 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1197,14 +1147,14 @@ public class TestCachingHttpClient {
 
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1235,10 +1185,10 @@ public class TestCachingHttpClient {
         req2.addHeader("If-None-Match", "*");
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1267,14 +1217,14 @@ public class TestCachingHttpClient {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
         replayMocks();
         impl.execute(host, req1);
@@ -1308,11 +1258,11 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control","public, max-age=5");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp2);
 
         replayMocks();
@@ -1347,11 +1297,11 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control","public, max-age=5");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp2);
 
         replayMocks();
@@ -1379,11 +1329,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5, must-revalidate");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andThrow(new IOException());
 
         replayMocks();
@@ -1411,11 +1361,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andThrow(new IOException());
 
         replayMocks();
@@ -1443,11 +1393,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5");
 
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andReturn(resp1);
-        EasyMock.expect(mockBackend.execute(EasyMock.isA(HttpHost.class),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpContext.class)))
+        expect(mockBackend.execute(isA(HttpHost.class),
+                isA(HttpRequest.class), isA(HttpContext.class)))
             .andThrow(new IOException());
 
         replayMocks();
@@ -1482,15 +1432,15 @@ public class TestCachingHttpClient {
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
@@ -1526,15 +1476,15 @@ public class TestCachingHttpClient {
         resp2.setHeader("ETag", "\"newetag\"");
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
@@ -1570,64 +1520,21 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void testNegotiateResponseFromVariantsReturns200OnBackend200() throws Exception {
-        HttpCacheEntry variant1 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag1\"") });
-        HttpCacheEntry variant2 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag2\"") });
-        HttpCacheEntry variant3 = HttpTestUtils
-                .makeCacheEntry(new Header[] {new BasicHeader(HeaderConstants.ETAG, "\"etag3\"") });
-
-        HttpCacheEntry cacheEntry = null;
-
-        Map<String,Variant> variants = new HashMap<String,Variant>();
-        variants.put("\"etag1\"", new Variant("A","B",variant1));
-        variants.put("\"etag2\"", new Variant("C","D",variant2));
-        variants.put("\"etag3\"", new Variant("E","F",variant3));
-
-        HttpRequest variantConditionalRequest = new BasicHttpRequest("GET", "http://foo.com/bar", HttpVersion.HTTP_1_1);
-        variantConditionalRequest.addHeader(new BasicHeader(HeaderConstants.IF_NONE_MATCH, "etag1, etag2, etag3"));
-
-        HttpResponse originResponse = HttpTestUtils.make200Response();
-        originResponse.addHeader(HeaderConstants.ETAG, "etag4");
-
-        HttpResponse response = HttpTestUtils.make200Response();
-
-        conditionalVariantRequestBuilderReturns(variants, variantConditionalRequest);
-
-        backendCall(variantConditionalRequest, originResponse);
-
-        responseProtocolValidationIsCalled();
-
-        responsePolicyAllowsCaching(true);
-
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(cacheEntry);
-        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host), EasyMock.same(request), EasyMock.same(originResponse), EasyMock.isA(Date.class), EasyMock.isA(Date.class))).andReturn(response);
-
-        replayMocks();
-        HttpResponse resp = impl.negotiateResponseFromVariants(host, request, context, variants);
-        verifyMocks();
-
-        Assert.assertEquals(HttpStatus.SC_OK,resp.getStatusLine().getStatusCode());
-
     }
 
     @Test
@@ -1658,15 +1565,15 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
@@ -1721,20 +1628,20 @@ public class TestCachingHttpClient {
         resp3.setHeader("Vary", "Accept-Encoding");
         resp3.setHeader("Cache-Control", "public, max-age=3600");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp3);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp3);
 
 
         replayMocks();
@@ -1795,20 +1702,20 @@ public class TestCachingHttpClient {
         resp4.setHeader("Vary", "Accept-Encoding");
         resp4.setHeader("Cache-Control", "public, max-age=3600");
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp1);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp2);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp2);
 
-        EasyMock.expect(
-                mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                        .isA(HttpRequest.class), (HttpContext) EasyMock
-                        .isNull())).andReturn(resp4);
+        expect(
+                mockBackend.execute(isA(HttpHost.class), 
+                        isA(HttpRequest.class), (HttpContext) 
+                        isNull())).andReturn(resp4);
 
         replayMocks();
         HttpResponse result1 = impl.execute(host, req1);
@@ -1836,19 +1743,21 @@ public class TestCachingHttpClient {
         HttpResponse resp = HttpTestUtils.make200Response();
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        EasyMock.expectLastCall().andThrow(new IOException()).anyTimes();
-        EasyMock.expect(mockCache.getCacheEntry(EasyMock.same(host),
-                EasyMock.isA(HttpRequest.class)))
+        expectLastCall().andThrow(new IOException()).anyTimes();
+        mockCache.flushInvalidatedCacheEntriesFor(isA(HttpHost.class), isA(HttpRequest.class), isA(HttpResponse.class));
+        expectLastCall().anyTimes();    
+        expect(mockCache.getCacheEntry(same(host),
+                isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
-        EasyMock.expect(mockCache.getVariantCacheEntriesWithEtags(EasyMock.same(host),
-                EasyMock.isA(HttpRequest.class)))
+        expect(mockCache.getVariantCacheEntriesWithEtags(same(host),
+                isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
-        EasyMock.expect(mockCache.cacheAndReturnResponse(EasyMock.same(host),
-                EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class),
-                EasyMock.isA(Date.class), EasyMock.isA(Date.class)))
+        expect(mockCache.cacheAndReturnResponse(same(host),
+                isA(HttpRequest.class), isA(HttpResponse.class),
+                isA(Date.class), isA(Date.class)))
             .andThrow(new IOException()).anyTimes();
-        EasyMock.expect(mockBackend.execute(EasyMock.same(host),
-                EasyMock.isA(HttpRequest.class), (HttpContext)EasyMock.isNull()))
+        expect(mockBackend.execute(same(host),
+                isA(HttpRequest.class), (HttpContext)isNull()))
             .andReturn(resp);
 
         replayMocks();
@@ -1911,117 +1820,117 @@ public class TestCachingHttpClient {
     }
 
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(result);
+        expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
 
     private void getVariantCacheEntriesReturns(Map<String,Variant> result) throws IOException {
-        EasyMock.expect(mockCache.getVariantCacheEntriesWithEtags(host, request)).andReturn(result);
+        expect(mockCache.getVariantCacheEntriesWithEtags(host, request)).andReturn(result);
     }
 
     private void cacheInvalidatorWasCalled()  throws IOException {
         mockCache.flushInvalidatedCacheEntriesFor(
-                EasyMock.<HttpHost>anyObject(),
-                EasyMock.<HttpRequest>anyObject());
+                (HttpHost)anyObject(),
+                (HttpRequest)anyObject());
     }
 
     private void callBackendReturnsResponse(HttpResponse response) throws IOException {
-        EasyMock.expect(impl.callBackend(
-                EasyMock.<HttpHost>anyObject(),
-                EasyMock.<HttpRequest>anyObject(),
-                EasyMock.<HttpContext>anyObject())).andReturn(response);
+        expect(impl.callBackend(
+                (HttpHost)anyObject(),
+                (HttpRequest)anyObject(),
+                (HttpContext)anyObject())).andReturn(response);
     }
 
     private void revalidateCacheEntryReturns(HttpResponse response) throws IOException,
             ProtocolException {
-        EasyMock.expect(
+        expect(
                 impl.revalidateCacheEntry(
-                        EasyMock.<HttpHost>anyObject(),
-                        EasyMock.<HttpRequest>anyObject(),
-                        EasyMock.<HttpContext>anyObject(),
-                        EasyMock.<HttpCacheEntry>anyObject())).andReturn(response);
+                        (HttpHost)anyObject(),
+                        (HttpRequest)anyObject(),
+                        (HttpContext)anyObject(),
+                        (HttpCacheEntry)anyObject())).andReturn(response);
     }
 
     private void cacheEntryValidatable(boolean b) {
-        EasyMock.expect(mockValidityPolicy.isRevalidatable(
-                EasyMock.<HttpCacheEntry>anyObject())).andReturn(b);
+        expect(mockValidityPolicy.isRevalidatable(
+                (HttpCacheEntry)anyObject())).andReturn(b);
     }
     
     private void cacheEntryMustRevalidate(boolean b) {
-        EasyMock.expect(mockValidityPolicy.mustRevalidate(mockCacheEntry))
+        expect(mockValidityPolicy.mustRevalidate(mockCacheEntry))
             .andReturn(b);
     }
 
     private void cacheEntryProxyRevalidate(boolean b) {
-        EasyMock.expect(mockValidityPolicy.proxyRevalidate(mockCacheEntry))
+        expect(mockValidityPolicy.proxyRevalidate(mockCacheEntry))
             .andReturn(b);
     }
     
     private void mayReturnStaleWhileRevalidating(boolean b) {
-        EasyMock.expect(mockValidityPolicy.mayReturnStaleWhileRevalidating(
-                EasyMock.<HttpCacheEntry>anyObject(), EasyMock.<Date>anyObject())).andReturn(b);
+        expect(mockValidityPolicy.mayReturnStaleWhileRevalidating(
+                (HttpCacheEntry)anyObject(), (Date)anyObject())).andReturn(b);
     }
 
     private void conditionalVariantRequestBuilderReturns(Map<String,Variant> variantEntries, HttpRequest validate)
             throws Exception {
-        EasyMock.expect(mockConditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries))
+        expect(mockConditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries))
             .andReturn(validate);
     }
 
     private void conditionalRequestBuilderReturns(HttpRequest validate)
             throws Exception {
-        EasyMock.expect(mockConditionalRequestBuilder
+        expect(mockConditionalRequestBuilder
         .buildConditionalRequest(request, entry))
     .andReturn(validate);
 }
 
     private void getCurrentDateReturns(Date date) {
-        EasyMock.expect(impl.getCurrentDate()).andReturn(date);
+        expect(impl.getCurrentDate()).andReturn(date);
     }
 
     private void requestPolicyAllowsCaching(boolean allow) {
-        EasyMock.expect(mockRequestPolicy.isServableFromCache(
-                EasyMock.<HttpRequest>anyObject())).andReturn(allow);
+        expect(mockRequestPolicy.isServableFromCache(
+                (HttpRequest)anyObject())).andReturn(allow);
     }
 
     private void backendCall(HttpRequest req, HttpResponse resp)
             throws Exception {
-        EasyMock.expect(mockBackend.execute(host, req, context))
+        expect(mockBackend.execute(host, req, context))
             .andReturn(resp);
     }
 
     private void backendCallWasMade(HttpRequest request, HttpResponse response) throws IOException {
-        EasyMock.expect(mockBackend.execute(
-                EasyMock.<HttpHost>anyObject(),
-                EasyMock.same(request),
-                EasyMock.<HttpContext>anyObject())).andReturn(response);
+        expect(mockBackend.execute(
+                (HttpHost)anyObject(),
+                same(request),
+                (HttpContext)anyObject())).andReturn(response);
     }
 
     private void responsePolicyAllowsCaching(boolean allow) {
-        EasyMock.expect(
+        expect(
                 mockResponsePolicy.isResponseCacheable(
-                        EasyMock.<HttpRequest>anyObject(),
-                        EasyMock.<HttpResponse>anyObject())).andReturn(allow);
+                        (HttpRequest)anyObject(),
+                        (HttpResponse)anyObject())).andReturn(allow);
     }
 
     private void cacheEntrySuitable(boolean suitable) {
-        EasyMock.expect(
+        expect(
                 mockSuitabilityChecker.canCachedResponseBeUsed(
-                        EasyMock.<HttpHost>anyObject(),
-                        EasyMock.<HttpRequest>anyObject(),
-                        EasyMock.<HttpCacheEntry>anyObject(),
-                        EasyMock.<Date>anyObject())).andReturn(suitable);
+                        (HttpHost)anyObject(),
+                        (HttpRequest)anyObject(),
+                        (HttpCacheEntry)anyObject(),
+                        (Date)anyObject())).andReturn(suitable);
     }
 
     private void entryHasStaleness(long staleness) {
-        EasyMock.expect(mockValidityPolicy.getStalenessSecs(
-                EasyMock.<HttpCacheEntry>anyObject(),
-                EasyMock.<Date>anyObject()
+        expect(mockValidityPolicy.getStalenessSecs(
+                (HttpCacheEntry)anyObject(),
+                (Date)anyObject()
                 )).andReturn(staleness);
     }
 
     private void responseIsGeneratedFromCache() {
-        EasyMock.expect(mockResponseGenerator.generateResponse(
-                EasyMock.<HttpCacheEntry>anyObject())).andReturn(mockCachedResponse);
+        expect(mockResponseGenerator.generateResponse(
+                (HttpCacheEntry)anyObject())).andReturn(mockCachedResponse);
     }
 
     private void flushCache() throws IOException {
@@ -2030,36 +1939,36 @@ public class TestCachingHttpClient {
 
     private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)
             throws IOException {
-        EasyMock.expect(
+        expect(
                 impl.handleBackendResponse(
-                        EasyMock.<HttpHost>anyObject(),
-                        EasyMock.same(request),
-                        EasyMock.<Date>anyObject(),
-                        EasyMock.<Date>anyObject(),
-                        EasyMock.<HttpResponse>anyObject())).andReturn(response);
+                        (HttpHost)anyObject(),
+                        same(request),
+                        (Date)anyObject(),
+                        (Date)anyObject(),
+                        (HttpResponse)anyObject())).andReturn(response);
     }
 
     private void responseProtocolValidationIsCalled() throws ClientProtocolException {
         mockResponseProtocolCompliance.ensureProtocolCompliance(
-                EasyMock.<HttpRequest>anyObject(),
-                EasyMock.<HttpResponse>anyObject());
+                (HttpRequest)anyObject(),
+                (HttpResponse)anyObject());
     }
 
     private void requestProtocolValidationIsCalled() throws Exception {
-        EasyMock.expect(
+        expect(
                 mockRequestProtocolCompliance.makeRequestCompliant(
-                        EasyMock.<HttpRequest>anyObject())).andReturn(request);
+                        (HttpRequest)anyObject())).andReturn(request);
     }
 
     private void requestCannotBeMadeCompliantThrows(ClientProtocolException exception) throws Exception {
-        EasyMock.expect(
+        expect(
                 mockRequestProtocolCompliance.makeRequestCompliant(
-                        EasyMock.<HttpRequest>anyObject())).andThrow(exception);
+                        (HttpRequest)anyObject())).andThrow(exception);
     }
 
     private void mockImplMethods(String... methods) {
         mockedImpl = true;
-        impl = EasyMock.createMockBuilder(CachingHttpClient.class).withConstructor(
+        impl = createMockBuilder(CachingHttpClient.class).withConstructor(
                 mockBackend,
                 mockValidityPolicy,
                 mockResponsePolicy,

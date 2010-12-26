@@ -113,6 +113,9 @@ public abstract class AbstractProtocolTest {
 
         mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();
+        
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class));
+        EasyMock.expectLastCall().anyTimes();
     }
 
     protected void behaveAsNonSharedCache() {
