@@ -45,7 +45,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
-import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.HttpGet;
@@ -1870,12 +1869,6 @@ public class TestCachingHttpClient {
                 (HttpCacheEntry)anyObject(), (Date)anyObject())).andReturn(b);
     }
 
-    private void conditionalVariantRequestBuilderReturns(Map<String,Variant> variantEntries, HttpRequest validate)
-            throws Exception {
-        expect(mockConditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantEntries))
-            .andReturn(validate);
-    }
-
     private void conditionalRequestBuilderReturns(HttpRequest validate)
             throws Exception {
         expect(mockConditionalRequestBuilder
@@ -1905,13 +1898,6 @@ public class TestCachingHttpClient {
                 (HttpContext)anyObject())).andReturn(response);
     }
 
-    private void responsePolicyAllowsCaching(boolean allow) {
-        expect(
-                mockResponsePolicy.isResponseCacheable(
-                        (HttpRequest)anyObject(),
-                        (HttpResponse)anyObject())).andReturn(allow);
-    }
-
     private void cacheEntrySuitable(boolean suitable) {
         expect(
                 mockSuitabilityChecker.canCachedResponseBeUsed(
@@ -1933,10 +1919,6 @@ public class TestCachingHttpClient {
                 (HttpCacheEntry)anyObject())).andReturn(mockCachedResponse);
     }
 
-    private void flushCache() throws IOException {
-        mockCache.flushCacheEntriesFor(host, request);
-    }
-
     private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)
             throws IOException {
         expect(
@@ -1946,12 +1928,6 @@ public class TestCachingHttpClient {
                         (Date)anyObject(),
                         (Date)anyObject(),
                         (HttpResponse)anyObject())).andReturn(response);
-    }
-
-    private void responseProtocolValidationIsCalled() throws ClientProtocolException {
-        mockResponseProtocolCompliance.ensureProtocolCompliance(
-                (HttpRequest)anyObject(),
-                (HttpResponse)anyObject());
     }
 
     private void requestProtocolValidationIsCalled() throws Exception {
