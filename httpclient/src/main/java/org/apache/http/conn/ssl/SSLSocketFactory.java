@@ -36,7 +36,6 @@ import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -210,6 +209,14 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         return sslcontext;
     }
 
+    private static SSLContext createDefaultSSLContext() {
+        try {
+            return createSSLContext(TLS, null, null, null, null, null);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failure initializing default SSL context", ex);
+        }
+    }
+
     /**
      * @deprecated Use {@link #SSLSocketFactory(String, KeyStore, String, KeyStore, SecureRandom, X509HostnameVerifier)}
      */
@@ -328,10 +335,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
     }
 
     private SSLSocketFactory() {
-        super();
-        this.socketfactory = HttpsURLConnection.getDefaultSSLSocketFactory();
-        this.hostnameVerifier = null;
-        this.nameResolver = null;
+        this(createDefaultSSLContext());
     }
 
     /**

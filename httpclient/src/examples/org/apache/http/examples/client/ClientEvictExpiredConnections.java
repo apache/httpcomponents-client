@@ -33,9 +33,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.util.EntityUtils;
@@ -47,12 +44,7 @@ import org.apache.http.util.EntityUtils;
 public class ClientEvictExpiredConnections {
 
     public static void main(String[] args) throws Exception {
-        // Create and initialize scheme registry
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(
-                new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager();
         cm.setMaxTotal(100);
 
         HttpClient httpclient = new DefaultHttpClient(cm);

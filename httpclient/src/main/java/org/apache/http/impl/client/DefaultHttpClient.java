@@ -53,10 +53,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
@@ -64,6 +61,7 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.NegotiateSchemeFactory;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
+import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
@@ -194,7 +192,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     /**
      * Creates the default set of HttpParams by invoking {@link DefaultHttpClient#setDefaultHttpParams(HttpParams)}
-     * 
+     *
      * @return a new instance of {@link SyncBasicHttpParams} with the defaults applied to it.
      */
     @Override
@@ -239,11 +237,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
     @Override
     protected ClientConnectionManager createClientConnectionManager() {
-        SchemeRegistry registry = new SchemeRegistry();
-        registry.register(
-                new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        registry.register(
-                new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
+        SchemeRegistry registry = SchemeRegistryFactory.createDefault();
 
         ClientConnectionManager connManager = null;
         HttpParams params = getParams();

@@ -43,6 +43,7 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
+import org.apache.http.impl.conn.SchemeRegistryFactory;
 
 /**
  * Manages a pool of {@link OperatedClientConnection client connections} and
@@ -88,6 +89,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg) {
         this(schreg, -1, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * @since 4.1
+     */
+    public ThreadSafeClientConnManager() {
+        this(SchemeRegistryFactory.createDefault());
     }
 
     /**

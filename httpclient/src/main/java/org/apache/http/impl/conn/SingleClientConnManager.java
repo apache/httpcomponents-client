@@ -130,6 +130,13 @@ public class SingleClientConnManager implements ClientConnectionManager {
         this.isShutDown      = false;
     }
 
+    /**
+     * @since 4.1
+     */
+    public SingleClientConnManager() {
+        this(SchemeRegistryFactory.createDefault());
+    }
+
     @Override
     protected void finalize() throws Throwable {
         try {
