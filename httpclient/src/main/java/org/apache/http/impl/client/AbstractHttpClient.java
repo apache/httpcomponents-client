@@ -68,6 +68,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Base class for {@link HttpClient} implementations. This class acts as
@@ -845,14 +846,12 @@ public abstract class AbstractHttpClient implements HttpClient {
             result = responseHandler.handleResponse(response);
         } catch (Throwable t) {
             HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                try {
-                    entity.consumeContent();
-                } catch (Exception t2) {
-                    // Log this exception. The original exception is more
-                    // important and will be thrown to the caller.
-                    this.log.warn("Error consuming content after an exception.", t2);
-                }
+            try {
+                EntityUtils.consume(entity);
+            } catch (Exception t2) {
+                // Log this exception. The original exception is more
+                // important and will be thrown to the caller.
+                this.log.warn("Error consuming content after an exception.", t2);
             }
 
             if (t instanceof Error) {
@@ -873,11 +872,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         // Handling the response was successful. Ensure that the content has
         // been fully consumed.
         HttpEntity entity = response.getEntity();
-        if (entity != null) {
-            // Let this exception go to the caller.
-            entity.consumeContent();
-        }
-
+        EntityUtils.consume(entity);
         return result;
     }
 
