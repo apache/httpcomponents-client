@@ -47,12 +47,10 @@ public class TestScheme {
         Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Assert.assertEquals("http", http.getName());
         Assert.assertEquals(80, http.getDefaultPort());
-        Assert.assertSame(PlainSocketFactory.getSocketFactory(), http.getSchemeSocketFactory());
         Assert.assertFalse(http.isLayered());
         Scheme https = new Scheme("https", 443, SecureSocketFactoryMockup.INSTANCE);
         Assert.assertEquals("https", https.getName());
         Assert.assertEquals(443, https.getDefaultPort());
-        Assert.assertSame(SecureSocketFactoryMockup.INSTANCE, https.getSchemeSocketFactory());
         Assert.assertTrue(https.isLayered());
 
         Scheme hTtP = new Scheme("hTtP", 80, PlainSocketFactory.getSocketFactory());

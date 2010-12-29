@@ -242,8 +242,7 @@ public final class Scheme {
             Scheme that = (Scheme) obj;
             return this.name.equals(that.name)
                 && this.defaultPort == that.defaultPort
-                && this.layered == that.layered
-                && this.socketFactory.equals(that.socketFactory);
+                && this.layered == that.layered;
         } else {
             return false;
         }
@@ -255,7 +254,6 @@ public final class Scheme {
         hash = LangUtils.hashCode(hash, this.defaultPort);
         hash = LangUtils.hashCode(hash, this.name);
         hash = LangUtils.hashCode(hash, this.layered);
-        hash = LangUtils.hashCode(hash, this.socketFactory);
         return hash;
     }
 

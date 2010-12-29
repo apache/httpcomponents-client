@@ -156,18 +156,13 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         = new StrictHostnameVerifier();
 
     /**
-     * The default factory using the default JVM settings for secure connections.
-     */
-    private static final SSLSocketFactory DEFAULT_FACTORY = new SSLSocketFactory();
-
-    /**
      * Gets the default factory, which uses the default JVM settings for secure
      * connections.
      *
      * @return the default factory
      */
     public static SSLSocketFactory getSocketFactory() {
-        return DEFAULT_FACTORY;
+        return new SSLSocketFactory();
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;

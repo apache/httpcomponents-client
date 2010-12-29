@@ -56,21 +56,15 @@ import org.apache.http.params.HttpParams;
 @Immutable
 public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
 
-    /**
-     * The default factory.
-     */
-    private static final PlainSocketFactory DEFAULT_FACTORY = new PlainSocketFactory();
-
     private final HostNameResolver nameResolver;
 
     /**
-     * Gets the default factory. Usually there should be no reason for creating
-     * multiple instances of this class.
+     * Gets the default factory.
      *
      * @return the default factory
      */
     public static PlainSocketFactory getSocketFactory() {
-        return DEFAULT_FACTORY;
+        return new PlainSocketFactory();
     }
 
     @Deprecated
