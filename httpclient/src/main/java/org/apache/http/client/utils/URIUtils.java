@@ -278,6 +278,56 @@ public class URIUtils {
     }
 
     /**
+     * Extracts target host from the given {@link URI}.
+     * 
+     * @param uri 
+     * @return the target host if the URI is absolute or <code>null</null> if the URI is 
+     * relative or does not contain a valid host name.
+     * 
+     * @since 4.1
+     */
+    public static HttpHost exctractHost(final URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        HttpHost target = null;
+        if (uri.isAbsolute()) {
+            int port = uri.getPort(); // may be overridden later
+            String host = uri.getHost();
+            if (host == null) { // normal parse failed; let's do it ourselves
+                // authority does not seem to care about the valid character-set for host names
+                host = uri.getAuthority();
+                if (host != null) {
+                    // Strip off any leading user credentials
+                    int at = host.indexOf('@');
+                    if (at >= 0) {
+                        if (host.length() > at+1 ) {
+                            host = host.substring(at+1);
+                        } else {
+                            host = null; // @ on its own
+                        }
+                    }
+                    // Extract the port suffix, if present
+                    if (host != null) { 
+                        int colon = host.indexOf(':');
+                        if (colon >= 0) {
+                            if (colon+1 < host.length()) {
+                                port = Integer.parseInt(host.substring(colon+1));
+                            }
+                            host = host.substring(0,colon);
+                        }                
+                    }                    
+                }
+            }
+            String scheme = uri.getScheme();
+            if (host != null) {
+                target = new HttpHost(host, port, scheme);
+            }
+        }
+        return target;
+    }
+    
+    /**
      * This class should not be instantiated.
      */
     private URIUtils() {

@@ -317,4 +317,27 @@ public class TestURIUtils {
                 "http://s/mid/content=5/../6").toString());
     }
 
+    @Test
+    public void testHTTPCLIENT_911() throws Exception{
+        Assert.assertEquals(new HttpHost("localhost"),URIUtils.exctractHost(new URI("http://localhost/abcd")));
+        Assert.assertEquals(new HttpHost("localhost"),URIUtils.exctractHost(new URI("http://localhost/abcd%3A")));
+        
+        Assert.assertEquals(new HttpHost("local_host"),URIUtils.exctractHost(new URI("http://local_host/abcd")));
+        Assert.assertEquals(new HttpHost("local_host"),URIUtils.exctractHost(new URI("http://local_host/abcd%3A")));
+        
+        Assert.assertEquals(new HttpHost("localhost",8),URIUtils.exctractHost(new URI("http://localhost:8/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8),URIUtils.exctractHost(new URI("http://local_host:8/abcd")));
+
+        // URI seems to OK with missing port number
+        Assert.assertEquals(new HttpHost("localhost"),URIUtils.exctractHost(new URI("http://localhost:/abcd")));
+        Assert.assertEquals(new HttpHost("local_host"),URIUtils.exctractHost(new URI("http://local_host:/abcd")));
+
+        Assert.assertEquals(new HttpHost("localhost",8080),URIUtils.exctractHost(new URI("http://user:pass@localhost:8080/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.exctractHost(new URI("http://user:pass@local_host:8080/abcd")));
+
+        Assert.assertEquals(new HttpHost("localhost",8080),URIUtils.exctractHost(new URI("http://@localhost:8080/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.exctractHost(new URI("http://@local_host:8080/abcd")));
+
+    }
+    
 }

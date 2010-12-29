@@ -57,6 +57,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -626,47 +627,18 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(determineTarget(request), request, context);
     }
 
-    // Package-protected so can be accessed from unit tests
-    static HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
+    private static HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
 
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
-            int port = requestURI.getPort(); // may be overridden later
-            String host = requestURI.getHost();
-            if (host == null) { // normal parse failed; let's do it ourselves
-                // authority does not seem to care about the valid character-set for host names
-                host = requestURI.getAuthority();
-                if (host != null) {
-                    // Strip off any leading user credentials
-                    int at = host.indexOf('@');
-                    if (at >= 0) {
-                        if (host.length() > at+1 ) {
-                            host = host.substring(at+1);
-                        } else {
-                            host = null; // @ on its own
-                        }
-                    }
-                    // Extract the port suffix, if present
-                    if (host != null) { 
-                        int colon = host.indexOf(':');
-                        if (colon >= 0) {
-                            if (colon+1 < host.length()) {
-                                port = Integer.parseInt(host.substring(colon+1));
-                            }
-                            host = host.substring(0,colon);
-                        }                
-                    }                    
-                }
-            }
-            String scheme = requestURI.getScheme();
-            if (host == null) {
+            target = URIUtils.exctractHost(requestURI);
+            if (target == null) {
                 throw new ClientProtocolException(
                         "URI does not specify a valid host name: " + requestURI);
             }
-            target = new HttpHost(host, port, scheme);
         }
         return target;
     }
