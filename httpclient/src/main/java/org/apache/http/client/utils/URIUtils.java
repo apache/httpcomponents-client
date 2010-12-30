@@ -286,7 +286,7 @@ public class URIUtils {
      * 
      * @since 4.1
      */
-    public static HttpHost exctractHost(final URI uri) {
+    public static HttpHost extractHost(final URI uri) {
         if (uri == null) {
             return null;
         }

@@ -634,7 +634,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
-            target = URIUtils.exctractHost(requestURI);
+            target = URIUtils.extractHost(requestURI);
             if (target == null) {
                 throw new ClientProtocolException(
                         "URI does not specify a valid host name: " + requestURI);
