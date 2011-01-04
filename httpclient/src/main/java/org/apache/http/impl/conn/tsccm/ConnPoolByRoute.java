@@ -452,13 +452,13 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
             if (reusable) {
                 if (log.isDebugEnabled()) {
                     String s;
-                    if (validDuration >= 0) {
-                        s = validDuration + " " + timeUnit;
+                    if (validDuration > 0) {
+                        s = "for " + validDuration + " " + timeUnit;
                     } else {
-                        s = "ever";
+                        s = "indefinitely";
                     }
                     log.debug("Pooling connection" +
-                            " [" + route + "][" + entry.getState() + "]; keep alive for " + s);
+                            " [" + route + "][" + entry.getState() + "]; keep alive " + s);
                 }
                 rospl.freeEntry(entry);
                 entry.updateExpiry(validDuration, timeUnit);

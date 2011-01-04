@@ -469,12 +469,12 @@ public class DefaultRequestDirector implements RequestDirector {
                     long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
                         String s;
-                        if (duration >= 0) {
-                            s = duration + " " + TimeUnit.MILLISECONDS;
+                        if (duration > 0) {
+                            s = "for " + duration + " " + TimeUnit.MILLISECONDS;
                         } else {
-                            s = "ever";
+                            s = "indefinitely";
                         }
-                        this.log.debug("Connection can be kept alive for " + s);
+                        this.log.debug("Connection can be kept alive " + s);
                     }
                     managedConn.setIdleDuration(duration, TimeUnit.MILLISECONDS);
                 }
