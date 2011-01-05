@@ -47,7 +47,8 @@ import org.apache.http.ProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.HttpRoutedConnection;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -118,7 +119,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         // Obtain the client connection (required)
-        ManagedClientConnection conn = (ManagedClientConnection) context.getAttribute(
+        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
             throw new IllegalStateException("Client connection not specified in HTTP context");
@@ -144,7 +145,21 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
-            port = conn.getRemotePort();
+            HttpRoute route = conn.getRoute();
+            if (route.getHopCount() == 1) {
+                port = conn.getRemotePort();
+            } else {
+                // Target port will be selected by the proxy.
+                // Use conventional ports for known schemes
+                String scheme = targetHost.getSchemeName();
+                if (scheme.equalsIgnoreCase("http")) {
+                    port = 80;
+                } else if (scheme.equalsIgnoreCase("https")) {
+                    port = 443;
+                } else {
+                    port = 0;
+                }
+            }
         }
 
         CookieOrigin cookieOrigin = new CookieOrigin(

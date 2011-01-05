@@ -34,7 +34,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
@@ -69,7 +69,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         }
 
         // Obtain the client connection (required)
-        ManagedClientConnection conn = (ManagedClientConnection) context.getAttribute(
+        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
             throw new IllegalStateException("Client connection not specified in HTTP context");

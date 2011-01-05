@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -47,7 +46,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * @since 4.0
  */
 public interface ManagedClientConnection extends
-    HttpClientConnection, HttpInetConnection, ConnectionReleaseTrigger {
+    HttpClientConnection, HttpRoutedConnection, ConnectionReleaseTrigger {
 
     /**
      * Indicates whether this connection is secure.
