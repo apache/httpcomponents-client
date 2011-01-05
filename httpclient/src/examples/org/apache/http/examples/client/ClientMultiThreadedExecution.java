@@ -49,37 +49,39 @@ public class ClientMultiThreadedExecution {
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager();
         cm.setMaxTotal(100);
 
-        HttpClient httpClient = new DefaultHttpClient(cm);
+        HttpClient httpclient = new DefaultHttpClient(cm);
+        try {
+            // create an array of URIs to perform GETs on
+            String[] urisToGet = {
+                "http://hc.apache.org/",
+                "http://hc.apache.org/httpcomponents-core-ga/",
+                "http://hc.apache.org/httpcomponents-client-ga/",
+                "http://svn.apache.org/viewvc/httpcomponents/"
+            };
 
-        // create an array of URIs to perform GETs on
-        String[] urisToGet = {
-            "http://hc.apache.org/",
-            "http://hc.apache.org/httpcomponents-core-ga/",
-            "http://hc.apache.org/httpcomponents-client-ga/",
-            "http://svn.apache.org/viewvc/httpcomponents/"
-        };
+            // create a thread for each URI
+            GetThread[] threads = new GetThread[urisToGet.length];
+            for (int i = 0; i < threads.length; i++) {
+                HttpGet httpget = new HttpGet(urisToGet[i]);
+                threads[i] = new GetThread(httpclient, httpget, i + 1);
+            }
 
-        // create a thread for each URI
-        GetThread[] threads = new GetThread[urisToGet.length];
-        for (int i = 0; i < threads.length; i++) {
-            HttpGet httpget = new HttpGet(urisToGet[i]);
-            threads[i] = new GetThread(httpClient, httpget, i + 1);
+            // start the threads
+            for (int j = 0; j < threads.length; j++) {
+                threads[j].start();
+            }
+
+            // join the threads
+            for (int j = 0; j < threads.length; j++) {
+                threads[j].join();
+            }
+
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-
-        // start the threads
-        for (int j = 0; j < threads.length; j++) {
-            threads[j].start();
-        }
-
-        // join the threads
-        for (int j = 0; j < threads.length; j++) {
-            threads[j].join();
-        }
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpClient.getConnectionManager().shutdown();
     }
 
     /**

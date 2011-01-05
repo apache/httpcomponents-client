@@ -48,31 +48,34 @@ public class ClientExecuteProxy {
         HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        try {
+            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 
-        HttpHost target = new HttpHost("issues.apache.org", 443, "https");
-        HttpGet req = new HttpGet("/");
+            HttpHost target = new HttpHost("issues.apache.org", 443, "https");
+            HttpGet req = new HttpGet("/");
 
-        System.out.println("executing request to " + target + " via " + proxy);
-        HttpResponse rsp = httpclient.execute(target, req);
-        HttpEntity entity = rsp.getEntity();
+            System.out.println("executing request to " + target + " via " + proxy);
+            HttpResponse rsp = httpclient.execute(target, req);
+            HttpEntity entity = rsp.getEntity();
 
-        System.out.println("----------------------------------------");
-        System.out.println(rsp.getStatusLine());
-        Header[] headers = rsp.getAllHeaders();
-        for (int i = 0; i<headers.length; i++) {
-            System.out.println(headers[i]);
+            System.out.println("----------------------------------------");
+            System.out.println(rsp.getStatusLine());
+            Header[] headers = rsp.getAllHeaders();
+            for (int i = 0; i<headers.length; i++) {
+                System.out.println(headers[i]);
+            }
+            System.out.println("----------------------------------------");
+
+            if (entity != null) {
+                System.out.println(EntityUtils.toString(entity));
+            }
+
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-        System.out.println("----------------------------------------");
-
-        if (entity != null) {
-            System.out.println(EntityUtils.toString(entity));
-        }
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
 }

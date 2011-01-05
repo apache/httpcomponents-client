@@ -126,48 +126,50 @@ public class ClientKerberosAuthentication {
         System.setProperty("javax.security.auth.useSubjectCredsOnly","false");
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
+        try {
+            NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
+//            nsf.setStripPort(false);
+//            nsf.setSpengoGenerator(new BouncySpnegoTokenGenerator());
 
-        NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
-//        nsf.setStripPort(false);
-//        nsf.setSpengoGenerator(new BouncySpnegoTokenGenerator());
+            httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
-        httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
+            Credentials use_jaas_creds = new Credentials() {
 
-        Credentials use_jaas_creds = new Credentials() {
+                public String getPassword() {
+                    return null;
+                }
 
-            public String getPassword() {
-                return null;
+                public Principal getUserPrincipal() {
+                    return null;
+                }
+
+            };
+
+            httpclient.getCredentialsProvider().setCredentials(
+                    new AuthScope(null, -1, null),
+                    use_jaas_creds);
+
+            HttpUriRequest request = new HttpGet("http://kerberoshost/");
+            HttpResponse response = httpclient.execute(request);
+            HttpEntity entity = response.getEntity();
+
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            System.out.println("----------------------------------------");
+            if (entity != null) {
+                System.out.println(EntityUtils.toString(entity));
             }
+            System.out.println("----------------------------------------");
 
-            public Principal getUserPrincipal() {
-                return null;
-            }
+            // This ensures the connection gets released back to the manager
+            EntityUtils.consume(entity);
 
-        };
-
-        httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope(null, -1, null),
-                use_jaas_creds);
-
-        HttpUriRequest request = new HttpGet("http://kerberoshost/");
-        HttpResponse response = httpclient.execute(request);
-        HttpEntity entity = response.getEntity();
-
-        System.out.println("----------------------------------------");
-        System.out.println(response.getStatusLine());
-        System.out.println("----------------------------------------");
-        if (entity != null) {
-            System.out.println(EntityUtils.toString(entity));
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-        System.out.println("----------------------------------------");
-
-        // This ensures the connection gets released back to the manager
-        EntityUtils.consume(entity);
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
 }

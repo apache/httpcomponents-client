@@ -40,28 +40,29 @@ public class ClientAbortMethod {
 
     public final static void main(String[] args) throws Exception {
         HttpClient httpclient = new DefaultHttpClient();
+        try {
+            HttpGet httpget = new HttpGet("http://www.apache.org/");
 
-        HttpGet httpget = new HttpGet("http://www.apache.org/");
+            System.out.println("executing request " + httpget.getURI());
+            HttpResponse response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
 
-        System.out.println("executing request " + httpget.getURI());
-        HttpResponse response = httpclient.execute(httpget);
-        HttpEntity entity = response.getEntity();
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+            }
+            System.out.println("----------------------------------------");
 
-        System.out.println("----------------------------------------");
-        System.out.println(response.getStatusLine());
-        if (entity != null) {
-            System.out.println("Response content length: " + entity.getContentLength());
+            // Do not feel like reading the response body
+            // Call abort on the request object
+            httpget.abort();
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-        System.out.println("----------------------------------------");
-
-        // Do not feel like reading the response body
-        // Call abort on the request object
-        httpget.abort();
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
 }

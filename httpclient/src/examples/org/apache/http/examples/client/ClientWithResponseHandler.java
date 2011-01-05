@@ -42,22 +42,24 @@ public class ClientWithResponseHandler {
     public final static void main(String[] args) throws Exception {
 
         HttpClient httpclient = new DefaultHttpClient();
+        try {
+            HttpGet httpget = new HttpGet("http://www.google.com/");
 
-        HttpGet httpget = new HttpGet("http://www.google.com/");
+            System.out.println("executing request " + httpget.getURI());
 
-        System.out.println("executing request " + httpget.getURI());
+            // Create a response handler
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseBody = httpclient.execute(httpget, responseHandler);
+            System.out.println("----------------------------------------");
+            System.out.println(responseBody);
+            System.out.println("----------------------------------------");
 
-        // Create a response handler
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String responseBody = httpclient.execute(httpget, responseHandler);
-        System.out.println("----------------------------------------");
-        System.out.println(responseBody);
-        System.out.println("----------------------------------------");
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
     }
 
 }

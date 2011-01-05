@@ -54,47 +54,49 @@ public class ClientPreemptiveDigestAuthentication {
         HttpHost targetHost = new HttpHost("localhost", 80, "http");
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
+        try {
+            httpclient.getCredentialsProvider().setCredentials(
+                    new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+                    new UsernamePasswordCredentials("username", "password"));
 
-        httpclient.getCredentialsProvider().setCredentials(
-                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
-                new UsernamePasswordCredentials("username", "password"));
+            // Create AuthCache instance
+            AuthCache authCache = new BasicAuthCache();
+            // Generate DIGEST scheme object, initialize it and add it to the local
+            // auth cache
+            DigestScheme digestAuth = new DigestScheme();
+            // Suppose we already know the realm name
+            digestAuth.overrideParamter("realm", "some realm");
+            // Suppose we already know the expected nonce value
+            digestAuth.overrideParamter("nonce", "whatever");
+            authCache.put(targetHost, digestAuth);
 
-        // Create AuthCache instance
-        AuthCache authCache = new BasicAuthCache();
-        // Generate DIGEST scheme object, initialize it and add it to the local
-        // auth cache
-        DigestScheme digestAuth = new DigestScheme();
-        // Suppose we already know the realm name
-        digestAuth.overrideParamter("realm", "some realm");
-        // Suppose we already know the expected nonce value
-        digestAuth.overrideParamter("nonce", "whatever");
-        authCache.put(targetHost, digestAuth);
+            // Add AuthCache to the execution context
+            BasicHttpContext localcontext = new BasicHttpContext();
+            localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        // Add AuthCache to the execution context
-        BasicHttpContext localcontext = new BasicHttpContext();
-        localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+            HttpGet httpget = new HttpGet("/");
 
-        HttpGet httpget = new HttpGet("/");
+            System.out.println("executing request: " + httpget.getRequestLine());
+            System.out.println("to target: " + targetHost);
 
-        System.out.println("executing request: " + httpget.getRequestLine());
-        System.out.println("to target: " + targetHost);
+            for (int i = 0; i < 3; i++) {
+                HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
+                HttpEntity entity = response.getEntity();
 
-        for (int i = 0; i < 3; i++) {
-            HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
-            HttpEntity entity = response.getEntity();
-
-            System.out.println("----------------------------------------");
-            System.out.println(response.getStatusLine());
-            if (entity != null) {
-                System.out.println("Response content length: " + entity.getContentLength());
+                System.out.println("----------------------------------------");
+                System.out.println(response.getStatusLine());
+                if (entity != null) {
+                    System.out.println("Response content length: " + entity.getContentLength());
+                }
+                EntityUtils.consume(entity);
             }
-            EntityUtils.consume(entity);
-        }
 
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
     }
 
 }

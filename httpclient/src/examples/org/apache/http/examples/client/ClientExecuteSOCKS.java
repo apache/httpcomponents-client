@@ -57,34 +57,37 @@ public class ClientExecuteSOCKS {
 
     public static void main(String[] args)throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getParams().setParameter("socks.host", "mysockshost");
-        httpclient.getParams().setParameter("socks.port", 1234);
-        httpclient.getConnectionManager().getSchemeRegistry().register(
-                new Scheme("http", 80, new MySchemeSocketFactory()));
+        try {
+            httpclient.getParams().setParameter("socks.host", "mysockshost");
+            httpclient.getParams().setParameter("socks.port", 1234);
+            httpclient.getConnectionManager().getSchemeRegistry().register(
+                    new Scheme("http", 80, new MySchemeSocketFactory()));
 
-        HttpHost target = new HttpHost("www.apache.org", 80, "http");
-        HttpGet req = new HttpGet("/");
+            HttpHost target = new HttpHost("www.apache.org", 80, "http");
+            HttpGet req = new HttpGet("/");
 
-        System.out.println("executing request to " + target + " via SOCKS proxy");
-        HttpResponse rsp = httpclient.execute(target, req);
-        HttpEntity entity = rsp.getEntity();
+            System.out.println("executing request to " + target + " via SOCKS proxy");
+            HttpResponse rsp = httpclient.execute(target, req);
+            HttpEntity entity = rsp.getEntity();
 
-        System.out.println("----------------------------------------");
-        System.out.println(rsp.getStatusLine());
-        Header[] headers = rsp.getAllHeaders();
-        for (int i = 0; i<headers.length; i++) {
-            System.out.println(headers[i]);
+            System.out.println("----------------------------------------");
+            System.out.println(rsp.getStatusLine());
+            Header[] headers = rsp.getAllHeaders();
+            for (int i = 0; i<headers.length; i++) {
+                System.out.println(headers[i]);
+            }
+            System.out.println("----------------------------------------");
+
+            if (entity != null) {
+                System.out.println(EntityUtils.toString(entity));
+            }
+
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-        System.out.println("----------------------------------------");
-
-        if (entity != null) {
-            System.out.println(EntityUtils.toString(entity));
-        }
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
     static class MySchemeSocketFactory implements SchemeSocketFactory {

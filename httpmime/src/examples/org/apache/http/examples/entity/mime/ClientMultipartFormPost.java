@@ -49,29 +49,32 @@ public class ClientMultipartFormPost {
             System.exit(1);
         }
         HttpClient httpclient = new DefaultHttpClient();
+        try {
+            HttpPost httppost = new HttpPost("http://localhost:8080" +
+                    "/servlets-examples/servlet/RequestInfoExample");
 
-        HttpPost httppost = new HttpPost("http://localhost:8080" +
-                "/servlets-examples/servlet/RequestInfoExample");
+            FileBody bin = new FileBody(new File(args[0]));
+            StringBody comment = new StringBody("A binary file of some kind");
 
-        FileBody bin = new FileBody(new File(args[0]));
-        StringBody comment = new StringBody("A binary file of some kind");
+            MultipartEntity reqEntity = new MultipartEntity();
+            reqEntity.addPart("bin", bin);
+            reqEntity.addPart("comment", comment);
 
-        MultipartEntity reqEntity = new MultipartEntity();
-        reqEntity.addPart("bin", bin);
-        reqEntity.addPart("comment", comment);
-        
-        httppost.setEntity(reqEntity);
-        
-        System.out.println("executing request " + httppost.getRequestLine());
-        HttpResponse response = httpclient.execute(httppost);
-        HttpEntity resEntity = response.getEntity();
+            httppost.setEntity(reqEntity);
 
-        System.out.println("----------------------------------------");
-        System.out.println(response.getStatusLine());
-        if (resEntity != null) {
-            System.out.println("Response content length: " + resEntity.getContentLength());
+            System.out.println("executing request " + httppost.getRequestLine());
+            HttpResponse response = httpclient.execute(httppost);
+            HttpEntity resEntity = response.getEntity();
+
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            if (resEntity != null) {
+                System.out.println("Response content length: " + resEntity.getContentLength());
+            }
+            EntityUtils.consume(resEntity);
+        } finally {
+            try { httpclient.getConnectionManager().shutdown(); } catch (Exception ignore) {}
         }
-        EntityUtils.consume(resEntity);
     }
     
 }

@@ -48,48 +48,50 @@ public class ClientEvictExpiredConnections {
         cm.setMaxTotal(100);
 
         HttpClient httpclient = new DefaultHttpClient(cm);
+        try {
+            // create an array of URIs to perform GETs on
+            String[] urisToGet = {
+                "http://jakarta.apache.org/",
+                "http://jakarta.apache.org/commons/",
+                "http://jakarta.apache.org/commons/httpclient/",
+                "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
+            };
 
-        // create an array of URIs to perform GETs on
-        String[] urisToGet = {
-            "http://jakarta.apache.org/",
-            "http://jakarta.apache.org/commons/",
-            "http://jakarta.apache.org/commons/httpclient/",
-            "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
-        };
+            IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
+            connEvictor.start();
 
-        IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
-        connEvictor.start();
+            for (int i = 0; i < urisToGet.length; i++) {
+                String requestURI = urisToGet[i];
+                HttpGet req = new HttpGet(requestURI);
 
-        for (int i = 0; i < urisToGet.length; i++) {
-            String requestURI = urisToGet[i];
-            HttpGet req = new HttpGet(requestURI);
+                System.out.println("executing request " + requestURI);
 
-            System.out.println("executing request " + requestURI);
+                HttpResponse rsp = httpclient.execute(req);
+                HttpEntity entity = rsp.getEntity();
 
-            HttpResponse rsp = httpclient.execute(req);
-            HttpEntity entity = rsp.getEntity();
+                System.out.println("----------------------------------------");
+                System.out.println(rsp.getStatusLine());
+                if (entity != null) {
+                    System.out.println("Response content length: " + entity.getContentLength());
+                }
+                System.out.println("----------------------------------------");
 
-            System.out.println("----------------------------------------");
-            System.out.println(rsp.getStatusLine());
-            if (entity != null) {
-                System.out.println("Response content length: " + entity.getContentLength());
+                EntityUtils.consume(entity);
             }
-            System.out.println("----------------------------------------");
 
-            EntityUtils.consume(entity);
+            // Sleep 10 sec and let the connection evictor do its job
+            Thread.sleep(20000);
+
+            // Shut down the evictor thread
+            connEvictor.shutdown();
+            connEvictor.join();
+
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-
-        // Sleep 10 sec and let the connection evictor do its job
-        Thread.sleep(20000);
-
-        // Shut down the evictor thread
-        connEvictor.shutdown();
-        connEvictor.join();
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
     public static class IdleConnectionEvictor extends Thread {

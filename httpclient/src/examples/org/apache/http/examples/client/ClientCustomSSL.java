@@ -46,37 +46,39 @@ public class ClientCustomSSL {
 
     public final static void main(String[] args) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
-
-        KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
-        FileInputStream instream = new FileInputStream(new File("my.keystore"));
         try {
-            trustStore.load(instream, "nopassword".toCharArray());
+            KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
+            FileInputStream instream = new FileInputStream(new File("my.keystore"));
+            try {
+                trustStore.load(instream, "nopassword".toCharArray());
+            } finally {
+                try { instream.close(); } catch (Exception ignore) {}
+            }
+
+            SSLSocketFactory socketFactory = new SSLSocketFactory(trustStore);
+            Scheme sch = new Scheme("https", 443, socketFactory);
+            httpclient.getConnectionManager().getSchemeRegistry().register(sch);
+
+            HttpGet httpget = new HttpGet("https://localhost/");
+
+            System.out.println("executing request" + httpget.getRequestLine());
+
+            HttpResponse response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+            }
+            EntityUtils.consume(entity);
+
         } finally {
-            instream.close();
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
         }
-
-        SSLSocketFactory socketFactory = new SSLSocketFactory(trustStore);
-        Scheme sch = new Scheme("https", 443, socketFactory);
-        httpclient.getConnectionManager().getSchemeRegistry().register(sch);
-
-        HttpGet httpget = new HttpGet("https://localhost/");
-
-        System.out.println("executing request" + httpget.getRequestLine());
-
-        HttpResponse response = httpclient.execute(httpget);
-        HttpEntity entity = response.getEntity();
-
-        System.out.println("----------------------------------------");
-        System.out.println(response.getStatusLine());
-        if (entity != null) {
-            System.out.println("Response content length: " + entity.getContentLength());
-        }
-        EntityUtils.consume(entity);
-
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
     }
 
 }

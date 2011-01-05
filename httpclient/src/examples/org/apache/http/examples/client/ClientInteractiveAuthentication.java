@@ -50,66 +50,68 @@ public class ClientInteractiveAuthentication {
 
     public static void main(String[] args) throws Exception {
         DefaultHttpClient httpclient = new DefaultHttpClient();
+        try {
+            // Create local execution context
+            HttpContext localContext = new BasicHttpContext();
 
-        // Create local execution context
-        HttpContext localContext = new BasicHttpContext();
+            HttpGet httpget = new HttpGet("http://localhost/test");
 
-        HttpGet httpget = new HttpGet("http://localhost/test");
+            boolean trying = true;
+            while (trying) {
+                System.out.println("executing request " + httpget.getRequestLine());
+                HttpResponse response = httpclient.execute(httpget, localContext);
 
-        boolean trying = true;
-        while (trying) {
-            System.out.println("executing request " + httpget.getRequestLine());
-            HttpResponse response = httpclient.execute(httpget, localContext);
-
-            System.out.println("----------------------------------------");
-            System.out.println(response.getStatusLine());
-
-            // Consume response content
-            HttpEntity entity = response.getEntity();
-            EntityUtils.consume(entity);
-
-            int sc = response.getStatusLine().getStatusCode();
-
-            AuthState authState = null;
-            if (sc == HttpStatus.SC_UNAUTHORIZED) {
-                // Target host authentication required
-                authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
-            }
-            if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
-                // Proxy authentication required
-                authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
-            }
-
-            if (authState != null) {
                 System.out.println("----------------------------------------");
-                AuthScope authScope = authState.getAuthScope();
-                System.out.println("Please provide credentials");
-                System.out.println(" Host: " + authScope.getHost() + ":" + authScope.getPort());
-                System.out.println(" Realm: " + authScope.getRealm());
+                System.out.println(response.getStatusLine());
+
+                // Consume response content
+                HttpEntity entity = response.getEntity();
+                EntityUtils.consume(entity);
+
+                int sc = response.getStatusLine().getStatusCode();
+
+                AuthState authState = null;
+                if (sc == HttpStatus.SC_UNAUTHORIZED) {
+                    // Target host authentication required
+                    authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
+                }
+                if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+                    // Proxy authentication required
+                    authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
+                }
+
+                if (authState != null) {
+                    System.out.println("----------------------------------------");
+                    AuthScope authScope = authState.getAuthScope();
+                    System.out.println("Please provide credentials");
+                    System.out.println(" Host: " + authScope.getHost() + ":" + authScope.getPort());
+                    System.out.println(" Realm: " + authScope.getRealm());
 
 
-                BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+                    BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
-                System.out.print("Enter username: ");
-                String user = console.readLine();
-                System.out.print("Enter password: ");
-                String password = console.readLine();
+                    System.out.print("Enter username: ");
+                    String user = console.readLine();
+                    System.out.print("Enter password: ");
+                    String password = console.readLine();
 
-                if (user != null && user.length() > 0) {
-                    Credentials creds = new UsernamePasswordCredentials(user, password);
-                    httpclient.getCredentialsProvider().setCredentials(authScope, creds);
-                    trying = true;
+                    if (user != null && user.length() > 0) {
+                        Credentials creds = new UsernamePasswordCredentials(user, password);
+                        httpclient.getCredentialsProvider().setCredentials(authScope, creds);
+                        trying = true;
+                    } else {
+                        trying = false;
+                    }
                 } else {
                     trying = false;
                 }
-            } else {
-                trying = false;
             }
-        }
 
-        // When HttpClient instance is no longer needed,
-        // shut down the connection manager to ensure
-        // immediate deallocation of all system resources
-        httpclient.getConnectionManager().shutdown();
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
     }
 }
