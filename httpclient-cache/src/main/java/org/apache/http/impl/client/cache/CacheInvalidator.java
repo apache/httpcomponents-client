@@ -185,7 +185,6 @@ class CacheInvalidator {
 
     /** Flushes entries that were invalidated by the given response
      * received for the given host/request pair. 
-     * @throws IOException 
      */
     public void flushInvalidatedCacheEntries(HttpHost host,
             HttpRequest request, HttpResponse response) {

@@ -132,7 +132,6 @@ class ConditionalRequestBuilder {
      * @param request client request we are trying to satisfy
      * @param entry existing cache entry we are trying to validate
      * @return an unconditional validation request
-     * @throws ProtocolException
      */
     public HttpRequest buildUnconditionalRequest(HttpRequest request,
             HttpCacheEntry entry) { 
