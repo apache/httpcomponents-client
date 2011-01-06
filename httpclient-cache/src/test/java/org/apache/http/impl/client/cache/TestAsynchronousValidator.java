@@ -165,7 +165,7 @@ public class TestAsynchronousValidator {
     }
     
     @Test
-    public void testRevalidateCacheEntryEndToEnd() throws ProtocolException, IOException, InterruptedException {
+    public void testRevalidateCacheEntryEndToEnd() throws ProtocolException, IOException {
         CacheConfig config = new CacheConfig();
         config.setAsynchronousWorkersMax(1);
         config.setAsynchronousWorkersCore(1);
