@@ -26,9 +26,12 @@
  */
 package org.apache.http.client.cache;
 
+import org.apache.http.annotation.NotThreadSafe;
+
 /**
  * @since 4.1
  */
+@NotThreadSafe // reached
 public class InputLimit {
 
     private final long value;
