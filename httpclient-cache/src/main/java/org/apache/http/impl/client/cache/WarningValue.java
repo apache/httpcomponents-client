@@ -346,6 +346,7 @@ class WarningValue {
      * </pre>
      * @return {@link String}
      */
+    @Override
     public String toString() {
         if (warnDate != null) {
             return String.format("%d %s %s \"%s\"", warnCode,
