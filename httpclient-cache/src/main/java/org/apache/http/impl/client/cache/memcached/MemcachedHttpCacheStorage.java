@@ -47,8 +47,8 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
-    private MemcachedClientIF client;
-    private HttpCacheEntrySerializer serializer;
+    private final MemcachedClientIF client;
+    private final HttpCacheEntrySerializer serializer;
     private final int maxUpdateRetries;
 
     public MemcachedHttpCacheStorage(InetSocketAddress address) throws IOException {
