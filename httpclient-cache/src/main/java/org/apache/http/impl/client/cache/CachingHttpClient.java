@@ -861,7 +861,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequest request,
-            HttpResponse backendResponse) throws IOException {
+            HttpResponse backendResponse) {
         HttpCacheEntry existing = null;
         try {
             existing = responseCache.getCacheEntry(target, request);
