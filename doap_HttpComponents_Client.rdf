@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl"?>
 <rdf:RDF xml:lang="en"
-         xmlns="http://usefulinc.com/ns/doap#" 
-         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns="http://usefulinc.com/ns/doap#"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:asfext="http://projects.apache.org/ns/asfext#"
          xmlns:foaf="http://xmlns.com/foaf/0.1/">
 <!--
@@ -38,7 +38,7 @@
     <homepage rdf:resource="http://hc.apache.org/httpcomponents-client-ga/" />
     <asfext:pmc rdf:resource="http://httpcomponents.apache.org" />
     <shortdesc>
-Java library implementing an HttpClient based on HttpCore.
+Java library implementing an HTTP client based on HttpCore components.
     </shortdesc>
     <description>
 HttpClient is a library for client-side HTTP communication built on HttpCore.
@@ -114,6 +114,11 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
         <name>httpcomponents-client-4.0.3</name>
         <created>2010-09-19</created>
         <revision>4.0.3</revision>
+      </Version>
+      <Version>
+        <name>httpcomponents-client-4.1-beta1</name>
+        <created>2010-11-21</created>
+        <revision>4.1-beta1</revision>
       </Version>
     </release>
 
