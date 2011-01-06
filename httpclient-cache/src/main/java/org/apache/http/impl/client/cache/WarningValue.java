@@ -118,7 +118,7 @@ class WarningValue {
      * CHAR           = <any US-ASCII character (octets 0 - 127)>
      */
     private boolean isChar(char c) {
-        int i = (int)c;
+        int i = c;
         return (i >= 0 && i <= 127);
     }
 
@@ -127,7 +127,7 @@ class WarningValue {
                         (octets 0 - 31) and DEL (127)>
      */
     private boolean isControl(char c) {
-        int i = (int)c;
+        int i = c;
         return (i == 127 || (i >=0 && i <= 31));
     }
 

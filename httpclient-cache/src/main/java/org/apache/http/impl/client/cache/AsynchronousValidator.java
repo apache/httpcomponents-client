@@ -71,7 +71,7 @@ class AsynchronousValidator {
         this(cachingClient,
                 new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
                         config.getAsynchronousWorkersMax(),
-                        (long)config.getAsynchronousWorkerIdleLifetimeSecs(),
+                        config.getAsynchronousWorkerIdleLifetimeSecs(),
                         TimeUnit.SECONDS,
                         new ArrayBlockingQueue<Runnable>(config.getRevalidationQueueSize()))
                 );
