@@ -77,7 +77,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         if (null == data)
             return null;
         InputStream bis = new ByteArrayInputStream(data);
-        return (HttpCacheEntry) serializer.readFrom(bis);
+        return serializer.readFrom(bis);
     }
 
     public void removeEntry(String url) throws IOException {
