@@ -253,7 +253,7 @@ public class TestHttpRoute {
 
         // for the next two, we don't indicate a tunnel anymore
         try {
-            route = new HttpRoute(TARGET1, null, chain0, false,
+            new HttpRoute(TARGET1, null, chain0, false,
                                   TunnelType.PLAIN, LayerType.PLAIN);
             Assert.fail("invalid proxy chain (0) not detected");
         } catch (IllegalArgumentException iax) {
