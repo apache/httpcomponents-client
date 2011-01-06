@@ -1,19 +1,52 @@
-Changes since 4.1 BETA1
------------------------
+Release 4.1
+-------------------
 
-* [HTTPCLIENT-1036] StringBody has incorrect default for characterset. (Default changed to US-ASCII)
- Contributed by Sebastian Bazley <sebb at apache.org>
+HttpClient 4.1 release builds upon the stable foundation laid by HttpClient 4.0 and adds several
+functional improvements and popular features.
+
+* Response caching conditionally compliant with HTTP/1.1 specification (full compliance with
+  MUST requirements, partial compliance with SHOULD requirements)
+
+* Full support for NTLMv1, NTLMv2, and NTLM2 Session authentication. The NTLM protocol code 
+  was kindly contributed by the Lucene Connector Framework project.
+
+* Support for SPNEGO/Kerberos authentication.
+
+* Persistence of authentication data between request executions within the same execution context.
+
+* Support for preemptive authentication for BASIC and DIGEST schemes.
+  
+* Support for transparent content encoding. Please note transparent content encoding is not 
+  enabled per default in order to avoid conflicts with already existing custom content encoding 
+  solutions.
+
+* Mechanism to bypass the standard certificate trust verification (useful when dealing with 
+  self-signed certificates).
+
+* Simplified configuration for connection managers.
+
+* Transparent support for host multihoming.
+
+IMPORTANT: please note that HttpClient 3.x branch is now officially END OF LIFE and is no longer
+maintained and supported by Apache HttpComponents project.
+
+Changelog
+-------------------
+* [HTTPCLIENT-1036] StringBody has incorrect default for characterset. (Default changed 
+  to US-ASCII)
+  Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-975] Support stale-if-error extension directive (RFC5861).
   Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>,
   Michajlo Matijkiw <michajlo_matijkiw at comcast.com>, and
   Matthew Hawthorne <matthew_hawthorne at comcast.com>.
 
-* [HTTPCLIENT-1033] HttpRoute.equals(Object o) is quite inefficient, as it does not take full advantage of shortcut logic
- Contributed by Sebastian Bazley <sebb at apache.org>
+* [HTTPCLIENT-1033] HttpRoute.equals(Object o) is quite inefficient, as it does not take full 
+  advantage of shortcut logic.
+  Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-1030] Implement "ignoreCookies" CookieSpec
- Contributed by Sebastian Bazley <sebb at apache.org>
+  Contributed by Sebastian Bazley <sebb at apache.org>
 
 Release 4.1 BETA1
 -------------------
