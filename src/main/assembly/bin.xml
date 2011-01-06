@@ -1,4 +1,4 @@
-<!-- 
+<!--
    $HeadURL: http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk/src/main/assembly/bin-unix.xml $
    $Revision: 687166 $
    $Date: 2008-08-19 23:40:27 +0200 (Tue, 19 Aug 2008) $
@@ -34,16 +34,24 @@
         <format>zip</format>
     </formats>
     <moduleSets>
-        <moduleSet>
-          <excludes>
-            <exclude>org.apache.httpcomponents:httpclient-osgi</exclude>
-          </excludes>
-          <binaries>
-            <includeDependencies>false</includeDependencies>
-            <outputDirectory>lib</outputDirectory>
-            <unpack>false</unpack>
-          </binaries>
-        </moduleSet>
+      <moduleSet>
+        <excludes>
+          <exclude>org.apache.httpcomponents:httpclient-osgi</exclude>
+        </excludes>
+        <binaries>
+          <outputDirectory>lib</outputDirectory>
+          <unpack>false</unpack>
+          <dependencySets>
+            <dependencySet>
+              <excludes>
+                <exclude>net.sf.ehcache:*</exclude>
+                <exclude>spy:*</exclude>
+                <exclude>org.slf4j:*</exclude>
+              </excludes>
+            </dependencySet>
+          </dependencySets>
+        </binaries>
+      </moduleSet>
     </moduleSets>
     <fileSets>
         <fileSet>
@@ -54,7 +62,6 @@
             <include>LICENSE.txt</include>
             <include>NOTICE.txt</include>
             <include>RELEASE_NOTES.txt</include>
-            <include>NTLM_SUPPORT.txt</include>
           </includes>
         </fileSet>
         <!-- Javadocs -->

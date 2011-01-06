@@ -132,7 +132,6 @@
           <descriptors>
             <descriptor>src/main/assembly/bin.xml</descriptor>
             <descriptor>src/main/assembly/osgi-bin.xml</descriptor>
-            <descriptor>src/main/assembly/bin-with-deps.xml</descriptor>
             <descriptor>src/main/assembly/src.xml</descriptor>
           </descriptors>
           <tarLongFileMode>gnu</tarLongFileMode>
@@ -146,10 +145,6 @@
             <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
               <property name="package.name" value="${project.artifactId}-${project.version}-bin" />
-            </ant>
-            <ant antfile="src/main/assembly/build.xml">
-              <property name="target" value="${project.build.directory}" />
-              <property name="package.name" value="${project.artifactId}-${project.version}-bin-with-dependencies" />
             </ant>
             <ant antfile="src/main/assembly/build.xml">
               <property name="target" value="${project.build.directory}" />
