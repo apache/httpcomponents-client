@@ -5549,7 +5549,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
 
     private void assertValidViaHeader(String via) {
-        //    	Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
+        //        Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
         //        received-protocol = [ protocol-name "/" ] protocol-version
         //        protocol-name     = token
         //        protocol-version  = token

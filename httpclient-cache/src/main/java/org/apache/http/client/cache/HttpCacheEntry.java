@@ -228,7 +228,7 @@ public class HttpCacheEntry implements Serializable {
     public Map<String, String> getVariantMap() {
         if (variantMap == null) {
             throw new UnsupportedOperationException("variant maps not" +
-            		"supported if constructed with deprecated variant set");
+                    "supported if constructed with deprecated variant set");
         }
         return Collections.unmodifiableMap(variantMap);
     }

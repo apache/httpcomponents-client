@@ -666,8 +666,8 @@ public class CachingHttpClient implements HttpClient {
 
     }
 
-	private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
-			HttpCacheEntry cacheEntry) {
+    private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
+            HttpCacheEntry cacheEntry) {
         final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
         final Header responseDateHeader = backendResponse.getFirstHeader("Date");
         if (entryDateHeader != null && responseDateHeader != null) {
@@ -682,8 +682,8 @@ public class CachingHttpClient implements HttpClient {
                 // unconditional retry recommended in 13.2.6 of RFC 2616.
             }
         }
-		return false;
-	}
+        return false;
+    }
     
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
@@ -716,7 +716,7 @@ public class CachingHttpClient implements HttpClient {
         HttpCacheEntry matchedEntry = matchingVariant.getEntry();
         
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
-        	return retryRequestUnconditionally(target, request, context,
+            return retryRequestUnconditionally(target, request, context,
                     matchedEntry);
         }
         
@@ -740,7 +740,7 @@ public class CachingHttpClient implements HttpClient {
             HttpRequest request, HttpContext context,
             HttpCacheEntry matchedEntry) throws IOException {
         HttpRequest unconditional = conditionalRequestBuilder
-        	.buildUnconditionalRequest(request, matchedEntry);
+            .buildUnconditionalRequest(request, matchedEntry);
         return callBackend(target, unconditional, context);
     }
 
@@ -779,18 +779,18 @@ public class CachingHttpClient implements HttpClient {
             HttpContext context,
             HttpCacheEntry cacheEntry) throws IOException, ProtocolException {
 
-    	HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
+        HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
 
         Date requestDate = getCurrentDate();
         HttpResponse backendResponse = backend.execute(target, conditionalRequest, context);
         Date responseDate = getCurrentDate();
 
         if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
-        	HttpRequest unconditional = conditionalRequestBuilder
-        		.buildUnconditionalRequest(request, cacheEntry);
-        	requestDate = getCurrentDate();
-        	backendResponse = backend.execute(target, unconditional, context);
-        	responseDate = getCurrentDate();
+            HttpRequest unconditional = conditionalRequestBuilder
+                .buildUnconditionalRequest(request, cacheEntry);
+            requestDate = getCurrentDate();
+            backendResponse = backend.execute(target, unconditional, context);
+            responseDate = getCurrentDate();
         }
 
         backendResponse.addHeader("Via", generateViaHeader(backendResponse));
@@ -822,11 +822,11 @@ public class CachingHttpClient implements HttpClient {
                                      backendResponse);
     }
 
-	private boolean staleIfErrorAppliesTo(int statusCode) {
-	    return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR  
-        		|| statusCode == HttpStatus.SC_BAD_GATEWAY  
-        		|| statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE  
-        		|| statusCode == HttpStatus.SC_GATEWAY_TIMEOUT;
+    private boolean staleIfErrorAppliesTo(int statusCode) {
+        return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR  
+                || statusCode == HttpStatus.SC_BAD_GATEWAY  
+                || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE  
+                || statusCode == HttpStatus.SC_GATEWAY_TIMEOUT;
     }
 
     HttpResponse handleBackendResponse(

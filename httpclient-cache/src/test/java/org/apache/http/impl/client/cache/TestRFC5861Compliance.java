@@ -45,7 +45,7 @@ import org.junit.Test;
  */
 public class TestRFC5861Compliance extends AbstractProtocolTest {
 
-    /*	
+    /*    
      * "The stale-if-error Cache-Control extension indicates that when an
      * error is encountered, a cached stale response MAY be used to satisfy
      * the request, regardless of other freshness information.When used as a 
@@ -62,11 +62,11 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
      */
     @Test
     public void testStaleIfErrorInResponseIsTrueReturnsStaleEntryWithWarning()
-    		throws Exception{
+            throws Exception{
         Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-        		"public, max-age=5, stale-if-error=60");
+                "public, max-age=5, stale-if-error=60");
         
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -183,11 +183,11 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     
     @Test
     public void testStaleIfErrorInRequestIsTrueReturnsStaleEntryWithWarning()
-    		throws Exception{
+            throws Exception{
         Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-        		"public, max-age=5");
+                "public, max-age=5");
         
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -207,12 +207,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     
     @Test
     public void testStaleIfErrorInResponseIsFalseReturnsError()
-    		throws Exception{
-    	Date now = new Date();
+            throws Exception{
+        Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-        		"public, max-age=5, stale-if-error=2");
+                "public, max-age=5, stale-if-error=2");
         
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -232,12 +232,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     
     @Test
     public void testStaleIfErrorInRequestIsFalseReturnsError()
-    		throws Exception{
-    	Date now = new Date();
+            throws Exception{
+        Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-        		"public, max-age=5");
+                "public, max-age=5");
         
         backendExpectsAnyRequest().andReturn(resp1);
 

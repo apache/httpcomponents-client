@@ -100,12 +100,12 @@ class CacheEntryUpdater {
 
         if (entryAndResponseHaveDateHeader(entry, response)
                 && entryDateHeaderNewerThenResponse(entry, response)) {
-        	// Don't merge headers, keep the entry's headers as they are newer.
-        	return entry.getAllHeaders();
+            // Don't merge headers, keep the entry's headers as they are newer.
+            return entry.getAllHeaders();
         }
 
         List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
-        		.getAllHeaders()));
+                .getAllHeaders()));
         removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
         removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
         cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));

@@ -208,7 +208,7 @@ class WarningValue {
             char c = src.charAt(offs);
             if (offs + 1 < src.length() && c == '\\'
                 && isChar(src.charAt(offs+1))) {
-                offs += 2;	// consume quoted-pair
+                offs += 2;    // consume quoted-pair
             } else if (c == '\"') {
                 foundEnd = true;
                 offs++;
