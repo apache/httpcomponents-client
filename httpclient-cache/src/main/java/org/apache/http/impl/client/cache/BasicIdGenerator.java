@@ -33,17 +33,19 @@ import java.security.SecureRandom;
 import java.util.Formatter;
 import java.util.Locale;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Should produce reasonably unique tokens.
  */
-@Immutable
+@ThreadSafe
 class BasicIdGenerator {
 
     private final String hostname;
     private final SecureRandom rnd;
 
+    @GuardedBy("this")
     private long count;
 
     public BasicIdGenerator() {
