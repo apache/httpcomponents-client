@@ -70,7 +70,7 @@ class CacheEntryUpdater {
      * Update the entry with the new information from the response.  Should only be used for
      * 304 responses.
      *
-     * @param request id
+     * @param requestId
      * @param entry The cache Entry to be updated
      * @param requestDate When the request was performed
      * @param responseDate When the response was gotten

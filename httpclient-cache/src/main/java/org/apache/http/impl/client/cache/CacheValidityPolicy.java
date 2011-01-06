@@ -85,7 +85,7 @@ class CacheValidityPolicy {
      * @param now
      * @param coefficient
      * @param defaultLifetime
-     * @return
+     * @return {@code true} if the response is fresh
      */
     public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
             Date now, float coefficient, long defaultLifetime) {

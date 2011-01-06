@@ -214,7 +214,7 @@ class CachedResponseSuitabilityChecker {
     /**
      * Is this request the type of conditional request we support?
      * @param request
-     * @return
+     * @return {@code true} if the request is supported
      */
     public boolean isConditional(HttpRequest request) {
         return hasSupportedEtagVadlidator(request) || hasSupportedLastModifiedValidator(request);
@@ -225,7 +225,7 @@ class CachedResponseSuitabilityChecker {
      * @param request
      * @param entry
      * @param now
-     * @return
+     * @return {@code true} if the request matches all conditionals
      */
     public boolean allConditionalsMatch(HttpRequest request, HttpCacheEntry entry, Date now) {
         boolean hasEtagValidator = hasSupportedEtagVadlidator(request);

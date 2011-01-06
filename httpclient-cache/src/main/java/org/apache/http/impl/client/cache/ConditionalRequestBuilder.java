@@ -93,7 +93,7 @@ class ConditionalRequestBuilder {
      * exist, the request is unmodified
      *
      * @param request the original request from the caller
-     * @param cacheEntry the entry that needs to be revalidated
+     * @param variants
      * @return the wrapped request
      */
     public HttpRequest buildConditionalRequestFromVariants(HttpRequest request,

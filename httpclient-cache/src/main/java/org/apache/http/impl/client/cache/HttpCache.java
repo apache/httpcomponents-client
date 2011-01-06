@@ -70,7 +70,7 @@ interface HttpCache {
      * Retrieve matching {@link HttpCacheEntry} from the cache if it exists
      * @param host
      * @param request
-     * @return
+     * @return the matching {@link HttpCacheEntry} or {@code null}
      * @throws IOException
      */
     HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request)
@@ -94,7 +94,7 @@ interface HttpCache {
      * @param originResponse
      * @param requestSent
      * @param responseReceived
-     * @return
+     * @return the {@link HttpResponse}
      * @throws IOException
      */
     HttpResponse cacheAndReturnResponse(
@@ -110,7 +110,7 @@ interface HttpCache {
      * @param originResponse
      * @param requestSent
      * @param responseReceived
-     * @return
+     * @return the updated {@link HttpCacheEntry}
      * @throws IOException
      */
     HttpCacheEntry updateCacheEntry(
@@ -128,7 +128,7 @@ interface HttpCache {
      * @param requestSent when the validating request was sent
      * @param responseReceived when the validating response was received
      * @param cacheKey where in the cache this entry is currently stored
-     * @return
+     * @return the updated {@link HttpCacheEntry}
      * @throws IOException
      */
     HttpCacheEntry updateVariantCacheEntry(HttpHost target, HttpRequest request,

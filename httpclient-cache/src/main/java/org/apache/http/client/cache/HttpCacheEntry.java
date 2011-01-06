@@ -145,8 +145,8 @@ public class HttpCacheEntry implements Serializable {
      * @param resource representing origin response body
      */
     public HttpCacheEntry(Date requestDate, Date responseDate, StatusLine statusLine,
-            Header[] headers, Resource resource) {
-        this(requestDate, responseDate, statusLine, headers, resource, null,
+            Header[] responseHeaders, Resource resource) {
+        this(requestDate, responseDate, statusLine, responseHeaders, resource, null,
                 new HashMap<String,String>());
     }
 
@@ -167,9 +167,9 @@ public class HttpCacheEntry implements Serializable {
      *   of this parent entry; each cache key should map to itself
      */
     public HttpCacheEntry(Date requestDate, Date responseDate,
-            StatusLine statusLine, Header[] headers,
+            StatusLine statusLine, Header[] responseHeaders,
             Resource resource, Map<String, String> variantMap) {
-        this(requestDate, responseDate, statusLine, headers,
+        this(requestDate, responseDate, statusLine, responseHeaders,
              resource, null, variantMap);
     }
 
