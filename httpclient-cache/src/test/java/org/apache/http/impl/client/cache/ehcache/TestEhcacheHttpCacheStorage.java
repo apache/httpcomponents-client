@@ -49,6 +49,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     private EhcacheHttpCacheStorage impl;
     private HttpCacheEntrySerializer mockSerializer;
 
+    @Override
     public void setUp() {
         mockCache = EasyMock.createMock(Ehcache.class);
         CacheConfig config = new CacheConfig();
@@ -212,7 +213,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheUpdateFail() throws IOException, HttpCacheUpdateException {
+    public void testCacheUpdateFail() throws IOException {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();

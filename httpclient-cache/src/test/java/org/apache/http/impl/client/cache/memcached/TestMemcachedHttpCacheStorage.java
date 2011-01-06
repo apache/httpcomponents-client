@@ -51,6 +51,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     private MemcachedClientIF mockMemcachedClient;
     private HttpCacheEntrySerializer mockSerializer;
 
+    @Override
     @Before
     public void setUp() throws Exception {
         mockMemcachedClient = EasyMock.createMock(MemcachedClientIF.class);
@@ -72,7 +73,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCachePut() throws IOException, HttpCacheUpdateException {
+    public void testCachePut() throws IOException {
         final String url = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
         mockSerializer.writeTo(EasyMock.isA(HttpCacheEntry.class), EasyMock
@@ -87,7 +88,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
 
     @Test
     public void testCacheGet() throws UnsupportedEncodingException,
-            IOException, HttpCacheUpdateException {
+            IOException {
         final String url = "foo";
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
         EasyMock.expect(mockMemcachedClient.get(url)).andReturn(new byte[] {});
@@ -114,7 +115,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheRemove() throws IOException, HttpCacheUpdateException {
+    public void testCacheRemove() throws IOException {
         final String url = "foo";
         EasyMock.expect(mockMemcachedClient.delete(url)).andReturn(null);
         replayMocks();
@@ -226,8 +227,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheUpdateFail() throws IOException,
-            HttpCacheUpdateException {
+    public void testCacheUpdateFail() throws IOException {
         final String url = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
