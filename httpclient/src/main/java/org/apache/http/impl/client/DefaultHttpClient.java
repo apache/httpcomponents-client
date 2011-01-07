@@ -27,20 +27,9 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.ThreadSafe;
-
-import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpVersion;
-import org.apache.http.auth.AuthSchemeRegistry;
-import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.UserTokenHandler;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestAuthCache;
 import org.apache.http.client.protocol.RequestClientConnControl;
@@ -50,36 +39,14 @@ import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseAuthCache;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ClientConnectionManagerFactory;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.cookie.CookieSpecRegistry;
-import org.apache.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.impl.auth.NTLMSchemeFactory;
-import org.apache.http.impl.auth.NegotiateSchemeFactory;
-import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.conn.SingleClientConnManager;
-import org.apache.http.impl.cookie.BestMatchSpecFactory;
-import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
-import org.apache.http.impl.cookie.IgnoreSpecFactory;
-import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
-import org.apache.http.impl.cookie.RFC2109SpecFactory;
-import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.params.SyncBasicHttpParams;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
@@ -87,13 +54,9 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.VersionInfo;
 
 /**
- * Default implementation of {@link AbstractHttpClient}.
+ * Default implementation of {@link HttpClient} pre-configured for most common use scenarios.
  * <p>
- * This class creates an instance of {@link SingleClientConnManager}
- * for connection management if not explicitly set.
- * <p>
- * This class creates the following chain of protocol interceptors per
- * default:
+ * This class creates the following chain of protocol interceptors per default:
  * <ul>
  * <li>{@link RequestDefaultHeaders}</li>
  * <li>{@link RequestContent}</li>
@@ -111,7 +74,6 @@ import org.apache.http.util.VersionInfo;
  * <ul>
  * <li>Version: HttpVersion.HTTP_1_1</li>
  * <li>ContentCharset: HTTP.DEFAULT_CONTENT_CHARSET</li>
- * <li>UseExpectContinue: true</li>
  * <li>NoTcpDelay: true</li>
  * <li>SocketBufferSize: 8192</li>
  * <li>UserAgent: Apache-HttpClient/release (java 1.5)</li>
@@ -167,7 +129,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
             final ClientConnectionManager conman,
             final HttpParams params) {
         super(conman, params);
-        setRedirectStrategy(new DefaultRedirectStrategy());
     }
 
 
@@ -230,122 +191,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
 
 
     @Override
-    protected HttpRequestExecutor createRequestExecutor() {
-        return new HttpRequestExecutor();
-    }
-
-
-    @Override
-    protected ClientConnectionManager createClientConnectionManager() {
-        SchemeRegistry registry = SchemeRegistryFactory.createDefault();
-
-        ClientConnectionManager connManager = null;
-        HttpParams params = getParams();
-
-        ClientConnectionManagerFactory factory = null;
-
-        String className = (String) params.getParameter(
-                ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
-        if (className != null) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                factory = (ClientConnectionManagerFactory) clazz.newInstance();
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalStateException("Invalid class name: " + className);
-            } catch (IllegalAccessException ex) {
-                throw new IllegalAccessError(ex.getMessage());
-            } catch (InstantiationException ex) {
-                throw new InstantiationError(ex.getMessage());
-            }
-        }
-        if (factory != null) {
-            connManager = factory.newInstance(params, registry);
-        } else {
-            connManager = new SingleClientConnManager(registry);
-        }
-
-        return connManager;
-    }
-
-
-    @Override
-    protected HttpContext createHttpContext() {
-        HttpContext context = new BasicHttpContext();
-        context.setAttribute(
-                ClientContext.SCHEME_REGISTRY,
-                getConnectionManager().getSchemeRegistry());
-        context.setAttribute(
-                ClientContext.AUTHSCHEME_REGISTRY,
-                getAuthSchemes());
-        context.setAttribute(
-                ClientContext.COOKIESPEC_REGISTRY,
-                getCookieSpecs());
-        context.setAttribute(
-                ClientContext.COOKIE_STORE,
-                getCookieStore());
-        context.setAttribute(
-                ClientContext.CREDS_PROVIDER,
-                getCredentialsProvider());
-        return context;
-    }
-
-
-    @Override
-    protected ConnectionReuseStrategy createConnectionReuseStrategy() {
-        return new DefaultConnectionReuseStrategy();
-    }
-
-    @Override
-    protected ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy() {
-        return new DefaultConnectionKeepAliveStrategy();
-    }
-
-
-    @Override
-    protected AuthSchemeRegistry createAuthSchemeRegistry() {
-        AuthSchemeRegistry registry = new AuthSchemeRegistry();
-        registry.register(
-                AuthPolicy.BASIC,
-                new BasicSchemeFactory());
-        registry.register(
-                AuthPolicy.DIGEST,
-                new DigestSchemeFactory());
-        registry.register(
-                AuthPolicy.NTLM,
-                new NTLMSchemeFactory());
-        registry.register(
-                AuthPolicy.SPNEGO,
-                new NegotiateSchemeFactory());
-        return registry;
-    }
-
-
-    @Override
-    protected CookieSpecRegistry createCookieSpecRegistry() {
-        CookieSpecRegistry registry = new CookieSpecRegistry();
-        registry.register(
-                CookiePolicy.BEST_MATCH,
-                new BestMatchSpecFactory());
-        registry.register(
-                CookiePolicy.BROWSER_COMPATIBILITY,
-                new BrowserCompatSpecFactory());
-        registry.register(
-                CookiePolicy.NETSCAPE,
-                new NetscapeDraftSpecFactory());
-        registry.register(
-                CookiePolicy.RFC_2109,
-                new RFC2109SpecFactory());
-        registry.register(
-                CookiePolicy.RFC_2965,
-                new RFC2965SpecFactory());
-        registry.register(
-                CookiePolicy.IGNORE_COOKIES,
-                new IgnoreSpecFactory());
-        return registry;
-    }
-
-
-    @Override
     protected BasicHttpProcessor createHttpProcessor() {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new RequestDefaultHeaders());
@@ -367,53 +212,4 @@ public class DefaultHttpClient extends AbstractHttpClient {
         return httpproc;
     }
 
-
-    @Override
-    protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
-        return new DefaultHttpRequestRetryHandler();
-    }
-
-
-    @Override
-    @Deprecated
-    protected org.apache.http.client.RedirectHandler createRedirectHandler() {
-        return new DefaultRedirectHandler();
-    }
-
-    @Override
-    protected AuthenticationHandler createTargetAuthenticationHandler() {
-        return new DefaultTargetAuthenticationHandler();
-    }
-
-
-    @Override
-    protected AuthenticationHandler createProxyAuthenticationHandler() {
-        return new DefaultProxyAuthenticationHandler();
-    }
-
-
-    @Override
-    protected CookieStore createCookieStore() {
-        return new BasicCookieStore();
-    }
-
-
-    @Override
-    protected CredentialsProvider createCredentialsProvider() {
-        return new BasicCredentialsProvider();
-    }
-
-
-    @Override
-    protected HttpRoutePlanner createHttpRoutePlanner() {
-        return new DefaultHttpRoutePlanner
-            (getConnectionManager().getSchemeRegistry());
-    }
-
-
-    @Override
-    protected UserTokenHandler createUserTokenHandler() {
-        return new DefaultUserTokenHandler();
-    }
-
-} // class DefaultHttpClient
+}
