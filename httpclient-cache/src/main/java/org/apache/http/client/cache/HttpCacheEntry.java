@@ -42,9 +42,10 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.message.HeaderGroup;
 
 /**
- * Structure used to store an {@link HttpResponse} in a cache. Some entries can optionally depend
- * on system resources that may require explicit deallocation. In such a case {@link #getResource()}
- * should return a non-null instance of {@link Resource} that must be deallocated by calling
+ * Structure used to store an {@link HttpResponse} in a cache. Some entries
+ * can optionally depend on system resources that may require explicit
+ * deallocation. In such a case {@link #getResource()} should return a non
+ * null instance of {@link Resource} that must be deallocated by calling
  * {@link Resource#dispose()} method when no longer used.
  *
  * @since 4.1
@@ -164,7 +165,9 @@ public class HttpCacheEntry implements Serializable {
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
      * @param variantMap describing cache entries that are variants
-     *   of this parent entry; each cache key should map to itself
+     *   of this parent entry; this maps a "variant key" (derived
+     *   from the varying request headers) to a "cache key" (where
+     *   in the cache storage the particular variant is located)
      */
     public HttpCacheEntry(Date requestDate, Date responseDate,
             StatusLine statusLine, Header[] responseHeaders,
@@ -173,46 +176,88 @@ public class HttpCacheEntry implements Serializable {
              resource, null, variantMap);
     }
 
+    /**
+     * Returns the {@link StatusLine} from the origin {@link HttpResponse}.
+     */
     public StatusLine getStatusLine() {
         return this.statusLine;
     }
 
+    /**
+     * Returns the {@link ProtocolVersion} from the origin {@link HttpResponse}.
+     */
     public ProtocolVersion getProtocolVersion() {
         return this.statusLine.getProtocolVersion();
     }
 
+    /**
+     * Gets the reason phrase from the origin {@link HttpResponse}, for example,
+     * "Not Modified".
+     */
     public String getReasonPhrase() {
         return this.statusLine.getReasonPhrase();
     }
 
+    /**
+     * Returns the HTTP response code from the origin {@link HttpResponse}.
+     */
     public int getStatusCode() {
         return this.statusLine.getStatusCode();
     }
 
+    /**
+     * Returns the time the associated origin request was initiated by the
+     * caching module.
+     * @return {@link Date}
+     */
     public Date getRequestDate() {
         return requestDate;
     }
 
+    /**
+     * Returns the time the origin response was received by the caching module.
+     * @return {@link Date}
+     */
     public Date getResponseDate() {
         return responseDate;
     }
 
+    /**
+     * Returns all the headers that were on the origin response.
+     */
     public Header[] getAllHeaders() {
         return responseHeaders.getAllHeaders();
     }
 
+    /**
+     * Returns the first header from the origin response with the given
+     * name.
+     */
     public Header getFirstHeader(String name) {
         return responseHeaders.getFirstHeader(name);
     }
 
+    /**
+     * Gets all the headers with the given name that were on the origin
+     * response.
+     */
     public Header[] getHeaders(String name) {
         return responseHeaders.getHeaders(name);
     }
 
+    /**
+     * Returns the {@link Resource} containing the origin response body.
+     */
     public Resource getResource() {
         return this.resource;
     }
     
+    /**
+     * Indicates whether the origin response indicated the associated
+     * resource had variants (i.e. that the Vary header was set on the
+     * origin response).
+     * @return {@code true} if this cached response was a variant
+     */
     public boolean hasVariants() {
         return getFirstHeader(HeaderConstants.VARY) != null;
     }
@@ -225,6 +270,15 @@ public class HttpCacheEntry implements Serializable {
         return Collections.unmodifiableSet(variantURIs);
     }
 
+    /**
+     * Returns an index about where in the cache different variants for
+     * a given resource are stored. This maps "variant keys" to "cache keys",
+     * where the variant key is derived from the varying request headers,
+     * and the cache key is the location in the
+     * {@link org.apache.http.client.cache.HttpCacheStorage} where that
+     * particular variant is stored. The first variant returned is used as
+     * the "parent" entry to hold this index of the other variants.
+     */
     public Map<String, String> getVariantMap() {
         if (variantMap == null) {
             throw new UnsupportedOperationException("variant maps not" +

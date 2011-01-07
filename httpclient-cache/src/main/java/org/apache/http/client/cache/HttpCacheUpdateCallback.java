@@ -28,16 +28,22 @@ package org.apache.http.client.cache;
 
 import java.io.IOException;
 
+/**
+ * Used for atomically updating entries in a {@link HttpCacheStorage}
+ * implementation. The current entry (if any) is fed into an implementation
+ * of this interface, and the new, possibly updated entry (if any)
+ * should be returned.
+ */
 public interface HttpCacheUpdateCallback {
 
     /**
      * Returns the new cache entry that should replace an existing one.
      *
      * @param existing
-     *            the cache entry current in-place in the cache, possibly
+     *            the cache entry currently in-place in the cache, possibly
      *            <code>null</code> if nonexistent
-     * @return CacheEntry the cache entry that should replace it, again,
-     *         possible <code>null</code>
+     * @return HttpCacheEntry the cache entry that should replace it, again,
+     *         possibly <code>null</code>
      *
      * @since 4.1
      */

@@ -28,6 +28,10 @@ package org.apache.http.client.cache;
 
 import java.io.IOException;
 
+/**
+ * Thrown if serialization or deserialization of an {@link HttpCacheEntry}
+ * fails.
+ */
 public class HttpCacheEntrySerializationException extends IOException {
 
     private static final long serialVersionUID = 9219188365878433519L;

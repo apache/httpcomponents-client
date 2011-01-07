@@ -30,6 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Used by some {@link HttpCacheStorage} implementations to serialize
+ * {@link HttpCacheEntry} instances to a byte representation before
+ * storage. 
+ */
 public interface HttpCacheEntrySerializer {
 
     public void writeTo(HttpCacheEntry entry, OutputStream os) throws IOException;
