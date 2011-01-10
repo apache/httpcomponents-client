@@ -45,20 +45,71 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
+/**
+ * <p>This class is a storage backend that uses an external <i>memcached</i>
+ * for storing cached origin responses. This storage option provides a
+ * couple of interesting advantages over the default in-memory storage
+ * backend:
+ * <ol>
+ * <li>in-memory cached objects can survive an application restart since
+ * they are held in a separate process</li>
+ * <li>it becomes possible for several cooperating applications to share
+ * a large <i>memcached</i> farm together, effectively providing cache
+ * peering of a sort</li>
+ * </ol>
+ * Note that in a shared memcached pool setting you may wish to make use
+ * of the Ketama consistent hashing algorithm to reduce the number of 
+ * cache misses that might result if one of the memcached cluster members
+ * fails (see the <a href="http://dustin.github.com/java-memcached-client/apidocs/net/spy/memcached/KetamaConnectionFactory.html">
+ * KetamaConnectionFactory</a>).
+ * </p>
+ * 
+ * <p>Please refer to the <a href="http://code.google.com/p/memcached/wiki/NewStart">
+ * memcached documentation</a> and in particular to the documentation for
+ * the <a href="http://code.google.com/p/spymemcached/">spymemcached
+ * documentation</a> for details about how to set up and configure memcached
+ * and the Java client used here, respectively.</p>
+ * 
+ * @since 4.1
+ */
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
     private final MemcachedClientIF client;
     private final HttpCacheEntrySerializer serializer;
     private final int maxUpdateRetries;
 
+    /**
+     * Create a storage backend talking to a <i>memcached</i> instance
+     * listening on the specified host and port. This is useful if you
+     * just have a single local memcached instance running on the same
+     * machine as your application, for example.
+     * @param address where the <i>memcached</i> daemon is running
+     * @throws IOException
+     */
     public MemcachedHttpCacheStorage(InetSocketAddress address) throws IOException {
         this(new MemcachedClient(address));
     }
 
+    /**
+     * Create a storage backend using the pre-configured given
+     * <i>memcached</i> client.
+     * @param cache client to use for communicating with <i>memcached</i>
+     */
     public MemcachedHttpCacheStorage(MemcachedClientIF cache) {
         this(cache, new CacheConfig(), new DefaultHttpCacheEntrySerializer());
     }
 
+    /**
+     * Create a storage backend using the given <i>memcached</i> client and
+     * applying the given cache configuration and cache entry serialization
+     * mechanism.
+     * @param client how to talk to <i>memcached</i>
+     * @param config apply HTTP cache-related options
+     * @param serializer how to serialize the cache entries before writing
+     *   them out to <i>memcached</i>. The provided {@link
+     *   DefaultHttpCacheEntrySerializer} is a fine serialization mechanism
+     *   to use here.
+     */
     public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,
             HttpCacheEntrySerializer serializer) {
         this.client = client;
