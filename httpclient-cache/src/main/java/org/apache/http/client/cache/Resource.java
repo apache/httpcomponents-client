@@ -40,7 +40,7 @@ public interface Resource extends Serializable {
 
     /**
      * Returns an {@link InputStream} from which the response
-     * body can be returned.
+     * body can be read.
      * @throws IOException
      */
     InputStream getInputStream() throws IOException;

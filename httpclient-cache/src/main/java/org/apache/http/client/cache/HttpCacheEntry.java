@@ -287,6 +287,10 @@ public class HttpCacheEntry implements Serializable {
         return Collections.unmodifiableMap(variantMap);
     }
 
+    /**
+     * Provides a string representation of this instance suitable for
+     * human consumption.
+     */
     @Override
     public String toString() {
         return "[request date=" + this.requestDate + "; response date=" + this.responseDate

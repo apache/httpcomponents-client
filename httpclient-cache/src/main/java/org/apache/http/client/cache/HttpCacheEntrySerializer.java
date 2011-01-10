@@ -37,8 +37,18 @@ import java.io.OutputStream;
  */
 public interface HttpCacheEntrySerializer {
 
-    public void writeTo(HttpCacheEntry entry, OutputStream os) throws IOException;
+    /**
+     * Serializes the given entry to a byte representation on the
+     * given {@link OutputStream}.
+     * @throws IOException
+     */
+    void writeTo(HttpCacheEntry entry, OutputStream os) throws IOException;
 
-    public HttpCacheEntry readFrom(InputStream is) throws IOException;
+    /**
+     * Deserializes a byte representation of a cache entry by reading
+     * from the given {@link InputStream}.
+     * @throws IOException
+     */
+    HttpCacheEntry readFrom(InputStream is) throws IOException;
 
 }

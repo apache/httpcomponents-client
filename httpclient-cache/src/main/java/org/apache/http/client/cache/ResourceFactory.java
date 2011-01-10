@@ -59,7 +59,7 @@ public interface ResourceFactory {
      * @param requestId unique identifier provided to associate
      *   with the cloned response body.
      * @param resource the original response body to clone.
-     * @return {@code Resource}
+     * @return the {@code Resource} copy
      * @throws IOException
      */
     Resource copy(String requestId, Resource resource) throws IOException;

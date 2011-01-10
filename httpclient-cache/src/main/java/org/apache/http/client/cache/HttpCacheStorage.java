@@ -65,10 +65,13 @@ public interface HttpCacheStorage {
     void removeEntry(String key) throws IOException;
 
     /**
-     * Atomically applies the given callback to update an
-     * existing cache entry under a given key.
+     * Atomically applies the given callback to update an existing cache
+     * entry under a given key.
      * @param key indicates which entry to modify
-     * @param callback performs the update
+     * @param callback performs the update; see 
+     *   {@link HttpCacheUpdateCallback} for details, but roughly the
+     *   callback expects to be handed the current entry and will return
+     *   the new value for the entry.
      * @throws IOException
      * @throws HttpCacheUpdateException
      */

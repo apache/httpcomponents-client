@@ -31,7 +31,8 @@ package org.apache.http.client.cache;
  * by the {@link org.apache.http.impl.client.cache.CachingHttpClient}; 
  * if a request is executed with an {@link org.apache.http.protocol.HttpContext}
  * then a parameter with one of these values will be registered in the
- * context.
+ * context under the key
+ * {@link org.apache.http.impl.client.cache.CachingHttpClient#CACHE_RESPONSE_STATUS}.
  */
 public enum CacheResponseStatus {
 
