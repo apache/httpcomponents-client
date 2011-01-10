@@ -32,6 +32,13 @@ maintained and supported by Apache HttpComponents project.
 
 Changelog
 -------------------
+
+* Changed Browser-Compatibility and Best-Match cookie policies to emulate the behaviour of FireFox
+  more closely when parsing Netscape style cookies. Comma will no longer be treated as a header
+  element separator if Set-Cookie does not contain a Version attribute mandated by the 
+  RFC2109 / RFC 2965 cookie specifications.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1036] StringBody has incorrect default for characterset. (Default changed 
   to US-ASCII)
   Contributed by Sebastian Bazley <sebb at apache.org>

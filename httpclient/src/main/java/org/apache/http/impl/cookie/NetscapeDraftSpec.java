@@ -94,13 +94,11 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       *  Set-Cookie: NAME=VALUE; expires=DATE; path=PATH; domain=DOMAIN_NAME; secure
       * </PRE>
       *
-      * <p>Please note that Netscape draft specification does not fully
-      * conform to the HTTP header format. Netscape draft does not specify
-      * whether multiple cookies may be sent in one header. Hence, comma
-      * character may be present in unquoted cookie value or unquoted
-      * parameter value.</p>
+      * <p>Please note that the Netscape draft specification does not fully conform to the HTTP
+      * header format. Comma character if present in <code>Set-Cookie</code> will not be treated
+      * as a header element separator</p>
       *
-      * @see <a href="http://wp.netscape.com/newsref/std/cookie_spec.html">
+      * @see <a href="http://web.archive.org/web/20020803110822/http://wp.netscape.com/newsref/std/cookie_spec.html">
       *  The Cookie Spec.</a>
       *
       * @param header the <tt>Set-Cookie</tt> received from the server

@@ -70,16 +70,12 @@ public class TestCookieBestMatchSpec {
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; comment=no_comment");
         List<Cookie> cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
-
+        Assert.assertEquals(1, cookies.size());
         header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com; expires=Thu, 01-Jan-2070 00:00:10 GMT; version=1");
-        try {
-            cookies = cookiespec.parse(header, origin);
-            cookiespec.validate(cookies.get(0), origin);
-            Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException e) {
-            // expected
-        }
+        cookies = cookiespec.parse(header, origin);
+        cookiespec.validate(cookies.get(0), origin);
+        Assert.assertEquals(1, cookies.size());
     }
 
     @Test

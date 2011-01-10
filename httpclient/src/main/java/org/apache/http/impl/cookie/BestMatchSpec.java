@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.apache.http.annotation.NotThreadSafe;
 
+import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.cookie.Cookie;
@@ -39,6 +40,8 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
+import org.apache.http.message.ParserCursor;
+import org.apache.http.util.CharArrayBuffer;
 
 /**
  * 'Meta' cookie specification that picks up a cookie policy based on
@@ -56,7 +59,6 @@ public class BestMatchSpec implements CookieSpec {
     private RFC2965Spec strict; // @NotThreadSafe
     private RFC2109Spec obsoleteStrict; // @NotThreadSafe
     private BrowserCompatSpec compat; // @NotThreadSafe
-    private NetscapeDraftSpec netscape; // @NotThreadSafe
 
     public BestMatchSpec(final String[] datepatterns, boolean oneHeader) {
         super();
@@ -89,13 +91,6 @@ public class BestMatchSpec implements CookieSpec {
         return compat;
     }
 
-    private NetscapeDraftSpec getNetscape() {
-        if (this.netscape == null) {
-            this.netscape = new NetscapeDraftSpec(this.datepatterns);
-        }
-        return netscape;
-    }
-
     public List<Cookie> parse(
             final Header header,
             final CookieOrigin origin) throws MalformedCookieException {
@@ -116,20 +111,34 @@ public class BestMatchSpec implements CookieSpec {
                netscape = true;
             }
         }
-        // Do we have a cookie with a version attribute?
-        if (versioned) {
+        if (netscape || !versioned) {
+            // Need to parse the header again, because Netscape style cookies do not correctly
+            // support multiple header elements (comma cannot be treated as an element separator)
+            NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+            CharArrayBuffer buffer;
+            ParserCursor cursor;
+            if (header instanceof FormattedHeader) {
+                buffer = ((FormattedHeader) header).getBuffer();
+                cursor = new ParserCursor(
+                        ((FormattedHeader) header).getValuePos(),
+                        buffer.length());
+            } else {
+                String s = header.getValue();
+                if (s == null) {
+                    throw new MalformedCookieException("Header value is null");
+                }
+                buffer = new CharArrayBuffer(s.length());
+                buffer.append(s);
+                cursor = new ParserCursor(0, buffer.length());
+            }
+            helems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
+            return getCompat().parse(helems, origin);
+        } else {
             if (SM.SET_COOKIE2.equals(header.getName())) {
                 return getStrict().parse(helems, origin);
             } else {
                 return getObsoleteStrict().parse(helems, origin);
             }
-        } else if (netscape) {
-            // Need to parse the header again,
-            // because Netscape draft cannot handle
-            // comma separators
-            return getNetscape().parse(header, origin);
-        } else {
-            return getCompat().parse(helems, origin);
         }
     }
 

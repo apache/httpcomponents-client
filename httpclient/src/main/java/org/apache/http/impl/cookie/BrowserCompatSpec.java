@@ -29,7 +29,6 @@ package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.http.annotation.NotThreadSafe;
 
@@ -124,28 +123,24 @@ public class BrowserCompatSpec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie origin may not be null");
         }
         String headername = header.getName();
-        String headervalue = header.getValue();
         if (!headername.equalsIgnoreCase(SM.SET_COOKIE)) {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
         }
-        boolean isNetscapeCookie = false;
-        int i1 = headervalue.toLowerCase(Locale.ENGLISH).indexOf("expires=");
-        if (i1 != -1) {
-            i1 += "expires=".length();
-            int i2 = headervalue.indexOf(';', i1);
-            if (i2 == -1) {
-                i2 = headervalue.length();
+        HeaderElement[] helems = header.getElements();
+        boolean versioned = false;
+        boolean netscape = false;
+        for (HeaderElement helem: helems) {
+            if (helem.getParameterByName("version") != null) {
+                versioned = true;
             }
-            try {
-                DateUtils.parseDate(headervalue.substring(i1, i2), this.datepatterns);
-                isNetscapeCookie = true;
-            } catch (DateParseException e) {
-                // Does not look like a valid expiry date
+            if (helem.getParameterByName("expires") != null) {
+               netscape = true;
             }
         }
-        HeaderElement[] elems = null;
-        if (isNetscapeCookie) {
+        if (netscape || !versioned) {
+            // Need to parse the header again, because Netscape style cookies do not correctly
+            // support multiple header elements (comma cannot be treated as an element separator)
             NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
             CharArrayBuffer buffer;
             ParserCursor cursor;
@@ -163,11 +158,9 @@ public class BrowserCompatSpec extends CookieSpecBase {
                 buffer.append(s);
                 cursor = new ParserCursor(0, buffer.length());
             }
-            elems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
-        } else {
-            elems = header.getElements();
+            helems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
         }
-        return parse(elems, origin);
+        return parse(helems, origin);
     }
 
     public List<Header> formatCookies(final List<Cookie> cookies) {
