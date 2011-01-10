@@ -66,11 +66,52 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.VersionInfo;
 
 /**
+ * <p>The {@link CachingHttpClient} is meant to be a drop-in replacement for
+ * a {@link DefaultHttpClient} that transparently adds client-side caching.
+ * The current implementation is conditionally compliant with HTTP/1.1
+ * (meaning all the MUST and MUST NOTs are obeyed), although quite a lot,
+ * though not all, of the SHOULDs and SHOULD NOTs are obeyed too. Generally
+ * speaking, you construct a {@code CachingHttpClient} by providing a
+ * "backend" {@link HttpClient} used for making actual network requests and
+ * provide an {@link HttpCacheStorage} instance to use for holding onto
+ * cached responses. Additional configuration options can be provided by
+ * passing in a {@link CacheConfig}. Note that all of the usual client
+ * related configuration you want to do vis-a-vis timeouts and connection
+ * pools should be done on this backend client before constructing a {@code
+ * CachingHttpClient} from it.</p>
+ * 
+ * <p>Generally speaking, the {@code CachingHttpClient} is implemented as a
+ * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator</a>
+ * of the backend client; for any incoming request it attempts to satisfy
+ * it from the cache, but if it can't, or if it needs to revalidate a stale
+ * cache entry, it will use the backend client to make an actual request.
+ * However, a proper HTTP/1.1 cache won't change the semantics of a request
+ * and response; in particular, if you issue an unconditional request you
+ * will get a full response (although it may be served to you from the cache,
+ * or the cache may make a conditional request on your behalf to the origin).
+ * This notion of "semantic transparency" means you should be able to drop
+ * a {@link CachingHttpClient} into an existing application without breaking
+ * anything.</p>
+ * 
+ * <p>Folks that would like to experiment with alternative storage backends
+ * should look at the {@link HttpCacheStorage} interface and the related
+ * package documentation there. You may also be interested in the provided
+ * {@link org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage
+ * EhCache} and {@link
+ * org.apache.http.impl.client.cache.memcached.MemcachedHttpCacheStorage
+ * memcached} storage backends.</p>
+ * </p>
  * @since 4.1
  */
 @ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingHttpClient implements HttpClient {
 
+    /**
+     * This is the name under which the {@link
+     * org.apache.http.client.cache.CacheResponseStatus} of a request
+     * (for example, whether it resulted in a cache hit) will be recorded if an
+     * {@link HttpContext} is provided during execution.
+     */
     public static final String CACHE_RESPONSE_STATUS = "http.cache.response.status";
 
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
@@ -130,30 +171,64 @@ public class CachingHttpClient implements HttpClient {
         this.asynchRevalidator = makeAsynchronousValidator(config);
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with default caching settings that
+     * stores cache entries in memory and uses a vanilla {@link DefaultHttpClient}
+     * for backend requests.
+     */
     public CachingHttpClient() {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(),
                 new CacheConfig());
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with the given caching options that
+     * stores cache entries in memory and uses a vanilla {@link DefaultHttpClient}
+     * for backend requests.
+     * @param config cache module options
+     */
     public CachingHttpClient(CacheConfig config) {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(config),
                 config);
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with default caching settings that
+     * stores cache entries in memory and uses the given {@link HttpClient}
+     * for backend requests.
+     * @param client used to make origin requests
+     */
     public CachingHttpClient(HttpClient client) {
         this(client,
                 new BasicHttpCache(),
                 new CacheConfig());
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with the given caching options that
+     * stores cache entries in memory and uses the given {@link HttpClient}
+     * for backend requests.
+     * @param config cache module options
+     * @param client used to make origin requests
+     */
     public CachingHttpClient(HttpClient client, CacheConfig config) {
         this(client,
                 new BasicHttpCache(config),
                 config);
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with the given caching options
+     * that stores cache entries in the provided storage backend and uses
+     * the given {@link HttpClient} for backend requests. However, cached
+     * response bodies are managed using the given {@link ResourceFactory}.
+     * @param client used to make origin requests
+     * @param resourceFactory how to manage cached response bodies
+     * @param storage where to store cache entries 
+     * @param config cache module options
+     */
     public CachingHttpClient(
             HttpClient client,
             ResourceFactory resourceFactory,
@@ -164,6 +239,14 @@ public class CachingHttpClient implements HttpClient {
                 config);
     }
 
+    /**
+     * Constructs a {@code CachingHttpClient} with the given caching options
+     * that stores cache entries in the provided storage backend and uses
+     * the given {@link HttpClient} for backend requests.
+     * @param client used to make origin requests
+     * @param storage where to store cache entries 
+     * @param config cache module options
+     */
     public CachingHttpClient(
             HttpClient client,
             HttpCacheStorage storage,
@@ -209,167 +292,78 @@ public class CachingHttpClient implements HttpClient {
     }
 
     /**
-     * Return the number of times that the cache successfully answered an HttpRequest
-     * for a document of information from the server.
-     *
-     * @return long the number of cache successes
+     * Reports the number of times that the cache successfully responded 
+     * to an {@link HttpRequest} without contacting the origin server.
+     * @return the number of cache hits
      */
     public long getCacheHits() {
         return cacheHits.get();
     }
 
     /**
-     * Return the number of times that the cache was unable to answer an HttpRequest
-     * for a document of information from the server.
-     *
-     * @return long the number of cache failures/misses
+     * Reports the number of times that the cache contacted the origin
+     * server because it had no appropriate response cached.
+     * @return the number of cache misses
      */
     public long getCacheMisses() {
         return cacheMisses.get();
     }
 
     /**
-     * Return the number of times that the cache was able to revalidate
-     * an existing cache entry for a document of information from the server.
-     *
-     * @return long the number of cache revalidations
+     * Reports the number of times that the cache was able to satisfy
+     * a response by revalidating an existing but stale cache entry.
+     * @return the number of cache revalidations
      */
     public long getCacheUpdates() {
         return cacheUpdates.get();
     }
 
-    /**
-     * Execute an {@link HttpRequest} @ a given {@link HttpHost}
-     *
-     * @param target  the target host for the request.
-     *                Implementations may accept <code>null</code>
-     *                if they can still determine a route, for example
-     *                to a default target or by inspecting the request.
-     * @param request the request to execute
-     * @return HttpResponse The cached entry or the result of a backend call
-     * @throws IOException
-     */
     public HttpResponse execute(HttpHost target, HttpRequest request) throws IOException {
         HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
     }
 
-    /**
-     * Execute an {@link HttpRequest} @ a given {@link HttpHost} with a specified
-     * {@link ResponseHandler} that will deal with the result of the call.
-     *
-     * @param target          the target host for the request.
-     *                        Implementations may accept <code>null</code>
-     *                        if they can still determine a route, for example
-     *                        to a default target or by inspecting the request.
-     * @param request         the request to execute
-     * @param responseHandler the response handler
-     * @param <T>             The Return Type Identified by the generic type of the {@link ResponseHandler}
-     * @return T The response type as handled by ResponseHandler
-     * @throws IOException
-     */
     public <T> T execute(HttpHost target, HttpRequest request,
                          ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(target, request, responseHandler, null);
     }
 
-    /**
-     * Execute an {@link HttpRequest} @ a given {@link HttpHost} with a specified
-     * {@link ResponseHandler} that will deal with the result of the call using
-     * a specific {@link HttpContext}
-     *
-     * @param target          the target host for the request.
-     *                        Implementations may accept <code>null</code>
-     *                        if they can still determine a route, for example
-     *                        to a default target or by inspecting the request.
-     * @param request         the request to execute
-     * @param responseHandler the response handler
-     * @param context         the context to use for the execution, or
-     *                        <code>null</code> to use the default context
-     * @param <T>             The Return Type Identified by the generic type of the {@link ResponseHandler}
-     * @return T The response type as handled by ResponseHandler
-     * @throws IOException
-     */
     public <T> T execute(HttpHost target, HttpRequest request,
                          ResponseHandler<? extends T> responseHandler, HttpContext context) throws IOException {
         HttpResponse resp = execute(target, request, context);
         return responseHandler.handleResponse(resp);
     }
 
-    /**
-     * @param request the request to execute
-     * @return HttpResponse The cached entry or the result of a backend call
-     * @throws IOException
-     */
     public HttpResponse execute(HttpUriRequest request) throws IOException {
         HttpContext context = null;
         return execute(request, context);
     }
 
-    /**
-     * @param request the request to execute
-     * @param context the context to use for the execution, or
-     *                <code>null</code> to use the default context
-     * @return HttpResponse The cached entry or the result of a backend call
-     * @throws IOException
-     */
     public HttpResponse execute(HttpUriRequest request, HttpContext context) throws IOException {
         URI uri = request.getURI();
         HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         return execute(httpHost, request, context);
     }
 
-    /**
-     * @param request         the request to execute
-     * @param responseHandler the response handler
-     * @param <T>             The Return Type Identified by the generic type of the {@link ResponseHandler}
-     * @return T The response type as handled by ResponseHandler
-     * @throws IOException
-     */
     public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler)
             throws IOException {
         return execute(request, responseHandler, null);
     }
 
-    /**
-     * @param request         the request to execute
-     * @param responseHandler the response handler
-     * @param context         the http context
-     * @param <T>             The Return Type Identified by the generic type of the {@link ResponseHandler}
-     * @return T The response type as handled by ResponseHandler
-     * @throws IOException
-     */
     public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler,
                          HttpContext context) throws IOException {
         HttpResponse resp = execute(request, context);
         return responseHandler.handleResponse(resp);
     }
 
-    /**
-     * @return the connection manager
-     */
     public ClientConnectionManager getConnectionManager() {
         return backend.getConnectionManager();
     }
 
-    /**
-     * @return the parameters
-     */
     public HttpParams getParams() {
         return backend.getParams();
     }
 
-    /**
-     * @param target  the target host for the request.
-     *                Implementations may accept <code>null</code>
-     *                if they can still determine a route, for example
-     *                to a default target or by inspecting the request.
-     * @param request the request to execute
-     * @param context the context to use for the execution, or
-     *                <code>null</code> to use the default context
-     * @return the response
-     * @throws IOException
-     */
     public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context)
             throws IOException {
 
@@ -626,10 +620,23 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
+    /**
+     * Reports whether this {@code CachingHttpClient} implementation
+     * supports byte-range requests as specified by the {@code Range}
+     * and {@code Content-Range} headers.
+     * @return {@code true} if byte-range requests are supported
+     */
     public boolean supportsRangeAndContentRangeHeaders() {
         return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
     }
 
+    /**
+     * Reports whether this {@code CachingHttpClient} is configured as
+     * a shared (public) or non-shared (private) cache. See {@link
+     * CacheConfig#setSharedCache(boolean)}.
+     * @return {@code true} if we are behaving as a shared (public)
+     *   cache
+     */
     public boolean isSharedCache() {
         return sharedCache;
     }
