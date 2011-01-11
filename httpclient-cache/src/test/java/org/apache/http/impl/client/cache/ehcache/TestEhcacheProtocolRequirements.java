@@ -45,9 +45,9 @@ import org.junit.BeforeClass;
 
 public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
 
-    private final String TEST_EHCACHE_NAME = "TestEhcacheProtocolRequirements-cache";
+    protected final String TEST_EHCACHE_NAME = "TestEhcacheProtocolRequirements-cache";
 
-    private static CacheManager CACHE_MANAGER;
+    protected static CacheManager CACHE_MANAGER;
 
     @BeforeClass
     public static void setUpGlobal() {

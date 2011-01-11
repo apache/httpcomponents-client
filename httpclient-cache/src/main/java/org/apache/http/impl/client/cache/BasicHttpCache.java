@@ -29,7 +29,10 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -50,6 +53,14 @@ import org.apache.http.message.BasicHttpResponse;
 
 class BasicHttpCache implements HttpCache {
 
+    static final String DEPRECATED_VARIANT_SET_MSG =
+        "It looks like you have a custom HttpCacheEntrySerializer " +
+        "that was written against the 4.1-beta API and is using the " +
+        "old (and deprecated) variant tracking mechanism of a Set " +
+        "instead of a Map. Everything is still working, just not as " +
+        "efficiently as possible. Please update your serializer" +
+        "appropriately to use the non-deprecated API for HttpCacheEntry.";
+    
     private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
     private final int maxObjectSizeBytes;
@@ -183,6 +194,7 @@ class BasicHttpCache implements HttpCache {
         return error;
     }
 
+    @SuppressWarnings("deprecation")
     HttpCacheEntry doGetUpdatedParentEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -194,16 +206,30 @@ class BasicHttpCache implements HttpCache {
             src = entry;
         }
         
-        Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
-        variantMap.put(variantKey, variantCacheKey);
         Resource resource = resourceFactory.copy(requestId, src.getResource());
-        return new HttpCacheEntry(
-                src.getRequestDate(),
-                src.getResponseDate(),
-                src.getStatusLine(),
-                src.getAllHeaders(),
-                resource,
-                variantMap);
+        try {
+            Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
+            variantMap.put(variantKey, variantCacheKey);
+            return new HttpCacheEntry(
+                    src.getRequestDate(),
+                    src.getResponseDate(),
+                    src.getStatusLine(),
+                    src.getAllHeaders(),
+                    resource,
+                    variantMap);
+        } catch (UnsupportedOperationException uoe) {
+            // TODO: to be removed once HttpCacheEntry#getVariantURIs is removed
+            log.warn(DEPRECATED_VARIANT_SET_MSG);
+            Set<String> variantURIs = new HashSet<String>(src.getVariantURIs());
+            variantURIs.add(variantCacheKey);
+            return new HttpCacheEntry(
+                    src.getRequestDate(),
+                    src.getResponseDate(),
+                    src.getStatusLine(),
+                    src.getAllHeaders(),
+                    resource,
+                    variantURIs);
+        }
     }
 
     public HttpCacheEntry updateCacheEntry(HttpHost target, HttpRequest request,
@@ -267,7 +293,14 @@ class BasicHttpCache implements HttpCache {
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null) return null;
         if (!root.hasVariants()) return root;
-        String variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
+        String variantCacheKey = null;
+        try {
+            variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
+        } catch (UnsupportedOperationException uoe) {
+            // TODO: to be removed once HttpCacheEntry#getVariantURIs is removed
+            log.warn(DEPRECATED_VARIANT_SET_MSG);
+            variantCacheKey = uriExtractor.getVariantURI(host, request, root); 
+        }
         if (variantCacheKey == null) return null;
         return storage.getEntry(variantCacheKey);
     }
@@ -277,21 +310,37 @@ class BasicHttpCache implements HttpCache {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
     }
 
+    @SuppressWarnings("deprecation")
     public Map<String, Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)
             throws IOException {
         Map<String,Variant> variants = new HashMap<String,Variant>();
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null || !root.hasVariants()) return variants;
-        for(Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
-            String variantKey = variant.getKey();
-            String variantCacheKey = variant.getValue();
-            HttpCacheEntry entry = storage.getEntry(variantCacheKey);
-            if (entry == null) continue;
-            Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
-            if (etagHeader == null) continue;
-            variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
+        try {
+            for(Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
+                String variantKey = variant.getKey();
+                String variantCacheKey = variant.getValue();
+                addVariantWithEtag(variantKey, variantCacheKey, variants);
+            }
+        } catch (UnsupportedOperationException uoe) {
+            // TODO: to be removed once HttpCacheEntry#getVariantURIs is removed
+            log.warn(DEPRECATED_VARIANT_SET_MSG);
+            for(String variantCacheKey : root.getVariantURIs()) {
+                String variantKey = uriExtractor.getVariantKey(request, root);
+                addVariantWithEtag(variantKey, variantCacheKey, variants);
+            }
         }
         return variants;
+    }
+
+    private void addVariantWithEtag(String variantKey,
+            String variantCacheKey, Map<String, Variant> variants)
+            throws IOException {
+        HttpCacheEntry entry = storage.getEntry(variantCacheKey);
+        if (entry == null) return;
+        Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+        if (etagHeader == null) return;
+        variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
     }
 
 }
