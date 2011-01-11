@@ -30,10 +30,10 @@
 
 HttpClient Quick Start
 
-    [[1]] Download 'Binary with dependencies' package of the latest official release from 
+    [[1]] Download 'Binary' package of the latest official release from 
     the {{{http://hc.apache.org/downloads.cgi} project download page}}. 
   
-    There should be 6 jars in total (components marked with (*) are optional if MIME multipart 
+    There should be 5 jars in total (components marked with (*) are optional if MIME multipart 
     support is not required)
   
     * commons-logging-<x.x.x>.jar
@@ -43,8 +43,6 @@ HttpClient Quick Start
     * httpcore-<x.x.x>.jar
   
     * httpclient-<x.x.x>.jar
-  
-    * apache-mime4j-<x.x.x>.jar (*)
   
     * httpmime-<x.x.x>.jar (*)
     
