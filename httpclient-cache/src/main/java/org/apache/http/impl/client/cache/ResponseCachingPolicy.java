@@ -201,7 +201,8 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        if (request.getRequestLine().getUri().contains("?") && !isExplicitlyCacheable(response)) {
+        if (request.getRequestLine().getUri().contains("?") && 
+            (!isExplicitlyCacheable(response) || from1_0Origin(response))) {
             log.debug("Response was not cacheable.");
             return false;
         }
@@ -218,6 +219,21 @@ class ResponseCachingPolicy {
 
         String method = request.getRequestLine().getMethod();
         return isResponseCacheable(method, response);
+    }
+
+    private boolean from1_0Origin(HttpResponse response) {
+        Header via = response.getFirstHeader("Via");
+        if (via != null) {
+            for(HeaderElement elt : via.getElements()) {
+                String proto = elt.toString().split("\\s")[0];
+                if (proto.contains("/")) {
+                    return proto.equals("HTTP/1.0"); 
+                } else {
+                    return proto.equals("1.0");
+                }
+            }
+        }
+        return HttpVersion.HTTP_1_0.equals(response.getProtocolVersion());
     }
 
     private boolean requestProtocolGreaterThanAccepted(HttpRequest req) {

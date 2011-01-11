@@ -59,6 +59,7 @@ import org.junit.Test;
  */
 public class TestProtocolRecommendations extends AbstractProtocolTest {
 
+    private Date tenSecondsFromNow;
     private Date now;
     private Date tenSecondsAgo;
     
@@ -68,6 +69,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         super.setUp();
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
     }
     
     /* "identity: The default (identity) encoding; the use of no
@@ -1078,4 +1080,66 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         impl.execute(host, req3);
         verifyMocks();
     }
+    
+    /*
+     * "This specifically means that responses from HTTP/1.0 servers for such
+     * URIs [those containing a '?' in the rel_path part] SHOULD NOT be taken
+     * from a cache."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
+     */
+    @Test
+    public void responseToGetWithQueryFrom1_0OriginIsNotCached()
+        throws Exception {
+        HttpRequest req1 = new HttpGet("http://foo.example.com/bar?baz=quux");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(200));
+        resp1.setHeader("Content-Length","200");
+        resp1.setHeader("Date", formatDate(now));
+        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(200));
+        resp2.setHeader("Content-Length","200");
+        resp2.setHeader("Date", formatDate(now));
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+    
+    @Test
+    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyIsNotCached()
+        throws Exception {
+        HttpRequest req1 = new HttpGet("http://foo.example.com/bar?baz=quux");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(200));
+        resp1.setHeader("Content-Length","200");
+        resp1.setHeader("Date", formatDate(now));
+        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
+        resp1.setHeader("Via","1.0 someproxy");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
+        resp2.setEntity(HttpTestUtils.makeBody(200));
+        resp2.setHeader("Content-Length","200");
+        resp2.setHeader("Date", formatDate(now));
+        resp2.setHeader("Via","1.0 someproxy");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        verifyMocks();
+    }
+
 }
