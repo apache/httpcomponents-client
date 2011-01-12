@@ -31,10 +31,7 @@ import static org.junit.Assert.*;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -256,58 +253,7 @@ public class TestHttpCacheEntry {
             assertEquals(headers[i], result[i]);
         }
     }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void canRetrieveOriginalVariantSet() {
-        Set<String> variants = new HashSet<String>();
-        variants.add("variant1");
-        variants.add("variant2");
-        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, variants);
-        Set<String> result = entry.getVariantURIs();
-        assertEquals(variants.size(), result.size());
-        for(String variant : variants) {
-            assertTrue(result.contains(variant));
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void throwsExceptionWhenRetrievingVariantMapIfConstructedWithVariantSet() {
-        Set<String> variants = new HashSet<String>();
-        variants.add("variant1");
-        variants.add("variant2");
-        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, variants);
-        try {
-            entry.getVariantMap();
-            fail("should have thrown exception");
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Test
-    public void variantSetIsNotModifiable() {
-        Set<String> variants = new HashSet<String>();
-        variants.add("variant1");
-        variants.add("variant2");
-        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource, variants);
-        Set<String> result = entry.getVariantURIs();
-        try {
-            result.remove("variant1");
-            fail("Should have thrown exception");
-        } catch (UnsupportedOperationException expected) {
-        }
-        try {
-            result.add("variant3");
-            fail("Should have thrown exception");
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-    
+        
     @Test
     public void canConstructWithoutVariants() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
@@ -333,21 +279,6 @@ public class TestHttpCacheEntry {
         assertEquals(2, result.size());
         assertEquals("B", result.get("A"));
         assertEquals("D", result.get("C"));
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void returnsVariantMapValuesForVariantSet() {
-        Map<String,String> variantMap = new HashMap<String,String>();
-        variantMap.put("A","B");
-        variantMap.put("C","D");
-        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource,
-                variantMap);
-        Set<String> result = entry.getVariantURIs();
-        assertEquals(2, result.size());
-        assertTrue(result.contains("B"));
-        assertTrue(result.contains("D"));
     }
     
     @Test

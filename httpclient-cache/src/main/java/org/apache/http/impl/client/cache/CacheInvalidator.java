@@ -29,7 +29,6 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
@@ -80,7 +79,6 @@ class CacheInvalidator {
      * @param host The backend host we are talking to
      * @param req The HttpRequest to that host
      */
-    @SuppressWarnings("deprecation")
     public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req)  {
         if (requestShouldNotBeCached(req)) {
             log.debug("Request should not be cached");
@@ -92,15 +90,7 @@ class CacheInvalidator {
             log.debug("parent entry: " + parent);
 
             if (parent != null) {
-                Collection<String> variantURIs = null;
-                try {
-                    variantURIs = parent.getVariantMap().values();
-                } catch (UnsupportedOperationException uoe) {
-                    // TODO: to be removed once HttpCacheEntry#getVariantURIs is removed
-                    log.warn(BasicHttpCache.DEPRECATED_VARIANT_SET_MSG);
-                    variantURIs = parent.getVariantURIs();
-                }
-                for (String variantURI : variantURIs) {
+                for (String variantURI : parent.getVariantMap().values()) {
                     flushEntry(variantURI);
                 }
                 flushEntry(theUri);

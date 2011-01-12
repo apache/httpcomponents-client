@@ -35,10 +35,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
@@ -64,11 +61,6 @@ public class TestHttpCacheEntrySerializers {
     }
     
     @Test
-    public void canSerializeOldEntriesWithVariantSets() throws Exception {
-        readWriteVerify(makeCacheEntryWithOldVariantSet());
-    }
-
-    @Test
     public void canSerializeEntriesWithVariantMaps() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap());
     }
@@ -84,26 +76,6 @@ public class TestHttpCacheEntrySerializers {
 
         // compare
         assertTrue(areEqual(readEntry, writeEntry));
-    }
-
-    @SuppressWarnings("deprecation")
-    private HttpCacheEntry makeCacheEntryWithOldVariantSet() throws UnsupportedEncodingException {
-        Header[] headers = new Header[5];
-        for (int i = 0; i < headers.length; i++) {
-            headers[i] = new BasicHeader("header" + i, "value" + i);
-        }
-        String body = "Lorem ipsum dolor sit amet";
-
-        ProtocolVersion pvObj = new ProtocolVersion("HTTP", 1, 1);
-        StatusLine slObj = new BasicStatusLine(pvObj, 200, "ok");
-        Set<String> variants = new HashSet<String>();
-        variants.add("test variant 1");
-        variants.add("test variant 2");
-        HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
-                slObj, headers, new HeapResource(Base64.decodeBase64(body
-                        .getBytes(UTF8.name()))), variants);
-
-        return cacheEntry;
     }
 
     private HttpCacheEntry makeCacheEntryWithVariantMap() throws UnsupportedEncodingException {

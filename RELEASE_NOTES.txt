@@ -32,6 +32,9 @@ maintained and supported by Apache HttpComponents project.
 
 Changelog
 -------------------
+* The public API for the caching module had a minor change between 4.1-beta and 4.1-GA to the
+  HttpCacheEntry class. This will likely not affect you unless you are implementing new
+  storage backends and/or implementing custom serializers for cache entries.
 
 * Changed Browser-Compatibility and Best-Match cookie policies to emulate the behaviour of FireFox
   more closely when parsing Netscape style cookies. Comma will no longer be treated as a header
@@ -43,7 +46,7 @@ Changelog
   to US-ASCII)
   Contributed by Sebastian Bazley <sebb at apache.org>
 
-* [HTTPCLIENT-975] Support stale-if-error extension directive (RFC5861).
+* [HTTPCLIENT-975] Support stale-if-error and stale-while-revalidate extension directive (RFC5861).
   Contributed by Mohammed Azeem Uddin <mohammedazeem_uddin at comcast.com>,
   Michajlo Matijkiw <michajlo_matijkiw at comcast.com>, and
   Matthew Hawthorne <matthew_hawthorne at comcast.com>.
