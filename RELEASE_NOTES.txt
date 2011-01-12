@@ -36,7 +36,7 @@ Changelog
   HttpCacheEntry class - the deprecated public Set<String> getVariantURIs() method and constructor 
   public HttpCacheEntry(Date requestDate, Date responseDate,
             StatusLine statusLine, Header[] responseHeaders,
-            Resource resource, Map<String, String> variantMap)
+            Resource resource, Set<String> variants)
   were both removed.  This will not affect you unless you are implementing new storage backends
   that use the deprecated code and/or are implementing custom serializers for cache entries.
 
