@@ -1231,4 +1231,41 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertTrue(HttpTestUtils.semanticallyTransparent(resp5, result5));
     }
 
+    /*
+     * "If a new cacheable response is received from a resource while any
+     * existing responses for the same resource are cached, the cache
+     * SHOULD use the new response to reply to the current request."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.12
+     */
+    @Test
+    public void cacheShouldUpdateWithNewCacheableResponse()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("ETag", "\"etag1\"");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "max-age=0");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Date", formatDate(now));
+        resp2.setHeader("Cache-Control", "max-age=3600");
+        resp2.setHeader("ETag", "\"etag2\"");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        HttpResponse result = impl.execute(host, req3);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
+    }
 }
