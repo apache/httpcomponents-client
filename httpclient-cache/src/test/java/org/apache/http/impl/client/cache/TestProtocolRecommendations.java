@@ -1142,4 +1142,93 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         verifyMocks();
     }
 
+    /*
+     * "A cache that passes through requests for methods it does not
+     * understand SHOULD invalidate any entities referred to by the
+     * Request-URI."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
+     */
+    @Test
+    public void shouldInvalidateNonvariantCacheEntryForUnknownMethod()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = new BasicHttpRequest("FROB", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control","max-age=3600");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp3 = HttpTestUtils.make200Response();
+        resp3.setHeader("ETag", "\"etag\"");
+        
+        backendExpectsAnyRequest().andReturn(resp3);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        HttpResponse result = impl.execute(host, req3);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp3, result));
+    }
+    
+    @Test
+    public void shouldInvalidateAllVariantsForUnknownMethod()
+        throws Exception {
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req1.setHeader("User-Agent", "agent1");
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader("Vary", "User-Agent");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("User-Agent", "agent2");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control","max-age=3600");
+        resp2.setHeader("Vary", "User-Agent");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        HttpRequest req3 = new BasicHttpRequest("FROB", "/", HttpVersion.HTTP_1_1);
+        req3.setHeader("User-Agent", "agent3");
+        HttpResponse resp3 = HttpTestUtils.make200Response();
+        resp3.setHeader("Cache-Control","max-age=3600");
+        
+        backendExpectsAnyRequest().andReturn(resp3);
+        
+        HttpRequest req4 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req4.setHeader("User-Agent", "agent1");
+        HttpResponse resp4 = HttpTestUtils.make200Response();
+        resp4.setHeader("ETag", "\"etag1\"");
+        
+        backendExpectsAnyRequest().andReturn(resp4);
+
+        HttpRequest req5 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req5.setHeader("User-Agent", "agent2");
+        HttpResponse resp5 = HttpTestUtils.make200Response();
+        resp5.setHeader("ETag", "\"etag2\"");
+        
+        backendExpectsAnyRequest().andReturn(resp5);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        impl.execute(host, req2);
+        impl.execute(host, req3);
+        HttpResponse result4 = impl.execute(host, req4);
+        HttpResponse result5 = impl.execute(host, req5);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp4, result4));
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp5, result5));
+    }
+
 }
