@@ -33,8 +33,12 @@ maintained and supported by Apache HttpComponents project.
 Changelog
 -------------------
 * The public API for the caching module had a minor change between 4.1-beta and 4.1-GA to the
-  HttpCacheEntry class. This will likely not affect you unless you are implementing new
-  storage backends and/or implementing custom serializers for cache entries.
+  HttpCacheEntry class - the deprecated public Set<String> getVariantURIs() method and constructor 
+  public HttpCacheEntry(Date requestDate, Date responseDate,
+            StatusLine statusLine, Header[] responseHeaders,
+            Resource resource, Map<String, String> variantMap)
+  were both removed.  This will not affect you unless you are implementing new storage backends
+  that use the deprecated code and/or are implementing custom serializers for cache entries.
 
 * Changed Browser-Compatibility and Best-Match cookie policies to emulate the behaviour of FireFox
   more closely when parsing Netscape style cookies. Comma will no longer be treated as a header
