@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -196,6 +198,7 @@ class ResponseCachingPolicy {
             log.debug("Response was not cacheable.");
             return false;
         }
+        
         String[] uncacheableRequestDirectives = { "no-store" };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
             return false;
@@ -207,6 +210,10 @@ class ResponseCachingPolicy {
             return false;
         }
 
+        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response)) {
+            return false;
+        }
+        
         if (sharedCache) {
             Header[] authNHeaders = request.getHeaders("Authorization");
             if (authNHeaders != null && authNHeaders.length > 0) {
@@ -219,6 +226,21 @@ class ResponseCachingPolicy {
 
         String method = request.getRequestLine().getMethod();
         return isResponseCacheable(method, response);
+    }
+
+    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(
+            HttpResponse response) {
+        if (response.getFirstHeader("Cache-Control") != null) return false;
+        Header expiresHdr = response.getFirstHeader("Expires");
+        Header dateHdr = response.getFirstHeader("Date");
+        if (expiresHdr == null || dateHdr == null) return false;
+        try {
+            Date expires = DateUtils.parseDate(expiresHdr.getValue());
+            Date date = DateUtils.parseDate(dateHdr.getValue());
+            return expires.equals(date) || expires.before(date);
+        } catch (DateParseException dpe) {
+            return false;
+        }
     }
 
     private boolean from1_0Origin(HttpResponse response) {

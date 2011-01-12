@@ -717,6 +717,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", formatDate(now));
         resp1.setHeader("Expires",formatDate(oneSecondAgo));
+        resp1.setHeader("Cache-Control", "public");
 
         backendExpectsAnyRequest().andReturn(resp1);
 
@@ -1268,4 +1269,68 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
+    
+    /*
+     * "Many HTTP/1.0 cache implementations will treat an Expires value
+     * that is less than or equal to the response Date value as being
+     * equivalent to the Cache-Control response directive 'no-cache'.
+     * If an HTTP/1.1 cache receives such a response, and the response
+     * does not include a Cache-Control header field, it SHOULD consider
+     * the response to be non-cacheable in order to retain compatibility
+     * with HTTP/1.0 servers."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
+     */
+    @Test
+    public void expiresEqualToDateWithNoCacheControlIsNotCacheable()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(now));
+        resp1.setHeader("Expires", formatDate(now));
+        resp1.removeHeaders("Cache-Control");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "max-stale=1000");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"etag2\"");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
+    }
+    
+    @Test
+    public void expiresPriorToDateWithNoCacheControlIsNotCacheable()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(now));
+        resp1.setHeader("Expires", formatDate(tenSecondsAgo));
+        resp1.removeHeaders("Cache-Control");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "max-stale=1000");
+        HttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"etag2\"");
+        
+        backendExpectsAnyRequest().andReturn(resp2);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
+    }
+
 }
