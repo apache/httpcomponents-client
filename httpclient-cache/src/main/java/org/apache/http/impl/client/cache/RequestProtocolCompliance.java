@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.Header;
@@ -54,6 +55,9 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class RequestProtocolCompliance {
 
+    private static final List<String> disallowedWithNoCache =
+        Arrays.asList("min-fresh", "max-stale", "max-age");
+
     /**
      * Test to see if the {@link HttpRequest} is HTTP1.1 compliant or not
      * and if not, we can not continue.
@@ -63,11 +67,6 @@ class RequestProtocolCompliance {
      */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(HttpRequest request) {
         List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
-
-        //RequestProtocolError anError = requestContainsBodyButNoLength(request);
-        //if (anError != null) {
-        //    theErrors.add(anError);
-        //}
 
         RequestProtocolError anError = requestHasWeakETagAndRange(request);
         if (anError != null) {
@@ -105,6 +104,7 @@ class RequestProtocolCompliance {
         verifyRequestWithExpectContinueFlagHas100continueHeader(request);
         verifyOPTIONSRequestWithBodyHasContentType(request);
         decrementOPTIONSMaxForwardsIfGreaterThen0(request);
+        stripOtherFreshnessDirectivesWithNoCache(request);
 
         if (requestVersionIsTooLow(request)) {
             return upgradeRequestTo(request, HttpVersion.HTTP_1_1);
@@ -115,6 +115,38 @@ class RequestProtocolCompliance {
         }
 
         return request;
+    }
+    
+    private void stripOtherFreshnessDirectivesWithNoCache(HttpRequest request) {
+        List<HeaderElement> outElts = new ArrayList<HeaderElement>();
+        boolean shouldStrip = false;
+        for(Header h : request.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if (!disallowedWithNoCache.contains(elt.getName())) {
+                    outElts.add(elt);
+                }
+                if ("no-cache".equals(elt.getName())) {
+                    shouldStrip = true;
+                }
+            }
+        }
+        if (!shouldStrip) return;
+        request.removeHeaders("Cache-Control");
+        request.setHeader("Cache-Control", buildHeaderFromElements(outElts));
+    }
+
+    private String buildHeaderFromElements(List<HeaderElement> outElts) {
+        StringBuilder newHdr = new StringBuilder("");
+        boolean first = true;
+        for(HeaderElement elt : outElts) {
+            if (!first) {
+                newHdr.append(",");
+            } else {
+                first = false;
+            }
+            newHdr.append(elt.toString());
+        }
+        return newHdr.toString();
     }
 
     private boolean requestMustNotHaveEntity(HttpRequest request) {

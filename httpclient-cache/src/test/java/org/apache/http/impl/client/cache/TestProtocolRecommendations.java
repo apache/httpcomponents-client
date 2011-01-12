@@ -30,7 +30,9 @@ import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -1333,4 +1335,43 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
 
+    /*
+     * "If a request includes the no-cache directive, it SHOULD NOT
+     * include min-fresh, max-stale, or max-age."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    @Test
+    public void otherFreshnessRequestDirectivesNotAllowedWithNoCache()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        req1.setHeader("Cache-Control", "min-fresh=10, no-cache");
+        req1.addHeader("Cache-Control", "max-stale=0, max-age=0");
+        
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        expect(mockBackend.execute(same(host), capture(cap), (HttpContext)isNull()))
+            .andReturn(HttpTestUtils.make200Response());
+        
+        replayMocks();
+        impl.execute(host, req1);
+        verifyMocks();
+        
+        HttpRequest captured = cap.getValue();
+        boolean foundNoCache = false;
+        boolean foundDisallowedDirective = false;
+        List<String> disallowed =
+            Arrays.asList("min-fresh", "max-stale", "max-age");
+        for(Header h : captured.getHeaders("Cache-Control")) {
+            for(HeaderElement elt : h.getElements()) {
+                if (disallowed.contains(elt.getName())) {
+                    foundDisallowedDirective = true;
+                }
+                if ("no-cache".equals(elt.getName())) {
+                    foundNoCache = true;
+                }
+            }
+        }
+        assertTrue(foundNoCache);
+        assertFalse(foundDisallowedDirective);
+    }
 }
