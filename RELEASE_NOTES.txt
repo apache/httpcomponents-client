@@ -1,7 +1,7 @@
 Release 4.1
 -------------------
 
-HttpClient 4.1 release builds upon the stable foundation laid by HttpClient 4.0 and adds several
+The HttpClient 4.1 release builds upon the stable foundation laid by HttpClient 4.0 and adds several
 functional improvements and popular features.
 
 * Response caching conditionally compliant with HTTP/1.1 specification (full compliance with
@@ -27,8 +27,8 @@ functional improvements and popular features.
 
 * Transparent support for host multihoming.
 
-IMPORTANT: please note that HttpClient 3.x branch is now officially END OF LIFE and is no longer
-maintained and supported by Apache HttpComponents project.
+IMPORTANT: please note that the HttpClient 3.x branch is now officially END OF LIFE and is no longer
+maintained and supported by the Apache HttpComponents project.
 
 Changelog
 -------------------
