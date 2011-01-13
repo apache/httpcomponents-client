@@ -1374,4 +1374,91 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertTrue(foundNoCache);
         assertFalse(foundDisallowedDirective);
     }
+    
+    /*
+     * "To do this, the client may include the only-if-cached directive in
+     * a request. If it receives this directive, a cache SHOULD either
+     * respond using a cached entry that is consistent with the other
+     * constraints of the request, or respond with a 504 (Gateway Timeout)
+     * status."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
+     */
+    @Test
+    public void cacheMissResultsIn504WithOnlyIfCached()
+        throws Exception {
+        HttpRequest req = HttpTestUtils.makeDefaultRequest();
+        req.setHeader("Cache-Control", "only-if-cached");
+        
+        replayMocks();
+        HttpResponse result = impl.execute(host, req);
+        verifyMocks();
+        
+        assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
+                result.getStatusLine().getStatusCode());
+    }
+    
+    @Test
+    public void cacheHitOkWithOnlyIfCached()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "only-if-cached");
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
+    }
+    
+    @Test
+    public void returns504ForStaleEntryWithOnlyIfCached()
+        throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=5");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "only-if-cached");
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
+                result.getStatusLine().getStatusCode());
+    }
+    
+    @Test
+    public void returnsStaleCacheEntryWithOnlyIfCachedAndMaxStale()
+        throws Exception {
+
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control","max-age=5");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "max-stale=20, only-if-cached");
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
+    }
 }
