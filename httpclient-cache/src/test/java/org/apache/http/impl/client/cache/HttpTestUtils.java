@@ -76,6 +76,16 @@ public class HttpTestUtils {
         "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
         "Max-Forwards", "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
         "User-Agent", "Vary" };
+    
+    /*
+     * "Entity-header fields define metainformation about the entity-body or,
+     * if no body is present, about the resource identified by the request."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+     */
+    public static final String[] ENTITY_HEADERS = { "Allow", "Content-Encoding",
+        "Content-Language", "Content-Length", "Content-Location", "Content-MD5",
+        "Content-Range", "Content-Type", "Expires", "Last-Modified" };
 
     /*
      * Determines whether the given header name is considered a hop-by-hop

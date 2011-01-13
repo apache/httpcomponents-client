@@ -83,6 +83,8 @@ class ResponseProtocolCompliance {
         ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(request, response);
 
         ensure206ContainsDateHeader(response);
+        
+        ensure304DoesNotContainExtraEntityHeaders(response);
 
         identityIsNotUsedInContentEncoding(response);
 
@@ -209,6 +211,18 @@ class ResponseProtocolCompliance {
 
         if (response.getFirstHeader(HTTP.CONTENT_LEN) == null) {
             response.addHeader(HTTP.CONTENT_LEN, "0");
+        }
+    }
+
+    private void ensure304DoesNotContainExtraEntityHeaders(HttpResponse response) {
+        String[] disallowedEntityHeaders = { "Allow", "Content-Encoding",
+                "Content-Language", "Content-Length", "Content-MD5",
+                "Content-Range", "Content-Type", "Last-Modified"
+        };
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+            for(String hdr : disallowedEntityHeaders) {
+                response.removeHeaders(hdr);
+            }
         }
     }
 

@@ -44,6 +44,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import static org.apache.http.impl.cookie.DateUtils.formatDate;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -64,6 +65,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     private Date tenSecondsFromNow;
     private Date now;
     private Date tenSecondsAgo;
+    private Date twoMinutesAgo;
     
     @Override
     @Before
@@ -71,6 +73,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         super.setUp();
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000L);
         tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
     }
     
@@ -100,6 +103,294 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertFalse(foundIdentity);
     }
 
+    /*
+     * "304 Not Modified. ... If the conditional GET used a strong cache
+     * validator (see section 13.3.3), the response SHOULD NOT include
+     * other entity-headers."
+     * 
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
+     */
+    private void cacheGenerated304ForValidatorShouldNotContainEntityHeader(
+            String headerName, String headerValue, String validatorHeader,
+            String validator, String conditionalHeader) throws Exception,
+            IOException {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader(validatorHeader, validator);
+        resp1.setHeader(headerName, headerValue);
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader(conditionalHeader, validator);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        if (HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode()) {
+            assertNull(result.getFirstHeader(headerName));
+        }
+    }
+    
+    private void cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+            String headerName, String headerValue) throws Exception,
+            IOException {
+        cacheGenerated304ForValidatorShouldNotContainEntityHeader(headerName,
+                headerValue, "ETag", "\"etag\"", "If-None-Match");
+    }
+    
+    private void cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+            String headerName, String headerValue) throws Exception,
+            IOException {
+        cacheGenerated304ForValidatorShouldNotContainEntityHeader(headerName,
+                headerValue, "Last-Modified", formatDate(twoMinutesAgo),
+                "If-Modified-Since");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainAllow()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Allow", "GET,HEAD");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainAllow()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Allow", "GET,HEAD");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentEncoding()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Content-Encoding", "gzip");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentEncoding()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Content-Encoding", "gzip");
+    }
+
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentLanguage()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Content-Language", "en");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentLanguage()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Content-Language", "en");
+    }
+
+    @Test
+    public void cacheGenerated304ForStrongValidatorShouldNotContainContentLength()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Content-Length", "128");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentLength()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Content-Length", "128");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongValidatorShouldNotContainContentMD5()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentMD5()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+    }
+
+    private void cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
+            String validatorHeader, String validator, String conditionalHeader)
+            throws Exception, IOException, ClientProtocolException {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        req1.setHeader("Range","bytes=0-127");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        resp1.setHeader("Cache-Control","max-age=3600");
+        resp1.setHeader(validatorHeader, validator);
+        resp1.setHeader("Content-Range", "bytes 0-127/256");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("If-Range", validator);
+        req2.setHeader("Range","bytes=0-127");
+        req2.setHeader(conditionalHeader, validator);
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp2.setHeader("Date", formatDate(now));
+        resp2.setHeader(validatorHeader, validator);
+        
+        // cache module does not currently deal with byte ranges, but we want
+        // this test to work even if it does some day
+        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        expect(mockBackend.execute(same(host), capture(cap), (HttpContext)isNull()))
+            .andReturn(resp2).times(0,1);
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        if (!cap.hasCaptured()
+            && HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode()) {
+            // cache generated a 304
+            assertNull(result.getFirstHeader("Content-Range"));
+        }
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentRange()
+    throws Exception {
+        cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
+                "ETag", "\"etag\"", "If-None-Match");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentRange()
+    throws Exception {
+        cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
+                "Last-Modified", formatDate(twoMinutesAgo), "If-Modified-Since");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentType()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Content-Type", "text/html");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentType()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Content-Type", "text/html");
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainLastModified()
+            throws Exception {
+        cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
+                "Last-Modified", formatDate(tenSecondsAgo));
+    }
+    
+    @Test
+    public void cacheGenerated304ForStrongDateValidatorShouldNotContainLastModified()
+            throws Exception {
+        cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
+                "Last-Modified", formatDate(twoMinutesAgo));
+    }
+    
+    private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+            String entityHeader, String entityHeaderValue) throws Exception,
+            IOException {
+        HttpRequest req = HttpTestUtils.makeDefaultRequest();
+        req.setHeader("If-None-Match", "\"etag\"");
+
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp.setHeader("Date", formatDate(now));
+        resp.setHeader("Etag", "\"etag\"");
+        resp.setHeader(entityHeader, entityHeaderValue);
+        
+        backendExpectsAnyRequest().andReturn(resp);
+        
+        replayMocks();
+        HttpResponse result = impl.execute(host, req);
+        verifyMocks();
+        
+        assertNull(result.getFirstHeader(entityHeader));
+    }
+    
+    @Test
+    public void shouldStripAllowFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Allow", "GET,HEAD");
+    }
+    
+    @Test
+    public void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Encoding", "gzip");
+    }
+
+    @Test
+    public void shouldStripContentLanguageFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Language", "en");
+    }
+    
+    @Test
+    public void shouldStripContentLengthFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Length", "128");
+    }
+    
+    @Test
+    public void shouldStripContentMD5FromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+    }
+
+    @Test
+    public void shouldStripContentTypeFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Type", "text/html;charset=utf-8");
+    }
+    
+    @Test
+    public void shouldStripContentRangeFromOrigin304ResponseToStringValidation()
+            throws Exception {
+        HttpRequest req = HttpTestUtils.makeDefaultRequest();
+        req.setHeader("If-Range","\"etag\"");
+        req.setHeader("Range","bytes=0-127");
+        
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        resp.setHeader("Date", formatDate(now));
+        resp.setHeader("ETag", "\"etag\"");
+        resp.setHeader("Content-Range", "bytes 0-127/256");
+        
+        backendExpectsAnyRequest().andReturn(resp);
+        
+        replayMocks();
+        HttpResponse result = impl.execute(host, req);
+        verifyMocks();
+        
+        assertNull(result.getFirstHeader("Content-Range"));
+    }
+    
+    @Test
+    public void shouldStripLastModifiedFromOrigin304ResponseToStrongValidation()
+    throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Last-Modified", formatDate(twoMinutesAgo));
+    }
+    
     /*
      * "For this reason, a cache SHOULD NOT return a stale response if the
      * client explicitly requests a first-hand or fresh one, unless it is
@@ -1461,4 +1752,5 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
     }
+    
 }
