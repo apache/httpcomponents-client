@@ -26,25 +26,31 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestRequestRetryHandler {
 
-    @Test(expected=UnknownHostException.class)
+    @Test(expected=HttpHostConnectException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithThreadSafeClientConnManager()
             throws Exception {
 
@@ -55,7 +61,7 @@ public class TestRequestRetryHandler {
         assertOnRetry(connManager);
     }
 
-    @Test(expected=UnknownHostException.class)
+    @Test(expected=HttpHostConnectException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithSingleClientConnManager()
             throws Exception {
 
@@ -67,13 +73,30 @@ public class TestRequestRetryHandler {
 
     protected void assertOnRetry(ClientConnectionManager connManager) throws Exception {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        schemeRegistry.register(new Scheme("http", 80, new SchemeSocketFactory() {
+
+            public boolean isSecure(final Socket sock) throws IllegalArgumentException {
+                return false;
+            }
+
+            public Socket createSocket(final HttpParams params) throws IOException {
+                throw new UnknownHostException("Ooopsie");
+            }
+
+            public Socket connectSocket(
+                    final Socket sock,
+                    final InetSocketAddress remoteAddress,
+                    final InetSocketAddress localAddress,
+                    final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+                throw new UnknownHostException("Ooopsie");
+            }
+        }));
 
         DefaultHttpClient client = new DefaultHttpClient(connManager);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
         client.setHttpRequestRetryHandler(testRetryHandler);
 
-        HttpRequestBase request = new HttpGet("http://bogus.example.com/");
+        HttpRequestBase request = new HttpGet("http://www.example.com/");
 
         HttpConnectionParams.setConnectionTimeout(request.getParams(), 1);
         try {
