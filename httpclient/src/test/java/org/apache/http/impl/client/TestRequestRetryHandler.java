@@ -35,8 +35,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
@@ -50,48 +48,28 @@ import org.junit.Test;
 
 public class TestRequestRetryHandler {
 
-    @Test(expected=HttpHostConnectException.class)
+    @Test(expected=UnknownHostException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithThreadSafeClientConnManager()
             throws Exception {
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        schemeRegistry.register(new Scheme("http", 80, new OppsieSchemeSocketFactory()));
         ClientConnectionManager connManager = new ThreadSafeClientConnManager(schemeRegistry);
 
         assertOnRetry(connManager);
     }
 
-    @Test(expected=HttpHostConnectException.class)
+    @Test(expected=UnknownHostException.class)
     public void testUseRetryHandlerInConnectionTimeOutWithSingleClientConnManager()
             throws Exception {
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        schemeRegistry.register(new Scheme("http", 80, new OppsieSchemeSocketFactory()));
         ClientConnectionManager connManager = new SingleClientConnManager(schemeRegistry);
         assertOnRetry(connManager);
     }
 
     protected void assertOnRetry(ClientConnectionManager connManager) throws Exception {
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, new SchemeSocketFactory() {
-
-            public boolean isSecure(final Socket sock) throws IllegalArgumentException {
-                return false;
-            }
-
-            public Socket createSocket(final HttpParams params) throws IOException {
-                throw new UnknownHostException("Ooopsie");
-            }
-
-            public Socket connectSocket(
-                    final Socket sock,
-                    final InetSocketAddress remoteAddress,
-                    final InetSocketAddress localAddress,
-                    final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
-                throw new UnknownHostException("Ooopsie");
-            }
-        }));
-
         DefaultHttpClient client = new DefaultHttpClient(connManager);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
         client.setHttpRequestRetryHandler(testRetryHandler);
@@ -119,6 +97,25 @@ public class TestRequestRetryHandler {
             return false;
         }
 
+    }
+
+    static class OppsieSchemeSocketFactory implements SchemeSocketFactory {
+
+        public boolean isSecure(final Socket sock) throws IllegalArgumentException {
+            return false;
+        }
+
+        public Socket createSocket(final HttpParams params) throws IOException {
+            return new Socket();
+        }
+
+        public Socket connectSocket(
+                final Socket sock,
+                final InetSocketAddress remoteAddress,
+                final InetSocketAddress localAddress,
+                final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+            throw new UnknownHostException("Ooopsie");
+        }
     }
 
 }
