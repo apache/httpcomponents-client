@@ -120,6 +120,11 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
         <created>2010-11-21</created>
         <revision>4.1-beta1</revision>
       </Version>
+      <Version>
+        <name>httpcomponents-client-4.1 GA</name>
+        <created>2011-01-24</created>
+        <revision>4.1 GA</revision>
+      </Version>
     </release>
 
     <repository>
