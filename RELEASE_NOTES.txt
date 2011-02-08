@@ -1,3 +1,9 @@
+Changes since 4.1
+
+* [HTTPCLIENT-1053] Fixed the way DigestScheme generates nonce-count values.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 Release 4.1
 -------------------
 

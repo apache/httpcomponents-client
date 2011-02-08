@@ -304,4 +304,32 @@ public class TestDigestScheme {
         return map;
     }
 
+    @Test
+    public void testDigestNouceCount() throws Exception {
+        String challenge1 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
+        Header authChallenge1 = new BasicHeader(AUTH.WWW_AUTH, challenge1);
+        HttpRequest request = new BasicHttpRequest("Simple", "/");
+        Credentials cred = new UsernamePasswordCredentials("username","password");
+        DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge1);
+        Header authResponse1 = authscheme.authenticate(cred, request);
+        Map<String, String> table1 = parseAuthResponse(authResponse1);
+        Assert.assertEquals("00000001", table1.get("nc"));
+        Header authResponse2 = authscheme.authenticate(cred, request);
+        Map<String, String> table2 = parseAuthResponse(authResponse2);
+        Assert.assertEquals("00000002", table2.get("nc"));
+        String challenge2 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
+        Header authChallenge2 = new BasicHeader(AUTH.WWW_AUTH, challenge2);
+        authscheme.processChallenge(authChallenge2);
+        Header authResponse3 = authscheme.authenticate(cred, request);
+        Map<String, String> table3 = parseAuthResponse(authResponse3);
+        Assert.assertEquals("00000003", table3.get("nc"));
+        String challenge3 = "Digest realm=\"realm1\", nonce=\"e273f1776275974f1a120d8b92c5b3cb\", qop=auth";
+        Header authChallenge3 = new BasicHeader(AUTH.WWW_AUTH, challenge3);
+        authscheme.processChallenge(authChallenge3);
+        Header authResponse4 = authscheme.authenticate(cred, request);
+        Map<String, String> table4 = parseAuthResponse(authResponse4);
+        Assert.assertEquals("00000001", table4.get("nc"));
+    }
+
 }

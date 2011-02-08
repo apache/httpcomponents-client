@@ -28,7 +28,9 @@ package org.apache.http.impl.auth;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.http.annotation.NotThreadSafe;
@@ -88,14 +90,15 @@ public class DigestScheme extends RFC2617Scheme {
     /** Whether the digest authentication process is complete */
     private boolean complete;
 
-    //TODO: supply a real nonce-count, currently a server will interprete a repeated request as a replay
-    private static final String NC = "00000001"; //nonce-count is always 1
     private static final int QOP_MISSING = 0;
     private static final int QOP_AUTH_INT = 1;
     private static final int QOP_AUTH = 2;
 
     private int qopVariant = QOP_MISSING;
+    private String lastNonce;
+    private long nounceCount;
     private String cnonce;
+    private String nc;
 
     /**
      * Default constructor for the digest authetication scheme.
@@ -146,8 +149,6 @@ public class DigestScheme extends RFC2617Scheme {
         if (unsupportedQop && (qopVariant == QOP_MISSING)) {
             throw new MalformedChallengeException("None of the qop methods is supported");
         }
-        // Reset cnonce
-        this.cnonce = null;
         this.complete = true;
     }
 
@@ -193,6 +194,16 @@ public class DigestScheme extends RFC2617Scheme {
             this.cnonce = createCnonce();
         }
         return this.cnonce;
+    }
+
+    private String getNc() {
+        if (this.nc == null) {
+            StringBuilder sb = new StringBuilder();
+            Formatter formatter = new Formatter(sb, Locale.US);
+            formatter.format("%08x", this.nounceCount);
+            this.nc = sb.toString();
+        }
+        return this.nc;
     }
 
     /**
@@ -266,6 +277,11 @@ public class DigestScheme extends RFC2617Scheme {
         if (nonce == null) {
             throw new IllegalStateException("Nonce may not be null");
         }
+
+        // Reset
+        this.cnonce = null;
+        this.nc = null;
+
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
             algorithm = "MD5";
@@ -285,6 +301,14 @@ public class DigestScheme extends RFC2617Scheme {
         if (digAlg.equalsIgnoreCase("MD5-sess")) {
             digAlg = "MD5";
         }
+
+        if (nonce.equals(this.lastNonce)) {
+            this.nounceCount++;
+        } else {
+            this.nounceCount = 1;
+            this.lastNonce = nonce;
+        }
+
         MessageDigest digester = createMessageDigest(digAlg);
 
         String uname = credentials.getUserPrincipal().getName();
@@ -345,14 +369,14 @@ public class DigestScheme extends RFC2617Scheme {
         } else {
             String qopOption = getQopVariantString();
             String cnonce = getCnonce();
-
+            String nc =  getNc();
             StringBuilder tmp2 = new StringBuilder(hasha1.length() + nonce.length()
-                + NC.length() + cnonce.length() + qopOption.length() + hasha2.length() + 5);
+                + nc.length() + cnonce.length() + qopOption.length() + hasha2.length() + 5);
             tmp2.append(hasha1);
             tmp2.append(':');
             tmp2.append(nonce);
             tmp2.append(':');
-            tmp2.append(NC);
+            tmp2.append(nc);
             tmp2.append(':');
             tmp2.append(cnonce);
             tmp2.append(':');
@@ -406,7 +430,7 @@ public class DigestScheme extends RFC2617Scheme {
 
         if (qopVariant != QOP_MISSING) {
             params.add(new BasicNameValuePair("qop", getQopVariantString()));
-            params.add(new BasicNameValuePair("nc", NC));
+            params.add(new BasicNameValuePair("nc", getNc()));
             params.add(new BasicNameValuePair("cnonce", getCnonce()));
         }
         if (algorithm != null) {
