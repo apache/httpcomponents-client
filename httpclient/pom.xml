@@ -169,6 +169,7 @@
       <plugin>
         <groupId>com.atlassian.maven.plugins</groupId>
         <artifactId>maven-clover2-plugin</artifactId>
+        <version>${clover.version}</version>
         <configuration>
           <jdk>1.5</jdk>
         </configuration>
