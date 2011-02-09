@@ -116,7 +116,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         }
 
         Credentials creds = credsProvider.getCredentials(
-                new AuthScope(host.getHostName(), host.getPort(), schemeName));
+                new AuthScope(host, AuthScope.ANY_REALM, schemeName));
 
         if (creds != null) {
             authState.setAuthScheme(authScheme);

@@ -1,5 +1,9 @@
 Changes since 4.1
 
+* [HTTPCLIENT-1056] Fixed bug causing the RequestAuthCache protocol interceptor to generate
+  an invalid AuthScope instance when looking up user credentials for preemptive authentication. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1053] Fixed the way DigestScheme generates nonce-count values.  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
