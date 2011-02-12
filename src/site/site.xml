@@ -26,17 +26,6 @@
  -->
 
 <project name="HttpClient">
-  <bannerLeft>
-    <name>Apache</name>
-    <src>http://www.apache.org/images/asf_logo_wide.gif</src>
-    <href>http://www.apache.org/</href>
-  </bannerLeft>
-
-  <bannerRight>
-    <name>HttpComponents</name>
-    <src>http://hc.apache.org/images/logos/httpcomponents.png</src>
-    <href>http://hc.apache.org/</href>
-  </bannerRight>
 
   <body>
     <menu name="HttpComponents">
