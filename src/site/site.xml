@@ -28,12 +28,8 @@
 <project name="HttpClient">
 
   <body>
-    <menu name="HttpComponents">
-      <item name="Home" href=".."/>
-    </menu>
     <menu name="HttpClient Overview">
       <item name="Description" href="index.html"/>
-      <item name="Download" href="download.html"/>
       <item name="Quick Start" href="quickstart.html"/>
     </menu>
     <menu name="Documentation">
