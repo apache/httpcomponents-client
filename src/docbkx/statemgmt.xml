@@ -297,7 +297,7 @@ httpclient.getParams().setParameter(
         <para>HttpClient can work with any physical representation of a persistent cookie store that
             implements the <interfacename>CookieStore</interfacename> interface. The default
                 <interfacename>CookieStore</interfacename> implementation called
-                <classname>BasicClientCookie</classname> is a simple implementation backed by a
+                <classname>BasicCookieStore</classname> is a simple implementation backed by a
                 <classname>java.util.ArrayList</classname>. Cookies stored in an
                 <classname>BasicClientCookie</classname> object are lost when the container object
             get garbage collected. Users can provide more complex implementations if
