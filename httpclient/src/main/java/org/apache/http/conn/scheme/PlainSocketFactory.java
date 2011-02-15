@@ -115,9 +115,12 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
             sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sock.bind(localAddress);
         }
-        int timeout = HttpConnectionParams.getConnectionTimeout(params);
+        int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
+        int soTimeout = HttpConnectionParams.getSoTimeout(params);
+
         try {
-            sock.connect(remoteAddress, timeout);
+            sock.setSoTimeout(soTimeout);
+            sock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
                     + remoteAddress.getAddress() + " timed out");
