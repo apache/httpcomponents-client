@@ -43,6 +43,9 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
+import org.apache.http.conn.HttpRoutedConnection;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -71,6 +74,13 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         }
 
         if (request.containsHeader(AUTH.PROXY_AUTH_RESP)) {
+            return;
+        }
+
+        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
+                ExecutionContext.HTTP_CONNECTION);
+        HttpRoute route = conn.getRoute();
+        if (route.isTunnelled()) {
             return;
         }
 
