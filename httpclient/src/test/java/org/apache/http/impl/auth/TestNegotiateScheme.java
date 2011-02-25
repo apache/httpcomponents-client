@@ -58,8 +58,8 @@ import org.ietf.jgss.Oid;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.easymock.classextension.EasyMock;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link NegotiateScheme}.
@@ -97,41 +97,27 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      */
     private static class NegotiateSchemeWithMockGssManager extends NegotiateScheme {
 
-        GSSManager manager = EasyMock.createNiceMock(GSSManager.class);
-        GSSName name = EasyMock.createNiceMock(GSSName.class);
-        GSSContext context = EasyMock.createNiceMock(GSSContext.class);
+        GSSManager manager = Mockito.mock(GSSManager.class);
+        GSSName name = Mockito.mock(GSSName.class);
+        GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(null, true);
-
-            EasyMock.expect(context.initSecContext(EasyMock.<byte[]>anyObject(),
-                    EasyMock.anyInt(), EasyMock.anyInt())).andReturn("12345678".getBytes());
-
-            EasyMock.expect(manager.createName(EasyMock.isA(String.class),
-                    EasyMock.<Oid>anyObject())).andReturn(name);
-
-            EasyMock.expect(manager.createContext(
-                    EasyMock.isA(GSSName.class),EasyMock.isA(Oid.class),
-                    EasyMock.<GSSCredential>anyObject(), EasyMock.anyInt()))
-                    .andReturn(context);
-
-            EasyMock.expect(name.canonicalize(EasyMock.isA(Oid.class)))
-                    .andReturn(name);
-
-            EasyMock.replay(context);
-            EasyMock.replay(name);
-            EasyMock.replay(manager);
+            Mockito.when(context.initSecContext(
+                    Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt()))
+                    .thenReturn("12345678".getBytes());
+            Mockito.when(manager.createName(
+                    Matchers.any(String.class), Matchers.any(Oid.class)))
+                    .thenReturn(name);
+            Mockito.when(manager.createContext(
+                    Matchers.any(GSSName.class), Matchers.any(Oid.class),
+                    Matchers.any(GSSCredential.class), Matchers.anyInt()))
+                    .thenReturn(context);
         }
 
         @Override
         protected GSSManager getManager() {
             return manager;
-        }
-
-        public void verify() {
-            EasyMock.verify(context);
-            EasyMock.verify(name);
-            EasyMock.verify(manager);
         }
 
     }
@@ -189,8 +175,6 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         HttpResponse response = client.execute(httpget);
         EntityUtils.consume(response.getEntity());
 
-        ((NegotiateSchemeFactoryWithMockGssManager)nsf).scheme.verify();
-
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -220,7 +204,6 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         HttpResponse response = client.execute(httpget);
         EntityUtils.consume(response.getEntity());
 
-        nsf.scheme.verify();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
