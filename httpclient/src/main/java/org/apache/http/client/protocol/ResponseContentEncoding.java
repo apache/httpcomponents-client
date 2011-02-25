@@ -27,6 +27,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -52,17 +53,17 @@ import org.apache.http.protocol.HttpContext;
 public class ResponseContentEncoding implements HttpResponseInterceptor {
 
     /**
-     * Handles the following {@code Content-Encoding}s by 
+     * Handles the following {@code Content-Encoding}s by
      * using the appropriate decompressor to wrap the response Entity:
      * <ul>
      * <li>gzip - see {@link GzipDecompressingEntity}</li>
      * <li>deflate - see {@link DeflateDecompressingEntity}</li>
      * <li>identity - no action needed</li>
      * </ul>
-     * 
+     *
      * @param response the response which contains the entity
      * @param  context not currently used
-     * 
+     *
      * @throws HttpException if the {@code Content-Encoding} is none of the above
      */
     public void process(
@@ -76,13 +77,14 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
             if (ceheader != null) {
                 HeaderElement[] codecs = ceheader.getElements();
                 for (HeaderElement codec : codecs) {
-                    if ("gzip".equalsIgnoreCase(codec.getName())) {
+                    String codecname = codec.getName().toLowerCase(Locale.US);
+                    if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
                         response.setEntity(new GzipDecompressingEntity(response.getEntity()));
                         return;
-                    } else if ("deflate".equalsIgnoreCase(codec.getName())) {
+                    } else if ("deflate".equals(codecname)) {
                         response.setEntity(new DeflateDecompressingEntity(response.getEntity()));
                         return;
-                    } else if ("identity".equalsIgnoreCase(codec.getName())) {
+                    } else if ("identity".equals(codecname)) {
 
                         /* Don't need to transform the content - no-op */
                         return;
