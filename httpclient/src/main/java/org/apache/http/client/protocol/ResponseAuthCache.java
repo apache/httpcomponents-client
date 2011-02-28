@@ -40,6 +40,7 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -69,36 +70,49 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
-        if (authCache != null) {
-            cache(authCache,
-                    (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST),
-                    (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE));
-            cache(authCache,
-                    (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST),
-                    (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE));
+
+        HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+        AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        if (target != null && targetState != null) {
+            if (isCachable(targetState)) {
+                if (authCache == null) {
+                    authCache = new BasicAuthCache();
+                    context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                }
+                cache(authCache, target, targetState);
+            }
+        }
+
+        HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
+        AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
+        if (proxy != null && proxyState != null) {
+            if (isCachable(proxyState)) {
+                if (authCache == null) {
+                    authCache = new BasicAuthCache();
+                    context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                }
+                cache(authCache, proxy, proxyState);
+            }
         }
     }
 
-    private void cache(final AuthCache authCache, final HttpHost host, final AuthState authState) {
-        if (authState == null) {
-            return;
-        }
-
+    private boolean isCachable(final AuthState authState) {
         AuthScheme authScheme = authState.getAuthScheme();
         if (authScheme == null || !authScheme.isComplete()) {
-            return;
+            return false;
         }
-
         String schemeName = authScheme.getSchemeName();
-        if (!schemeName.equalsIgnoreCase(AuthPolicy.BASIC) &&
-                !schemeName.equalsIgnoreCase(AuthPolicy.DIGEST)) {
-            return;
-        }
+        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
+                schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
+    }
 
+    private void cache(final AuthCache authCache, final HttpHost host, final AuthState authState) {
+        AuthScheme authScheme = authState.getAuthScheme();
         if (authState.getAuthScope() != null) {
             if (authState.getCredentials() != null) {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Caching '" + schemeName + "' auth scheme for " + host);
+                    this.log.debug("Caching '" + authScheme.getSchemeName() +
+                            "' auth scheme for " + host);
                 }
                 authCache.put(host, authScheme);
             } else {

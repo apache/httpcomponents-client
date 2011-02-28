@@ -79,6 +79,9 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
 
         HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
+        if (conn == null) {
+            throw new IllegalStateException("Client connection not specified in HTTP context");
+        }
         HttpRoute route = conn.getRoute();
         if (route.isTunnelled()) {
             return;
