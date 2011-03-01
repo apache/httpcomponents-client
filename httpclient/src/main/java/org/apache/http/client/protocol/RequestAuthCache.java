@@ -83,7 +83,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
 
         HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
         AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
-        if (target != null && targetState != null) {
+        if (target != null && targetState != null && targetState.getAuthScheme() == null) {
             AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 doPreemptiveAuth(target, authScheme, targetState, credsProvider);
@@ -92,7 +92,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
 
         HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
         AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
-        if (proxy != null && proxyState != null) {
+        if (proxy != null && proxyState != null && proxyState.getAuthScheme() == null) {
             AuthScheme authScheme = authCache.get(proxy);
             if (authScheme != null) {
                 doPreemptiveAuth(proxy, authScheme, proxyState, credsProvider);
