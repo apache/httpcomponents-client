@@ -75,20 +75,21 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         CookieSpec cookieSpec = (CookieSpec) context.getAttribute(
                 ClientContext.COOKIE_SPEC);
         if (cookieSpec == null) {
+            this.log.debug("Cookie spec not specified in HTTP context");
             return;
         }
         // Obtain cookie store
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
         if (cookieStore == null) {
-            this.log.info("CookieStore not available in HTTP context");
+            this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance
         CookieOrigin cookieOrigin = (CookieOrigin) context.getAttribute(
                 ClientContext.COOKIE_ORIGIN);
         if (cookieOrigin == null) {
-            this.log.info("CookieOrigin not available in HTTP context");
+            this.log.debug("Cookie origin not specified in HTTP context");
             return;
         }
         HeaderIterator it = response.headerIterator(SM.SET_COOKIE);

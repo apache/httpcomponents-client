@@ -72,12 +72,14 @@ public class RequestAuthCache implements HttpRequestInterceptor {
 
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         if (authCache == null) {
+            this.log.debug("Auth cache not set in the context");
             return;
         }
 
         CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
                 ClientContext.CREDS_PROVIDER);
         if (credsProvider == null) {
+            this.log.debug("Credentials provider not set in the context");
             return;
         }
 

@@ -83,6 +83,7 @@ public class RequestTargetAuthentication implements HttpRequestInterceptor {
         AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.TARGET_AUTH_STATE);
         if (authState == null) {
+            this.log.debug("Target auth state not set in the context");
             return;
         }
 

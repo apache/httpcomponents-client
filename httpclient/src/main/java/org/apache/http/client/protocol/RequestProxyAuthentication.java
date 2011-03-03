@@ -80,7 +80,8 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
-            throw new IllegalStateException("Client connection not specified in HTTP context");
+            this.log.debug("HTTP connection not set in the context");
+            return;
         }
         HttpRoute route = conn.getRoute();
         if (route.isTunnelled()) {
@@ -91,6 +92,7 @@ public class RequestProxyAuthentication implements HttpRequestInterceptor {
         AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.PROXY_AUTH_STATE);
         if (authState == null) {
+            this.log.debug("Proxy auth state not set in the context");
             return;
         }
 

@@ -213,4 +213,34 @@ public class TestRequestAuthCache {
         Assert.assertNull(this.proxyState.getCredentials());
     }
 
+    @Test
+    public void testAuthSchemeAlreadySet() throws Exception {
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
+        context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
+        context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
+
+        AuthCache authCache = new BasicAuthCache();
+        authCache.put(this.target, this.authscheme1);
+        authCache.put(this.proxy, this.authscheme2);
+
+        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        this.targetState.setAuthScheme(new BasicScheme());
+        this.targetState.setCredentials(new UsernamePasswordCredentials("user3", "secret3"));
+        this.proxyState.setAuthScheme(new BasicScheme());
+        this.proxyState.setCredentials(new UsernamePasswordCredentials("user4", "secret4"));
+
+        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        interceptor.process(request, context);
+        Assert.assertNotSame(this.authscheme1, this.targetState.getAuthScheme());
+        Assert.assertNotSame(this.creds1, this.targetState.getCredentials());
+        Assert.assertNotSame(this.authscheme2, this.proxyState.getAuthScheme());
+        Assert.assertNotSame(this.creds2, this.proxyState.getCredentials());
+    }
+
 }

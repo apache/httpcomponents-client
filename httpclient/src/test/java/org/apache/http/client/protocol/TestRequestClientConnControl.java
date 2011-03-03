@@ -53,14 +53,6 @@ public class TestRequestClientConnControl {
         interceptor.process(null, context);
     }
 
-    @Test(expected=IllegalStateException.class)
-    public void testConnectionInContextCheck() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-        HttpRequestInterceptor interceptor = new RequestClientConnControl();
-        interceptor.process(request, context);
-    }
-
     @Test
     public void testConnectionKeepAliveForConnectRequest() throws Exception {
         HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");

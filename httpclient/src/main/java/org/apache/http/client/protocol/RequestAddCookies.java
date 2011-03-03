@@ -99,7 +99,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         CookieStore cookieStore = (CookieStore) context.getAttribute(
                 ClientContext.COOKIE_STORE);
         if (cookieStore == null) {
-            this.log.info("Cookie store not available in HTTP context");
+            this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
 
@@ -107,7 +107,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         CookieSpecRegistry registry = (CookieSpecRegistry) context.getAttribute(
                 ClientContext.COOKIESPEC_REGISTRY);
         if (registry == null) {
-            this.log.info("CookieSpec registry not available in HTTP context");
+            this.log.debug("CookieSpec registry not specified in HTTP context");
             return;
         }
 
@@ -115,14 +115,16 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
         if (targetHost == null) {
-            throw new IllegalStateException("Target host not specified in HTTP context");
+            this.log.debug("Target host not set in the context");
+            return;
         }
 
         // Obtain the client connection (required)
         HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
-            throw new IllegalStateException("Client connection not specified in HTTP context");
+            this.log.debug("HTTP connection not set in the context");
+            return;
         }
 
         String policy = HttpClientParams.getCookiePolicy(request.getParams());

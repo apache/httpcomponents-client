@@ -66,14 +66,6 @@ public class TestRequestProxyAuthentication {
         interceptor.process(request, null);
     }
 
-    @Test(expected=IllegalStateException.class)
-    public void testConnectionInContextCheck() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-        HttpRequestInterceptor interceptor = new RequestProxyAuthentication();
-        interceptor.process(request, context);
-    }
-
     @Test
     public void testProxyAuthOverPlainConnection() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");

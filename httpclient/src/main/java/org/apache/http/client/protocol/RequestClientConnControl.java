@@ -29,6 +29,8 @@ package org.apache.http.client.protocol;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpException;
@@ -49,6 +51,8 @@ import org.apache.http.protocol.HttpContext;
  */
 @Immutable
 public class RequestClientConnControl implements HttpRequestInterceptor {
+
+    private final Log log = LogFactory.getLog(getClass());
 
     private static final String PROXY_CONN_DIRECTIVE = "Proxy-Connection";
 
@@ -72,7 +76,8 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
-            throw new IllegalStateException("Client connection not specified in HTTP context");
+            this.log.debug("HTTP connection not set in the context");
+            return;
         }
 
         HttpRoute route = conn.getRoute();
