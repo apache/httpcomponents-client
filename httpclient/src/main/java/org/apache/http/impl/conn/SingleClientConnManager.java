@@ -100,8 +100,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * Creates a new simple connection manager.
      *
      * @param params    the parameters for this manager
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> for the default registry
+     * @param schreg    the scheme registry
      *
      * @deprecated use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
@@ -113,8 +112,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     /**
      * Creates a new simple connection manager.
      *
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> for the default registry
+     * @param schreg    the scheme registry
      */
     public SingleClientConnManager(final SchemeRegistry schreg) {
         if (schreg == null) {
