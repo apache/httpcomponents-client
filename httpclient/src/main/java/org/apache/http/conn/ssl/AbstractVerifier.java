@@ -33,9 +33,6 @@ import org.apache.http.conn.util.InetAddressUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -195,20 +192,6 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             buf.append('>');
             if(it.hasNext()) {
                 buf.append(" OR");
-            }
-
-            // Work-around for certificates that have an IPv4 address for a CN
-            if (InetAddressUtils.isIPv4Address(cn)) {
-                try {
-                    InetAddress[] addresses = Inet4Address.getAllByName(hostName);
-                    for (InetAddress address: addresses) {
-                        if (cn.equals(address.getHostAddress())) {
-                            match = true;
-                            break;
-                        }
-                    }
-                } catch (UnknownHostException ignore) {
-                }
             }
 
             // The CN better have at least two dots if it wants wildcard
