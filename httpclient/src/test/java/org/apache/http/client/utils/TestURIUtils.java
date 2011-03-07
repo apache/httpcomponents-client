@@ -61,7 +61,7 @@ public class TestURIUtils {
     @Test
     public void testRewite03() throws Exception {
         URI uri = URI.create("http://thishost//stuff///morestuff");
-        Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(uri, null).toString());
+        Assert.assertEquals("/stuff///morestuff", URIUtils.rewriteURI(uri, null).toString());
     }
 
     @Test
@@ -76,6 +76,12 @@ public class TestURIUtils {
         URI uri = URI.create("http://thishost/stuff#crap");
         HttpHost target = new HttpHost("thathost", -1);
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(uri, target, false).toString());
+    }
+
+    @Test
+    public void testRewite06() throws Exception {
+        URI uri = URI.create("http://thishost//////////////stuff/");
+        Assert.assertEquals("/stuff/", URIUtils.rewriteURI(uri, null).toString());
     }
 
     @Test

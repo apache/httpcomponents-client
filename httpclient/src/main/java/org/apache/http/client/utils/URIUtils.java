@@ -148,25 +148,20 @@ public class URIUtils {
         }
     }
 
-    private static String normalizePath(final String path) {
+    private static String normalizePath(String path) {
         if (path == null) {
             return null;
         }
-        StringBuilder buffer = new StringBuilder(path.length());
-        boolean gotslash = false;
-        for (int i = 0; i < path.length(); i++) {
-            char ch = path.charAt(i);
-            if (ch == '/') {
-                if (!gotslash) {
-                    buffer.append(ch);
-                    gotslash = true;
-                }
-            } else {
-                buffer.append(ch);
-                gotslash = false;
+        int n = 0;
+        for (; n < path.length(); n++) {
+            if (path.charAt(n) != '/') {
+                break;
             }
         }
-        return buffer.toString();
+        if (n > 1) {
+            path = path.substring(n - 1);
+        }
+        return path;
     }
 
     /**
