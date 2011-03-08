@@ -112,7 +112,8 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             this.log.debug("Re-using cached '" + schemeName + "' auth scheme for " + host);
         }
 
-        AuthScope authScope = new AuthScope(host, AuthScope.ANY_REALM, schemeName);
+        AuthScope authScope = new AuthScope(host.getHostName(), host.getPort(),
+                AuthScope.ANY_REALM, schemeName);
         Credentials creds = credsProvider.getCredentials(authScope);
 
         if (creds != null) {

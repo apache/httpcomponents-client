@@ -142,10 +142,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         return retryCount;
     }
 
-    /**
-     * @since 4.2
-     */
-    protected boolean handleAsIdempotent(final HttpRequest request) {
+    private boolean handleAsIdempotent(final HttpRequest request) {
         return !(request instanceof HttpEntityEnclosingRequest);
     }
 

@@ -28,7 +28,6 @@ package org.apache.http.auth;
 
 import java.util.Locale;
 
-import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.util.LangUtils;
@@ -110,20 +109,6 @@ public class AuthScope {
         this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ENGLISH);
     }
 
-    /**
-     * @since 4.2
-     */
-    public AuthScope(final HttpHost host, final String realm, final String schemeName) {
-        this(host.getHostName(), host.getPort(), realm, schemeName);
-    }
-    
-    /**
-     * @since 4.2
-     */
-    public AuthScope(final HttpHost host) {
-        this(host, ANY_REALM, ANY_SCHEME);
-    }
-    
     /** Creates a new credentials scope for the given
      * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and any
      * authentication scheme.

@@ -68,8 +68,8 @@ public class TestResponseAuthCache {
 
         this.creds1 = new UsernamePasswordCredentials("user1", "secret1");
         this.creds2 = new UsernamePasswordCredentials("user2", "secret2");
-        this.authscope1 = new AuthScope(this.target);
-        this.authscope2 = new AuthScope(this.proxy);
+        this.authscope1 = new AuthScope(this.target.getHostName(), this.target.getPort());
+        this.authscope2 = new AuthScope(this.proxy.getHostName(), this.proxy.getPort());
         this.authscheme1 = new BasicScheme();
         this.authscheme2 = new BasicScheme();
 
