@@ -45,6 +45,7 @@ import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
@@ -136,7 +137,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             Socket sock = sf.createSocket(params);
             conn.opening(sock, target);
 
-            InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+            InetSocketAddress remoteAddress = new HttpInetSocketAddress(target, address, port);
             InetSocketAddress localAddress = null;
             if (local != null) {
                 localAddress = new InetSocketAddress(local, 0);

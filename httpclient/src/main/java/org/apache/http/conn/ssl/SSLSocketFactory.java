@@ -30,6 +30,7 @@ package org.apache.http.conn.ssl;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
@@ -387,7 +388,13 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         }
         if (this.hostnameVerifier != null) {
             try {
-                this.hostnameVerifier.verify(remoteAddress.getHostName(), sslsock);
+                String hostname;
+                if (remoteAddress instanceof HttpInetSocketAddress) {
+                    hostname = ((HttpInetSocketAddress) remoteAddress).getHost().getHostName();
+                } else {
+                    hostname = remoteAddress.getHostName();
+                }
+                this.hostnameVerifier.verify(hostname, sslsock);
                 // verifyHostName() didn't blowup - good!
             } catch (IOException iox) {
                 // close the socket before re-throwing the exception
