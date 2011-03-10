@@ -97,7 +97,6 @@ public class Stats {
             final URI targetURI, long startTime, long finishTime, final Stats stats) {
         float totalTimeSec = (float) (finishTime - startTime) / 1000;
         float reqsPerSec = (float) stats.getSuccessCount() / totalTimeSec;
-        float timePerReqMs = (float) (finishTime - startTime) / (float) stats.getSuccessCount();
 
         System.out.print("Document URI:\t\t");
         System.out.println(targetURI);
@@ -120,9 +119,6 @@ public class Stats {
         System.out.print("Requests per second:\t");
         System.out.print(reqsPerSec);
         System.out.println(" [#/sec] (mean)");
-        System.out.print("Time per request:\t");
-        System.out.print(timePerReqMs);
-        System.out.println(" [ms] (mean)");
     }
 
 }

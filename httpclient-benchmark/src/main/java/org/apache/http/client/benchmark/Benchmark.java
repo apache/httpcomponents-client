@@ -49,7 +49,7 @@ public class Benchmark {
    public static void main(String[] args) throws Exception {
 
        String ns = System.getProperty("hc.benchmark.n-requests", "200000");
-       String nc = System.getProperty("hc.benchmark.concurrent", "100");
+       String nc = System.getProperty("hc.benchmark.concurrent", "20");
        String cls = System.getProperty("hc.benchmark.content-len", "2048");
 
        int n = Integer.parseInt(ns);
@@ -75,9 +75,6 @@ public class Benchmark {
        server.start();
        int port = connector.getLocalPort();
 
-       // Sleep a little
-       Thread.sleep(2000);
-
        TestHttpAgent[] agents = new TestHttpAgent[] {
                new TestHttpClient3(),
                new TestHttpJRE(),
@@ -98,8 +95,12 @@ public class Benchmark {
 
        try {
            for (TestHttpAgent agent: agents) {
-               agent.init();
                try {
+                   agent.init();
+                   // Warm up
+                   agent.get(target1, 5, 500);
+                   // Sleep a little
+                   Thread.sleep(5000);
                    System.out.println("=================================");
                    System.out.println("HTTP agent: " + agent.getClientName());
                    System.out.println("---------------------------------");
@@ -121,7 +122,6 @@ public class Benchmark {
                } finally {
                    agent.shutdown();
                }
-               agent.init();
                System.out.println("---------------------------------");
            }
        } finally {

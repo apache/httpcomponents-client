@@ -94,7 +94,7 @@ public class TestNingHttpClient implements TestHttpAgent {
     }
 
     public String getClientName() {
-        return "Ning Async HTTP client 1.4.0";
+        return "Ning async HTTP client 1.5.0";
     }
 
     static class SimpleAsyncHandler implements AsyncHandler<Object> {
