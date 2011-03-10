@@ -195,7 +195,11 @@ public class TestHttpCore implements TestHttpAgent {
                             it.next();
                             it.remove();
                         }
-                        this.stats.success(contentLen);
+                        if (response.getStatusLine().getStatusCode() == 200) {
+                            this.stats.success(contentLen);
+                        } else {
+                            this.stats.failure(contentLen);
+                        }
                     } catch (IOException ex) {
                         this.stats.failure(contentLen);
                     } catch (HttpException ex) {

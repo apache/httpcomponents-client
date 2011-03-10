@@ -70,6 +70,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             try {
                 this.client.send(exchange);
             } catch (IOException ex) {
+                stats.failure(0);
             }
         }
         stats.waitFor();

@@ -90,6 +90,7 @@ public class Benchmark {
            content[i] = (byte) ((r + i) % 96 + 32);
        }
 
+       URI warmup = new URI("http", null, "localhost", port, "/rnd", "c=2048", null);
        URI target1 = new URI("http", null, "localhost", port, "/rnd", "c=" + contentLen, null);
        URI target2 = new URI("http", null, "localhost", port, "/echo", null, null);
 
@@ -98,7 +99,7 @@ public class Benchmark {
                try {
                    agent.init();
                    // Warm up
-                   agent.get(target1, 5, 500);
+                   agent.get(warmup, 5, 500);
                    // Sleep a little
                    Thread.sleep(5000);
                    System.out.println("=================================");

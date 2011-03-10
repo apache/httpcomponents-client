@@ -125,7 +125,11 @@ public class TestHttpClient3 implements TestHttpAgent {
                             contentLen += l;
                         }
                     }
-                    this.stats.success(contentLen);
+                    if (httpmethod.getStatusCode() == 200) {
+                        this.stats.success(contentLen);
+                    } else {
+                        this.stats.failure(contentLen);
+                    }
                 } catch (IOException ex) {
                     this.stats.failure(contentLen);
                 } finally {
