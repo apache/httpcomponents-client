@@ -340,12 +340,12 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
      * @since 4.1
      */
     public Socket createSocket(final HttpParams params) throws IOException {
-        return new Socket();
+        return this.socketfactory.createSocket();
     }
 
     @Deprecated
     public Socket createSocket() throws IOException {
-        return new Socket();
+        return this.socketfactory.createSocket();
     }
 
     /**

@@ -1,5 +1,9 @@
 Changes since 4.1
 
+* [HTTPCLIENT-1069] HttpHostConnectException not correctly retried for direct and non-tunnelled 
+  proxy connections. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1066] Changed the way URIUtils#rewriteURI handles multiple consecutive slashes in the
   URI path component: multiple leading slashes will be replaced by one slash in order to avoid
   confusion with the authority component. The remaining content of the path will not be modified. 

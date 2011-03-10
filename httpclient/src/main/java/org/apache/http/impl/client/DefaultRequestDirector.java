@@ -552,9 +552,8 @@ public class DefaultRequestDirector implements RequestDirector {
             final RoutedRequest req, final HttpContext context) throws HttpException, IOException {
         HttpRoute route = req.getRoute();
 
-        boolean retrying = true;
         int connectCount = 0;
-        while (retrying) {
+        for (;;) {
             // Increment connect count
             connectCount++;
             try {
@@ -564,7 +563,7 @@ public class DefaultRequestDirector implements RequestDirector {
                     managedConn.setSocketTimeout(HttpConnectionParams.getSoTimeout(params));
                 }
                 establishRoute(route, context);
-                retrying = false;
+                break;
             } catch (IOException ex) {
                 try {
                     managedConn.close();
@@ -596,9 +595,8 @@ public class DefaultRequestDirector implements RequestDirector {
         HttpRoute route = req.getRoute();
         HttpResponse response = null;
 
-        boolean retrying = true;
         Exception retryReason = null;
-        while (retrying) {
+        for (;;) {
             // Increment total exec count (with redirects)
             execCount++;
             // Increment exec count for this particular request
@@ -616,11 +614,24 @@ public class DefaultRequestDirector implements RequestDirector {
             }
 
             try {
+                if (!managedConn.isOpen()) {
+                    // If we have a direct route to the target host
+                    // just re-open connection and re-try the request
+                    if (!route.isTunnelled()) {
+                        this.log.debug("Reopening the direct connection.");
+                        managedConn.open(route, context, params);
+                    } else {
+                        // otherwise give up
+                        this.log.debug("Proxied connection. Need to start over.");
+                        break;
+                    }
+                }
+
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Attempt " + execCount + " to execute request");
                 }
                 response = requestExec.execute(wrapper, managedConn, context);
-                retrying = false;
+                break;
 
             } catch (IOException ex) {
                 this.log.debug("Closing the connection.");
@@ -642,18 +653,6 @@ public class DefaultRequestDirector implements RequestDirector {
                 } else {
                     throw ex;
                 }
-
-                // If we have a direct route to the target host
-                // just re-open connection and re-try the request
-                if (!route.isTunnelled()) {
-                    this.log.debug("Reopening the direct connection.");
-                    managedConn.open(route, context, params);
-                } else {
-                    // otherwise give up
-                    this.log.debug("Proxied connection. Need to start over.");
-                    retrying = false;
-                }
-
             }
         }
         return response;
