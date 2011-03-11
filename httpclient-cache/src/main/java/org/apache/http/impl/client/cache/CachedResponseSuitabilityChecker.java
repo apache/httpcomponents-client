@@ -217,7 +217,7 @@ class CachedResponseSuitabilityChecker {
      * @return {@code true} if the request is supported
      */
     public boolean isConditional(HttpRequest request) {
-        return hasSupportedEtagVadlidator(request) || hasSupportedLastModifiedValidator(request);
+        return hasSupportedEtagValidator(request) || hasSupportedLastModifiedValidator(request);
     }
 
     /**
@@ -228,10 +228,10 @@ class CachedResponseSuitabilityChecker {
      * @return {@code true} if the request matches all conditionals
      */
     public boolean allConditionalsMatch(HttpRequest request, HttpCacheEntry entry, Date now) {
-        boolean hasEtagValidator = hasSupportedEtagVadlidator(request);
+        boolean hasEtagValidator = hasSupportedEtagValidator(request);
         boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
 
-        boolean etagValidatorMatches = (hasEtagValidator) ? etagValidtorMatches(request, entry) : false;
+        boolean etagValidatorMatches = (hasEtagValidator) ? etagValidatorMatches(request, entry) : false;
         boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) ? lastModifiedValidatorMatches(request, entry, now) : false;
 
         if ((hasEtagValidator && hasLastModifiedValidator)
@@ -251,7 +251,7 @@ class CachedResponseSuitabilityChecker {
                 || hasValidDateField(request, "If-Unmodified-Since"));
     }
 
-    private boolean hasSupportedEtagVadlidator(HttpRequest request) {
+    private boolean hasSupportedEtagValidator(HttpRequest request) {
         return request.containsHeader(HeaderConstants.IF_NONE_MATCH);
     }
 
@@ -265,7 +265,7 @@ class CachedResponseSuitabilityChecker {
      * @param entry
      * @return
      */
-    private boolean etagValidtorMatches(HttpRequest request, HttpCacheEntry entry) {
+    private boolean etagValidatorMatches(HttpRequest request, HttpCacheEntry entry) {
         Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         String etag = (etagHeader != null) ? etagHeader.getValue() : null;
         Header[] ifNoneMatch = request.getHeaders(HeaderConstants.IF_NONE_MATCH);
