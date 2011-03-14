@@ -111,13 +111,6 @@
     <maven.compile.target>1.5</maven.compile.target>
     <maven.compile.optimize>true</maven.compile.optimize>
     <maven.compile.deprecation>true</maven.compile.deprecation>
-    <!-- cache was not present in 4.0; it first appeared in 4.1-alpha2 -->
-    <comparisonVersion>4.1-alpha2</comparisonVersion>
-    <!-- 
-     Allow separate override of cache version, e.g.
-     $ mvn clirr:clirr -DcomparisonVersion=4.1-alpha1 -Dcache.comparisonVersion=4.1-alpha2
-     -->
-    <cache.comparisonVersion>${comparisonVersion}</cache.comparisonVersion>
   </properties>
 
   <build>
@@ -161,13 +154,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>clirr-maven-plugin</artifactId>
-        <configuration>
-          <comparisonVersion>${cache.comparisonVersion}</comparisonVersion>
-        </configuration>
       </plugin>
     </plugins>
   </build>
