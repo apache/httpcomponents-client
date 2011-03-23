@@ -68,8 +68,6 @@ class ResponseProtocolCompliance {
             response.setEntity(null);
         }
 
-        authenticationRequiredDidNotHaveAProxyAuthenticationHeader(request, response);
-
         notAllowedResponseDidNotHaveAnAllowHeader(request, response);
 
         unauthorizedResponseDidNotHaveAWWWAuthenticateHeader(request, response);
@@ -148,16 +146,6 @@ class ResponseProtocolCompliance {
         for (Header h : newHeaders) {
             response.addHeader(h);
         }
-    }
-
-    private void authenticationRequiredDidNotHaveAProxyAuthenticationHeader(HttpRequest request,
-            HttpResponse response) throws ClientProtocolException {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED)
-            return;
-
-        if (response.getFirstHeader(HeaderConstants.PROXY_AUTHENTICATE) == null)
-            throw new ClientProtocolException(
-                    "407 Response did not contain a Proxy-Authentication header");
     }
 
     private void notAllowedResponseDidNotHaveAnAllowHeader(HttpRequest request,

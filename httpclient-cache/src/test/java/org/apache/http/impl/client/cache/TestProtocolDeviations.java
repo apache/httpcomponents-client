@@ -362,7 +362,7 @@ public class TestProtocolDeviations {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.8
      */
     @Test
-    public void testCantReturnA407WithoutAProxyAuthenticateHeader() throws Exception {
+    public void testPassesOnOrigin407WithoutAProxyAuthenticateHeader() throws Exception {
         originResponse = new BasicHttpResponse(HTTP_1_1, 407, "Proxy Authentication Required");
 
         org.easymock.EasyMock.expect(
@@ -370,23 +370,9 @@ public class TestProtocolDeviations {
                         org.easymock.EasyMock.isA(HttpRequest.class),
                         (HttpContext) org.easymock.EasyMock.isNull())).andReturn(originResponse);
         replayMocks();
-
-        boolean gotException = false;
-        // this is another case where we are caught in a sticky
-        // situation, where the origin was not 1.1-compliant.
-        try {
-            HttpResponse result = impl.execute(host, request);
-            Assert.fail("should have gotten ClientProtocolException");
-
-            if (result.getStatusLine().getStatusCode() == 407) {
-                Assert.assertNotNull(result.getFirstHeader("Proxy-Authentication"));
-            }
-        } catch (ClientProtocolException possiblyAcceptableBehavior) {
-            gotException = true;
-        }
-
+        HttpResponse result = impl.execute(host, request);
         verifyMocks();
-        Assert.assertTrue(gotException);
+        Assert.assertSame(originResponse, result);
     }
 
 }
