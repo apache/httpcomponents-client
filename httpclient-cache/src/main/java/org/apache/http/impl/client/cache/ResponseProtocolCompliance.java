@@ -26,12 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -46,6 +48,7 @@ import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 /**
  * @since 4.1
@@ -60,11 +63,13 @@ class ResponseProtocolCompliance {
      *
      * @param request The {@link HttpRequest} that generated an origin hit and response
      * @param response The {@link HttpResponse} from the origin server
-     * @throws ClientProtocolException when we are unable to 'convert' the response to a compliant one
+     * @throws IOException 
      */
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
-            throws ClientProtocolException {
+            throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
+            HttpEntity body = response.getEntity();
+            if (body != null) EntityUtils.consume(body);
             response.setEntity(null);
         }
 
