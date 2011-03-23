@@ -31,6 +31,8 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.util.Date;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -38,12 +40,13 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
-
 
 public class TestResponseProtocolCompliance {
 
@@ -115,6 +118,27 @@ public class TestResponseProtocolCompliance {
         int nbytes = 128;
         HttpResponse resp = makePartialResponse(nbytes);
         
+        final Flag closed = new Flag();
+        ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
+        resp.setEntity(new InputStreamEntity(bais, -1));
+        
+        try {
+            impl.ensureProtocolCompliance(req, resp);
+        } catch (ClientProtocolException expected) {
+        }
+        assertTrue(closed.set || bais.read() == -1);
+    }
+    
+    @Test
+    public void consumesBodyOf100ContinueResponseIfItArrives() throws Exception {
+        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
+        int nbytes = 128;
+        req.setHeader("Content-Length","" + nbytes);
+        req.setHeader("Content-Type", "application/octet-stream");
+        HttpEntity postBody = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
+        req.setEntity(postBody);
+        
+        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_CONTINUE, "Continue");
         final Flag closed = new Flag();
         ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
         resp.setEntity(new InputStreamEntity(bais, -1));
