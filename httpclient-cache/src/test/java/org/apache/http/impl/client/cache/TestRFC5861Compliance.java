@@ -302,6 +302,46 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     }
     
     @Test
+    public void testCanAlsoServeStale304sWhileRevalidating()
+        throws Exception {
+        
+        params.setAsynchronousWorkersMax(1);
+        params.setSharedCache(false);
+        impl = new CachingHttpClient(mockBackend, cache, params);
+        
+        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("Cache-Control", "private, stale-while-revalidate=15");
+        resp1.setHeader("ETag","\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequest().andReturn(resp1).times(1,2);
+
+        HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        req2.setHeader("If-None-Match","\"etag\"");
+
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for(Header h : result.getHeaders("Warning")) {
+            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(warning110Found);
+    }
+
+    
+    @Test
     public void testStaleWhileRevalidateYieldsToMustRevalidate()
         throws Exception {
         
