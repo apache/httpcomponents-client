@@ -73,8 +73,6 @@ class ResponseProtocolCompliance {
             response.setEntity(null);
         }
 
-        notAllowedResponseDidNotHaveAnAllowHeader(request, response);
-
         unauthorizedResponseDidNotHaveAWWWAuthenticateHeader(request, response);
 
         requestDidNotExpect100ContinueButResponseIsOne(request, response);
@@ -151,15 +149,6 @@ class ResponseProtocolCompliance {
         for (Header h : newHeaders) {
             response.addHeader(h);
         }
-    }
-
-    private void notAllowedResponseDidNotHaveAnAllowHeader(HttpRequest request,
-            HttpResponse response) throws ClientProtocolException {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_METHOD_NOT_ALLOWED)
-            return;
-
-        if (response.getFirstHeader(HeaderConstants.ALLOW) == null)
-            throw new ClientProtocolException("405 Response did not contain an Allow header.");
     }
 
     private void unauthorizedResponseDidNotHaveAWWWAuthenticateHeader(HttpRequest request,

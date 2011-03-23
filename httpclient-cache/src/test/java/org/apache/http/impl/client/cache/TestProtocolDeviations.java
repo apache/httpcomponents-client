@@ -334,8 +334,8 @@ public class TestProtocolDeviations {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
      */
-    @Test(expected = ClientProtocolException.class)
-    public void testCantReturnAnOrigin405WithoutAllowHeader() throws Exception {
+    @Test
+    public void testPassesOnOrigin405WithoutAllowHeader() throws Exception {
         originResponse = new BasicHttpResponse(HTTP_1_1, 405, "Method Not Allowed");
 
         org.easymock.EasyMock.expect(
@@ -343,15 +343,9 @@ public class TestProtocolDeviations {
                         org.easymock.EasyMock.isA(HttpRequest.class),
                         (HttpContext) org.easymock.EasyMock.isNull())).andReturn(originResponse);
         replayMocks();
-
-        // this is another case where we are caught in a sticky
-        // situation, where the origin was not 1.1-compliant.
-        try {
-            impl.execute(host, request);
-        } catch (ClientProtocolException possiblyAcceptableBehavior) {
-            verifyMocks();
-            throw possiblyAcceptableBehavior;
-        }
+        HttpResponse result = impl.execute(host, request);
+        verifyMocks();
+        Assert.assertSame(originResponse, result);
     }
 
     /*
