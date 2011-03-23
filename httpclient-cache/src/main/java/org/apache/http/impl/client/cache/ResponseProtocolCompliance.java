@@ -73,8 +73,6 @@ class ResponseProtocolCompliance {
             response.setEntity(null);
         }
 
-        unauthorizedResponseDidNotHaveAWWWAuthenticateHeader(request, response);
-
         requestDidNotExpect100ContinueButResponseIsOne(request, response);
 
         transferEncodingIsNotReturnedTo1_0Client(request, response);
@@ -148,17 +146,6 @@ class ResponseProtocolCompliance {
         response.removeHeaders("Content-Encoding");
         for (Header h : newHeaders) {
             response.addHeader(h);
-        }
-    }
-
-    private void unauthorizedResponseDidNotHaveAWWWAuthenticateHeader(HttpRequest request,
-            HttpResponse response) throws ClientProtocolException {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_UNAUTHORIZED)
-            return;
-
-        if (response.getFirstHeader(HeaderConstants.WWW_AUTHENTICATE) == null) {
-            throw new ClientProtocolException(
-                    "401 Response did not contain required WWW-Authenticate challenge header");
         }
     }
 
