@@ -56,6 +56,8 @@ import org.apache.http.util.EntityUtils;
 @Immutable
 class ResponseProtocolCompliance {
 
+    private static final String UNEXPECTED_PARTIAL_CONTENT = "partial content was returned for a request that did not ask for it";
+
     /**
      * When we get a response from a down stream server (Origin Server)
      * we attempt to see if it is HTTP 1.1 Compliant and if not, attempt to
@@ -68,8 +70,7 @@ class ResponseProtocolCompliance {
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
             throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
-            HttpEntity body = response.getEntity();
-            if (body != null) EntityUtils.consume(body);
+            consumeBody(response);
             response.setEntity(null);
         }
 
@@ -88,6 +89,11 @@ class ResponseProtocolCompliance {
         identityIsNotUsedInContentEncoding(response);
 
         warningsWithNonMatchingWarnDatesAreRemoved(response);
+    }
+
+    private void consumeBody(HttpResponse response) throws IOException {
+        HttpEntity body = response.getEntity();
+        if (body != null) EntityUtils.consume(body);
     }
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
@@ -157,15 +163,13 @@ class ResponseProtocolCompliance {
     }
 
     private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(HttpRequest request,
-            HttpResponse response) throws ClientProtocolException {
-        if (request.getFirstHeader(HeaderConstants.RANGE) != null)
+            HttpResponse response) throws IOException {
+        if (request.getFirstHeader(HeaderConstants.RANGE) != null
+                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) 
             return;
-
-        if (response.getFirstHeader(HeaderConstants.CONTENT_RANGE) != null) {
-            throw new ClientProtocolException(
-                    "Content-Range was returned for a request that did not ask for a Content-Range.");
-        }
-
+        
+        consumeBody(response);
+        throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
     }
 
     private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(HttpRequest request,
