@@ -56,6 +56,8 @@ import org.apache.http.util.EntityUtils;
 @Immutable
 class ResponseProtocolCompliance {
 
+    private static final String UNEXPECTED_100_CONTINUE = "The incoming request did not contain a "
+                    + "100-continue header, but the response was a Status 100, continue.";
     private static final String UNEXPECTED_PARTIAL_CONTENT = "partial content was returned for a request that did not ask for it";
 
     /**
@@ -207,26 +209,18 @@ class ResponseProtocolCompliance {
     }
 
     private void requestDidNotExpect100ContinueButResponseIsOne(HttpRequest request,
-            HttpResponse response) throws ClientProtocolException {
+            HttpResponse response) throws IOException {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
-
-        if (!requestWasWrapped(request)) {
-            return;
+        
+        HttpRequest originalRequest = requestWasWrapped(request) ? 
+                ((RequestWrapper)request).getOriginal() : request;
+        if (originalRequest instanceof HttpEntityEnclosingRequest) {
+            if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) return;
         }
-
-        ProtocolVersion originalProtocol = getOriginalRequestProtocol((RequestWrapper) request);
-
-        if (originalProtocol.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
-            return;
-        }
-
-        if (originalRequestDidNotExpectContinue((RequestWrapper) request)) {
-            throw new ClientProtocolException("The incoming request did not contain a "
-                    + "100-continue header, but the response was a Status 100, continue.");
-
-        }
+        consumeBody(response);
+        throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
     }
 
     private void transferEncodingIsNotReturnedTo1_0Client(HttpRequest request, HttpResponse response) {
@@ -246,18 +240,6 @@ class ResponseProtocolCompliance {
     private void removeResponseTransferEncoding(HttpResponse response) {
         response.removeHeaders("TE");
         response.removeHeaders(HTTP.TRANSFER_ENCODING);
-    }
-
-    private boolean originalRequestDidNotExpectContinue(RequestWrapper request) {
-
-        try {
-            HttpEntityEnclosingRequest original = (HttpEntityEnclosingRequest) request
-                    .getOriginal();
-
-            return !original.expectContinue();
-        } catch (ClassCastException ex) {
-            return false;
-        }
     }
 
     private ProtocolVersion getOriginalRequestProtocol(RequestWrapper request) {
