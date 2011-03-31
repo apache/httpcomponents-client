@@ -129,7 +129,7 @@ class CachedResponseSuitabilityChecker {
      */
     public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry, Date now) {
         if (!isFreshEnough(entry, request, now)) {
-            log.debug("Cache entry was not fresh enough");
+            log.trace("Cache entry was not fresh enough");
             return false;
         }
 
@@ -150,12 +150,12 @@ class CachedResponseSuitabilityChecker {
         for (Header ccHdr : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for (HeaderElement elt : ccHdr.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
-                    log.debug("Response contained NO CACHE directive, cache was not suitable");
+                    log.trace("Response contained NO CACHE directive, cache was not suitable");
                     return false;
                 }
 
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elt.getName())) {
-                    log.debug("Response contained NO STORE directive, cache was not suitable");
+                    log.trace("Response contained NO STORE directive, cache was not suitable");
                     return false;
                 }
 
@@ -163,12 +163,12 @@ class CachedResponseSuitabilityChecker {
                     try {
                         int maxage = Integer.parseInt(elt.getValue());
                         if (validityStrategy.getCurrentAgeSecs(entry, now) > maxage) {
-                            log.debug("Response from cache was NOT suitable due to max age");
+                            log.trace("Response from cache was NOT suitable due to max age");
                             return false;
                         }
                     } catch (NumberFormatException ex) {
                         // err conservatively
-                        log.debug("Response from cache was malformed: " + ex.getMessage());
+                        log.debug("Response from cache was malformed" + ex.getMessage());
                         return false;
                     }
                 }
@@ -177,7 +177,7 @@ class CachedResponseSuitabilityChecker {
                     try {
                         int maxstale = Integer.parseInt(elt.getValue());
                         if (validityStrategy.getFreshnessLifetimeSecs(entry) > maxstale) {
-                            log.debug("Response from cache was not suitable due to Max stale freshness");
+                            log.trace("Response from cache was not suitable due to Max stale freshness");
                             return false;
                         }
                     } catch (NumberFormatException ex) {
@@ -194,7 +194,7 @@ class CachedResponseSuitabilityChecker {
                         long age = validityStrategy.getCurrentAgeSecs(entry, now);
                         long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
                         if (freshness - age < minfresh) {
-                            log.debug("Response from cache was not suitable due to min fresh " +
+                            log.trace("Response from cache was not suitable due to min fresh " +
                                     "freshness requirement");
                             return false;
                         }
@@ -207,7 +207,7 @@ class CachedResponseSuitabilityChecker {
             }
         }
 
-        log.debug("Response from cache was suitable");
+        log.trace("Response from cache was suitable");
         return true;
     }
 
