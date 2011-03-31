@@ -58,17 +58,17 @@ class CacheableRequestPolicy {
 
         ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
         if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
-            log.debug("Request was not serveable from cache");
+            log.trace("non-HTTP/1.1 request was not serveable from cache");
             return false;
         }
 
         if (!method.equals(HeaderConstants.GET_METHOD)) {
-            log.debug("Request was not serveable from cache");
+            log.trace("non-GET request was not serveable from cache");
             return false;
         }
 
         if (request.getHeaders(HeaderConstants.PRAGMA).length > 0) {
-            log.debug("Request was not serveable from cache");
+            log.trace("request with Pragma header was not serveable from cache");
             return false;
         }
 
@@ -77,19 +77,19 @@ class CacheableRequestPolicy {
             for (HeaderElement cacheControlElement : cacheControl.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement
                         .getName())) {
-                    log.debug("Request was not serveable from Cache");
+                    log.trace("Request with no-store was not serveable from cache");
                     return false;
                 }
 
                 if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement
                         .getName())) {
-                    log.debug("Request was not serveable from cache");
+                    log.trace("Request with no-cache was not serveable from cache");
                     return false;
                 }
             }
         }
 
-        log.debug("Request was serveable from cache");
+        log.trace("Request was serveable from cache");
         return true;
     }
 

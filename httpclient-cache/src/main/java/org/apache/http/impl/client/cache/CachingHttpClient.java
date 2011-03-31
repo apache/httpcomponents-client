@@ -421,7 +421,7 @@ public class CachingHttpClient implements HttpClient {
     private HttpResponse revalidateCacheEntry(HttpHost target,
             HttpRequest request, HttpContext context, HttpCacheEntry entry,
             Date now) throws ClientProtocolException {
-        log.debug("Revalidating the cache entry");
+        log.trace("Revalidating the cache entry");
 
         try {
             if (asynchRevalidator != null
@@ -494,17 +494,17 @@ public class CachingHttpClient implements HttpClient {
 
     private void recordCacheMiss(HttpHost target, HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             RequestLine rl = request.getRequestLine();
-            log.debug("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
+            log.trace("Cache miss [host: " + target + "; uri: " + rl.getUri() + "]");
         }
     }
 
     private void recordCacheHit(HttpHost target, HttpRequest request) {
         cacheHits.getAndIncrement();
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             RequestLine rl = request.getRequestLine();
-            log.debug("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
+            log.trace("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
         }
     }
     
@@ -664,7 +664,7 @@ public class CachingHttpClient implements HttpClient {
 
         Date requestDate = getCurrentDate();
 
-        log.debug("Calling the backend");
+        log.trace("Calling the backend");
         HttpResponse backendResponse = backend.execute(target, request, context);
         backendResponse.addHeader("Via", generateViaHeader(backendResponse));
         return handleBackendResponse(target, request, requestDate, getCurrentDate(),
@@ -842,7 +842,7 @@ public class CachingHttpClient implements HttpClient {
             Date responseDate,
             HttpResponse backendResponse) throws IOException {
 
-        log.debug("Handling Backend response");
+        log.trace("Handling Backend response");
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
 
         boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
