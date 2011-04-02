@@ -313,6 +313,34 @@ public class TestContentCodings extends ServerTestBase {
         client.getConnectionManager().shutdown();
     }
 
+    @Test
+    public void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
+        final String entityText = "Hello, this is some plain text coming back.";
+
+        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+
+        DefaultHttpClient client = createHttpClient();
+        HttpGet request = new HttpGet("/some-resource");
+        String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
+        Assert.assertEquals("The entity text is correctly transported", entityText, response);
+
+        client.getConnectionManager().shutdown();
+    }
+
+    @Test
+    public void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
+        final String entityText = "Hello, this is some plain text coming back.";
+
+        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
+
+        DefaultHttpClient client = createHttpClient();
+        HttpGet request = new HttpGet("/some-resource");
+        String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
+        Assert.assertEquals("The entity text is correctly transported", entityText, response);
+
+        client.getConnectionManager().shutdown();
+    }
+
     /**
      * Creates a new {@link HttpRequestHandler} that will attempt to provide a deflate stream
      * Content-Coding.

@@ -51,16 +51,9 @@ public class GzipDecompressingEntity extends DecompressingEntity {
         super(entity);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public InputStream getContent() throws IOException, IllegalStateException {
-
-        // the wrapped entity's getContent() decides about repeatability
-        InputStream wrappedin = wrappedEntity.getContent();
-
-        return new GZIPInputStream(wrappedin);
+    InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException {
+        return new GZIPInputStream(wrapped);
     }
 
     /**

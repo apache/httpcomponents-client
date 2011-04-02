@@ -63,12 +63,14 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the non-null InputStream that should be returned to by all requests to
+     * {@link #getContent()}.
+     *
+     * @return a non-null InputStream
+     * @throws IOException if there was a problem
      */
     @Override
-    public InputStream getContent() throws IOException {
-        InputStream wrapped = this.wrappedEntity.getContent();
-
+    InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException {
         /*
          * A zlib stream will have a header.
          *
