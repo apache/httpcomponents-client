@@ -45,6 +45,12 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
     private static final int BUFFER_SIZE = 1024 * 2;
 
     /**
+     * DecompressingEntities are not repeatable, so they will return the same
+     * InputStream instance when {@link #getContent()} is called.
+     */
+    private InputStream content;
+
+    /**
      * Creates a new {@link DecompressingEntity}.
      *
      * @param wrapped
@@ -52,6 +58,23 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
      */
     public DecompressingEntity(final HttpEntity wrapped) {
         super(wrapped);
+    }
+
+    abstract InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputStream getContent() throws IOException {
+        if (wrappedEntity.isStreaming()) {
+            if (content == null) {
+                content = getDecompressingInputStream(wrappedEntity.getContent());
+            }
+            return content;
+        } else {
+            return getDecompressingInputStream(wrappedEntity.getContent());
+        }
     }
 
     /**
