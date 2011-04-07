@@ -56,19 +56,16 @@ import org.apache.http.util.VersionInfo;
 /**
  * Default implementation of {@link HttpClient} pre-configured for most common use scenarios.
  * <p>
- * This class creates the following chain of protocol interceptors per default:
- * <ul>
- * <li>{@link RequestDefaultHeaders}</li>
- * <li>{@link RequestContent}</li>
- * <li>{@link RequestTargetHost}</li>
- * <li>{@link RequestClientConnControl}</li>
- * <li>{@link RequestUserAgent}</li>
- * <li>{@link RequestExpectContinue}</li>
- * <li>{@link RequestAddCookies}</li>
- * <li>{@link ResponseProcessCookies}</li>
- * <li>{@link RequestTargetAuthentication}</li>
- * <li>{@link RequestProxyAuthentication}</li>
- * </ul>
+ * Please see the Javadoc for {@link #createHttpProcessor()} for the details of the interceptors that are set up
+ * by default.
+ * <p>
+ * Additional interceptors can be added as follows, but
+ * take care not to add the same interceptor more than once.
+ * <pre>
+ * DefaultHttpClient httpclient = new DefaultHttpClient();
+ * httpclient.addRequestInterceptor(new RequestAcceptEncoding());
+ * httpclient.addResponseInterceptor(new ResponseContentEncoding());
+ * </pre>
  * <p>
  * This class sets up the following parameters if not explicitly set:
  * <ul>
@@ -189,7 +186,25 @@ public class DefaultHttpClient extends AbstractHttpClient {
                 "Apache-HttpClient/" + release + " (java 1.5)");
     }
 
-
+    /**
+    * Create the processor with the following interceptors:
+    * <ul>
+    * <li>{@link RequestDefaultHeaders}</li>
+    * <li>{@link RequestContent}</li>
+    * <li>{@link RequestTargetHost}</li>
+    * <li>{@link RequestClientConnControl}</li>
+    * <li>{@link RequestUserAgent}</li>
+    * <li>{@link RequestExpectContinue}</li>
+    * <li>{@link RequestAddCookies}</li>
+    * <li>{@link ResponseProcessCookies}</li>
+    * <li>{@link RequestAuthCache}</li>
+    * <li>{@link ResponseAuthCache}</li>
+    * <li>{@link RequestTargetAuthentication}</li>
+    * <li>{@link RequestProxyAuthentication}</li>
+    * </ul>
+    * <p>
+    * @return the processor with the added interceptors.
+    */
     @Override
     protected BasicHttpProcessor createHttpProcessor() {
         BasicHttpProcessor httpproc = new BasicHttpProcessor();
