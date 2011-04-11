@@ -1,5 +1,9 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1078] Decompressing entities (DeflateDecompressingEntity, GzipDecompressingEntity) 
+  do not close content stream in #writeTo() method.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1075] Decompressing entities (DeflateDecompressingEntity, GzipDecompressingEntity) 
   do not correctly handle content streaming.
   Contributed by James Abley <james.abley at gmail.com> 

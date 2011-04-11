@@ -85,15 +85,17 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
         if (outstream == null) {
             throw new IllegalArgumentException("Output stream may not be null");
         }
-
         InputStream instream = getContent();
+        try {
+            byte[] buffer = new byte[BUFFER_SIZE];
 
-        byte[] buffer = new byte[BUFFER_SIZE];
+            int l;
 
-        int l;
-
-        while ((l = instream.read(buffer)) != -1) {
-            outstream.write(buffer, 0, l);
+            while ((l = instream.read(buffer)) != -1) {
+                outstream.write(buffer, 0, l);
+            }
+        } finally {
+            instream.close();
         }
     }
 
