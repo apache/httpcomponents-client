@@ -198,7 +198,7 @@ public class NegotiateScheme extends AuthSchemeBase {
             boolean tryKerberos = false;
             try {
                 GSSManager manager = getManager();
-                GSSName serverName = manager.createName("HTTP/" + authServer, null);
+                GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
                         GSSContext.DEFAULT_LIFETIME);
@@ -220,7 +220,7 @@ public class NegotiateScheme extends AuthSchemeBase {
                 log.debug("Using Kerberos MECH " + KERBEROS_OID);
                 negotiationOid  = new Oid(KERBEROS_OID);
                 GSSManager manager = getManager();
-                GSSName serverName = manager.createName("HTTP/" + authServer, null);
+                GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
                 gssContext = manager.createContext(
                         serverName.canonicalize(negotiationOid), negotiationOid, null,
                         GSSContext.DEFAULT_LIFETIME);

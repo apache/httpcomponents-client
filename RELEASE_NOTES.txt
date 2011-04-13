@@ -1,5 +1,8 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1079] Fixed Kerberos cross-realm support
+  Contributed by Michael Osipov <1983-01-06 at gmx.net> 
+
 * [HTTPCLIENT-1078] Decompressing entities (DeflateDecompressingEntity, GzipDecompressingEntity) 
   do not close content stream in #writeTo() method.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
