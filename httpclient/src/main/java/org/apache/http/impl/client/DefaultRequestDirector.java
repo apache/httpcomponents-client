@@ -74,6 +74,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
@@ -130,6 +131,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe // e.g. managedConn
 public class DefaultRequestDirector implements RequestDirector {
 
@@ -360,8 +362,6 @@ public class DefaultRequestDirector implements RequestDirector {
 
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute);
 
-        long timeout = HttpConnectionParams.getConnectionTimeout(params);
-
         boolean reuse = false;
         boolean done = false;
         try {
@@ -387,6 +387,7 @@ public class DefaultRequestDirector implements RequestDirector {
                         ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
                     }
 
+                    long timeout = ConnManagerParams.getTimeout(params);
                     try {
                         managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
                     } catch(InterruptedException interrupted) {

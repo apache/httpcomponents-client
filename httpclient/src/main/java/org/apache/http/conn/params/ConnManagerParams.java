@@ -30,6 +30,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -62,7 +63,11 @@ public final class ConnManagerParams implements ConnManagerPNames {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        return params.getLongParameter(TIMEOUT, 0);
+        Long param = (Long) params.getParameter(TIMEOUT);
+        if (param != null) {
+            return param.longValue();
+        }
+        return params.getIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 0);
     }
 
     /**
