@@ -126,6 +126,7 @@ import org.apache.http.util.EntityUtils;
  *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
  * </ul>
  *
  * @since 4.0
@@ -360,8 +361,6 @@ public class DefaultRequestDirector implements RequestDirector {
 
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute);
 
-        long timeout = HttpConnectionParams.getConnectionTimeout(params);
-
         boolean reuse = false;
         boolean done = false;
         try {
@@ -387,6 +386,7 @@ public class DefaultRequestDirector implements RequestDirector {
                         ((AbortableHttpRequest) orig).setConnectionRequest(connRequest);
                     }
 
+                    long timeout = HttpClientParams.getConnectionManagerTimeout(params);
                     try {
                         managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
                     } catch(InterruptedException interrupted) {

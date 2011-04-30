@@ -126,5 +126,16 @@ public interface ClientPNames {
      */
     public static final String DEFAULT_HOST = "http.default-host";
 
+    /**
+     * Defines the timeout in milliseconds used when retrieving an instance of
+     * {@link org.apache.http.conn.ManagedClientConnection} from the
+     * {@link org.apache.http.conn.ClientConnectionManager}.
+     * <p>
+     * This parameter expects a value of type {@link Long}.
+     * <p>
+     * @since 4.2
+     */
+    public static final String CONN_MANAGER_TIMEOUT = "http.conn-manager.timeout";
+
 }
 

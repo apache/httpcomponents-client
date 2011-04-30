@@ -28,6 +28,7 @@ package org.apache.http.client.params;
 
 import org.apache.http.annotation.Immutable;
 
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -91,6 +92,30 @@ public class HttpClientParams {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         params.setParameter(ClientPNames.COOKIE_POLICY, cookiePolicy);
+    }
+
+    /**
+     * @since 4.2
+     */
+    public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        params.setLongParameter(ClientPNames.CONN_MANAGER_TIMEOUT, timeout);
+    }
+
+    /**
+     * @since 4.2
+     */
+    public static long getConnectionManagerTimeout(final HttpParams params) {
+        if (params == null) {
+            throw new IllegalArgumentException("HTTP parameters may not be null");
+        }
+        Long timeout = (Long) params.getParameter(ClientPNames.CONN_MANAGER_TIMEOUT);
+        if (timeout != null) {
+            return timeout.longValue();
+        }
+        return HttpConnectionParams.getConnectionTimeout(params);
     }
 
 }

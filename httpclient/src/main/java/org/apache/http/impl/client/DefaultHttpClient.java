@@ -109,6 +109,7 @@ import org.apache.http.util.VersionInfo;
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#CONNECTION_MANAGER_FACTORY_CLASS_NAME}</li>
+ *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
  * </ul>
  *
  * @since 4.0

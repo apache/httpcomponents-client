@@ -96,4 +96,11 @@ public class ClientParamBean extends HttpAbstractParamBean {
         params.setParameter(ClientPNames.DEFAULT_HOST, host);
     }
 
+    /**
+     * @since 4.2
+     */
+    public void setConnectionManagerTimeout(final long timeout) {
+        params.setLongParameter(ClientPNames.CONN_MANAGER_TIMEOUT, timeout);
+    }
+
 }
