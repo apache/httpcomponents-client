@@ -29,6 +29,7 @@ package org.apache.http.conn.params;
 
 import org.apache.http.annotation.NotThreadSafe;
 
+import org.apache.http.impl.conn.DefaultResponseParser;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -40,6 +41,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  */
 @NotThreadSafe
+@Deprecated
 public class ConnConnectionParamBean extends HttpAbstractParamBean {
 
     public ConnConnectionParamBean (final HttpParams params) {
@@ -47,7 +49,7 @@ public class ConnConnectionParamBean extends HttpAbstractParamBean {
     }
 
     /**
-     * @see ConnConnectionPNames#MAX_STATUS_LINE_GARBAGE
+     * @deprecated Use custom {@link DefaultResponseParser} implementation
      */
     public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
         params.setIntParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, maxStatusLineGarbage);

@@ -39,7 +39,6 @@ import org.apache.http.HttpResponseFactory;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
 import org.apache.http.StatusLine;
-import org.apache.http.conn.params.ConnConnectionPNames;
 import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.LineParser;
@@ -81,10 +80,18 @@ public class DefaultResponseParser extends AbstractMessageParser {
         }
         this.responseFactory = responseFactory;
         this.lineBuf = new CharArrayBuffer(128);
-        this.maxGarbageLines = params.getIntParameter(
-            ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.MAX_VALUE);
+        this.maxGarbageLines = getMaxGarbageLines(params);
     }
 
+    /**
+     * @since 4.2
+     */
+    @SuppressWarnings("deprecation")
+    protected int getMaxGarbageLines(final HttpParams params) {
+        return params.getIntParameter(
+                org.apache.http.conn.params.ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE,
+                Integer.MAX_VALUE);
+    }
 
     @Override
     protected HttpMessage parseHead(

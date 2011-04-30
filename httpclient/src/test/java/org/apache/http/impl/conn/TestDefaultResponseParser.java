@@ -32,7 +32,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
-import org.apache.http.conn.params.ConnConnectionPNames;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
@@ -91,13 +90,19 @@ public class TestDefaultResponseParser {
             "\r\n";
 
         HttpParams params = new BasicHttpParams();
-        params.setParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, Integer.valueOf(2));
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
         HttpMessageParser parser = new DefaultResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
-                params);
+                params) {
+
+                    @Override
+                    protected int getMaxGarbageLines(HttpParams params) {
+                        return 2;
+                    }
+
+        };
         parser.parse();
     }
 
