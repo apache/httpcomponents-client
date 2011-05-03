@@ -41,6 +41,8 @@ import org.apache.http.params.HttpParams;
  * @since 4.0
  *
  * @see ConnManagerPNames
+ * @deprecated replaced by methods in {@link HttpConnectionParams} and {@link ThreadSafeClientConnManager}.
+ * See individual method descriptions for details
  */
 @Deprecated
 @Immutable
