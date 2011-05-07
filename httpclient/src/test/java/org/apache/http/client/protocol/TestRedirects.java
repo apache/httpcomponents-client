@@ -586,7 +586,7 @@ public class TestRedirects extends BasicServerTestBase {
         }
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected=ClientProtocolException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
         this.localServer.register("*", new BogusRedirectService("xxx://bogus"));
 
