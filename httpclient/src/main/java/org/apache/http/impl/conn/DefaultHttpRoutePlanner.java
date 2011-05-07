@@ -108,7 +108,12 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         final HttpHost proxy =
             ConnRouteParams.getDefaultProxy(request.getParams());
 
-        final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        final Scheme schm;
+        try {
+            schm = schemeRegistry.getScheme(target.getSchemeName());
+        } catch (IllegalStateException ex) {
+            throw new HttpException(ex.getMessage());
+        }
         // as it is typically used for TLS/SSL, we assume that
         // a layered scheme implies a secure connection
         final boolean secure = schm.isLayered();
