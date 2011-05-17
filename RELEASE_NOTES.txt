@@ -1,5 +1,9 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1087] NTLM proxy authentication fails on retry if the underlying connection is closed
+  as a result of a target authentication failure.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1079] Fixed Kerberos cross-realm support
   Contributed by Michael Osipov <1983-01-06 at gmx.net> 
 
