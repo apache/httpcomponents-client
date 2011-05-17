@@ -493,6 +493,8 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
+                        invalidateAuthIfSuccessful(this.proxyAuthState);                        
+                        invalidateAuthIfSuccessful(this.targetAuthState);                        
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
@@ -1230,6 +1232,16 @@ public class DefaultRequestDirector implements RequestDirector {
         }
         authState.setAuthScope(authScope);
         authState.setCredentials(creds);
+    }
+
+    private void invalidateAuthIfSuccessful(final AuthState authState) {
+        AuthScheme authscheme = authState.getAuthScheme();
+        if (authscheme != null
+                && authscheme.isConnectionBased()
+                && authscheme.isComplete()
+                && authState.getCredentials() != null) {
+            authState.invalidate();
+        }
     }
 
 } // class DefaultClientRequestDirector
