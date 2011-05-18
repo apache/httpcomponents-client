@@ -40,17 +40,6 @@
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
 
-  <repositories>
-    <repository>
-      <id>spy</id>
-      <name>Spy Repository</name>
-      <layout>default</layout>
-      <url>http://bleu.west.spy.net/~dustin/m2repo/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -61,46 +50,40 @@
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>${commons-logging.version}</version>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
-      <version>${easymock.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymockclassextension</artifactId>
-      <version>${easymock.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache-core</artifactId>
-      <version>${ehcache.version}</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jcl</artifactId>
-      <version>${slf4j.version}</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>spy</groupId>
-      <artifactId>memcached</artifactId>
-      <version>2.5</version>
+      <artifactId>spymemcached</artifactId>
+      <scope>compile</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymockclassextension</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -111,13 +94,6 @@
     <maven.compile.target>1.5</maven.compile.target>
     <maven.compile.optimize>true</maven.compile.optimize>
     <maven.compile.deprecation>true</maven.compile.deprecation>
-    <!-- cache was not present in 4.0; it first appeared in 4.1-alpha2 -->
-    <comparisonVersion>4.1-alpha2</comparisonVersion>
-    <!--
-     Allow separate override of cache version, e.g.
-     $ mvn clirr:clirr -DcomparisonVersion=4.1-alpha1 -Dcache.comparisonVersion=4.1-alpha2
-     -->
-    <cache.comparisonVersion>${comparisonVersion}</cache.comparisonVersion>
   </properties>
 
   <build>
@@ -166,7 +142,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
-          <comparisonVersion>${cache.comparisonVersion}</comparisonVersion>
+          <comparisonVersion>${comparisonVersion}</comparisonVersion>
         </configuration>
       </plugin>
     </plugins>
