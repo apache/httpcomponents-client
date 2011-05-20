@@ -1,5 +1,8 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1092] If ClientPNames.VIRTUAL_HOST does not provide the port, derive it from the current request.
+  Contributed by Sebastian Bazley <sebb at apache.org>
+
 * [HTTPCLIENT-1087] NTLM proxy authentication fails on retry if the underlying connection is closed
   as a result of a target authentication failure.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

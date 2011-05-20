@@ -144,10 +144,12 @@ httpclient.getConnectionManager().shutdown();
             <listitem>
                 <formalpara>
                     <title><constant>ClientPNames.VIRTUAL_HOST</constant>='http.virtual-host':</title>
-                    <para>defines the virtual host name to be used in the <literal>Host</literal>
-                        header instead of the physical host name. This parameter expects a value of
-                        type <classname>HttpHost</classname>. If this parameter is not set, the name or
-                        IP address of the target host will be used.</para>
+                    <para>defines the virtual host settings to be used in the <literal>Host</literal>
+                        header instead of the physical host. This parameter expects a value of
+                        type <classname>HttpHost</classname>. The HttpHost port does not have to
+                        be specified as it will be derived from the target.
+                        If this parameter is not set, the name or
+                        IP address (and port if required) of the target host will be used.</para>
                 </formalpara>
             </listitem>
             <listitem>

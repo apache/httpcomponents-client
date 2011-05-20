@@ -612,6 +612,90 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     }
 
     @Test
+    public void testDefaultHostHeader() throws Exception {
+        int port = this.localServer.getServiceAddress().getPort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpContext context = new BasicHttpContext();
+
+        String s = "http://localhost:" + port;
+        HttpGet httpget = new HttpGet(s);
+
+        DefaultHttpClient client = new DefaultHttpClient();
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        // Check that Host header is generated as expected
+        Header[] headers = reqWrapper.getHeaders("host");
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals("localhost:"+port,headers[0].getValue());
+    }
+
+    @Test
+    // HTTPCLIENT-1092
+    public void testVirtualHostHeader() throws Exception {
+        int port = this.localServer.getServiceAddress().getPort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpContext context = new BasicHttpContext();
+
+        String s = "http://localhost:" + port;
+        HttpGet httpget = new HttpGet(s);
+
+        DefaultHttpClient client = new DefaultHttpClient();
+        String virtHost = "virtual";
+        httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, port));
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        // Check that Host header is generated as expected
+        Header[] headers = reqWrapper.getHeaders("host");
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals(virtHost+":"+port,headers[0].getValue());
+    }
+
+    @Test
+    // Test that virtual port is propagated if provided
+    // This is not expected to be used much, if ever
+    // HTTPCLIENT-1092
+    public void testVirtualHostPortHeader() throws Exception {
+        int port = this.localServer.getServiceAddress().getPort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpContext context = new BasicHttpContext();
+
+        String s = "http://localhost:" + port;
+        HttpGet httpget = new HttpGet(s);
+
+        DefaultHttpClient client = new DefaultHttpClient();
+        String virtHost = "virtual";
+        int virtPort = 9876;
+        httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, virtPort));
+        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        // Check that Host header is generated as expected
+        Header[] headers = reqWrapper.getHeaders("host");
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals(virtHost+":"+virtPort,headers[0].getValue());
+    }
+
+    @Test
     public void testDefaultHostAtRequestLevel() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
