@@ -359,6 +359,15 @@ public class DefaultRequestDirector implements RequestDirector {
 
         virtualHost = (HttpHost) orig.getParams().getParameter(
                 ClientPNames.VIRTUAL_HOST);
+        
+        // HTTPCLIENT-1092 - add the port if necessary
+        if (virtualHost != null && virtualHost.getPort() == -1) 
+        {
+            int port = target.getPort();
+            if (port != -1){
+                virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
+            }
+        }
 
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute);
 
