@@ -64,6 +64,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@SuppressWarnings("boxing")
 public class TestRequestAddCookies {
 
     private HttpHost target;
@@ -497,6 +498,48 @@ public class TestRequestAddCookies {
         Header[] headers2 = request.getHeaders(SM.COOKIE2);
         Assert.assertNotNull(headers2);
         Assert.assertEquals(0, headers2.length);
+    }
+
+    // Helper method
+    private BasicClientCookie makeCookie(String name, String value, String domain, String path) {
+        BasicClientCookie cookie = new BasicClientCookie(name, value);
+        cookie.setDomain(domain);
+        cookie.setPath(path);
+        return cookie;
+    }
+
+    @Test
+    // Test for ordering adapted from test in Commons HC 3.1
+    public void testCookieOrder() throws Exception {
+        HttpRequest request = new BasicHttpRequest("GET", "/foobar/yada/yada");
+        
+        this.cookieStore.clear();
+        
+        cookieStore.addCookie(makeCookie("nomatch", "value", "localhost.local", "/noway"));
+        cookieStore.addCookie(makeCookie("name2",   "value", "localhost.local", "/foobar/yada"));
+        cookieStore.addCookie(makeCookie("name3",   "value", "localhost.local", "/foobar"));
+        cookieStore.addCookie(makeCookie("name1",   "value", "localhost.local", "/foobar/yada/yada"));
+
+        HttpRoute route = new HttpRoute(this.target, null, false);
+
+        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
+        Mockito.when(conn.getRoute()).thenReturn(route);
+        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
+
+        HttpRequestInterceptor interceptor = new RequestAddCookies();
+        interceptor.process(request, context);
+
+        Header[] headers1 = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers1);
+        Assert.assertEquals(1, headers1.length);
+
+        Assert.assertEquals("name1=value; name2=value; name3=value", headers1[0].getValue());
     }
 
     @Test
