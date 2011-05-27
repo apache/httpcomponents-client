@@ -160,6 +160,12 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                         above implementations into one class.</para>
                 </formalpara>
             </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Ignore:</title>
+                    <para>All cookies are ignored.</para>
+                </formalpara>
+            </listitem>
         </itemizedlist>
         <para>It is strongly recommended to use the <literal>Best Match</literal> policy and let
             HttpClient pick up an appropriate compliance level at runtime based on the execution
