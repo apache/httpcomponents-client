@@ -162,7 +162,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>Ignore:</title>
+                    <title>Ignore cookies:</title>
                     <para>All cookies are ignored.</para>
                 </formalpara>
             </listitem>
@@ -251,6 +251,12 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                 <formalpara>
                     <title>best-match:</title>
                     <para>Best match meta-policy.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>ignoreCookies:</title>
+                    <para>All cookies are ignored.</para>
                 </formalpara>
             </listitem>
         </itemizedlist>
