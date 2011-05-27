@@ -182,7 +182,7 @@ public class BestMatchSpec implements CookieSpec {
 
     public List<Header> formatCookies(final List<Cookie> cookies) {
         if (cookies == null) {
-            throw new IllegalArgumentException("List of cookie may not be null");
+            throw new IllegalArgumentException("List of cookies may not be null");
         }
         int version = Integer.MAX_VALUE;
         boolean isSetCookie2 = true;
