@@ -314,5 +314,24 @@ public class TestHostnameVerifier {
 
         checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
         checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
+
+        checkWildcard("s*.co.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("s*.gouv.uk", false); // 2 character TLD, invalid 2TLD
+    }
+    
+    // Helper
+    private void checkWildcard(String host, boolean isOK) {
+        Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));        
+    }
+
+    @Test
+    // Various checks of 2TLDs
+    public void testacceptableCountryWildcards() {
+        checkWildcard("*.co.org", true); // Not a 2 character TLD
+        checkWildcard("s*.co.org", true); // Not a 2 character TLD
+        checkWildcard("*.co.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.gov.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.gouv.uk", false); // 2 character TLD, invalid 2TLD
     }
 }
