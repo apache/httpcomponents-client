@@ -333,5 +333,7 @@ public class TestHostnameVerifier {
         checkWildcard("*.co.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("*.gov.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("*.gouv.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
+        checkWildcard("s*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
     }
 }
