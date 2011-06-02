@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import javax.net.ssl.SSLException;
 
@@ -228,4 +229,109 @@ public class TestHostnameVerifier {
         }
     }
 
+    // Test helper method
+    private void checkMatching(X509HostnameVerifier hv, String host,
+            String[] cns, String[] alts, boolean shouldFail) {
+        try {
+            hv.verify(host, cns, alts);
+            if (shouldFail) {
+                Assert.fail("HostnameVerifier should not allow [" + host + "] to match "
+                        +Arrays.toString(cns)
+                        +" or "
+                        +Arrays.toString(alts));
+            }
+        }
+        catch(SSLException e) {
+            if (!shouldFail) {
+                Assert.fail("HostnameVerifier should have allowed [" + host + "] to match "
+                        +Arrays.toString(cns)
+                        +" or "
+                        +Arrays.toString(alts));
+            }
+        }
+    }
+
+    @Test
+    // Check standard wildcard matching
+    public void testMatching() {
+        String cns[] = {};
+        String alt[] = {};
+        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        X509HostnameVerifier shv = new StrictHostnameVerifier();
+        checkMatching(bhv, "a.b.c", cns, alt, true); // empty
+        checkMatching(shv, "a.b.c", cns, alt, true); // empty
+
+        cns = new String []{"*.b.c"};
+        checkMatching(bhv, "a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "a.b.c", cns, alt, false); // OK
+
+        checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
+        
+        cns = new String []{};
+        alt = new String []{"dummy", "*.b.c"}; // check matches against all alts
+        checkMatching(bhv, "a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "a.b.c", cns, alt, false); // OK
+
+        checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
+        
+        alt = new String []{"*.gov.uk"};
+        checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+
+        checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
+        
+        alt = new String []{"*.gov.com"};
+        checkMatching(bhv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
+        checkMatching(shv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
+
+        checkMatching(bhv, "s.a.gov.com", cns, alt, false); // OK, gov not 2TLD here
+        checkMatching(shv, "s.a.gov.com", cns, alt, true); // no subdomain allowed
+        
+        cns = new String []{"a*.gov.uk"}; // 2TLD check applies to wildcards
+        checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+
+        checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
+        
+    }
+
+    @Test
+    public void HTTPCLIENT_1097() {
+        String cns[];
+        String alt[] = {};
+        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        X509HostnameVerifier shv = new StrictHostnameVerifier();
+    
+        cns = new String []{"a*.b.c"}; // component part
+        checkMatching(bhv, "a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "a.b.c", cns, alt, false); // OK
+
+        checkMatching(bhv, "a.a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "a.a.b.c", cns, alt, true); // subdomain not OK
+
+        checkWildcard("s*.co.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("s*.gouv.uk", false); // 2 character TLD, invalid 2TLD
+    }
+    
+    // Helper
+    private void checkWildcard(String host, boolean isOK) {
+        Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));        
+    }
+
+    @Test
+    // Various checks of 2TLDs
+    public void testacceptableCountryWildcards() {
+        checkWildcard("*.co.org", true); // Not a 2 character TLD
+        checkWildcard("s*.co.org", true); // Not a 2 character TLD
+        checkWildcard("*.co.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.gov.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.gouv.uk", false); // 2 character TLD, invalid 2TLD
+        checkWildcard("*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
+        checkWildcard("s*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
+    }
 }

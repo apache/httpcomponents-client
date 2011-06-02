@@ -197,13 +197,21 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             // The CN better have at least two dots if it wants wildcard
             // action.  It also can't be [*.co.uk] or [*.co.jp] or
             // [*.org.uk], etc...
-            boolean doWildcard = cn.startsWith("*.") &&
-                                 cn.lastIndexOf('.') >= 0 &&
+            String parts[] = cn.split("\\.");
+            boolean doWildcard = parts.length >= 3 &&
+                                 parts[0].endsWith("*") &&
                                  acceptableCountryWildcard(cn) &&
                                  !isIPAddress(host);
 
             if(doWildcard) {
-                match = hostName.endsWith(cn.substring(1));
+                if (parts[0].length() > 1) { // e.g. server*
+                    String prefix = parts[0].substring(0, parts.length-2); // e.g. server
+                    String suffix = cn.substring(parts[0].length()); // skip wildcard part from cn
+                    String hostSuffix = hostName.substring(prefix.length()); // skip wildcard part from host
+                    match = hostName.startsWith(prefix) && hostSuffix.endsWith(suffix);
+                } else {
+                    match = hostName.endsWith(cn.substring(1));                    
+                }
                 if(match && strictWithSubDomains) {
                     // If we're in strict mode, then [*.foo.com] is not
                     // allowed to match [a.b.foo.com]
@@ -222,18 +230,11 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     }
 
     public static boolean acceptableCountryWildcard(String cn) {
-        int cnLen = cn.length();
-        if(cnLen >= 7 && cnLen <= 9) {
-            // Look for the '.' in the 3rd-last position:
-            if(cn.charAt(cnLen - 3) == '.') {
-                // Trim off the [*.] and the [.XX].
-                String s = cn.substring(2, cnLen - 3);
-                // And test against the sorted array of bad 2lds:
-                int x = Arrays.binarySearch(BAD_COUNTRY_2LDS, s);
-                return x < 0;
-            }
+        String parts[] = cn.split("\\.");
+        if (parts.length != 3 || parts[2].length() != 2) {
+            return true; // it's not an attempt to wildcard a 2TLD within a country code
         }
-        return true;
+        return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
     }
 
     public static String[] getCNs(X509Certificate cert) {
