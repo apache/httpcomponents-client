@@ -36,7 +36,6 @@ import java.util.Arrays;
 import javax.net.ssl.SSLException;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -301,7 +300,6 @@ public class TestHostnameVerifier {
     }
 
     @Test
-    @Ignore("not yet implemented")
     public void HTTPCLIENT_1097() {
         String cns[];
         String alt[] = {};
@@ -312,8 +310,8 @@ public class TestHostnameVerifier {
         checkMatching(bhv, "a.b.c", cns, alt, false); // OK
         checkMatching(shv, "a.b.c", cns, alt, false); // OK
 
-        checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
-        checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
+        checkMatching(bhv, "a.a.b.c", cns, alt, false); // OK
+        checkMatching(shv, "a.a.b.c", cns, alt, true); // subdomain not OK
 
         checkWildcard("s*.co.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
