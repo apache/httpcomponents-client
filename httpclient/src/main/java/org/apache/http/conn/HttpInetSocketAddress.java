@@ -54,5 +54,11 @@ public class HttpInetSocketAddress extends InetSocketAddress {
     public HttpHost getHost() {
         return this.host;
     }
+
+    @Override
+    public String toString() {
+        return this.host.getHostName() + ":" + getPort();
+    }
+
     
 }

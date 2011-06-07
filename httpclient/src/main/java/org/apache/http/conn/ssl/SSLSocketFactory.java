@@ -375,8 +375,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
             sock.setSoTimeout(soTimeout);
             sock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
-                    + remoteAddress.getAddress() + " timed out");
+            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
         SSLSocket sslsock;
         // Setup SSL layering if necessary
