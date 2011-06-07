@@ -614,6 +614,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     @Test
     public void testDefaultHostHeader() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
+        String hostname = this.localServer.getServiceAddress().getHostName();
         this.localServer.register("*", new SimpleService());
 
         HttpContext context = new BasicHttpContext();
@@ -633,7 +634,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         Header[] headers = reqWrapper.getHeaders("host");
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.length);
-        Assert.assertEquals("localhost:"+port,headers[0].getValue());
+        Assert.assertEquals(hostname + ":" + port, headers[0].getValue());
     }
 
     @Test
