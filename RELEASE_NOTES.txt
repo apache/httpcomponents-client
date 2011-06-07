@@ -1,9 +1,14 @@
 Changes since 4.1.1
 
-* [HTTPCLIENT-1097] BrowserCompatHostnameVerifier and StrictHostnameVerifier should handle wildcards in SSL certificates better.
+* [HTTPCLIENT-1098] Avoid expensive reverse DNS lookup on connect timeout exception. 
+  Contributed by Thomas Boettcher <tboett at gmail.com>
+
+* [HTTPCLIENT-1097] BrowserCompatHostnameVerifier and StrictHostnameVerifier should handle 
+  wildcards in SSL certificates better.
   Contributed by Sebastian Bazley <sebb at apache.org>
 
-* [HTTPCLIENT-1092] If ClientPNames.VIRTUAL_HOST does not provide the port, derive it from the current request.
+* [HTTPCLIENT-1092] If ClientPNames.VIRTUAL_HOST does not provide the port, derive it from the 
+  current request.
   Contributed by Sebastian Bazley <sebb at apache.org>
 
 * [HTTPCLIENT-1087] NTLM proxy authentication fails on retry if the underlying connection is closed
