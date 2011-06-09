@@ -204,6 +204,10 @@ class CacheValidityPolicy {
         }
     }
 
+    protected boolean hasContentLengthHeader(HttpCacheEntry entry) {
+        return null != entry.getFirstHeader(HTTP.CONTENT_LEN);
+	}
+    
     /**
      * This matters for deciding whether the cache entry is valid to serve as a
      * response. If these values do not match, we might have a partial response
@@ -211,7 +215,7 @@ class CacheValidityPolicy {
      * @return boolean indicating whether actual length matches Content-Length
      */
     protected boolean contentLengthHeaderMatchesActualLength(final HttpCacheEntry entry) {
-        return getContentLengthValue(entry) == entry.getResource().length();
+        return !hasContentLengthHeader(entry) || getContentLengthValue(entry) == entry.getResource().length();
     }
 
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {

@@ -1,5 +1,8 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1100] Missing Content-Length header makes cached entry invalid
+  Contributed by Bart Robeyns <bart dot robeyns at gmail dot com>
+
 * [HTTPCLIENT-1098] Avoid expensive reverse DNS lookup on connect timeout exception. 
   Contributed by Thomas Boettcher <tboett at gmail.com>
 
