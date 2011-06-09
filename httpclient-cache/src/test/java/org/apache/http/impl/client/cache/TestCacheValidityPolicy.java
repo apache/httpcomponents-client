@@ -37,6 +37,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.HTTP;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -329,6 +330,30 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "public") };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         assertFalse(impl.isRevalidatable(entry));
+    }
+    
+    @Test
+    public void testMissingContentLengthDoesntInvalidateEntry() {
+        final int contentLength = 128;
+        Header[] headers = {}; // no Content-Length header
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
+        assertTrue(impl.contentLengthHeaderMatchesActualLength(entry));
+    }
+    
+    @Test
+    public void testCorrectContentLengthDoesntInvalidateEntry() {
+        final int contentLength = 128;
+        Header[] headers = { new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength)) };
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
+        assertTrue(impl.contentLengthHeaderMatchesActualLength(entry));
+    }
+    
+    @Test
+    public void testWrongContentLengthInvalidatesEntry() {
+        final int contentLength = 128;
+        Header[] headers = {new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength+1))};
+        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
+        assertFalse(impl.contentLengthHeaderMatchesActualLength(entry));
     }
 
     @Test
