@@ -40,18 +40,6 @@
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
 
-  <repositories>
-    <repository>
-      <id>spy</id>
-      <name>Spy Repository</name>
-      <layout>default</layout>
-      <url>http://files.couchbase.com/maven2/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
