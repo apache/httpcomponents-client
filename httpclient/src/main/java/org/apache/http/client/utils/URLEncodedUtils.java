@@ -199,6 +199,32 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
+    /**
+     * Returns a String that is suitable for use as an <code>application/x-www-form-urlencoded</code>
+     * list of parameters in an HTTP PUT or HTTP POST.
+     *
+     * @param parameters  The parameters to include.
+     * @param encoding The encoding to use.
+     * 
+     * @since 4.2
+     */
+    public static String format (
+            final Iterable<? extends NameValuePair> parameters,
+            final String encoding) {
+        final StringBuilder result = new StringBuilder();
+        for (final NameValuePair parameter : parameters) {
+            final String encodedName = encode(parameter.getName(), encoding);
+            final String value = parameter.getValue();
+            final String encodedValue = value != null ? encode(value, encoding) : "";
+            if (result.length() > 0)
+                result.append(PARAMETER_SEPARATOR);
+            result.append(encodedName);
+            result.append(NAME_VALUE_SEPARATOR);
+            result.append(encodedValue);
+        }
+        return result.toString();
+    }
+
     private static String decode (final String content, final String encoding) {
         try {
             return URLDecoder.decode(content,
