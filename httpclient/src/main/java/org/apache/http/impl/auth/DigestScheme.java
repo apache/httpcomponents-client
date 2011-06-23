@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -90,15 +91,16 @@ public class DigestScheme extends RFC2617Scheme {
     /** Whether the digest authentication process is complete */
     private boolean complete;
 
+    private static final int QOP_UNKNOWN = -1;
     private static final int QOP_MISSING = 0;
     private static final int QOP_AUTH_INT = 1;
     private static final int QOP_AUTH = 2;
 
-    private int qopVariant = QOP_MISSING;
     private String lastNonce;
     private long nounceCount;
     private String cnonce;
-    private String nc;
+    private String a1;
+    private String a2;
 
     /**
      * Default constructor for the digest authetication scheme.
@@ -122,32 +124,10 @@ public class DigestScheme extends RFC2617Scheme {
         super.processChallenge(header);
 
         if (getParameter("realm") == null) {
-            throw new MalformedChallengeException("missing realm in challange");
+            throw new MalformedChallengeException("missing realm in challenge");
         }
         if (getParameter("nonce") == null) {
-            throw new MalformedChallengeException("missing nonce in challange");
-        }
-
-        boolean unsupportedQop = false;
-        // qop parsing
-        String qop = getParameter("qop");
-        if (qop != null) {
-            StringTokenizer tok = new StringTokenizer(qop,",");
-            while (tok.hasMoreTokens()) {
-                String variant = tok.nextToken().trim();
-                if (variant.equals("auth")) {
-                    qopVariant = QOP_AUTH;
-                    break; //that's our favourite, because auth-int is unsupported
-                } else if (variant.equals("auth-int")) {
-                    qopVariant = QOP_AUTH_INT;
-                } else {
-                    unsupportedQop = true;
-                }
-            }
-        }
-
-        if (unsupportedQop && (qopVariant == QOP_MISSING)) {
-            throw new MalformedChallengeException("None of the qop methods is supported");
+            throw new MalformedChallengeException("missing nonce in challenge");
         }
         this.complete = true;
     }
@@ -189,23 +169,6 @@ public class DigestScheme extends RFC2617Scheme {
         getParameters().put(name, value);
     }
 
-    private String getCnonce() {
-        if (this.cnonce == null) {
-            this.cnonce = createCnonce();
-        }
-        return this.cnonce;
-    }
-
-    private String getNc() {
-        if (this.nc == null) {
-            StringBuilder sb = new StringBuilder();
-            Formatter formatter = new Formatter(sb, Locale.US);
-            formatter.format("%08x", this.nounceCount);
-            this.nc = sb.toString();
-        }
-        return this.nc;
-    }
-
     /**
      * Produces a digest authorization string for the given set of
      * {@link Credentials}, method name and URI.
@@ -239,8 +202,7 @@ public class DigestScheme extends RFC2617Scheme {
             charset = AuthParams.getCredentialCharset(request.getParams());
             getParameters().put("charset", charset);
         }
-        String digest = createDigest(credentials);
-        return createDigestHeader(credentials, digest);
+        return createDigestHeader(credentials);
     }
 
     private static MessageDigest createMessageDigest(
@@ -255,17 +217,18 @@ public class DigestScheme extends RFC2617Scheme {
     }
 
     /**
-     * Creates an MD5 response digest.
+     * Creates digest-response header as defined in RFC2617.
      *
-     * @return The created digest as string. This will be the response tag's
-     *         value in the Authentication HTTP header.
-     * @throws AuthenticationException when MD5 is an unsupported algorithm
+     * @param credentials User credentials
+     *
+     * @return The digest-response as String.
      */
-    private String createDigest(final Credentials credentials) throws AuthenticationException {
-        // Collecting required tokens
+    private Header createDigestHeader(
+            final Credentials credentials) throws AuthenticationException {
         String uri = getParameter("uri");
         String realm = getParameter("realm");
         String nonce = getParameter("nonce");
+        String opaque = getParameter("opaque");
         String method = getParameter("methodname");
         String algorithm = getParameter("algorithm");
         if (uri == null) {
@@ -278,9 +241,25 @@ public class DigestScheme extends RFC2617Scheme {
             throw new IllegalStateException("Nonce may not be null");
         }
 
-        // Reset
-        this.cnonce = null;
-        this.nc = null;
+        //TODO: add support for QOP_INT
+        int qop = QOP_UNKNOWN;
+        String qoplist = getParameter("qop");
+        if (qoplist != null) {
+            StringTokenizer tok = new StringTokenizer(qoplist, ",");
+            while (tok.hasMoreTokens()) {
+                String variant = tok.nextToken().trim();
+                if (variant.equals("auth")) {
+                    qop = QOP_AUTH;
+                    break;
+                }
+            }
+        } else {
+            qop = QOP_MISSING;
+        }
+
+        if (qop == QOP_UNKNOWN) {
+            throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
+        }
 
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
@@ -292,117 +271,90 @@ public class DigestScheme extends RFC2617Scheme {
             charset = "ISO-8859-1";
         }
 
-        if (qopVariant == QOP_AUTH_INT) {
-            throw new AuthenticationException(
-                "Unsupported qop in HTTP Digest authentication");
-        }
-
         String digAlg = algorithm;
         if (digAlg.equalsIgnoreCase("MD5-sess")) {
             digAlg = "MD5";
         }
 
-        if (nonce.equals(this.lastNonce)) {
-            this.nounceCount++;
-        } else {
-            this.nounceCount = 1;
-            this.lastNonce = nonce;
+        MessageDigest digester;
+        try {
+            digester = createMessageDigest(digAlg);
+        } catch (UnsupportedDigestAlgorithmException ex) {
+            throw new AuthenticationException("Unsuppported digest algorithm: " + digAlg);
         }
-
-        MessageDigest digester = createMessageDigest(digAlg);
 
         String uname = credentials.getUserPrincipal().getName();
         String pwd = credentials.getPassword();
 
-        // 3.2.2.2: Calculating digest
-        StringBuilder tmp = new StringBuilder(uname.length() + realm.length() + pwd.length() + 2);
-        tmp.append(uname);
-        tmp.append(':');
-        tmp.append(realm);
-        tmp.append(':');
-        tmp.append(pwd);
-        // unq(username-value) ":" unq(realm-value) ":" passwd
-        String a1 = tmp.toString();
+        if (nonce.equals(this.lastNonce)) {
+            nounceCount++;
+        } else {
+            nounceCount = 1;
+            cnonce = null;
+            lastNonce = nonce;
+        }
+        StringBuilder sb = new StringBuilder(256);
+        Formatter formatter = new Formatter(sb, Locale.US);
+        formatter.format("%08x", nounceCount);
+        String nc = sb.toString();
 
-        //a1 is suitable for MD5 algorithm
+        if (cnonce == null) {
+            cnonce = createCnonce();
+        }
+
+        a1 = null;
+        a2 = null;
+        // 3.2.2.2: Calculating digest
         if (algorithm.equalsIgnoreCase("MD5-sess")) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
 
-            algorithm = "MD5";
-            String cnonce = getCnonce();
-
-            String tmp2 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
-            StringBuilder tmp3 = new StringBuilder(
-                    tmp2.length() + nonce.length() + cnonce.length() + 2);
-            tmp3.append(tmp2);
-            tmp3.append(':');
-            tmp3.append(nonce);
-            tmp3.append(':');
-            tmp3.append(cnonce);
-            a1 = tmp3.toString();
+            // calculated one per session
+            sb.setLength(0);
+            sb.append(uname).append(':').append(realm).append(':').append(pwd);
+            String checksum = encode(digester.digest(EncodingUtils.getBytes(sb.toString(), charset)));
+            sb.setLength(0);
+            sb.append(checksum).append(':').append(nonce).append(':').append(cnonce);
+            a1 = sb.toString();
+        } else {
+            // unq(username-value) ":" unq(realm-value) ":" passwd
+            sb.setLength(0);
+            sb.append(uname).append(':').append(realm).append(':').append(pwd);
+            a1 = sb.toString();
         }
+
         String hasha1 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
 
-        String a2 = null;
-        if (qopVariant == QOP_AUTH_INT) {
-            // Unhandled qop auth-int
-            //we do not have access to the entity-body or its hash
-            //TODO: add Method ":" digest-uri-value ":" H(entity-body)
+        if (qop == QOP_AUTH) {
+            // Method ":" digest-uri-value
+            a2 = method + ':' + uri;
+        } else if (qop == QOP_AUTH_INT) {
+            // Method ":" digest-uri-value ":" H(entity-body)
+            //TODO: calculate entity hash if entity is repeatable
+            throw new AuthenticationException("qop-int method is not suppported");
         } else {
             a2 = method + ':' + uri;
         }
-        String hasha2 = encode(digester.digest(EncodingUtils.getAsciiBytes(a2)));
+
+        String hasha2 = encode(digester.digest(EncodingUtils.getBytes(a2, charset)));
 
         // 3.2.2.1
-        String serverDigestValue;
-        if (qopVariant == QOP_MISSING) {
-            StringBuilder tmp2 = new StringBuilder(
-                    hasha1.length() + nonce.length() + hasha1.length());
-            tmp2.append(hasha1);
-            tmp2.append(':');
-            tmp2.append(nonce);
-            tmp2.append(':');
-            tmp2.append(hasha2);
-            serverDigestValue = tmp2.toString();
+
+        String digestValue;
+        if (qop == QOP_MISSING) {
+            sb.setLength(0);
+            sb.append(hasha1).append(':').append(nonce).append(':').append(hasha2);
+            digestValue = sb.toString();
         } else {
-            String qopOption = getQopVariantString();
-            String cnonce = getCnonce();
-            String nc =  getNc();
-            StringBuilder tmp2 = new StringBuilder(hasha1.length() + nonce.length()
-                + nc.length() + cnonce.length() + qopOption.length() + hasha2.length() + 5);
-            tmp2.append(hasha1);
-            tmp2.append(':');
-            tmp2.append(nonce);
-            tmp2.append(':');
-            tmp2.append(nc);
-            tmp2.append(':');
-            tmp2.append(cnonce);
-            tmp2.append(':');
-            tmp2.append(qopOption);
-            tmp2.append(':');
-            tmp2.append(hasha2);
-            serverDigestValue = tmp2.toString();
+            sb.setLength(0);
+            sb.append(hasha1).append(':').append(nonce).append(':').append(nc).append(':')
+                .append(cnonce).append(':').append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
+                .append(':').append(hasha2);
+            digestValue = sb.toString();
         }
 
-        String serverDigest =
-            encode(digester.digest(EncodingUtils.getAsciiBytes(serverDigestValue)));
-
-        return serverDigest;
-    }
-
-    /**
-     * Creates digest-response header as defined in RFC2617.
-     *
-     * @param credentials User credentials
-     * @param digest The response tag's value as String.
-     *
-     * @return The digest-response as String.
-     */
-    private Header createDigestHeader(
-            final Credentials credentials,
-            final String digest) {
+        String digest = encode(digester.digest(EncodingUtils.getAsciiBytes(digestValue)));
 
         CharArrayBuffer buffer = new CharArrayBuffer(128);
         if (isProxy()) {
@@ -412,26 +364,17 @@ public class DigestScheme extends RFC2617Scheme {
         }
         buffer.append(": Digest ");
 
-        String uri = getParameter("uri");
-        String realm = getParameter("realm");
-        String nonce = getParameter("nonce");
-        String opaque = getParameter("opaque");
-        String response = digest;
-        String algorithm = getParameter("algorithm");
-
-        String uname = credentials.getUserPrincipal().getName();
-
         List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
         params.add(new BasicNameValuePair("username", uname));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));
-        params.add(new BasicNameValuePair("response", response));
+        params.add(new BasicNameValuePair("response", digest));
 
-        if (qopVariant != QOP_MISSING) {
-            params.add(new BasicNameValuePair("qop", getQopVariantString()));
-            params.add(new BasicNameValuePair("nc", getNc()));
-            params.add(new BasicNameValuePair("cnonce", getCnonce()));
+        if (qop != QOP_MISSING) {
+            params.add(new BasicNameValuePair("qop", qop == QOP_AUTH_INT ? "auth-int" : "auth"));
+            params.add(new BasicNameValuePair("nc", nc));
+            params.add(new BasicNameValuePair("cnonce", cnonce));
         }
         if (algorithm != null) {
             params.add(new BasicNameValuePair("algorithm", algorithm));
@@ -445,22 +388,22 @@ public class DigestScheme extends RFC2617Scheme {
             if (i > 0) {
                 buffer.append(", ");
             }
-            boolean noQuotes = "nc".equals(param.getName()) ||
-                               "qop".equals(param.getName());
-            BasicHeaderValueFormatter.DEFAULT
-                .formatNameValuePair(buffer, param, !noQuotes);
+            boolean noQuotes = "nc".equals(param.getName()) || "qop".equals(param.getName());
+            BasicHeaderValueFormatter.DEFAULT.formatNameValuePair(buffer, param, !noQuotes);
         }
         return new BufferedHeader(buffer);
     }
 
-    private String getQopVariantString() {
-        String qopOption;
-        if (qopVariant == QOP_AUTH_INT) {
-            qopOption = "auth-int";
-        } else {
-            qopOption = "auth";
-        }
-        return qopOption;
+    String getCnonce() {
+        return cnonce;
+    }
+
+    String getA1() {
+        return a1;
+    }
+
+    String getA2() {
+        return a2;
     }
 
     /**
@@ -488,16 +431,12 @@ public class DigestScheme extends RFC2617Scheme {
      * Creates a random cnonce value based on the current time.
      *
      * @return The cnonce value as String.
-     * @throws UnsupportedDigestAlgorithmException if MD5 algorithm is not supported.
      */
     public static String createCnonce() {
-        String cnonce;
-
-        MessageDigest md5Helper = createMessageDigest("MD5");
-
-        cnonce = Long.toString(System.currentTimeMillis());
-        cnonce = encode(md5Helper.digest(EncodingUtils.getAsciiBytes(cnonce)));
-
-        return cnonce;
+        SecureRandom rnd = new SecureRandom();
+        byte[] tmp = new byte[8];
+        rnd.nextBytes(tmp);
+        return encode(tmp);
     }
+
 }

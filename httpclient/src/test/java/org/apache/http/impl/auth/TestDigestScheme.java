@@ -33,6 +33,7 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
@@ -257,13 +258,15 @@ public class TestDigestScheme {
     }
 
     /**
-     * Test digest authentication with invalud qop value
+     * Test digest authentication with unknown qop value
      */
-    @Test(expected=MalformedChallengeException.class)
-    public void testDigestAuthenticationMD5SessInvalidQop() throws Exception {
+    @Test(expected=AuthenticationException.class)
+    public void testDigestAuthenticationMD5SessUnknownQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
         String realm="realm";
+        String username="username";
+        String password="password";
         String nonce="e273f1776275974f1a120d8b92c5b3cb";
 
         String challenge="Digest realm=\"" + realm + "\", "
@@ -271,12 +274,45 @@ public class TestDigestScheme {
             + "opaque=\"SomeString\", "
             + "stale=false, "
             + "algorithm=MD5-sess, "
-            + "qop=\"jakarta\""; // jakarta is an invalid qop value
+            + "qop=\"stuff\"";
 
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
 
-        AuthScheme authscheme = new DigestScheme();
+        DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge);
+
+        Credentials cred = new UsernamePasswordCredentials(username, password);
+        HttpRequest request = new BasicHttpRequest("Simple", "/");
+        authscheme.authenticate(cred, request);
+    }
+
+    /**
+     * Test digest authentication with unknown qop value
+     */
+    @Test(expected=AuthenticationException.class)
+    public void testDigestAuthenticationUnknownAlgo() throws Exception {
+        // Example using Digest auth with MD5-sess
+
+        String realm="realm";
+        String username="username";
+        String password="password";
+        String nonce="e273f1776275974f1a120d8b92c5b3cb";
+
+        String challenge="Digest realm=\"" + realm + "\", "
+            + "nonce=\"" + nonce + "\", "
+            + "opaque=\"SomeString\", "
+            + "stale=false, "
+            + "algorithm=stuff, "
+            + "qop=\"auth\"";
+
+        Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
+
+        DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge);
+
+        Credentials cred = new UsernamePasswordCredentials(username, password);
+        HttpRequest request = new BasicHttpRequest("Simple", "/");
+        authscheme.authenticate(cred, request);
     }
 
     @Test
@@ -308,7 +344,7 @@ public class TestDigestScheme {
     public void testDigestNouceCount() throws Exception {
         String challenge1 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         Header authChallenge1 = new BasicHeader(AUTH.WWW_AUTH, challenge1);
-        HttpRequest request = new BasicHttpRequest("Simple", "/");
+        HttpRequest request = new BasicHttpRequest("GET", "/");
         Credentials cred = new UsernamePasswordCredentials("username","password");
         DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge1);
@@ -332,4 +368,56 @@ public class TestDigestScheme {
         Assert.assertEquals("00000001", table4.get("nc"));
     }
 
+    @Test
+    public void testDigestMD5SessA1AndCnonceConsistency() throws Exception {
+        String challenge1 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        Header authChallenge1 = new BasicHeader(AUTH.WWW_AUTH, challenge1);
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+        Credentials cred = new UsernamePasswordCredentials("username","password");
+        DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge1);
+        Header authResponse1 = authscheme.authenticate(cred, request);
+        Map<String, String> table1 = parseAuthResponse(authResponse1);
+        Assert.assertEquals("00000001", table1.get("nc"));
+        String cnonce1 = authscheme.getCnonce();
+        String sessionKey1 = authscheme.getA1();
+
+        Header authResponse2 = authscheme.authenticate(cred, request);
+        Map<String, String> table2 = parseAuthResponse(authResponse2);
+        Assert.assertEquals("00000002", table2.get("nc"));
+        String cnonce2 = authscheme.getCnonce();
+        String sessionKey2 = authscheme.getA1();
+
+        Assert.assertEquals(cnonce1, cnonce2);
+        Assert.assertEquals(sessionKey1, sessionKey2);
+
+        String challenge2 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
+            "charset=utf-8, realm=\"subnet.domain.com\"";
+        Header authChallenge2 = new BasicHeader(AUTH.WWW_AUTH, challenge2);
+        authscheme.processChallenge(authChallenge2);
+        Header authResponse3 = authscheme.authenticate(cred, request);
+        Map<String, String> table3 = parseAuthResponse(authResponse3);
+        Assert.assertEquals("00000003", table3.get("nc"));
+
+        String cnonce3 = authscheme.getCnonce();
+        String sessionKey3 = authscheme.getA1();
+
+        Assert.assertEquals(cnonce1, cnonce3);
+        Assert.assertEquals(sessionKey1, sessionKey3);
+
+        String challenge3 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"fedcba0987654321\", " +
+            "charset=utf-8, realm=\"subnet.domain.com\"";
+        Header authChallenge3 = new BasicHeader(AUTH.WWW_AUTH, challenge3);
+        authscheme.processChallenge(authChallenge3);
+        Header authResponse4 = authscheme.authenticate(cred, request);
+        Map<String, String> table4 = parseAuthResponse(authResponse4);
+        Assert.assertEquals("00000001", table4.get("nc"));
+
+        String cnonce4 = authscheme.getCnonce();
+        String sessionKey4 = authscheme.getA1();
+
+        Assert.assertFalse(cnonce1.equals(cnonce4));
+        Assert.assertFalse(sessionKey1.equals(sessionKey4));
+    }
 }
