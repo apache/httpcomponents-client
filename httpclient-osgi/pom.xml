@@ -105,7 +105,7 @@
             org.apache.http.impl.conn.*;version=${project.version},
             org.apache.http.impl.client.*;version=${project.version}
             </_exportcontents>
-            <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+            <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
             <Import-Package>
             javax.crypto,
             javax.crypto.spec,
