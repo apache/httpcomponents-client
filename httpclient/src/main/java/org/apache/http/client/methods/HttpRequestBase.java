@@ -46,8 +46,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
 /**
- * Basic implementation of an HTTP request that can be modified.
- *
+ * Basic implementation of an HTTP request that can be modified. Methods of the
+ * {@link AbortableHttpRequest) interface implemented by this class are thread safe.
  *
  * @since 4.0
  */
@@ -56,8 +56,7 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
     implements HttpUriRequest, AbortableHttpRequest, Cloneable {
 
     private Lock abortLock;
-
-    private boolean aborted;
+    private volatile boolean aborted;
 
     private URI uri;
     private ClientConnectionRequest connRequest;
@@ -104,13 +103,11 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
 
     public void setConnectionRequest(final ClientConnectionRequest connRequest)
             throws IOException {
+        if (this.aborted) {
+            throw new IOException("Request already aborted");
+        }
         this.abortLock.lock();
         try {
-            if (this.aborted) {
-                throw new IOException("Request already aborted");
-            }
-
-            this.releaseTrigger = null;
             this.connRequest = connRequest;
         } finally {
             this.abortLock.unlock();
@@ -119,54 +116,71 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
 
     public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger)
             throws IOException {
+        if (this.aborted) {
+            throw new IOException("Request already aborted");
+        }
         this.abortLock.lock();
         try {
-            if (this.aborted) {
-                throw new IOException("Request already aborted");
-            }
-
-            this.connRequest = null;
             this.releaseTrigger = releaseTrigger;
         } finally {
             this.abortLock.unlock();
         }
     }
 
-    public void abort() {
-        ClientConnectionRequest localRequest;
-        ConnectionReleaseTrigger localTrigger;
+    private void cleanup() {
+        if (this.connRequest != null) {
+            this.connRequest.abortRequest();
+            this.connRequest = null;
+        }
+        if (this.releaseTrigger != null) {
+            try {
+                this.releaseTrigger.abortConnection();
+            } catch (IOException ex) {
+            }
+            this.releaseTrigger = null;
+        }
+    }
 
+    public void abort() {
+        if (this.aborted) {
+            return;
+        }
         this.abortLock.lock();
         try {
-            if (this.aborted) {
-                return;
-            }
             this.aborted = true;
-
-            localRequest = connRequest;
-            localTrigger = releaseTrigger;
+            cleanup();
         } finally {
             this.abortLock.unlock();
-        }
-
-        // Trigger the callbacks outside of the lock, to prevent
-        // deadlocks in the scenario where the callbacks have
-        // their own locks that may be used while calling
-        // setReleaseTrigger or setConnectionRequest.
-        if (localRequest != null) {
-            localRequest.abortRequest();
-        }
-        if (localTrigger != null) {
-            try {
-                localTrigger.abortConnection();
-            } catch (IOException ex) {
-                // ignore
-            }
         }
     }
 
     public boolean isAborted() {
         return this.aborted;
+    }
+
+    /**
+     * Resets internal state of the request making it reusable.
+     *
+     * @since 4.2
+     */
+    public void reset() {
+        this.abortLock.lock();
+        try {
+            cleanup();
+            this.aborted = false;
+        } finally {
+            this.abortLock.unlock();
+        }
+    }
+
+    /**
+     * A convenience method to simplify migration from HttpClient 3.1 API. This method is
+     * equivalent to {@link #reset()}.
+     *
+     * @since 4.2
+     */
+    public void releaseConnection() {
+        reset();
     }
 
     @Override
