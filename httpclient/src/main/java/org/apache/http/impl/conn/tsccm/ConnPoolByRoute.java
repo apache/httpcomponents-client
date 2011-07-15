@@ -34,6 +34,7 @@ import java.util.Queue;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.TimeUnit;
@@ -82,7 +83,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
     protected final Set<BasicPoolEntry> leasedConnections;
 
     /** The list of free connections */
-    protected final Queue<BasicPoolEntry> freeConnections;
+    protected final Stack<BasicPoolEntry> freeConnections;
 
     /** The list of WaitingThreads waiting for a connection */
     protected final Queue<WaitingThread> waitingThreads;
@@ -162,8 +163,8 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
      *
      * @return  a queue
      */
-    protected Queue<BasicPoolEntry> createFreeConnQueue() {
-        return new LinkedList<BasicPoolEntry>();
+    protected Stack<BasicPoolEntry> createFreeConnQueue() {
+        return new Stack<BasicPoolEntry>();
     }
 
     /**
@@ -462,7 +463,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
                 }
                 rospl.freeEntry(entry);
                 entry.updateExpiry(validDuration, timeUnit);
-                freeConnections.add(entry);
+                freeConnections.push(entry);
             } else {
                 rospl.dropEntry();
                 numConnections--;
@@ -611,7 +612,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
         poolLock.lock();
         try {
 
-            BasicPoolEntry entry = freeConnections.remove();
+            BasicPoolEntry entry = freeConnections.pop();
 
             if (entry != null) {
                 deleteEntry(entry);
