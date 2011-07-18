@@ -45,7 +45,9 @@ import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -64,6 +66,7 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecRegistry;
@@ -248,7 +251,14 @@ public abstract class AbstractHttpClient implements HttpClient {
     @GuardedBy("this")
     private UserTokenHandler userTokenHandler;
 
-
+    /** The connection backoff strategy. */
+    @GuardedBy("this")
+    private ConnectionBackoffStrategy connectionBackoffStrategy;
+    
+    /** The backoff manager. */
+    @GuardedBy("this")
+    private BackoffManager backoffManager;
+    
     /**
      * Creates a new HTTP client.
      *
@@ -363,6 +373,16 @@ public abstract class AbstractHttpClient implements HttpClient {
         return registry;
     }
 
+    protected BackoffManager createBackoffManager() {
+        return new BackoffManager() {
+            public void backOff(HttpRoute ignored) { }
+            public void probe(HttpRoute ignored) { }
+        };
+    }
+    
+    protected ConnectionBackoffStrategy createConnectionBackoffStrategy() {
+        return new NullBackoffStrategy();
+    }
 
     protected HttpRequestExecutor createRequestExecutor() {
         return new HttpRequestExecutor();
@@ -461,13 +481,22 @@ public abstract class AbstractHttpClient implements HttpClient {
             supportedAuthSchemes = createAuthSchemeRegistry();
         }
         return supportedAuthSchemes;
-    }
-
-
+    } 
+    
     public synchronized void setAuthSchemes(final AuthSchemeRegistry authSchemeRegistry) {
         supportedAuthSchemes = authSchemeRegistry;
     }
 
+    public synchronized final ConnectionBackoffStrategy getConnectionBackoffStrategy() {
+        if (connectionBackoffStrategy == null) {
+            connectionBackoffStrategy = createConnectionBackoffStrategy();
+        }
+        return connectionBackoffStrategy;
+    }
+    
+    public synchronized void setConnectionBackoffStrategy(final ConnectionBackoffStrategy strategy) {
+        connectionBackoffStrategy = strategy;
+    }
 
     public synchronized final CookieSpecRegistry getCookieSpecs() {
         if (supportedCookieSpecs == null) {
@@ -476,11 +505,20 @@ public abstract class AbstractHttpClient implements HttpClient {
         return supportedCookieSpecs;
     }
 
-
+    public synchronized final BackoffManager getBackoffManager() {
+        if (backoffManager == null) {
+            backoffManager = createBackoffManager();
+        }
+        return backoffManager;
+    }
+    
+    public synchronized void setBackoffManager(final BackoffManager manager) {
+        backoffManager = manager;
+    }
+    
     public synchronized void setCookieSpecs(final CookieSpecRegistry cookieSpecRegistry) {
         supportedCookieSpecs = cookieSpecRegistry;
     }
-
 
     public synchronized final ConnectionReuseStrategy getConnectionReuseStrategy() {
         if (reuseStrategy == null) {
@@ -817,7 +855,33 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
 
         try {
-            return director.execute(target, request, execContext);
+            HttpHost targetForRoute = (target != null) ? target
+                    : (HttpHost) determineParams(request).getParameter(
+                            ClientPNames.DEFAULT_HOST);
+            HttpRoute route = getRoutePlanner().determineRoute(targetForRoute, request, execContext);
+            
+            HttpResponse out; 
+            try {
+                out = director.execute(target, request, execContext);
+            } catch (RuntimeException re) {
+                if (getConnectionBackoffStrategy().shouldBackoff(re)) {
+                    getBackoffManager().backOff(route);
+                }
+                throw re;
+            } catch (Exception e) {
+                if (getConnectionBackoffStrategy().shouldBackoff(e)) {
+                    getBackoffManager().backOff(route);
+                }
+                if (e instanceof HttpException) throw (HttpException)e;
+                if (e instanceof IOException) throw (IOException)e;
+                throw new RuntimeException("unexpected exception", e);
+            }
+            if (getConnectionBackoffStrategy().shouldBackoff(out)) {
+                getBackoffManager().backOff(route);
+            } else {
+                getBackoffManager().probe(route);
+            }
+            return out;
         } catch(HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
@@ -851,7 +915,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                 stateHandler,
                 params);
     }
-
+    
     /**
      * @since 4.1
      */

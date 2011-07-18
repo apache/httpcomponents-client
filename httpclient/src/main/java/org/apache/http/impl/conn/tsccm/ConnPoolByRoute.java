@@ -450,7 +450,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
 
             RouteSpecificPool rospl = getRoutePool(route, true);
 
-            if (reusable) {
+            if (reusable && rospl.getCapacity() >= 0) {
                 if (log.isDebugEnabled()) {
                     String s;
                     if (validDuration > 0) {

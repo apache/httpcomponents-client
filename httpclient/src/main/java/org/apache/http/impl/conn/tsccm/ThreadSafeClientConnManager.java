@@ -109,16 +109,33 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg,
             long connTTL, TimeUnit connTTLTimeUnit) {
+        this(schreg, connTTL, connTTLTimeUnit, new ConnPerRouteBean());
+    }
+
+    /**
+     * Creates a new thread safe connection manager.
+     *
+     * @param schreg    the scheme registry.
+     * @param connTTL   max connection lifetime, <=0 implies "infinity"
+     * @param connTTLTimeUnit   TimeUnit of connTTL
+     * @param connPerRoute    mapping of maximum connections per route,
+     *   provided as a dependency so it can be managed externally, e.g.
+     *   for dynamic connection pool size management.
+     *
+     * @since 4.2
+     */
+    public ThreadSafeClientConnManager(final SchemeRegistry schreg,
+            long connTTL, TimeUnit connTTLTimeUnit, ConnPerRouteBean connPerRoute) {
         super();
         if (schreg == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.log = LogFactory.getLog(getClass());
         this.schemeRegistry = schreg;
-        this.connPerRoute = new ConnPerRouteBean();
+        this.connPerRoute = connPerRoute;
         this.connOperator = createConnectionOperator(schreg);
         this.pool = createConnectionPool(connTTL, connTTLTimeUnit) ;
-        this.connectionPool = this.pool;
+        this.connectionPool = this.pool;        
     }
 
     /**
