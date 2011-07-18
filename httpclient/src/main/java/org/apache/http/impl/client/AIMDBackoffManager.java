@@ -8,9 +8,22 @@ import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
- * The <code>AIMDBackoffManager</code> applies an additive increase,
+ * <p>The <code>AIMDBackoffManager</code> applies an additive increase,
  * multiplicative decrease (AIMD) to managing a dynamic limit to
- * the number of connections allowed to a given host.
+ * the number of connections allowed to a given host. You may want
+ * to experiment with the settings for the cooldown periods and the
+ * backoff factor to get the adaptive behavior you want.</p>
+ * 
+ * <p>Generally speaking, shorter cooldowns will lead to more steady-state
+ * variability but faster reaction times, while longer cooldowns
+ * will lead to more stable equilibrium behavior but slower reaction
+ * times.</p>
+ * 
+ * <p>Similarly, higher backoff factors promote greater
+ * utilization of available capacity at the expense of fairness
+ * among clients. Lower backoff factors allow equal distribution of
+ * capacity among clients (fairness) to happen faster, at the
+ * expense of having more server capacity unused in the short term.</p>
  * 
  * @since 4.2
  */
@@ -81,7 +94,7 @@ public class AIMDBackoffManager implements BackoffManager {
 
     /**
      * Sets the factor to use when backing off; the new
-     * per-host limit will be roughly, the current max times
+     * per-host limit will be roughly the current max times
      * this factor. <code>Math.floor</code> is applied in the
      * case of non-integer outcomes to ensure we actually
      * decrease the pool size. Pool sizes are never decreased

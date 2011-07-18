@@ -5,7 +5,7 @@ package org.apache.http.impl.client;
  * 
  * @since 4.2
  */
-public class SystemClock implements Clock {
+class SystemClock implements Clock {
 
     public long getCurrentTime() {
         return System.currentTimeMillis();

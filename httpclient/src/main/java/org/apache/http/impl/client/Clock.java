@@ -6,7 +6,7 @@ package org.apache.http.impl.client;
  * @since 4.2
  *
  */
-public interface Clock {
+interface Clock {
 
     /**
      * Returns the current time, expressed as the number of
