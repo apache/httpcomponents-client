@@ -27,20 +27,56 @@
 
 package org.apache.http.impl.conn.tsccm;
 
+import static org.junit.Assert.*;
+
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.params.BasicHttpParams;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestConnPoolByRoute extends ServerTestBase {
 
+    private ConnPoolByRoute impl;
+    private HttpRoute route = new HttpRoute(new HttpHost("localhost"));
+    
+    @Mock
+    private OperatedClientConnection mockConnection;
+    @Mock
+    private ClientConnectionOperator mockOperator;
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        impl = new ConnPoolByRoute(
+                new DefaultClientConnectionOperator(supportedSchemes),
+                new ConnPerRouteBean(), 1, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    private void useMockOperator() {
+        impl = new ConnPoolByRoute(
+                mockOperator,
+                new ConnPerRouteBean(), 1, -1, TimeUnit.MILLISECONDS);
+        when(mockOperator.createConnection()).thenReturn(mockConnection);
+    }
+    
+    
     @Test
     public void testStatelessConnections() throws Exception {
         final HttpHost target = getServerHttp();
@@ -152,6 +188,147 @@ public class TestConnPoolByRoute extends ServerTestBase {
         } finally {
             connPool.shutdown();
         }
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void nullOperatorIsNotAllowed() {
+        new ConnPoolByRoute(null, new ConnPerRouteBean(), 1, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void nullConnPerRouteIsNotAllowed() {
+        new ConnPoolByRoute(new DefaultClientConnectionOperator(supportedSchemes),
+                null, 1, -1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test
+    @SuppressWarnings("deprecation")
+    public void deprecatedConstructorIsStillSupported() {
+        new ConnPoolByRoute(new DefaultClientConnectionOperator(supportedSchemes),
+                new BasicHttpParams());
+    }
+    
+    @Test
+    public void emptyPoolHasNoConnections() {
+        assertEquals(0, impl.getConnectionsInPool());
+    }
+    
+    @Test
+    public void emptyPoolHasNoRouteSpecificConnections() {
+        assertEquals(0, impl.getConnectionsInPool(route));
+    }
+    
+    @Test
+    public void abortingPoolEntryRequestEarlyDoesNotCreateConnection() {
+        PoolEntryRequest req = impl.requestPoolEntry(route, new Object());
+        req.abortRequest();
+        assertEquals(0, impl.getConnectionsInPool(route));
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void cannotAcquireConnectionIfPoolShutdown() throws Exception {
+        impl.shutdown();
+        impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test
+    public void multipleShutdownsAreOk() {
+        impl.shutdown();
+        impl.shutdown();
+    }
+
+    @Test
+    public void canAcquirePoolEntry() throws Exception {
+        impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test
+    public void canRetrieveMaxTotalConnections() {
+        int max = (new Random()).nextInt(10) + 2;
+        impl.setMaxTotalConnections(max);
+        assertEquals(max, impl.getMaxTotalConnections());
+    }
+    
+    @Test
+    public void closesFreedConnectionsWhenShutdown() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.shutdown();
+        impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        verify(mockConnection, atLeastOnce()).close();
+    }
+    
+    @Test
+    public void deleteClosedConnectionsReclaimsPoolSpace() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        assertFalse(impl.freeConnections.isEmpty());
+        when(mockConnection.isOpen()).thenReturn(false);
+        impl.deleteClosedConnections();
+        assertTrue(impl.freeConnections.isEmpty());
+        assertEquals(0, impl.numConnections);
+    }
+    
+    @Test
+    public void deleteClosedConnectionsDoesNotReclaimOpenConnections() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        assertFalse(impl.freeConnections.isEmpty());
+        when(mockConnection.isOpen()).thenReturn(true);
+        impl.deleteClosedConnections();
+        assertFalse(impl.freeConnections.isEmpty());
+        assertEquals(1, impl.numConnections);
+    }
+    
+    @Test
+    public void closeIdleConnectionsClosesThoseThatHaveTimedOut() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        Thread.sleep(2);
+        impl.closeIdleConnections(1, TimeUnit.MILLISECONDS);
+        verify(mockConnection, atLeastOnce()).close();        
+    }
+    
+    @Test
+    public void closeIdleConnectionsDoesNotCloseThoseThatHaveNotTimedOut() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        Thread.sleep(1);
+        impl.closeIdleConnections(3, TimeUnit.MILLISECONDS);
+        verify(mockConnection, never()).close();        
+    }
+
+    @Test
+    public void closeExpiredConnectionsClosesExpiredOnes() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
+        Thread.sleep(2);
+        impl.closeExpiredConnections();
+        verify(mockConnection, atLeastOnce()).close();        
+    }
+
+    @Test
+    public void closeExpiredConnectionsDoesNotCloseUnexpiredOnes() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, true, 10, TimeUnit.MILLISECONDS);
+        Thread.sleep(1);
+        impl.closeExpiredConnections();
+        verify(mockConnection, never()).close();        
+    }
+
+    @Ignore
+    @Test
+    public void closesNonReusableConnections() throws Exception {
+        useMockOperator();
+        BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
+        impl.freeEntry(entry, false, 0, TimeUnit.MILLISECONDS);
+        verify(mockConnection, atLeastOnce()).close();        
     }
 
 }
