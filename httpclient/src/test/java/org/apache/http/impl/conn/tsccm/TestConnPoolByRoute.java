@@ -43,7 +43,6 @@ import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -322,7 +321,6 @@ public class TestConnPoolByRoute extends ServerTestBase {
         verify(mockConnection, never()).close();        
     }
 
-    @Ignore
     @Test
     public void closesNonReusableConnections() throws Exception {
         useMockOperator();

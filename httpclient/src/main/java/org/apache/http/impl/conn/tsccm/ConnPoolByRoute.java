@@ -464,6 +464,7 @@ public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependenc
                 entry.updateExpiry(validDuration, timeUnit);
                 freeConnections.add(entry);
             } else {
+                closeConnection(entry);
                 rospl.dropEntry();
                 numConnections--;
             }
