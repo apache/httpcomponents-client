@@ -48,7 +48,7 @@ NTLM support in HttpClient
     Principles initiative}}. 
 
     HttpClient as of version 4.1 supports NTLMv1 and NTLMv2 authentication protocols out 
-    of the box using a custom authentication engine. However, there can still be compatibility
+    of the box using a custom authentication engine. However, there are still known compatibility
     issues with newer Microsoft products as the default NTLM engine implementation is still 
     relatively new. One can also use {{{http://jcifs.samba.org/}JCIFS}} as an alternative, more 
     established and mature NTLM engine developed by Samba project. 
