@@ -91,7 +91,7 @@ HttpClient Overview
 
     * The ability to set connection timeouts.
 
-    * Experimental support for HTTP/1.1 response caching.
+    * HTTP/1.1 response caching.
 
     * Source code is freely available under the Apache License.
 
