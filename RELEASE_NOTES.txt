@@ -1,4 +1,8 @@
-Changes since 4.1.1
+Release 4.1.2
+-------------------
+
+The HttpClient 4.1.2 is a bug fix release that addresses a number of non-critical issues reported 
+since release 4.1.1.
 
 * [HTTPCLIENT-1100] Missing Content-Length header makes cached entry invalid
   Contributed by Bart Robeyns <bart dot robeyns at gmail dot com>
