@@ -369,9 +369,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
         });
         t.start();
-        Thread.sleep(1);
+        Thread.sleep(5);
         impl.freeEntry(entry, true, 1000, TimeUnit.MILLISECONDS);
-        Thread.sleep(1);
+        Thread.sleep(5);
         assertTrue(f.flag);
     }
     
@@ -393,9 +393,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
         });
         t.start();
-        Thread.sleep(1);
+        Thread.sleep(5);
         impl.freeEntry(entry, true, 1000, TimeUnit.MILLISECONDS);
-        Thread.sleep(1);
+        Thread.sleep(5);
         assertTrue(f.flag);
     }
     
