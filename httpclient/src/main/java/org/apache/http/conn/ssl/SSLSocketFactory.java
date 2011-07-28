@@ -340,12 +340,16 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
      * @since 4.1
      */
     public Socket createSocket(final HttpParams params) throws IOException {
-        return this.socketfactory.createSocket();
+        SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
+        prepareSocket(sock);
+        return sock;
     }
 
     @Deprecated
     public Socket createSocket() throws IOException {
-        return this.socketfactory.createSocket();
+        SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
+        prepareSocket(sock);
+        return sock;
     }
 
     /**
@@ -384,6 +388,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         } else {
             sslsock = (SSLSocket) this.socketfactory.createSocket(
                     sock, remoteAddress.getHostName(), remoteAddress.getPort(), true);
+            prepareSocket(sslsock);
         }
         if (this.hostnameVerifier != null) {
             try {
@@ -448,6 +453,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
               port,
               autoClose
         );
+        prepareSocket(sslSocket);
         if (this.hostnameVerifier != null) {
             this.hostnameVerifier.verify(host, sslSocket);
         }
@@ -505,4 +511,15 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         return createLayeredSocket(socket, host, port, autoClose);
     }
 
+    /**
+     * Performs any custom initialization for a newly created SSLSocket
+     * (before the SSL handshake happens).
+     *
+     * The default implementation is a no-op, but could be overriden to, e.g.,
+     * call {@link SSLSocket#setEnabledCipherSuites(java.lang.String[])}.
+     * 
+     * @since 4.2
+     */
+    protected void prepareSocket(final SSLSocket socket) throws IOException {
+    }
 }
