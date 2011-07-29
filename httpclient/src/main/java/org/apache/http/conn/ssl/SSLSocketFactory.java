@@ -376,17 +376,25 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
+
+        // HttpInetSocketAddress#toString() returns original hostname value of the remote address
+        String hostname = remoteAddress.toString();
+        int port = remoteAddress.getPort();
+        String s = ":" + port;
+        if (hostname.endsWith(s)) {
+            hostname = hostname.substring(0, hostname.length() - s.length());
+        }
+
         SSLSocket sslsock;
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             sslsock = (SSLSocket) sock;
         } else {
-            sslsock = (SSLSocket) this.socketfactory.createSocket(
-                    sock, remoteAddress.getHostName(), remoteAddress.getPort(), true);
+            sslsock = (SSLSocket) this.socketfactory.createSocket(sock, hostname, port, true);
         }
         if (this.hostnameVerifier != null) {
             try {
-                this.hostnameVerifier.verify(remoteAddress.getHostName(), sslsock);
+                this.hostnameVerifier.verify(hostname, sslsock);
                 // verifyHostName() didn't blowup - good!
             } catch (IOException iox) {
                 // close the socket before re-throwing the exception

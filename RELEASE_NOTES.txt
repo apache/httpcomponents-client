@@ -33,6 +33,8 @@ since release 4.1.1.
   do not correctly handle content streaming.
   Contributed by James Abley <james.abley at gmail.com> 
 
+* [HTTPCLIENT-1051] Avoid reverse DNS lookups when opening SSL connections by IP address.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 Release 4.1.1
 -------------------
