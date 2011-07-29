@@ -27,6 +27,7 @@
 
 package org.apache.http.conn.ssl;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.conn.ConnectTimeoutException;
@@ -381,23 +382,25 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
+
+        String hostname;
+        if (remoteAddress instanceof HttpInetSocketAddress) {
+            hostname = ((HttpInetSocketAddress) remoteAddress).getHost().getHostName();
+        } else {
+            hostname = remoteAddress.getHostName();
+        }
+
         SSLSocket sslsock;
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             sslsock = (SSLSocket) sock;
         } else {
-            sslsock = (SSLSocket) this.socketfactory.createSocket(
-                    sock, remoteAddress.getHostName(), remoteAddress.getPort(), true);
+            sslsock = (SSLSocket) this.socketfactory.createSocket(sock,
+                    hostname, remoteAddress.getPort(), true);
             prepareSocket(sslsock);
         }
         if (this.hostnameVerifier != null) {
             try {
-                String hostname;
-                if (remoteAddress instanceof HttpInetSocketAddress) {
-                    hostname = ((HttpInetSocketAddress) remoteAddress).getHost().getHostName();
-                } else {
-                    hostname = remoteAddress.getHostName();
-                }
                 this.hostnameVerifier.verify(hostname, sslsock);
                 // verifyHostName() didn't blowup - good!
             } catch (IOException iox) {
@@ -496,7 +499,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         } else {
             remoteAddress = InetAddress.getByName(host);
         }
-        InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
+        InetSocketAddress remote = new HttpInetSocketAddress(new HttpHost(host, port), remoteAddress, port);
         return connectSocket(socket, remote, local, params);
     }
 
