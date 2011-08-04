@@ -300,7 +300,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        Thread.sleep(2);
+        Thread.sleep(200L);
         impl.closeIdleConnections(1, TimeUnit.MILLISECONDS);
         verify(mockConnection, atLeastOnce()).close();
     }
@@ -320,7 +320,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
-        Thread.sleep(2);
+        Thread.sleep(200L);
         impl.closeExpiredConnections();
         verify(mockConnection, atLeastOnce()).close();
     }
@@ -329,8 +329,8 @@ public class TestConnPoolByRoute extends ServerTestBase {
     public void closeExpiredConnectionsDoesNotCloseUnexpiredOnes() throws Exception {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
-        impl.freeEntry(entry, true, 10, TimeUnit.MILLISECONDS);
-        Thread.sleep(1);
+        impl.freeEntry(entry, true, 10, TimeUnit.SECONDS);
+        Thread.sleep(200L);
         impl.closeExpiredConnections();
         verify(mockConnection, never()).close();
     }
@@ -405,7 +405,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
-        Thread.sleep(2);
+        Thread.sleep(200L);
         BasicPoolEntry entry2 = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         assertNotSame(mockConnection, entry2.getConnection());
     }
@@ -416,7 +416,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
-        Thread.sleep(2);
+        Thread.sleep(200L);
         impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         verify(mockConnection, atLeastOnce()).close();
     }
