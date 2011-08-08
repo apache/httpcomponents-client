@@ -46,7 +46,10 @@ import org.apache.http.conn.OperatedClientConnection;
  * respective method of the wrapped connection.
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
+@Deprecated
 public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapter {
 
     /** The wrapped pool entry. */

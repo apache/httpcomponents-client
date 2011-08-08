@@ -34,7 +34,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -44,7 +44,7 @@ import org.apache.http.util.EntityUtils;
 public class ClientEvictExpiredConnections {
 
     public static void main(String[] args) throws Exception {
-        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager();
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
         cm.setMaxTotal(100);
 
         HttpClient httpclient = new DefaultHttpClient(cm);

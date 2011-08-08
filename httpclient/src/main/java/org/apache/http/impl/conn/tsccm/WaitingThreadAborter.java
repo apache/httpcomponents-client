@@ -26,17 +26,16 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-import org.apache.http.annotation.NotThreadSafe;
-
-// TODO - only called from ConnPoolByRoute currently; consider adding it as nested class
 /**
  * A simple class that can interrupt a {@link WaitingThread}.
  *
  * Must be called with the pool lock held.
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
-@NotThreadSafe
+@Deprecated
 public class WaitingThreadAborter {
 
     private WaitingThread waitingThread;

@@ -60,8 +60,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.ClientConnAdapterMockup;
-import org.apache.http.impl.conn.SingleClientConnManager;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHeader;
@@ -141,7 +140,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
-        SingleClientConnManager conMan = new SingleClientConnManager(registry);
+        PoolingClientConnectionManager conMan = new PoolingClientConnectionManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
@@ -182,7 +181,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
-        SingleClientConnManager conMan = new SingleClientConnManager(registry);
+        PoolingClientConnectionManager conMan = new PoolingClientConnectionManager(registry);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -283,35 +282,6 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         Assert.assertSame(conMan.allocatedConnection, conMan.releasedConnection);
     }
 
-    @Test
-    public void testRequestFailureReleasesConnection() throws Exception {
-        this.localServer.register("*", new ThrowingService());
-
-        SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-        ConnMan3 conMan = new ConnMan3(registry);
-        DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
-        HttpGet httpget = new HttpGet("/a");
-
-        try {
-            client.execute(getServerHttp(), httpget);
-            Assert.fail("expected IOException");
-        } catch (IOException expected) {}
-
-        Assert.assertNotNull(conMan.allocatedConnection);
-        Assert.assertSame(conMan.allocatedConnection, conMan.releasedConnection);
-    }
-
-    private static class ThrowingService implements HttpRequestHandler {
-        public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            throw new IOException();
-        }
-    }
-
     private static class BasicService implements HttpRequestHandler {
         public void handle(final HttpRequest request,
                 final HttpResponse response,
@@ -340,7 +310,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         }
     }
 
-    private static class ConnMan4 extends ThreadSafeClientConnManager {
+    private static class ConnMan4 extends PoolingClientConnectionManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
 
@@ -386,29 +356,6 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         }
     }
 
-
-    private static class ConnMan3 extends SingleClientConnManager {
-        private ManagedClientConnection allocatedConnection;
-        private ManagedClientConnection releasedConnection;
-
-        public ConnMan3(SchemeRegistry schreg) {
-            super(schreg);
-        }
-
-        @Override
-        public ManagedClientConnection getConnection(HttpRoute route, Object state) {
-            allocatedConnection = super.getConnection(route, state);
-            return allocatedConnection;
-        }
-
-        @Override
-        public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
-            releasedConnection = conn;
-            super.releaseConnection(conn, validDuration, timeUnit);
-        }
-
-
-    }
 
     static class ConnMan2 implements ClientConnectionManager {
 

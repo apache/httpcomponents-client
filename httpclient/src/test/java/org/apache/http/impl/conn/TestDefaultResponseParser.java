@@ -60,7 +60,7 @@ public class TestDefaultResponseParser {
 
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
@@ -91,7 +91,7 @@ public class TestDefaultResponseParser {
 
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
@@ -110,7 +110,7 @@ public class TestDefaultResponseParser {
     public void testResponseParsingNoResponse() throws Exception {
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params);
-        HttpMessageParser parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
@@ -127,7 +127,7 @@ public class TestDefaultResponseParser {
             "a lot more garbage\r\n";
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),

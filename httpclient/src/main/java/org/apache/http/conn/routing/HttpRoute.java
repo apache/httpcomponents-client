@@ -334,7 +334,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (this == obj) return true;
         if (obj instanceof HttpRoute) {
             HttpRoute that = (HttpRoute) obj;
-            return 
+            return
                 // Do the cheapest tests first
                 (this.secure    == that.secure) &&
                 (this.tunnelled == that.tunnelled) &&
@@ -376,8 +376,6 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     @Override
     public final String toString() {
         StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
-
-        cab.append("HttpRoute[");
         if (this.localAddress != null) {
             cab.append(this.localAddress);
             cab.append("->");
@@ -395,8 +393,6 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             cab.append("->");
         }
         cab.append(this.targetHost);
-        cab.append(']');
-
         return cab.toString();
     }
 

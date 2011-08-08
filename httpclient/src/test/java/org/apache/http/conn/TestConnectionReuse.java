@@ -44,7 +44,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RandomHandler;
 import org.apache.http.params.BasicHttpParams;
@@ -99,7 +99,7 @@ public class TestConnectionReuse {
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -130,7 +130,7 @@ public class TestConnectionReuse {
         }
 
         // Expect some connection in the pool
-        Assert.assertTrue(mgr.getConnectionsInPool() > 0);
+        Assert.assertTrue(mgr.getTotalStats().getAvailable() > 0);
 
         mgr.shutdown();
     }
@@ -170,7 +170,7 @@ public class TestConnectionReuse {
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -201,7 +201,7 @@ public class TestConnectionReuse {
         }
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
 
         mgr.shutdown();
     }
@@ -231,7 +231,7 @@ public class TestConnectionReuse {
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -262,7 +262,7 @@ public class TestConnectionReuse {
         }
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
 
         mgr.shutdown();
     }
@@ -293,7 +293,7 @@ public class TestConnectionReuse {
         SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
         supportedSchemes.register(new Scheme("http", 80, sf));
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -303,13 +303,13 @@ public class TestConnectionReuse {
         HttpResponse response = client.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
         Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         response = client.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
         Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         // Now sleep for 1.1 seconds and let the timeout do its work
@@ -317,7 +317,7 @@ public class TestConnectionReuse {
         response = client.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
         Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
 
         // Do another request just under the 1 second limit & make
@@ -326,7 +326,7 @@ public class TestConnectionReuse {
         response = client.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
         Assert.assertEquals(2, localServer.getAcceptedConnectionCount());
 
 

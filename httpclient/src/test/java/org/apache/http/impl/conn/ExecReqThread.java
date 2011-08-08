@@ -111,10 +111,9 @@ public class ExecReqThread extends GetConnThread {
 
             doConsumeResponse();
 
-        } catch (Throwable dart) {
-            dart.printStackTrace(System.out);
+        } catch (Exception ex) {
             if (exception != null)
-                exception = dart;
+                exception = ex;
 
         } finally {
             conn_manager.releaseConnection(connection, -1, null);

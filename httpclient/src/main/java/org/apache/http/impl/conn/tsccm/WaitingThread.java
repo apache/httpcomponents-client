@@ -30,8 +30,6 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * Represents a thread waiting for a connection.
  * This class implements throwaway objects. It is instantiated whenever
@@ -44,8 +42,10 @@ import org.apache.http.annotation.NotThreadSafe;
  *
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
-@NotThreadSafe
+@Deprecated
 public class WaitingThread {
 
     /** The condition on which the thread is waiting. */

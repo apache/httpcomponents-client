@@ -44,6 +44,7 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+@Deprecated
 public class TestSCMWithServer extends ServerTestBase {
 
     /**

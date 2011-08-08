@@ -34,7 +34,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 
 /**
  * Interface representing an HTTP request that can be aborted by shutting
@@ -52,7 +51,6 @@ public interface AbortableHttpRequest {
      * If the request is already aborted, throws an {@link IOException}.
      *
      * @see ClientConnectionManager
-     * @see ThreadSafeClientConnManager
      */
     void setConnectionRequest(ClientConnectionRequest connRequest) throws IOException;
 

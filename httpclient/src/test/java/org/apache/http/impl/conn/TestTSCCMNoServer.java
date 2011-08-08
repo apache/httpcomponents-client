@@ -36,10 +36,6 @@ import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -69,21 +65,6 @@ public class TestTSCCMNoServer {
     }
 
     /**
-     * Helper to instantiate a <code>ThreadSafeClientConnManager</code>.
-     *
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> to use defaults
-     *
-     * @return  a connection manager to test
-     */
-    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
-        if (schreg == null)
-            schreg = createSchemeRegistry();
-        return new ThreadSafeClientConnManager(schreg);
-    }
-
-
-    /**
      * Instantiates default parameters.
      *
      * @return  the default parameters
@@ -97,37 +78,15 @@ public class TestTSCCMNoServer {
         return params;
     }
 
-    /**
-     * Instantiates a default scheme registry.
-     *
-     * @return the default scheme registry
-     */
-    public SchemeRegistry createSchemeRegistry() {
-
-        SchemeRegistry schreg = new SchemeRegistry();
-        schreg.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-        return schreg;
-    }
-
-    @Test
-    public void testConstructor() {
-        SchemeRegistry schreg = createSchemeRegistry();
-
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(schreg);
-        Assert.assertNotNull(mgr);
-        mgr.shutdown();
-    }
-
     @Test(expected=IllegalArgumentException.class)
     public void testIllegalConstructor() {
-        new ThreadSafeClientConnManager(null);
+        new PoolingClientConnectionManager(null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testGetConnection()
             throws InterruptedException, ConnectionPoolTimeoutException {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
@@ -152,7 +111,7 @@ public class TestTSCCMNoServer {
     public void testMaxConnTotal()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(2);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -198,11 +157,11 @@ public class TestTSCCMNoServer {
         HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
         HttpRoute route3 = new HttpRoute(target3, null, false);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(100);
         mgr.setDefaultMaxPerRoute(1);
-        mgr.setMaxForRoute(route2, 2);
-        mgr.setMaxForRoute(route3, 3);
+        mgr.setMaxPerRoute(route2, 2);
+        mgr.setMaxPerRoute(route3, 3);
 
         // route 3, limit 3
         ManagedClientConnection conn1 =
@@ -264,7 +223,7 @@ public class TestTSCCMNoServer {
     @Test
     public void testReleaseConnection() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(3);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -333,31 +292,26 @@ public class TestTSCCMNoServer {
     public void testDeleteClosedConnections()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn = getConnection(mgr, route);
 
-        Assert.assertEquals("connectionsInPool",
-                     mgr.getConnectionsInPool(), 1);
-        Assert.assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 1);
+        Assert.assertEquals(1, mgr.getTotalStats().getLeased());
+        Assert.assertEquals(1, mgr.getStats(route).getLeased());
+        conn.markReusable();
         mgr.releaseConnection(conn, -1, null);
 
-        Assert.assertEquals("connectionsInPool",
-                     mgr.getConnectionsInPool(), 1);
-        Assert.assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 1);
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
 
         // this implicitly deletes them
         mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
 
-        Assert.assertEquals("connectionsInPool",
-                     mgr.getConnectionsInPool(), 0);
-        Assert.assertEquals("connectionsInPool(host)",
-                     mgr.getConnectionsInPool(route), 0);
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(0, mgr.getStats(route).getAvailable());
 
         mgr.shutdown();
     }
@@ -366,7 +320,7 @@ public class TestTSCCMNoServer {
     public void testShutdown() throws Exception {
         // 3.x: TestHttpConnectionManager.testShutdown
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -397,7 +351,7 @@ public class TestTSCCMNoServer {
         Assert.assertNotNull("thread should have gotten an exception",
                       gct.getException());
         Assert.assertSame("thread got wrong exception",
-                   IllegalStateException.class, gct.getException().getClass());
+                InterruptedException.class, gct.getException().getClass());
 
         // the manager is down, we should not be able to get a connection
         try {
@@ -412,7 +366,7 @@ public class TestTSCCMNoServer {
     public void testInterruptThread() throws Exception {
         // 3.x: TestHttpConnectionManager.testWaitingThreadInterrupted
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
@@ -457,7 +411,7 @@ public class TestTSCCMNoServer {
     public void testReusePreference() throws Exception {
         // 3.x: TestHttpConnectionManager.testHostReusePreference
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
@@ -496,7 +450,7 @@ public class TestTSCCMNoServer {
 
     @Test
     public void testAbortAfterRequestStarts() throws Exception {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
@@ -536,7 +490,7 @@ public class TestTSCCMNoServer {
 
     @Test
     public void testAbortBeforeRequestStarts() throws Exception {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");

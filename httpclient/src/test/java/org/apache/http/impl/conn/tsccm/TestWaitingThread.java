@@ -41,6 +41,7 @@ import org.junit.Test;
 /**
  * Tests for <code>WaitingThread</code>.
  */
+@Deprecated
 public class TestWaitingThread {
 
     public final static

@@ -41,7 +41,6 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
@@ -69,7 +68,7 @@ public class TestIdleConnectionEviction extends ServerTestBase {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
-        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
         cm.setDefaultMaxPerRoute(10);
         cm.setMaxTotal(50);
 

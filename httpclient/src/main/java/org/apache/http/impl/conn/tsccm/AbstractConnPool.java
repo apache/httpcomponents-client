@@ -53,6 +53,8 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  * Don't use <code>synchronized</code> for that purpose!
  *
  * @since 4.0
+ *
+ * @deprecated use {@link org.apache.http.pool.AbstractConnPool}
  */
 
 @Deprecated

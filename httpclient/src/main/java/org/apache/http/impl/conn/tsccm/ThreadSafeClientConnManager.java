@@ -43,6 +43,7 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.params.HttpParams;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 
 /**
@@ -62,8 +63,11 @@ import org.apache.http.impl.conn.SchemeRegistryFactory;
  * can be adjusted using HTTP parameters.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link PoolingClientConnectionManager}
  */
 @ThreadSafe
+@Deprecated
 public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     private final Log log;
@@ -135,7 +139,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.connPerRoute = connPerRoute;
         this.connOperator = createConnectionOperator(schreg);
         this.pool = createConnectionPool(connTTL, connTTLTimeUnit) ;
-        this.connectionPool = this.pool;        
+        this.connectionPool = this.pool;
     }
 
     /**
