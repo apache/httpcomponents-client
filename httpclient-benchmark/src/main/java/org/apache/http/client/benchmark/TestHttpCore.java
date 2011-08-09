@@ -27,11 +27,13 @@ package org.apache.http.client.benchmark;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HeaderIterator;
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -41,7 +43,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.http.impl.DefaultHttpClientConnection;
+import org.apache.http.impl.pool.BasicConnPool;
+import org.apache.http.impl.pool.BasicPoolEntry;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
@@ -66,6 +69,7 @@ public class TestHttpCore implements TestHttpAgent {
     private final HttpProcessor httpproc;
     private final HttpRequestExecutor httpexecutor;
     private final ConnectionReuseStrategy connStrategy;
+    private final BasicConnPool pool;
 
     public TestHttpCore() {
         super();
@@ -91,6 +95,8 @@ public class TestHttpCore implements TestHttpAgent {
 
         this.httpexecutor = new HttpRequestExecutor();
         this.connStrategy = new DefaultConnectionReuseStrategy();
+
+        this.pool = new BasicConnPool(this.params);
     }
 
     public void init() {
@@ -100,6 +106,8 @@ public class TestHttpCore implements TestHttpAgent {
     }
 
     Stats execute(final URI target, final byte[] content, int n, int c) throws Exception {
+        this.pool.setMaxTotal(2000);
+        this.pool.setDefaultMaxPerRoute(c);
         HttpHost targetHost = new HttpHost(target.getHost(), target.getPort());
         StringBuilder buffer = new StringBuilder();
         buffer.append(target.getPath());
@@ -143,29 +151,27 @@ public class TestHttpCore implements TestHttpAgent {
         public void run() {
             byte[] buffer = new byte[4096];
             HttpContext context = new BasicHttpContext();
-            DefaultHttpClientConnection conn = new DefaultHttpClientConnection();
-            try {
-                while (!this.stats.isComplete()) {
-                    HttpRequest request;
-                    if (this.content == null) {
-                        BasicHttpRequest httpget = new BasicHttpRequest("GET", this.requestUri);
-                        request = httpget;
-                    } else {
-                        BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST",
-                                this.requestUri);
-                        httppost.setEntity(new ByteArrayEntity(this.content));
-                        request = httppost;
-                    }
 
-                    long contentLen = 0;
+            while (!this.stats.isComplete()) {
+                HttpRequest request;
+                if (this.content == null) {
+                    BasicHttpRequest httpget = new BasicHttpRequest("GET", this.requestUri);
+                    request = httpget;
+                } else {
+                    BasicHttpEntityEnclosingRequest httppost = new BasicHttpEntityEnclosingRequest("POST",
+                            this.requestUri);
+                    httppost.setEntity(new ByteArrayEntity(this.content));
+                    request = httppost;
+                }
+
+                long contentLen = 0;
+                boolean reusable = false;
+
+                Future<BasicPoolEntry> future = pool.lease(targetHost, null);
+                try {
+                    BasicPoolEntry entry = future.get();
                     try {
-                        if (!conn.isOpen()) {
-                            Socket socket = new Socket(
-                                    this.targetHost.getHostName(),
-                                    this.targetHost.getPort() > 0 ? this.targetHost.getPort() : 80);
-                            conn.bind(socket, params);
-                        }
-
+                        HttpClientConnection conn = entry.getConnection();
                         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
                         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, targetHost);
 
@@ -188,8 +194,8 @@ public class TestHttpCore implements TestHttpAgent {
                                 instream.close();
                             }
                         }
-                        if (!connStrategy.keepAlive(response, context)) {
-                            conn.close();
+                        if (connStrategy.keepAlive(response, context)) {
+                            reusable = true;
                         }
                         for (HeaderIterator it = request.headerIterator(); it.hasNext();) {
                             it.next();
@@ -200,16 +206,18 @@ public class TestHttpCore implements TestHttpAgent {
                         } else {
                             this.stats.failure(contentLen);
                         }
-                    } catch (IOException ex) {
-                        this.stats.failure(contentLen);
-                    } catch (HttpException ex) {
-                        this.stats.failure(contentLen);
+                    } finally {
+                        pool.release(entry, reusable);
                     }
+                } catch (InterruptedException ex) {
+                    this.stats.failure(contentLen);
+                } catch (ExecutionException ex) {
+                    this.stats.failure(contentLen);
+                } catch (IOException ex) {
+                    this.stats.failure(contentLen);
+                } catch (HttpException ex) {
+                    this.stats.failure(contentLen);
                 }
-            } finally {
-                try {
-                    conn.shutdown();
-                } catch (IOException ignore) {}
             }
         }
 
