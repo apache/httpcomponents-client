@@ -45,10 +45,11 @@ class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
 
     public HttpPoolEntry(
             final Log log,
+            final String id,
             final HttpRoute route,
             final OperatedClientConnection conn,
             final long timeToLive, final TimeUnit tunit) {
-        super(route, conn, timeToLive, tunit);
+        super(id, route, conn, timeToLive, tunit);
         this.log = log;
         this.tracker = new RouteTracker(route);
     }

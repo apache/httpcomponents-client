@@ -28,6 +28,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpConnection;
@@ -39,6 +40,8 @@ import org.apache.http.pool.AbstractConnPool;
  * @since 4.2
  */
 class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection, HttpPoolEntry> {
+
+    private static AtomicLong COUNTER = new AtomicLong();
 
     private final Log log;
     private final long timeToLive;
@@ -60,7 +63,8 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
 
     @Override
     protected HttpPoolEntry createEntry(final HttpRoute route, final OperatedClientConnection conn) {
-        return new HttpPoolEntry(this.log, route, conn, this.timeToLive, this.tunit);
+        String id = Long.toString(COUNTER.getAndIncrement());
+        return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 
     @Override
