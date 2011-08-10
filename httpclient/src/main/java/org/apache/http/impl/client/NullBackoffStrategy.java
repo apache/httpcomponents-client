@@ -31,7 +31,7 @@ import org.apache.http.client.ConnectionBackoffStrategy;
 /**
  * This is a {@link ConnectionBackoffStrategy} that never backs off,
  * for compatibility with existing behavior.
- * 
+ *
  * @since 4.2
  */
 public class NullBackoffStrategy implements ConnectionBackoffStrategy {

@@ -358,7 +358,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
         virtualHost = (HttpHost) orig.getParams().getParameter(
                 ClientPNames.VIRTUAL_HOST);
-        
+
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
             int port = target.getPort();
@@ -500,8 +500,8 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
-                        invalidateAuthIfSuccessful(this.proxyAuthState);                        
-                        invalidateAuthIfSuccessful(this.targetAuthState);                        
+                        invalidateAuthIfSuccessful(this.proxyAuthState);
+                        invalidateAuthIfSuccessful(this.targetAuthState);
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {

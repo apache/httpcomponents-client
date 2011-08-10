@@ -68,7 +68,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      * @param parameters iterable collection of name/value pairs
      * @param encoding encoding the name/value pairs be encoded with
      * @throws UnsupportedEncodingException if the encoding isn't supported
-     * 
+     *
      * @since 4.2
      */
     public UrlEncodedFormEntity (
@@ -97,7 +97,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      *
      * @param parameters iterable collection of name/value pairs
      * @throws UnsupportedEncodingException if the default encoding isn't supported
-     * 
+     *
      * @since 4.2
      */
     public UrlEncodedFormEntity (

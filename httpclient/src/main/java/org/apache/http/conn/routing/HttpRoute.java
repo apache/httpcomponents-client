@@ -334,7 +334,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (this == obj) return true;
         if (obj instanceof HttpRoute) {
             HttpRoute that = (HttpRoute) obj;
-            return 
+            return
                 // Do the cheapest tests first
                 (this.secure    == that.secure) &&
                 (this.tunnelled == that.tunnelled) &&

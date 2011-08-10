@@ -96,7 +96,7 @@ public class HttpClientParams {
 
     /**
      * Set the parameter {@code ClientPNames.CONN_MANAGER_TIMEOUT}.
-     * 
+     *
      * @since 4.2
      */
     public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
@@ -108,10 +108,10 @@ public class HttpClientParams {
 
     /**
      * Get the connectiion manager timeout value.
-     * This is defined by the parameter {@code ClientPNames.CONN_MANAGER_TIMEOUT}. 
-     * Failing that it uses the parameter {@code CoreConnectionPNames.CONNECTION_TIMEOUT} 
+     * This is defined by the parameter {@code ClientPNames.CONN_MANAGER_TIMEOUT}.
+     * Failing that it uses the parameter {@code CoreConnectionPNames.CONNECTION_TIMEOUT}
      * which defaults to 0 if not defined.
-     * 
+     *
      * @since 4.2
      * @return the timeout value
      */

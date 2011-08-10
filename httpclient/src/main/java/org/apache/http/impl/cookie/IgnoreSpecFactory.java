@@ -34,7 +34,7 @@ import org.apache.http.params.HttpParams;
 
 /**
  * {@link CookieSpecFactory} implementation that ignores all cookies.
- * 
+ *
  * @since 4.1
  */
 @Immutable

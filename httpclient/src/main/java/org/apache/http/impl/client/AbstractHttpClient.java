@@ -254,11 +254,11 @@ public abstract class AbstractHttpClient implements HttpClient {
     /** The connection backoff strategy. */
     @GuardedBy("this")
     private ConnectionBackoffStrategy connectionBackoffStrategy;
-    
+
     /** The backoff manager. */
     @GuardedBy("this")
     private BackoffManager backoffManager;
-    
+
     /**
      * Creates a new HTTP client.
      *
@@ -379,7 +379,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             public void probe(HttpRoute ignored) { }
         };
     }
-    
+
     protected ConnectionBackoffStrategy createConnectionBackoffStrategy() {
         return new NullBackoffStrategy();
     }
@@ -481,8 +481,8 @@ public abstract class AbstractHttpClient implements HttpClient {
             supportedAuthSchemes = createAuthSchemeRegistry();
         }
         return supportedAuthSchemes;
-    } 
-    
+    }
+
     public synchronized void setAuthSchemes(final AuthSchemeRegistry authSchemeRegistry) {
         supportedAuthSchemes = authSchemeRegistry;
     }
@@ -493,7 +493,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
         return connectionBackoffStrategy;
     }
-    
+
     public synchronized void setConnectionBackoffStrategy(final ConnectionBackoffStrategy strategy) {
         connectionBackoffStrategy = strategy;
     }
@@ -511,11 +511,11 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
         return backoffManager;
     }
-    
+
     public synchronized void setBackoffManager(final BackoffManager manager) {
         backoffManager = manager;
     }
-    
+
     public synchronized void setCookieSpecs(final CookieSpecRegistry cookieSpecRegistry) {
         supportedCookieSpecs = cookieSpecRegistry;
     }
@@ -859,8 +859,8 @@ public abstract class AbstractHttpClient implements HttpClient {
                     : (HttpHost) determineParams(request).getParameter(
                             ClientPNames.DEFAULT_HOST);
             HttpRoute route = getRoutePlanner().determineRoute(targetForRoute, request, execContext);
-            
-            HttpResponse out; 
+
+            HttpResponse out;
             try {
                 out = director.execute(target, request, execContext);
             } catch (RuntimeException re) {
@@ -915,7 +915,7 @@ public abstract class AbstractHttpClient implements HttpClient {
                 stateHandler,
                 params);
     }
-    
+
     /**
      * @since 4.1
      */

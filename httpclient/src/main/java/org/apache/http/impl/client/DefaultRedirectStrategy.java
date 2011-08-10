@@ -52,16 +52,16 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 
 /**
- * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions 
+ * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
  * on automatic redirection of entity enclosing methods such as POST and PUT imposed by the
- * HTTP specification. <tt>302 Moved Temporarily</tt>, <tt>301 Moved Permanently</tt> and 
- * <tt>307 Temporary Redirect</tt> status codes will result in an automatic redirect of 
- * HEAD and GET methods only. POST and PUT methods will not be automatically redirected 
+ * HTTP specification. <tt>302 Moved Temporarily</tt>, <tt>301 Moved Permanently</tt> and
+ * <tt>307 Temporary Redirect</tt> status codes will result in an automatic redirect of
+ * HEAD and GET methods only. POST and PUT methods will not be automatically redirected
  * as requiring user confirmation.
  * <p/>
  * The restriction on automatic redirection of POST methods can be relaxed by using
  * {@link LaxRedirectStrategy} instead of {@link DefaultRedirectStrategy}.
- * 
+ *
  * @see LaxRedirectStrategy
  * @since 4.1
  */

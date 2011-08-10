@@ -210,7 +210,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                     String hostSuffix = hostName.substring(prefix.length()); // skip wildcard part from host
                     match = hostName.startsWith(prefix) && hostSuffix.endsWith(suffix);
                 } else {
-                    match = hostName.endsWith(cn.substring(1));                    
+                    match = hostName.endsWith(cn.substring(1));
                 }
                 if(match && strictWithSubDomains) {
                     // If we're in strict mode, then [*.foo.com] is not

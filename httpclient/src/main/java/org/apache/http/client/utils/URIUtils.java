@@ -274,11 +274,11 @@ public class URIUtils {
 
     /**
      * Extracts target host from the given {@link URI}.
-     * 
-     * @param uri 
-     * @return the target host if the URI is absolute or <code>null</null> if the URI is 
+     *
+     * @param uri
+     * @return the target host if the URI is absolute or <code>null</null> if the URI is
      * relative or does not contain a valid host name.
-     * 
+     *
      * @since 4.1
      */
     public static HttpHost extractHost(final URI uri) {
@@ -303,15 +303,15 @@ public class URIUtils {
                         }
                     }
                     // Extract the port suffix, if present
-                    if (host != null) { 
+                    if (host != null) {
                         int colon = host.indexOf(':');
                         if (colon >= 0) {
                             if (colon+1 < host.length()) {
                                 port = Integer.parseInt(host.substring(colon+1));
                             }
                             host = host.substring(0,colon);
-                        }                
-                    }                    
+                        }
+                    }
                 }
             }
             String scheme = uri.getScheme();
@@ -321,7 +321,7 @@ public class URIUtils {
         }
         return target;
     }
-    
+
     /**
      * This class should not be instantiated.
      */

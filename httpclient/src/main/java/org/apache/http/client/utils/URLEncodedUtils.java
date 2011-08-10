@@ -205,7 +205,7 @@ public class URLEncodedUtils {
      *
      * @param parameters  The parameters to include.
      * @param encoding The encoding to use.
-     * 
+     *
      * @since 4.2
      */
     public static String format (

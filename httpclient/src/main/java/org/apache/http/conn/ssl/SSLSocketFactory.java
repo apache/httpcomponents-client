@@ -520,7 +520,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
      *
      * The default implementation is a no-op, but could be overriden to, e.g.,
      * call {@link SSLSocket#setEnabledCipherSuites(java.lang.String[])}.
-     * 
+     *
      * @since 4.2
      */
     protected void prepareSocket(final SSLSocket socket) throws IOException {

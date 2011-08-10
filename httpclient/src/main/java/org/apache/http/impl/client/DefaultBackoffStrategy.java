@@ -36,7 +36,7 @@ import org.apache.http.client.ConnectionBackoffStrategy;
  * This {@link ConnectionBackoffStrategy} backs off either for a raw
  * network socket or connection timeout or if the server explicitly
  * sends a 503 (Service Unavailable) response.
- * 
+ *
  * @since 4.2
  */
 public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {

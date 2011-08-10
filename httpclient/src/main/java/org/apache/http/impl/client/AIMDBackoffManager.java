@@ -38,18 +38,18 @@ import org.apache.http.conn.routing.HttpRoute;
  * the number of connections allowed to a given host. You may want
  * to experiment with the settings for the cooldown periods and the
  * backoff factor to get the adaptive behavior you want.</p>
- * 
+ *
  * <p>Generally speaking, shorter cooldowns will lead to more steady-state
  * variability but faster reaction times, while longer cooldowns
  * will lead to more stable equilibrium behavior but slower reaction
  * times.</p>
- * 
+ *
  * <p>Similarly, higher backoff factors promote greater
  * utilization of available capacity at the expense of fairness
  * among clients. Lower backoff factors allow equal distribution of
  * capacity among clients (fairness) to happen faster, at the
  * expense of having more server capacity unused in the short term.</p>
- * 
+ *
  * @since 4.2
  */
 public class AIMDBackoffManager implements BackoffManager {
@@ -64,7 +64,7 @@ public class AIMDBackoffManager implements BackoffManager {
     private Map<HttpRoute,Long> lastRouteBackoffs =
         new HashMap<HttpRoute,Long>();
 
-    
+
     /**
      * Creates an <code>AIMDBackoffManager</code> to manage
      * per-host connection pool sizes represented by the
@@ -75,7 +75,7 @@ public class AIMDBackoffManager implements BackoffManager {
     public AIMDBackoffManager(ConnPerRouteBean connPerRoute) {
         this(connPerRoute, new SystemClock());
     }
-    
+
     AIMDBackoffManager(ConnPerRouteBean connPerRoute, Clock clock) {
         this.clock = clock;
         this.connPerRoute = connPerRoute;
@@ -100,12 +100,12 @@ public class AIMDBackoffManager implements BackoffManager {
     public void probe(HttpRoute route) {
         synchronized(connPerRoute) {
             int curr = connPerRoute.getMaxForRoute(route);
-            int max = (curr >= cap) ? cap : curr + 1; 
+            int max = (curr >= cap) ? cap : curr + 1;
             Long lastProbe = getLastUpdate(lastRouteProbes, route);
             Long lastBackoff = getLastUpdate(lastRouteBackoffs, route);
             long now = clock.getCurrentTime();
             if (now - lastProbe < coolDown || now - lastBackoff < coolDown)
-                return; 
+                return;
             connPerRoute.setMaxForRoute(route, max);
             lastRouteProbes.put(route, now);
         }
@@ -132,12 +132,12 @@ public class AIMDBackoffManager implements BackoffManager {
         }
         backoffFactor = d;
     }
-    
+
     /**
      * Sets the amount of time, in milliseconds, to wait between
      * adjustments in pool sizes for a given host, to allow
      * enough time for the adjustments to take effect. Defaults
-     * to 5000L (5 seconds). 
+     * to 5000L (5 seconds).
      * @param l must be positive
      */
     public void setCooldownMillis(long l) {
@@ -146,7 +146,7 @@ public class AIMDBackoffManager implements BackoffManager {
         }
         coolDown = l;
     }
-    
+
     /**
      * Sets the absolute maximum per-host connection pool size to
      * probe up to; defaults to 2 (the default per-host max).

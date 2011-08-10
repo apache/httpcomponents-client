@@ -43,7 +43,7 @@ import org.apache.http.protocol.HttpContext;
  * Lax {@link RedirectStrategy} implementation that automatically redirects all HEAD, GET and POST
  * requests. This strategy relaxes restrictions on automatic redirection of POST methods imposed
  * by the HTTP specification.
- * 
+ *
  * @since 4.2
  */
 @Immutable
@@ -52,16 +52,16 @@ public class LaxRedirectStrategy extends DefaultRedirectStrategy {
     /**
      * Redirectable methods.
      */
-    private static final String[] REDIRECT_METHODS = new String[] { 
+    private static final String[] REDIRECT_METHODS = new String[] {
         HttpGet.METHOD_NAME,
-        HttpPost.METHOD_NAME, 
-        HttpHead.METHOD_NAME 
+        HttpPost.METHOD_NAME,
+        HttpHead.METHOD_NAME
     };
 
     @Override
     public boolean isRedirected(
-            final HttpRequest request, 
-            final HttpResponse response, 
+            final HttpRequest request,
+            final HttpResponse response,
             final HttpContext context) throws ProtocolException {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");

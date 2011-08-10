@@ -34,7 +34,7 @@ import org.apache.http.HttpHost;
 /**
  * Extended {@link InetSocketAddress} implementation that also provides access to the original
  * {@link HttpHost} used to resolve the address.
- * 
+ *
  * @since 4.2
  */
 public class HttpInetSocketAddress extends InetSocketAddress {
@@ -42,7 +42,7 @@ public class HttpInetSocketAddress extends InetSocketAddress {
     private static final long serialVersionUID = -6650701828361907957L;
 
     private final HttpHost host;
-    
+
     public HttpInetSocketAddress(final HttpHost host, final InetAddress addr, int port) {
         super(addr, port);
         if (host == null) {
@@ -60,5 +60,5 @@ public class HttpInetSocketAddress extends InetSocketAddress {
         return this.host.getHostName() + ":" + getPort();
     }
 
-    
+
 }

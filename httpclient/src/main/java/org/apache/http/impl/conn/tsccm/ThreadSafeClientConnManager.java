@@ -135,7 +135,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         this.connPerRoute = connPerRoute;
         this.connOperator = createConnectionOperator(schreg);
         this.pool = createConnectionPool(connTTL, connTTLTimeUnit) ;
-        this.connectionPool = this.pool;        
+        this.connectionPool = this.pool;
     }
 
     /**

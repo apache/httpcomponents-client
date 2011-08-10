@@ -33,7 +33,7 @@ import org.apache.http.HttpResponse;
  * result in a backoff signal or not, based on either examining the
  * <code>Throwable</code> that resulted or by examining the resulting
  * response (e.g. for its status code).
- * 
+ *
  * @since 4.2
  *
  */
