@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -229,9 +228,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             throw new IllegalStateException("Connection not obtained from this manager.");
         }
 
-        Lock lock = managedConn.getLock();
-        lock.lock();
-        try {
+        synchronized (managedConn) {
             HttpPoolEntry entry = managedConn.getPoolEntry();
             if (entry == null) {
                 return;
@@ -263,8 +260,6 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection released: " + format(entry) + formatStats(entry.getRoute()));
             }
-        } finally {
-            lock.unlock();
         }
     }
 

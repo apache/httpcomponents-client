@@ -31,8 +31,6 @@ import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -56,7 +54,6 @@ import org.apache.http.protocol.HttpContext;
 @NotThreadSafe
 class ManagedClientConnectionImpl implements ManagedClientConnection {
 
-    private final Lock lock;
     private final ClientConnectionManager manager;
     private final ClientConnectionOperator operator;
     private volatile HttpPoolEntry poolEntry;
@@ -77,16 +74,11 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         if (entry == null) {
             throw new IllegalArgumentException("HTTP pool entry may not be null");
         }
-        this.lock = new ReentrantLock();
         this.manager = manager;
         this.operator = operator;
         this.poolEntry = entry;
         this.reusable = false;
         this.duration = Long.MAX_VALUE;
-    }
-
-    Lock getLock() {
-        return this.lock;
     }
 
     HttpPoolEntry getPoolEntry() {
@@ -106,27 +98,19 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     private OperatedClientConnection getConnection() {
-        this.lock.lock();
-        try {
-            if (this.poolEntry == null) {
-                return null;
-            }
-            return this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
+        HttpPoolEntry local = this.poolEntry;
+        if (local == null) {
+            return null;
         }
+        return local.getConnection();
     }
 
     private OperatedClientConnection ensureConnection() {
-        this.lock.lock();
-        try {
-            if (this.poolEntry == null) {
-                throw new ConnectionShutdownException();
-            }
-            return this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
+        HttpPoolEntry local = this.poolEntry;
+        if (local == null) {
+            throw new ConnectionShutdownException();
         }
+        return local.getConnection();
     }
 
     public void close() throws IOException {
@@ -270,9 +254,11 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public HttpRoute getRoute() {
-        synchronized (this.poolEntry) {
-            return this.poolEntry.getEffectiveRoute();
+        HttpPoolEntry local = this.poolEntry;
+        if (local == null) {
+            throw new ConnectionShutdownException();
         }
+        return poolEntry.getEffectiveRoute();
     }
 
     public void open(
@@ -286,8 +272,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         OperatedClientConnection conn;
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
@@ -296,8 +281,6 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 throw new IllegalStateException("Connection already open");
             }
             conn = this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
         }
 
         HttpHost proxy  = route.getProxyHost();
@@ -307,8 +290,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 route.getLocalAddress(),
                 context, params);
 
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
@@ -318,8 +300,6 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             } else {
                 tracker.connectProxy(proxy, conn.isSecure());
             }
-        } finally {
-            this.lock.unlock();
         }
     }
 
@@ -330,8 +310,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
         HttpHost target;
         OperatedClientConnection conn;
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
@@ -344,21 +323,16 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             }
             target = tracker.getTargetHost();
             conn = this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
         }
 
         conn.update(null, target, secure, params);
 
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
             tracker.tunnelTarget(secure);
-        } finally {
-            this.lock.unlock();
         }
     }
 
@@ -371,8 +345,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         OperatedClientConnection conn;
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
@@ -381,21 +354,16 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 throw new IllegalStateException("Connection not open");
             }
             conn = this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
         }
 
         conn.update(null, next, secure, params);
 
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
             tracker.tunnelProxy(next, secure);
-        } finally {
-            this.lock.unlock();
         }
     }
 
@@ -406,8 +374,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
         HttpHost target;
         OperatedClientConnection conn;
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
@@ -423,20 +390,15 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             }
             target = tracker.getTargetHost();
             conn = this.poolEntry.getConnection();
-        } finally {
-            this.lock.unlock();
         }
         this.operator.updateSecureConnection(conn, target, context, params);
 
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
             tracker.layerProtocol(conn.isSecure());
-        } finally {
-            this.lock.unlock();
         }
     }
 
@@ -469,21 +431,17 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void releaseConnection() {
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 return;
             }
             this.manager.releaseConnection(this, this.duration, TimeUnit.MILLISECONDS);
             this.poolEntry = null;
-        } finally {
-            this.lock.unlock();
         }
     }
 
     public void abortConnection() {
-        this.lock.lock();
-        try {
+        synchronized (this) {
             if (this.poolEntry == null) {
                 return;
             }
@@ -495,8 +453,6 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             }
             this.manager.releaseConnection(this, this.duration, TimeUnit.MILLISECONDS);
             this.poolEntry = null;
-        } finally {
-            this.lock.unlock();
         }
     }
 
