@@ -99,7 +99,7 @@ public class Benchmark {
                try {
                    agent.init();
                    // Warm up
-                   agent.get(warmup, 5, 500);
+                   agent.get(warmup, 500, 2);
                    // Sleep a little
                    Thread.sleep(5000);
                    System.out.println("=================================");
