@@ -85,12 +85,10 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return this.poolEntry;
     }
 
-    void detach() {
+    HttpPoolEntry detach() {
+        HttpPoolEntry local = this.poolEntry;
         this.poolEntry = null;
-    }
-
-    boolean isDetached() {
-        return this.poolEntry == null;
+        return local;
     }
 
     public ClientConnectionManager getManager() {
@@ -111,6 +109,14 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             throw new ConnectionShutdownException();
         }
         return local.getConnection();
+    }
+
+    private HttpPoolEntry ensurePoolEntry() {
+        HttpPoolEntry local = this.poolEntry;
+        if (local == null) {
+            throw new ConnectionShutdownException();
+        }
+        return local;
     }
 
     public void close() throws IOException {
@@ -254,11 +260,8 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public HttpRoute getRoute() {
-        HttpPoolEntry local = this.poolEntry;
-        if (local == null) {
-            throw new ConnectionShutdownException();
-        }
-        return poolEntry.getEffectiveRoute();
+        HttpPoolEntry local = ensurePoolEntry();
+        return local.getEffectiveRoute();
     }
 
     public void open(
@@ -403,11 +406,13 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public Object getState() {
-        return this.poolEntry.getState();
+        HttpPoolEntry local = ensurePoolEntry();
+        return local.getState();
     }
 
     public void setState(final Object state) {
-        this.poolEntry.setState(state);
+        HttpPoolEntry local = ensurePoolEntry();
+        local.setState(state);
     }
 
     public void markReusable() {

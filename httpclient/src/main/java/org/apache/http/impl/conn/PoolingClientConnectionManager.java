@@ -229,7 +229,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         }
 
         synchronized (managedConn) {
-            HttpPoolEntry entry = managedConn.getPoolEntry();
+            HttpPoolEntry entry = managedConn.detach();
             if (entry == null) {
                 return;
             }
@@ -255,7 +255,6 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 }
             } finally {
                 this.pool.release(entry, managedConn.isMarkedReusable());
-                managedConn.detach();
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection released: " + format(entry) + formatStats(entry.getRoute()));

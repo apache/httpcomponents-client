@@ -48,7 +48,7 @@ public class Benchmark {
 
    public static void main(String[] args) throws Exception {
 
-       String ns = System.getProperty("hc.benchmark.n-requests", "200000");
+       String ns = System.getProperty("hc.benchmark.n-requests", "400000");
        String nc = System.getProperty("hc.benchmark.concurrent", "20");
        String cls = System.getProperty("hc.benchmark.content-len", "2048");
 
@@ -76,12 +76,12 @@ public class Benchmark {
        int port = connector.getLocalPort();
 
        TestHttpAgent[] agents = new TestHttpAgent[] {
-               new TestHttpClient3(),
-               new TestHttpJRE(),
-               new TestHttpCore(),
+//               new TestHttpClient3(),
+//               new TestHttpJRE(),
+//               new TestHttpCore(),
                new TestHttpClient4(),
-               new TestJettyHttpClient(),
-               new TestNingHttpClient()
+//               new TestJettyHttpClient(),
+//               new TestNingHttpClient()
        };
 
        byte[] content = new byte[contentLen];
@@ -99,7 +99,7 @@ public class Benchmark {
                try {
                    agent.init();
                    // Warm up
-                   agent.get(warmup, 5, 500);
+                   agent.get(warmup, 500, 2);
                    // Sleep a little
                    Thread.sleep(5000);
                    System.out.println("=================================");
