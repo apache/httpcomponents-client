@@ -43,7 +43,7 @@ public class UriBuilder {
     private URI uri;
     private String enc;
     private boolean encOn;
-    private static Set<String> supportedEncoding;
+    private Set<String> supportedEncoding;
 
     public UriBuilder() {
         init();
@@ -91,8 +91,7 @@ public class UriBuilder {
         if (uri != null)
             return uri;
         else
-            throw new RuntimeException(
-                    "too less information provided to build URI");
+            throw new IllegalStateException("Not enough information to build URI");
     }
 
     private void digestURI(URI uri, boolean raw) {
