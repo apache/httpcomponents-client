@@ -41,24 +41,23 @@ public class HttpInetSocketAddress extends InetSocketAddress {
 
     private static final long serialVersionUID = -6650701828361907957L;
 
-    private final HttpHost host;
+    private final HttpHost httphost;
 
-    public HttpInetSocketAddress(final HttpHost host, final InetAddress addr, int port) {
+    public HttpInetSocketAddress(final HttpHost httphost, final InetAddress addr, int port) {
         super(addr, port);
-        if (host == null) {
+        if (httphost == null) {
             throw new IllegalArgumentException("HTTP host may not be null");
         }
-        this.host = host;
+        this.httphost = httphost;
     }
 
-    public HttpHost getHost() {
-        return this.host;
+    public HttpHost getHttpHost() {
+        return this.httphost;
     }
 
     @Override
     public String toString() {
-        return this.host.getHostName() + ":" + getPort();
+        return this.httphost.getHostName() + ":" + getPort();
     }
-
 
 }

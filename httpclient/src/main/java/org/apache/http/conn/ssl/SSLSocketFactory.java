@@ -385,7 +385,7 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
 
         String hostname;
         if (remoteAddress instanceof HttpInetSocketAddress) {
-            hostname = ((HttpInetSocketAddress) remoteAddress).getHost().getHostName();
+            hostname = ((HttpInetSocketAddress) remoteAddress).getHttpHost().getHostName();
         } else {
             hostname = remoteAddress.getHostName();
         }
@@ -395,8 +395,8 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
         if (sock instanceof SSLSocket) {
             sslsock = (SSLSocket) sock;
         } else {
-            sslsock = (SSLSocket) this.socketfactory.createSocket(sock,
-                    hostname, remoteAddress.getPort(), true);
+            int port = remoteAddress.getPort();
+            sslsock = (SSLSocket) this.socketfactory.createSocket(sock, hostname, port, true);
             prepareSocket(sslsock);
         }
         if (this.hostnameVerifier != null) {

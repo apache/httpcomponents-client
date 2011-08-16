@@ -32,7 +32,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -63,12 +65,17 @@ public interface SchemeSocketFactory {
 
     /**
      * Connects a socket to the target host with the given remote address.
+     * <p/>
+     * Please note that {@link HttpInetSocketAddress} class should be used in order to pass
+     * the target remote address along with the original {@link HttpHost} value used to resolve
+     * the address. The use of {@link HttpInetSocketAddress} can also ensure that no reverse
+     * DNS lookup will be performed if the target remote address was specified as an IP address.
      *
      * @param sock      the socket to connect, as obtained from
      *                  {@link #createSocket(HttpParams) createSocket}.
      *                  <code>null</code> indicates that a new socket
      *                  should be created and connected.
-     * @param remoteAddress the remote address to connect to
+     * @param remoteAddress the remote address to connect to.
      * @param localAddress the local address to bind the socket to, or
      *                  <code>null</code> for any
      * @param params    additional {@link HttpParams parameters} for connecting
@@ -82,6 +89,8 @@ public interface SchemeSocketFactory {
      *          can not be determined
      * @throws ConnectTimeoutException if the socket cannot be connected
      *          within the time limit defined in the <code>params</code>
+     *
+     * @see HttpInetSocketAddress
      */
     Socket connectSocket(
         Socket sock,
