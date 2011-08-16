@@ -43,6 +43,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.client.*;
 
+/**
+ * {@link HttpClient} implementation that can automatically retry the request in case of 
+ * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
+ *
+ * @since 4.2
+ */
 @ThreadSafe
 public class AutoRetryHttpClient implements HttpClient {
 
@@ -147,7 +153,7 @@ public class AutoRetryHttpClient implements HttpClient {
         for (int c = 1;; c++) {
             HttpResponse response = backend.execute(target, request, context);
             if (retryStrategy.retryRequest(response, c, context)) {
-                long nextInterval = retryStrategy.getRetryInterval() * retryStrategy.getRetryFactor();
+                long nextInterval = retryStrategy.getRetryInterval();
                 try {
                     log.trace("Wait for " + nextInterval);
                     Thread.sleep(nextInterval);

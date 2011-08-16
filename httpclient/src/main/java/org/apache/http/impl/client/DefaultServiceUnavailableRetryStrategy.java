@@ -27,103 +27,57 @@
 
 package org.apache.http.impl.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Default implementation for the <code>ServiceUnavailableRetryStrategy</code>
- * interface.
- *
+ * Default implementation of the {@link ServiceUnavailableRetryStrategy} interface.
+ * that retries <code>503</code> (Service Unavailable) responses for a fixed number of times
+ * at a fixed interval.
+ * 
+ * @since 4.2
  */
+@Immutable
 public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailableRetryStrategy {
-
-    private List<Integer> retryResponseCodes = new ArrayList<Integer>();
 
     /**
      * Maximum number of allowed retries if the server responds with a HTTP code
      * in our retry code list. Default value is 1.
      */
-    private int maxRetries = 1;
+    private final int maxRetries;
 
     /**
      * Retry interval between subsequent requests, in milliseconds. Default
      * value is 1 second.
      */
-    private long retryInterval = 1000;
+    private final long retryInterval;
 
-    /**
-     * Multiplying factor for continuous errors situations returned by the
-     * server-side. Each retry attempt will multiply this factor with the retry
-     * interval. Default value is 1, which means each retry interval will be
-     * constant.
-     */
-    private int retryFactor = 1;
-
-    public void addResponseCodeForRetry(int responseCode) {
-        retryResponseCodes.add(responseCode);
-    }
-
-    public boolean retryRequest(final HttpResponse response, int executionCount, final HttpContext context) {
-        return executionCount <= maxRetries && retryResponseCodes.contains(
-                response.getStatusLine().getStatusCode());
-    }
-
-    /**
-     * @return The maximum number of allowed auto-retries in case the server
-     *         response code is contained in this retry strategy. Default value
-     *         is 1, meaning no-retry.
-     */
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(int maxRetries) {
+    public DefaultServiceUnavailableRetryStrategy(int maxRetries, int retryInterval) {
+        super();
         if (maxRetries < 1) {
-            throw new IllegalArgumentException(
-                    "MaxRetries should be greater than 1");
+            throw new IllegalArgumentException("MaxRetries must be greater than 1");
+        }
+        if (retryInterval < 1) {
+            throw new IllegalArgumentException("Retry interval must be greater than 1");
         }
         this.maxRetries = maxRetries;
-    }
-
-    /**
-     * @return The interval between the subsequent auto-retries. Default value
-     *         is 1000 ms, meaning there is 1 second X
-     *         <code>getRetryFactor()</code> between the subsequent auto
-     *         retries.
-     *
-     */
-    public long getRetryInterval() {
-        return retryInterval;
-    }
-
-    public void setRetryInterval(long retryInterval) {
-        if (retryInterval < 1) {
-            throw new IllegalArgumentException(
-                    "Retry interval should be greater than 1");
-        }
         this.retryInterval = retryInterval;
     }
 
-    /**
-     * @return the multiplying factor for continuous errors situations returned
-     *         by the server-side. Each retry attempt will multiply this factor
-     *         with the retry interval. default value is 1, meaning the retry
-     *         intervals are constant.
-     */
-    public int getRetryFactor() {
-        return retryFactor;
+    public DefaultServiceUnavailableRetryStrategy() {
+        this(1, 1000);
     }
 
-    public void setRetryFactor(int factor) {
-        if (factor < 1) {
-            throw new IllegalArgumentException(
-                    "Retry factor should be greater than 1");
-        }
-        this.retryFactor = factor;
+    public boolean retryRequest(final HttpResponse response, int executionCount, final HttpContext context) {
+        return executionCount <= maxRetries &&
+            response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
+    }
+
+    public long getRetryInterval() {
+        return retryInterval;
     }
 
 }

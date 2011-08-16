@@ -35,6 +35,7 @@ import org.apache.http.protocol.HttpContext;
  * control whether or not a retry should automatically be done, how many times
  * it should be retried and so on.
  *
+ * @since 4.2
  */
 public interface ServiceUnavailableRetryStrategy {
 
@@ -55,12 +56,5 @@ public interface ServiceUnavailableRetryStrategy {
      * @return The interval between the subsequent auto-retries.
      */
     long getRetryInterval();
-
-    /**
-     * @return the multiplying factor for continuous errors situations returned
-     *         by the server-side. Each retry attempt will multiply this factor
-     *         with the retry interval.
-     */
-    int getRetryFactor();
 
 }
