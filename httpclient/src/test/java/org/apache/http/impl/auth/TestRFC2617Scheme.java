@@ -73,11 +73,13 @@ public class TestRFC2617Scheme {
         authscheme.processChallenge(header);
 
         Assert.assertEquals("test", authscheme.getSchemeName());
+        Assert.assertEquals("test", authscheme.toString());
         Assert.assertEquals("realm1", authscheme.getParameter("realm"));
         Assert.assertEquals(null, authscheme.getParameter("test"));
         Assert.assertEquals("stuff", authscheme.getParameter("test1"));
         Assert.assertEquals("stuff, stuff", authscheme.getParameter("test2"));
         Assert.assertEquals("\"crap", authscheme.getParameter("test3"));
+        Assert.assertEquals(null, authscheme.getParameter(null));
     }
 
     @Test
@@ -87,16 +89,34 @@ public class TestRFC2617Scheme {
         buffer.append(" WWW-Authenticate:    Test       realm=\"realm1\"");
         Header header = new BufferedHeader(buffer);
 
+
         authscheme.processChallenge(header);
 
         Assert.assertEquals("test", authscheme.getSchemeName());
         Assert.assertEquals("realm1", authscheme.getParameter("realm"));
     }
 
+    @Test
+    public void testNullHeader() throws Exception {
+        TestAuthScheme authscheme = new TestAuthScheme();
+        try {
+            authscheme.processChallenge(null);
+            Assert.fail("IllegalArgumentException should have been thrown");
+        } catch (IllegalArgumentException ex) {
+        }
+    }
+
     @Test(expected=MalformedChallengeException.class)
     public void testInvalidHeader() throws Exception {
         TestAuthScheme authscheme = new TestAuthScheme();
         Header header = new BasicHeader("whatever", "Test realm=\"realm1\"");
+        authscheme.processChallenge(header);
+    }
+
+    @Test(expected=MalformedChallengeException.class)
+    public void testInvalidSchemeName() throws Exception {
+        TestAuthScheme authscheme = new TestAuthScheme();
+        Header header = new BasicHeader(AUTH.WWW_AUTH, "Not-a-Test realm=\"realm1\"");
         authscheme.processChallenge(header);
     }
 

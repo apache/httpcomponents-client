@@ -26,17 +26,22 @@
 
 package org.apache.http.impl.auth;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
@@ -46,6 +51,8 @@ import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
@@ -122,13 +129,6 @@ public class DigestScheme extends RFC2617Scheme {
     public void processChallenge(
             final Header header) throws MalformedChallengeException {
         super.processChallenge(header);
-
-        if (getParameter("realm") == null) {
-            throw new MalformedChallengeException("missing realm in challenge");
-        }
-        if (getParameter("nonce") == null) {
-            throw new MalformedChallengeException("missing nonce in challenge");
-        }
         this.complete = true;
     }
 
@@ -169,6 +169,12 @@ public class DigestScheme extends RFC2617Scheme {
         getParameters().put(name, value);
     }
 
+    @Deprecated
+    public Header authenticate(
+            final Credentials credentials, final HttpRequest request) throws AuthenticationException {
+        return authenticate(credentials, request, new BasicHttpContext());
+    }
+
     /**
      * Produces a digest authorization string for the given set of
      * {@link Credentials}, method name and URI.
@@ -183,9 +189,11 @@ public class DigestScheme extends RFC2617Scheme {
      *
      * @return a digest authorization string
      */
+    @Override
     public Header authenticate(
             final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
 
         if (credentials == null) {
             throw new IllegalArgumentException("Credentials may not be null");
@@ -193,7 +201,12 @@ public class DigestScheme extends RFC2617Scheme {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
-
+        if (getParameter("realm") == null) {
+            throw new AuthenticationException("missing realm in challenge");
+        }
+        if (getParameter("nonce") == null) {
+            throw new AuthenticationException("missing nonce in challenge");
+        }
         // Add method name and request-URI to the parameter map
         getParameters().put("methodname", request.getRequestLine().getMethod());
         getParameters().put("uri", request.getRequestLine().getUri());
@@ -202,7 +215,7 @@ public class DigestScheme extends RFC2617Scheme {
             charset = AuthParams.getCredentialCharset(request.getParams());
             getParameters().put("charset", charset);
         }
-        return createDigestHeader(credentials);
+        return createDigestHeader(credentials, request);
     }
 
     private static MessageDigest createMessageDigest(
@@ -224,34 +237,28 @@ public class DigestScheme extends RFC2617Scheme {
      * @return The digest-response as String.
      */
     private Header createDigestHeader(
-            final Credentials credentials) throws AuthenticationException {
+            final Credentials credentials,
+            final HttpRequest request) throws AuthenticationException {
         String uri = getParameter("uri");
         String realm = getParameter("realm");
         String nonce = getParameter("nonce");
         String opaque = getParameter("opaque");
         String method = getParameter("methodname");
         String algorithm = getParameter("algorithm");
-        if (uri == null) {
-            throw new IllegalStateException("URI may not be null");
-        }
-        if (realm == null) {
-            throw new IllegalStateException("Realm may not be null");
-        }
-        if (nonce == null) {
-            throw new IllegalStateException("Nonce may not be null");
-        }
 
-        //TODO: add support for QOP_INT
+        Set<String> qopset = new HashSet<String>(8);
         int qop = QOP_UNKNOWN;
         String qoplist = getParameter("qop");
         if (qoplist != null) {
             StringTokenizer tok = new StringTokenizer(qoplist, ",");
             while (tok.hasMoreTokens()) {
                 String variant = tok.nextToken().trim();
-                if (variant.equals("auth")) {
-                    qop = QOP_AUTH;
-                    break;
-                }
+                qopset.add(variant.toLowerCase(Locale.US));
+            }
+            if (request instanceof HttpEntityEnclosingRequest && qopset.contains("auth-int")) {
+                qop = QOP_AUTH_INT;
+            } else if (qopset.contains("auth")) {
+                qop = QOP_AUTH;
             }
         } else {
             qop = QOP_MISSING;
@@ -265,7 +272,6 @@ public class DigestScheme extends RFC2617Scheme {
         if (algorithm == null) {
             algorithm = "MD5";
         }
-        // If an charset is not specified, default to ISO-8859-1.
         String charset = getParameter("charset");
         if (charset == null) {
             charset = "ISO-8859-1";
@@ -331,8 +337,31 @@ public class DigestScheme extends RFC2617Scheme {
             a2 = method + ':' + uri;
         } else if (qop == QOP_AUTH_INT) {
             // Method ":" digest-uri-value ":" H(entity-body)
-            //TODO: calculate entity hash if entity is repeatable
-            throw new AuthenticationException("qop-int method is not suppported");
+            HttpEntity entity = null;
+            if (request instanceof HttpEntityEnclosingRequest) {
+                entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            }
+            if (entity != null && !entity.isRepeatable()) {
+                // If the entity is not repeatable, try falling back onto QOP_AUTH
+                if (qopset.contains("auth")) {
+                    qop = QOP_AUTH;
+                    a2 = method + ':' + uri;
+                } else {
+                    throw new AuthenticationException("Qop auth-int cannot be used with " +
+                            "a non-repeatable entity");
+                }
+            } else {
+                HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
+                try {
+                    if (entity != null) {
+                        entity.writeTo(entityDigester);
+                    }
+                    entityDigester.close();
+                } catch (IOException ex) {
+                    throw new AuthenticationException("I/O error reading entity content", ex);
+                }
+                a2 = method + ':' + uri + ':' + encode(entityDigester.getDigest());
+            }
         } else {
             a2 = method + ':' + uri;
         }
@@ -413,7 +442,7 @@ public class DigestScheme extends RFC2617Scheme {
      * @param binaryData array containing the digest
      * @return encoded MD5, or <CODE>null</CODE> if encoding failed
      */
-    private static String encode(byte[] binaryData) {
+    static String encode(byte[] binaryData) {
         int n = binaryData.length;
         char[] buffer = new char[n * 2];
         for (int i = 0; i < n; i++) {

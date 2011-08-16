@@ -35,6 +35,8 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EncodingUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,7 +78,8 @@ public class TestBasicScheme {
         authscheme.processChallenge(challenge);
 
         HttpRequest request = new BasicHttpRequest("GET", "/");
-        Header authResponse = authscheme.authenticate(creds, request);
+        HttpContext context = new BasicHttpContext();
+        Header authResponse = authscheme.authenticate(creds, request, context);
 
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
@@ -98,7 +101,8 @@ public class TestBasicScheme {
         authscheme.processChallenge(challenge);
 
         HttpRequest request = new BasicHttpRequest("GET", "/");
-        Header authResponse = authscheme.authenticate(creds, request);
+        HttpContext context = new BasicHttpContext();
+        Header authResponse = authscheme.authenticate(creds, request, context);
 
         String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));

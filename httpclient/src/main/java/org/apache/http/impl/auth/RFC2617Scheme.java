@@ -52,13 +52,14 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     /**
      * Authentication parameter map.
      */
-    private Map<String, String> params;
+    private final Map<String, String> params;
 
     /**
      * Default constructor for RFC2617 compliant authentication schemes.
      */
     public RFC2617Scheme() {
         super();
+        this.params = new HashMap<String, String>();
     }
 
     @Override
@@ -70,8 +71,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
         if (elements.length == 0) {
             throw new MalformedChallengeException("Authentication challenge is empty");
         }
-
-        this.params = new HashMap<String, String>(elements.length);
+        this.params.clear();
         for (HeaderElement element : elements) {
             this.params.put(element.getName(), element.getValue());
         }
@@ -83,9 +83,6 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      * @return the map of authentication parameters
      */
     protected Map<String, String> getParameters() {
-        if (this.params == null) {
-            this.params = new HashMap<String, String>();
-        }
         return this.params;
     }
 
@@ -98,9 +95,6 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      */
     public String getParameter(final String name) {
         if (name == null) {
-            throw new IllegalArgumentException("Parameter name may not be null");
-        }
-        if (this.params == null) {
             return null;
         }
         return this.params.get(name.toLowerCase(Locale.ENGLISH));

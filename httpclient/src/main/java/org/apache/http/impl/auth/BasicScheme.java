@@ -38,6 +38,8 @@ import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
@@ -109,6 +111,12 @@ public class BasicScheme extends RFC2617Scheme {
         return false;
     }
 
+    @Deprecated
+    public Header authenticate(
+            final Credentials credentials, final HttpRequest request) throws AuthenticationException {
+        return authenticate(credentials, request, new BasicHttpContext());
+    }
+
     /**
      * Produces basic authorization header for the given set of {@link Credentials}.
      *
@@ -121,9 +129,11 @@ public class BasicScheme extends RFC2617Scheme {
      *
      * @return a basic authorization string
      */
+    @Override
     public Header authenticate(
             final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
 
         if (credentials == null) {
             throw new IllegalArgumentException("Credentials may not be null");
