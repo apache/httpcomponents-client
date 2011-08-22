@@ -15,8 +15,13 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
  */
 
 package org.apache.http.client.fluent;
@@ -24,8 +29,6 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,10 +42,6 @@ import org.apache.http.client.fluent.header.HttpHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
 public class FluentResponse implements HttpResponse {
     protected static final Log log = LogFactory.getLog(FluentResponse.class);
     private HttpResponse response;
@@ -53,21 +52,6 @@ public class FluentResponse implements HttpResponse {
     FluentResponse(HttpResponse response) {
         this.response = response;
         consumed = false;
-    }
-
-    public int getStatusCode() {
-        return this.getStatusLine().getStatusCode();
-    }
-
-    public FluentResponse loadContent() throws IOException {
-        if (getEntity() == null)
-            content = null;
-        else {
-            content = EntityUtils.toByteArray(getEntity());
-            EntityUtils.consume(getEntity());
-        }
-        consumed = true;
-        return this;
     }
 
     public void addHeader(Header header) {
@@ -107,19 +91,6 @@ public class FluentResponse implements HttpResponse {
     }
 
     public String getContentCharset() {
-        // if (this.getEntity() == null)
-        // throw new IllegalStateException("Response does not contain data");
-        // Header contentType = this.getEntity().getContentType();
-        // if (contentType == null)
-        // throw new IllegalStateException(
-        // "Reponse does not contain Content-Type header");
-        // NameValuePair charset = contentType.getElements()[0]
-        // .getParameterByName("charset");
-        // if (charset == null || charset.getValue().trim().equals("")) {
-        // log.warn("Charset could not be found in response");
-        // return Charset.defaultCharset().name();
-        // } else
-        // return charset.getValue();
         return EntityUtils.getContentCharSet(getEntity());
     }
 
@@ -203,6 +174,10 @@ public class FluentResponse implements HttpResponse {
         return this.response.getProtocolVersion();
     }
 
+    public int getStatusCode() {
+        return this.getStatusLine().getStatusCode();
+    }
+
     public StatusLine getStatusLine() {
         return this.response.getStatusLine();
     }
@@ -221,6 +196,17 @@ public class FluentResponse implements HttpResponse {
 
     public HeaderIterator headerIterator(String name) {
         return this.response.headerIterator(name);
+    }
+
+    public FluentResponse loadContent() throws IOException {
+        if (getEntity() == null)
+            content = null;
+        else {
+            content = EntityUtils.toByteArray(getEntity());
+            EntityUtils.consume(getEntity());
+        }
+        consumed = true;
+        return this;
     }
 
     public void removeHeader(Header header) {
@@ -273,50 +259,5 @@ public class FluentResponse implements HttpResponse {
 
     public void setStatusLine(StatusLine statusline) {
         this.response.setStatusLine(statusline);
-    }
-
-    public FluentResponse assertStatus(int expected) {
-        assertNotNull(this.getStatusLine().toString(), this.getStatusLine());
-        int actual = this.getStatusCode();
-        assertEquals(this + ": expecting status " + expected, expected, actual);
-        return this;
-    }
-
-    public FluentResponse assertContentType(String expected) {
-        try {
-            String actual = this.getContentType();
-            assertEquals(this + ": expecting content type " + expected,
-                    expected, actual);
-        } catch (Exception e) {
-            fail(this + ": " + e.getMessage());
-        }
-        return this;
-    }
-
-    public FluentResponse assertContentRegexp(String encoding, String... regexp) {
-        try {
-            String content = encoding == null ? getContentString()
-                    : getContentString(encoding);
-            assertNotNull(this.toString(), content);
-            nextPattern: for (String expr : regexp) {
-                final Pattern p = Pattern.compile(".*" + expr + ".*");
-                final Scanner scan = new Scanner(content);
-                while (scan.hasNext()) {
-                    final String line = scan.nextLine();
-                    if (p.matcher(line).matches()) {
-                        continue nextPattern;
-                    }
-                }
-                fail(this + ": no match for regexp '" + expr + "', content=\n"
-                        + content);
-            }
-        } catch (IOException e) {
-            fail(this + ":　" + e.getMessage());
-        }
-        return this;
-    }
-
-    public FluentResponse assertContentRegexp(String... regexp) {
-        return assertContentRegexp(null, regexp);
     }
 }

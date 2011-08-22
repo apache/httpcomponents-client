@@ -15,8 +15,13 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
  */
 
 package org.apache.http.client.utils;
@@ -91,7 +96,8 @@ public class UriBuilder {
         if (uri != null)
             return uri;
         else
-            throw new IllegalStateException("Not enough information to build URI");
+            throw new IllegalStateException(
+                    "Not enough information to build URI");
     }
 
     private void digestURI(URI uri, boolean raw) {
@@ -199,9 +205,8 @@ public class UriBuilder {
                 return URLDecoder.decode(string, enc);
             }
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-        return string;
     }
 
     /**
@@ -337,19 +342,6 @@ public class UriBuilder {
             try {
                 uri = new URI(scheme, userInfo, host, port, path, query,
                         fragment);
-
-                // StringBuffer sb = new StringBuffer();
-                // sb.append(scheme).append("://");
-                // if(userInfo != null)
-                // sb.append(userInfo).append("@");
-                // sb.append(host);
-                // if(path != null)
-                // sb.append(path);
-                // if(query != null)
-                // sb.append('?').append(query);
-                // if(fragment != null)
-                // sb.append('#').append(fragment);
-                // uri = new URI(sb.toString());
                 digestURI(uri, false);
             } catch (URISyntaxException e) {
                 // roll back

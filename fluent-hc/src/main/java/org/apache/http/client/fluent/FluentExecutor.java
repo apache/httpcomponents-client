@@ -15,8 +15,13 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
  */
 
 package org.apache.http.client.fluent;
@@ -55,9 +60,9 @@ public class FluentExecutor {
     public FluentResponse exec(FluentRequest req)
             throws ClientProtocolException, IOException {
         DefaultHttpClient client = getClient();
-        client.setCredentialsProvider(req.credentialsProvider);
-        client.setParams(req.localParams);
-        HttpResponse resp = client.execute(req, req.localContext);
+        client.setCredentialsProvider(req.getCredentialsProvider());
+        client.setParams(req.getLocalParams());
+        HttpResponse resp = client.execute(req, req.getLocalContext());
         FluentResponse fresp = new FluentResponse(resp);
         return fresp;
     }

@@ -15,8 +15,13 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
  */
 
 package org.apache.http.client.fluent;
@@ -24,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,124 +77,66 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 public class FluentRequest implements HttpUriRequest {
-    static FluentRequest build(final URI uri, final FluentHttpMethod method) {
-        FluentRequest req = new FluentRequest();
-        req.by(method, uri);
-        req.init();
-        return req;
-    }
-
-    HttpParams localParams;
-    HttpContext localContext;
-    CredentialsProvider credentialsProvider;
+    private HttpParams localParams;
+    private HttpContext localContext;
+    private CredentialsProvider credentialsProvider;
     private HttpUriRequest request;
     private FluentHttpMethod method;
     private HttpHost localProxy;
+
     protected static final Log log = LogFactory.getLog(FluentRequest.class);
 
-    private FluentRequest() {
-        // DO NOTHING
-    }
-
     public FluentRequest(final HttpUriRequest req) {
-        this.request = req;
-        String methodName = request.getMethod().toUpperCase();
+        URI uri = req.getURI();
+        String methodName = req.getMethod().toUpperCase();
+        FluentHttpMethod method = FluentHttpMethod.GET_METHOD;
         if (methodName.equals("GET"))
-            this.method = FluentHttpMethod.GET_METHOD;
+            method = FluentHttpMethod.GET_METHOD;
         else if (methodName.equals("POST"))
-            this.method = FluentHttpMethod.POST_METHOD;
+            method = FluentHttpMethod.POST_METHOD;
         else if (methodName.equals("OPTIONS"))
-            this.method = FluentHttpMethod.OPTIONS_METHOD;
+            method = FluentHttpMethod.OPTIONS_METHOD;
         else if (methodName.equals("DELETE"))
-            this.method = FluentHttpMethod.DELETE_METHOD;
+            method = FluentHttpMethod.DELETE_METHOD;
         else if (methodName.equals("HEAD"))
-            this.method = FluentHttpMethod.HEAD_METHOD;
+            method = FluentHttpMethod.HEAD_METHOD;
         else if (methodName.equals("PUT"))
-            this.method = FluentHttpMethod.PUT_METHOD;
+            method = FluentHttpMethod.PUT_METHOD;
         else if (methodName.equals("TRACE"))
-            this.method = FluentHttpMethod.TRACE_METHOD;
-        else
-            this.method = FluentHttpMethod.GET_METHOD;
-        init();
+            method = FluentHttpMethod.TRACE_METHOD;
+        init(uri, method);
     }
 
     public FluentRequest(final String uri) {
-        copyFrom(RequestBuilder.build(uri));
+        init(uri, FluentHttpMethod.GET_METHOD);
     }
 
     public FluentRequest(final String uri, final FluentHttpMethod method) {
-        copyFrom(RequestBuilder.build(uri, method));
+        init(uri, method);
     }
 
     public FluentRequest(final URI uri) {
-        copyFrom(RequestBuilder.build(uri));
+        init(uri, FluentHttpMethod.GET_METHOD);
     }
 
     public FluentRequest(final URI uri, final FluentHttpMethod method) {
-        copyFrom(RequestBuilder.build(uri, method));
+        init(uri, method);
     }
 
     public void abort() throws UnsupportedOperationException {
         this.request.abort();
     }
 
-
     public void addHeader(final Header header) {
         this.request.addHeader(header);
     }
-
 
     public void addHeader(final String name, final String value) {
         this.request.addHeader(name, value);
     }
 
-    /**
-     * Change the HTTP method used within this request.
-     *
-     * @param method
-     *            which indicates the HTTP method need to use
-     * @return modified request
-     */
-    private FluentRequest by(final FluentHttpMethod method, final URI uri) {
-        switch (method) {
-        case GET_METHOD:
-            this.request = new HttpGet(uri);
-            break;
-        case POST_METHOD:
-            this.request = new HttpPost(uri);
-            break;
-        case OPTIONS_METHOD:
-            this.request = new HttpOptions(uri);
-            break;
-        case DELETE_METHOD:
-            this.request = new HttpDelete(uri);
-            break;
-        case HEAD_METHOD:
-            this.request = new HttpHead(uri);
-            break;
-        case PUT_METHOD:
-            this.request = new HttpPut(uri);
-            break;
-        case TRACE_METHOD:
-            this.request = new HttpTrace(uri);
-            break;
-        }
-        this.method = method;
-        return this;
-    }
-
-
     public boolean containsHeader(final String name) {
         return this.request.containsHeader(name);
-    }
-
-    private void copyFrom(FluentRequest other) {
-        this.request = other.request;
-        this.method = other.method;
-        this.localContext = other.localContext;
-        this.localParams = other.localParams;
-        this.localProxy = other.localProxy;
-        this.credentialsProvider = other.credentialsProvider;
     }
 
     /**
@@ -202,7 +150,6 @@ public class FluentRequest implements HttpUriRequest {
         DefaultHttpClient client = new DefaultHttpClient();
         return new FluentResponse(client.execute(request));
     }
-
 
     public Header[] getAllHeaders() {
         return this.request.getAllHeaders();
@@ -235,7 +182,7 @@ public class FluentRequest implements HttpUriRequest {
         return getValueOfHeader(HttpHeader.CONTENT_TYPE);
     }
 
-    public CredentialsProvider getCredentialProvider() {
+    public CredentialsProvider getCredentialsProvider() {
         return credentialsProvider;
     }
 
@@ -248,11 +195,9 @@ public class FluentRequest implements HttpUriRequest {
                 .getParameter(CoreProtocolPNames.HTTP_ELEMENT_CHARSET);
     }
 
-
     public Header getFirstHeader(final String name) {
         return this.request.getFirstHeader(name);
     }
-
 
     public Header[] getHeaders(final String name) {
         return this.request.getHeaders(name);
@@ -270,6 +215,11 @@ public class FluentRequest implements HttpUriRequest {
         return method;
     }
 
+    public HttpVersion getHttpVersion() {
+        return (HttpVersion) this.localParams
+                .getParameter(CoreProtocolPNames.PROTOCOL_VERSION);
+    }
+
     public String getIfModifiedSince() {
         return getValueOfHeader(HttpHeader.IF_MODIFIED_SINCE);
     }
@@ -278,26 +228,29 @@ public class FluentRequest implements HttpUriRequest {
         return getValueOfHeader(HttpHeader.IF_UNMODIFIED_SINCE);
     }
 
-
     public Header getLastHeader(final String name) {
         return this.request.getLastHeader(name);
     }
 
+    public HttpContext getLocalContext() {
+        return localContext;
+    }
+
+    public HttpParams getLocalParams() {
+        return localParams;
+    }
 
     public String getMethod() {
         return this.request.getMethod();
     }
 
-
     public HttpParams getParams() {
         return this.request.getParams();
     }
 
-
     public ProtocolVersion getProtocolVersion() {
         return this.request.getProtocolVersion();
     }
-
 
     public RequestLine getRequestLine() {
         return this.request.getRequestLine();
@@ -307,19 +260,8 @@ public class FluentRequest implements HttpUriRequest {
         return HttpConnectionParams.getSoTimeout(localParams);
     }
 
-    public boolean isStrictTransferEncoding() {
-        return (Boolean) localParams
-                .getParameter(CoreProtocolPNames.STRICT_TRANSFER_ENCODING);
-    }
-
-
     public URI getURI() {
         return this.request.getURI();
-    }
-
-    public boolean isUseExpectContinue() {
-        return (Boolean) localParams
-                .getParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE);
     }
 
     public String getUserAgent() {
@@ -339,37 +281,75 @@ public class FluentRequest implements HttpUriRequest {
                 .getParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE);
     }
 
-
     public HeaderIterator headerIterator() {
         return this.request.headerIterator();
     }
-
 
     public HeaderIterator headerIterator(final String name) {
         return this.request.headerIterator(name);
     }
 
-    private void init() {
+    private void init(final String uriString, final FluentHttpMethod method) {
+        try {
+            URI uri = new URI(uriString);
+            init(uri, method);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private void init(final URI uri, final FluentHttpMethod method) {
+        switch (method) {
+        case GET_METHOD:
+            this.request = new HttpGet(uri);
+            break;
+        case POST_METHOD:
+            this.request = new HttpPost(uri);
+            break;
+        case OPTIONS_METHOD:
+            this.request = new HttpOptions(uri);
+            break;
+        case DELETE_METHOD:
+            this.request = new HttpDelete(uri);
+            break;
+        case HEAD_METHOD:
+            this.request = new HttpHead(uri);
+            break;
+        case PUT_METHOD:
+            this.request = new HttpPut(uri);
+            break;
+        case TRACE_METHOD:
+            this.request = new HttpTrace(uri);
+            break;
+        }
+        this.method = method;
         localParams = request.getParams();
         localContext = new BasicHttpContext();
         credentialsProvider = new BasicCredentialsProvider();
         localProxy = null;
     }
 
-
     public boolean isAborted() {
         return this.request.isAborted();
+    }
+
+    public boolean isStrictTransferEncoding() {
+        return (Boolean) localParams
+                .getParameter(CoreProtocolPNames.STRICT_TRANSFER_ENCODING);
+    }
+
+    public boolean isUseExpectContinue() {
+        return (Boolean) localParams
+                .getParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE);
     }
 
     public FluentRequest removeAuth() {
         return setAuth(null);
     }
 
-
     public void removeHeader(final Header header) {
         this.request.removeHeader(header);
     }
-
 
     public void removeHeaders(final String name) {
         this.request.removeHeaders(name);
@@ -450,11 +430,26 @@ public class FluentRequest implements HttpUriRequest {
     }
 
     public FluentRequest setEntity(final HttpEntity entity) {
-        log.warn("");
-        this.by(FluentHttpMethod.POST_METHOD, this.request.getURI());
-        HttpPost post = (HttpPost) this.request;
-        post.setEntity(entity);
+        if (method == FluentHttpMethod.POST_METHOD) {
+            HttpPost post = (HttpPost) this.request;
+            post.setEntity(entity);
+        } else {
+            throw new IllegalStateException(
+                    "Only POST method can have an entity.");
+        }
         return this;
+    }
+
+    public void setHeader(final Header header) {
+        this.request.setHeader(header);
+    }
+
+    public void setHeader(final String name, final String value) {
+        this.request.setHeader(name, value);
+    }
+
+    public void setHeaders(final Header[] headers) {
+        this.request.setHeaders(headers);
     }
 
     public FluentRequest setHTMLFormEntity(final Map<String, String> form,
@@ -469,19 +464,9 @@ public class FluentRequest implements HttpUriRequest {
         return setEntity(entity);
     }
 
-
-    public void setHeader(final Header header) {
-        this.request.setHeader(header);
-    }
-
-
-    public void setHeader(final String name, final String value) {
-        this.request.setHeader(name, value);
-    }
-
-
-    public void setHeaders(final Header[] headers) {
-        this.request.setHeaders(headers);
+    public FluentRequest setHttpVersion(HttpVersion version) {
+        localParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, version);
+        return this;
     }
 
     public FluentRequest setIfModifiedSince(final Date date) {
@@ -496,14 +481,8 @@ public class FluentRequest implements HttpUriRequest {
         return this;
     }
 
-
     public void setParams(final HttpParams params) {
         this.request.setParams(params);
-    }
-
-    public FluentRequest setProtocolVersion(HttpVersion version) {
-        localParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, version);
-        return this;
     }
 
     public FluentRequest setProxy(final String proxyAddr, final int proxyPort) {
