@@ -40,12 +40,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.MalformedChunkCodingException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpServerConnection;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -55,20 +55,15 @@ import org.junit.Test;
 
 public class TestConnectionAutoRelease extends ServerTestBase {
 
-    private ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
-        if (schreg == null)
-            schreg = supportedSchemes;
-        return new ThreadSafeClientConnManager(schreg);
-    }
-
     @Test
     public void testReleaseOnEntityConsumeContent() throws Exception {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setDefaultMaxPerRoute(1);
         mgr.setMaxTotal(1);
 
         // Zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        PoolStats stats = mgr.getTotalStats();
+        Assert.assertEquals(0, stats.getAvailable());
 
         DefaultHttpClient client = new DefaultHttpClient(mgr);
 
@@ -90,7 +85,8 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         EntityUtils.consume(e);
 
         // Expect one connection in the pool
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        stats = mgr.getTotalStats();
+        Assert.assertEquals(1, stats.getAvailable());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);
@@ -103,12 +99,13 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
     @Test
     public void testReleaseOnEntityWriteTo() throws Exception {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setDefaultMaxPerRoute(1);
         mgr.setMaxTotal(1);
 
         // Zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        PoolStats stats = mgr.getTotalStats();
+        Assert.assertEquals(0, stats.getAvailable());
 
         DefaultHttpClient client = new DefaultHttpClient(mgr);
 
@@ -131,7 +128,8 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         e.writeTo(outsteam);
 
         // Expect one connection in the pool
-        Assert.assertEquals(1, mgr.getConnectionsInPool());
+        stats = mgr.getTotalStats();
+        Assert.assertEquals(1, stats.getAvailable());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);
@@ -144,12 +142,13 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
     @Test
     public void testReleaseOnAbort() throws Exception {
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setDefaultMaxPerRoute(1);
         mgr.setMaxTotal(1);
 
         // Zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        PoolStats stats = mgr.getTotalStats();
+        Assert.assertEquals(0, stats.getAvailable());
 
         DefaultHttpClient client = new DefaultHttpClient(mgr);
 
@@ -171,7 +170,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         httpget.abort();
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);
@@ -217,12 +216,12 @@ public class TestConnectionAutoRelease extends ServerTestBase {
 
         });
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setDefaultMaxPerRoute(1);
         mgr.setMaxTotal(1);
 
         // Zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
 
         DefaultHttpClient client = new DefaultHttpClient(mgr);
 
@@ -250,7 +249,7 @@ public class TestConnectionAutoRelease extends ServerTestBase {
         }
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, mgr.getConnectionsInPool());
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
 
         // Make sure one connection is available
         connreq = mgr.requestConnection(new HttpRoute(target), null);

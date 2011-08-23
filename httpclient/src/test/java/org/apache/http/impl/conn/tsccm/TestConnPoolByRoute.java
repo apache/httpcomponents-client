@@ -50,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Deprecated
 public class TestConnPoolByRoute extends ServerTestBase {
 
     private ConnPoolByRoute impl;
@@ -201,7 +202,6 @@ public class TestConnPoolByRoute extends ServerTestBase {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     public void deprecatedConstructorIsStillSupported() {
         new ConnPoolByRoute(new DefaultClientConnectionOperator(supportedSchemes),
                 new BasicHttpParams());
@@ -310,8 +310,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        Thread.sleep(1);
-        impl.closeIdleConnections(3, TimeUnit.MILLISECONDS);
+        impl.closeIdleConnections(3, TimeUnit.SECONDS);
         verify(mockConnection, never()).close();
     }
 
@@ -369,9 +368,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
         });
         t.start();
-        Thread.sleep(5);
+        Thread.sleep(100);
         impl.freeEntry(entry, true, 1000, TimeUnit.MILLISECONDS);
-        Thread.sleep(5);
+        Thread.sleep(100);
         assertTrue(f.flag);
     }
 
@@ -393,9 +392,9 @@ public class TestConnPoolByRoute extends ServerTestBase {
             }
         });
         t.start();
-        Thread.sleep(5);
+        Thread.sleep(100);
         impl.freeEntry(entry, true, 1000, TimeUnit.MILLISECONDS);
-        Thread.sleep(5);
+        Thread.sleep(100);
         assertTrue(f.flag);
     }
 

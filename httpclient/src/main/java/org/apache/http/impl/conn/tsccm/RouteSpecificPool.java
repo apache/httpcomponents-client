@@ -31,8 +31,6 @@ import java.util.ListIterator;
 import java.util.Queue;
 import java.util.LinkedList;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.OperatedClientConnection;
@@ -47,8 +45,10 @@ import org.apache.http.util.LangUtils;
  * containing pool takes care of synchronization.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link org.apache.http.pool.AbstractConnPool}
  */
-@NotThreadSafe // e.g. numEntries, freeEntries,
+@Deprecated
 public class RouteSpecificPool {
 
     private final Log log = LogFactory.getLog(getClass());

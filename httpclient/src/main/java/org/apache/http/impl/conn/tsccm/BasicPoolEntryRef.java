@@ -26,15 +26,10 @@
 
 package org.apache.http.impl.conn.tsccm;
 
-
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.conn.routing.HttpRoute;
-
-
 
 /**
  * A weak reference to a {@link BasicPoolEntry BasicPoolEntry}.
@@ -42,8 +37,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * can be reclaimed if it is lost to garbage collection.
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
-@Immutable
+@Deprecated
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */

@@ -55,7 +55,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -188,7 +188,7 @@ public class TestContentCodings extends ServerTestBase {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
-        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
         cm.setMaxTotal(clients);
 
         final HttpClient httpClient = new DefaultHttpClient(cm);

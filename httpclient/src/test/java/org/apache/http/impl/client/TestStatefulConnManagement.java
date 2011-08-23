@@ -37,7 +37,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -85,7 +85,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(params, 10);
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
 
@@ -207,7 +207,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         this.localServer.register("*", new SimpleService());
 
         // We build a client with 2 max active // connections, and 2 max per route.
-        ThreadSafeClientConnManager connMngr = new ThreadSafeClientConnManager(supportedSchemes);
+        PoolingClientConnectionManager connMngr = new PoolingClientConnectionManager(supportedSchemes);
         connMngr.setMaxTotal(maxConn);
         connMngr.setDefaultMaxPerRoute(maxConn);
 

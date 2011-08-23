@@ -52,6 +52,7 @@ import org.junit.Test;
  * satisfying the condition.
  *
  */
+@Deprecated
 public class TestSpuriousWakeup {
 
     public final static

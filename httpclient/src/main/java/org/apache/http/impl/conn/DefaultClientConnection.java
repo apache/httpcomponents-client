@@ -149,7 +149,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         shutdown = true;
         try {
             super.shutdown();
-            log.debug("Connection shut down");
+            if (log.isDebugEnabled()) {
+                log.debug("Connection " + this + " shut down");
+            }
             Socket sock = this.socket; // copy volatile attribute
             if (sock != null)
                 sock.close();
@@ -162,7 +164,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public void close() throws IOException {
         try {
             super.close();
-            log.debug("Connection closed");
+            if (log.isDebugEnabled()) {
+                log.debug("Connection " + this + " closed");
+            }
         } catch (IOException ex) {
             log.debug("I/O error closing connection", ex);
         }
@@ -211,7 +215,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     @Override
-    protected HttpMessageParser createResponseParser(
+    protected HttpMessageParser<HttpResponse> createResponseParser(
             final SessionInputBuffer buffer,
             final HttpResponseFactory responseFactory,
             final HttpParams params) {

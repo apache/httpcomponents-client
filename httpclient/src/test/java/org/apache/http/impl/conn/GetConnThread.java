@@ -47,7 +47,7 @@ public class GetConnThread extends Thread {
     protected final ClientConnectionRequest conn_request;
 
     protected volatile ManagedClientConnection connection;
-    protected volatile Throwable               exception;
+    protected volatile Exception               exception;
 
     /**
      * Creates a new thread for requesting a connection from the given manager.
@@ -81,8 +81,8 @@ public class GetConnThread extends Thread {
         try {
             connection = conn_request.getConnection
                 (conn_timeout, TimeUnit.MILLISECONDS);
-        } catch (Throwable dart) {
-            exception = dart;
+        } catch (Exception ex) {
+            exception = ex;
         }
         // terminate
     }

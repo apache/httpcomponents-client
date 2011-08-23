@@ -29,7 +29,6 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.routing.HttpRoute;
@@ -39,8 +38,10 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
  * Basic implementation of a connection pool entry.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link org.apache.http.pool.PoolEntry}
  */
-@NotThreadSafe
+@Deprecated
 public class BasicPoolEntry extends AbstractPoolEntry {
 
     private final long created;

@@ -28,7 +28,6 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -55,7 +54,6 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpParams;
@@ -73,25 +71,6 @@ import org.junit.Test;
 public class TestTSCCMWithServer extends ServerTestBase {
 
     /**
-     * Helper to instantiate a <code>ThreadSafeClientConnManager</code>.
-     *
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> to use defaults
-     *
-     * @return  a connection manager to test
-     */
-    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg) {
-        return createTSCCM(schreg, -1, TimeUnit.MILLISECONDS);
-    }
-
-    public ThreadSafeClientConnManager createTSCCM(SchemeRegistry schreg,
-            long connTTL, TimeUnit connTTLTimeUnit) {
-        if (schreg == null)
-            schreg = supportedSchemes;
-        return new ThreadSafeClientConnManager(schreg, connTTL, connTTLTimeUnit);
-    }
-
-    /**
      * Tests executing several requests in parallel.
      */
     @Test
@@ -100,7 +79,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         final int COUNT = 8; // adjust to execute more requests
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(COUNT/2);
         mgr.setDefaultMaxPerRoute(COUNT/2);
 
@@ -173,7 +152,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     @Test
     public void testReleaseConnection() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
@@ -259,7 +238,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     @Test
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
@@ -361,7 +340,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     @Test
     public void testCloseExpiredIdleConnections() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
@@ -370,27 +349,28 @@ public class TestTSCCMWithServer extends ServerTestBase {
         ManagedClientConnection conn = getConnection(mgr, route);
         conn.open(route, httpContext, defaultParams);
 
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1, mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getLeased());
+        Assert.assertEquals(1, mgr.getStats(route).getLeased());
+        conn.markReusable();
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
 
         // Released, still active.
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
 
         mgr.closeExpiredConnections();
 
         // Time has not expired yet.
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
         mgr.closeExpiredConnections();
 
         // Time expired now, connections are destroyed.
-        Assert.assertEquals("connectionsInPool", 0, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 0, mgr.getConnectionsInPool(route));
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(0, mgr.getStats(route).getAvailable());
 
         mgr.shutdown();
     }
@@ -398,7 +378,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
     @Test
     public void testCloseExpiredTTLConnections() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null, 100, TimeUnit.MILLISECONDS);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(
+                SchemeRegistryFactory.createDefault(), 100, TimeUnit.MILLISECONDS);
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
@@ -407,28 +388,29 @@ public class TestTSCCMWithServer extends ServerTestBase {
         ManagedClientConnection conn = getConnection(mgr, route);
         conn.open(route, httpContext, defaultParams);
 
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1, mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getLeased());
+        Assert.assertEquals(1, mgr.getStats(route).getLeased());
         // Release, let remain idle for forever
+        conn.markReusable();
         mgr.releaseConnection(conn, -1, TimeUnit.MILLISECONDS);
 
         // Released, still active.
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
 
         mgr.closeExpiredConnections();
 
         // Time has not expired yet.
-        Assert.assertEquals("connectionsInPool", 1, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 1,  mgr.getConnectionsInPool(route));
+        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
         mgr.closeExpiredConnections();
 
         // TTL expired now, connections are destroyed.
-        Assert.assertEquals("connectionsInPool", 0, mgr.getConnectionsInPool());
-        Assert.assertEquals("connectionsInPool(host)", 0, mgr.getConnectionsInPool(route));
+        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
+        Assert.assertEquals(0, mgr.getStats(route).getAvailable());
 
         mgr.shutdown();
     }
@@ -440,7 +422,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
     @Test
     public void testReleaseConnectionOnAbort() throws Exception {
 
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
@@ -473,8 +455,8 @@ public class TestTSCCMWithServer extends ServerTestBase {
         }
 
         // abort the connection
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
-        ((AbstractClientConnAdapter) conn).abortConnection();
+        Assert.assertTrue(conn instanceof ManagedClientConnection);
+        ((ManagedClientConnection) conn).abortConnection();
 
         // the connection is expected to be released back to the manager
         conn = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
@@ -482,56 +464,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
 
         mgr.releaseConnection(conn, -1, null);
         mgr.shutdown();
-    }
-
-    /**
-     * Tests GC of an unreferenced connection manager.
-     */
-    @Test
-    public void testConnectionManagerGC() throws Exception {
-        // 3.x: TestHttpConnectionManager.testDroppedThread
-
-        ThreadSafeClientConnManager mgr = createTSCCM(null);
-
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
-
-        HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
-
-        ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
-
-        // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(request, conn, target,
-                httpExecutor, httpProcessor, defaultParams, httpContext);
-        EntityUtils.toByteArray(response.getEntity());
-
-        // release connection after marking it for re-use
-        conn.markReusable();
-        mgr.releaseConnection(conn, -1, null);
-
-        // We now have a manager with an open connection in its pool.
-        // We drop all potential hard reference to the manager and check
-        // whether it is GCed. Internal references might prevent that
-        // if set up incorrectly.
-        // Note that we still keep references to the connection wrapper
-        // we got from the manager, directly as well as in the request
-        // and in the context. The manager will be GCed only if the
-        // connection wrapper is truly detached.
-        WeakReference<ThreadSafeClientConnManager> wref =
-            new WeakReference<ThreadSafeClientConnManager>(mgr);
-        mgr = null;
-
-        // Java does not guarantee that this will trigger the GC, but
-        // it does in the test environment. GC is asynchronous, so we
-        // need to give the garbage collector some time afterwards.
-        System.gc();
-        Thread.sleep(1000);
-
-        Assert.assertNull("TSCCM not garbage collected", wref.get());
     }
 
     @Test
@@ -543,14 +475,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
 
         final ManagedClientConnection conn = getConnection(mgr, route);
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
@@ -595,14 +526,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
 
         final ManagedClientConnection conn = getConnection(mgr, route);
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
@@ -649,14 +579,13 @@ public class TestTSCCMWithServer extends ServerTestBase {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(scheme);
 
-        ThreadSafeClientConnManager mgr = createTSCCM(registry);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
 
         final ManagedClientConnection conn = getConnection(mgr, route);
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
@@ -704,7 +633,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final AtomicReference<StallingOperator> operatorRef = new AtomicReference<StallingOperator>();
 
-        ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(supportedSchemes) {
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager() {
             @Override
             protected ClientConnectionOperator createConnectionOperator(
                     SchemeRegistry schreg) {
@@ -719,7 +648,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
 
         final ManagedClientConnection conn = getConnection(mgr, route);
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         Thread abortingThread = new Thread(new Runnable() {
@@ -739,7 +667,6 @@ public class TestTSCCMWithServer extends ServerTestBase {
             conn.open(route, httpContext, defaultParams);
             Assert.fail("expected exception");
         } catch(IOException iox) {
-            Assert.assertEquals("Request aborted", iox.getMessage());
         }
 
         abortingThread.join(5000);
@@ -782,7 +709,7 @@ public class TestTSCCMWithServer extends ServerTestBase {
         void latch() {
             waitLatch.countDown();
             try {
-                if (!continueLatch.await(1, TimeUnit.SECONDS))
+                if (!continueLatch.await(60, TimeUnit.SECONDS))
                     throw new RuntimeException("waited too long!");
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

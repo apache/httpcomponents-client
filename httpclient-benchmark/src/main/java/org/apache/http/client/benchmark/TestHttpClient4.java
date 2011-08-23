@@ -42,7 +42,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -52,7 +52,7 @@ import org.apache.http.util.VersionInfo;
 
 public class TestHttpClient4 implements TestHttpAgent {
 
-    private final ThreadSafeClientConnManager mgr;
+    private final PoolingClientConnectionManager mgr;
     private final DefaultHttpClient httpclient;
 
     public TestHttpClient4() {
@@ -71,7 +71,7 @@ public class TestHttpClient4 implements TestHttpAgent {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
-        this.mgr = new ThreadSafeClientConnManager(schemeRegistry);
+        this.mgr = new PoolingClientConnectionManager(schemeRegistry);
         this.httpclient = new DefaultHttpClient(this.mgr, params);
         this.httpclient.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
 

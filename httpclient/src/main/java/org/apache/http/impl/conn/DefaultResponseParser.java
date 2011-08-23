@@ -34,7 +34,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
-import org.apache.http.HttpMessage;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
@@ -60,7 +60,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @ThreadSafe // no public methods
-public class DefaultResponseParser extends AbstractMessageParser {
+public class DefaultResponseParser extends AbstractMessageParser<HttpResponse> {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -94,7 +94,7 @@ public class DefaultResponseParser extends AbstractMessageParser {
     }
 
     @Override
-    protected HttpMessage parseHead(
+    protected HttpResponse parseHead(
             final SessionInputBuffer sessionBuffer) throws IOException, HttpException {
         //read out the HTTP status string
         int count = 0;

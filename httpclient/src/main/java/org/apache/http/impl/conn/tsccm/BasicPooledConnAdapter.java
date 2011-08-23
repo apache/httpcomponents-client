@@ -36,7 +36,10 @@ import org.apache.http.impl.conn.AbstractPooledConnAdapter;
  * can be {@link #detach detach}ed to prevent further use on release.
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
+@Deprecated
 public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
 
     /**

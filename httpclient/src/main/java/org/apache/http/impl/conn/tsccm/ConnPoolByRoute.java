@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -63,10 +62,11 @@ import org.apache.http.params.HttpParams;
  * not via <code>synchronized</code> methods.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link org.apache.http.pool.AbstractConnPool}
  */
-@ThreadSafe
-@SuppressWarnings("deprecation")
-public class ConnPoolByRoute extends AbstractConnPool { //TODO: remove dependency on AbstractConnPool
+@Deprecated
+public class ConnPoolByRoute extends AbstractConnPool {
 
     private final Log log = LogFactory.getLog(getClass());
 

@@ -57,8 +57,11 @@ import org.apache.http.params.HttpParams;
  * already been allocated {@link IllegalStateException} is thrown.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link SingleConnectionManager}
  */
 @ThreadSafe
+@Deprecated
 public class SingleClientConnManager implements ClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());

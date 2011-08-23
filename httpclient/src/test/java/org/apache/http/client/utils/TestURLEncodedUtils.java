@@ -89,7 +89,7 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testParseEntity () throws Exception {
-        final StringEntity entity = new StringEntity("Name1=Value1", null);
+        final StringEntity entity = new StringEntity("Name1=Value1");
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
         final List <NameValuePair> result = URLEncodedUtils.parse(entity);
@@ -142,7 +142,7 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testIsEncoded () throws Exception {
-        final StringEntity entity = new StringEntity("...", null);
+        final StringEntity entity = new StringEntity("...");
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
         Assert.assertTrue(URLEncodedUtils.isEncoded(entity));
