@@ -117,11 +117,13 @@
             org.apache.http.io;version=${httpcore.version},
             org.apache.http.message;version=${httpcore.version},
             org.apache.http.params;version=${httpcore.version},
+            org.apache.http.pool;version=${httpcore.version},
             org.apache.http.protocol;version=${httpcore.version},
             org.apache.http.util;version=${httpcore.version},
             org.apache.http.impl;version=${httpcore.version},
             org.apache.http.impl.entity;version=${httpcore.version},
             org.apache.http.impl.io;version=${httpcore.version},
+            org.apache.http.impl.pool;version=${httpcore.version},
             net.sf.ehcache.*;resolution:=optional,
             net.spy.memcached.*;resolution:=optional
             </Import-Package>
