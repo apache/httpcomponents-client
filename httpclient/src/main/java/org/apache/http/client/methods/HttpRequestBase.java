@@ -47,7 +47,7 @@ import org.apache.http.params.HttpProtocolParams;
 
 /**
  * Basic implementation of an HTTP request that can be modified. Methods of the
- * {@link AbortableHttpRequest) interface implemented by this class are thread safe.
+ * {@link AbortableHttpRequest} interface implemented by this class are thread safe.
  *
  * @since 4.0
  */
