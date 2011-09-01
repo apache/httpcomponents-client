@@ -1,5 +1,8 @@
 Changes since 4.1.1
 
+* [HTTPCLIENT-1120] DefaultHttpRequestRetryHandler#retryRequest should not retry aborted requests
+  Contributed by Alin Vasile <alinachegalati at yahoo dot com>
+
 * [HTTPCLIENT-1100] Missing Content-Length header makes cached entry invalid
   Contributed by Bart Robeyns <bart dot robeyns at gmail dot com>
 
