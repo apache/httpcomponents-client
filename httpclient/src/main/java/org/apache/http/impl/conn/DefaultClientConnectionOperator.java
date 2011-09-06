@@ -105,7 +105,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             throw new IllegalArgumentException("Scheme registry amy not be null");
         }
         this.schemeRegistry = schemes;
-        this.dnsResolver = null;
+        this.dnsResolver = new SystemDefaultDnsResolver();
     }
 
     /**
@@ -120,7 +120,11 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
     public DefaultClientConnectionOperator(final SchemeRegistry schemes,final DnsResolver dnsResolver) {
         if (schemes == null) {
             throw new IllegalArgumentException(
-                     "Scheme registry amy not be null");
+                     "Scheme registry may not be null");
+        }
+
+        if(dnsResolver == null){
+            throw new IllegalArgumentException("DNS resolver may not be null");
         }
 
         this.schemeRegistry = schemes;
@@ -256,24 +260,19 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
 
     /**
      * Resolves the given host name to an array of corresponding IP addresses, based on the
-     * configured name service on the system.
-     *
-     * If a custom DNS resolver is provided, the given host will be searched in
-     * it first. If the host is not configured, the default OS DNS-lookup
-     * mechanism is used.
+     * configured name service on the provided DNS resolver. If one wasn't provided, the system
+     * configuration is used.
      *
      * @param host host name to resolve
      * @return array of IP addresses
      * @exception  UnknownHostException  if no IP address for the host could be determined.
      *
+     * @see {@link DnsResolver}
+     * @see {@link SystemDefaultDnsResolver}
      * @since 4.1
      */
     protected InetAddress[] resolveHostname(final String host) throws UnknownHostException {
-        if (dnsResolver != null) {
             return dnsResolver.resolve(host);
-        } else {
-            return InetAddress.getAllByName(host);
-        }
     }
 
 }

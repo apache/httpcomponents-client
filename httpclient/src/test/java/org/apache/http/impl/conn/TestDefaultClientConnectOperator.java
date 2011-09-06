@@ -65,6 +65,13 @@ public class TestDefaultClientConnectOperator {
         operator.resolveHostname("unknown.example.com");
     }
 
+    @Test
+    public void testDefaultLocalHost() throws Exception {
+        DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
+                SchemeRegistryFactory.createDefault());
+        operator.resolveHostname("localhost");
+    }
+
     private InetAddress[] translateIp(String ip) throws UnknownHostException {
         String[] ipParts = ip.split("\\.");
 

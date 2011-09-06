@@ -101,7 +101,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.schemeRegistry = schemeRegistry;
-        this.dnsResolver = null;
+        this.dnsResolver = new SystemDefaultDnsResolver();
         this.operator = createConnectionOperator(schemeRegistry);
         this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
     }
@@ -114,7 +114,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.schemeRegistry = schemeRegistry;
-        this.dnsResolver = dnsResolver;
+        this.dnsResolver  = new SystemDefaultDnsResolver();
         this.operator = createConnectionOperator(schemeRegistry);
         this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
     }
@@ -141,7 +141,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
      * @return  the connection operator to use
      */
     protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
-        return new DefaultClientConnectionOperator(schreg, this.dnsResolver);
+            return new DefaultClientConnectionOperator(schreg, this.dnsResolver);
     }
 
     public SchemeRegistry getSchemeRegistry() {
