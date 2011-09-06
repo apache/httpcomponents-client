@@ -27,11 +27,10 @@ package org.apache.http.impl.client;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import static org.mockito.Mockito.when;
@@ -41,63 +40,73 @@ import org.junit.Test;
 
 
 public class TestDefaultHttpRequestRetryHandler {
-	
-	@Test
-	public void retryOnConnectTimeout() throws Exception {
-        DefaultHttpClient client = new DefaultHttpClient();
+    
+    @Test
+    public void noRetryOnConnectTimeout() throws Exception {
+        HttpContext context = mock(HttpContext.class);
+        HttpUriRequest request = mock(HttpUriRequest.class);
+        
+        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        Assert.assertEquals(3, retryHandler.getRetryCount());
+        
+        when(request.isAborted()).thenReturn(Boolean.FALSE);
+        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        
+        Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(), 1, context));
+    }
+    
+    @Test
+    public void noRetryOnUnknownHost() throws Exception {
+        HttpContext context = mock(HttpContext.class);
+        HttpUriRequest request = mock(HttpUriRequest.class);
+        
         DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         
-        client.setHttpRequestRetryHandler(retryHandler);
-
-        HttpRequestBase request = new HttpGet("http://www.example.com/");
-
-        HttpConnectionParams.setConnectionTimeout(request.getParams(), 1);
-        try {
-        	client.execute(request);
-        } catch (ConnectTimeoutException ex) {
-            Assert.assertEquals(3, retryHandler.getRetryCount());            
-        } 
+        when(request.isAborted()).thenReturn(Boolean.FALSE);
+        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        
+        Assert.assertFalse(retryHandler.retryRequest(new UnknownHostException(), 1, context));
     }
-	
-	@Test
-	public void noRetryOnAbortedRequests() throws Exception{
-		HttpContext context = mock(HttpContext.class);
-		HttpRequestBase request = mock(HttpRequestBase.class);
-		
+    
+    @Test
+    public void noRetryOnAbortedRequests() throws Exception{
+        HttpContext context = mock(HttpContext.class);
+        HttpUriRequest request = mock(HttpUriRequest.class);
+        
         DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         
         when(request.isAborted()).thenReturn(Boolean.TRUE);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
         
         Assert.assertFalse(retryHandler.retryRequest(new IOException(),3,context));
-	}
-	
-	@Test
-	public void retryOnNonAbortedRequests() throws Exception{
-		
-		HttpContext context = mock(HttpContext.class);
-		HttpRequestBase request = mock(HttpRequestBase.class);
-		
+    }
+    
+    @Test
+    public void retryOnNonAbortedRequests() throws Exception{
+        
+        HttpContext context = mock(HttpContext.class);
+        HttpUriRequest request = mock(HttpUriRequest.class);
+        
         DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         
         when(request.isAborted()).thenReturn(Boolean.FALSE);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
         
         Assert.assertTrue(retryHandler.retryRequest(new IOException(),3,context));
-	}
-	
-	@Test
-	public void noRetryOnConnectionTimeout() throws Exception{
-		
-		HttpContext context = mock(HttpContext.class);
-		HttpRequestBase request = mock(HttpRequestBase.class);
-		
+    }
+    
+    @Test
+    public void noRetryOnConnectionTimeout() throws Exception{
+        
+        HttpContext context = mock(HttpContext.class);
+        HttpUriRequest request = mock(HttpUriRequest.class);
+        
         DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         
         when(request.isAborted()).thenReturn(false);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
         
         Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(),3,context));
-	}
-	
+    }
+    
 }
