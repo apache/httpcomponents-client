@@ -53,6 +53,8 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
 
+import org.apache.http.conn.DnsResolver;
+
 /**
  * Default implementation of a {@link ClientConnectionOperator}. It uses a {@link SchemeRegistry}
  * to look up {@link SchemeSocketFactory} objects.
@@ -90,6 +92,9 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
     /** The scheme registry for looking up socket factories. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
+    /** the custom-configured DNS lookup mechanism. */
+    protected final DnsResolver dnsResolver;
+
     /**
      * Creates a new client connection operator for the given scheme registry.
      *
@@ -100,6 +105,26 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             throw new IllegalArgumentException("Scheme registry amy not be null");
         }
         this.schemeRegistry = schemes;
+        this.dnsResolver = null;
+    }
+
+    /**
+    * Creates a new client connection operator for the given scheme registry
+    * and the given custom DNS lookup mechanism.
+    *
+    * @param schemes
+    *            the scheme registry
+    * @param dnsResolver
+    *            the custom DNS lookup mechanism
+    */
+    public DefaultClientConnectionOperator(final SchemeRegistry schemes,final DnsResolver dnsResolver) {
+        if (schemes == null) {
+            throw new IllegalArgumentException(
+                     "Scheme registry amy not be null");
+        }
+
+        this.schemeRegistry = schemes;
+        this.dnsResolver = dnsResolver;
     }
 
     public OperatedClientConnection createConnection() {
@@ -233,6 +258,10 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * Resolves the given host name to an array of corresponding IP addresses, based on the
      * configured name service on the system.
      *
+     * If a custom DNS resolver is provided, the given host will be searched in
+     * it first. If the host is not configured, the default OS DNS-lookup
+     * mechanism is used.
+     *
      * @param host host name to resolve
      * @return array of IP addresses
      * @exception  UnknownHostException  if no IP address for the host could be determined.
@@ -240,7 +269,11 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * @since 4.1
      */
     protected InetAddress[] resolveHostname(final String host) throws UnknownHostException {
-        return InetAddress.getAllByName(host);
+        if (dnsResolver != null) {
+            return dnsResolver.resolve(host);
+        } else {
+            return InetAddress.getAllByName(host);
+        }
     }
 
 }

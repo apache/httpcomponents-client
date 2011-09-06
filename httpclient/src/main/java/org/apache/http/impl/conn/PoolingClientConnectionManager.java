@@ -47,6 +47,7 @@ import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.conn.DnsResolver;
 
 /**
  * Manages a pool of {@link OperatedClientConnection client connections} and
@@ -77,8 +78,15 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
 
     private final ClientConnectionOperator operator;
 
+    /** the custom-configured DNS lookup mechanism. */
+    private final DnsResolver dnsResolver;
+
     public PoolingClientConnectionManager(final SchemeRegistry schreg) {
         this(schreg, -1, TimeUnit.MILLISECONDS);
+    }
+
+    public PoolingClientConnectionManager(final SchemeRegistry schreg,final DnsResolver dnsResolver) {
+        this(schreg, -1, TimeUnit.MILLISECONDS,dnsResolver);
     }
 
     public PoolingClientConnectionManager() {
@@ -93,6 +101,20 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.schemeRegistry = schemeRegistry;
+        this.dnsResolver = null;
+        this.operator = createConnectionOperator(schemeRegistry);
+        this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
+    }
+
+    public PoolingClientConnectionManager(final SchemeRegistry schemeRegistry,
+                final long timeToLive, final TimeUnit tunit,
+                final DnsResolver dnsResolver) {
+        super();
+        if (schemeRegistry == null) {
+            throw new IllegalArgumentException("Scheme registry may not be null");
+        }
+        this.schemeRegistry = schemeRegistry;
+        this.dnsResolver = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
         this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
     }
@@ -119,7 +141,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
      * @return  the connection operator to use
      */
     protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
-        return new DefaultClientConnectionOperator(schreg);
+        return new DefaultClientConnectionOperator(schreg, this.dnsResolver);
     }
 
     public SchemeRegistry getSchemeRegistry() {

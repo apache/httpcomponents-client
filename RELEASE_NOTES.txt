@@ -1,7 +1,17 @@
-Changes since 4.1.1
+Changes since 4.1.2
+
+* [HTTPCLIENT-1123] Support for pluggable DNS resolvers.  
+  Contributed by Alin Vasile <alinachegalati at yahoo dot com>
 
 * [HTTPCLIENT-1120] DefaultHttpRequestRetryHandler#retryRequest should not retry aborted requests
   Contributed by Alin Vasile <alinachegalati at yahoo dot com>
+
+
+Release 4.1.2
+-------------------
+
+The HttpClient 4.1.2 is a bug fix release that addresses a number of non-critical issues reported 
+since release 4.1.1.
 
 * [HTTPCLIENT-1100] Missing Content-Length header makes cached entry invalid
   Contributed by Bart Robeyns <bart dot robeyns at gmail dot com>
@@ -31,6 +41,9 @@ Changes since 4.1.1
 * [HTTPCLIENT-1075] Decompressing entities (DeflateDecompressingEntity, GzipDecompressingEntity) 
   do not correctly handle content streaming.
   Contributed by James Abley <james.abley at gmail.com> 
+
+* [HTTPCLIENT-1051] Avoid reverse DNS lookups when opening SSL connections by IP address.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
 Release 4.1.1
