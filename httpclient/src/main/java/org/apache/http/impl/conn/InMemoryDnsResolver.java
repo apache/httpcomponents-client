@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.conn.DnsResolver;
 
 /**
@@ -64,40 +63,23 @@ public class InMemoryDnsResolver implements DnsResolver {
     }
 
     /**
-     * Associates the given IP address to the given host in this DNS overrider.
+     * Associates the given array of IP addresses to the given host in this DNS overrider.
+     * The IP addresses are assumed to be already resolved.
      *
      * @param host
      *            The host name to be associated with the given IP.
-     * @param ip
-     *            IPv4 address to be resolved by this DNS overrider to the given
+     * @param ips
+     *            array of IP addresses to be resolved by this DNS overrider to the given
      *            host name.
-     *
-     * @throws IllegalArgumentException
-     *             if the given IP is not a valid IPv4 address or an InetAddress
-     *             instance cannot be built based on the given IPv4 address.
-     *
-     * @see InetAddress#getByAddress
      */
-    public void add(final String host, final String ip) {
-        if (!InetAddressUtils.isIPv4Address(ip)) {
-            throw new IllegalArgumentException(ip + " must be a valid IPv4 address");
+    public void add(final String host, final InetAddress... ips) {
+        if (host == null) {
+            throw new IllegalArgumentException("Host name may not be null");
         }
-
-        String[] ipParts = ip.split("\\.");
-
-        byte[] byteIpAddress = new byte[4];
-
-        for (int i = 0; i < 4; i++) {
-            byteIpAddress[i] = Integer.decode(ipParts[i]).byteValue();
+        if (ips == null) {
+            throw new IllegalArgumentException("Array of IP addresses may not be null");
         }
-
-        try {
-            dnsMap.put(host, new InetAddress[] { InetAddress.getByAddress(byteIpAddress) });
-        } catch (UnknownHostException e) {
-            log.error("Unable to build InetAddress for " + ip, e);
-            throw new IllegalArgumentException(e);
-        }
-
+        dnsMap.put(host, ips);
     }
 
     /**
@@ -108,11 +90,9 @@ public class InMemoryDnsResolver implements DnsResolver {
         if (log.isInfoEnabled()) {
             log.info("Resolving " + host + " to " + Arrays.deepToString(resolvedAddresses));
         }
-
         if(resolvedAddresses == null){
-            throw new UnknownHostException(host + " cannot be resolved.");
+            throw new UnknownHostException(host + " cannot be resolved");
         }
-
         return resolvedAddresses;
     }
 
