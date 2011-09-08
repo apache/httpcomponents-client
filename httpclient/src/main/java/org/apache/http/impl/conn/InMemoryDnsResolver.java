@@ -37,11 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.DnsResolver;
 
 /**
- * In-memory DNS resolver implementation with entries built using the
- * {@link InMemoryDnsResolver#add(String, String) method}.
- *
- * Currently this class supports only IPv4 addresses.
- *
+ * In-memory DNS resolver implementation.
  */
 public class InMemoryDnsResolver implements DnsResolver {
 
