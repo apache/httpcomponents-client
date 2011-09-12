@@ -143,7 +143,7 @@
     <finalName>org.apache.httpcomponents.httpclient_${project.version}</finalName>
   </build>
 
-  <reports>
+  <reporting>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -154,5 +154,5 @@
         </configuration>
       </plugin>
     </plugins>
-  </reports>
+  </reporting>
 </project>
