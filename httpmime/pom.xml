@@ -47,11 +47,13 @@
       <version>${httpcore.version}</version>
       <scope>compile</scope>
     </dependency>
+    <!-- Not currently used
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
       <scope>compile</scope>
     </dependency>
+    -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
