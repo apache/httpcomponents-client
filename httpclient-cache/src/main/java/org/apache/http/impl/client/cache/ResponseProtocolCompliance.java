@@ -67,7 +67,7 @@ class ResponseProtocolCompliance {
      *
      * @param request The {@link HttpRequest} that generated an origin hit and response
      * @param response The {@link HttpResponse} from the origin server
-     * @throws IOException 
+     * @throws IOException
      */
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
             throws IOException {
@@ -85,7 +85,7 @@ class ResponseProtocolCompliance {
         ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(request, response);
 
         ensure206ContainsDateHeader(response);
-        
+
         ensure304DoesNotContainExtraEntityHeaders(response);
 
         identityIsNotUsedInContentEncoding(response);
@@ -167,9 +167,9 @@ class ResponseProtocolCompliance {
     private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(HttpRequest request,
             HttpResponse response) throws IOException {
         if (request.getFirstHeader(HeaderConstants.RANGE) != null
-                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) 
+                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT)
             return;
-        
+
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
     }
@@ -213,8 +213,8 @@ class ResponseProtocolCompliance {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
-        
-        HttpRequest originalRequest = requestWasWrapped(request) ? 
+
+        HttpRequest originalRequest = requestWasWrapped(request) ?
                 ((RequestWrapper)request).getOriginal() : request;
         if (originalRequest instanceof HttpEntityEnclosingRequest) {
             if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) return;

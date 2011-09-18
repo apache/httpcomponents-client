@@ -33,7 +33,7 @@ import java.io.IOException;
  * interface. They can then be plugged into the existing
  * {@link org.apache.http.impl.client.cache.CachingHttpClient}
  * implementation.
- * 
+ *
  * @since 4.1
  */
 public interface HttpCacheStorage {
@@ -68,7 +68,7 @@ public interface HttpCacheStorage {
      * Atomically applies the given callback to update an existing cache
      * entry under a given key.
      * @param key indicates which entry to modify
-     * @param callback performs the update; see 
+     * @param callback performs the update; see
      *   {@link HttpCacheUpdateCallback} for details, but roughly the
      *   callback expects to be handed the current entry and will return
      *   the new value for the entry.

@@ -58,18 +58,18 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  * peering of a sort</li>
  * </ol>
  * Note that in a shared memcached pool setting you may wish to make use
- * of the Ketama consistent hashing algorithm to reduce the number of 
+ * of the Ketama consistent hashing algorithm to reduce the number of
  * cache misses that might result if one of the memcached cluster members
  * fails (see the <a href="http://dustin.github.com/java-memcached-client/apidocs/net/spy/memcached/KetamaConnectionFactory.html">
  * KetamaConnectionFactory</a>).
  * </p>
- * 
+ *
  * <p>Please refer to the <a href="http://code.google.com/p/memcached/wiki/NewStart">
  * memcached documentation</a> and in particular to the documentation for
  * the <a href="http://code.google.com/p/spymemcached/">spymemcached
  * documentation</a> for details about how to set up and configure memcached
  * and the Java client used here, respectively.</p>
- * 
+ *
  * @since 4.1
  */
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {

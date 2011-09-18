@@ -172,7 +172,7 @@ class CacheInvalidator {
         }
         return relURL;
     }
-    
+
     protected boolean requestShouldNotBeCached(HttpRequest req) {
         String method = req.getRequestLine().getMethod();
         return notGetOrHeadRequest(method);
@@ -184,7 +184,7 @@ class CacheInvalidator {
     }
 
     /** Flushes entries that were invalidated by the given response
-     * received for the given host/request pair. 
+     * received for the given host/request pair.
      */
     public void flushInvalidatedCacheEntries(HttpHost host,
             HttpRequest request, HttpResponse response) {
@@ -200,7 +200,7 @@ class CacheInvalidator {
 
         if (!responseDateNewerThanEntryDate(response, entry)) return;
         if (!responseAndEntryEtagsDiffer(response, entry)) return;
-        
+
         flushUriIfSameHost(reqURL, canonURL);
     }
 
@@ -210,7 +210,7 @@ class CacheInvalidator {
         String contentLocation = clHeader.getValue();
         URL canonURL = getAbsoluteURL(contentLocation);
         if (canonURL != null) return canonURL;
-        return getRelativeURL(reqURL, contentLocation); 
+        return getRelativeURL(reqURL, contentLocation);
     }
 
     private boolean responseAndEntryEtagsDiffer(HttpResponse response,

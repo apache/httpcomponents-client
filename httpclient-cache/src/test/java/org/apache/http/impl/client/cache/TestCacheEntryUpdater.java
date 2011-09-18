@@ -94,7 +94,7 @@ public class TestCacheEntryUpdater {
         HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-         
+
         Header[] updatedHeaders = updatedEntry.getAllHeaders();
         assertEquals(2, updatedHeaders.length);
         headersContain(updatedHeaders, "Date", formatDate(responseDate));
@@ -159,7 +159,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", formatDate(oneSecondAgo)),
                 new BasicHeader("ETag", "\"new-etag\"")
         };
-        entry = HttpTestUtils.makeCacheEntry(twoSecondsAgo, now, headers); 
+        entry = HttpTestUtils.makeCacheEntry(twoSecondsAgo, now, headers);
         response.setHeader("Date", formatDate(tenSecondsAgo));
         response.setHeader("ETag", "\"old-etag\"");
         HttpCacheEntry result = impl.updateCacheEntry("A", entry, new Date(),
@@ -179,7 +179,7 @@ public class TestCacheEntryUpdater {
         assertEquals(twoSecondsAgo, updated.getRequestDate());
         assertEquals(oneSecondAgo, updated.getResponseDate());
     }
-    
+
     @Test
     public void entry1xxWarningsAreRemovedOnUpdate() throws Exception {
         Header[] headers = {
@@ -195,7 +195,7 @@ public class TestCacheEntryUpdater {
 
         assertEquals(0, updated.getHeaders("Warning").length);
     }
-    
+
     @Test
     public void entryWithMalformedDateIsStillUpdated() throws Exception {
         Header[] headers = {
@@ -225,7 +225,7 @@ public class TestCacheEntryUpdater {
 
         assertEquals("\"new\"", updated.getFirstHeader("ETag").getValue());
     }
-    
+
     @Test
     public void cannotUpdateFromANon304OriginResponse() throws Exception {
         entry = HttpTestUtils.makeCacheEntry();

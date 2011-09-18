@@ -512,9 +512,9 @@ public class TestRequestAddCookies {
     // Test for ordering adapted from test in Commons HC 3.1
     public void testCookieOrder() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/foobar/yada/yada");
-        
+
         this.cookieStore.clear();
-        
+
         cookieStore.addCookie(makeCookie("nomatch", "value", "localhost.local", "/noway"));
         cookieStore.addCookie(makeCookie("name2",   "value", "localhost.local", "/foobar/yada"));
         cookieStore.addCookie(makeCookie("name3",   "value", "localhost.local", "/foobar"));

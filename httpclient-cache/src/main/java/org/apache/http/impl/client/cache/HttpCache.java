@@ -56,9 +56,9 @@ interface HttpCache {
      */
     void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request)
         throws IOException;
-    
+
     /** Clear any entries that may be invalidated by the given response to
-     * a particular request. 
+     * a particular request.
      * @param host
      * @param request
      * @param response
@@ -122,7 +122,7 @@ interface HttpCache {
      * Update a specific {@link HttpCacheEntry} representing a cached variant
      * using a 304 {@link HttpResponse}.
      * @param target host for client request
-     * @param request actual request from upstream client 
+     * @param request actual request from upstream client
      * @param stale current variant cache entry
      * @param originResponse 304 response received from origin
      * @param requestSent when the validating request was sent

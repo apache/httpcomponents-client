@@ -42,22 +42,22 @@ public class TestRequestProtocolCompliance {
     private RequestProtocolCompliance impl;
     private HttpRequest req;
     private HttpRequest result;
-    
+
     @Before
     public void setUp() {
         req = HttpTestUtils.makeDefaultRequest();
         impl = new RequestProtocolCompliance();
     }
-    
+
     @Test
     public void doesNotModifyACompliantRequest() throws Exception {
-       result = impl.makeRequestCompliant(req); 
+       result = impl.makeRequestCompliant(req);
        assertTrue(HttpTestUtils.equivalent(req, result));
     }
-    
+
     @Test
     public void removesEntityFromTRACERequest() throws Exception {
-        HttpEntityEnclosingRequest req = 
+        HttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("TRACE", "/", HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(50));
         result = impl.makeRequestCompliant(req);
@@ -65,7 +65,7 @@ public class TestRequestProtocolCompliance {
             assertNull(((HttpEntityEnclosingRequest)result).getEntity());
         }
     }
-    
+
     @Test
     public void upgrades1_0RequestTo1_1() throws Exception {
         req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0);
@@ -80,7 +80,7 @@ public class TestRequestProtocolCompliance {
         result = impl.makeRequestCompliant(req);
         assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
     }
-    
+
     @Test
     public void stripsMinFreshFromRequestIfNoCachePresent()
         throws Exception {
@@ -107,7 +107,7 @@ public class TestRequestProtocolCompliance {
         assertEquals("no-cache",
                 result.getFirstHeader("Cache-Control").getValue());
     }
-    
+
     @Test
     public void doesNotStripMinFreshFromRequestWithoutNoCache()
         throws Exception {
@@ -116,7 +116,7 @@ public class TestRequestProtocolCompliance {
         assertEquals("min-fresh=10",
                 result.getFirstHeader("Cache-Control").getValue());
     }
-    
+
     @Test
     public void correctlyStripsMinFreshFromMiddleIfNoCache()
         throws Exception {

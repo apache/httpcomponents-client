@@ -66,7 +66,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     private Date now;
     private Date tenSecondsAgo;
     private Date twoMinutesAgo;
-    
+
     @Override
     @Before
     public void setUp() {
@@ -76,7 +76,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000L);
         tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
     }
-    
+
     /* "identity: The default (identity) encoding; the use of no
      * transformation whatsoever. This content-coding is used only in the
      * Accept-Encoding header, and SHOULD NOT be used in the
@@ -107,7 +107,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * "304 Not Modified. ... If the conditional GET used a strong cache
      * validator (see section 13.3.3), the response SHOULD NOT include
      * other entity-headers."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     private void cacheGenerated304ForValidatorShouldNotContainEntityHeader(
@@ -119,29 +119,29 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader(validatorHeader, validator);
         resp1.setHeader(headerName, headerValue);
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader(conditionalHeader, validator);
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         if (HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode()) {
             assertNull(result.getFirstHeader(headerName));
         }
     }
-    
+
     private void cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
             String headerName, String headerValue) throws Exception,
             IOException {
         cacheGenerated304ForValidatorShouldNotContainEntityHeader(headerName,
                 headerValue, "ETag", "\"etag\"", "If-None-Match");
     }
-    
+
     private void cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
             String headerName, String headerValue) throws Exception,
             IOException {
@@ -149,28 +149,28 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
                 headerValue, "Last-Modified", formatDate(twoMinutesAgo),
                 "If-Modified-Since");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainAllow()
             throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Allow", "GET,HEAD");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainAllow()
             throws Exception {
         cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
                 "Allow", "GET,HEAD");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentEncoding()
             throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Content-Encoding", "gzip");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentEncoding()
             throws Exception {
@@ -184,7 +184,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Content-Language", "en");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentLanguage()
             throws Exception {
@@ -198,21 +198,21 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Content-Length", "128");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentLength()
             throws Exception {
         cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
                 "Content-Length", "128");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongValidatorShouldNotContainContentMD5()
             throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentMD5()
             throws Exception {
@@ -229,9 +229,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader(validatorHeader, validator);
         resp1.setHeader("Content-Range", "bytes 0-127/256");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("If-Range", validator);
         req2.setHeader("Range","bytes=0-127");
@@ -240,67 +240,67 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Date", formatDate(now));
         resp2.setHeader(validatorHeader, validator);
-        
+
         // cache module does not currently deal with byte ranges, but we want
         // this test to work even if it does some day
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
         expect(mockBackend.execute(same(host), capture(cap), (HttpContext)isNull()))
             .andReturn(resp2).times(0,1);
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         if (!cap.hasCaptured()
             && HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode()) {
             // cache generated a 304
             assertNull(result.getFirstHeader("Content-Range"));
         }
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentRange()
     throws Exception {
         cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
                 "ETag", "\"etag\"", "If-None-Match");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentRange()
     throws Exception {
         cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
                 "Last-Modified", formatDate(twoMinutesAgo), "If-Modified-Since");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentType()
             throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Content-Type", "text/html");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentType()
             throws Exception {
         cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
                 "Content-Type", "text/html");
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainLastModified()
             throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
                 "Last-Modified", formatDate(tenSecondsAgo));
     }
-    
+
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainLastModified()
             throws Exception {
         cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
                 "Last-Modified", formatDate(twoMinutesAgo));
     }
-    
+
     private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
             String entityHeader, String entityHeaderValue) throws Exception,
             IOException {
@@ -311,23 +311,23 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp.setHeader("Date", formatDate(now));
         resp.setHeader("Etag", "\"etag\"");
         resp.setHeader(entityHeader, entityHeaderValue);
-        
+
         backendExpectsAnyRequest().andReturn(resp);
-        
+
         replayMocks();
         HttpResponse result = impl.execute(host, req);
         verifyMocks();
-        
+
         assertNull(result.getFirstHeader(entityHeader));
     }
-    
+
     @Test
     public void shouldStripAllowFromOrigin304ResponseToStrongValidation()
     throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Allow", "GET,HEAD");
     }
-    
+
     @Test
     public void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation()
     throws Exception {
@@ -341,14 +341,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Language", "en");
     }
-    
+
     @Test
     public void shouldStripContentLengthFromOrigin304ResponseToStrongValidation()
     throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Length", "128");
     }
-    
+
     @Test
     public void shouldStripContentMD5FromOrigin304ResponseToStrongValidation()
     throws Exception {
@@ -362,35 +362,35 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Type", "text/html;charset=utf-8");
     }
-    
+
     @Test
     public void shouldStripContentRangeFromOrigin304ResponseToStringValidation()
             throws Exception {
         HttpRequest req = HttpTestUtils.makeDefaultRequest();
         req.setHeader("If-Range","\"etag\"");
         req.setHeader("Range","bytes=0-127");
-        
+
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp.setHeader("Date", formatDate(now));
         resp.setHeader("ETag", "\"etag\"");
         resp.setHeader("Content-Range", "bytes 0-127/256");
-        
+
         backendExpectsAnyRequest().andReturn(resp);
-        
+
         replayMocks();
         HttpResponse result = impl.execute(host, req);
         verifyMocks();
-        
+
         assertNull(result.getFirstHeader("Content-Range"));
     }
-    
+
     @Test
     public void shouldStripLastModifiedFromOrigin304ResponseToStrongValidation()
     throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Last-Modified", formatDate(twoMinutesAgo));
     }
-    
+
     /*
      * "For this reason, a cache SHOULD NOT return a stale response if the
      * client explicitly requests a first-hand or fresh one, unless it is
@@ -616,7 +616,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
     }
-    
+
     /*
      * "A transparent proxy SHOULD NOT modify an end-to-end header unless
      * the definition of that header requires or specifically allows that."
@@ -1175,7 +1175,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         }
         assertTrue(foundEtag1 && foundEtag2);
     }
-    
+
     /* "If the entity-tag of the new response matches that of an existing
      * entry, the new response SHOULD be used to update the header fields
      * of the existing entry, and the result MUST be returned to the
@@ -1237,7 +1237,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertEquals(formatDate(now), result1.getFirstHeader("Date").getValue());
         assertEquals(formatDate(now), result2.getFirstHeader("Date").getValue());
     }
-    
+
     @Test
     public void testResponseToExistingVariantsIsCachedForFutureResponses()
         throws Exception {
@@ -1279,7 +1279,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * for the associated entity, its entity-tag SHOULD NOT be included in
      * the If-None-Match header field unless the request is for a range
      * that would be fully satisfied by that entry."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
      */
     @Test
@@ -1291,9 +1291,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Vary", "User-Agent");
         resp1.setHeader("ETag", "\"etag1\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("User-Agent", "agent2");
         req2.setHeader("Range", "bytes=0-49");
@@ -1306,27 +1306,27 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Date", formatDate(new Date()));
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
         req3.setHeader("User-Agent", "agent3");
-        
+
         HttpResponse resp3 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Vary", "User-Agent");
         resp1.setHeader("ETag", "\"etag3\"");
-        
+
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
         expect(mockBackend.execute(isA(HttpHost.class), capture(cap),
                 (HttpContext)isNull())).andReturn(resp3);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
         impl.execute(host, req3);
         verifyMocks();
-        
+
         HttpRequest captured = cap.getValue();
         for(Header h : captured.getHeaders("If-None-Match")) {
             for(HeaderElement elt : h.getElements()) {
@@ -1334,15 +1334,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             }
         }
     }
-    
+
     /* "If a cache receives a successful response whose Content-Location
      * field matches that of an existing cache entry for the same Request-
      * URI, whose entity-tag differs from that of the existing entry, and
      * whose Date is more recent than that of the existing entry, the
      * existing entry SHOULD NOT be returned in response to future requests
      * and SHOULD be deleted from the cache.
-     * 
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6 
+     *
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
      */
     @Test
     public void cachedEntryShouldNotBeUsedIfMoreRecentMentionInContentLocation()
@@ -1352,34 +1352,34 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag", "\"old-etag\"");
         resp1.setHeader("Date", formatDate(tenSecondsAgo));
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"new-etag\"");
         resp2.setHeader("Date", formatDate(now));
         resp2.setHeader("Content-Location", "http://foo.example.com/");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         HttpRequest req3 = new HttpGet("http://foo.example.com");
         HttpResponse resp3 = HttpTestUtils.make200Response();
-        
+
         backendExpectsAnyRequest().andReturn(resp3);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
         impl.execute(host, req3);
         verifyMocks();
     }
-    
+
     /*
      * "This specifically means that responses from HTTP/1.0 servers for such
      * URIs [those containing a '?' in the rel_path part] SHOULD NOT be taken
      * from a cache."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
      */
     @Test
@@ -1391,23 +1391,23 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Content-Length","200");
         resp1.setHeader("Date", formatDate(now));
         resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
         resp2.setEntity(HttpTestUtils.makeBody(200));
         resp2.setHeader("Content-Length","200");
         resp2.setHeader("Date", formatDate(now));
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
         verifyMocks();
     }
-    
+
     @Test
     public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyIsNotCached()
         throws Exception {
@@ -1418,18 +1418,18 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Date", formatDate(now));
         resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
         resp1.setHeader("Via","1.0 someproxy");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
         resp2.setEntity(HttpTestUtils.makeBody(200));
         resp2.setHeader("Content-Length","200");
         resp2.setHeader("Date", formatDate(now));
         resp2.setHeader("Via","1.0 someproxy");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
@@ -1440,7 +1440,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * "A cache that passes through requests for methods it does not
      * understand SHOULD invalidate any entities referred to by the
      * Request-URI."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
      */
     @Test
@@ -1449,30 +1449,30 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = new BasicHttpRequest("FROB", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control","max-age=3600");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         HttpRequest req3 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("ETag", "\"etag\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp3);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
         HttpResponse result = impl.execute(host, req3);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp3, result));
     }
-    
+
     @Test
     public void shouldInvalidateAllVariantsForUnknownMethod()
         throws Exception {
@@ -1481,7 +1481,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Vary", "User-Agent");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
 
         HttpRequest req2 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
@@ -1489,30 +1489,30 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Vary", "User-Agent");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         HttpRequest req3 = new BasicHttpRequest("FROB", "/", HttpVersion.HTTP_1_1);
         req3.setHeader("User-Agent", "agent3");
         HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Cache-Control","max-age=3600");
-        
+
         backendExpectsAnyRequest().andReturn(resp3);
-        
+
         HttpRequest req4 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req4.setHeader("User-Agent", "agent1");
         HttpResponse resp4 = HttpTestUtils.make200Response();
         resp4.setHeader("ETag", "\"etag1\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp4);
 
         HttpRequest req5 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         req5.setHeader("User-Agent", "agent2");
         HttpResponse resp5 = HttpTestUtils.make200Response();
         resp5.setHeader("ETag", "\"etag2\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp5);
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
@@ -1520,7 +1520,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse result4 = impl.execute(host, req4);
         HttpResponse result5 = impl.execute(host, req5);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp4, result4));
         assertTrue(HttpTestUtils.semanticallyTransparent(resp5, result5));
     }
@@ -1529,7 +1529,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * "If a new cacheable response is received from a resource while any
      * existing responses for the same resource are cached, the cache
      * SHOULD use the new response to reply to the current request."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.12
      */
     @Test
@@ -1540,29 +1540,29 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-age=0");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Date", formatDate(now));
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("ETag", "\"etag2\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
         HttpResponse result = impl.execute(host, req3);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
-    
+
     /*
      * "Many HTTP/1.0 cache implementations will treat an Expires value
      * that is less than or equal to the response Date value as being
@@ -1571,7 +1571,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * does not include a Cache-Control header field, it SHOULD consider
      * the response to be non-cacheable in order to retain compatibility
      * with HTTP/1.0 servers."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
      */
     @Test
@@ -1582,24 +1582,24 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Date", formatDate(now));
         resp1.setHeader("Expires", formatDate(now));
         resp1.removeHeaders("Cache-Control");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-stale=1000");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"etag2\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
-    
+
     @Test
     public void expiresPriorToDateWithNoCacheControlIsNotCacheable()
         throws Exception {
@@ -1608,28 +1608,28 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Date", formatDate(now));
         resp1.setHeader("Expires", formatDate(tenSecondsAgo));
         resp1.removeHeaders("Cache-Control");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-stale=1000");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"etag2\"");
-        
+
         backendExpectsAnyRequest().andReturn(resp2);
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
 
     /*
      * "If a request includes the no-cache directive, it SHOULD NOT
      * include min-fresh, max-stale, or max-age."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
     @Test
@@ -1638,15 +1638,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         req1.setHeader("Cache-Control", "min-fresh=10, no-cache");
         req1.addHeader("Cache-Control", "max-stale=0, max-age=0");
-        
+
         Capture<HttpRequest> cap = new Capture<HttpRequest>();
         expect(mockBackend.execute(same(host), capture(cap), (HttpContext)isNull()))
             .andReturn(HttpTestUtils.make200Response());
-        
+
         replayMocks();
         impl.execute(host, req1);
         verifyMocks();
-        
+
         HttpRequest captured = cap.getValue();
         boolean foundNoCache = false;
         boolean foundDisallowedDirective = false;
@@ -1665,14 +1665,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         assertTrue(foundNoCache);
         assertFalse(foundDisallowedDirective);
     }
-    
+
     /*
      * "To do this, the client may include the only-if-cached directive in
      * a request. If it receives this directive, a cache SHOULD either
      * respond using a cached entry that is consistent with the other
      * constraints of the request, or respond with a 504 (Gateway Timeout)
      * status."
-     * 
+     *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
     @Test
@@ -1680,35 +1680,35 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         throws Exception {
         HttpRequest req = HttpTestUtils.makeDefaultRequest();
         req.setHeader("Cache-Control", "only-if-cached");
-        
+
         replayMocks();
         HttpResponse result = impl.execute(host, req);
         verifyMocks();
-        
+
         assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
                 result.getStatusLine().getStatusCode());
     }
-    
+
     @Test
     public void cacheHitOkWithOnlyIfCached()
         throws Exception {
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "only-if-cached");
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
     }
-    
+
     @Test
     public void returns504ForStaleEntryWithOnlyIfCached()
         throws Exception {
@@ -1716,21 +1716,21 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "only-if-cached");
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
                 result.getStatusLine().getStatusCode());
     }
-    
+
     @Test
     public void returnsStaleCacheEntryWithOnlyIfCachedAndMaxStale()
         throws Exception {
@@ -1739,18 +1739,18 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
-        
+
         backendExpectsAnyRequest().andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-stale=20, only-if-cached");
-        
+
         replayMocks();
         impl.execute(host, req1);
         HttpResponse result = impl.execute(host, req2);
         verifyMocks();
-        
+
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
     }
-    
+
 }

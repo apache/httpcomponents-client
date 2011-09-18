@@ -46,7 +46,7 @@ import org.apache.http.impl.client.RequestWrapper;
 class ConditionalRequestBuilder {
 
     private static final Log log = LogFactory.getLog(ConditionalRequestBuilder.class);
-    
+
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
      * to an {@link HttpRequest} we will attempt to revalidate the entry with
@@ -117,7 +117,7 @@ class ConditionalRequestBuilder {
             first = false;
             etags.append(etag);
         }
-        
+
         wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
         return wrapperRequest;
     }
@@ -134,7 +134,7 @@ class ConditionalRequestBuilder {
      * @return an unconditional validation request
      */
     public HttpRequest buildUnconditionalRequest(HttpRequest request,
-            HttpCacheEntry entry) { 
+            HttpCacheEntry entry) {
         RequestWrapper wrapped;
         try {
             wrapped = new RequestWrapper(request);

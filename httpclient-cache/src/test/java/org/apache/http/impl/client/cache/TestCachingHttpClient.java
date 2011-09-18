@@ -203,16 +203,16 @@ public class TestCachingHttpClient {
     @Test
     public void testCacheableResponsesGoIntoCache() throws Exception {
         impl = new CachingHttpClient(mockBackend);
-        
+
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
-        
+
         expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
                 (HttpContext)isNull())).andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        
+
         replayMocks();
         impl.execute(host, req1);
         impl.execute(host, req2);
@@ -224,7 +224,7 @@ public class TestCachingHttpClient {
         impl = new CachingHttpClient(mockBackend);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
-        
+
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
@@ -233,7 +233,7 @@ public class TestCachingHttpClient {
 
         expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
                 (HttpContext)isNull())).andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control","no-cache");
         HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -260,7 +260,7 @@ public class TestCachingHttpClient {
         impl = new CachingHttpClient(mockBackend);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
-        
+
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
@@ -269,7 +269,7 @@ public class TestCachingHttpClient {
 
         expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
                 (HttpContext)isNull())).andReturn(resp1);
-        
+
         HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control","max-age=0");
         HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -486,7 +486,7 @@ public class TestCachingHttpClient {
         impl = new CachingHttpClient(mockBackend,
                 new BasicHttpCache(new HeapResourceFactory(), mockStorage, config),
                 config);
-        
+
         HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","no-cache");
@@ -1012,8 +1012,8 @@ public class TestCachingHttpClient {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         replayMocks();
@@ -1048,8 +1048,8 @@ public class TestCachingHttpClient {
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
         expect(
                 mockBackend.execute(isA(HttpHost.class),
@@ -1088,8 +1088,8 @@ public class TestCachingHttpClient {
                 .formatDate(tenSecondsAfter));
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1).times(2);
 
         replayMocks();
@@ -1116,8 +1116,8 @@ public class TestCachingHttpClient {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         replayMocks();
@@ -1147,12 +1147,12 @@ public class TestCachingHttpClient {
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
 
         replayMocks();
@@ -1185,8 +1185,8 @@ public class TestCachingHttpClient {
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         replayMocks();
@@ -1217,12 +1217,12 @@ public class TestCachingHttpClient {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         replayMocks();
@@ -1432,13 +1432,13 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
@@ -1476,13 +1476,13 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
@@ -1520,13 +1520,13 @@ public class TestCachingHttpClient {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
@@ -1565,13 +1565,13 @@ public class TestCachingHttpClient {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
         replayMocks();
         impl.execute(host, req1);
@@ -1628,18 +1628,18 @@ public class TestCachingHttpClient {
         resp3.setHeader("Cache-Control", "public, max-age=3600");
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp3);
 
 
@@ -1702,18 +1702,18 @@ public class TestCachingHttpClient {
         resp4.setHeader("Cache-Control", "public, max-age=3600");
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp1);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp2);
 
         expect(
-                mockBackend.execute(isA(HttpHost.class), 
-                        isA(HttpRequest.class), (HttpContext) 
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
                         isNull())).andReturn(resp4);
 
         replayMocks();
@@ -1744,7 +1744,7 @@ public class TestCachingHttpClient {
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
         expectLastCall().andThrow(new IOException()).anyTimes();
         mockCache.flushInvalidatedCacheEntriesFor(isA(HttpHost.class), isA(HttpRequest.class), isA(HttpResponse.class));
-        expectLastCall().anyTimes();    
+        expectLastCall().anyTimes();
         expect(mockCache.getCacheEntry(same(host),
                 isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
@@ -1853,7 +1853,7 @@ public class TestCachingHttpClient {
         expect(mockValidityPolicy.isRevalidatable(
                 (HttpCacheEntry)anyObject())).andReturn(b);
     }
-    
+
     private void cacheEntryMustRevalidate(boolean b) {
         expect(mockValidityPolicy.mustRevalidate(mockCacheEntry))
             .andReturn(b);
@@ -1863,7 +1863,7 @@ public class TestCachingHttpClient {
         expect(mockValidityPolicy.proxyRevalidate(mockCacheEntry))
             .andReturn(b);
     }
-    
+
     private void mayReturnStaleWhileRevalidating(boolean b) {
         expect(mockValidityPolicy.mayReturnStaleWhileRevalidating(
                 (HttpCacheEntry)anyObject(), (Date)anyObject())).andReturn(b);

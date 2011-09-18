@@ -83,7 +83,7 @@ class BasicHttpCache implements HttpCache {
         String uri = uriExtractor.getURI(host, request);
         storage.removeEntry(uri);
     }
-    
+
     public void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request, HttpResponse response) {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
     }
@@ -193,7 +193,7 @@ class BasicHttpCache implements HttpCache {
         if (src == null) {
             src = entry;
         }
-        
+
         Resource resource = resourceFactory.copy(requestId, src.getResource());
         Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
@@ -231,7 +231,7 @@ class BasicHttpCache implements HttpCache {
         storage.putEntry(cacheKey, updatedEntry);
         return updatedEntry;
     }
-    
+
     public HttpResponse cacheAndReturnResponse(HttpHost host, HttpRequest request,
             HttpResponse originResponse, Date requestSent, Date responseReceived)
             throws IOException {

@@ -199,21 +199,21 @@ public class TestHttpCacheEntry {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);
         assertSame(statusLine.getProtocolVersion(),
-                entry.getProtocolVersion());        
+                entry.getProtocolVersion());
     }
 
     @Test
     public void reasonPhraseComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);
-        assertSame(statusLine.getReasonPhrase(), entry.getReasonPhrase());        
+        assertSame(statusLine.getReasonPhrase(), entry.getReasonPhrase());
     }
 
     @Test
     public void statusCodeComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);
-        assertEquals(statusLine.getStatusCode(), entry.getStatusCode());        
+        assertEquals(statusLine.getStatusCode(), entry.getStatusCode());
     }
 
     @Test
@@ -221,7 +221,7 @@ public class TestHttpCacheEntry {
         final Date requestDate = new Date();
         entry = new HttpCacheEntry(requestDate, new Date(), statusLine,
                 new Header[]{}, mockResource);
-        assertSame(requestDate, entry.getRequestDate());        
+        assertSame(requestDate, entry.getRequestDate());
     }
 
     @Test
@@ -229,14 +229,14 @@ public class TestHttpCacheEntry {
         final Date responseDate = new Date();
         entry = new HttpCacheEntry(new Date(), responseDate, statusLine,
                 new Header[]{}, mockResource);
-        assertSame(responseDate, entry.getResponseDate());        
+        assertSame(responseDate, entry.getResponseDate());
     }
 
     @Test
     public void canGetOriginalResource() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);
-        assertSame(mockResource, entry.getResource());        
+        assertSame(mockResource, entry.getResource());
     }
 
     @Test
@@ -253,7 +253,7 @@ public class TestHttpCacheEntry {
             assertEquals(headers[i], result[i]);
         }
     }
-        
+
     @Test
     public void canConstructWithoutVariants() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
@@ -266,7 +266,7 @@ public class TestHttpCacheEntry {
                 new Header[]{}, mockResource,
                 new HashMap<String,String>());
     }
-    
+
     @Test
     public void canRetrieveOriginalVariantMap() {
         Map<String,String> variantMap = new HashMap<String,String>();
@@ -280,7 +280,7 @@ public class TestHttpCacheEntry {
         assertEquals("B", result.get("A"));
         assertEquals("D", result.get("C"));
     }
-    
+
     @Test
     public void retrievedVariantMapIsNotModifiable() {
         Map<String,String> variantMap = new HashMap<String,String>();
@@ -301,7 +301,7 @@ public class TestHttpCacheEntry {
         } catch (UnsupportedOperationException expected) {
         }
     }
-    
+
     @Test
     public void canConvertToString() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,

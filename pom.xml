@@ -32,7 +32,6 @@
     <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.httpcomponents</groupId>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
   <version>4.2-alpha1-SNAPSHOT</version>

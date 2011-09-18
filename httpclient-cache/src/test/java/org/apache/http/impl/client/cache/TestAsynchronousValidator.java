@@ -48,17 +48,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestAsynchronousValidator {
-    
+
     private AsynchronousValidator impl;
-    
+
     private CachingHttpClient mockClient;
     private HttpHost target;
     private HttpRequest request;
     private HttpContext mockContext;
     private HttpCacheEntry mockCacheEntry;
-    
+
     private ExecutorService mockExecutor;
-    
+
     @Before
     public void setUp() {
         mockClient = EasyMock.createMock(CachingHttpClient.class);
@@ -66,138 +66,138 @@ public class TestAsynchronousValidator {
         request = new HttpGet("/");
         mockContext = EasyMock.createMock(HttpContext.class);
         mockCacheEntry = EasyMock.createMock(HttpCacheEntry.class);
-        
+
         mockExecutor = EasyMock.createMock(ExecutorService.class);
-        
+
     }
-    
+
     @Test
     public void testRevalidateCacheEntrySchedulesExecutionAndPopulatesIdentifier() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
         verifyMocks();
-        
+
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
     }
-    
+
     @Test
     public void testMarkCompleteRemovesIdentifier() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         Capture<AsynchronousValidationRequest> cap = new Capture<AsynchronousValidationRequest>();
         mockExecutor.execute(EasyMock.capture(cap));
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
         verifyMocks();
-        
+
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
-        
+
         impl.markComplete(cap.getValue().getIdentifier());
-        
+
         Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
     }
-    
+
     @Test
     public void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
         EasyMock.expectLastCall().andThrow(new RejectedExecutionException());
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
         verifyMocks();
-        
+
         Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
     }
-    
+
     @Test
     public void testRevalidateCacheEntryProperlyCollapsesRequest() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
         verifyMocks();
-        
+
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
     }
-    
+
     @Test
     public void testVariantsBothRevalidated() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
-        
+
         HttpRequest req1 = new HttpGet("/");
         req1.addHeader(new BasicHeader("Accept-Encoding", "identity"));
-        
+
         HttpRequest req2 = new HttpGet("/");
         req2.addHeader(new BasicHeader("Accept-Encoding", "gzip"));
-        
+
         Header[] variantHeaders = new Header[] {
                 new BasicHeader(HeaderConstants.VARY, "Accept-Encoding")
         };
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(true).times(2);
         EasyMock.expect(mockCacheEntry.getHeaders(HeaderConstants.VARY)).andReturn(variantHeaders).times(2);
         mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
         EasyMock.expectLastCall().times(2);
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, req1, mockContext, mockCacheEntry);
         impl.revalidateCacheEntry(target, req2, mockContext, mockCacheEntry);
         verifyMocks();
-        
+
         Assert.assertEquals(2, impl.getScheduledIdentifiers().size());
-        
+
     }
-    
+
     @Test
     public void testRevalidateCacheEntryEndToEnd() throws ProtocolException, IOException {
         CacheConfig config = new CacheConfig();
         config.setAsynchronousWorkersMax(1);
         config.setAsynchronousWorkersCore(1);
         impl = new AsynchronousValidator(mockClient, config);
-        
+
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(null);
-        
+
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
-        
+
         try {
             // shut down backend executor and make sure all finishes properly, 1 second should be sufficient
             ExecutorService implExecutor = impl.getExecutor();
             implExecutor.shutdown();
             implExecutor.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
-            
+
         } finally {
             verifyMocks();
-            
+
             Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
         }
     }
-    
+
     public void replayMocks() {
         EasyMock.replay(mockExecutor);
         EasyMock.replay(mockClient);
         EasyMock.replay(mockContext);
         EasyMock.replay(mockCacheEntry);
     }
-    
+
     public void verifyMocks() {
         EasyMock.verify(mockExecutor);
         EasyMock.verify(mockClient);

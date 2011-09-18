@@ -79,7 +79,7 @@ import org.apache.http.util.VersionInfo;
  * related configuration you want to do vis-a-vis timeouts and connection
  * pools should be done on this backend client before constructing a {@code
  * CachingHttpClient} from it.</p>
- * 
+ *
  * <p>Generally speaking, the {@code CachingHttpClient} is implemented as a
  * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator</a>
  * of the backend client; for any incoming request it attempts to satisfy
@@ -92,7 +92,7 @@ import org.apache.http.util.VersionInfo;
  * This notion of "semantic transparency" means you should be able to drop
  * a {@link CachingHttpClient} into an existing application without breaking
  * anything.</p>
- * 
+ *
  * <p>Folks that would like to experiment with alternative storage backends
  * should look at the {@link HttpCacheStorage} interface and the related
  * package documentation there. You may also be interested in the provided
@@ -137,7 +137,7 @@ public class CachingHttpClient implements HttpClient {
     private final RequestProtocolCompliance requestCompliance;
 
     private final AsynchronousValidator asynchRevalidator;
-    
+
     private final Log log = LogFactory.getLog(getClass());
 
     CachingHttpClient(
@@ -226,7 +226,7 @@ public class CachingHttpClient implements HttpClient {
      * response bodies are managed using the given {@link ResourceFactory}.
      * @param client used to make origin requests
      * @param resourceFactory how to manage cached response bodies
-     * @param storage where to store cache entries 
+     * @param storage where to store cache entries
      * @param config cache module options
      */
     public CachingHttpClient(
@@ -244,7 +244,7 @@ public class CachingHttpClient implements HttpClient {
      * that stores cache entries in the provided storage backend and uses
      * the given {@link HttpClient} for backend requests.
      * @param client used to make origin requests
-     * @param storage where to store cache entries 
+     * @param storage where to store cache entries
      * @param config cache module options
      */
     public CachingHttpClient(
@@ -282,7 +282,7 @@ public class CachingHttpClient implements HttpClient {
         this.requestCompliance = requestCompliance;
         this.asynchRevalidator = makeAsynchronousValidator(config);
     }
-    
+
     private AsynchronousValidator makeAsynchronousValidator(
             CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
@@ -292,7 +292,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     /**
-     * Reports the number of times that the cache successfully responded 
+     * Reports the number of times that the cache successfully responded
      * to an {@link HttpRequest} without contacting the origin server.
      * @return the number of cache hits
      */
@@ -395,7 +395,7 @@ public class CachingHttpClient implements HttpClient {
             return handleCacheMiss(target, request, context);
         }
 
-        return handleCacheHit(target, request, context, entry); 
+        return handleCacheHit(target, request, context, entry);
     }
 
     private HttpResponse handleCacheHit(HttpHost target, HttpRequest request,
@@ -428,9 +428,9 @@ public class CachingHttpClient implements HttpClient {
                 && !staleResponseNotAllowed(request, entry, now)
                 && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
                 final HttpResponse resp = generateCachedResponse(request, context, entry, now);
-                
+
                 asynchRevalidator.revalidateCacheEntry(target, request, context, entry);
-                
+
                 return resp;
             }
             return revalidateCacheEntry(target, request, context, entry);
@@ -468,12 +468,12 @@ public class CachingHttpClient implements HttpClient {
         }
         return entry;
     }
-    
+
     private HttpResponse getFatallyNoncompliantResponse(HttpRequest request,
             HttpContext context) {
         HttpResponse fatalErrorResponse = null;
         List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
-        
+
         for (RequestProtocolError error : fatalError) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             fatalErrorResponse = requestCompliance.getErrorForRequest(error);
@@ -507,7 +507,7 @@ public class CachingHttpClient implements HttpClient {
             log.trace("Cache hit [host: " + target + "; uri: " + rl.getUri() + "]");
         }
     }
-    
+
     private void recordCacheUpdate(HttpContext context) {
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
@@ -599,7 +599,7 @@ public class CachingHttpClient implements HttpClient {
         }
         return false;
     }
-    
+
     private String generateViaHeader(HttpMessage msg) {
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
@@ -690,7 +690,7 @@ public class CachingHttpClient implements HttpClient {
         }
         return false;
     }
-    
+
     HttpResponse negotiateResponseFromVariants(HttpHost target,
             HttpRequest request, HttpContext context,
             Map<String, Variant> variants) throws IOException {
@@ -720,12 +720,12 @@ public class CachingHttpClient implements HttpClient {
         }
 
         HttpCacheEntry matchedEntry = matchingVariant.getEntry();
-        
+
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
             return retryRequestUnconditionally(target, request, context,
                     matchedEntry);
         }
-        
+
         recordCacheUpdate(context);
 
         HttpCacheEntry responseEntry = getUpdatedVariantEntry(target,
@@ -815,13 +815,13 @@ public class CachingHttpClient implements HttpClient {
             }
             return responseGenerator.generateResponse(updatedEntry);
         }
-        
+
         if (staleIfErrorAppliesTo(statusCode)
             && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
             final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
-            return cachedResponse; 
+            return cachedResponse;
         }
 
         return handleBackendResponse(target, conditionalRequest, requestDate, responseDate,
@@ -829,9 +829,9 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private boolean staleIfErrorAppliesTo(int statusCode) {
-        return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR  
-                || statusCode == HttpStatus.SC_BAD_GATEWAY  
-                || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE  
+        return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR
+                || statusCode == HttpStatus.SC_BAD_GATEWAY
+                || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE
                 || statusCode == HttpStatus.SC_GATEWAY_TIMEOUT;
     }
 

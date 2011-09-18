@@ -110,11 +110,11 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
         HttpRequest request = (HttpRequest)
             context.getAttribute(ExecutionContext.HTTP_REQUEST);
-        
+
         if(requestIsAborted(request)){
-        	return false;
+            return false;
         }
-        
+
         if (handleAsIdempotent(request)) {
             // Retry if the request is considered idempotent
             return true;
@@ -154,7 +154,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     protected boolean handleAsIdempotent(final HttpRequest request) {
         return !(request instanceof HttpEntityEnclosingRequest);
     }
-    
+
     protected boolean requestIsAborted(final HttpRequest request) {
         return (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted());
     }

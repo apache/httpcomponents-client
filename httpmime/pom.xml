@@ -44,7 +44,6 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${httpcore.version}</version>
       <scope>compile</scope>
     </dependency>
     <!-- Not currently used

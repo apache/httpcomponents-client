@@ -96,7 +96,7 @@ class RequestProtocolCompliance {
      */
     public HttpRequest makeRequestCompliant(HttpRequest request)
         throws ClientProtocolException {
-    
+
         if (requestMustNotHaveEntity(request)) {
             ((HttpEntityEnclosingRequest) request).setEntity(null);
         }
@@ -116,7 +116,7 @@ class RequestProtocolCompliance {
 
         return request;
     }
-    
+
     private void stripOtherFreshnessDirectivesWithNoCache(HttpRequest request) {
         List<HeaderElement> outElts = new ArrayList<HeaderElement>();
         boolean shouldStrip = false;

@@ -327,10 +327,10 @@ public class TestURIUtils {
     public void testHTTPCLIENT_911() throws Exception{
         Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(new URI("http://localhost/abcd")));
         Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(new URI("http://localhost/abcd%3A")));
-        
+
         Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(new URI("http://local_host/abcd")));
         Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(new URI("http://local_host/abcd%3A")));
-        
+
         Assert.assertEquals(new HttpHost("localhost",8),URIUtils.extractHost(new URI("http://localhost:8/abcd")));
         Assert.assertEquals(new HttpHost("local_host",8),URIUtils.extractHost(new URI("http://local_host:8/abcd")));
 
@@ -345,5 +345,5 @@ public class TestURIUtils {
         Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.extractHost(new URI("http://@local_host:8080/abcd")));
 
     }
-    
+
 }

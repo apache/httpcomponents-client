@@ -44,11 +44,11 @@ class Variant {
     public String getVariantKey() {
         return variantKey;
     }
-    
+
     public String getCacheKey() {
         return cacheKey;
     }
-    
+
     public HttpCacheEntry getEntry() {
         return entry;
     }

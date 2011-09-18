@@ -48,34 +48,34 @@ public class TestDefaultBackoffStrategy {
     public void setUp() {
         impl = new DefaultBackoffStrategy();
     }
-    
+
     @Test
     public void isABackoffStrategy() {
         assertTrue(impl instanceof ConnectionBackoffStrategy);
     }
-    
+
     @Test
     public void backsOffForSocketTimeouts() {
         assertTrue(impl.shouldBackoff(new SocketTimeoutException()));
     }
-    
+
     @Test
     public void backsOffForConnectionTimeouts() {
         assertTrue(impl.shouldBackoff(new ConnectException()));
     }
-    
+
     @Test
     public void doesNotBackOffForConnectionManagerTimeout() {
         assertFalse(impl.shouldBackoff(new ConnectionPoolTimeoutException()));
     }
-    
+
     @Test
     public void backsOffForServiceUnavailable() {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertTrue(impl.shouldBackoff(resp));
     }
-    
+
     @Test
     public void doesNotBackOffForNon503StatusCodes() {
         for(int i = 100; i <= 599; i++) {

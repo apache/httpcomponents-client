@@ -119,7 +119,7 @@ class CacheValidityPolicy {
     public boolean proxyRevalidate(final HttpCacheEntry entry) {
         return hasCacheControlDirective(entry, "proxy-revalidate");
     }
-    
+
     public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, Date now) {
         for (Header h : entry.getHeaders("Cache-Control")) {
             for(HeaderElement elt : h.getElements()) {
@@ -135,10 +135,10 @@ class CacheValidityPolicy {
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     public boolean mayReturnStaleIfError(HttpRequest request,
             HttpCacheEntry entry, Date now) {
         long stalenessSecs = getStalenessSecs(entry, now);
@@ -147,7 +147,7 @@ class CacheValidityPolicy {
                 || mayReturnStaleIfError(entry.getHeaders("Cache-Control"),
                                          stalenessSecs);
     }
-    
+
     private boolean mayReturnStaleIfError(Header[] headers, long stalenessSecs) {
         boolean result = false;
         for(Header h : headers) {
@@ -206,8 +206,8 @@ class CacheValidityPolicy {
 
     protected boolean hasContentLengthHeader(HttpCacheEntry entry) {
         return null != entry.getFirstHeader(HTTP.CONTENT_LEN);
-	}
-    
+    }
+
     /**
      * This matters for deciding whether the cache entry is valid to serve as a
      * response. If these values do not match, we might have a partial response

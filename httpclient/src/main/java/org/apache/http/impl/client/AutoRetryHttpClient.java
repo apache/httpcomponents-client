@@ -44,7 +44,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.client.*;
 
 /**
- * {@link HttpClient} implementation that can automatically retry the request in case of 
+ * {@link HttpClient} implementation that can automatically retry the request in case of
  * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
  *
  * @since 4.2

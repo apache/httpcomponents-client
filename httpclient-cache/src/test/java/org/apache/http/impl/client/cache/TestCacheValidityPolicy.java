@@ -331,7 +331,7 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         assertFalse(impl.isRevalidatable(entry));
     }
-    
+
     @Test
     public void testMissingContentLengthDoesntInvalidateEntry() {
         final int contentLength = 128;
@@ -339,7 +339,7 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
         assertTrue(impl.contentLengthHeaderMatchesActualLength(entry));
     }
-    
+
     @Test
     public void testCorrectContentLengthDoesntInvalidateEntry() {
         final int contentLength = 128;
@@ -347,7 +347,7 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
         assertTrue(impl.contentLengthHeaderMatchesActualLength(entry));
     }
-    
+
     @Test
     public void testWrongContentLengthInvalidatesEntry() {
         final int contentLength = 128;
@@ -436,7 +436,7 @@ public class TestCacheValidityPolicy {
         HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
-    
+
     @Test
     public void testMayReturnStaleIfErrorInRequestIsTrueWithinStaleness(){
         Header[] headers = new Header[] {
@@ -475,15 +475,15 @@ public class TestCacheValidityPolicy {
     @Test
     public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveIsAbsent() {
         Date now = new Date();
-        
+
         Header[] headers = new Header[] { new BasicHeader("Cache-control", "public") };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        
+
         CacheValidityPolicy impl = new CacheValidityPolicy();
-        
+
         assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
-    
+
     @Test
     public void testMayReturnStaleWhileRevalidatingIsTrueWhenWithinStaleness() {
         Date now = new Date();
@@ -493,12 +493,12 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=15")
         };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        
+
         CacheValidityPolicy impl = new CacheValidityPolicy();
-        
+
         assertTrue(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
-    
+
     @Test
     public void testMayReturnStaleWhileRevalidatingIsFalseWhenPastStaleness() {
         Date now = new Date();
@@ -508,12 +508,12 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=15")
         };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        
+
         CacheValidityPolicy impl = new CacheValidityPolicy();
-        
+
         assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
-    
+
     @Test
     public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveEmpty() {
         Date now = new Date();
@@ -523,9 +523,9 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5, stale-while-revalidate=")
         };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        
+
         CacheValidityPolicy impl = new CacheValidityPolicy();
-        
+
         assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 }

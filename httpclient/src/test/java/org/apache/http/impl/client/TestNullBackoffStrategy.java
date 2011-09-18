@@ -43,12 +43,12 @@ public class TestNullBackoffStrategy {
     public void setUp() {
         impl = new NullBackoffStrategy();
     }
-    
+
     @Test
     public void doesNotBackoffForThrowables() {
         assertFalse(impl.shouldBackoff(new Exception()));
     }
-    
+
     @Test
     public void doesNotBackoffForResponses() {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,

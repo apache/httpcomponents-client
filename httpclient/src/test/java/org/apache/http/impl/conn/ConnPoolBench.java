@@ -54,7 +54,7 @@ public class ConnPoolBench {
         oldPool(c, reps);
         newPool(c, reps);
     }
-    
+
     public static void newPool(int c, long reps) throws Exception {
         Log log = LogFactory.getLog(ConnPoolBench.class);
 

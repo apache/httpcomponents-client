@@ -47,12 +47,12 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  * In particular, this backend allows for spillover to disk, where the
  * cache can be effectively larger than memory, and cached responses are
  * paged into and out of memory from disk as needed.</p>
- * 
+ *
  * <p><b>N.B.</b> Since the Ehcache is configured ahead of time with a
  * maximum number of cache entries, this effectively ignores the
  * {@link CacheConfig#setMaxCacheEntries(int) maximum cache entries}
  * specified by a provided {@link CacheConfig}.</p>
- * 
+ *
  * <p>Please refer to the <a href="http://ehcache.org/documentation/index.html">
  * Ehcache documentation</a> for details on how to configure the Ehcache
  * itself.</p>

@@ -54,12 +54,12 @@ public class TestHttpCacheEntrySerializers {
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private HttpCacheEntrySerializer impl;
-    
+
     @Before
     public void setUp() {
         impl = new DefaultHttpCacheEntrySerializer();
     }
-    
+
     @Test
     public void canSerializeEntriesWithVariantMaps() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap());
@@ -96,7 +96,7 @@ public class TestHttpCacheEntrySerializers {
 
         return cacheEntry;
     }
-    
+
     private boolean areEqual(HttpCacheEntry one, HttpCacheEntry two) throws IOException {
         // dates are only stored with second precision, so scrub milliseconds
         if (!((one.getRequestDate().getTime() / 1000) == (two.getRequestDate()

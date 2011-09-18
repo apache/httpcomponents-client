@@ -37,7 +37,7 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Class used to represent an asynchronous revalidation event, such as with
- * "stale-while-revalidate" 
+ * "stale-while-revalidate"
  */
 class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
@@ -47,12 +47,12 @@ class AsynchronousValidationRequest implements Runnable {
     private final HttpContext context;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
-    
+
     private final Log log = LogFactory.getLog(getClass());
-    
+
     /**
      * Used internally by {@link AsynchronousValidator} to schedule a
-     * revalidation.   
+     * revalidation.
      * @param cachingClient
      * @param target
      * @param request
@@ -74,7 +74,7 @@ class AsynchronousValidationRequest implements Runnable {
         this.cacheEntry = cacheEntry;
         this.identifier = identifier;
     }
-    
+
     public void run() {
         try {
             cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
@@ -90,5 +90,5 @@ class AsynchronousValidationRequest implements Runnable {
     String getIdentifier() {
         return identifier;
     }
-    
+
 }

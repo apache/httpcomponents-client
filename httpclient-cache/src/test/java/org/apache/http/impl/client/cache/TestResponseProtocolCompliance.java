@@ -60,12 +60,12 @@ public class TestResponseProtocolCompliance {
     private static class Flag {
         public boolean set;
     }
-    
+
     private void setMinimalResponseHeaders(HttpResponse resp) {
         resp.setHeader("Date", DateUtils.formatDate(new Date()));
         resp.setHeader("Server", "MyServer/1.0");
     }
-    
+
     private ByteArrayInputStream makeTrackableBody(int nbytes, final Flag closed) {
         byte[] buf = HttpTestUtils.getRandomBytes(nbytes);
         ByteArrayInputStream bais = new ByteArrayInputStream(buf) {
@@ -76,7 +76,7 @@ public class TestResponseProtocolCompliance {
         };
         return bais;
     }
-    
+
     private HttpResponse makePartialResponse(int nbytes) {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         setMinimalResponseHeaders(resp);
@@ -84,7 +84,7 @@ public class TestResponseProtocolCompliance {
         resp.setHeader("Content-Range","0-127/256");
         return resp;
     }
-    
+
     @Test
     public void consumesBodyIfOriginSendsOneInResponseToHEAD() throws Exception {
         HttpRequest req = new HttpHead("http://foo.example.com/");
@@ -96,7 +96,7 @@ public class TestResponseProtocolCompliance {
         final Flag closed = new Flag();
         ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
         resp.setEntity(new InputStreamEntity(bais, -1));
-        
+
         impl.ensureProtocolCompliance(req, resp);
         assertNull(resp.getEntity());
         assertTrue(closed.set || bais.read() == -1);
@@ -108,7 +108,7 @@ public class TestResponseProtocolCompliance {
         int nbytes = 128;
         HttpResponse resp = makePartialResponse(nbytes);
         resp.setEntity(HttpTestUtils.makeBody(nbytes));
-        
+
         impl.ensureProtocolCompliance(req, resp);
     }
 
@@ -117,18 +117,18 @@ public class TestResponseProtocolCompliance {
         HttpRequest req = new HttpGet("http://foo.example.com/");
         int nbytes = 128;
         HttpResponse resp = makePartialResponse(nbytes);
-        
+
         final Flag closed = new Flag();
         ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
         resp.setEntity(new InputStreamEntity(bais, -1));
-        
+
         try {
             impl.ensureProtocolCompliance(req, resp);
         } catch (ClientProtocolException expected) {
         }
         assertTrue(closed.set || bais.read() == -1);
     }
-    
+
     @Test
     public void consumesBodyOf100ContinueResponseIfItArrives() throws Exception {
         HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
@@ -137,12 +137,12 @@ public class TestResponseProtocolCompliance {
         req.setHeader("Content-Type", "application/octet-stream");
         HttpEntity postBody = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
         req.setEntity(postBody);
-        
+
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_CONTINUE, "Continue");
         final Flag closed = new Flag();
         ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
         resp.setEntity(new InputStreamEntity(bais, -1));
-        
+
         try {
             impl.ensureProtocolCompliance(req, resp);
         } catch (ClientProtocolException expected) {

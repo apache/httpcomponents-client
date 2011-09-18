@@ -33,7 +33,7 @@ import java.io.OutputStream;
 /**
  * Used by some {@link HttpCacheStorage} implementations to serialize
  * {@link HttpCacheEntry} instances to a byte representation before
- * storage. 
+ * storage.
  */
 public interface HttpCacheEntrySerializer {
 

@@ -144,7 +144,7 @@ class CacheKeyGenerator {
      * Compute a "variant key" from the headers of a given request that are
      * covered by the Vary header of a given cache entry. Any request whose
      * varying headers match those of this request should have the same
-     * variant key. 
+     * variant key.
      * @param req originating request
      * @param entry cache entry in question that has variants
      * @return a <code>String</code> variant key

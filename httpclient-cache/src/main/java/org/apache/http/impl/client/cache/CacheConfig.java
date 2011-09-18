@@ -33,19 +33,19 @@ package org.apache.http.impl.client.cache;
  * {@code CacheConfig} instance has sane and conservative defaults, so the
  * easiest way to specify options is to get an instance and then set just
  * the options you want to modify from their defaults.</p>
- * 
+ *
  * <p><b>N.B.</b> This class is only for caching-specific configuration; to
- * configure the behavior of the rest of the client, configure the 
+ * configure the behavior of the rest of the client, configure the
  * {@link org.apache.http.client.HttpClient} used as the &quot;backend&quot;
  * for the {@code CachingHttpClient}.</p>
- * 
+ *
  * <p>Cache configuration can be grouped into the following categories:</p>
- * 
+ *
  * <p><b>Cache size.</b> If the backend storage supports these limits, you
  * can specify the {@link CacheConfig#setMaxCacheEntries maximum number of
  * cache entries} as well as the {@link CacheConfig#setMaxObjectSizeBytes
  * maximum cacheable response body size}.</p>
- * 
+ *
  * <p><b>Public/private caching.</b> By default, the caching module considers
  * itself to be a shared (public) cache, and will not, for example, cache
  * responses to requests with {@code Authorization} headers or responses
@@ -53,7 +53,7 @@ package org.apache.http.impl.client.cache;
  * is only going to be used by one logical "user" (behaving similarly to a
  * browser cache), then you will want to {@link
  * CacheConfig#setSharedCache(boolean) turn off the shared cache setting}.</p>
- * 
+ *
  * <p><b>Heuristic caching</b>. Per RFC2616, a cache may cache certain cache
  * entries even if no explicit cache control headers are set by the origin.
  * This behavior is off by default, but you may want to turn this on if you
@@ -67,7 +67,7 @@ package org.apache.http.impl.client.cache;
  * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.2">
  * 13.2.2</a> and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.4">
  * 13.2.4</a> of the HTTP/1.1 RFC for more details on heuristic caching.</p>
- * 
+ *
  * <p><b>Background validation</b>. The cache module supports the
  * {@code stale-while-revalidate} directive of
  * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
@@ -79,7 +79,7 @@ package org.apache.http.impl.client.cache;
  * CacheConfig#setAsynchronousWorkerIdleLifetimeSecs(int) maximum time they
  * can be idle before being reclaimed}. You can also control the {@link
  * CacheConfig#setRevalidationQueueSize(int) size of the queue} used for
- * revalidations when there aren't enough workers to keep up with demand.</b> 
+ * revalidations when there aren't enough workers to keep up with demand.</b>
  */
 public class CacheConfig {
 
@@ -115,22 +115,22 @@ public class CacheConfig {
     /** Default number of worker threads to allow for background revalidations
      * resulting from the stale-while-revalidate directive.
      */
-    public static final int DEFAULT_ASYNCHRONOUS_WORKERS_MAX = 1; 
+    public static final int DEFAULT_ASYNCHRONOUS_WORKERS_MAX = 1;
 
     /** Default minimum number of worker threads to allow for background
      * revalidations resulting from the stale-while-revalidate directive.
      */
     public static final int DEFAULT_ASYNCHRONOUS_WORKERS_CORE = 1;
-    
+
     /** Default maximum idle lifetime for a background revalidation thread
      * before it gets reclaimed.
      */
     public static final int DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS = 60;
-    
-    /** Default maximum queue length for background revalidation requests. 
+
+    /** Default maximum queue length for background revalidation requests.
      */
     public static final int DEFAULT_REVALIDATION_QUEUE_SIZE = 100;
-    
+
     private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
     private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
@@ -236,7 +236,7 @@ public class CacheConfig {
      * and {@code Date} headers of a cached response during which the cached
      * response will be considered heuristically fresh.
      * @param heuristicCoefficient should be between {@code 0.0} and
-     *   {@code 1.0}. 
+     *   {@code 1.0}.
      */
     public void setHeuristicCoefficient(float heuristicCoefficient) {
         this.heuristicCoefficient = heuristicCoefficient;
@@ -255,7 +255,7 @@ public class CacheConfig {
      * calculation is not possible. Explicit cache control directives on
      * either the request or origin response will override this, as will
      * the heuristic {@code Last-Modified} freshness calculation if it is
-     * available. 
+     * available.
      * @param heuristicDefaultLifetimeSecs is the number of seconds to
      *   consider a cache-eligible response fresh in the absence of other
      *   information. Set this to {@code 0} to disable this style of
@@ -276,9 +276,9 @@ public class CacheConfig {
 
     /**
      * Sets the maximum number of threads to allow for background
-     * revalidations due to the {@code stale-while-revalidate} directive. 
+     * revalidations due to the {@code stale-while-revalidate} directive.
      * @param max number of threads; a value of 0 disables background
-     * revalidations. 
+     * revalidations.
      */
     public void setAsynchronousWorkersMax(int max) {
         this.asynchronousWorkersMax = max;
@@ -286,7 +286,7 @@ public class CacheConfig {
 
     /**
      * Returns the minimum number of threads to keep alive for background
-     * revalidations due to the {@code stale-while-revalidate} directive. 
+     * revalidations due to the {@code stale-while-revalidate} directive.
      */
     public int getAsynchronousWorkersCore() {
         return asynchronousWorkersCore;
@@ -296,7 +296,7 @@ public class CacheConfig {
      * Sets the minimum number of threads to keep alive for background
      * revalidations due to the {@code stale-while-revalidate} directive.
      * @param min should be greater than zero and less than or equal
-     *   to <code>getAsynchronousWorkersMax()</code> 
+     *   to <code>getAsynchronousWorkersMax()</code>
      */
     public void setAsynchronousWorkersCore(int min) {
         this.asynchronousWorkersCore = min;
@@ -337,5 +337,5 @@ public class CacheConfig {
         this.revalidationQueueSize = size;
     }
 
-    
+
 }

@@ -267,7 +267,7 @@ public class TestHostnameVerifier {
 
         checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
         checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
-        
+
         cns = new String []{};
         alt = new String []{"dummy", "*.b.c"}; // check matches against all alts
         checkMatching(bhv, "a.b.c", cns, alt, false); // OK
@@ -275,28 +275,28 @@ public class TestHostnameVerifier {
 
         checkMatching(bhv, "s.a.b.c", cns, alt, false); // OK
         checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
-        
+
         alt = new String []{"*.gov.uk"};
         checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
         checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
 
         checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
         checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
-        
+
         alt = new String []{"*.gov.com"};
         checkMatching(bhv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
         checkMatching(shv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
 
         checkMatching(bhv, "s.a.gov.com", cns, alt, false); // OK, gov not 2TLD here
         checkMatching(shv, "s.a.gov.com", cns, alt, true); // no subdomain allowed
-        
+
         cns = new String []{"a*.gov.uk"}; // 2TLD check applies to wildcards
         checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
         checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
 
         checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
         checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
-        
+
     }
 
     @Test
@@ -305,7 +305,7 @@ public class TestHostnameVerifier {
         String alt[] = {};
         X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
         X509HostnameVerifier shv = new StrictHostnameVerifier();
-    
+
         cns = new String []{"a*.b.c"}; // component part
         checkMatching(bhv, "a.b.c", cns, alt, false); // OK
         checkMatching(shv, "a.b.c", cns, alt, false); // OK
@@ -317,10 +317,10 @@ public class TestHostnameVerifier {
         checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("s*.gouv.uk", false); // 2 character TLD, invalid 2TLD
     }
-    
+
     // Helper
     private void checkWildcard(String host, boolean isOK) {
-        Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));        
+        Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));
     }
 
     @Test

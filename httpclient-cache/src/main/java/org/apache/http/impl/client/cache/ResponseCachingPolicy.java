@@ -198,13 +198,13 @@ class ResponseCachingPolicy {
             log.debug("Response was not cacheable.");
             return false;
         }
-        
+
         String[] uncacheableRequestDirectives = { "no-store" };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
             return false;
         }
 
-        if (request.getRequestLine().getUri().contains("?") && 
+        if (request.getRequestLine().getUri().contains("?") &&
             (!isExplicitlyCacheable(response) || from1_0Origin(response))) {
             log.debug("Response was not cacheable.");
             return false;
@@ -213,7 +213,7 @@ class ResponseCachingPolicy {
         if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response)) {
             return false;
         }
-        
+
         if (sharedCache) {
             Header[] authNHeaders = request.getHeaders("Authorization");
             if (authNHeaders != null && authNHeaders.length > 0) {
@@ -249,7 +249,7 @@ class ResponseCachingPolicy {
             for(HeaderElement elt : via.getElements()) {
                 String proto = elt.toString().split("\\s")[0];
                 if (proto.contains("/")) {
-                    return proto.equals("HTTP/1.0"); 
+                    return proto.equals("HTTP/1.0");
                 } else {
                     return proto.equals("1.0");
                 }

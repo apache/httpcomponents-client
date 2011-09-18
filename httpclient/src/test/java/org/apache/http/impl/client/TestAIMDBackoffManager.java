@@ -52,33 +52,33 @@ public class TestAIMDBackoffManager {
         impl = new AIMDBackoffManager(connPerRoute, clock);
         impl.setPerHostConnectionCap(10);
     }
-    
+
     @Test
     public void isABackoffManager() {
         assertTrue(impl instanceof BackoffManager);
     }
-    
+
     @Test
     public void halvesConnectionsOnBackoff() {
         connPerRoute.setMaxForRoute(route, 4);
         impl.backOff(route);
         assertEquals(2, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void doesNotBackoffBelowOneConnection() {
         connPerRoute.setMaxForRoute(route, 1);
         impl.backOff(route);
-        assertEquals(1, connPerRoute.getMaxForRoute(route));        
+        assertEquals(1, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void increasesByOneOnProbe() {
         connPerRoute.setMaxForRoute(route, 2);
         impl.probe(route);
-        assertEquals(3, connPerRoute.getMaxForRoute(route));        
+        assertEquals(3, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void doesNotIncreaseBeyondPerHostMaxOnProbe() {
         connPerRoute.setDefaultMaxPerRoute(5);
@@ -87,7 +87,7 @@ public class TestAIMDBackoffManager {
         impl.probe(route);
         assertEquals(5, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxForRoute(route, 4);
@@ -99,7 +99,7 @@ public class TestAIMDBackoffManager {
         impl.backOff(route);
         assertEquals(max, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void backoffStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxForRoute(route, 8);
@@ -111,9 +111,9 @@ public class TestAIMDBackoffManager {
         impl.backOff(route);
         assertTrue(max == 1 || max > connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() {        
+    public void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxForRoute(route, 4);
         long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
@@ -135,7 +135,7 @@ public class TestAIMDBackoffManager {
         impl.probe(route);
         assertTrue(max < connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxForRoute(route, 8);
@@ -147,7 +147,7 @@ public class TestAIMDBackoffManager {
         impl.backOff(route);
         assertTrue(connPerRoute.getMaxForRoute(route) < max);
     }
-    
+
     @Test
     public void backOffFactorIsConfigurable() {
         connPerRoute.setMaxForRoute(route, 10);
@@ -155,7 +155,7 @@ public class TestAIMDBackoffManager {
         impl.backOff(route);
         assertEquals(9, connPerRoute.getMaxForRoute(route));
     }
-    
+
     @Test
     public void coolDownPeriodIsConfigurable() {
         long cd = new Random().nextLong() / 2;

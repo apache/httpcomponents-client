@@ -110,7 +110,7 @@ public class HttpCacheEntry implements Serializable {
             ? new HashMap<String,String>(variantMap)
             : null;
     }
-    
+
     /**
      * Create a new {@link HttpCacheEntry}.
      *
@@ -207,7 +207,7 @@ public class HttpCacheEntry implements Serializable {
     public Resource getResource() {
         return this.resource;
     }
-    
+
     /**
      * Indicates whether the origin response indicated the associated
      * resource had variants (i.e. that the Vary header was set on the
