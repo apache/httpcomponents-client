@@ -71,7 +71,7 @@ public abstract class AbstractProtocolTest {
 
         params = new CacheConfig();
         params.setMaxCacheEntries(MAX_ENTRIES);
-        params.setMaxObjectSizeBytes(MAX_BYTES);
+        params.setMaxObjectSize(MAX_BYTES);
         cache = new BasicHttpCache(params);
         mockBackend = EasyMock.createMock(HttpClient.class);
         mockCache = EasyMock.createMock(HttpCache.class);

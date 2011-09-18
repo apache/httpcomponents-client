@@ -51,7 +51,7 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class ResponseCachingPolicy {
 
-    private final int maxObjectSizeBytes;
+    private final long maxObjectSizeBytes;
     private final boolean sharedCache;
     private final Log log = LogFactory.getLog(getClass());
 
@@ -63,7 +63,7 @@ class ResponseCachingPolicy {
      * @param sharedCache whether to behave as a shared cache (true) or a
      * non-shared/private cache (false)
      */
-    public ResponseCachingPolicy(int maxObjectSizeBytes, boolean sharedCache) {
+    public ResponseCachingPolicy(long maxObjectSizeBytes, boolean sharedCache) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
     }

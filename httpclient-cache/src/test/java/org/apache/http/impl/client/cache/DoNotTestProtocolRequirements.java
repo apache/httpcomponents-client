@@ -75,7 +75,7 @@ public class DoNotTestProtocolRequirements {
 
         originResponse = make200Response();
         CacheConfig params = new CacheConfig();
-        params.setMaxObjectSizeBytes(MAX_BYTES);
+        params.setMaxObjectSize(MAX_BYTES);
         params.setMaxCacheEntries(MAX_ENTRIES);
 
         HttpCache cache = new BasicHttpCache(params);

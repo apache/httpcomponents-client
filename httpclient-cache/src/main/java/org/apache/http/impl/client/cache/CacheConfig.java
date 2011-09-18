@@ -131,7 +131,7 @@ public class CacheConfig {
      */
     public static final int DEFAULT_REVALIDATION_QUEUE_SIZE = 100;
 
-    private int maxObjectSizeBytes = DEFAULT_MAX_OBJECT_SIZE_BYTES;
+    private long maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
     private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
     private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
     private boolean heuristicCachingEnabled = false;
@@ -146,17 +146,47 @@ public class CacheConfig {
     /**
      * Returns the current maximum response body size that will be cached.
      * @return size in bytes
+     *
+     * @deprecated use {@link #getMaxObjectSize()}
      */
+    @Deprecated
     public int getMaxObjectSizeBytes() {
-        return maxObjectSizeBytes;
+        return maxObjectSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) maxObjectSize;
     }
 
     /**
      * Specifies the maximum response body size that will be eligible for caching.
      * @param maxObjectSizeBytes size in bytes
+     *
+     * @deprecated use {@link #setMaxObjectSize(long)}
      */
+    @Deprecated
     public void setMaxObjectSizeBytes(int maxObjectSizeBytes) {
-        this.maxObjectSizeBytes = maxObjectSizeBytes;
+        if (maxObjectSizeBytes > Integer.MAX_VALUE) {
+            this.maxObjectSize = Integer.MAX_VALUE;
+        } else {
+            this.maxObjectSize = maxObjectSizeBytes;
+        }
+    }
+
+    /**
+     * Returns the current maximum response body size that will be cached.
+     * @return size in bytes
+     *
+     * @since 4.2
+     */
+    public long getMaxObjectSize() {
+        return maxObjectSize;
+    }
+
+    /**
+     * Specifies the maximum response body size that will be eligible for caching.
+     * @param maxObjectSize size in bytes
+     *
+     * @since 4.2
+     */
+    public void setMaxObjectSize(long maxObjectSize) {
+        this.maxObjectSize = maxObjectSize;
     }
 
     /**

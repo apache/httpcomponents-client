@@ -52,7 +52,7 @@ class BasicHttpCache implements HttpCache {
 
     private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
-    private final int maxObjectSizeBytes;
+    private final long maxObjectSizeBytes;
     private final CacheEntryUpdater cacheEntryUpdater;
     private final CachedHttpResponseGenerator responseGenerator;
     private final CacheInvalidator cacheInvalidator;
@@ -64,7 +64,7 @@ class BasicHttpCache implements HttpCache {
         this.resourceFactory = resourceFactory;
         this.uriExtractor = new CacheKeyGenerator();
         this.cacheEntryUpdater = new CacheEntryUpdater(resourceFactory);
-        this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
+        this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.responseGenerator = new CachedHttpResponseGenerator();
         this.storage = storage;
         this.cacheInvalidator = new CacheInvalidator(this.uriExtractor, this.storage);

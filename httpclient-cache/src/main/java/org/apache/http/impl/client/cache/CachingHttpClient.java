@@ -130,7 +130,7 @@ public class CachingHttpClient implements HttpClient {
 
     private final ConditionalRequestBuilder conditionalRequestBuilder;
 
-    private final int maxObjectSizeBytes;
+    private final long maxObjectSizeBytes;
     private final boolean sharedCache;
 
     private final ResponseProtocolCompliance responseCompliance;
@@ -154,7 +154,7 @@ public class CachingHttpClient implements HttpClient {
         if (config == null) {
             throw new IllegalArgumentException("CacheConfig may not be null");
         }
-        this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
+        this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.sharedCache = config.isSharedCache();
         this.backend = client;
         this.responseCache = cache;
@@ -268,7 +268,7 @@ public class CachingHttpClient implements HttpClient {
             ResponseProtocolCompliance responseCompliance,
             RequestProtocolCompliance requestCompliance) {
         CacheConfig config = new CacheConfig();
-        this.maxObjectSizeBytes = config.getMaxObjectSizeBytes();
+        this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.sharedCache = config.isSharedCache();
         this.backend = backend;
         this.validityPolicy = validityPolicy;

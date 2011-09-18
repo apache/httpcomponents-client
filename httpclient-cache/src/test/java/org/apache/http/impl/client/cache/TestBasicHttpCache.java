@@ -234,7 +234,7 @@ public class TestBasicHttpCache {
         Date responseReceived = new Date(now.getTime() - 1 * 1000L);
 
         HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
+        originResponse.setEntity(HttpTestUtils.makeBody((int) CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
@@ -256,7 +256,7 @@ public class TestBasicHttpCache {
         Date responseReceived = new Date(now.getTime() - 1 * 1000L);
 
         HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
+        originResponse.setEntity(HttpTestUtils.makeBody((int) CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");

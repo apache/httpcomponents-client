@@ -1,5 +1,8 @@
 Changes since 4.1.2
 
+* [HTTPCLIENT-1116] ResponseCachingPolicy uses integers for sizes
+  Contributed by Greg Bowyer <gbowyer at fastmail.co.uk >
+
 * [HTTPCLIENT-1123] Support for pluggable DNS resolvers.  
   Contributed by Alin Vasile <alinachegalati at yahoo dot com>
 

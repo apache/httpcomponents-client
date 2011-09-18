@@ -64,7 +64,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
     public void setUp() {
         super.setUp();
         params = new CacheConfig();
-        params.setMaxObjectSizeBytes(MAX_BYTES);
+        params.setMaxObjectSize(MAX_BYTES);
 
         if (CACHE_MANAGER.cacheExists(TEST_EHCACHE_NAME)){
             CACHE_MANAGER.removeCache(TEST_EHCACHE_NAME);

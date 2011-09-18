@@ -118,7 +118,7 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testTooLargeEntityHasOriginalContentTypes() throws Exception {
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        StringEntity entity = new StringEntity("large entity content", "text/plain", "utf-8");
+        StringEntity entity = new StringEntity("large entity content");
         response.setEntity(entity);
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
