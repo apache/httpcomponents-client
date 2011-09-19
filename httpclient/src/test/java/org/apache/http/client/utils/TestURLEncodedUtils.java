@@ -47,13 +47,17 @@ public class TestURLEncodedUtils {
         result = parse("", null);
         Assert.assertTrue(result.isEmpty());
 
+        result = parse("Name0", null);
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name0", null);
+
         result = parse("Name1=Value1", null);
         Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "Name1", "Value1");
 
         result = parse("Name2=", null);
         Assert.assertEquals(1, result.size());
-        assertNameValuePair(result.get(0), "Name2", null);
+        assertNameValuePair(result.get(0), "Name2", "");
 
         result = parse("Name3", null);
         Assert.assertEquals(1, result.size());
@@ -160,11 +164,15 @@ public class TestURLEncodedUtils {
         Assert.assertEquals(0, URLEncodedUtils.format(params, null).length());
 
         params.clear();
+        params.add(new BasicNameValuePair("Name0", null));
+        Assert.assertEquals("Name0", URLEncodedUtils.format(params, null));
+
+        params.clear();
         params.add(new BasicNameValuePair("Name1", "Value1"));
         Assert.assertEquals("Name1=Value1", URLEncodedUtils.format(params, null));
 
         params.clear();
-        params.add(new BasicNameValuePair("Name2", null));
+        params.add(new BasicNameValuePair("Name2", ""));
         Assert.assertEquals("Name2=", URLEncodedUtils.format(params, null));
 
         params.clear();

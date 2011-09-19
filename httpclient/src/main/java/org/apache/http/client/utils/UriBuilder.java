@@ -26,16 +26,18 @@
 
 package org.apache.http.client.utils;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 
 public class UriBuilder {
+
     private String scheme;
     private String schemeSpecificPart;
     private String authority;
@@ -43,310 +45,176 @@ public class UriBuilder {
     private String host;
     private int port;
     private String path;
-    private String query;
+    private List<NameValuePair> queryParams;
     private String fragment;
-    private URI uri;
-    private String enc;
-    private boolean encOn;
-    private Set<String> supportedEncoding;
 
     public UriBuilder() {
-        init();
+        super();
+        this.port = -1;
     }
 
-    public UriBuilder(String string) throws URISyntaxException {
-        init();
-        URI uri = new URI(string);
-        from(uri);
+    public UriBuilder(final String string) throws URISyntaxException {
+        super();
+        digestURI(new URI(string));
     }
 
-    public UriBuilder(URI uri) {
-        this.init();
-        from(uri);
+    public UriBuilder(final URI uri) {
+        super();
+        digestURI(uri);
     }
 
-    public UriBuilder addParameter(String param, Object value)
-            throws URISyntaxException {
-        return this.addParameter(param, value.toString());
+    private List <NameValuePair> parseQuery(final String query, final String encoding) {
+        if (query != null && query.length() > 0) {
+            return URLEncodedUtils.parse(query, encoding);
+        }
+        return null;
     }
 
-    /**
-     * add a parameter-value pair into URI query
-     *
-     * @param param
-     * @param value
-     * @throws URISyntaxException
-     */
-    public UriBuilder addParameter(String param, String value)
-            throws URISyntaxException {
-        StringBuffer sb = this.query == null ? new StringBuffer()
-                : new StringBuffer(this.query);
-        if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '&')
-            sb.append('&');
-        sb.append(encode(param)).append('=').append(encode(value));
-        return setQuery(sb.toString());
+    private String formatQuery(final List<NameValuePair> parameters, final String encoding) {
+        if (parameters == null) {
+            return null;
+        }
+        return URLEncodedUtils.format(parameters, encoding);
     }
 
     /**
-     * build a URI instance from pre-provided information
-     *
-     * @throws RuntimeException
+     * Builds a URI instance.
      */
-    public URI build() throws RuntimeException {
-        if (uri != null)
-            return uri;
-        else
-            throw new IllegalStateException(
-                    "Not enough information to build URI");
-    }
+    public URI build() throws URISyntaxException {
+        if (this.schemeSpecificPart != null) {
+            return new URI(this.scheme, this.schemeSpecificPart, this.fragment);
+        } else if (this.authority != null) {
+            return new URI(this.scheme, this.authority,
+                    this.path, formatQuery(this.queryParams, HTTP.UTF_8), this.fragment);
 
-    private void digestURI(URI uri, boolean raw) {
-        scheme = uri.getScheme();
-        host = uri.getHost();
-        port = uri.getPort();
-        if (raw) {
-            schemeSpecificPart = uri.getRawSchemeSpecificPart();
-            authority = uri.getRawAuthority();
-            userInfo = uri.getRawUserInfo();
-            path = uri.getRawPath();
-            query = uri.getRawQuery();
-            fragment = uri.getRawFragment();
         } else {
-            schemeSpecificPart = uri.getSchemeSpecificPart();
-            authority = uri.getAuthority();
-            userInfo = uri.getUserInfo();
-            path = uri.getPath();
-            query = uri.getQuery();
-            fragment = uri.getFragment();
+            return new URI(this.scheme, this.userInfo, this.host, this.port,
+                    this.path, formatQuery(this.queryParams, HTTP.UTF_8), this.fragment);
         }
     }
 
-    public UriBuilder encodingOff() {
-        this.encOn = false;
-        return this;
+    private void digestURI(final URI uri) {
+        this.scheme = uri.getScheme();
+        this.schemeSpecificPart = uri.getSchemeSpecificPart();
+        this.authority = uri.getAuthority();
+        this.host = uri.getHost();
+        this.port = uri.getPort();
+        this.userInfo = uri.getUserInfo();
+        this.path = uri.getPath();
+        this.queryParams = parseQuery(uri.getRawQuery(), HTTP.UTF_8);
+        this.fragment = uri.getFragment();
     }
 
-    public UriBuilder encodingOn() {
-        try {
-            encodingOn(enc);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return this;
-    }
-
-    public UriBuilder encodingOn(String enc)
-            throws UnsupportedEncodingException {
-        if (enc == null)
-            throw new IllegalArgumentException(
-                    "Encoding scheme cannot be null.");
-
-        // check encoding is supported
-        if (!supportedEncoding.contains(enc))
-            throw new UnsupportedEncodingException();
-        this.enc = enc;
-        this.encOn = true;
+    /**
+     * Sets URI scheme.
+     */
+    public UriBuilder setScheme(final String scheme) {
+        this.scheme = scheme;
         return this;
     }
 
     /**
-     * copy the uri into builder
-     *
-     * @param uri
-     *            String value of a URI instance
-     * @throws URISyntaxException
-     *             if uri is invalid
+     * Sets URI user-info.
      */
-    public UriBuilder from(final String uri) throws URISyntaxException {
-        URI u = new URI(uri);
-        from(u);
-        return this;
-    }
-
-    /**
-     * copy uri into builder
-     *
-     * @param uri
-     *            the URI source to clone
-     */
-    public UriBuilder from(final URI uri) {
-        digestURI(uri, false);
-        this.uri = uri;
-        return this;
-    }
-
-    private void init() {
-        port = -1;
-        encOn = false;
-        enc = "UTF-8";
-        supportedEncoding = Charset.availableCharsets().keySet();
-    }
-
-    /**
-     * set URI fragment
-     *
-     * @param fragment
-     * @throws URISyntaxException
-     */
-    public UriBuilder setFragment(final String fragment)
-            throws URISyntaxException {
-        this.fragment = encode(fragment);
-        update();
-        return this;
-    }
-
-    private String encode(String string) {
-
-        try {
-            if (encOn) {
-                String encodedString = URLEncoder.encode(string, enc);
-                return encodedString;
-            } else {
-                return URLDecoder.decode(string, enc);
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * set URI host
-     *
-     * @param host
-     * @throws URISyntaxException
-     *             if uri is invalid
-     */
-    public UriBuilder setHost(final String host) throws URISyntaxException {
-        this.host = encode(host);
-        update();
-        return this;
-    }
-
-    /**
-     * set URI path
-     *
-     * @param path
-     *            a String represent the path of a URI, e.g., "/path"
-     * @throws URISyntaxException
-     */
-    public UriBuilder setPath(final String path) throws URISyntaxException {
-        this.path = encode(path);
-        update();
-        return this;
-    }
-
-    /**
-     * set URI port
-     *
-     * @param port
-     * @throws URISyntaxException
-     */
-    public UriBuilder setPort(final int port) throws URISyntaxException {
-        this.port = port < 0 ? -1 : port;
-        update();
-        return this;
-    }
-
-    /**
-     * set URI query by parameter-value pairs
-     *
-     * @param paramMap
-     * @throws URISyntaxException
-     */
-    public UriBuilder setQuery(final Map<String, String> paramMap)
-            throws URISyntaxException {
-        StringBuffer sb = new StringBuffer();
-        for (String key : paramMap.keySet())
-            sb.append(encode(key)).append('=')
-                    .append(encode(paramMap.get(key))).append('&');
-        if (sb.charAt(sb.length() - 1) == '&')
-            sb.deleteCharAt(sb.length() - 1);
-        return setQuery(sb.toString());
-    }
-
-    /**
-     * set URI query
-     *
-     * @param query
-     * @throws URISyntaxException
-     */
-    public UriBuilder setQuery(final String query) throws URISyntaxException {
-        this.query = query;
-        update();
-        return this;
-    }
-
-    /**
-     * set URI scheme
-     *
-     * @param scheme
-     * @throws URISyntaxException
-     *             if uri is invalid
-     */
-    public UriBuilder setScheme(final String scheme) throws URISyntaxException {
-        this.scheme = encode(scheme);
-        update();
-        return this;
-    }
-
-    /**
-     * set URI user-info
-     *
-     * @param userInfo
-     *            a String represents the user-info, e.g., "username:password"
-     * @throws URISyntaxException
-     */
-    public UriBuilder setUserInfo(final String userInfo)
-            throws URISyntaxException {
+    public UriBuilder setUserInfo(final String userInfo) {
         this.userInfo = userInfo;
-        update();
+        this.schemeSpecificPart = null;
+        this.authority = null;
         return this;
     }
 
     /**
-     * set URI user-info
-     *
-     * @param username
-     * @param password
-     * @throws URISyntaxException
+     * Sets URI user-info in a form of 'username:password'.
      */
-    public UriBuilder setUserInfo(final String username, final String password)
-            throws URISyntaxException {
+    public UriBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
     }
 
-    public UriBuilder removeQuery() {
-        this.query = null;
+    /**
+     * Sets URI host.
+     */
+    public UriBuilder setHost(final String host) {
+        this.host = host;
+        this.schemeSpecificPart = null;
+        this.authority = null;
         return this;
     }
 
-    @Override
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        URI uri = build();
-        sb.append(uri.toString()).append('\n');
-        sb.append("scheme   : ").append(scheme).append('\n');
-        sb.append("sspart   : ").append(schemeSpecificPart).append('\n');
-        sb.append("authority: ").append(authority).append('\n');
-        sb.append("user-info: ").append(userInfo).append('\n');
-        sb.append("host     : ").append(host).append('\n');
-        sb.append("port     : ").append(port).append('\n');
-        sb.append("path     : ").append(path).append('\n');
-        sb.append("query    : ").append(query).append('\n');
-        sb.append("fragment : ").append(fragment);
-        return sb.toString();
+    /**
+     * Sets URI port.
+     */
+    public UriBuilder setPort(final int port) {
+        this.port = port < 0 ? -1 : port;
+        this.schemeSpecificPart = null;
+        this.authority = null;
+        return this;
     }
 
-    private void update() throws URISyntaxException {
-        if (scheme != null && host != null)
-            try {
-                uri = new URI(scheme, userInfo, host, port, path, query,
-                        fragment);
-                digestURI(uri, false);
-            } catch (URISyntaxException e) {
-                // roll back
-                digestURI(uri, false);
-                throw e;
-            }
+    /**
+     * Sets URI path.
+     */
+    public UriBuilder setPath(final String path) {
+        this.path = path;
+        this.schemeSpecificPart = null;
+        return this;
     }
+
+    /**
+     * Removes all query parameters.
+     */
+    public UriBuilder removeQuery() {
+        this.queryParams = null;
+        this.schemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Set URI query.
+     */
+    public UriBuilder setQuery(final String query) {
+        this.queryParams = parseQuery(query, HTTP.UTF_8);
+        this.schemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Adds a parameter-value pair to URI query.
+     */
+    public UriBuilder addParameter(final String param, final String value) {
+        if (this.queryParams == null) {
+            this.queryParams = new ArrayList<NameValuePair>();
+        }
+        this.queryParams.add(new BasicNameValuePair(param, value));
+        this.schemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Sets parameter-value pair to URI query removing existing parameters with the same name.
+     */
+    public UriBuilder setParameter(final String param, final String value) {
+        if (this.queryParams == null) {
+            this.queryParams = new ArrayList<NameValuePair>();
+        }
+        if (!this.queryParams.isEmpty()) {
+            for (Iterator<NameValuePair> it = this.queryParams.iterator(); it.hasNext(); ) {
+                NameValuePair nvp = it.next();
+                if (nvp.getName().equals(param)) {
+                    it.remove();
+                }
+            }
+        }
+        this.queryParams.add(new BasicNameValuePair(param, value));
+        this.schemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Sets URI fragment.
+     */
+    public UriBuilder setFragment(final String fragment) {
+        this.fragment = fragment;
+        return this;
+    }
+
 }

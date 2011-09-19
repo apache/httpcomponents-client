@@ -43,8 +43,11 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -73,13 +76,12 @@ public class URLEncodedUtils {
      *            encoding to use while parsing the query
      */
     public static List <NameValuePair> parse (final URI uri, final String encoding) {
-        List <NameValuePair> result = Collections.emptyList();
         final String query = uri.getRawQuery();
         if (query != null && query.length() > 0) {
-            result = new ArrayList <NameValuePair>();
-            parse(result, new Scanner(query), encoding);
+            return parse(query, encoding);
+        } else {
+            return Collections.emptyList();
         }
-        return result;
     }
 
     /**
@@ -156,7 +158,10 @@ public class URLEncodedUtils {
      *            Input that contains the parameters to parse.
      * @param encoding
      *            Encoding to use when decoding the parameters.
+     *
+     * @deprecated use {@link #parse(String, String)}
      */
+    @Deprecated
     public static void parse (
             final List <NameValuePair> parameters,
             final Scanner scanner,
@@ -175,6 +180,39 @@ public class URLEncodedUtils {
         }
     }
 
+    private static final char[] DELIM = new char[] { '&' };
+
+    /**
+     * Returns a list of {@link NameValuePair NameValuePairs} as parsed from the given string
+     * using the given character encoding.
+     *
+     * @param s
+     *            text to parse.
+     * @param encoding
+     *            Encoding to use when decoding the parameters.
+     *
+     * @since 4.2
+     */
+    public static List<NameValuePair> parse (final String s, final String encoding) {
+        if (s == null) {
+            return Collections.emptyList();
+        }
+        BasicHeaderValueParser parser = BasicHeaderValueParser.DEFAULT;
+        CharArrayBuffer buffer = new CharArrayBuffer(s.length());
+        buffer.append(s);
+        ParserCursor cursor = new ParserCursor(0, buffer.length());
+        List<NameValuePair> list = new ArrayList<NameValuePair>();
+        while (!cursor.atEnd()) {
+            NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, DELIM);
+            if (nvp.getName().length() > 0) {
+                list.add(new BasicNameValuePair(
+                        decode(nvp.getName(), encoding),
+                        decode(nvp.getValue(), encoding)));
+            }
+        }
+        return list;
+    }
+
     /**
      * Returns a String that is suitable for use as an <code>application/x-www-form-urlencoded</code>
      * list of parameters in an HTTP PUT or HTTP POST.
@@ -188,13 +226,15 @@ public class URLEncodedUtils {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
             final String encodedName = encode(parameter.getName(), encoding);
-            final String value = parameter.getValue();
-            final String encodedValue = value != null ? encode(value, encoding) : "";
-            if (result.length() > 0)
+            final String encodedValue = encode(parameter.getValue(), encoding);
+            if (result.length() > 0) {
                 result.append(PARAMETER_SEPARATOR);
+            }
             result.append(encodedName);
-            result.append(NAME_VALUE_SEPARATOR);
-            result.append(encodedValue);
+            if (encodedValue != null) {
+                result.append(NAME_VALUE_SEPARATOR);
+                result.append(encodedValue);
+            }
         }
         return result.toString();
     }
@@ -214,18 +254,23 @@ public class URLEncodedUtils {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
             final String encodedName = encode(parameter.getName(), encoding);
-            final String value = parameter.getValue();
-            final String encodedValue = value != null ? encode(value, encoding) : "";
-            if (result.length() > 0)
+            final String encodedValue = encode(parameter.getValue(), encoding);
+            if (result.length() > 0) {
                 result.append(PARAMETER_SEPARATOR);
+            }
             result.append(encodedName);
-            result.append(NAME_VALUE_SEPARATOR);
-            result.append(encodedValue);
+            if (encodedValue != null) {
+                result.append(NAME_VALUE_SEPARATOR);
+                result.append(encodedValue);
+            }
         }
         return result.toString();
     }
 
     private static String decode (final String content, final String encoding) {
+        if (content == null) {
+            return null;
+        }
         try {
             return URLDecoder.decode(content,
                     encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
@@ -235,6 +280,9 @@ public class URLEncodedUtils {
     }
 
     private static String encode (final String content, final String encoding) {
+        if (content == null) {
+            return null;
+        }
         try {
             return URLEncoder.encode(content,
                     encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
