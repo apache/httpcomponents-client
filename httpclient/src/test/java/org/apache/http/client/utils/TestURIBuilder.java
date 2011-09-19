@@ -36,7 +36,7 @@ public class TestURIBuilder {
     @Test
     public void testHierarchicalUri() throws Exception {
         URI uri = new URI("http", "stuff", "localhost", 80, "/some stuff", "param=stuff", "fragment");
-        UriBuilder uribuilder = new UriBuilder(uri);
+        URIBuilder uribuilder = new URIBuilder(uri);
         URI result = uribuilder.build();
         Assert.assertEquals(uri, result);
     }
@@ -44,7 +44,7 @@ public class TestURIBuilder {
     @Test
     public void testOpaqueUri() throws Exception {
         URI uri = new URI("stuff", "some-stuff", "fragment");
-        UriBuilder uribuilder = new UriBuilder(uri);
+        URIBuilder uribuilder = new URIBuilder(uri);
         URI result = uribuilder.build();
         Assert.assertEquals(uri, result);
     }
@@ -52,19 +52,19 @@ public class TestURIBuilder {
     @Test
     public void testOpaqueUriMutation() throws Exception {
         URI uri = new URI("stuff", "some-stuff", "fragment");
-        UriBuilder uribuilder = new UriBuilder(uri).setQuery("param1&param2=stuff").setFragment(null);
+        URIBuilder uribuilder = new URIBuilder(uri).setQuery("param1&param2=stuff").setFragment(null);
         Assert.assertEquals(new URI("stuff:?param1&param2=stuff"), uribuilder.build());
     }
 
     @Test
     public void testHierarchicalUriMutation() throws Exception {
-        UriBuilder uribuilder = new UriBuilder("/").setScheme("http").setHost("localhost").setPort(80).setPath("/stuff");
+        URIBuilder uribuilder = new URIBuilder("/").setScheme("http").setHost("localhost").setPort(80).setPath("/stuff");
         Assert.assertEquals(new URI("http://localhost:80/stuff"), uribuilder.build());
     }
 
     @Test
     public void testEmpty() throws Exception {
-        UriBuilder uribuilder = new UriBuilder();
+        URIBuilder uribuilder = new URIBuilder();
         URI result = uribuilder.build();
         Assert.assertEquals(new URI(""), result);
     }
@@ -72,7 +72,7 @@ public class TestURIBuilder {
     @Test
     public void testSetUserInfo() throws Exception {
         URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff", null);
-        UriBuilder uribuilder = new UriBuilder(uri).setUserInfo("user", "password");
+        URIBuilder uribuilder = new URIBuilder(uri).setUserInfo("user", "password");
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://user:password@localhost:80/?param=stuff"), result);
     }
@@ -80,7 +80,7 @@ public class TestURIBuilder {
     @Test
     public void testRemoveParameters() throws Exception {
         URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff", null);
-        UriBuilder uribuilder = new UriBuilder(uri).removeQuery();
+        URIBuilder uribuilder = new URIBuilder(uri).removeQuery();
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/"), result);
     }
@@ -88,7 +88,7 @@ public class TestURIBuilder {
     @Test
     public void testSetParameter() throws Exception {
         URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff&blah&blah", null);
-        UriBuilder uribuilder = new UriBuilder(uri).setParameter("param", "some other stuff")
+        URIBuilder uribuilder = new URIBuilder(uri).setParameter("param", "some other stuff")
             .setParameter("blah", "blah");
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/?param=some+other+stuff&blah=blah"), result);
@@ -97,7 +97,7 @@ public class TestURIBuilder {
     @Test
     public void testAddParameter() throws Exception {
         URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff&blah&blah", null);
-        UriBuilder uribuilder = new UriBuilder(uri).addParameter("param", "some other stuff")
+        URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "some other stuff")
             .addParameter("blah", "blah");
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/?param=stuff&blah&blah&" +

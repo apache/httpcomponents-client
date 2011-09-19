@@ -36,7 +36,10 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 
-public class UriBuilder {
+/**
+ * @since 4.2
+ */
+public class URIBuilder {
 
     private String scheme;
     private String schemeSpecificPart;
@@ -48,17 +51,17 @@ public class UriBuilder {
     private List<NameValuePair> queryParams;
     private String fragment;
 
-    public UriBuilder() {
+    public URIBuilder() {
         super();
         this.port = -1;
     }
 
-    public UriBuilder(final String string) throws URISyntaxException {
+    public URIBuilder(final String string) throws URISyntaxException {
         super();
         digestURI(new URI(string));
     }
 
-    public UriBuilder(final URI uri) {
+    public URIBuilder(final URI uri) {
         super();
         digestURI(uri);
     }
@@ -108,7 +111,7 @@ public class UriBuilder {
     /**
      * Sets URI scheme.
      */
-    public UriBuilder setScheme(final String scheme) {
+    public URIBuilder setScheme(final String scheme) {
         this.scheme = scheme;
         return this;
     }
@@ -116,7 +119,7 @@ public class UriBuilder {
     /**
      * Sets URI user-info.
      */
-    public UriBuilder setUserInfo(final String userInfo) {
+    public URIBuilder setUserInfo(final String userInfo) {
         this.userInfo = userInfo;
         this.schemeSpecificPart = null;
         this.authority = null;
@@ -126,14 +129,14 @@ public class UriBuilder {
     /**
      * Sets URI user-info in a form of 'username:password'.
      */
-    public UriBuilder setUserInfo(final String username, final String password) {
+    public URIBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
     }
 
     /**
      * Sets URI host.
      */
-    public UriBuilder setHost(final String host) {
+    public URIBuilder setHost(final String host) {
         this.host = host;
         this.schemeSpecificPart = null;
         this.authority = null;
@@ -143,7 +146,7 @@ public class UriBuilder {
     /**
      * Sets URI port.
      */
-    public UriBuilder setPort(final int port) {
+    public URIBuilder setPort(final int port) {
         this.port = port < 0 ? -1 : port;
         this.schemeSpecificPart = null;
         this.authority = null;
@@ -153,7 +156,7 @@ public class UriBuilder {
     /**
      * Sets URI path.
      */
-    public UriBuilder setPath(final String path) {
+    public URIBuilder setPath(final String path) {
         this.path = path;
         this.schemeSpecificPart = null;
         return this;
@@ -162,7 +165,7 @@ public class UriBuilder {
     /**
      * Removes all query parameters.
      */
-    public UriBuilder removeQuery() {
+    public URIBuilder removeQuery() {
         this.queryParams = null;
         this.schemeSpecificPart = null;
         return this;
@@ -171,7 +174,7 @@ public class UriBuilder {
     /**
      * Set URI query.
      */
-    public UriBuilder setQuery(final String query) {
+    public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, HTTP.UTF_8);
         this.schemeSpecificPart = null;
         return this;
@@ -180,7 +183,7 @@ public class UriBuilder {
     /**
      * Adds a parameter-value pair to URI query.
      */
-    public UriBuilder addParameter(final String param, final String value) {
+    public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
         }
@@ -192,7 +195,7 @@ public class UriBuilder {
     /**
      * Sets parameter-value pair to URI query removing existing parameters with the same name.
      */
-    public UriBuilder setParameter(final String param, final String value) {
+    public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
         }
@@ -212,7 +215,7 @@ public class UriBuilder {
     /**
      * Sets URI fragment.
      */
-    public UriBuilder setFragment(final String fragment) {
+    public URIBuilder setFragment(final String fragment) {
         this.fragment = fragment;
         return this;
     }
