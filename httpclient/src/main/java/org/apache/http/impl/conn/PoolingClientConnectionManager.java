@@ -310,12 +310,24 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.pool.closeExpired();
     }
 
+    public int getMaxTotal() {
+        return this.pool.getMaxTotal();
+    }
+
     public void setMaxTotal(int max) {
         this.pool.setMaxTotal(max);
     }
 
+    public int getDefaultMaxPerRoute() {
+        return this.pool.getDefaultMaxPerRoute();
+    }
+
     public void setDefaultMaxPerRoute(int max) {
         this.pool.setDefaultMaxPerRoute(max);
+    }
+
+    public int getMaxPerRoute(final HttpRoute route) {
+        return this.pool.getMaxPerRoute(route);
     }
 
     public void setMaxPerRoute(final HttpRoute route, int max) {

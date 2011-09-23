@@ -31,10 +31,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.HttpConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
+import org.apache.http.pool.ConnFactory;
 
 /**
  * @since 4.2
@@ -50,15 +50,10 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
     public HttpConnPool(final Log log,
             final int defaultMaxPerRoute, final int maxTotal,
             final long timeToLive, final TimeUnit tunit) {
-        super(defaultMaxPerRoute, maxTotal);
+        super(new InternalConnFactory(), defaultMaxPerRoute, maxTotal);
         this.log = log;
         this.timeToLive = timeToLive;
         this.tunit = tunit;
-    }
-
-    @Override
-    protected OperatedClientConnection createConnection(final HttpRoute route) throws IOException {
-        return new DefaultClientConnection();
     }
 
     @Override
@@ -67,16 +62,12 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
         return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 
-    @Override
-    protected void closeEntry(final HttpPoolEntry entry) {
-        HttpConnection conn = entry.getConnection();
-        try {
-            conn.shutdown();
-        } catch (IOException ex) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("I/O error shutting down connection", ex);
-            }
+    static class InternalConnFactory implements ConnFactory<HttpRoute, OperatedClientConnection> {
+
+        public OperatedClientConnection create(final HttpRoute route) throws IOException {
+            return new DefaultClientConnection();
         }
+
     }
 
 }

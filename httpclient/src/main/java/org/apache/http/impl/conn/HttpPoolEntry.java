@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.conn;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -73,6 +74,22 @@ class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
 
     HttpRoute getEffectiveRoute() {
         return this.tracker.toRoute();
+    }
+
+    @Override
+    public boolean isClosed() {
+        OperatedClientConnection conn = getConnection();
+        return !conn.isOpen();
+    }
+
+    @Override
+    public void close() {
+        OperatedClientConnection conn = getConnection();
+        try {
+            conn.close();
+        } catch (IOException ex) {
+            this.log.debug("I/O error closing connection", ex);
+        }
     }
 
 }
