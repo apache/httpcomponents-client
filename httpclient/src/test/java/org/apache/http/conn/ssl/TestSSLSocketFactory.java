@@ -108,6 +108,7 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         this.localServer.registerDefaultHandlers();
 
         this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     @Override
@@ -150,12 +151,11 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
         Scheme https = new Scheme("https", 443, socketFactory);
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getConnectionManager().getSchemeRegistry().register(https);
+        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
 
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
-        HttpResponse response = httpclient.execute(target, httpget);
+        HttpResponse response = this.httpclient.execute(target, httpget);
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
         Assert.assertTrue(hostVerifier.isFired());
     }
@@ -170,12 +170,11 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
                 SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         Scheme https = new Scheme("https", 443, socketFactory);
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getConnectionManager().getSchemeRegistry().register(https);
+        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
 
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
-        httpclient.execute(target, httpget);
+        this.httpclient.execute(target, httpget);
     }
 
     @Test
@@ -194,12 +193,11 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         Scheme https = new Scheme("https", 443, socketFactory);
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.getConnectionManager().getSchemeRegistry().register(https);
+        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
 
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("/random/100");
-        HttpResponse response = httpclient.execute(target, httpget);
+        HttpResponse response = this.httpclient.execute(target, httpget);
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
     }
 

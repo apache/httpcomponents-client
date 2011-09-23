@@ -51,9 +51,10 @@ public class TestUriEscapes extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        localServer = new LocalTestServer(null, null);
-        localServer.registerDefaultHandlers();
-        localServer.start();
+        this.localServer = new LocalTestServer(null, null);
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     private static class UriListeningService implements HttpRequestHandler {
@@ -83,18 +84,17 @@ public class TestUriEscapes extends BasicServerTestBase {
         UriListeningService listener = new UriListeningService();
         this.localServer.register("*", listener);
 
-        DefaultHttpClient client = new DefaultHttpClient();
         HttpResponse response;
 
         if(!relative) {
             String request = "http://" + host + ":" + port + uri;
             HttpGet httpget = new HttpGet(request);
-            response = client.execute(httpget);
+            response = this.httpclient.execute(httpget);
             EntityUtils.consume(response.getEntity());
         } else {
             HttpHost target = new HttpHost(host, port);
             HttpGet httpget = new HttpGet(uri);
-            response = client.execute(target, httpget);
+            response = this.httpclient.execute(target, httpget);
             EntityUtils.consume(response.getEntity());
         }
 

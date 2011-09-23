@@ -80,7 +80,8 @@ public class TestClientAuthentication extends BasicServerTestBase {
         httpproc.addInterceptor(new RequestBasicAuth());
         httpproc.addInterceptor(new ResponseBasicUnauthorized());
 
-        localServer = new LocalTestServer(httpproc, null);
+        this.localServer = new LocalTestServer(httpproc, null);
+        this.httpclient = new DefaultHttpClient();
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -153,17 +154,17 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpGet httpget = new HttpGet("/");
 
-        HttpResponse response = httpclient.execute(getServerHttp(), httpget);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
@@ -175,18 +176,18 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test
     public void testBasicAuthenticationFailure() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "all-wrong"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpGet httpget = new HttpGet("/");
 
-        HttpResponse response = httpclient.execute(getServerHttp(), httpget);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
@@ -198,18 +199,18 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpGet httpget = new HttpGet("/");
 
-        HttpResponse response = httpclient.execute(getServerHttp(), httpget);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
@@ -228,16 +229,16 @@ public class TestClientAuthentication extends BasicServerTestBase {
         httpproc.addInterceptor(new ResponseConnControl());
         httpproc.addInterceptor(new RequestBasicAuth());
         httpproc.addInterceptor(new ResponseBasicUnauthorized());
-        localServer = new LocalTestServer(
+        this.localServer = new LocalTestServer(
                 httpproc, null, null, new AuthExpectationVerifier(), null, null);
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -246,7 +247,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
                         -1));
         httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
 
-        HttpResponse response = httpclient.execute(getServerHttp(), httpput);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpput);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
@@ -254,14 +255,14 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -271,7 +272,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, false);
 
         try {
-            httpclient.execute(getServerHttp(), httpput);
+            this.httpclient.execute(getServerHttp(), httpput);
             Assert.fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException ex) {
             Throwable cause = ex.getCause();
@@ -283,19 +284,19 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new StringEntity("some important stuff", HTTP.ISO_8859_1));
 
-        HttpResponse response = httpclient.execute(getServerHttp(), httppost);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httppost);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
@@ -307,14 +308,14 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
+
+        this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
@@ -322,7 +323,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
                         new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
 
         try {
-            httpclient.execute(getServerHttp(), httppost);
+            this.httpclient.execute(getServerHttp(), httppost);
             Assert.fail("ClientProtocolException should have been thrown");
         } catch (ClientProtocolException ex) {
             Throwable cause = ex.getCause();
@@ -364,8 +365,8 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
-        localServer.register("*", new AuthHandler());
-        localServer.start();
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
 
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
@@ -373,21 +374,20 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         TestTargetAuthenticationHandler authHandler = new TestTargetAuthenticationHandler();
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(credsProvider);
-        httpclient.setTargetAuthenticationHandler(authHandler);
+        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient.setTargetAuthenticationHandler(authHandler);
 
         HttpContext context = new BasicHttpContext();
 
         HttpGet httpget = new HttpGet("/");
 
-        HttpResponse response1 = httpclient.execute(getServerHttp(), httpget, context);
+        HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity entity1 = response1.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
-        HttpResponse response2 = httpclient.execute(getServerHttp(), httpget, context);
+        HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity entity2 = response1.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity2);

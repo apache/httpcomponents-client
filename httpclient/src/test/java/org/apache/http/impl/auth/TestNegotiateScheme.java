@@ -68,10 +68,11 @@ public class TestNegotiateScheme extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        localServer = new LocalTestServer(null, null);
+        this.localServer = new LocalTestServer(null, null);
 
-        localServer.registerDefaultHandlers();
-        localServer.start();
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     /**
@@ -159,20 +160,19 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         this.localServer.register("*", new PleaseNegotiateService());
 
         HttpHost target = new HttpHost("localhost", port);
-        DefaultHttpClient client = new DefaultHttpClient();
 
         NegotiateSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
-        client.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
+        this.httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new UseJaasCredentials();
-        client.getCredentialsProvider().setCredentials(
+        this.httpclient.getCredentialsProvider().setCredentials(
                 new AuthScope(null, -1, null), use_jaas_creds);
-        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
+        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
 
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
-        HttpResponse response = client.execute(httpget);
+        HttpResponse response = this.httpclient.execute(httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -188,20 +188,19 @@ public class TestNegotiateScheme extends BasicServerTestBase {
         this.localServer.register("*", new PleaseNegotiateService());
 
         HttpHost target = new HttpHost("localhost", port);
-        DefaultHttpClient client = new DefaultHttpClient();
 
         NegotiateSchemeFactoryWithMockGssManager nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
-        client.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
+        this.httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
         Credentials use_jaas_creds = new UseJaasCredentials();
-        client.getCredentialsProvider().setCredentials(
+        this.httpclient.getCredentialsProvider().setCredentials(
                 new AuthScope(null, -1, null), use_jaas_creds);
-        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
+        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
 
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
-        HttpResponse response = client.execute(httpget);
+        HttpResponse response = this.httpclient.execute(httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());

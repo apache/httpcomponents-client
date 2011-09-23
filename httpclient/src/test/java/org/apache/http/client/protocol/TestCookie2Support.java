@@ -64,9 +64,10 @@ public class TestCookie2Support extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        localServer = new LocalTestServer(null, null);
-        localServer.registerDefaultHandlers();
-        localServer.start();
+        this.localServer = new LocalTestServer(null, null);
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     private static class CookieVer0Service implements HttpRequestHandler {
@@ -88,8 +89,7 @@ public class TestCookie2Support extends BasicServerTestBase {
     public void testCookieVersionSupportHeader1() throws Exception {
         this.localServer.register("*", new CookieVer0Service());
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -97,7 +97,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpGet httpget = new HttpGet("/test/");
 
-        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -105,7 +105,7 @@ public class TestCookie2Support extends BasicServerTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
 
-        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -136,8 +136,7 @@ public class TestCookie2Support extends BasicServerTestBase {
     public void testCookieVersionSupportHeader2() throws Exception {
         this.localServer.register("*", new CookieVer1Service());
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -145,7 +144,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpGet httpget = new HttpGet("/test/");
 
-        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -153,7 +152,7 @@ public class TestCookie2Support extends BasicServerTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(2, cookies.size());
 
-        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -183,8 +182,7 @@ public class TestCookie2Support extends BasicServerTestBase {
     public void testCookieVersionSupportHeader3() throws Exception {
         this.localServer.register("*", new CookieVer2Service());
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -192,7 +190,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpGet httpget = new HttpGet("/test/");
 
-        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -200,7 +198,7 @@ public class TestCookie2Support extends BasicServerTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
 
-        HttpResponse response2 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -231,8 +229,7 @@ public class TestCookie2Support extends BasicServerTestBase {
     public void testSetCookieVersionMix() throws Exception {
         this.localServer.register("*", new SetCookieVersionMixService());
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -240,7 +237,7 @@ public class TestCookie2Support extends BasicServerTestBase {
 
         HttpGet httpget = new HttpGet("/test/");
 
-        HttpResponse response1 = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
         HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 

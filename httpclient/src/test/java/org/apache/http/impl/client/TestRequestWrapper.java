@@ -52,9 +52,10 @@ public class TestRequestWrapper extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        localServer = new LocalTestServer(null, null);
-        localServer.registerDefaultHandlers();
-        localServer.start();
+        this.localServer = new LocalTestServer(null, null);
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     private static class SimpleService implements HttpRequestHandler {
@@ -78,13 +79,13 @@ public class TestRequestWrapper extends BasicServerTestBase {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
-        DefaultHttpClient client = new DefaultHttpClient();
+
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port + "/path";
         HttpGet httpget = new HttpGet(s);
 
-        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
@@ -101,13 +102,12 @@ public class TestRequestWrapper extends BasicServerTestBase {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
-        DefaultHttpClient client = new DefaultHttpClient();
         HttpContext context = new BasicHttpContext();
 
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(

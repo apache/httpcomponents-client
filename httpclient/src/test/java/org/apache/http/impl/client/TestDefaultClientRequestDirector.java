@@ -84,9 +84,10 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        localServer = new LocalTestServer(null, null);
-        localServer.registerDefaultHandlers();
-        localServer.start();
+        this.localServer = new LocalTestServer(null, null);
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+        this.httpclient = new DefaultHttpClient();
     }
 
     /**
@@ -233,7 +234,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         ConnMan4 conMan = new ConnMan4(registry, connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final DefaultHttpClient client = new DefaultHttpClient(conMan, new BasicHttpParams());
+        final DefaultHttpClient client  = new DefaultHttpClient(conMan, new BasicHttpParams());
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
 
@@ -547,13 +548,12 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
+        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
 
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
 
-        HttpResponse response = client.execute(httpget);
+        HttpResponse response = this.httpclient.execute(httpget);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
@@ -569,8 +569,7 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
@@ -595,10 +594,9 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        DefaultHttpClient client = new DefaultHttpClient();
         String virtHost = "virtual";
         httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, port));
-        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
@@ -625,11 +623,10 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        DefaultHttpClient client = new DefaultHttpClient();
         String virtHost = "virtual";
         int virtPort = 9876;
         httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, virtPort));
-        HttpResponse response = client.execute(getServerHttp(), httpget, context);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
         HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
@@ -651,14 +648,13 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
         HttpHost target1 = new HttpHost("whatever", 80);
         HttpHost target2 = new HttpHost("localhost", port);
 
-        DefaultHttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(ClientPNames.DEFAULT_HOST, target1);
+        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target1);
 
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         httpget.getParams().setParameter(ClientPNames.DEFAULT_HOST, target2);
 
-        HttpResponse response = client.execute(httpget);
+        HttpResponse response = this.httpclient.execute(httpget);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
     }
