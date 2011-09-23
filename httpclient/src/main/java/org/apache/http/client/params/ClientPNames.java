@@ -34,15 +34,13 @@ package org.apache.http.client.params;
 public interface ClientPNames {
 
     /**
-     * Defines the class name of the default {@link org.apache.http.conn.ClientConnectionManager}
-     * <p>
-     * This parameter expects a value of type {@link String}.
-     * </p>
+     * @deprecated do not use
      */
+    @Deprecated
     public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
 
     /**
-     * @deprecated use #CONNECTION_MANAGER_FACTORY_CLASS_NAME
+     * @deprecated do not use
      */
     @Deprecated
     public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory-object";

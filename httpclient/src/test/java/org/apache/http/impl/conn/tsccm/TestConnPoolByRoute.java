@@ -49,6 +49,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+@SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
 @Deprecated
 public class TestConnPoolByRoute extends ServerTestBase {

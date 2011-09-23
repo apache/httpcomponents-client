@@ -87,6 +87,16 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         this.layered      = LayerType.PLAIN;
     }
 
+    /**
+     * @since 4.2
+     */
+    public void reset() {
+        this.connected = false;
+        this.proxyChain = null;
+        this.tunnelled = TunnelType.PLAIN;
+        this.layered = LayerType.PLAIN;
+        this.secure = false;
+    }
 
     /**
      * Creates a new tracker for the given route.

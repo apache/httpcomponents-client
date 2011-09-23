@@ -76,8 +76,8 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.NegotiateSchemeFactory;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
@@ -178,8 +178,8 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.0
  */
-@ThreadSafe
 @SuppressWarnings("deprecation")
+@ThreadSafe
 public abstract class AbstractHttpClient implements HttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -325,7 +325,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         if (factory != null) {
             connManager = factory.newInstance(params, registry);
         } else {
-            connManager = new SingleClientConnManager(registry);
+            connManager = new PoolingClientConnectionManager(registry);
         }
 
         return connManager;

@@ -24,58 +24,45 @@
  *
  */
 
-package org.apache.http.conn.params;
+package org.apache.http.impl.client;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.ThreadSafe;
-
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.ConnPoolControl;
+import org.apache.http.pool.PoolStats;
 
-/**
- * This class maintains a map of HTTP routes to maximum number of connections allowed
- * for those routes. This class can be used by pooling
- * {@link org.apache.http.conn.ClientConnectionManager connection managers} for
- * a fine-grained control of connections on a per route basis.
- *
- * @since 4.0
- *
- * @deprecated use {@link ConnPoolControl}
- */
-@Deprecated
-@ThreadSafe
-public final class ConnPerRouteBean implements ConnPerRoute {
-
-    /** The default maximum number of connections allowed per host */
-    public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 2;   // Per RFC 2616 sec 8.1.4
+public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
 
     private final ConcurrentHashMap<HttpRoute, Integer> maxPerHostMap;
 
+    private volatile int totalMax;
     private volatile int defaultMax;
 
-    public ConnPerRouteBean(int defaultMax) {
+    public MockConnPoolControl() {
         super();
         this.maxPerHostMap = new ConcurrentHashMap<HttpRoute, Integer>();
-        setDefaultMaxPerRoute(defaultMax);
+        this.totalMax = 20;
+        this.defaultMax = 2;
     }
 
-    public ConnPerRouteBean() {
-        this(DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
+    public void setMaxTotal(int max) {
+        this.totalMax = max;
     }
 
-    /**
-     * @deprecated Use {@link #getDefaultMaxPerRoute()} instead
-     */
-    @Deprecated
-    public int getDefaultMax() {
-        return this.defaultMax;
+    public int getMaxTotal() {
+        return this.totalMax;
     }
 
-    /**
-     * @since 4.1
-     */
+    public PoolStats getTotalStats() {
+        return new PoolStats(-1, -1, -1, this.totalMax);
+    }
+
+    public PoolStats getStats(final HttpRoute route) {
+        return new PoolStats(-1, -1, -1, getMaxPerRoute(route));
+    }
+
     public int getDefaultMaxPerRoute() {
         return this.defaultMax;
     }
@@ -88,7 +75,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.defaultMax = max;
     }
 
-    public void setMaxForRoute(final HttpRoute route, int max) {
+    public void setMaxPerRoute(final HttpRoute route, int max) {
         if (route == null) {
             throw new IllegalArgumentException
                 ("HTTP route may not be null.");
@@ -100,7 +87,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.maxPerHostMap.put(route, Integer.valueOf(max));
     }
 
-    public int getMaxForRoute(final HttpRoute route) {
+    public int getMaxPerRoute(final HttpRoute route) {
         if (route == null) {
             throw new IllegalArgumentException
                 ("HTTP route may not be null.");

@@ -120,15 +120,19 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void close() throws IOException {
-        OperatedClientConnection conn = getConnection();
-        if (conn != null) {
+        HttpPoolEntry local = this.poolEntry;
+        if (local != null) {
+            OperatedClientConnection conn = local.getConnection();
+            local.getTracker().reset();
             conn.close();
         }
     }
 
     public void shutdown() throws IOException {
-        OperatedClientConnection conn = getConnection();
-        if (conn != null) {
+        HttpPoolEntry local = this.poolEntry;
+        if (local != null) {
+            OperatedClientConnection conn = local.getConnection();
+            local.getTracker().reset();
             conn.shutdown();
         }
     }
