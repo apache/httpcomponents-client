@@ -584,11 +584,11 @@ public class DefaultRequestDirector implements RequestDirector {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when connecting to the target host: "
                                 + ex.getMessage());
+                        if (this.log.isDebugEnabled()) {
+                            this.log.debug(ex.getMessage(), ex);
+                        }
+                        this.log.info("Retrying connect");
                     }
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug(ex.getMessage(), ex);
-                    }
-                    this.log.info("Retrying connect");
                 } else {
                     throw ex;
                 }
