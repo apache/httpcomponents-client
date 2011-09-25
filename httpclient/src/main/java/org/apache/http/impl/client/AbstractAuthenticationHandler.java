@@ -102,7 +102,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             }
             int endIndex = pos;
             String s = buffer.substring(beginIndex, endIndex);
-            map.put(s.toLowerCase(Locale.ENGLISH), header);
+            map.put(s.toLowerCase(Locale.US), header);
         }
         return map;
     }

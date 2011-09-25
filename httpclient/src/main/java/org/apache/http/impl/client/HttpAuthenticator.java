@@ -79,10 +79,12 @@ public class HttpAuthenticator {
             String id = authScheme.getSchemeName();
             Header challenge = challenges.get(id.toLowerCase(Locale.US));
             if (challenge == null) {
-                if (this.log.isWarnEnabled()) {
-                    this.log.warn(id + " authorization challenge expected, but not found");
-                }
-                return false;
+                // Retry authentication with a different scheme
+                authState.invalidate();
+                authScheme = authHandler.selectScheme(challenges, response, context);
+                authState.setAuthScheme(authScheme);
+                id = authScheme.getSchemeName();
+                challenge = challenges.get(id.toLowerCase(Locale.US));
             }
             authScheme.processChallenge(challenge);
             this.log.debug("Authorization challenge processed");
