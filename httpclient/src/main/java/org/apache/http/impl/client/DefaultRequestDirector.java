@@ -31,16 +31,11 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -49,19 +44,16 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.RedirectStrategy;
-import org.apache.http.client.RequestDirector;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.RedirectException;
+import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.RequestDirector;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -183,6 +175,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
     protected final AuthState proxyAuthState;
 
+    private final HttpAuthenticator authenticator;
+
     private int execCount;
 
     private int redirectCount;
@@ -283,6 +277,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 ("HTTP parameters may not be null");
         }
         this.log               = log;
+        this.authenticator     = new HttpAuthenticator(log);
         this.requestExec       = requestExec;
         this.connManager       = conman;
         this.reuseStrategy     = reustrat;
@@ -811,11 +806,7 @@ public class DefaultRequestDirector implements RequestDirector {
         HttpHost target = route.getTargetHost();
         HttpResponse response = null;
 
-        boolean done = false;
-        while (!done) {
-
-            done = true;
-
+        for (;;) {
             if (!this.managedConn.isOpen()) {
                 this.managedConn.open(route, context, this.params);
             }
@@ -853,27 +844,12 @@ public class DefaultRequestDirector implements RequestDirector {
             CredentialsProvider credsProvider = (CredentialsProvider)
                 context.getAttribute(ClientContext.CREDS_PROVIDER);
 
-            if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
+            if (credsProvider != null && HttpClientParams.isAuthenticating(this.params)) {
                 if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
-
-                    this.log.debug("Proxy requested authentication");
-                    Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
-                            response, context);
-                    try {
-                        processChallenges(
-                                challenges, this.proxyAuthState, this.proxyAuthHandler,
-                                response, context);
-                    } catch (AuthenticationException ex) {
-                        if (this.log.isWarnEnabled()) {
-                            this.log.warn("Authentication error: " +  ex.getMessage());
-                            break;
-                        }
-                    }
-                    updateAuthState(this.proxyAuthState, proxy, credsProvider);
-
-                    if (this.proxyAuthState.getCredentials() != null) {
-                        done = false;
-
+                    if (this.authenticator.authenticate(
+                            proxy, response,
+                            this.proxyAuthHandler, this.proxyAuthState,
+                            credsProvider, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
                             this.log.debug("Connection kept alive");
@@ -883,12 +859,13 @@ public class DefaultRequestDirector implements RequestDirector {
                         } else {
                             this.managedConn.close();
                         }
-
+                    } else {
+                        break;
                     }
-
                 } else {
-                    // Reset proxy auth scope
+                    // Reset target auth scope
                     this.proxyAuthState.setAuthScope(null);
+                    break;
                 }
             }
         }
@@ -1081,23 +1058,15 @@ public class DefaultRequestDirector implements RequestDirector {
                 if (target == null) {
                     target = route.getTargetHost();
                 }
-
-                this.log.debug("Target requested authentication");
-                Map<String, Header> challenges = this.targetAuthHandler.getChallenges(
-                        response, context);
-                try {
-                    processChallenges(challenges,
-                            this.targetAuthState, this.targetAuthHandler,
-                            response, context);
-                } catch (AuthenticationException ex) {
-                    if (this.log.isWarnEnabled()) {
-                        this.log.warn("Authentication error: " +  ex.getMessage());
-                        return null;
-                    }
+                if (target.getPort() < 0) {
+                    Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
+                    target = new HttpHost(
+                            target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
                 }
-                updateAuthState(this.targetAuthState, target, credsProvider);
-
-                if (this.targetAuthState.getCredentials() != null) {
+                if (this.authenticator.authenticate(
+                        target, response,
+                        this.targetAuthHandler, this.targetAuthState,
+                        credsProvider, context)) {
                     // Re-try the same request via the same route
                     return roureq;
                 } else {
@@ -1111,23 +1080,10 @@ public class DefaultRequestDirector implements RequestDirector {
             if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
 
                 HttpHost proxy = route.getProxyHost();
-
-                this.log.debug("Proxy requested authentication");
-                Map<String, Header> challenges = this.proxyAuthHandler.getChallenges(
-                        response, context);
-                try {
-                    processChallenges(challenges,
-                            this.proxyAuthState, this.proxyAuthHandler,
-                            response, context);
-                } catch (AuthenticationException ex) {
-                    if (this.log.isWarnEnabled()) {
-                        this.log.warn("Authentication error: " +  ex.getMessage());
-                        return null;
-                    }
-                }
-                updateAuthState(this.proxyAuthState, proxy, credsProvider);
-
-                if (this.proxyAuthState.getCredentials() != null) {
+                if (this.authenticator.authenticate(
+                        proxy, response,
+                        this.proxyAuthHandler, this.proxyAuthState,
+                        credsProvider, context)) {
                     // Re-try the same request via the same route
                     return roureq;
                 } else {
@@ -1169,78 +1125,6 @@ public class DefaultRequestDirector implements RequestDirector {
         }
     } // abortConnection
 
-
-    private void processChallenges(
-            final Map<String, Header> challenges,
-            final AuthState authState,
-            final AuthenticationHandler authHandler,
-            final HttpResponse response,
-            final HttpContext context)
-                throws MalformedChallengeException, AuthenticationException {
-
-        AuthScheme authScheme = authState.getAuthScheme();
-        if (authScheme == null) {
-            // Authentication not attempted before
-            authScheme = authHandler.selectScheme(challenges, response, context);
-            authState.setAuthScheme(authScheme);
-        }
-        String id = authScheme.getSchemeName();
-
-        Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
-        if (challenge == null) {
-            throw new AuthenticationException(id +
-                " authorization challenge expected, but not found");
-        }
-        authScheme.processChallenge(challenge);
-        this.log.debug("Authorization challenge processed");
-    }
-
-
-    private void updateAuthState(
-            final AuthState authState,
-            final HttpHost host,
-            final CredentialsProvider credsProvider) {
-
-        if (!authState.isValid()) {
-            return;
-        }
-
-        String hostname = host.getHostName();
-        int port = host.getPort();
-        if (port < 0) {
-            Scheme scheme = connManager.getSchemeRegistry().getScheme(host);
-            port = scheme.getDefaultPort();
-        }
-
-        AuthScheme authScheme = authState.getAuthScheme();
-        AuthScope authScope = new AuthScope(
-                hostname,
-                port,
-                authScheme.getRealm(),
-                authScheme.getSchemeName());
-
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication scope: " + authScope);
-        }
-        Credentials creds = authState.getCredentials();
-        if (creds == null) {
-            creds = credsProvider.getCredentials(authScope);
-            if (this.log.isDebugEnabled()) {
-                if (creds != null) {
-                    this.log.debug("Found credentials");
-                } else {
-                    this.log.debug("Credentials not found");
-                }
-            }
-        } else {
-            if (authScheme.isComplete()) {
-                this.log.debug("Authentication failed");
-                creds = null;
-            }
-        }
-        authState.setAuthScope(authScope);
-        authState.setCredentials(creds);
-    }
 
     private void invalidateAuthIfSuccessful(final AuthState authState) {
         AuthScheme authscheme = authState.getAuthScheme();

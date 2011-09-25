@@ -65,6 +65,7 @@ public class AuthState {
         this.credentials = null;
     }
 
+    @Deprecated
     public boolean isValid() {
         return this.authScheme != null;
     }

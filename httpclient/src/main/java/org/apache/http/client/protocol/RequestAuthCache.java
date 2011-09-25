@@ -42,6 +42,8 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -84,6 +86,14 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         }
 
         HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+        if (target.getPort() < 0) {
+            SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                    ClientContext.SCHEME_REGISTRY);
+            Scheme scheme = schemeRegistry.getScheme(target);
+            target = new HttpHost(target.getHostName(),
+                    scheme.resolvePort(target.getPort()), target.getSchemeName());
+        }
+
         AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
         if (target != null && targetState != null && targetState.getAuthScheme() == null) {
             AuthScheme authScheme = authCache.get(target);
