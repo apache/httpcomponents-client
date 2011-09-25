@@ -40,6 +40,8 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -75,6 +77,13 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
         if (target != null && targetState != null) {
             if (isCachable(targetState)) {
+                if (target.getPort() < 0) {
+                    SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                            ClientContext.SCHEME_REGISTRY);
+                    Scheme scheme = schemeRegistry.getScheme(target);
+                    target = new HttpHost(target.getHostName(),
+                            scheme.resolvePort(target.getPort()), target.getSchemeName());
+                }
                 if (authCache == null) {
                     authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
