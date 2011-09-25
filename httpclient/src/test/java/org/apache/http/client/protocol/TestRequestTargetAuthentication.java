@@ -32,7 +32,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthChallengeState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -66,13 +66,11 @@ public class TestRequestTargetAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
         BasicHeader challenge = new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
@@ -91,13 +89,11 @@ public class TestRequestTargetAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
         BasicHeader challenge = new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
@@ -116,14 +112,12 @@ public class TestRequestTargetAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
 
         BasicHeader challenge = new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
@@ -207,8 +201,7 @@ public class TestRequestTargetAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        // No challenge
-        authstate.setAuthScope(null);
+        authstate.setChallengeState(AuthChallengeState.UNCHALLENGED);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 

@@ -45,6 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.auth.AuthChallengeState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthenticationHandler;
@@ -845,7 +846,8 @@ public class DefaultRequestDirector implements RequestDirector {
                 context.getAttribute(ClientContext.CREDS_PROVIDER);
 
             if (credsProvider != null && HttpClientParams.isAuthenticating(this.params)) {
-                if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
+                if (this.authenticator.isAuthenticationRequested(response,
+                        this.proxyAuthHandler, this.proxyAuthState, context)) {
                     if (this.authenticator.authenticate(
                             proxy, response,
                             this.proxyAuthHandler, this.proxyAuthState,
@@ -863,8 +865,6 @@ public class DefaultRequestDirector implements RequestDirector {
                         break;
                     }
                 } else {
-                    // Reset target auth scope
-                    this.proxyAuthState.setAuthScope(null);
                     break;
                 }
             }
@@ -1021,8 +1021,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     uri.getScheme());
 
             // Unset auth scope
-            targetAuthState.setAuthScope(null);
-            proxyAuthState.setAuthScope(null);
+            targetAuthState.setChallengeState(AuthChallengeState.UNCHALLENGED);
+            proxyAuthState.setChallengeState(AuthChallengeState.UNCHALLENGED);
 
             // Invalidate auth states if redirecting to another host
             if (!route.getTargetHost().equals(newTarget)) {
@@ -1051,7 +1051,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
         if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
 
-            if (this.targetAuthHandler.isAuthenticationRequested(response, context)) {
+            if (this.authenticator.isAuthenticationRequested(response,
+                    this.targetAuthHandler, this.targetAuthState, context)) {
 
                 HttpHost target = (HttpHost)
                     context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
@@ -1072,13 +1073,10 @@ public class DefaultRequestDirector implements RequestDirector {
                 } else {
                     return null;
                 }
-            } else {
-                // Reset target auth scope
-                this.targetAuthState.setAuthScope(null);
             }
 
-            if (this.proxyAuthHandler.isAuthenticationRequested(response, context)) {
-
+            if (this.authenticator.isAuthenticationRequested(response,
+                    this.proxyAuthHandler, this.proxyAuthState, context)) {
                 HttpHost proxy = route.getProxyHost();
                 if (this.authenticator.authenticate(
                         proxy, response,
@@ -1089,9 +1087,6 @@ public class DefaultRequestDirector implements RequestDirector {
                 } else {
                     return null;
                 }
-            } else {
-                // Reset proxy auth scope
-                this.proxyAuthState.setAuthScope(null);
             }
         }
         return null;

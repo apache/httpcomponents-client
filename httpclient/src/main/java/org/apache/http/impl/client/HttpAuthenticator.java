@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthChallengeState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
@@ -58,6 +59,23 @@ public class HttpAuthenticator {
         this(null);
     }
 
+    public boolean isAuthenticationRequested(
+            final HttpResponse response,
+            final AuthenticationHandler authHandler,
+            final AuthState authState,
+            final HttpContext context) {
+        if (authHandler.isAuthenticationRequested(response, context)) {
+            return true;
+        } else {
+            if (authState.getChallengeState() == AuthChallengeState.CHALLENGED) {
+                authState.setChallengeState(AuthChallengeState.SUCCESS);
+            } else {
+                authState.setChallengeState(AuthChallengeState.UNCHALLENGED);
+            }
+            return false;
+        }
+    }
+
     public boolean authenticate(
             final HttpHost host,
             final HttpResponse response,
@@ -70,6 +88,10 @@ public class HttpAuthenticator {
                 this.log.debug(host.toHostString() + " requested authentication");
             }
             Map<String, Header> challenges = authHandler.getChallenges(response, context);
+            if (challenges.isEmpty()) {
+                this.log.debug("Response contains no authentication challenges");
+                return false;
+            }
             AuthScheme authScheme = authState.getAuthScheme();
             if (authScheme == null) {
                 // Authentication not attempted before
@@ -86,6 +108,7 @@ public class HttpAuthenticator {
                 id = authScheme.getSchemeName();
                 challenge = challenges.get(id.toLowerCase(Locale.US));
             }
+            authState.setChallengeState(AuthChallengeState.CHALLENGED);
             authScheme.processChallenge(challenge);
             this.log.debug("Authorization challenge processed");
 
@@ -111,21 +134,23 @@ public class HttpAuthenticator {
             } else {
                 if (authScheme.isComplete()) {
                     this.log.debug("Authentication failed");
+                    authState.setChallengeState(AuthChallengeState.FAILURE);
                     creds = null;
                 }
             }
-            authState.setAuthScope(authScope);
             authState.setCredentials(creds);
             return creds != null;
         } catch (MalformedChallengeException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Malformed challenge: " +  ex.getMessage());
             }
+            authState.invalidate();
             return false;
         } catch (AuthenticationException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Authentication error: " +  ex.getMessage());
             }
+            authState.invalidate();
             return false;
         }
     }

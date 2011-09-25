@@ -88,7 +88,13 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                     authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
                 }
-                cache(authCache, target, targetState);
+                switch (targetState.getChallengeState()) {
+                case CHALLENGED:
+                    cache(authCache, target, targetState.getAuthScheme());
+                    break;
+                case FAILURE:
+                    uncache(authCache, target, targetState.getAuthScheme());
+                }
             }
         }
 
@@ -100,7 +106,13 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                     authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
                 }
-                cache(authCache, proxy, proxyState);
+                switch (proxyState.getChallengeState()) {
+                case CHALLENGED:
+                    cache(authCache, proxy, proxyState.getAuthScheme());
+                    break;
+                case FAILURE:
+                    uncache(authCache, proxy, proxyState.getAuthScheme());
+                }
             }
         }
     }
@@ -115,19 +127,19 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                 schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
     }
 
-    private void cache(final AuthCache authCache, final HttpHost host, final AuthState authState) {
-        AuthScheme authScheme = authState.getAuthScheme();
-        if (authState.getAuthScope() != null) {
-            if (authState.getCredentials() != null) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Caching '" + authScheme.getSchemeName() +
-                            "' auth scheme for " + host);
-                }
-                authCache.put(host, authScheme);
-            } else {
-                authCache.remove(host);
-            }
+    private void cache(final AuthCache authCache, final HttpHost host, final AuthScheme authScheme) {
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Caching '" + authScheme.getSchemeName() +
+                    "' auth scheme for " + host);
         }
+        authCache.put(host, authScheme);
     }
 
+    private void uncache(final AuthCache authCache, final HttpHost host, final AuthScheme authScheme) {
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Removing from cache '" + authScheme.getSchemeName() +
+                    "' auth scheme for " + host);
+        }
+        authCache.remove(host);
+    }
 }

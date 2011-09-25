@@ -33,7 +33,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthChallengeState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -81,13 +81,11 @@ public class TestRequestProxyAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
         BasicHeader challenge = new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -115,14 +113,12 @@ public class TestRequestProxyAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
 
         BasicHeader challenge = new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -150,14 +146,12 @@ public class TestRequestProxyAuthentication {
 
         BasicScheme authscheme = new BasicScheme();
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
-        AuthScope authscope = new AuthScope("localhost", 8080, "auth-realm", "http");
 
         BasicHeader challenge = new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm");
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
         authstate.setAuthScheme(authscheme);
-        authstate.setAuthScope(authscope);
         authstate.setCredentials(creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -277,8 +271,7 @@ public class TestRequestProxyAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        // No challenge
-        authstate.setAuthScope(null);
+        authstate.setChallengeState(AuthChallengeState.UNCHALLENGED);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);

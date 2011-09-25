@@ -30,14 +30,15 @@ import org.apache.http.annotation.NotThreadSafe;
 
 
 /**
- * This class provides detailed information about the state of the
- * authentication process.
- *
+ * This class provides detailed information about the state of the authentication process.
  *
  * @since 4.0
  */
 @NotThreadSafe
 public class AuthState {
+
+    /** Actual state of authentication process */
+    private AuthChallengeState challengeState;
 
     /** Actual authentication scheme */
     private AuthScheme authScheme;
@@ -54,12 +55,14 @@ public class AuthState {
      */
     public AuthState() {
         super();
+        this.challengeState = AuthChallengeState.UNCHALLENGED;
     }
 
     /**
      * Invalidates the authentication state by resetting its parameters.
      */
     public void invalidate() {
+        this.challengeState = AuthChallengeState.UNCHALLENGED;
         this.authScheme = null;
         this.authScope = null;
         this.credentials = null;
@@ -92,6 +95,19 @@ public class AuthState {
         return this.authScheme;
     }
 
+    /**
+     * @since 4.2
+     */
+    public AuthChallengeState getChallengeState() {
+        return this.challengeState;
+    }
+
+    /**
+     * @since 4.2
+     */
+    public void setChallengeState(final AuthChallengeState state) {
+        this.challengeState = state != null ? state : AuthChallengeState.UNCHALLENGED;
+    }
 
     /**
      * Returns user {@link Credentials} selected for authentication if available
@@ -102,7 +118,6 @@ public class AuthState {
         return this.credentials;
     }
 
-
     /**
      * Sets user {@link Credentials} to be used for authentication
      *
@@ -112,34 +127,40 @@ public class AuthState {
         this.credentials = credentials;
     }
 
-
     /**
      * Returns actual {@link AuthScope} if available
      *
      * @return actual authentication scope if available, <code>null</code otherwise
+     *
+     * @deprecated use {@link #isChallenged()}
      */
-     public AuthScope getAuthScope() {
+    @Deprecated
+    public AuthScope getAuthScope() {
         return this.authScope;
-     }
+    }
 
-     /**
-      * Sets actual {@link AuthScope}.
-      *
-      * @param authScope Authentication scope
-      */
-     public void setAuthScope(final AuthScope authScope) {
+    /**
+     * Sets actual {@link AuthScope}.
+     *
+     * @param authScope Authentication scope
+     *
+     * @deprecated use {@link #setChallenged()} or {@link #setUnchallenged()}.
+     */
+    @Deprecated
+    public void setAuthScope(final AuthScope authScope) {
         this.authScope = authScope;
-     }
-
+    }
 
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
-        buffer.append("auth scope [");
-        buffer.append(this.authScope);
-        buffer.append("]; credentials set [");
-        buffer.append(this.credentials != null ? "true" : "false");
-        buffer.append("]");
+        buffer.append("state:").append(this.challengeState).append(";");
+        if (this.authScheme != null) {
+            buffer.append("auth scheme:").append(this.authScheme.getSchemeName()).append(";");
+        }
+        if (this.credentials != null) {
+            buffer.append("credentials present");
+        }
         return buffer.toString();
     }
 

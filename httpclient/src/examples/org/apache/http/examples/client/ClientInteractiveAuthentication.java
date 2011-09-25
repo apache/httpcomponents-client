@@ -29,8 +29,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
@@ -39,6 +41,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -71,22 +74,23 @@ public class ClientInteractiveAuthentication {
                 int sc = response.getStatusLine().getStatusCode();
 
                 AuthState authState = null;
+                HttpHost authhost = null;
                 if (sc == HttpStatus.SC_UNAUTHORIZED) {
                     // Target host authentication required
                     authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
+                    authhost = (HttpHost) localContext.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 }
                 if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
                     // Proxy authentication required
                     authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
+                    authhost = (HttpHost) localContext.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
                 }
 
                 if (authState != null) {
                     System.out.println("----------------------------------------");
-                    AuthScope authScope = authState.getAuthScope();
-                    System.out.println("Please provide credentials");
-                    System.out.println(" Host: " + authScope.getHost() + ":" + authScope.getPort());
-                    System.out.println(" Realm: " + authScope.getRealm());
-
+                    AuthScheme authscheme = authState.getAuthScheme();
+                    System.out.println("Please provide credentials for " +
+                            authscheme.getRealm() + "@" + authhost.toHostString());
 
                     BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
@@ -97,7 +101,7 @@ public class ClientInteractiveAuthentication {
 
                     if (user != null && user.length() > 0) {
                         Credentials creds = new UsernamePasswordCredentials(user, password);
-                        httpclient.getCredentialsProvider().setCredentials(authScope, creds);
+                        httpclient.getCredentialsProvider().setCredentials(new AuthScope(authhost), creds);
                         trying = true;
                     } else {
                         trying = false;
