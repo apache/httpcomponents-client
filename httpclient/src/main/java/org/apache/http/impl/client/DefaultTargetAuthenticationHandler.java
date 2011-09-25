@@ -46,7 +46,10 @@ import org.apache.http.protocol.HttpContext;
  * authentication.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link TargetAuthenticationStrategy}
  */
+@Deprecated
 @Immutable
 public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHandler {
 

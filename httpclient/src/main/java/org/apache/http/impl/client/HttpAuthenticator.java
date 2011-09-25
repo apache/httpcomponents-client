@@ -36,14 +36,11 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthChallengeState;
+import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.protocol.HttpContext;
 
 public class HttpAuthenticator {
@@ -61,10 +58,10 @@ public class HttpAuthenticator {
 
     public boolean isAuthenticationRequested(
             final HttpResponse response,
-            final AuthenticationHandler authHandler,
+            final AuthenticationStrategy authStrategy,
             final AuthState authState,
             final HttpContext context) {
-        if (authHandler.isAuthenticationRequested(response, context)) {
+        if (authStrategy.isAuthenticationRequested(response, context)) {
             return true;
         } else {
             if (authState.getChallengeState() == AuthChallengeState.CHALLENGED) {
@@ -79,76 +76,50 @@ public class HttpAuthenticator {
     public boolean authenticate(
             final HttpHost host,
             final HttpResponse response,
-            final AuthenticationHandler authHandler,
+            final AuthenticationStrategy authStrategy,
             final AuthState authState,
-            final CredentialsProvider credsProvider,
             final HttpContext context) {
         try {
             if (this.log.isDebugEnabled()) {
                 this.log.debug(host.toHostString() + " requested authentication");
             }
-            Map<String, Header> challenges = authHandler.getChallenges(response, context);
+            Map<String, Header> challenges = authStrategy.getChallenges(response, context);
             if (challenges.isEmpty()) {
                 this.log.debug("Response contains no authentication challenges");
                 return false;
             }
             AuthScheme authScheme = authState.getAuthScheme();
-            if (authScheme == null) {
-                // Authentication not attempted before
-                authScheme = authHandler.selectScheme(challenges, response, context);
-                authState.setAuthScheme(authScheme);
-            }
-            String id = authScheme.getSchemeName();
-            Header challenge = challenges.get(id.toLowerCase(Locale.US));
-            if (challenge == null) {
-                // Retry authentication with a different scheme
-                authState.invalidate();
-                authScheme = authHandler.selectScheme(challenges, response, context);
-                authState.setAuthScheme(authScheme);
-                id = authScheme.getSchemeName();
-                challenge = challenges.get(id.toLowerCase(Locale.US));
-            }
-            authState.setChallengeState(AuthChallengeState.CHALLENGED);
-            authScheme.processChallenge(challenge);
-            this.log.debug("Authorization challenge processed");
-
-            AuthScope authScope = new AuthScope(
-                    host.getHostName(),
-                    host.getPort(),
-                    authScheme.getRealm(),
-                    authScheme.getSchemeName());
-
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Authentication scope: " + authScope);
-            }
-            Credentials creds = authState.getCredentials();
-            if (creds == null) {
-                creds = credsProvider.getCredentials(authScope);
-                if (this.log.isDebugEnabled()) {
-                    if (creds != null) {
-                        this.log.debug("Found credentials");
+            if (authScheme != null) {
+                String id = authScheme.getSchemeName();
+                Header challenge = challenges.get(id.toLowerCase(Locale.US));
+                if (challenge != null) {
+                    this.log.debug("Authorization challenge processed");
+                    authScheme.processChallenge(challenge);
+                    if (authScheme.isComplete()) {
+                        this.log.debug("Authentication failed");
+                        authState.setChallengeState(AuthChallengeState.FAILURE);
+                        authState.setCredentials(null);
+                        return false;
                     } else {
-                        this.log.debug("Credentials not found");
+                        authState.setChallengeState(AuthChallengeState.CHALLENGED);
+                        return true;
                     }
-                }
-            } else {
-                if (authScheme.isComplete()) {
-                    this.log.debug("Authentication failed");
-                    authState.setChallengeState(AuthChallengeState.FAILURE);
-                    creds = null;
+                } else {
+                    authState.invalidate();
+                    // Retry authentication with a different scheme
                 }
             }
-            authState.setCredentials(creds);
-            return creds != null;
+            AuthOption authOption = authStrategy.select(challenges, host, response, context);
+            if (authOption == null) {
+                return false;
+            }
+            authState.setAuthScheme(authOption.getAuthScheme());
+            authState.setCredentials(authOption.getCredentials());
+            authState.setChallengeState(AuthChallengeState.CHALLENGED);
+            return true;
         } catch (MalformedChallengeException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Malformed challenge: " +  ex.getMessage());
-            }
-            authState.invalidate();
-            return false;
-        } catch (AuthenticationException ex) {
-            if (this.log.isWarnEnabled()) {
-                this.log.warn("Authentication error: " +  ex.getMessage());
             }
             authState.invalidate();
             return false;

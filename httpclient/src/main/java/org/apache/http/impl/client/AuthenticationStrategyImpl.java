@@ -28,7 +28,6 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,30 +38,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeRegistry;
-import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.AuthenticationStrategy;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
-/**
- * Base class for {@link AuthenticationHandler} implementations.
- *
- * @since 4.0
- *
- * @deprecated use {@link AuthenticationStrategy}
- */
-@Deprecated
 @Immutable
-public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
+class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -74,13 +68,32 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
                 AuthPolicy.BASIC
     }));
 
-    public AbstractAuthenticationHandler() {
+    private final int challengeCode;
+    private final String headerName;
+    private final String prefParamName;
+
+    AuthenticationStrategyImpl(int challengeCode, final String headerName, final String prefParamName) {
         super();
+        this.challengeCode = challengeCode;
+        this.headerName = headerName;
+        this.prefParamName = prefParamName;
     }
 
-    protected Map<String, Header> parseChallenges(
-            final Header[] headers) throws MalformedChallengeException {
+    public boolean isAuthenticationRequested(final HttpResponse response, final HttpContext context) {
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        int status = response.getStatusLine().getStatusCode();
+        return status == this.challengeCode;
+    }
 
+    public Map<String, Header> getChallenges(
+            final HttpResponse response,
+            final HttpContext context) throws MalformedChallengeException {
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        Header[] headers = response.getHeaders(this.headerName);
         Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (Header header : headers) {
             CharArrayBuffer buffer;
@@ -111,62 +124,63 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         return map;
     }
 
-    /**
-     * Returns default list of auth scheme names in their order of preference.
-     *
-     * @return list of auth scheme names
-     */
-    protected List<String> getAuthPreferences() {
-        return DEFAULT_SCHEME_PRIORITY;
-    }
-
-    /**
-     * Returns default list of auth scheme names in their order of preference
-     * based on the HTTP response and the current execution context.
-     *
-     * @param response HTTP response.
-     * @param context HTTP execution context.
-     *
-     * @since 4.1
-     */
-    protected List<String> getAuthPreferences(
-            final HttpResponse response,
-            final HttpContext context) {
-        return getAuthPreferences();
-    }
-
-    public AuthScheme selectScheme(
+    public AuthOption select(
             final Map<String, Header> challenges,
+            final HttpHost authhost,
             final HttpResponse response,
-            final HttpContext context) throws AuthenticationException {
+            final HttpContext context) throws MalformedChallengeException {
+        if (challenges == null) {
+            throw new IllegalArgumentException("Map of auth challenges may not be null");
+        }
+        if (authhost == null) {
+            throw new IllegalArgumentException("Host may not be null");
+        }
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
+        }
 
         AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY);
         if (registry == null) {
-            throw new IllegalStateException("AuthScheme registry not set in HTTP context");
+            this.log.debug("Auth scheme registry not set in the context");
+            return null;
+        }
+        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
+                ClientContext.CREDS_PROVIDER);
+        if (credsProvider == null) {
+            this.log.debug("Credentials provider not set in the context");
+            return null;
         }
 
-        Collection<String> authPrefs = getAuthPreferences(response, context);
+        @SuppressWarnings("unchecked")
+        List<String> authPrefs = (List<String>) response.getParams().getParameter(this.prefParamName);
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
-
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication schemes in the order of preference: "
-                + authPrefs);
+            this.log.debug("Authentication schemes in the order of preference: " + authPrefs);
         }
 
-        AuthScheme authScheme = null;
         for (String id: authPrefs) {
-            Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
-
+            Header challenge = challenges.get(id.toLowerCase(Locale.US));
             if (challenge != null) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug(id + " authentication scheme selected");
-                }
                 try {
-                    authScheme = registry.getAuthScheme(id, response.getParams());
-                    break;
+                    AuthScheme authScheme = registry.getAuthScheme(id, response.getParams());
+                    authScheme.processChallenge(challenge);
+
+                    AuthScope authScope = new AuthScope(
+                            authhost.getHostName(),
+                            authhost.getPort(),
+                            authScheme.getRealm(),
+                            authScheme.getSchemeName());
+
+                    Credentials credentials = credsProvider.getCredentials(authScope);
+                    if (credentials != null) {
+                        return new AuthOption(authScheme, credentials);
+                    }
                 } catch (IllegalStateException e) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication scheme " + id + " not supported");
@@ -180,13 +194,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
                 }
             }
         }
-        if (authScheme == null) {
-            // If none selected, something is wrong
-            throw new AuthenticationException(
-                "Unable to respond to any of these challenges: "
-                    + challenges);
-        }
-        return authScheme;
+        return null;
     }
 
 }

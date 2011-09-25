@@ -46,7 +46,10 @@ import org.apache.http.protocol.HttpContext;
  * authentication.
  *
  * @since 4.0
+ *
+ * @deprecated use {@link ProxyAuthenticationStrategy}
  */
+@Deprecated
 @Immutable
 public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 

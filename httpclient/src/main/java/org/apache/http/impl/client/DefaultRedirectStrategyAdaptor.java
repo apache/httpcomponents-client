@@ -33,6 +33,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -42,14 +43,15 @@ import org.apache.http.protocol.HttpContext;
 /**
  * @since 4.1
  */
+@SuppressWarnings("deprecation")
 @Immutable
 @Deprecated
 class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 
-    private final org.apache.http.client.RedirectHandler handler;
+    private final RedirectHandler handler;
 
     @Deprecated
-    public DefaultRedirectStrategyAdaptor(final org.apache.http.client.RedirectHandler handler) {
+    public DefaultRedirectStrategyAdaptor(final RedirectHandler handler) {
         super();
         this.handler = handler;
     }
@@ -72,6 +74,10 @@ class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
         } else {
             return new HttpGet(uri);
         }
+    }
+
+    public RedirectHandler getHandler() {
+        return this.handler;
     }
 
 }

@@ -49,10 +49,11 @@ import org.apache.http.auth.AuthChallengeState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.RedirectException;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.UserTokenHandler;
@@ -124,6 +125,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe // e.g. managedConn
 public class DefaultRequestDirector implements RequestDirector {
 
@@ -152,16 +154,24 @@ public class DefaultRequestDirector implements RequestDirector {
 
     /** The redirect handler. */
     @Deprecated
-    protected final org.apache.http.client.RedirectHandler redirectHandler = null;
+    protected final RedirectHandler redirectHandler;
 
     /** The redirect strategy. */
     protected final RedirectStrategy redirectStrategy;
 
     /** The target authentication handler. */
+    @Deprecated
     protected final AuthenticationHandler targetAuthHandler;
 
+    /** The target authentication handler. */
+    protected final AuthenticationStrategy targetAuthStrategy;
+
     /** The proxy authentication handler. */
+    @Deprecated
     protected final AuthenticationHandler proxyAuthHandler;
+
+    /** The proxy authentication handler. */
+    protected final AuthenticationStrategy proxyAuthStrategy;
 
     /** The user token handler. */
     protected final UserTokenHandler userTokenHandler;
@@ -195,7 +205,7 @@ public class DefaultRequestDirector implements RequestDirector {
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
-            final org.apache.http.client.RedirectHandler redirectHandler,
+            final RedirectHandler redirectHandler,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
             final UserTokenHandler userTokenHandler,
@@ -203,13 +213,14 @@ public class DefaultRequestDirector implements RequestDirector {
         this(LogFactory.getLog(DefaultRequestDirector.class),
                 requestExec, conman, reustrat, kastrat, rouplan, httpProcessor, retryHandler,
                 new DefaultRedirectStrategyAdaptor(redirectHandler),
-                targetAuthHandler, proxyAuthHandler, userTokenHandler, params);
+                new AuthenticationStrategyAdaptor(targetAuthHandler),
+                new AuthenticationStrategyAdaptor(proxyAuthHandler),
+                userTokenHandler,
+                params);
     }
 
 
-    /**
-     * @since 4.1
-     */
+    @Deprecated
     public DefaultRequestDirector(
             final Log log,
             final HttpRequestExecutor requestExec,
@@ -222,6 +233,32 @@ public class DefaultRequestDirector implements RequestDirector {
             final RedirectStrategy redirectStrategy,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
+            final UserTokenHandler userTokenHandler,
+            final HttpParams params) {
+        this(LogFactory.getLog(DefaultRequestDirector.class),
+                requestExec, conman, reustrat, kastrat, rouplan, httpProcessor, retryHandler,
+                redirectStrategy,
+                new AuthenticationStrategyAdaptor(targetAuthHandler),
+                new AuthenticationStrategyAdaptor(proxyAuthHandler),
+                userTokenHandler,
+                params);
+    }
+
+    /**
+     * @since 4.2
+     */
+    public DefaultRequestDirector(
+            final Log log,
+            final HttpRequestExecutor requestExec,
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
+            final HttpRoutePlanner rouplan,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final RedirectStrategy redirectStrategy,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler,
             final HttpParams params) {
 
@@ -261,13 +298,13 @@ public class DefaultRequestDirector implements RequestDirector {
             throw new IllegalArgumentException
                 ("Redirect strategy may not be null.");
         }
-        if (targetAuthHandler == null) {
+        if (targetAuthStrategy == null) {
             throw new IllegalArgumentException
-                ("Target authentication handler may not be null.");
+                ("Target authentication strategy may not be null.");
         }
-        if (proxyAuthHandler == null) {
+        if (proxyAuthStrategy == null) {
             throw new IllegalArgumentException
-                ("Proxy authentication handler may not be null.");
+                ("Proxy authentication strategy may not be null.");
         }
         if (userTokenHandler == null) {
             throw new IllegalArgumentException
@@ -279,27 +316,43 @@ public class DefaultRequestDirector implements RequestDirector {
         }
         this.log               = log;
         this.authenticator     = new HttpAuthenticator(log);
-        this.requestExec       = requestExec;
-        this.connManager       = conman;
-        this.reuseStrategy     = reustrat;
-        this.keepAliveStrategy = kastrat;
-        this.routePlanner      = rouplan;
-        this.httpProcessor     = httpProcessor;
-        this.retryHandler      = retryHandler;
-        this.redirectStrategy  = redirectStrategy;
-        this.targetAuthHandler = targetAuthHandler;
-        this.proxyAuthHandler  = proxyAuthHandler;
-        this.userTokenHandler  = userTokenHandler;
-        this.params            = params;
+        this.requestExec        = requestExec;
+        this.connManager        = conman;
+        this.reuseStrategy      = reustrat;
+        this.keepAliveStrategy  = kastrat;
+        this.routePlanner       = rouplan;
+        this.httpProcessor      = httpProcessor;
+        this.retryHandler       = retryHandler;
+        this.redirectStrategy   = redirectStrategy;
+        this.targetAuthStrategy = targetAuthStrategy;
+        this.proxyAuthStrategy  = proxyAuthStrategy;
+        this.userTokenHandler   = userTokenHandler;
+        this.params             = params;
 
-        this.managedConn       = null;
+        if (redirectStrategy instanceof DefaultRedirectStrategyAdaptor) {
+            this.redirectHandler = ((DefaultRedirectStrategyAdaptor) redirectStrategy).getHandler();
+        } else {
+            this.redirectHandler = null;
+        }
+        if (targetAuthStrategy instanceof AuthenticationStrategyAdaptor) {
+            this.targetAuthHandler = ((AuthenticationStrategyAdaptor) targetAuthStrategy).getHandler();
+        } else {
+            this.targetAuthHandler = null;
+        }
+        if (proxyAuthStrategy instanceof AuthenticationStrategyAdaptor) {
+            this.proxyAuthHandler = ((AuthenticationStrategyAdaptor) proxyAuthStrategy).getHandler();
+        } else {
+            this.proxyAuthHandler = null;
+        }
+
+        this.managedConn = null;
 
         this.execCount = 0;
         this.redirectCount = 0;
         this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
         this.targetAuthState = new AuthState();
         this.proxyAuthState = new AuthState();
-    } // constructor
+    }
 
 
     private RequestWrapper wrapRequest(
@@ -842,16 +895,11 @@ public class DefaultRequestDirector implements RequestDirector {
                         response.getStatusLine());
             }
 
-            CredentialsProvider credsProvider = (CredentialsProvider)
-                context.getAttribute(ClientContext.CREDS_PROVIDER);
-
-            if (credsProvider != null && HttpClientParams.isAuthenticating(this.params)) {
+            if (HttpClientParams.isAuthenticating(this.params)) {
                 if (this.authenticator.isAuthenticationRequested(response,
-                        this.proxyAuthHandler, this.proxyAuthState, context)) {
-                    if (this.authenticator.authenticate(
-                            proxy, response,
-                            this.proxyAuthHandler, this.proxyAuthState,
-                            credsProvider, context)) {
+                        this.proxyAuthStrategy, this.proxyAuthState, context)) {
+                    if (this.authenticator.authenticate(proxy, response,
+                            this.proxyAuthStrategy, this.proxyAuthState, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
                             this.log.debug("Connection kept alive");
@@ -1046,13 +1094,9 @@ public class DefaultRequestDirector implements RequestDirector {
             return newRequest;
         }
 
-        CredentialsProvider credsProvider = (CredentialsProvider)
-            context.getAttribute(ClientContext.CREDS_PROVIDER);
-
-        if (credsProvider != null && HttpClientParams.isAuthenticating(params)) {
-
+        if (HttpClientParams.isAuthenticating(params)) {
             if (this.authenticator.isAuthenticationRequested(response,
-                    this.targetAuthHandler, this.targetAuthState, context)) {
+                    this.targetAuthStrategy, this.targetAuthState, context)) {
 
                 HttpHost target = (HttpHost)
                     context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
@@ -1064,10 +1108,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     target = new HttpHost(
                             target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
                 }
-                if (this.authenticator.authenticate(
-                        target, response,
-                        this.targetAuthHandler, this.targetAuthState,
-                        credsProvider, context)) {
+                if (this.authenticator.authenticate(target, response,
+                        this.targetAuthStrategy, this.targetAuthState, context)) {
                     // Re-try the same request via the same route
                     return roureq;
                 } else {
@@ -1076,12 +1118,10 @@ public class DefaultRequestDirector implements RequestDirector {
             }
 
             if (this.authenticator.isAuthenticationRequested(response,
-                    this.proxyAuthHandler, this.proxyAuthState, context)) {
+                    this.proxyAuthStrategy, this.proxyAuthState, context)) {
                 HttpHost proxy = route.getProxyHost();
-                if (this.authenticator.authenticate(
-                        proxy, response,
-                        this.proxyAuthHandler, this.proxyAuthState,
-                        credsProvider, context)) {
+                if (this.authenticator.authenticate(proxy, response,
+                        this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Re-try the same request via the same route
                     return roureq;
                 } else {

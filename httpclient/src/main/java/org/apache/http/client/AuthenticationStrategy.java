@@ -30,28 +30,23 @@ package org.apache.http.client;
 import java.util.Map;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
 
 /**
 /**
- * A handler for determining if an HTTP response represents an authentication
- * challenge that was sent back to the client as a result of authentication
- * failure.
+ * A handler for determining if an HTTP response represents an authentication challenge that was
+ * sent back to the client as a result of authentication failure.
  * <p>
- * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed
- * from multiple threads.
+ * Implementations of this interface must be thread-safe. Access to shared data must be
+ * synchronized as methods of this interface may be executed from multiple threads.
  *
- * @since 4.0
- *
- * @deprecated use {@link AuthenticationStrategy}
+ * @since 4.2
  */
-@Deprecated
-public interface AuthenticationHandler {
+public interface AuthenticationStrategy {
 
     /**
      * Determines if the given HTTP response response represents
@@ -84,18 +79,19 @@ public interface AuthenticationHandler {
 
     /**
      * Selects one authentication challenge out of all available and
-     * creates and generates {@link AuthScheme} instance capable of
+     * creates and generates {@link AuthOption} instance capable of
      * processing that challenge.
      * @param challenges collection of challenges.
      * @param response HTTP response.
      * @param context HTTP context.
      * @return authentication scheme to use for authentication.
-     * @throws AuthenticationException if an authentication scheme
-     *  could not be selected.
+     * @throws MalformedChallengeException if one of the authentication
+     *  challenges is not valid or malformed.
      */
-    AuthScheme selectScheme(
+    AuthOption select(
             Map<String, Header> challenges,
+            HttpHost authhost,
             HttpResponse response,
-            HttpContext context) throws AuthenticationException;
+            HttpContext context) throws MalformedChallengeException;
 
 }
