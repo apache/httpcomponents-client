@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 
+@SuppressWarnings("boxing") // test class
 public class TestDefaultHttpRequestRetryHandler {
 
     @Test
