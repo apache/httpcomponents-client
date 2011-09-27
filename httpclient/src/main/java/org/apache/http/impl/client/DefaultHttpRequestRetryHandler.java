@@ -155,8 +155,15 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         return !(request instanceof HttpEntityEnclosingRequest);
     }
 
+    /**
+     * @since 4.2
+     */
     protected boolean requestIsAborted(final HttpRequest request) {
-        return (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted());
+        HttpRequest req = request;
+        if (request instanceof RequestWrapper) { // does not forward request to original
+            req = ((RequestWrapper) request).getOriginal();
+        }
+        return (req instanceof HttpUriRequest && ((HttpUriRequest)req).isAborted());
     }
 
 }
