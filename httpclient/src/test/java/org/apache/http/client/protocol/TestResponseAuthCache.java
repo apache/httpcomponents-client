@@ -33,7 +33,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthChallengeState;
+import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.impl.auth.BasicScheme;
@@ -90,10 +90,10 @@ public class TestResponseAuthCache {
         this.authscheme2.processChallenge(
                 new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm"));
 
-        this.targetState.setChallengeState(AuthChallengeState.CHALLENGED);
+        this.targetState.setState(AuthProtocolState.CHALLENGED);
         this.targetState.setAuthScheme(this.authscheme1);
 
-        this.proxyState.setChallengeState(AuthChallengeState.CHALLENGED);
+        this.proxyState.setState(AuthProtocolState.CHALLENGED);
         this.proxyState.setAuthScheme(this.authscheme2);
 
         HttpContext context = new BasicHttpContext();
@@ -147,10 +147,10 @@ public class TestResponseAuthCache {
     public void testAuthSchemeNotCompleted() throws Exception {
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        this.targetState.setChallengeState(AuthChallengeState.CHALLENGED);
+        this.targetState.setState(AuthProtocolState.CHALLENGED);
         this.targetState.setAuthScheme(this.authscheme1);
 
-        this.proxyState.setChallengeState(AuthChallengeState.CHALLENGED);
+        this.proxyState.setState(AuthProtocolState.CHALLENGED);
         this.proxyState.setAuthScheme(this.authscheme2);
 
         HttpContext context = new BasicHttpContext();
@@ -175,10 +175,10 @@ public class TestResponseAuthCache {
         this.authscheme2.processChallenge(
                 new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm"));
 
-        this.targetState.setChallengeState(AuthChallengeState.UNCHALLENGED);
+        this.targetState.setState(AuthProtocolState.UNCHALLENGED);
         this.targetState.setAuthScheme(this.authscheme1);
 
-        this.proxyState.setChallengeState(AuthChallengeState.UNCHALLENGED);
+        this.proxyState.setState(AuthProtocolState.UNCHALLENGED);
         this.proxyState.setAuthScheme(this.authscheme2);
 
         HttpContext context = new BasicHttpContext();
@@ -205,10 +205,10 @@ public class TestResponseAuthCache {
         this.authscheme2.processChallenge(
                 new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm"));
 
-        this.targetState.setChallengeState(AuthChallengeState.FAILURE);
+        this.targetState.setState(AuthProtocolState.FAILURE);
         this.targetState.setAuthScheme(this.authscheme1);
 
-        this.proxyState.setChallengeState(AuthChallengeState.FAILURE);
+        this.proxyState.setState(AuthProtocolState.FAILURE);
         this.proxyState.setAuthScheme(this.authscheme2);
 
         HttpContext context = new BasicHttpContext();

@@ -45,7 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AuthChallengeState;
+import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthenticationHandler;
@@ -1069,8 +1069,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     uri.getScheme());
 
             // Unset auth scope
-            targetAuthState.setChallengeState(AuthChallengeState.UNCHALLENGED);
-            proxyAuthState.setChallengeState(AuthChallengeState.UNCHALLENGED);
+            targetAuthState.setState(AuthProtocolState.UNCHALLENGED);
+            proxyAuthState.setState(AuthProtocolState.UNCHALLENGED);
 
             // Invalidate auth states if redirecting to another host
             if (!route.getTargetHost().equals(newTarget)) {

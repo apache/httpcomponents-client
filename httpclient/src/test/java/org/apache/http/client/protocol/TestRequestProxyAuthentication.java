@@ -33,7 +33,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthChallengeState;
+import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -271,7 +271,7 @@ public class TestRequestProxyAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        authstate.setChallengeState(AuthChallengeState.UNCHALLENGED);
+        authstate.setState(AuthProtocolState.UNCHALLENGED);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);

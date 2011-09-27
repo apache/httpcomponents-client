@@ -37,8 +37,8 @@ import org.apache.http.annotation.NotThreadSafe;
 @NotThreadSafe
 public class AuthState {
 
-    /** Actual state of authentication process */
-    private AuthChallengeState challengeState;
+    /** Actual state of authentication protocol */
+    private AuthProtocolState state;
 
     /** Actual authentication scheme */
     private AuthScheme authScheme;
@@ -55,14 +55,14 @@ public class AuthState {
      */
     public AuthState() {
         super();
-        this.challengeState = AuthChallengeState.UNCHALLENGED;
+        this.state = AuthProtocolState.UNCHALLENGED;
     }
 
     /**
      * Invalidates the authentication state by resetting its parameters.
      */
     public void invalidate() {
-        this.challengeState = AuthChallengeState.UNCHALLENGED;
+        this.state = AuthProtocolState.UNCHALLENGED;
         this.authScheme = null;
         this.authScope = null;
         this.credentials = null;
@@ -98,15 +98,15 @@ public class AuthState {
     /**
      * @since 4.2
      */
-    public AuthChallengeState getChallengeState() {
-        return this.challengeState;
+    public AuthProtocolState getState() {
+        return this.state;
     }
 
     /**
      * @since 4.2
      */
-    public void setChallengeState(final AuthChallengeState state) {
-        this.challengeState = state != null ? state : AuthChallengeState.UNCHALLENGED;
+    public void setState(final AuthProtocolState state) {
+        this.state = state != null ? state : AuthProtocolState.UNCHALLENGED;
     }
 
     /**
@@ -154,7 +154,7 @@ public class AuthState {
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
-        buffer.append("state:").append(this.challengeState).append(";");
+        buffer.append("state:").append(this.state).append(";");
         if (this.authScheme != null) {
             buffer.append("auth scheme:").append(this.authScheme.getSchemeName()).append(";");
         }

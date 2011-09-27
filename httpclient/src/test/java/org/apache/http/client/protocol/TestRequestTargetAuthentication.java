@@ -32,7 +32,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthChallengeState;
+import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -201,7 +201,7 @@ public class TestRequestTargetAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        authstate.setChallengeState(AuthChallengeState.UNCHALLENGED);
+        authstate.setState(AuthProtocolState.UNCHALLENGED);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 

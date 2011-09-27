@@ -88,7 +88,7 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                     authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
                 }
-                switch (targetState.getChallengeState()) {
+                switch (targetState.getState()) {
                 case CHALLENGED:
                     cache(authCache, target, targetState.getAuthScheme());
                     break;
@@ -106,7 +106,7 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                     authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
                 }
-                switch (proxyState.getChallengeState()) {
+                switch (proxyState.getState()) {
                 case CHALLENGED:
                     cache(authCache, proxy, proxyState.getAuthScheme());
                     break;

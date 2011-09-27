@@ -26,7 +26,7 @@
 
 package org.apache.http.auth;
 
-public enum AuthChallengeState {
+public enum AuthProtocolState {
 
     UNCHALLENGED, CHALLENGED, FAILURE, SUCCESS
 
