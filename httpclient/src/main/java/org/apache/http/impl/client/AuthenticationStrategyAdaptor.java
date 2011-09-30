@@ -27,8 +27,10 @@
 
 package org.apache.http.impl.client;
 
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,16 +78,30 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         return this.handler.getChallenges(response, context);
     }
 
-    public AuthOption select(
+    public Queue<AuthOption> select(
             final Map<String, Header> challenges,
             final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
+        if (challenges == null) {
+            throw new IllegalArgumentException("Map of auth challenges may not be null");
+        }
+        if (authhost == null) {
+            throw new IllegalArgumentException("Host may not be null");
+        }
+        if (response == null) {
+            throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
+        }
+
+        Queue<AuthOption> options = new LinkedList<AuthOption>();
         CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
                 ClientContext.CREDS_PROVIDER);
         if (credsProvider == null) {
             this.log.debug("Credentials provider not set in the context");
-            return null;
+            return options;
         }
 
         AuthScheme authScheme;
@@ -95,7 +111,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             if (this.log.isWarnEnabled()) {
                 this.log.warn(ex.getMessage(), ex);
             }
-            return null;
+            return options;
         }
         String id = authScheme.getSchemeName();
         Header challenge = challenges.get(id.toLowerCase(Locale.US));
@@ -109,10 +125,9 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
 
         Credentials credentials = credsProvider.getCredentials(authScope);
         if (credentials != null) {
-            return new AuthOption(authScheme, credentials);
-        } else {
-            return null;
+            options.add(new AuthOption(authScheme, credentials));
         }
+        return options;
     }
 
     public AuthenticationHandler getHandler() {

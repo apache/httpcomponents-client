@@ -30,9 +30,11 @@ package org.apache.http.impl.client;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,7 +126,7 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         return map;
     }
 
-    public AuthOption select(
+    public Queue<AuthOption> select(
             final Map<String, Header> challenges,
             final HttpHost authhost,
             final HttpResponse response,
@@ -142,17 +144,18 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
+        Queue<AuthOption> options = new LinkedList<AuthOption>();
         AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY);
         if (registry == null) {
             this.log.debug("Auth scheme registry not set in the context");
-            return null;
+            return options;
         }
         CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
                 ClientContext.CREDS_PROVIDER);
         if (credsProvider == null) {
             this.log.debug("Credentials provider not set in the context");
-            return null;
+            return options;
         }
 
         @SuppressWarnings("unchecked")
@@ -179,7 +182,7 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
                     Credentials credentials = credsProvider.getCredentials(authScope);
                     if (credentials != null) {
-                        return new AuthOption(authScheme, credentials);
+                        options.add(new AuthOption(authScheme, credentials));
                     }
                 } catch (IllegalStateException e) {
                     if (this.log.isWarnEnabled()) {
@@ -194,7 +197,7 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
                 }
             }
         }
-        return null;
+        return options;
     }
 
 }

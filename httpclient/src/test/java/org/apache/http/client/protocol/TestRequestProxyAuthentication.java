@@ -211,36 +211,6 @@ public class TestRequestProxyAuthentication {
     }
 
     @Test
-    public void testAuthCredentialsNotSet() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-
-        HttpHost target = new HttpHost("localhost", 80, "http");
-        HttpHost proxy = new HttpHost("localhost", 8080);
-        HttpRoute route = new HttpRoute(target, null, proxy, false,
-                TunnelType.PLAIN, LayerType.PLAIN);
-
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        AuthState authstate = new AuthState();
-
-        BasicScheme authscheme = new BasicScheme();
-        BasicHeader challenge = new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=auth-realm");
-        authscheme.processChallenge(challenge);
-
-        authstate.setAuthScheme(authscheme);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);
-
-        HttpRequestInterceptor interceptor = new RequestProxyAuthentication();
-        interceptor.process(request, context);
-        Header header = request.getFirstHeader(AUTH.PROXY_AUTH_RESP);
-        Assert.assertNull(header);
-    }
-
-    @Test
     public void testConnectionBasedAuthOnlyIfChallenged() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         HttpContext context = new BasicHttpContext();
@@ -271,7 +241,7 @@ public class TestRequestProxyAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        authstate.setState(AuthProtocolState.UNCHALLENGED);
+        authstate.setState(AuthProtocolState.SUCCESS);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);

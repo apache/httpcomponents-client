@@ -29,6 +29,7 @@ package org.apache.http.impl.client;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,9 +65,12 @@ public class HttpAuthenticator {
         if (authStrategy.isAuthenticationRequested(response, context)) {
             return true;
         } else {
-            if (authState.getState() == AuthProtocolState.CHALLENGED) {
+            switch (authState.getState()) {
+            case CHALLENGED:
+            case HANDSHAKE:
                 authState.setState(AuthProtocolState.SUCCESS);
-            } else {
+                break;
+            default:
                 authState.setState(AuthProtocolState.UNCHALLENGED);
             }
             return false;
@@ -101,7 +105,7 @@ public class HttpAuthenticator {
                         authState.setCredentials(null);
                         return false;
                     } else {
-                        authState.setState(AuthProtocolState.CHALLENGED);
+                        authState.setState(AuthProtocolState.HANDSHAKE);
                         return true;
                     }
                 } else {
@@ -109,14 +113,14 @@ public class HttpAuthenticator {
                     // Retry authentication with a different scheme
                 }
             }
-            AuthOption authOption = authStrategy.select(challenges, host, response, context);
-            if (authOption == null) {
+            Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
+            authState.setState(AuthProtocolState.CHALLENGED);
+            if (authOptions != null && !authOptions.isEmpty()) {
+                authState.setAuthOptions(authOptions);
+                return true;
+            } else {
                 return false;
             }
-            authState.setAuthScheme(authOption.getAuthScheme());
-            authState.setCredentials(authOption.getCredentials());
-            authState.setState(AuthProtocolState.CHALLENGED);
-            return true;
         } catch (MalformedChallengeException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Malformed challenge: " +  ex.getMessage());

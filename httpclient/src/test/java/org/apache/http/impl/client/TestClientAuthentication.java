@@ -333,11 +333,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
         }
     }
 
-    static class TestTargetAuthenticationHandler extends DefaultTargetAuthenticationHandler {
+    static class TestTargetAuthenticationStrategy extends TargetAuthenticationStrategy {
 
         private int count;
 
-        public TestTargetAuthenticationHandler() {
+        public TestTargetAuthenticationStrategy() {
             super();
             this.count = 0;
         }
@@ -372,10 +372,10 @@ public class TestClientAuthentication extends BasicServerTestBase {
         credsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("test", "test"));
 
-        TestTargetAuthenticationHandler authHandler = new TestTargetAuthenticationHandler();
+        TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
 
         this.httpclient.setCredentialsProvider(credsProvider);
-        this.httpclient.setTargetAuthenticationHandler(authHandler);
+        this.httpclient.setTargetAuthenticationStrategy(authStrategy);
 
         HttpContext context = new BasicHttpContext();
 
@@ -393,7 +393,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         Assert.assertNotNull(entity2);
         EntityUtils.consume(entity2);
 
-        Assert.assertEquals(1, authHandler.getCount());
+        Assert.assertEquals(1, authStrategy.getCount());
     }
 
 }

@@ -28,6 +28,7 @@
 package org.apache.http.client;
 
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -84,11 +85,11 @@ public interface AuthenticationStrategy {
      * @param challenges collection of challenges.
      * @param response HTTP response.
      * @param context HTTP context.
-     * @return authentication scheme to use for authentication.
+     * @return authentication auth schemes that can be used for authentication. Can be empty.
      * @throws MalformedChallengeException if one of the authentication
      *  challenges is not valid or malformed.
      */
-    AuthOption select(
+    Queue<AuthOption> select(
             Map<String, Header> challenges,
             HttpHost authhost,
             HttpResponse response,

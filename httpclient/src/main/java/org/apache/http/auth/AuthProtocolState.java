@@ -28,6 +28,6 @@ package org.apache.http.auth;
 
 public enum AuthProtocolState {
 
-    UNCHALLENGED, CHALLENGED, FAILURE, SUCCESS
+    UNCHALLENGED, CHALLENGED, HANDSHAKE, FAILURE, SUCCESS
 
 }

@@ -26,6 +26,8 @@
 
 package org.apache.http.auth;
 
+import java.util.Queue;
+
 import org.apache.http.annotation.NotThreadSafe;
 
 
@@ -48,6 +50,8 @@ public class AuthState {
 
     /** Credentials selected for authentication */
     private Credentials credentials;
+
+    private Queue<AuthOption> authOptions;
 
     /**
      * Default constructor.
@@ -149,6 +153,24 @@ public class AuthState {
     @Deprecated
     public void setAuthScope(final AuthScope authScope) {
         this.authScope = authScope;
+    }
+
+    /**
+     * Returns available authentication options.
+     *
+     * @return authentication options, if available, <code>null</null> otherwise.
+     */
+    public Queue<AuthOption> getAuthOptions() {
+        return this.authOptions;
+    }
+
+    /**
+     * Sets authentication options to select from when authenticating.
+     *
+     * @param authOptions authentication options
+     */
+    public void setAuthOptions(final Queue<AuthOption> authOptions) {
+        this.authOptions = authOptions != null && !authOptions.isEmpty() ? authOptions : null;
     }
 
     @Override

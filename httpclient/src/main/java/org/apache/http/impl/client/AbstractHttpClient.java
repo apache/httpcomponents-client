@@ -45,6 +45,7 @@ import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
+import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ConnectionBackoffStrategy;
@@ -140,13 +141,13 @@ import org.apache.http.util.EntityUtils;
  *    a collection user credentials. The {@link #createCredentialsProvider()}
  *    must be implemented by concrete super classes to instantiate
  *    this object.
- *   <li>{@link AuthenticationHandler}</li> object used to authenticate
+ *   <li>{@link AuthenticationStrategy}</li> object used to authenticate
  *    against the target host.
- *    The {@link #createTargetAuthenticationHandler()} must be implemented
+ *    The {@link #createTargetAuthenticationStrategy()} must be implemented
  *    by concrete super classes to instantiate this object.
- *   <li>{@link AuthenticationHandler}</li> object used to authenticate
+ *   <li>{@link AuthenticationStrategy}</li> object used to authenticate
  *    against the proxy host.
- *    The {@link #createProxyAuthenticationHandler()} must be implemented
+ *    The {@link #createProxyAuthenticationStrategy()} must be implemented
  *    by concrete super classes to instantiate this object.
  *   <li>{@link HttpRoutePlanner}</li> object used to calculate a route
  *    for establishing a connection to the target host. The route
@@ -229,11 +230,11 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     /** The target authentication handler. */
     @GuardedBy("this")
-    private AuthenticationHandler targetAuthHandler;
+    private AuthenticationStrategy targetAuthStrategy;
 
     /** The proxy authentication handler. */
     @GuardedBy("this")
-    private AuthenticationHandler proxyAuthHandler;
+    private AuthenticationStrategy proxyAuthStrategy;
 
     /** The cookie store. */
     @GuardedBy("this")
@@ -399,11 +400,23 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
+    protected AuthenticationStrategy createTargetAuthenticationStrategy() {
+        return new TargetAuthenticationStrategy();
+    }
+
+
+    @Deprecated
     protected AuthenticationHandler createTargetAuthenticationHandler() {
         return new DefaultTargetAuthenticationHandler();
     }
 
 
+    protected AuthenticationStrategy createProxyAuthenticationStrategy() {
+        return new ProxyAuthenticationStrategy();
+    }
+
+
+    @Deprecated
     protected AuthenticationHandler createProxyAuthenticationHandler() {
         return new DefaultProxyAuthenticationHandler();
     }
@@ -472,8 +485,8 @@ public abstract class AbstractHttpClient implements HttpClient {
         return supportedAuthSchemes;
     }
 
-    public synchronized void setAuthSchemes(final AuthSchemeRegistry authSchemeRegistry) {
-        supportedAuthSchemes = authSchemeRegistry;
+    public synchronized void setAuthSchemes(final AuthSchemeRegistry registry) {
+        supportedAuthSchemes = registry;
     }
 
     public synchronized final ConnectionBackoffStrategy getConnectionBackoffStrategy() {
@@ -499,8 +512,8 @@ public abstract class AbstractHttpClient implements HttpClient {
         backoffManager = manager;
     }
 
-    public synchronized void setCookieSpecs(final CookieSpecRegistry cookieSpecRegistry) {
-        supportedCookieSpecs = cookieSpecRegistry;
+    public synchronized void setCookieSpecs(final CookieSpecRegistry registry) {
+        supportedCookieSpecs = registry;
     }
 
     public synchronized final ConnectionReuseStrategy getConnectionReuseStrategy() {
@@ -511,8 +524,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized void setReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
-        this.reuseStrategy = reuseStrategy;
+    public synchronized void setReuseStrategy(final ConnectionReuseStrategy strategy) {
+        this.reuseStrategy = strategy;
     }
 
 
@@ -524,8 +537,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized void setKeepAliveStrategy(final ConnectionKeepAliveStrategy keepAliveStrategy) {
-        this.keepAliveStrategy = keepAliveStrategy;
+    public synchronized void setKeepAliveStrategy(final ConnectionKeepAliveStrategy strategy) {
+        this.keepAliveStrategy = strategy;
     }
 
 
@@ -537,8 +550,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized void setHttpRequestRetryHandler(final HttpRequestRetryHandler retryHandler) {
-        this.retryHandler = retryHandler;
+    public synchronized void setHttpRequestRetryHandler(final HttpRequestRetryHandler handler) {
+        this.retryHandler = handler;
     }
 
 
@@ -549,8 +562,8 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     @Deprecated
-    public synchronized void setRedirectHandler(final RedirectHandler redirectHandler) {
-        this.redirectStrategy = new DefaultRedirectStrategyAdaptor(redirectHandler);
+    public synchronized void setRedirectHandler(final RedirectHandler handler) {
+        this.redirectStrategy = new DefaultRedirectStrategyAdaptor(handler);
     }
 
     /**
@@ -566,36 +579,70 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @since 4.1
      */
-    public synchronized void setRedirectStrategy(final RedirectStrategy redirectStrategy) {
-        this.redirectStrategy = redirectStrategy;
+    public synchronized void setRedirectStrategy(final RedirectStrategy strategy) {
+        this.redirectStrategy = strategy;
     }
 
 
+    @Deprecated
     public synchronized final AuthenticationHandler getTargetAuthenticationHandler() {
-        if (targetAuthHandler == null) {
-            targetAuthHandler = createTargetAuthenticationHandler();
+        return createTargetAuthenticationHandler();
+    }
+
+
+    @Deprecated
+    public synchronized void setTargetAuthenticationHandler(final AuthenticationHandler handler) {
+        this.targetAuthStrategy = new AuthenticationStrategyAdaptor(handler);
+    }
+
+
+    /**
+     * @since 4.2
+     */
+    public synchronized final AuthenticationStrategy getTargetAuthenticationStrategy() {
+        if (targetAuthStrategy == null) {
+            targetAuthStrategy = createTargetAuthenticationStrategy();
         }
-        return targetAuthHandler;
+        return targetAuthStrategy;
     }
 
 
-    public synchronized void setTargetAuthenticationHandler(
-            final AuthenticationHandler targetAuthHandler) {
-        this.targetAuthHandler = targetAuthHandler;
+    /**
+     * @since 4.2
+     */
+    public synchronized void setTargetAuthenticationStrategy(final AuthenticationStrategy strategy) {
+        this.targetAuthStrategy = strategy;
     }
 
 
+    @Deprecated
     public synchronized final AuthenticationHandler getProxyAuthenticationHandler() {
-        if (proxyAuthHandler == null) {
-            proxyAuthHandler = createProxyAuthenticationHandler();
-        }
-        return proxyAuthHandler;
+        return createProxyAuthenticationHandler();
     }
 
 
-    public synchronized void setProxyAuthenticationHandler(
-            final AuthenticationHandler proxyAuthHandler) {
-        this.proxyAuthHandler = proxyAuthHandler;
+    @Deprecated
+    public synchronized void setProxyAuthenticationHandler(final AuthenticationHandler handler) {
+        this.proxyAuthStrategy = new AuthenticationStrategyAdaptor(handler);
+    }
+
+
+    /**
+     * @since 4.2
+     */
+    public synchronized final AuthenticationStrategy getProxyAuthenticationStrategy() {
+        if (proxyAuthStrategy == null) {
+            proxyAuthStrategy = createProxyAuthenticationStrategy();
+        }
+        return proxyAuthStrategy;
+    }
+
+
+    /**
+     * @since 4.2
+     */
+    public synchronized void setProxyAuthenticationStrategy(final AuthenticationStrategy strategy) {
+        this.proxyAuthStrategy = strategy;
     }
 
 
@@ -646,8 +693,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
 
-    public synchronized void setUserTokenHandler(final UserTokenHandler userTokenHandler) {
-        this.userTokenHandler = userTokenHandler;
+    public synchronized void setUserTokenHandler(final UserTokenHandler handler) {
+        this.userTokenHandler = handler;
     }
 
 
@@ -834,8 +881,8 @@ public abstract class AbstractHttpClient implements HttpClient {
                     getProtocolProcessor(),
                     getHttpRequestRetryHandler(),
                     getRedirectStrategy(),
-                    getTargetAuthenticationHandler(),
-                    getProxyAuthenticationHandler(),
+                    getTargetAuthenticationStrategy(),
+                    getProxyAuthenticationStrategy(),
                     getUserTokenHandler(),
                     determineParams(request));
             routePlanner = getRoutePlanner();
@@ -889,10 +936,10 @@ public abstract class AbstractHttpClient implements HttpClient {
             final HttpRoutePlanner rouplan,
             final HttpProcessor httpProcessor,
             final HttpRequestRetryHandler retryHandler,
-            final org.apache.http.client.RedirectHandler redirectHandler,
+            final RedirectHandler redirectHandler,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
-            final UserTokenHandler stateHandler,
+            final UserTokenHandler userTokenHandler,
             final HttpParams params) {
         return new DefaultRequestDirector(
                 requestExec,
@@ -905,13 +952,11 @@ public abstract class AbstractHttpClient implements HttpClient {
                 redirectHandler,
                 targetAuthHandler,
                 proxyAuthHandler,
-                stateHandler,
+                userTokenHandler,
                 params);
     }
 
-    /**
-     * @since 4.1
-     */
+    @Deprecated
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -923,7 +968,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             final RedirectStrategy redirectStrategy,
             final AuthenticationHandler targetAuthHandler,
             final AuthenticationHandler proxyAuthHandler,
-            final UserTokenHandler stateHandler,
+            final UserTokenHandler userTokenHandler,
             final HttpParams params) {
         return new DefaultRequestDirector(
                 log,
@@ -937,9 +982,43 @@ public abstract class AbstractHttpClient implements HttpClient {
                 redirectStrategy,
                 targetAuthHandler,
                 proxyAuthHandler,
-                stateHandler,
+                userTokenHandler,
                 params);
     }
+
+
+    /**
+     * @since 4.2
+     */
+    protected RequestDirector createClientRequestDirector(
+            final HttpRequestExecutor requestExec,
+            final ClientConnectionManager conman,
+            final ConnectionReuseStrategy reustrat,
+            final ConnectionKeepAliveStrategy kastrat,
+            final HttpRoutePlanner rouplan,
+            final HttpProcessor httpProcessor,
+            final HttpRequestRetryHandler retryHandler,
+            final RedirectStrategy redirectStrategy,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final UserTokenHandler userTokenHandler,
+            final HttpParams params) {
+        return new DefaultRequestDirector(
+                log,
+                requestExec,
+                conman,
+                reustrat,
+                kastrat,
+                rouplan,
+                httpProcessor,
+                retryHandler,
+                redirectStrategy,
+                targetAuthStrategy,
+                proxyAuthStrategy,
+                userTokenHandler,
+                params);
+    }
+
     /**
      * Obtains parameters for executing a request.
      * The default implementation in this class creates a new

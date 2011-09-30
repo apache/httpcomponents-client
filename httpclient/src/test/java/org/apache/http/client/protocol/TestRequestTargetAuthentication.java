@@ -158,27 +158,6 @@ public class TestRequestTargetAuthentication {
     }
 
     @Test
-    public void testAuthCredentialsNotSet() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-
-        AuthState authstate = new AuthState();
-
-        BasicScheme authscheme = new BasicScheme();
-        BasicHeader challenge = new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm");
-        authscheme.processChallenge(challenge);
-
-        authstate.setAuthScheme(authscheme);
-
-        context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
-
-        HttpRequestInterceptor interceptor = new RequestTargetAuthentication();
-        interceptor.process(request, context);
-        Header header = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
-        Assert.assertNull(header);
-    }
-
-    @Test
     public void testConnectionBasedAuthOnlyIfChallenged() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         HttpContext context = new BasicHttpContext();
@@ -201,7 +180,7 @@ public class TestRequestTargetAuthentication {
 
         authstate.setAuthScheme(authscheme);
         authstate.setCredentials(creds);
-        authstate.setState(AuthProtocolState.UNCHALLENGED);
+        authstate.setState(AuthProtocolState.SUCCESS);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 
