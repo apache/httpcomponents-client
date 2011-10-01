@@ -72,6 +72,14 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
+    /**
+     * Redirectable methods.
+     */
+    private static final String[] REDIRECT_METHODS = new String[] {
+        HttpGet.METHOD_NAME,
+        HttpHead.METHOD_NAME
+    };
+
     public DefaultRedirectStrategy() {
         super();
     }
@@ -92,12 +100,10 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Header locationHeader = response.getFirstHeader("location");
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
-            return (method.equalsIgnoreCase(HttpGet.METHOD_NAME)
-                || method.equalsIgnoreCase(HttpHead.METHOD_NAME)) && locationHeader != null;
+            return isRedirectable(method) && locationHeader != null;
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
-            return method.equalsIgnoreCase(HttpGet.METHOD_NAME)
-                || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
+            return isRedirectable(method);
         case HttpStatus.SC_SEE_OTHER:
             return true;
         default:
@@ -196,6 +202,18 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         } catch (URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }
+    }
+
+    /**
+     * @since 4.2
+     */
+    protected boolean isRedirectable(final String method) {
+        for (String m: REDIRECT_METHODS) {
+            if (m.equalsIgnoreCase(method)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public HttpUriRequest getRedirect(
