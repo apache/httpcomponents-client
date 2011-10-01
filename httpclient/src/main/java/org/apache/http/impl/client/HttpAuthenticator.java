@@ -63,6 +63,7 @@ public class HttpAuthenticator {
             final AuthState authState,
             final HttpContext context) {
         if (authStrategy.isAuthenticationRequested(response, context)) {
+            authState.setState(AuthProtocolState.CHALLENGED);
             return true;
         } else {
             switch (authState.getState()) {
@@ -114,8 +115,8 @@ public class HttpAuthenticator {
                 }
             }
             Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
-            authState.setState(AuthProtocolState.CHALLENGED);
             if (authOptions != null && !authOptions.isEmpty()) {
+                authState.setState(AuthProtocolState.CHALLENGED);
                 authState.setAuthOptions(authOptions);
                 return true;
             } else {
