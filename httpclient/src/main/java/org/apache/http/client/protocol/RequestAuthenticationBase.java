@@ -90,7 +90,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
                         break;
                     } catch (AuthenticationException ex) {
                         if (this.log.isWarnEnabled()) {
-                            this.log.warn("Authentication error: " + ex.getMessage());
+                            this.log.warn(authScheme + " authentication error: " + ex.getMessage());
                         }
                     }
                 }
@@ -105,7 +105,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
                 request.addHeader(header);
             } catch (AuthenticationException ex) {
                 if (this.log.isErrorEnabled()) {
-                    this.log.error("Authentication error: " + ex.getMessage());
+                    this.log.error(authScheme + " authentication error: " + ex.getMessage());
                 }
             }
         }

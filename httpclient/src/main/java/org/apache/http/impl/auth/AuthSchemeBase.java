@@ -26,6 +26,8 @@
 
 package org.apache.http.impl.auth;
 
+import java.util.Locale;
+
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.FormattedHeader;
@@ -140,7 +142,12 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
     @Override
     public String toString() {
-        return getSchemeName();
+        String name = getSchemeName();
+        if (name != null) {
+            return name.toUpperCase(Locale.US);
+        } else {
+            return super.toString();
+        }
     }
 
 }
