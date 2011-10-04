@@ -73,7 +73,7 @@ public class TestRFC2617Scheme {
         authscheme.processChallenge(header);
 
         Assert.assertEquals("test", authscheme.getSchemeName());
-        Assert.assertEquals("test", authscheme.toString());
+        Assert.assertEquals("TEST", authscheme.toString());
         Assert.assertEquals("realm1", authscheme.getParameter("realm"));
         Assert.assertEquals(null, authscheme.getParameter("test"));
         Assert.assertEquals("stuff", authscheme.getParameter("test1"));
