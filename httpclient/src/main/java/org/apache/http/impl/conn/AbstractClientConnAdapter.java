@@ -66,7 +66,10 @@ import org.apache.http.protocol.HttpContext;
  * expected to tolerate multiple calls to the release method.
  *
  * @since 4.0
+ *
+ * @deprecated do not use
  */
+@Deprecated
 @NotThreadSafe
 public abstract class AbstractClientConnAdapter implements ManagedClientConnection, HttpContext {
 

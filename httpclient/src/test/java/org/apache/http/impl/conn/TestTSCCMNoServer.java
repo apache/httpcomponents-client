@@ -41,6 +41,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Tests for <code>ThreadSafeClientConnManager</code> that do not require
@@ -211,7 +212,8 @@ public class TestTSCCMNoServer {
             // expected
         }
         try {
-            mgr.releaseConnection(new ClientConnAdapterMockup(null), -1, null);
+            ManagedClientConnection conn = Mockito.mock(ManagedClientConnection.class);
+            mgr.releaseConnection(conn, -1, null);
             Assert.fail("foreign connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
