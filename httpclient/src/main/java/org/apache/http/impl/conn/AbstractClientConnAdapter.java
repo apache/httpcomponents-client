@@ -74,9 +74,7 @@ import org.apache.http.protocol.HttpContext;
 public abstract class AbstractClientConnAdapter implements ManagedClientConnection, HttpContext {
 
     /**
-     * The connection manager, if any.
-     * This attribute MUST NOT be final, so the adapter can be detached
-     * from the connection manager without keeping a hard reference there.
+     * The connection manager.
      */
     private final ClientConnectionManager connManager;
 
