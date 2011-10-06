@@ -74,7 +74,7 @@ public abstract class AbstractClientConnAdapter
      * This attribute MUST NOT be final, so the adapter can be detached
      * from the connection manager without keeping a hard reference there.
      */
-    private volatile ClientConnectionManager connManager;
+    private final ClientConnectionManager connManager;
 
     /** The wrapped connection. */
     private volatile OperatedClientConnection wrappedConnection;
@@ -110,9 +110,8 @@ public abstract class AbstractClientConnAdapter
      * Detaches this adapter from the wrapped connection.
      * This adapter becomes useless.
      */
-    protected synchronized void detach() {
+    protected void detach() {
         wrappedConnection = null;
-        connManager = null; // base class attribute
         duration = Long.MAX_VALUE;
     }
 
@@ -299,32 +298,32 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    public synchronized void releaseConnection() {
-        if (released) {
-            return;
-        }
-        released = true;
-        if (connManager != null) {
+    public void releaseConnection() {
+        synchronized (connManager) {
+            if (released) {
+                return;
+            }
+            released = true;
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
-    public synchronized void abortConnection() {
-        if (released) {
-            return;
-        }
-        released = true;
-        unmarkReusable();
-        try {
-            shutdown();
-        } catch (IOException ignore) {
-        }
-        if (connManager != null) {
+    public void abortConnection() {
+        synchronized (connManager) {
+            if (released) {
+                return;
+            }
+            released = true;
+            unmarkReusable();
+            try {
+                shutdown();
+            } catch (IOException ignore) {
+            }
             connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
         }
     }
 
-    public synchronized Object getAttribute(final String id) {
+    public Object getAttribute(final String id) {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
@@ -334,7 +333,7 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    public synchronized Object removeAttribute(final String id) {
+    public Object removeAttribute(final String id) {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
@@ -344,7 +343,7 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    public synchronized void setAttribute(final String id, final Object obj) {
+    public void setAttribute(final String id, final Object obj) {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
