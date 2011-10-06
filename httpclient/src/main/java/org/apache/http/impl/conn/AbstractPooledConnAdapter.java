@@ -105,7 +105,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * This adapter becomes useless.
      */
     @Override
-    protected synchronized void detach() {
+    protected void detach() {
         poolEntry = null;
         super.detach();
     }
