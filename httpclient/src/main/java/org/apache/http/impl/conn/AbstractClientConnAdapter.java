@@ -71,8 +71,6 @@ public abstract class AbstractClientConnAdapter
 
     /**
      * The connection manager, if any.
-     * This attribute MUST NOT be final, so the adapter can be detached
-     * from the connection manager without keeping a hard reference there.
      */
     private final ClientConnectionManager connManager;
 
