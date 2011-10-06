@@ -610,6 +610,8 @@ public class DefaultRequestDirector implements RequestDirector {
     private void tryConnect(
             final RoutedRequest req, final HttpContext context) throws HttpException, IOException {
         HttpRoute route = req.getRoute();
+        HttpRequest wrapper = req.getRequest();
+        context.setAttribute(ExecutionContext.HTTP_REQUEST, wrapper);
 
         int connectCount = 0;
         for (;;) {

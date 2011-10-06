@@ -27,6 +27,7 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
@@ -158,7 +159,7 @@ public abstract class AbstractPoolEntry {
         // If this tracker was reset while connecting,
         // fail early.
         if (localTracker == null) {
-            throw new IOException("Request aborted");
+            throw new InterruptedIOException("Request aborted");
         }
 
         if (proxy == null) {
