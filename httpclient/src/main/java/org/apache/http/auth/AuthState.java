@@ -67,6 +67,7 @@ public class AuthState {
      */
     public void invalidate() {
         this.state = AuthProtocolState.UNCHALLENGED;
+        this.authOptions = null;
         this.authScheme = null;
         this.authScope = null;
         this.credentials = null;
@@ -159,15 +160,32 @@ public class AuthState {
      * Returns available authentication options.
      *
      * @return authentication options, if available, <code>null</null> otherwise.
+     *
+     * @since 4.2
      */
     public Queue<AuthOption> getAuthOptions() {
         return this.authOptions;
     }
 
     /**
+     * Returns <code>true</code> if authentication options are available, <code>false</code>
+     * otherwise.
+     *
+     * @return <code>true</code> if authentication options are available, <code>false</code>
+     * otherwise.
+     *
+     * @since 4.2
+     */
+    public boolean hasAuthOptions() {
+        return this.authOptions != null && !this.authOptions.isEmpty();
+    }
+
+    /**
      * Sets authentication options to select from when authenticating.
      *
      * @param authOptions authentication options
+     *
+     * @since 4.2
      */
     public void setAuthOptions(final Queue<AuthOption> authOptions) {
         this.authOptions = authOptions != null && !authOptions.isEmpty() ? authOptions : null;

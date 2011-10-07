@@ -92,7 +92,6 @@ public class TestHttpAuthenticator {
 
         Assert.assertTrue(this.httpAuthenticator.isAuthenticationRequested(
                 response, this.authStrategy, this.authState, this.context));
-        Assert.assertEquals(AuthProtocolState.CHALLENGED, this.authState.getState());
 
         Mockito.verify(this.authStrategy).isAuthenticationRequested(response, this.context);
     }
@@ -202,6 +201,40 @@ public class TestHttpAuthenticator {
 
         Assert.assertFalse(this.httpAuthenticator.authenticate(host,
                 response, authStrategy, this.authState, this.context));
+    }
+
+    @Test
+    public void testAuthenticationFailed() throws Exception {
+        HttpHost host = new HttpHost("somehost", 80);
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+
+        this.authState.setState(AuthProtocolState.FAILURE);
+
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+
+        Assert.assertFalse(this.httpAuthenticator.authenticate(host,
+                response, authStrategy, this.authState, this.context));
+
+        Assert.assertEquals(AuthProtocolState.FAILURE, this.authState.getState());
+    }
+
+    @Test
+    public void testAuthenticationNoAuthScheme() throws Exception {
+        HttpHost host = new HttpHost("somehost", 80);
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+
+        this.authState.setState(AuthProtocolState.CHALLENGED);
+
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+
+        Assert.assertFalse(this.httpAuthenticator.authenticate(host,
+                response, authStrategy, this.authState, this.context));
+
+        Assert.assertEquals(AuthProtocolState.FAILURE, this.authState.getState());
     }
 
     @Test

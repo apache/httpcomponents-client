@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.client;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import junit.framework.Assert;

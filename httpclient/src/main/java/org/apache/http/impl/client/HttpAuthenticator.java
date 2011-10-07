@@ -63,7 +63,6 @@ public class HttpAuthenticator {
             final AuthState authState,
             final HttpContext context) {
         if (authStrategy.isAuthenticationRequested(response, context)) {
-            authState.setState(AuthProtocolState.CHALLENGED);
             return true;
         } else {
             switch (authState.getState()) {
@@ -93,25 +92,39 @@ public class HttpAuthenticator {
                 this.log.debug("Response contains no authentication challenges");
                 return false;
             }
+
             AuthScheme authScheme = authState.getAuthScheme();
-            if (authScheme != null) {
-                String id = authScheme.getSchemeName();
-                Header challenge = challenges.get(id.toLowerCase(Locale.US));
-                if (challenge != null) {
-                    this.log.debug("Authorization challenge processed");
-                    authScheme.processChallenge(challenge);
-                    if (authScheme.isComplete()) {
-                        this.log.debug("Authentication failed");
-                        authState.setState(AuthProtocolState.FAILURE);
-                        authState.setCredentials(null);
-                        return false;
-                    } else {
-                        authState.setState(AuthProtocolState.HANDSHAKE);
-                        return true;
-                    }
-                } else {
+            switch (authState.getState()) {
+            case FAILURE:
+                return false;
+            case SUCCESS:
+            case CHALLENGED:
+                if (authScheme == null) {
+                    this.log.debug("Auth scheme is null");
                     authState.invalidate();
-                    // Retry authentication with a different scheme
+                    authState.setState(AuthProtocolState.FAILURE);
+                    return false;
+                }
+            case UNCHALLENGED:
+                if (authScheme != null) {
+                    String id = authScheme.getSchemeName();
+                    Header challenge = challenges.get(id.toLowerCase(Locale.US));
+                    if (challenge != null) {
+                        this.log.debug("Authorization challenge processed");
+                        authScheme.processChallenge(challenge);
+                        if (authScheme.isComplete()) {
+                            this.log.debug("Authentication failed");
+                            authState.invalidate();
+                            authState.setState(AuthProtocolState.FAILURE);
+                            return false;
+                        } else {
+                            authState.setState(AuthProtocolState.HANDSHAKE);
+                            return true;
+                        }
+                    } else {
+                        authState.invalidate();
+                        // Retry authentication with a different scheme
+                    }
                 }
             }
             Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
