@@ -42,12 +42,11 @@ import org.apache.http.util.EntityUtils;
  * A {@link ResponseHandler} that returns the response body as a String
  * for successful (2xx) responses. If the response code was >= 300, the response
  * body is consumed and an {@link HttpResponseException} is thrown.
- *
+ * <p/>
  * If this is used with
  * {@link org.apache.http.client.HttpClient#execute(
  *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
- *
  *
  * @since 4.0
  */
@@ -63,12 +62,12 @@ public class BasicResponseHandler implements ResponseHandler<String> {
     public String handleResponse(final HttpResponse response)
             throws HttpResponseException, IOException {
         StatusLine statusLine = response.getStatusLine();
+        HttpEntity entity = response.getEntity();
         if (statusLine.getStatusCode() >= 300) {
+            EntityUtils.consume(entity);
             throw new HttpResponseException(statusLine.getStatusCode(),
                     statusLine.getReasonPhrase());
         }
-
-        HttpEntity entity = response.getEntity();
         return entity == null ? null : EntityUtils.toString(entity);
     }
 
