@@ -1,5 +1,9 @@
 Changes since 4.1.2
 
+* [HTTPCLIENT-1131] HttpClient to authenticate preemptively using BASIC scheme if a userinfo 
+  attribute is specified in the request URI.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1116] ResponseCachingPolicy uses integers for sizes
   Contributed by Greg Bowyer <gbowyer at fastmail.co.uk >
 

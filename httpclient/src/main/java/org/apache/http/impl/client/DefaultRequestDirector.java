@@ -47,9 +47,12 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.AuthenticationStrategy;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.RedirectException;
@@ -74,6 +77,7 @@ import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.HttpConnectionParams;
@@ -476,6 +480,12 @@ public class DefaultRequestDirector implements RequestDirector {
                     }
                     response = ex.getResponse();
                     break;
+                }
+
+                String userinfo = wrapper.getURI().getUserInfo();
+                if (userinfo != null) {
+                    targetAuthState.setAuthScheme(new BasicScheme());
+                    targetAuthState.setCredentials(new UsernamePasswordCredentials(userinfo));
                 }
 
                 // Reset headers on the request wrapper

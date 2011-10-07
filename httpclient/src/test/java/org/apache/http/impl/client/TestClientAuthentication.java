@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -394,6 +395,36 @@ public class TestClientAuthentication extends BasicServerTestBase {
         EntityUtils.consume(entity2);
 
         Assert.assertEquals(1, authStrategy.getCount());
+    }
+
+    @Test
+    public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
+
+        HttpHost target = getServerHttp();
+        HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
+
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
+    }
+
+    @Test
+    public void testAuthenticationUserinfoInRequestFailure() throws Exception {
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.start();
+
+        HttpHost target = getServerHttp();
+        HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
+
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
     }
 
 }
