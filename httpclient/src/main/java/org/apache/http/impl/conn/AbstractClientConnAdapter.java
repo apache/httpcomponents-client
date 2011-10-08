@@ -108,7 +108,7 @@ public abstract class AbstractClientConnAdapter
      * Detaches this adapter from the wrapped connection.
      * This adapter becomes useless.
      */
-    protected void detach() {
+    protected synchronized void detach() {
         wrappedConnection = null;
         duration = Long.MAX_VALUE;
     }
@@ -296,29 +296,25 @@ public abstract class AbstractClientConnAdapter
         }
     }
 
-    public void releaseConnection() {
-        synchronized (connManager) {
-            if (released) {
-                return;
-            }
-            released = true;
-            connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
+    public synchronized void releaseConnection() {
+        if (released) {
+            return;
         }
+        released = true;
+        connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
     }
 
-    public void abortConnection() {
-        synchronized (connManager) {
-            if (released) {
-                return;
-            }
-            released = true;
-            unmarkReusable();
-            try {
-                shutdown();
-            } catch (IOException ignore) {
-            }
-            connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
+    public synchronized void abortConnection() {
+        if (released) {
+            return;
         }
+        released = true;
+        unmarkReusable();
+        try {
+            shutdown();
+        } catch (IOException ignore) {
+        }
+        connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
     }
 
     public Object getAttribute(final String id) {
