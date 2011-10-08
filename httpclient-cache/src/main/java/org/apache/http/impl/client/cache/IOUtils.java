@@ -69,7 +69,7 @@ class IOUtils {
 
     static void copyFile(final File in, final File out) throws IOException {
         RandomAccessFile f1 = new RandomAccessFile(in, "r");
-        RandomAccessFile f2 = new RandomAccessFile(out, "w");
+        RandomAccessFile f2 = new RandomAccessFile(out, "rw");
         try {
             FileChannel c1 = f1.getChannel();
             FileChannel c2 = f2.getChannel();
