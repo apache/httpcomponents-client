@@ -82,19 +82,19 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     /** The one and only entry in this pool. */
     @GuardedBy("this")
-    protected PoolEntry uniquePoolEntry;
+    protected volatile PoolEntry uniquePoolEntry;
 
     /** The currently issued managed connection, if any. */
     @GuardedBy("this")
-    protected ConnAdapter managedConn;
+    protected volatile ConnAdapter managedConn;
 
     /** The time of the last connection release, or -1. */
     @GuardedBy("this")
-    protected long lastReleaseTime;
+    protected volatile long lastReleaseTime;
 
     /** The time the last released connection expires and shouldn't be reused. */
     @GuardedBy("this")
-    protected long connectionExpiresTime;
+    protected volatile long connectionExpiresTime;
 
     /** Indicates whether this connection manager is shut down. */
     protected volatile boolean isShutDown;
@@ -205,7 +205,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @return  a connection that can be used to communicate
      *          along the given route
      */
-    public synchronized ManagedClientConnection getConnection(HttpRoute route, Object state) {
+    public ManagedClientConnection getConnection(HttpRoute route, Object state) {
         if (route == null) {
             throw new IllegalArgumentException("Route may not be null.");
         }
@@ -215,47 +215,49 @@ public class SingleClientConnManager implements ClientConnectionManager {
             log.debug("Get connection for route " + route);
         }
 
-        if (managedConn != null)
-            throw new IllegalStateException(MISUSE_MESSAGE);
+        synchronized (this) {
+            if (managedConn != null)
+                throw new IllegalStateException(MISUSE_MESSAGE);
 
-        // check re-usability of the connection
-        boolean recreate = false;
-        boolean shutdown = false;
+            // check re-usability of the connection
+            boolean recreate = false;
+            boolean shutdown = false;
 
-        // Kill the connection if it expired.
-        closeExpiredConnections();
+            // Kill the connection if it expired.
+            closeExpiredConnections();
 
-        if (uniquePoolEntry.connection.isOpen()) {
-            RouteTracker tracker = uniquePoolEntry.tracker;
-            shutdown = (tracker == null || // can happen if method is aborted
-                        !tracker.toRoute().equals(route));
-        } else {
-            // If the connection is not open, create a new PoolEntry,
-            // as the connection may have been marked not reusable,
-            // due to aborts -- and the PoolEntry should not be reused
-            // either.  There's no harm in recreating an entry if
-            // the connection is closed.
-            recreate = true;
-        }
-
-        if (shutdown) {
-            recreate = true;
-            try {
-                uniquePoolEntry.shutdown();
-            } catch (IOException iox) {
-                log.debug("Problem shutting down connection.", iox);
+            if (uniquePoolEntry.connection.isOpen()) {
+                RouteTracker tracker = uniquePoolEntry.tracker;
+                shutdown = (tracker == null || // can happen if method is aborted
+                            !tracker.toRoute().equals(route));
+            } else {
+                // If the connection is not open, create a new PoolEntry,
+                // as the connection may have been marked not reusable,
+                // due to aborts -- and the PoolEntry should not be reused
+                // either.  There's no harm in recreating an entry if
+                // the connection is closed.
+                recreate = true;
             }
+
+            if (shutdown) {
+                recreate = true;
+                try {
+                    uniquePoolEntry.shutdown();
+                } catch (IOException iox) {
+                    log.debug("Problem shutting down connection.", iox);
+                }
+            }
+
+            if (recreate)
+                uniquePoolEntry = new PoolEntry();
+
+            managedConn = new ConnAdapter(uniquePoolEntry, route);
+
+            return managedConn;
         }
-
-        if (recreate)
-            uniquePoolEntry = new PoolEntry();
-
-        managedConn = new ConnAdapter(uniquePoolEntry, route);
-
-        return managedConn;
     }
 
-    public synchronized void releaseConnection(
+    public void releaseConnection(
             ManagedClientConnection conn,
             long validDuration, TimeUnit timeUnit) {
         assertStillUp();
@@ -271,51 +273,55 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
 
         ConnAdapter sca = (ConnAdapter) conn;
-        if (sca.poolEntry == null)
-            return; // already released
-        ClientConnectionManager manager = sca.getManager();
-        if (manager != null && manager != this) {
-            throw new IllegalArgumentException
-                ("Connection not obtained from this manager.");
-        }
-
-        try {
-            // make sure that the response has been read completely
-            if (sca.isOpen() && (this.alwaysShutDown ||
-                                 !sca.isMarkedReusable())
-                ) {
-                if (log.isDebugEnabled()) {
-                    log.debug
-                        ("Released connection open but not reusable.");
-                }
-
-                // make sure this connection will not be re-used
-                // we might have gotten here because of a shutdown trigger
-                // shutdown of the adapter also clears the tracked route
-                sca.shutdown();
+        synchronized (sca) {
+            if (sca.poolEntry == null)
+                return; // already released
+            ClientConnectionManager manager = sca.getManager();
+            if (manager != null && manager != this) {
+                throw new IllegalArgumentException
+                    ("Connection not obtained from this manager.");
             }
-        } catch (IOException iox) {
-            if (log.isDebugEnabled())
-                log.debug("Exception shutting down released connection.",
-                          iox);
-        } finally {
-            sca.detach();
-            managedConn = null;
-            lastReleaseTime = System.currentTimeMillis();
-            if(validDuration > 0)
-                connectionExpiresTime = timeUnit.toMillis(validDuration) + lastReleaseTime;
-            else
-                connectionExpiresTime = Long.MAX_VALUE;
+            try {
+                // make sure that the response has been read completely
+                if (sca.isOpen() && (this.alwaysShutDown ||
+                                     !sca.isMarkedReusable())
+                    ) {
+                    if (log.isDebugEnabled()) {
+                        log.debug
+                            ("Released connection open but not reusable.");
+                    }
+
+                    // make sure this connection will not be re-used
+                    // we might have gotten here because of a shutdown trigger
+                    // shutdown of the adapter also clears the tracked route
+                    sca.shutdown();
+                }
+            } catch (IOException iox) {
+                if (log.isDebugEnabled())
+                    log.debug("Exception shutting down released connection.",
+                              iox);
+            } finally {
+                sca.detach();
+                synchronized (this) {
+                    managedConn = null;
+                    lastReleaseTime = System.currentTimeMillis();
+                    if(validDuration > 0)
+                        connectionExpiresTime = timeUnit.toMillis(validDuration) + lastReleaseTime;
+                    else
+                        connectionExpiresTime = Long.MAX_VALUE;
+                }
+            }
         }
     }
 
-    public synchronized void closeExpiredConnections() {
-        if(System.currentTimeMillis() >= connectionExpiresTime) {
+    public void closeExpiredConnections() {
+        long time = connectionExpiresTime;
+        if (System.currentTimeMillis() >= time) {
             closeIdleConnections(0, TimeUnit.MILLISECONDS);
         }
     }
 
-    public synchronized void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public void closeIdleConnections(long idletime, TimeUnit tunit) {
         assertStillUp();
 
         // idletime can be 0 or negative, no problem there
@@ -323,35 +329,40 @@ public class SingleClientConnManager implements ClientConnectionManager {
             throw new IllegalArgumentException("Time unit must not be null.");
         }
 
-        if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
-            final long cutoff =
-                System.currentTimeMillis() - tunit.toMillis(idletime);
-            if (lastReleaseTime <= cutoff) {
-                try {
-                    uniquePoolEntry.close();
-                } catch (IOException iox) {
-                    // ignore
-                    log.debug("Problem closing idle connection.", iox);
+        synchronized (this) {
+            if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
+                final long cutoff =
+                    System.currentTimeMillis() - tunit.toMillis(idletime);
+                if (lastReleaseTime <= cutoff) {
+                    try {
+                        uniquePoolEntry.close();
+                    } catch (IOException iox) {
+                        // ignore
+                        log.debug("Problem closing idle connection.", iox);
+                    }
                 }
             }
         }
     }
 
-    public synchronized void shutdown() {
-
+    public void shutdown() {
         this.isShutDown = true;
 
-        if (managedConn != null)
-            managedConn.detach();
+        ConnAdapter conn = managedConn;
+        if (conn != null)
+            conn.detach();
 
-        try {
-            if (uniquePoolEntry != null) // and connection open?
-                uniquePoolEntry.shutdown();
-        } catch (IOException iox) {
-            // ignore
-            log.debug("Problem while shutting down manager.", iox);
-        } finally {
-            uniquePoolEntry = null;
+        synchronized (this) {
+            try {
+                if (uniquePoolEntry != null) // and connection open?
+                    uniquePoolEntry.shutdown();
+            } catch (IOException iox) {
+                // ignore
+                log.debug("Problem while shutting down manager.", iox);
+            } finally {
+                uniquePoolEntry = null;
+                managedConn = null;
+            }
         }
     }
 
@@ -359,15 +370,19 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @deprecated no longer used
      */
     @Deprecated
-    protected synchronized void revokeConnection() {
-        if (managedConn == null)
+    protected void revokeConnection() {
+        ConnAdapter conn = managedConn;
+        if (conn == null)
             return;
-        managedConn.detach();
-        try {
-            uniquePoolEntry.shutdown();
-        } catch (IOException iox) {
-            // ignore
-            log.debug("Problem while shutting down connection.", iox);
+        conn.detach();
+
+        synchronized (this) {
+            try {
+                uniquePoolEntry.shutdown();
+            } catch (IOException iox) {
+                // ignore
+                log.debug("Problem while shutting down connection.", iox);
+            }
         }
     }
 
