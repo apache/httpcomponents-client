@@ -179,6 +179,22 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
      * <a href="http://download.oracle.com/javase/1,5.0/docs/guide/security/jsse/JSSERefGuide.html">
      * "JavaTM Secure Socket Extension (JSSE) Reference Guide for the JavaTM 2 Platform
      * Standard Edition 5</a>
+     * <p>
+     * The following system properties are taken into account by this method:
+     * <ul>
+     *  <li>ssl.TrustManagerFactory.algorithm</li>
+     *  <li>javax.net.ssl.trustStoreType</li>
+     *  <li>javax.net.ssl.trustStore</li>
+     *  <li>javax.net.ssl.trustStoreProvider</li>
+     *  <li>javax.net.ssl.trustStorePassword</li>
+     *  <li>java.home</li>
+     *  <li>ssl.KeyManagerFactory.algorithm</li>
+     *  <li>javax.net.ssl.keyStoreType</li>
+     *  <li>javax.net.ssl.keyStore</li>
+     *  <li>javax.net.ssl.keyStoreProvider</li>
+     *  <li>javax.net.ssl.keyStorePassword</li>
+     * </ul>
+     * <p>
      *
      * @return the system SSL socket factory
      */

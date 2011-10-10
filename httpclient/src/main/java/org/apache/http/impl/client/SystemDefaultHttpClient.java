@@ -29,9 +29,12 @@ package org.apache.http.impl.client;
 
 import java.net.ProxySelector;
 
+import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
@@ -39,6 +42,27 @@ import org.apache.http.params.HttpParams;
 
 /**
  * An extension of {@link DefaultHttpClient} pre-configured using system properties.
+ * <p>
+ * The following system properties are taken into account by this class:
+ * <ul>
+ *  <li>ssl.TrustManagerFactory.algorithm</li>
+ *  <li>javax.net.ssl.trustStoreType</li>
+ *  <li>javax.net.ssl.trustStore</li>
+ *  <li>javax.net.ssl.trustStoreProvider</li>
+ *  <li>javax.net.ssl.trustStorePassword</li>
+ *  <li>java.home</li>
+ *  <li>ssl.KeyManagerFactory.algorithm</li>
+ *  <li>javax.net.ssl.keyStoreType</li>
+ *  <li>javax.net.ssl.keyStore</li>
+ *  <li>javax.net.ssl.keyStoreProvider</li>
+ *  <li>javax.net.ssl.keyStorePassword</li>
+ *  <li>http.proxyHost</li>
+ *  <li>http.proxyPort</li>
+ *  <li>http.nonProxyHosts</li>
+ *  <li>http.keepAlive</li>
+ *  <li>http.maxConnections</li>
+ * </ul>
+ * <p>
  * <p>
  * The following parameters can be used to customize the behavior of this
  * class:
@@ -74,6 +98,7 @@ import org.apache.http.params.HttpParams;
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
  * </ul>
+ * </p>
  *
  * @since 4.2
  */
@@ -90,13 +115,32 @@ public class SystemDefaultHttpClient extends DefaultHttpClient {
 
     @Override
     protected ClientConnectionManager createClientConnectionManager() {
-        return new PoolingClientConnectionManager(SchemeRegistryFactory.createSystemDefault());
+        PoolingClientConnectionManager connmgr = new PoolingClientConnectionManager(
+                SchemeRegistryFactory.createSystemDefault());
+        String s = System.getProperty("http.keepAlive");
+        if ("true".equalsIgnoreCase(s)) {
+            s = System.getProperty("http.maxConnections", "5");
+            int max = Integer.parseInt(s);
+            connmgr.setDefaultMaxPerRoute(max);
+            connmgr.setMaxTotal(2 * max);
+        }
+        return connmgr;
     }
 
     @Override
     protected HttpRoutePlanner createHttpRoutePlanner() {
         return new ProxySelectorRoutePlanner(getConnectionManager().getSchemeRegistry(),
                 ProxySelector.getDefault());
+    }
+
+    @Override
+    protected ConnectionReuseStrategy createConnectionReuseStrategy() {
+        String s = System.getProperty("http.keepAlive");
+        if ("true".equalsIgnoreCase(s)) {
+            return new DefaultConnectionReuseStrategy();
+        } else {
+            return new NoConnectionReuseStrategy();
+        }
     }
 
 }
