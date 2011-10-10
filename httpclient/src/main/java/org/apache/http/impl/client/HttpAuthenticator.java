@@ -70,6 +70,8 @@ public class HttpAuthenticator {
             case HANDSHAKE:
                 authState.setState(AuthProtocolState.SUCCESS);
                 break;
+            case SUCCESS:
+                break;
             default:
                 authState.setState(AuthProtocolState.UNCHALLENGED);
             }
@@ -98,6 +100,8 @@ public class HttpAuthenticator {
             case FAILURE:
                 return false;
             case SUCCESS:
+                authState.invalidate();
+                break;
             case CHALLENGED:
                 if (authScheme == null) {
                     this.log.debug("Auth scheme is null");

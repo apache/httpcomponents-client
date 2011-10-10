@@ -184,9 +184,9 @@ public class DefaultRequestDirector implements RequestDirector {
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
-    protected final AuthState targetAuthState;
+    protected AuthState targetAuthState;
 
-    protected final AuthState proxyAuthState;
+    protected AuthState proxyAuthState;
 
     private final HttpAuthenticator authenticator;
 
@@ -352,8 +352,6 @@ public class DefaultRequestDirector implements RequestDirector {
         this.execCount = 0;
         this.redirectCount = 0;
         this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
-        this.targetAuthState = new AuthState();
-        this.proxyAuthState = new AuthState();
     }
 
 
@@ -401,6 +399,17 @@ public class DefaultRequestDirector implements RequestDirector {
     public HttpResponse execute(HttpHost target, HttpRequest request,
                                 HttpContext context)
         throws HttpException, IOException {
+
+        targetAuthState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        if (targetAuthState == null) {
+            targetAuthState = new AuthState();
+            context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
+        }
+        proxyAuthState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
+        if (proxyAuthState == null) {
+            proxyAuthState = new AuthState();
+            context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
+        }
 
         HttpRequest orig = request;
         RequestWrapper origWrapper = wrapRequest(orig);
@@ -502,16 +511,9 @@ public class DefaultRequestDirector implements RequestDirector {
                 HttpHost proxy = route.getProxyHost();
 
                 // Populate the execution context
-                context.setAttribute(ExecutionContext.HTTP_TARGET_HOST,
-                        target);
-                context.setAttribute(ExecutionContext.HTTP_PROXY_HOST,
-                        proxy);
-                context.setAttribute(ExecutionContext.HTTP_CONNECTION,
-                        managedConn);
-                context.setAttribute(ClientContext.TARGET_AUTH_STATE,
-                        targetAuthState);
-                context.setAttribute(ClientContext.PROXY_AUTH_STATE,
-                        proxyAuthState);
+                context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+                context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, proxy);
+                context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
 
                 // Run request protocol interceptors
                 requestExec.preProcess(wrapper, httpProcessor, context);
@@ -619,10 +621,10 @@ public class DefaultRequestDirector implements RequestDirector {
             final RoutedRequest req, final HttpContext context) throws HttpException, IOException {
         HttpRoute route = req.getRoute();
         HttpRequest wrapper = req.getRequest();
-        context.setAttribute(ExecutionContext.HTTP_REQUEST, wrapper);
 
         int connectCount = 0;
         for (;;) {
+            context.setAttribute(ExecutionContext.HTTP_REQUEST, wrapper);
             // Increment connect count
             connectCount++;
             try {
@@ -879,18 +881,10 @@ public class DefaultRequestDirector implements RequestDirector {
             connect.setParams(this.params);
 
             // Populate the execution context
-            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST,
-                    target);
-            context.setAttribute(ExecutionContext.HTTP_PROXY_HOST,
-                    proxy);
-            context.setAttribute(ExecutionContext.HTTP_CONNECTION,
-                    managedConn);
-            context.setAttribute(ClientContext.TARGET_AUTH_STATE,
-                    targetAuthState);
-            context.setAttribute(ClientContext.PROXY_AUTH_STATE,
-                    proxyAuthState);
-            context.setAttribute(ExecutionContext.HTTP_REQUEST,
-                    connect);
+            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+            context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, proxy);
+            context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
+            context.setAttribute(ExecutionContext.HTTP_REQUEST, connect);
 
             this.requestExec.preProcess(connect, this.httpProcessor, context);
 
