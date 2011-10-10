@@ -31,6 +31,7 @@ import junit.framework.Assert;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
@@ -230,10 +231,12 @@ public class TestRequestAuthCache {
 
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
+        this.targetState.setState(AuthProtocolState.CHALLENGED);
         this.targetState.setAuthScheme(new BasicScheme());
         this.targetState.setCredentials(new UsernamePasswordCredentials("user3", "secret3"));
         this.proxyState.setAuthScheme(new BasicScheme());
         this.proxyState.setCredentials(new UsernamePasswordCredentials("user4", "secret4"));
+        this.proxyState.setState(AuthProtocolState.CHALLENGED);
 
         HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);

@@ -151,7 +151,6 @@ public class TestClientReauthentication extends BasicServerTestBase {
         HttpContext context = new BasicHttpContext();
         for (int i = 0; i < 10; i++) {
             HttpGet httpget = new HttpGet("/");
-            System.out.println("count " + i);
             HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
             HttpEntity entity = response.getEntity();
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
