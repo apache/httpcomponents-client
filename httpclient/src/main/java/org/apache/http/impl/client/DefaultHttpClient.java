@@ -56,8 +56,8 @@ import org.apache.http.util.VersionInfo;
 /**
  * Default implementation of {@link HttpClient} pre-configured for most common use scenarios.
  * <p>
- * Please see the Javadoc for {@link #createHttpProcessor()} for the details of the interceptors that are set up
- * by default.
+ * Please see the Javadoc for {@link #createHttpProcessor()} for the details of the interceptors
+ * that are set up by default.
  * <p>
  * Additional interceptors can be added as follows, but
  * take care not to add the same interceptor more than once.
@@ -108,7 +108,6 @@ import org.apache.http.util.VersionInfo;
  *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#CONNECTION_MANAGER_FACTORY_CLASS_NAME}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
  * </ul>
  *

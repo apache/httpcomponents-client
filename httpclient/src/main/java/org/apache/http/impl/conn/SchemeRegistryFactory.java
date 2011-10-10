@@ -26,9 +26,6 @@
  */
 package org.apache.http.impl.conn;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -62,7 +59,7 @@ public final class SchemeRegistryFactory {
      *
      * @since 4.2
      */
-    public static SchemeRegistry createSystemDefault() throws IOException, GeneralSecurityException {
+    public static SchemeRegistry createSystemDefault() {
         SchemeRegistry registry = new SchemeRegistry();
         registry.register(
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
