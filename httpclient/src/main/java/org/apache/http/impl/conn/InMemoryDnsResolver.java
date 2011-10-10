@@ -38,6 +38,8 @@ import org.apache.http.conn.DnsResolver;
 
 /**
  * In-memory DNS resolver implementation.
+ *
+ * @since 4.2
  */
 public class InMemoryDnsResolver implements DnsResolver {
 

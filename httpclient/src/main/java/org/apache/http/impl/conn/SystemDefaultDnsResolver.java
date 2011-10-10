@@ -34,6 +34,7 @@ import org.apache.http.conn.DnsResolver;
 /**
  * DNS resolver that uses the default OS implementation for resolving host names.
  *
+ * @since 4.2
  */
 public class SystemDefaultDnsResolver implements DnsResolver {
 

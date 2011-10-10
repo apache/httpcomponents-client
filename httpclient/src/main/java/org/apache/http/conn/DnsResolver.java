@@ -32,6 +32,8 @@ import java.net.UnknownHostException;
 /**
  * Users may implement this interface to override the normal DNS lookup offered
  * by the OS.
+ *
+ * @since 4.2
  */
 public interface DnsResolver {
 

@@ -99,6 +99,8 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * Creates a new client connection operator for the given scheme registry.
      *
      * @param schemes   the scheme registry
+     *
+     * @since 4.2
      */
     public DefaultClientConnectionOperator(final SchemeRegistry schemes) {
         if (schemes == null) {
