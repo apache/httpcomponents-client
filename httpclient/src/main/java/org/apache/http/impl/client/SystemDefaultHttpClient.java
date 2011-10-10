@@ -27,9 +27,13 @@
 
 package org.apache.http.impl.client;
 
+import java.net.ProxySelector;
+
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.params.HttpParams;
 
@@ -87,6 +91,12 @@ public class SystemDefaultHttpClient extends DefaultHttpClient {
     @Override
     protected ClientConnectionManager createClientConnectionManager() {
         return new PoolingClientConnectionManager(SchemeRegistryFactory.createSystemDefault());
+    }
+
+    @Override
+    protected HttpRoutePlanner createHttpRoutePlanner() {
+        return new ProxySelectorRoutePlanner(getConnectionManager().getSchemeRegistry(),
+                ProxySelector.getDefault());
     }
 
 }
