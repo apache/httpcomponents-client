@@ -96,14 +96,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     public PoolingClientConnectionManager(
             final SchemeRegistry schemeRegistry,
             final long timeToLive, final TimeUnit tunit) {
-        super();
-        if (schemeRegistry == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
-        this.schemeRegistry = schemeRegistry;
-        this.dnsResolver = new SystemDefaultDnsResolver();
-        this.operator = createConnectionOperator(schemeRegistry);
-        this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
+        this(schemeRegistry, timeToLive, tunit, new SystemDefaultDnsResolver());
     }
 
     public PoolingClientConnectionManager(final SchemeRegistry schemeRegistry,
@@ -114,7 +107,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
         this.schemeRegistry = schemeRegistry;
-        this.dnsResolver  = new SystemDefaultDnsResolver();
+        this.dnsResolver  = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
         this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
     }
