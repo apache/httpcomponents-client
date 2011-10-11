@@ -106,6 +106,9 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         if (schemeRegistry == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
         }
+        if (dnsResolver == null) {
+            throw new IllegalArgumentException("DNS resolver may not be null");
+        }
         this.schemeRegistry = schemeRegistry;
         this.dnsResolver  = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
