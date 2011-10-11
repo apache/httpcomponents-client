@@ -68,7 +68,7 @@ import org.junit.Test;
  * Tests for <code>PoolingClientConnectionManager</code> that do require a server
  * to communicate with.
  */
-public class TestTSCCMWithServer extends ServerTestBase {
+public class TestPoolingConnManager extends ServerTestBase {
 
     /**
      * Tests executing several requests in parallel.

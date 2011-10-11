@@ -47,7 +47,7 @@ import org.mockito.Mockito;
  * Tests for <code>PoolingClientConnectionManager</code> that do not require a server to
  * communicate with.
  */
-public class TestTSCCMNoServer {
+public class TestPoolingConnManagerNoServer {
 
     private static ManagedClientConnection getConnection(
             final ClientConnectionManager mgr,

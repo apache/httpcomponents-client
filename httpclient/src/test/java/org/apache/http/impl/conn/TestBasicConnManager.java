@@ -44,7 +44,7 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestSCMWithServer extends ServerTestBase {
+public class TestBasicConnManager extends ServerTestBase {
 
     public BasicClientConnectionManager createConnManager(SchemeRegistry schreg) {
         if (schreg == null)
