@@ -44,21 +44,12 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-@Deprecated
 public class TestSCMWithServer extends ServerTestBase {
 
-    /**
-     * Helper to instantiate a <code>SingleClientConnManager</code>.
-     *
-     * @param schreg    the scheme registry, or
-     *                  <code>null</code> to use defaults
-     *
-     * @return  a connection manager to test
-     */
-    public SingleClientConnManager createSCCM(SchemeRegistry schreg) {
+    public BasicClientConnectionManager createConnManager(SchemeRegistry schreg) {
         if (schreg == null)
             schreg = supportedSchemes;
-        return new SingleClientConnManager(schreg);
+        return new BasicClientConnectionManager(schreg);
     }
 
     /**
@@ -67,14 +58,13 @@ public class TestSCMWithServer extends ServerTestBase {
      */
     @Test
     public void testOpenAfterAbort() throws Exception {
-        SingleClientConnManager mgr = createSCCM(null);
+        BasicClientConnectionManager mgr = createConnManager(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn = mgr.getConnection(route, null);
-        Assert.assertTrue(conn instanceof AbstractClientConnAdapter);
-        ((AbstractClientConnAdapter) conn).abortConnection();
+        conn.abortConnection();
 
         conn = mgr.getConnection(route, null);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
@@ -90,7 +80,7 @@ public class TestSCMWithServer extends ServerTestBase {
     @Test
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
-        SingleClientConnManager mgr = createSCCM(null);
+        BasicClientConnectionManager mgr = createConnManager(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -182,13 +172,14 @@ public class TestSCMWithServer extends ServerTestBase {
     @Test
     public void testCloseExpiredConnections() throws Exception {
 
-        SingleClientConnManager mgr = createSCCM(null);
+        BasicClientConnectionManager mgr = createConnManager(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn =  mgr.getConnection(route, null);
         conn.open(route, httpContext, defaultParams);
+        conn.markReusable();
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
 
         mgr.closeExpiredConnections();
@@ -208,7 +199,7 @@ public class TestSCMWithServer extends ServerTestBase {
     @Test(expected=IllegalStateException.class)
     public void testAlreadyLeased() throws Exception {
 
-        SingleClientConnManager mgr = createSCCM(null);
+        BasicClientConnectionManager mgr = createConnManager(null);
 
         final HttpHost target = getServerHttp();
         final HttpRoute route = new HttpRoute(target, null, false);

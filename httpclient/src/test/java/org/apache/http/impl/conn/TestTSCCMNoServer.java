@@ -44,8 +44,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Tests for <code>ThreadSafeClientConnManager</code> that do not require
- * a server to communicate with.
+ * Tests for <code>PoolingClientConnectionManager</code> that do not require a server to
+ * communicate with.
  */
 public class TestTSCCMNoServer {
 

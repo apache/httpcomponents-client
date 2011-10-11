@@ -58,7 +58,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  *
- * @deprecated use {@link SingleConnectionManager}
+ * @deprecated use {@link BasicClientConnectionManager}
  */
 @ThreadSafe
 @Deprecated
@@ -347,11 +347,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     public void shutdown() {
         this.isShutDown = true;
-
-        ConnAdapter conn = managedConn;
-        if (conn != null)
-            conn.detach();
-
         synchronized (this) {
             try {
                 if (uniquePoolEntry != null) // and connection open?

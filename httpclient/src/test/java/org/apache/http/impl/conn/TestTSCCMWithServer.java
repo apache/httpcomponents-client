@@ -65,8 +65,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for <code>ThreadSafeClientConnManager</code> that do require
- * a server to communicate with.
+ * Tests for <code>PoolingClientConnectionManager</code> that do require a server
+ * to communicate with.
  */
 public class TestTSCCMWithServer extends ServerTestBase {
 

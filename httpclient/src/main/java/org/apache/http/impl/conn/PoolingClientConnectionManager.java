@@ -295,10 +295,10 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     }
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
-        if (log.isDebugEnabled()) {
-            log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
         }
-        pool.closeIdle(idleTimeout, tunit);
+        this.pool.closeIdle(idleTimeout, tunit);
     }
 
     public void closeExpiredConnections() {

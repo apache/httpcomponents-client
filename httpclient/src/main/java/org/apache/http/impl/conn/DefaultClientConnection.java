@@ -28,6 +28,7 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,7 +118,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         if (this.shutdown) {
             sock.close(); // allow this to throw...
             // ...but if it doesn't, explicitly throw one ourselves.
-            throw new IOException("Connection already shutdown");
+            throw new InterruptedIOException("Connection already shutdown");
         }
     }
 
