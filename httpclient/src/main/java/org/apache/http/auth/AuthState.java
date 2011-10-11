@@ -53,24 +53,30 @@ public class AuthState {
 
     private Queue<AuthOption> authOptions;
 
-    /**
-     * Default constructor.
-     *
-     */
     public AuthState() {
         super();
         this.state = AuthProtocolState.UNCHALLENGED;
     }
 
     /**
-     * Invalidates the authentication state by resetting its parameters.
+     * Resets authentication state.
      */
-    public void invalidate() {
+    public void reset() {
         this.state = AuthProtocolState.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
         this.authScope = null;
         this.credentials = null;
+    }
+
+    /**
+     * Invalidates the authentication state by resetting its parameters.
+     *
+     * @deprecated use {@link #reset()}
+     */
+    @Deprecated
+    public void invalidate() {
+        reset();
     }
 
     @Deprecated
@@ -85,7 +91,7 @@ public class AuthState {
      */
     public void setAuthScheme(final AuthScheme authScheme) {
         if (authScheme == null) {
-            invalidate();
+            reset();
             return;
         }
         this.authScheme = authScheme;

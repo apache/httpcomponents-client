@@ -58,9 +58,6 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
             final HttpContext context) throws HttpException, IOException {
         AuthScheme authScheme = authState.getAuthScheme();
         Credentials creds = authState.getCredentials();
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication protocol state: " + authState.getState());
-        }
         switch (authState.getState()) {
         case FAILURE:
             return;

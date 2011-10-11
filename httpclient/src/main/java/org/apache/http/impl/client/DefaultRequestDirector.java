@@ -559,8 +559,18 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
-                        invalidateAuthIfSuccessful(this.proxyAuthState);
-                        invalidateAuthIfSuccessful(this.targetAuthState);
+                        if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
+                                && proxyAuthState.getAuthScheme() != null
+                                && proxyAuthState.getAuthScheme().isConnectionBased()) {
+                            this.log.debug("Resetting proxy auth state");
+                            proxyAuthState.reset();
+                        }
+                        if (targetAuthState.getState() == AuthProtocolState.SUCCESS
+                                && targetAuthState.getAuthScheme() != null
+                                && targetAuthState.getAuthScheme().isConnectionBased()) {
+                            this.log.debug("Resetting target auth state");
+                            targetAuthState.reset();
+                        }
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
@@ -1072,16 +1082,14 @@ public class DefaultRequestDirector implements RequestDirector {
                     uri.getPort(),
                     uri.getScheme());
 
-            // Unset auth scope
-            targetAuthState.setState(AuthProtocolState.UNCHALLENGED);
-            proxyAuthState.setState(AuthProtocolState.UNCHALLENGED);
-
-            // Invalidate auth states if redirecting to another host
+            // Reset auth states if redirecting to another host
             if (!route.getTargetHost().equals(newTarget)) {
-                targetAuthState.invalidate();
+                this.log.debug("Resetting target auth state");
+                targetAuthState.reset();
                 AuthScheme authScheme = proxyAuthState.getAuthScheme();
                 if (authScheme != null && authScheme.isConnectionBased()) {
-                    proxyAuthState.invalidate();
+                    this.log.debug("Resetting proxy auth state");
+                    proxyAuthState.reset();
                 }
             }
 
@@ -1164,15 +1172,5 @@ public class DefaultRequestDirector implements RequestDirector {
         }
     } // abortConnection
 
-
-    private void invalidateAuthIfSuccessful(final AuthState authState) {
-        AuthScheme authscheme = authState.getAuthScheme();
-        if (authscheme != null
-                && authscheme.isConnectionBased()
-                && authscheme.isComplete()
-                && authState.getCredentials() != null) {
-            authState.invalidate();
-        }
-    }
 
 } // class DefaultClientRequestDirector

@@ -76,6 +76,9 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
         AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
         if (target != null && targetState != null) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Target auth state: " + targetState.getState());
+            }
             if (isCachable(targetState)) {
                 if (target.getPort() < 0) {
                     SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
@@ -101,6 +104,9 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
         AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
         if (proxy != null && proxyState != null) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Proxy auth state: " + proxyState.getState());
+            }
             if (isCachable(proxyState)) {
                 if (authCache == null) {
                     authCache = new BasicAuthCache();

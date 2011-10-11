@@ -100,12 +100,12 @@ public class HttpAuthenticator {
             case FAILURE:
                 return false;
             case SUCCESS:
-                authState.invalidate();
+                authState.reset();
                 break;
             case CHALLENGED:
                 if (authScheme == null) {
                     this.log.debug("Auth scheme is null");
-                    authState.invalidate();
+                    authState.reset();
                     authState.setState(AuthProtocolState.FAILURE);
                     return false;
                 }
@@ -118,7 +118,7 @@ public class HttpAuthenticator {
                         authScheme.processChallenge(challenge);
                         if (authScheme.isComplete()) {
                             this.log.debug("Authentication failed");
-                            authState.invalidate();
+                            authState.reset();
                             authState.setState(AuthProtocolState.FAILURE);
                             return false;
                         } else {
@@ -126,7 +126,7 @@ public class HttpAuthenticator {
                             return true;
                         }
                     } else {
-                        authState.invalidate();
+                        authState.reset();
                         // Retry authentication with a different scheme
                     }
                 }
@@ -143,7 +143,7 @@ public class HttpAuthenticator {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Malformed challenge: " +  ex.getMessage());
             }
-            authState.invalidate();
+            authState.reset();
             return false;
         }
     }

@@ -83,6 +83,9 @@ public class RequestProxyAuthentication extends RequestAuthenticationBase {
             this.log.debug("Proxy auth state not set in the context");
             return;
         }
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Proxy auth state: " + authState.getState());
+        }
         process(authState, request, context);
     }
 

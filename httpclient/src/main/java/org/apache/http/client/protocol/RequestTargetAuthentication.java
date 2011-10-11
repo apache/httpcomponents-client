@@ -74,6 +74,9 @@ public class RequestTargetAuthentication extends RequestAuthenticationBase {
             this.log.debug("Target auth state not set in the context");
             return;
         }
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Target auth state: " + authState.getState());
+        }
         process(authState, request, context);
     }
 
