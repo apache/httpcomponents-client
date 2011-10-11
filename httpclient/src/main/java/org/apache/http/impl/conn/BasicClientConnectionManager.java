@@ -197,29 +197,29 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             if (manager != null && manager != this) {
                 throw new IllegalStateException("Connection not obtained from this manager");
             }
-            try {
-                if (managedConn.isOpen() && !managedConn.isMarkedReusable()) {
-                    try {
-                        managedConn.shutdown();
-                    } catch (IOException iox) {
-                        if (this.log.isDebugEnabled()) {
-                            this.log.debug("I/O exception shutting down released connection", iox);
+            synchronized (this) {
+                try {
+                    if (managedConn.isOpen() && !managedConn.isMarkedReusable()) {
+                        try {
+                            managedConn.shutdown();
+                        } catch (IOException iox) {
+                            if (this.log.isDebugEnabled()) {
+                                this.log.debug("I/O exception shutting down released connection", iox);
+                            }
                         }
                     }
-                }
-                this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
-                if (this.log.isDebugEnabled()) {
-                    String s;
-                    if (keepalive > 0) {
-                        s = "for " + keepalive + " " + tunit;
-                    } else {
-                        s = "indefinitely";
+                    this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                    if (this.log.isDebugEnabled()) {
+                        String s;
+                        if (keepalive > 0) {
+                            s = "for " + keepalive + " " + tunit;
+                        } else {
+                            s = "indefinitely";
+                        }
+                        this.log.debug("Connection can be kept alive " + s);
                     }
-                    this.log.debug("Connection can be kept alive " + s);
-                }
-            } finally {
-                managedConn.detach();
-                synchronized (this) {
+                } finally {
+                    managedConn.detach();
                     this.conn = null;
                     if (this.poolEntry.isClosed()) {
                         this.poolEntry = null;
