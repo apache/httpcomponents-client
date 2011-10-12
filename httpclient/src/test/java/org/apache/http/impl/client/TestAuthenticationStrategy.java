@@ -37,10 +37,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthOption;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.auth.params.AuthPNames;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
@@ -54,6 +56,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Simple tests for {@link AuthenticationStrategyImpl}.
@@ -63,37 +66,42 @@ public class TestAuthenticationStrategy {
     @Test(expected=IllegalArgumentException.class)
     public void testIsAuthenticationRequestedInvalidInput() throws Exception {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost host = new HttpHost("localhost", 80);
         HttpContext context = new BasicHttpContext();
-        authStrategy.isAuthenticationRequested(null, context);
+        authStrategy.isAuthenticationRequested(host, null, context);
     }
 
     @Test
     public void testTargetAuthRequested() throws Exception {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        HttpHost host = new HttpHost("localhost", 80);
         HttpContext context = new BasicHttpContext();
-        Assert.assertTrue(authStrategy.isAuthenticationRequested(response, context));
+        Assert.assertTrue(authStrategy.isAuthenticationRequested(host, response, context));
     }
 
     @Test
     public void testProxyAuthRequested() throws Exception {
         ProxyAuthenticationStrategy authStrategy = new ProxyAuthenticationStrategy();
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, "UNAUTHORIZED");
+        HttpHost host = new HttpHost("localhost", 80);
         HttpContext context = new BasicHttpContext();
-        Assert.assertTrue(authStrategy.isAuthenticationRequested(response, context));
+        Assert.assertTrue(authStrategy.isAuthenticationRequested(host, response, context));
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testGetChallengesInvalidInput() throws Exception {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost host = new HttpHost("localhost", 80);
         HttpContext context = new BasicHttpContext();
-        authStrategy.getChallenges(null, context);
+        authStrategy.getChallenges(host, null, context);
     }
 
     @Test
     public void testGetChallenges() throws Exception {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
         HttpContext context = new BasicHttpContext();
+        HttpHost host = new HttpHost("localhost", 80);
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         Header h1 = new BasicHeader(AUTH.WWW_AUTH, "  Basic  realm=\"test\"");
         Header h2 = new BasicHeader(AUTH.WWW_AUTH, "\t\tDigest   realm=\"realm1\", nonce=\"1234\"");
@@ -102,7 +110,7 @@ public class TestAuthenticationStrategy {
         response.addHeader(h2);
         response.addHeader(h3);
 
-        Map<String, Header> challenges = authStrategy.getChallenges(response, context);
+        Map<String, Header> challenges = authStrategy.getChallenges(host, response, context);
 
         Assert.assertNotNull(challenges);
         Assert.assertEquals(3, challenges.size());
@@ -288,6 +296,143 @@ public class TestAuthenticationStrategy {
         Assert.assertEquals(1, options.size());
         AuthOption option1 = options.remove();
         Assert.assertTrue(option1.getAuthScheme() instanceof BasicScheme);
+    }
+
+    @Test
+    public void testAuthSucceededInvalidInput() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("locahost", 80);
+        BasicScheme authScheme = new BasicScheme();
+        HttpContext context = new BasicHttpContext();
+        try {
+            authStrategy.authSucceeded(null, authScheme, context);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+        try {
+            authStrategy.authSucceeded(authhost, null, context);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+        try {
+            authStrategy.authSucceeded(authhost, authScheme, null);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+    }
+
+    @Test
+    public void testAuthSucceeded() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        BasicScheme authScheme = new BasicScheme();
+        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
+
+        AuthCache authCache = Mockito.mock(AuthCache.class);
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        authStrategy.authSucceeded(authhost, authScheme, context);
+        Mockito.verify(authCache).put(authhost, authScheme);
+    }
+
+    @Test
+    public void testAuthSucceededNoCache() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        BasicScheme authScheme = new BasicScheme();
+        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, null);
+
+        authStrategy.authSucceeded(authhost, authScheme, context);
+        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        Assert.assertNotNull(authCache);
+    }
+
+    @Test
+    public void testAuthScemeNotCompleted() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        BasicScheme authScheme = new BasicScheme();
+
+        AuthCache authCache = Mockito.mock(AuthCache.class);
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        authStrategy.authSucceeded(authhost, authScheme, context);
+        Mockito.verify(authCache, Mockito.never()).put(authhost, authScheme);
+    }
+
+    @Test
+    public void testAuthScemeNonCacheable() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        AuthScheme authScheme = Mockito.mock(AuthScheme.class);
+        Mockito.when(authScheme.isComplete()).thenReturn(true);
+        Mockito.when(authScheme.getSchemeName()).thenReturn("whatever");
+
+        AuthCache authCache = Mockito.mock(AuthCache.class);
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        authStrategy.authSucceeded(authhost, authScheme, context);
+        Mockito.verify(authCache, Mockito.never()).put(authhost, authScheme);
+    }
+
+    @Test
+    public void testAuthFailedInvalidInput() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("locahost", 80);
+        BasicScheme authScheme = new BasicScheme();
+        HttpContext context = new BasicHttpContext();
+        try {
+            authStrategy.authFailed(null, authScheme, context);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+        try {
+            authStrategy.authFailed(authhost, null, context);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+        try {
+            authStrategy.authFailed(authhost, authScheme, null);
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException ex) {
+        }
+    }
+
+    @Test
+    public void testAuthFailed() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        BasicScheme authScheme = new BasicScheme();
+        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
+
+        AuthCache authCache = Mockito.mock(AuthCache.class);
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        authStrategy.authFailed(authhost, authScheme, context);
+        Mockito.verify(authCache).remove(authhost);
+    }
+
+    @Test
+    public void testAuthFailedNoCache() throws Exception {
+        TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
+        HttpHost authhost = new HttpHost("somehost", 80);
+        BasicScheme authScheme = new BasicScheme();
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ClientContext.AUTH_CACHE, null);
+
+        authStrategy.authFailed(authhost, authScheme, context);
     }
 
 }

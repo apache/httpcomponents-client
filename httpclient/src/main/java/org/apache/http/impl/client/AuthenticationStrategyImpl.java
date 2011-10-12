@@ -49,6 +49,7 @@ import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
@@ -81,7 +82,10 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         this.prefParamName = prefParamName;
     }
 
-    public boolean isAuthenticationRequested(final HttpResponse response, final HttpContext context) {
+    public boolean isAuthenticationRequested(
+            final HttpHost authhost,
+            final HttpResponse response,
+            final HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
         }
@@ -90,6 +94,7 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
     }
 
     public Map<String, Header> getChallenges(
+            final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
         if (response == null) {
@@ -198,6 +203,61 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
             }
         }
         return options;
+    }
+
+    public void authSucceeded(
+            final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
+        if (authhost == null) {
+            throw new IllegalArgumentException("Host may not be null");
+        }
+        if (authScheme == null) {
+            throw new IllegalArgumentException("Auth scheme may not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
+        }
+        if (isCachable(authScheme)) {
+            AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+            if (authCache == null) {
+                authCache = new BasicAuthCache();
+                context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+            }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Caching '" + authScheme.getSchemeName() +
+                        "' auth scheme for " + authhost);
+            }
+            authCache.put(authhost, authScheme);
+        }
+    }
+
+    protected boolean isCachable(final AuthScheme authScheme) {
+        if (authScheme == null || !authScheme.isComplete()) {
+            return false;
+        }
+        String schemeName = authScheme.getSchemeName();
+        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
+                schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
+    }
+
+    public void authFailed(
+            final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
+        if (authhost == null) {
+            throw new IllegalArgumentException("Host may not be null");
+        }
+        if (authScheme == null) {
+            throw new IllegalArgumentException("Auth scheme may not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
+        }
+        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        if (authCache != null) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Removing from cache '" + authScheme.getSchemeName() +
+                        "' auth scheme for " + authhost);
+            }
+            authCache.remove(authhost);
+        }
     }
 
 }

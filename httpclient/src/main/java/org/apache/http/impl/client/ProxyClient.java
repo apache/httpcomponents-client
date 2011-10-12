@@ -176,7 +176,7 @@ public class ProxyClient {
             }
 
             if (HttpClientParams.isAuthenticating(this.params)) {
-                if (this.authenticator.isAuthenticationRequested(response,
+                if (this.authenticator.isAuthenticationRequested(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     if (this.authenticator.authenticate(proxy, response,
                             this.proxyAuthStrategy, this.proxyAuthState, context)) {

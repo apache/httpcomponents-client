@@ -44,9 +44,11 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -68,11 +70,15 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         this.handler = handler;
     }
 
-    public boolean isAuthenticationRequested(final HttpResponse response, final HttpContext context) {
+    public boolean isAuthenticationRequested(
+            final HttpHost authhost,
+            final HttpResponse response,
+            final HttpContext context) {
         return this.handler.isAuthenticationRequested(response, context);
     }
 
     public Map<String, Header> getChallenges(
+            final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
         return this.handler.getChallenges(response, context);
@@ -128,6 +134,44 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             options.add(new AuthOption(authScheme, credentials));
         }
         return options;
+    }
+
+    public void authSucceeded(
+            final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
+        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        if (isCachable(authScheme)) {
+            if (authCache == null) {
+                authCache = new BasicAuthCache();
+                context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+            }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Caching '" + authScheme.getSchemeName() +
+                        "' auth scheme for " + authhost);
+            }
+            authCache.put(authhost, authScheme);
+        }
+    }
+
+    public void authFailed(
+            final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
+        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        if (authCache == null) {
+            return;
+        }
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Removing from cache '" + authScheme.getSchemeName() +
+                    "' auth scheme for " + authhost);
+        }
+        authCache.remove(authhost);
+    }
+
+    private boolean isCachable(final AuthScheme authScheme) {
+        if (authScheme == null || !authScheme.isComplete()) {
+            return false;
+        }
+        String schemeName = authScheme.getSchemeName();
+        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
+                schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
     }
 
     public AuthenticationHandler getHandler() {

@@ -34,6 +34,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthOption;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HttpContext;
 
@@ -52,13 +53,16 @@ public interface AuthenticationStrategy {
     /**
      * Determines if the given HTTP response response represents
      * an authentication challenge that was sent back as a result
-     * of authentication failure
+     * of authentication failure.
+     *
+     * @param authhost authentication host.
      * @param response HTTP response.
      * @param context HTTP context.
      * @return <code>true</code> if user authentication is required,
      *   <code>false</code> otherwise.
      */
     boolean isAuthenticationRequested(
+            HttpHost authhost,
             HttpResponse response,
             HttpContext context);
 
@@ -67,6 +71,7 @@ public interface AuthenticationStrategy {
      * challenges, each of which represents an authentication scheme supported
      * by the authentication host.
      *
+     * @param authhost authentication host.
      * @param response HTTP response.
      * @param context HTTP context.
      * @return a collection of challenges keyed by names of corresponding
@@ -75,6 +80,7 @@ public interface AuthenticationStrategy {
      *  challenges is not valid or malformed.
      */
     Map<String, Header> getChallenges(
+            HttpHost authhost,
             HttpResponse response,
             HttpContext context) throws MalformedChallengeException;
 
@@ -82,7 +88,9 @@ public interface AuthenticationStrategy {
      * Selects one authentication challenge out of all available and
      * creates and generates {@link AuthOption} instance capable of
      * processing that challenge.
+     *
      * @param challenges collection of challenges.
+     * @param authhost authentication host.
      * @param response HTTP response.
      * @param context HTTP context.
      * @return authentication auth schemes that can be used for authentication. Can be empty.
@@ -94,5 +102,29 @@ public interface AuthenticationStrategy {
             HttpHost authhost,
             HttpResponse response,
             HttpContext context) throws MalformedChallengeException;
+
+    /**
+     * Callback invoked in case of successful authentication.
+     *
+     * @param authhost authentication host.
+     * @param authScheme authentication scheme used.
+     * @param context HTTP context.
+     */
+    void authSucceeded(
+            HttpHost authhost,
+            AuthScheme authScheme,
+            HttpContext context);
+
+    /**
+     * Callback invoked in case of unsuccessful authentication.
+     *
+     * @param authhost authentication host.
+     * @param authScheme authentication scheme used.
+     * @param context HTTP context.
+     */
+    void authFailed(
+            HttpHost authhost,
+            AuthScheme authScheme,
+            HttpContext context);
 
 }

@@ -58,17 +58,19 @@ public class HttpAuthenticator {
     }
 
     public boolean isAuthenticationRequested(
+            final HttpHost host,
             final HttpResponse response,
             final AuthenticationStrategy authStrategy,
             final AuthState authState,
             final HttpContext context) {
-        if (authStrategy.isAuthenticationRequested(response, context)) {
+        if (authStrategy.isAuthenticationRequested(host, response, context)) {
             return true;
         } else {
             switch (authState.getState()) {
             case CHALLENGED:
             case HANDSHAKE:
                 authState.setState(AuthProtocolState.SUCCESS);
+                authStrategy.authSucceeded(host, authState.getAuthScheme(), context);
                 break;
             case SUCCESS:
                 break;
@@ -89,7 +91,7 @@ public class HttpAuthenticator {
             if (this.log.isDebugEnabled()) {
                 this.log.debug(host.toHostString() + " requested authentication");
             }
-            Map<String, Header> challenges = authStrategy.getChallenges(response, context);
+            Map<String, Header> challenges = authStrategy.getChallenges(host, response, context);
             if (challenges.isEmpty()) {
                 this.log.debug("Response contains no authentication challenges");
                 return false;
@@ -105,6 +107,7 @@ public class HttpAuthenticator {
             case CHALLENGED:
                 if (authScheme == null) {
                     this.log.debug("Auth scheme is null");
+                    authStrategy.authFailed(host, authState.getAuthScheme(), context);
                     authState.reset();
                     authState.setState(AuthProtocolState.FAILURE);
                     return false;
@@ -118,6 +121,7 @@ public class HttpAuthenticator {
                         authScheme.processChallenge(challenge);
                         if (authScheme.isComplete()) {
                             this.log.debug("Authentication failed");
+                            authStrategy.authFailed(host, authState.getAuthScheme(), context);
                             authState.reset();
                             authState.setState(AuthProtocolState.FAILURE);
                             return false;

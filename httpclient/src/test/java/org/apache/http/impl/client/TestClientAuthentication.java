@@ -345,9 +345,10 @@ public class TestClientAuthentication extends BasicServerTestBase {
 
         @Override
         public boolean isAuthenticationRequested(
+                final HttpHost host,
                 final HttpResponse response,
                 final HttpContext context) {
-            boolean res = super.isAuthenticationRequested(response, context);
+            boolean res = super.isAuthenticationRequested(host, response, context);
             if (res == true) {
                 synchronized (this) {
                     this.count++;

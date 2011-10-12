@@ -184,9 +184,9 @@ public class DefaultRequestDirector implements RequestDirector {
     /** The currently allocated connection. */
     protected ManagedClientConnection managedConn;
 
-    protected AuthState targetAuthState;
+    protected final AuthState targetAuthState;
 
-    protected AuthState proxyAuthState;
+    protected final AuthState proxyAuthState;
 
     private final HttpAuthenticator authenticator;
 
@@ -351,6 +351,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
         this.execCount = 0;
         this.redirectCount = 0;
+        this.targetAuthState = new AuthState();
+        this.proxyAuthState = new AuthState();
         this.maxRedirects = this.params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
     }
 
@@ -400,16 +402,8 @@ public class DefaultRequestDirector implements RequestDirector {
                                 HttpContext context)
         throws HttpException, IOException {
 
-        targetAuthState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
-        if (targetAuthState == null) {
-            targetAuthState = new AuthState();
-            context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
-        }
-        proxyAuthState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
-        if (proxyAuthState == null) {
-            proxyAuthState = new AuthState();
-            context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
-        }
+        context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
+        context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
 
         HttpRequest orig = request;
         RequestWrapper origWrapper = wrapRequest(orig);
@@ -910,7 +904,7 @@ public class DefaultRequestDirector implements RequestDirector {
             }
 
             if (HttpClientParams.isAuthenticating(this.params)) {
-                if (this.authenticator.isAuthenticationRequested(response,
+                if (this.authenticator.isAuthenticationRequested(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     if (this.authenticator.authenticate(proxy, response,
                             this.proxyAuthStrategy, this.proxyAuthState, context)) {
@@ -1107,19 +1101,16 @@ public class DefaultRequestDirector implements RequestDirector {
         }
 
         if (HttpClientParams.isAuthenticating(params)) {
-            if (this.authenticator.isAuthenticationRequested(response,
+            HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+            if (target == null) {
+                target = route.getTargetHost();
+            }
+            if (target.getPort() < 0) {
+                Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
+                target = new HttpHost(target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
+            }
+            if (this.authenticator.isAuthenticationRequested(target, response,
                     this.targetAuthStrategy, this.targetAuthState, context)) {
-
-                HttpHost target = (HttpHost)
-                    context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-                if (target == null) {
-                    target = route.getTargetHost();
-                }
-                if (target.getPort() < 0) {
-                    Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
-                    target = new HttpHost(
-                            target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
-                }
                 if (this.authenticator.authenticate(target, response,
                         this.targetAuthStrategy, this.targetAuthState, context)) {
                     // Re-try the same request via the same route
@@ -1129,9 +1120,9 @@ public class DefaultRequestDirector implements RequestDirector {
                 }
             }
 
-            if (this.authenticator.isAuthenticationRequested(response,
+            HttpHost proxy = route.getProxyHost();
+            if (this.authenticator.isAuthenticationRequested(proxy, response,
                     this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                HttpHost proxy = route.getProxyHost();
                 if (this.authenticator.authenticate(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Re-try the same request via the same route

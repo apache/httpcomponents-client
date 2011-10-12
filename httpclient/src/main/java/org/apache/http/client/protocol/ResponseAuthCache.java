@@ -39,6 +39,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
+import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -53,8 +54,11 @@ import org.apache.http.protocol.HttpContext;
  * additional authentication round-trips.
  *
  * @since 4.1
+ *
+ * @deprecated use {@link AuthenticationStrategy}
  */
 @Immutable
+@Deprecated
 public class ResponseAuthCache implements HttpResponseInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());
