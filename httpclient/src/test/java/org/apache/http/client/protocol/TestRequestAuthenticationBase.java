@@ -82,7 +82,7 @@ public class TestRequestAuthenticationBase {
     public void testAuthFailureState() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.FAILURE);
-        this.authState.setAuthScheme(this.authScheme);
+        this.authState.update(this.authScheme, this.credentials);
 
         this.interceptor.process(request, this.context);
 
@@ -98,8 +98,7 @@ public class TestRequestAuthenticationBase {
     public void testAuthChallengeStateNoOption() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.CHALLENGED);
-        this.authState.setAuthScheme(this.authScheme);
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(this.authScheme, this.credentials);
 
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
@@ -119,7 +118,7 @@ public class TestRequestAuthenticationBase {
         this.authState.setState(AuthProtocolState.CHALLENGED);
         LinkedList<AuthOption> authOptions = new LinkedList<AuthOption>();
         authOptions.add(new AuthOption(this.authScheme, this.credentials));
-        this.authState.setAuthOptions(authOptions);
+        this.authState.update(authOptions);
 
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
@@ -155,7 +154,7 @@ public class TestRequestAuthenticationBase {
                 Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
         authOptions.add(new AuthOption(authScheme1, this.credentials));
         authOptions.add(new AuthOption(authScheme2, this.credentials));
-        this.authState.setAuthOptions(authOptions);
+        this.authState.update(authOptions);
 
         this.interceptor.process(request, this.context);
 
@@ -173,9 +172,7 @@ public class TestRequestAuthenticationBase {
     public void testAuthSuccess() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.SUCCESS);
-
-        this.authState.setAuthScheme(this.authScheme);
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(this.authScheme, this.credentials);
 
         Mockito.when(this.authScheme.isConnectionBased()).thenReturn(Boolean.FALSE);
         Mockito.when(this.authScheme.authenticate(
@@ -198,9 +195,7 @@ public class TestRequestAuthenticationBase {
     public void testAuthSuccessConnectionBased() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.SUCCESS);
-
-        this.authState.setAuthScheme(this.authScheme);
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(this.authScheme, this.credentials);
 
         Mockito.when(this.authScheme.isConnectionBased()).thenReturn(Boolean.TRUE);
         Mockito.when(this.authScheme.authenticate(

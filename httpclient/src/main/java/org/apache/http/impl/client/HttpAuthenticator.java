@@ -134,7 +134,7 @@ public class HttpAuthenticator {
             Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
             if (authOptions != null && !authOptions.isEmpty()) {
                 authState.setState(AuthProtocolState.CHALLENGED);
-                authState.setAuthOptions(authOptions);
+                authState.update(authOptions);
                 return true;
             } else {
                 return false;

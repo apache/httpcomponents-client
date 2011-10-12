@@ -232,11 +232,9 @@ public class TestRequestAuthCache {
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
         this.targetState.setState(AuthProtocolState.CHALLENGED);
-        this.targetState.setAuthScheme(new BasicScheme());
-        this.targetState.setCredentials(new UsernamePasswordCredentials("user3", "secret3"));
-        this.proxyState.setAuthScheme(new BasicScheme());
-        this.proxyState.setCredentials(new UsernamePasswordCredentials("user4", "secret4"));
+        this.targetState.update(new BasicScheme(), new UsernamePasswordCredentials("user3", "secret3"));
         this.proxyState.setState(AuthProtocolState.CHALLENGED);
+        this.proxyState.update(new BasicScheme(), new UsernamePasswordCredentials("user4", "secret4"));
 
         HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);

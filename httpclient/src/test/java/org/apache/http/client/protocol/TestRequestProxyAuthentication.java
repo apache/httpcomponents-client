@@ -85,8 +85,7 @@ public class TestRequestProxyAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);
@@ -118,8 +117,7 @@ public class TestRequestProxyAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);
@@ -151,8 +149,7 @@ public class TestRequestProxyAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);
@@ -239,9 +236,8 @@ public class TestRequestProxyAuthentication {
 
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
 
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
         authstate.setState(AuthProtocolState.SUCCESS);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, authstate);

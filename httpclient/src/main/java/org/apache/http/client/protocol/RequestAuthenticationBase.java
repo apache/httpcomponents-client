@@ -74,8 +74,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
                     AuthOption authOption = authOptions.remove();
                     authScheme = authOption.getAuthScheme();
                     creds = authOption.getCredentials();
-                    authState.setAuthScheme(authScheme);
-                    authState.setCredentials(creds);
+                    authState.update(authScheme, creds);
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Generating response to an authentication challenge using "
                                 + authScheme.getSchemeName() + " scheme");
@@ -83,7 +82,6 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
                     try {
                         Header header = authenticate(authScheme, creds, request, context);
                         request.addHeader(header);
-                        authState.setAuthOptions(null);
                         break;
                     } catch (AuthenticationException ex) {
                         if (this.log.isWarnEnabled()) {

@@ -70,8 +70,7 @@ public class TestRequestTargetAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 
@@ -93,8 +92,7 @@ public class TestRequestTargetAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 
@@ -117,8 +115,7 @@ public class TestRequestTargetAuthentication {
         authscheme.processChallenge(challenge);
 
         AuthState authstate = new AuthState();
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 
@@ -178,9 +175,8 @@ public class TestRequestTargetAuthentication {
 
         Credentials creds = new UsernamePasswordCredentials("user", "secret");
 
-        authstate.setAuthScheme(authscheme);
-        authstate.setCredentials(creds);
         authstate.setState(AuthProtocolState.SUCCESS);
+        authstate.update(authscheme, creds);
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, authstate);
 

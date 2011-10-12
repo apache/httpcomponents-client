@@ -30,7 +30,6 @@ import java.util.Queue;
 
 import org.apache.http.annotation.NotThreadSafe;
 
-
 /**
  * This class provides detailed information about the state of the authentication process.
  *
@@ -51,6 +50,7 @@ public class AuthState {
     /** Credentials selected for authentication */
     private Credentials credentials;
 
+    /** Available auth options */
     private Queue<AuthOption> authOptions;
 
     public AuthState() {
@@ -59,13 +59,98 @@ public class AuthState {
     }
 
     /**
-     * Resets authentication state.
+     * Resets the auth state.
+     *
+     * @since 4.2
      */
     public void reset() {
         this.state = AuthProtocolState.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
         this.authScope = null;
+        this.credentials = null;
+    }
+
+    /**
+     * @since 4.2
+     */
+    public AuthProtocolState getState() {
+        return this.state;
+    }
+
+    /**
+     * @since 4.2
+     */
+    public void setState(final AuthProtocolState state) {
+        this.state = state != null ? state : AuthProtocolState.UNCHALLENGED;
+    }
+
+    /**
+     * Returns actual {@link AuthScheme}. May be null.
+     */
+    public AuthScheme getAuthScheme() {
+        return this.authScheme;
+    }
+
+    /**
+     * Returns actual {@link Credentials}. May be null.
+     */
+    public Credentials getCredentials() {
+        return this.credentials;
+    }
+
+    /**
+     * Updates the auth state with {@link AuthScheme} and {@link Credentials}.
+     *
+     * @param authScheme auth scheme. May not be null.
+     * @param credentials user crednetials. May not be null.
+     *
+     * @since 4.2
+     */
+    public void update(final AuthScheme authScheme, final Credentials credentials) {
+        if (authScheme == null) {
+            throw new IllegalArgumentException("Auth scheme may not be null or empty");
+        }
+        if (credentials == null) {
+            throw new IllegalArgumentException("Credentials may not be null or empty");
+        }
+        this.authScheme = authScheme;
+        this.credentials = credentials;
+        this.authOptions = null;
+    }
+
+    /**
+     * Returns available {@link AuthOption}s. May be null.
+     *
+     * @since 4.2
+     */
+    public Queue<AuthOption> getAuthOptions() {
+        return this.authOptions;
+    }
+
+    /**
+     * Returns <code>true</code> if {@link AuthOption}s are available, <code>false</code>
+     * otherwise.
+     *
+     * @since 4.2
+     */
+    public boolean hasAuthOptions() {
+        return this.authOptions != null && !this.authOptions.isEmpty();
+    }
+
+    /**
+     * Updates the auth state with a queue of {@link AuthOption}s.
+     *
+     * @param authOptions a queue of auth options. May not be null or empty.
+     *
+     * @since 4.2
+     */
+    public void update(final Queue<AuthOption> authOptions) {
+        if (authOptions == null || authOptions.isEmpty()) {
+            throw new IllegalArgumentException("Queue of auth options may not be null or empty");
+        }
+        this.authOptions = authOptions;
+        this.authScheme = null;
         this.credentials = null;
     }
 
@@ -88,7 +173,10 @@ public class AuthState {
      * Assigns the given {@link AuthScheme authentication scheme}.
      *
      * @param authScheme the {@link AuthScheme authentication scheme}
+     *
+     * @deprecated use {@link #update(AuthScheme, Credentials)}
      */
+    @Deprecated
     public void setAuthScheme(final AuthScheme authScheme) {
         if (authScheme == null) {
             reset();
@@ -98,42 +186,13 @@ public class AuthState {
     }
 
     /**
-     * Returns the {@link AuthScheme authentication scheme}.
-     *
-     * @return {@link AuthScheme authentication scheme}
-     */
-    public AuthScheme getAuthScheme() {
-        return this.authScheme;
-    }
-
-    /**
-     * @since 4.2
-     */
-    public AuthProtocolState getState() {
-        return this.state;
-    }
-
-    /**
-     * @since 4.2
-     */
-    public void setState(final AuthProtocolState state) {
-        this.state = state != null ? state : AuthProtocolState.UNCHALLENGED;
-    }
-
-    /**
-     * Returns user {@link Credentials} selected for authentication if available
-     *
-     * @return user credentials if available, <code>null</code otherwise
-     */
-    public Credentials getCredentials() {
-        return this.credentials;
-    }
-
-    /**
      * Sets user {@link Credentials} to be used for authentication
      *
      * @param credentials User credentials
+     *
+     * @deprecated use {@link #update(AuthScheme, Credentials)}
      */
+    @Deprecated
     public void setCredentials(final Credentials credentials) {
         this.credentials = credentials;
     }
@@ -160,41 +219,6 @@ public class AuthState {
     @Deprecated
     public void setAuthScope(final AuthScope authScope) {
         this.authScope = authScope;
-    }
-
-    /**
-     * Returns available authentication options.
-     *
-     * @return authentication options, if available, <code>null</null> otherwise.
-     *
-     * @since 4.2
-     */
-    public Queue<AuthOption> getAuthOptions() {
-        return this.authOptions;
-    }
-
-    /**
-     * Returns <code>true</code> if authentication options are available, <code>false</code>
-     * otherwise.
-     *
-     * @return <code>true</code> if authentication options are available, <code>false</code>
-     * otherwise.
-     *
-     * @since 4.2
-     */
-    public boolean hasAuthOptions() {
-        return this.authOptions != null && !this.authOptions.isEmpty();
-    }
-
-    /**
-     * Sets authentication options to select from when authenticating.
-     *
-     * @param authOptions authentication options
-     *
-     * @since 4.2
-     */
-    public void setAuthOptions(final Queue<AuthOption> authOptions) {
-        this.authOptions = authOptions != null && !authOptions.isEmpty() ? authOptions : null;
     }
 
     @Override

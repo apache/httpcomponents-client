@@ -248,8 +248,7 @@ public class TestHttpAuthenticator {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
 
         this.authState.setState(AuthProtocolState.CHALLENGED);
-        this.authState.setAuthScheme(new BasicScheme());
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(new BasicScheme(), this.credentials);
 
         Assert.assertFalse(this.httpAuthenticator.authenticate(host,
                 response, authStrategy, this.authState, this.context));
@@ -268,8 +267,7 @@ public class TestHttpAuthenticator {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
 
         this.authState.setState(AuthProtocolState.CHALLENGED);
-        this.authState.setAuthScheme(new DigestScheme());
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(new DigestScheme(), this.credentials);
 
         Assert.assertTrue(this.httpAuthenticator.authenticate(host,
                 response, authStrategy, this.authState, this.context));
@@ -286,8 +284,7 @@ public class TestHttpAuthenticator {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
 
         this.authState.setState(AuthProtocolState.CHALLENGED);
-        this.authState.setAuthScheme(new BasicScheme());
-        this.authState.setCredentials(this.credentials);
+        this.authState.update(new BasicScheme(), this.credentials);
 
         Assert.assertTrue(this.httpAuthenticator.authenticate(host,
                 response, authStrategy, this.authState, this.context));

@@ -127,8 +127,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         Credentials creds = credsProvider.getCredentials(authScope);
 
         if (creds != null) {
-            authState.setAuthScheme(authScheme);
-            authState.setCredentials(creds);
+            authState.update(authScheme, creds);
         } else {
             this.log.debug("No credentials for preemptive authentication");
         }
