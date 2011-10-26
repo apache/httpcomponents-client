@@ -40,12 +40,12 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
-public class FluentResponse {
+public class Response {
 
     private final HttpResponse response;
     private boolean consumed;
 
-    FluentResponse(final HttpResponse response) {
+    Response(final HttpResponse response) {
         super();
         this.response = response;
     }

@@ -62,7 +62,7 @@ import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
-public class FluentRequest {
+public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final Locale DATE_LOCALE = Locale.US;
@@ -73,63 +73,63 @@ public class FluentRequest {
 
     private SimpleDateFormat dateFormatter;
 
-    public static FluentRequest Get(final URI uri) {
-        return new FluentRequest(new HttpGet(uri));
+    public static Request Get(final URI uri) {
+        return new Request(new HttpGet(uri));
     }
 
-    public static FluentRequest Get(final String uri) {
-        return new FluentRequest(new HttpGet(uri));
+    public static Request Get(final String uri) {
+        return new Request(new HttpGet(uri));
     }
 
-    public static FluentRequest Head(final URI uri) {
-        return new FluentRequest(new HttpHead(uri));
+    public static Request Head(final URI uri) {
+        return new Request(new HttpHead(uri));
     }
 
-    public static FluentRequest Head(final String uri) {
-        return new FluentRequest(new HttpHead(uri));
+    public static Request Head(final String uri) {
+        return new Request(new HttpHead(uri));
     }
 
-    public static FluentRequest Post(final URI uri) {
-        return new FluentRequest(new HttpPost(uri));
+    public static Request Post(final URI uri) {
+        return new Request(new HttpPost(uri));
     }
 
-    public static FluentRequest Post(final String uri) {
-        return new FluentRequest(new HttpPost(uri));
+    public static Request Post(final String uri) {
+        return new Request(new HttpPost(uri));
     }
 
-    public static FluentRequest Put(final URI uri) {
-        return new FluentRequest(new HttpPut(uri));
+    public static Request Put(final URI uri) {
+        return new Request(new HttpPut(uri));
     }
 
-    public static FluentRequest Put(final String uri) {
-        return new FluentRequest(new HttpPut(uri));
+    public static Request Put(final String uri) {
+        return new Request(new HttpPut(uri));
     }
 
-    public static FluentRequest Trace(final URI uri) {
-        return new FluentRequest(new HttpTrace(uri));
+    public static Request Trace(final URI uri) {
+        return new Request(new HttpTrace(uri));
     }
 
-    public static FluentRequest Trace(final String uri) {
-        return new FluentRequest(new HttpTrace(uri));
+    public static Request Trace(final String uri) {
+        return new Request(new HttpTrace(uri));
     }
 
-    public static FluentRequest Delete(final URI uri) {
-        return new FluentRequest(new HttpDelete(uri));
+    public static Request Delete(final URI uri) {
+        return new Request(new HttpDelete(uri));
     }
 
-    public static FluentRequest Delete(final String uri) {
-        return new FluentRequest(new HttpDelete(uri));
+    public static Request Delete(final String uri) {
+        return new Request(new HttpDelete(uri));
     }
 
-    public static FluentRequest Options(final URI uri) {
-        return new FluentRequest(new HttpOptions(uri));
+    public static Request Options(final URI uri) {
+        return new Request(new HttpOptions(uri));
     }
 
-    public static FluentRequest Options(final String uri) {
-        return new FluentRequest(new HttpOptions(uri));
+    public static Request Options(final String uri) {
+        return new Request(new HttpOptions(uri));
     }
 
-    FluentRequest(final HttpRequestBase request) {
+    Request(final HttpRequestBase request) {
         super();
         this.request = request;
         this.localParams = request.getParams();
@@ -139,8 +139,8 @@ public class FluentRequest {
         return this.request;
     }
 
-    public FluentResponse exec() throws ClientProtocolException, IOException {
-        return new FluentResponse(FluentExecutor.CLIENT.execute(this.request));
+    public Response exec() throws ClientProtocolException, IOException {
+        return new Response(Executor.CLIENT.execute(this.request));
     }
 
     public void abort() throws UnsupportedOperationException {
@@ -149,32 +149,32 @@ public class FluentRequest {
 
     //// HTTP header operations
 
-    public FluentRequest addHeader(final Header header) {
+    public Request addHeader(final Header header) {
         this.request.addHeader(header);
         return this;
     }
 
-    public FluentRequest addHeader(final String name, final String value) {
+    public Request addHeader(final String name, final String value) {
         this.request.addHeader(name, value);
         return this;
     }
 
-    public FluentRequest removeHeader(final Header header) {
+    public Request removeHeader(final Header header) {
         this.request.removeHeader(header);
         return this;
     }
 
-    public FluentRequest removeHeaders(final String name) {
+    public Request removeHeaders(final String name) {
         this.request.removeHeaders(name);
         return this;
     }
 
-    public FluentRequest setHeaders(final Header[] headers) {
+    public Request setHeaders(final Header[] headers) {
         this.request.setHeaders(headers);
         return this;
     }
 
-    public FluentRequest setCacheControl(String cacheControl) {
+    public Request setCacheControl(String cacheControl) {
         this.request.setHeader(HttpHeader.CACHE_CONTROL, cacheControl);
         return this;
     }
@@ -187,78 +187,78 @@ public class FluentRequest {
         return this.dateFormatter;
     }
 
-    public FluentRequest setDate(final Date date) {
+    public Request setDate(final Date date) {
         this.request.setHeader(HttpHeader.DATE, getDateFormat().format(date));
         return this;
     }
 
-    public FluentRequest setIfModifiedSince(final Date date) {
+    public Request setIfModifiedSince(final Date date) {
         this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, getDateFormat().format(date));
         return this;
     }
 
-    public FluentRequest setIfUnmodifiedSince(final Date date) {
+    public Request setIfUnmodifiedSince(final Date date) {
         this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, getDateFormat().format(date));
         return this;
     }
 
     //// HTTP config parameter operations
 
-    public FluentRequest config(final String param, final Object object) {
+    public Request config(final String param, final Object object) {
         this.localParams.setParameter(param, object);
         return this;
     }
 
-    public FluentRequest removeConfig(final String param) {
+    public Request removeConfig(final String param) {
         this.localParams.removeParameter(param);
         return this;
     }
 
     //// HTTP protocol parameter operations
 
-    public FluentRequest version(final HttpVersion version) {
+    public Request version(final HttpVersion version) {
         return config(CoreProtocolPNames.PROTOCOL_VERSION, version);
     }
 
-    public FluentRequest elementCharset(final String charset) {
+    public Request elementCharset(final String charset) {
         return config(CoreProtocolPNames.HTTP_ELEMENT_CHARSET, charset);
     }
 
-    public FluentRequest useExpectContinue() {
+    public Request useExpectContinue() {
         return config(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
     }
 
-    public FluentRequest userAgent(final String agent) {
+    public Request userAgent(final String agent) {
         return config(CoreProtocolPNames.USER_AGENT, agent);
     }
 
     //// HTTP connection parameter operations
 
-    public FluentRequest socketTimeout(int timeout) {
+    public Request socketTimeout(int timeout) {
         return config(CoreConnectionPNames.SO_TIMEOUT, timeout);
     }
 
-    public FluentRequest connectTimeout(int timeout) {
+    public Request connectTimeout(int timeout) {
         return config(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
     }
 
-    public FluentRequest staleConnectionCheck(boolean b) {
+    public Request staleConnectionCheck(boolean b) {
         return config(CoreConnectionPNames.STALE_CONNECTION_CHECK, b);
     }
 
     //// HTTP connection route operations
 
-    public FluentRequest proxy(final HttpHost proxy) {
+    public Request proxy(final HttpHost proxy) {
         return config(ConnRoutePNames.DEFAULT_PROXY, proxy);
     }
 
-    public FluentRequest noProxy() {
+    public Request noProxy() {
         return removeConfig(ConnRoutePNames.DEFAULT_PROXY);
     }
 
     //// HTTP entity operations
 
-    public FluentRequest body(final HttpEntity entity) {
+    public Request body(final HttpEntity entity) {
         if (this.request instanceof HttpEntityEnclosingRequest) {
             ((HttpEntityEnclosingRequest) this.request).setEntity(entity);
         } else {
@@ -268,7 +268,7 @@ public class FluentRequest {
         return this;
     }
 
-    public FluentRequest htmlFormBody(final NameValuePair[] formParams, final String charset) {
+    public Request htmlFormBody(final NameValuePair[] formParams, final String charset) {
         try {
             return body(new UrlEncodedFormEntity(Arrays.asList(formParams)));
         } catch (UnsupportedEncodingException ex) {
@@ -276,27 +276,27 @@ public class FluentRequest {
         }
     }
 
-    public FluentRequest htmlFormBody(final NameValuePair... formParams) {
+    public Request htmlFormBody(final NameValuePair... formParams) {
         return htmlFormBody(formParams, HTTP.DEFAULT_CONTENT_CHARSET);
     }
 
-    public FluentRequest stringBody(final String s, final ContentType contentType) {
+    public Request stringBody(final String s, final ContentType contentType) {
         return body(StringEntity.create(s, contentType));
     }
 
-    public FluentRequest byteArrayBody(final byte[] b) {
+    public Request byteArrayBody(final byte[] b) {
         return body(new ByteArrayEntity(b));
     }
 
-    public FluentRequest byteArrayBody(final byte[] b, int off, int len) {
+    public Request byteArrayBody(final byte[] b, int off, int len) {
         return body(new ByteArrayEntity(b, off, len));
     }
 
-    public FluentRequest streamBody(final InputStream instream) {
+    public Request streamBody(final InputStream instream) {
         return body(new InputStreamEntity(instream, -1));
     }
 
-    public FluentRequest streamBody(final InputStream instream, final ContentType contentType) {
+    public Request streamBody(final InputStream instream, final ContentType contentType) {
         return body(new InputStreamEntity(instream, -1, contentType));
     }
 

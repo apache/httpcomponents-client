@@ -50,14 +50,14 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.protocol.BasicHttpContext;
 
-public class FluentExecutor {
+public class Executor {
 
     final static PoolingClientConnectionManager CONNMGR = new PoolingClientConnectionManager(
             SchemeRegistryFactory.createSystemDefault());
     final static DefaultHttpClient CLIENT = new DefaultHttpClient(CONNMGR);
 
-    public static FluentExecutor newInstance() {
-        return new FluentExecutor(CLIENT);
+    public static Executor newInstance() {
+        return new Executor(CLIENT);
     }
 
     private final HttpClient httpclient;
@@ -67,14 +67,14 @@ public class FluentExecutor {
     private CredentialsProvider credentialsProvider;
     private CookieStore cookieStore;
 
-    FluentExecutor(final HttpClient httpclient) {
+    Executor(final HttpClient httpclient) {
         super();
         this.httpclient = httpclient;
         this.localContext = new BasicHttpContext();
         this.authCache = new BasicAuthCache();
     }
 
-    public FluentExecutor auth(final AuthScope authScope, final Credentials creds) {
+    public Executor auth(final AuthScope authScope, final Credentials creds) {
         if (this.credentialsProvider == null) {
             this.credentialsProvider = new BasicCredentialsProvider();
         }
@@ -82,75 +82,75 @@ public class FluentExecutor {
         return this;
     }
 
-    public FluentExecutor auth(final HttpHost host, final Credentials creds) {
+    public Executor auth(final HttpHost host, final Credentials creds) {
         AuthScope authScope = host != null ? new AuthScope(host) : AuthScope.ANY;
         return auth(authScope, creds);
     }
 
-    public FluentExecutor authPreemptive(final HttpHost host, final Credentials creds) {
+    public Executor authPreemptive(final HttpHost host, final Credentials creds) {
         auth(host, creds);
         this.authCache.put(host, new BasicScheme());
         return this;
     }
 
-    public FluentExecutor auth(final Credentials cred) {
+    public Executor auth(final Credentials cred) {
         return auth(AuthScope.ANY, cred);
     }
 
-    public FluentExecutor auth(final String username, final String password) {
+    public Executor auth(final String username, final String password) {
         return auth(new UsernamePasswordCredentials(username, password));
     }
 
-    public FluentExecutor auth(final String username, final String password,
+    public Executor auth(final String username, final String password,
             final String workstation, final String domain) {
         return auth(new NTCredentials(username, password, workstation, domain));
     }
 
-    public FluentExecutor auth(final HttpHost host,
+    public Executor auth(final HttpHost host,
             final String username, final String password) {
         return auth(host, new UsernamePasswordCredentials(username, password));
     }
 
-    public FluentExecutor auth(final HttpHost host,
+    public Executor auth(final HttpHost host,
             final String username, final String password,
             final String workstation, final String domain) {
         return auth(host, new NTCredentials(username, password, workstation, domain));
     }
 
-    public FluentExecutor authPreemptive(final HttpHost host,
+    public Executor authPreemptive(final HttpHost host,
             final String username, final String password) {
         auth(host, username, password);
         this.authCache.put(host, new BasicScheme());
         return this;
     }
 
-    public FluentExecutor clearAuth() {
+    public Executor clearAuth() {
         if (this.credentialsProvider != null) {
             this.credentialsProvider.clear();
         }
         return this;
     }
 
-    public FluentExecutor cookieStore(final CookieStore cookieStore) {
+    public Executor cookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
     }
 
-    public FluentExecutor clearCookies() {
+    public Executor clearCookies() {
         if (this.cookieStore != null) {
             this.cookieStore.clear();
         }
         return this;
     }
 
-    public FluentResponse exec(
-            final FluentRequest req) throws ClientProtocolException, IOException {
+    public Response exec(
+            final Request req) throws ClientProtocolException, IOException {
         this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);
         this.localContext.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         HttpRequestBase httprequest = req.getHttpRequest();
         httprequest.reset();
-        return new FluentResponse(this.httpclient.execute(httprequest, this.localContext));
+        return new Response(this.httpclient.execute(httprequest, this.localContext));
     }
 
     public static void setMaxTotal(int max) {
