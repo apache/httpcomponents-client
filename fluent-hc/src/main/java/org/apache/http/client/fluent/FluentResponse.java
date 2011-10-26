@@ -26,238 +26,105 @@
 
 package org.apache.http.client.fluent;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Locale;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.client.fluent.header.HttpHeader;
-import org.apache.http.params.HttpParams;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
-public class FluentResponse implements HttpResponse {
-    protected static final Log log = LogFactory.getLog(FluentResponse.class);
-    private HttpResponse response;
-    private byte[] content;
-    private String contentString;
+public class FluentResponse {
+
+    private final HttpResponse response;
     private boolean consumed;
 
-    FluentResponse(HttpResponse response) {
+    FluentResponse(final HttpResponse response) {
+        super();
         this.response = response;
-        consumed = false;
     }
 
-    public void addHeader(Header header) {
-        this.response.addHeader(header);
-    }
-
-    public void addHeader(String name, String value) {
-        this.response.addHeader(name, value);
-    }
-
-    public FluentResponse cacheControl(String cacheControl) {
-        response.setHeader(HttpHeader.CACHE_CONTROL, cacheControl);
-        return this;
-    }
-
-    public boolean containsHeader(String name) {
-        return this.response.containsHeader(name);
-    }
-
-    public Header[] getAllHeaders() {
-        return this.response.getAllHeaders();
-    }
-
-    public String getCacheControl() {
-        return getValueOfHeader(HttpHeader.CACHE_CONTROL);
-    }
-
-    public InputStream getContent() throws IllegalStateException, IOException {
-        return this.response.getEntity().getContent();
-    }
-
-    public byte[] getContentByteArray() throws IllegalStateException,
-            IOException {
-        if (!consumed)
-            loadContent();
-        return content;
-    }
-
-    public String getContentCharset() {
-        return EntityUtils.getContentCharSet(getEntity());
-    }
-
-    public String getContentEncoding() {
-        if (this.getEntity() == null)
-            throw new IllegalStateException("Response does not contain data");
-        Header contentEncoding = this.getEntity().getContentEncoding();
-        if (contentEncoding == null) {
-            log.warn("Response does not contain Content-Encoding header");
-            return System.getProperty("file.encoding");
-        } else
-            return contentEncoding.getValue();
-    }
-
-    public long getContentLength() {
-        String value = getValueOfHeader(HttpHeader.CONTENT_LENGTH);
-        if (value == null)
-            return -1;
-        else {
-            long contentLength = Long.parseLong(value);
-            return contentLength;
+    private void assertNotConsumed() {
+        if (this.consumed) {
+            throw new IllegalStateException("Response content has been already consumed");
         }
     }
 
-    public String getContentString() throws IOException {
-        if (contentString != null)
-            return contentString;
-        if (this.getEntity() == null)
-            return null;
-        String contentCharset = this.getContentCharset();
-        return getContentString(contentCharset);
-    }
-
-    public String getContentString(String encoding) throws IOException {
-        if (contentString != null)
-            return contentString;
-        if (getContentByteArray() == null)
-            return null;
-        if (encoding == null)
-            contentString = new String(content);
-        else
-            contentString = new String(content, encoding);
-        return contentString;
-    }
-
-    public String getContentType() {
-        if (this.getEntity() == null)
-            throw new IllegalStateException("Response does not contain data");
-        Header contentType = this.getEntity().getContentType();
-        if (contentType == null)
-            throw new IllegalStateException(
-                    "Reponse does not contain Content-Type header");
-        return contentType.getElements()[0].getName();
-    }
-
-    public HttpEntity getEntity() {
-        return this.response.getEntity();
-    }
-
-    public Header getFirstHeader(String name) {
-        return this.response.getFirstHeader(name);
-    }
-
-    public Header[] getHeaders(String name) {
-        return this.response.getHeaders(name);
-    }
-
-    public Header getLastHeader(String name) {
-        return this.response.getLastHeader(name);
-    }
-
-    public Locale getLocale() {
-        return this.response.getLocale();
-    }
-
-    public HttpParams getParams() {
-        return this.response.getParams();
-    }
-
-    public ProtocolVersion getProtocolVersion() {
-        return this.response.getProtocolVersion();
-    }
-
-    public int getStatusCode() {
-        return this.getStatusLine().getStatusCode();
-    }
-
-    public StatusLine getStatusLine() {
-        return this.response.getStatusLine();
-    }
-
-    private String getValueOfHeader(String headerName) {
-        Header header = response.getFirstHeader(headerName);
-        if (header != null)
-            return header.getValue();
-        else
-            return null;
-    }
-
-    public HeaderIterator headerIterator() {
-        return this.response.headerIterator();
-    }
-
-    public HeaderIterator headerIterator(String name) {
-        return this.response.headerIterator(name);
-    }
-
-    public FluentResponse loadContent() throws IOException {
-        if (getEntity() == null)
-            content = null;
-        else {
-            content = EntityUtils.toByteArray(getEntity());
-            EntityUtils.consume(getEntity());
+    public void dispose() {
+        if (this.consumed) {
+            return;
         }
-        consumed = true;
-        return this;
+        try {
+            EntityUtils.consume(this.response.getEntity());
+        } catch (Exception ignore) {
+        } finally {
+            this.consumed = true;
+        }
     }
 
-    public void removeHeader(Header header) {
-        this.response.removeHeader(header);
+    public <T> T handle(final ResponseHandler<T> handler) throws ClientProtocolException, IOException {
+        assertNotConsumed();
+        try {
+            return handler.handleResponse(this.response);
+        } finally {
+            dispose();
+        }
     }
 
-    public void removeHeaders(String name) {
-        this.response.removeHeaders(name);
+    public Content content() throws ClientProtocolException, IOException {
+        return handle(new ResponseHandler<Content>() {
+
+            public Content handleResponse(
+                    final HttpResponse response) throws ClientProtocolException, IOException {
+                StatusLine statusLine = response.getStatusLine();
+                HttpEntity entity = response.getEntity();
+                if (statusLine.getStatusCode() >= 300) {
+                    throw new HttpResponseException(statusLine.getStatusCode(),
+                            statusLine.getReasonPhrase());
+                }
+                if (entity != null) {
+                    return new Content(EntityUtils.toByteArray(entity),
+                            ContentType.getOrDefault(entity));
+                } else {
+                    return null;
+                }
+            }
+
+        });
     }
 
-    public void setEntity(HttpEntity entity) {
-        this.response.setEntity(entity);
+    public HttpResponse response() throws IOException {
+        assertNotConsumed();
+        try {
+            HttpEntity entity = this.response.getEntity();
+            if (entity != null) {
+                this.response.setEntity(new ByteArrayEntity(EntityUtils.toByteArray(entity),
+                                ContentType.getOrDefault(entity)));
+            }
+            return this.response;
+        } finally {
+            this.consumed = true;
+        }
     }
 
-    public void setHeader(Header header) {
-        this.response.setHeader(header);
+    public void save(final File file) throws IOException {
+        assertNotConsumed();
+        FileOutputStream out = new FileOutputStream(file);
+        try {
+            HttpEntity entity = this.response.getEntity();
+            if (entity != null) {
+                entity.writeTo(out);
+            }
+        } finally {
+            this.consumed = true;
+            out.close();
+        }
     }
 
-    public void setHeader(String name, String value) {
-        this.response.setHeader(name, value);
-    }
-
-    public void setHeaders(Header[] headers) {
-        this.response.setHeaders(headers);
-    }
-
-    public void setLocale(Locale loc) {
-        this.response.setLocale(loc);
-    }
-
-    public void setParams(HttpParams params) {
-        this.response.setParams(params);
-    }
-
-    public void setReasonPhrase(String reason) throws IllegalStateException {
-        this.response.setReasonPhrase(reason);
-    }
-
-    public void setStatusCode(int code) throws IllegalStateException {
-        this.response.setStatusCode(code);
-    }
-
-    public void setStatusLine(ProtocolVersion ver, int code) {
-        this.response.setStatusLine(ver, code);
-    }
-
-    public void setStatusLine(ProtocolVersion ver, int code, String reason) {
-        this.response.setStatusLine(ver, code, reason);
-    }
-
-    public void setStatusLine(StatusLine statusline) {
-        this.response.setStatusLine(statusline);
-    }
 }

@@ -24,26 +24,15 @@
  *
  */
 
-package org.apache.http.client.fluent.header;
+package org.apache.http.client.fluent;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+class HttpHeader {
 
-public class DateUtils {
-    public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    public static final Locale DATE_LOCALE = Locale.US;
-    public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
+    public static final String CONTENT_LENGTH = "Content-Length";
+    public static final String DATE = "Date";
+    public static final String CACHE_CONTROL = "Cache-Control";
+    public static final String CONTENT_TYPE = "Content-Type";
+    public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
+    public static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
 
-    public static String format(Date d) {
-        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT, DATE_LOCALE);
-        format.setTimeZone(TIME_ZONE);
-        return format.format(d);
-    }
-
-    public static String currentTime() {
-        Date d = new Date();
-        return format(d);
-    }
 }

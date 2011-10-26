@@ -24,13 +24,48 @@
  *
  */
 
-package org.apache.http.client.fluent.header;
+package org.apache.http.client.fluent;
 
-public class HttpHeader {
-    public static final String CONTENT_LENGTH = "Content-Length";
-    public static final String DATE = "Date";
-    public static final String CACHE_CONTROL = CacheControl.NAME;
-    public static final String CONTENT_TYPE = ContentType.NAME;
-    public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
-    public static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.http.entity.ContentType;
+import org.apache.http.protocol.HTTP;
+
+public class Content {
+
+    private final byte[] raw;
+    private final ContentType type;
+
+    Content(final byte[] raw, final ContentType type) {
+        super();
+        this.raw = raw;
+        this.type = type;
+    }
+
+    public ContentType getType() {
+        return this.type;
+    }
+
+    public byte[] asBytes() {
+        return this.raw.clone();
+    }
+
+    public String asString() {
+        String charset = this.type.getCharset();
+        if (charset == null) {
+            charset = HTTP.DEFAULT_CONTENT_TYPE;
+        }
+        try {
+            return new String(this.raw, charset);
+        } catch (UnsupportedEncodingException ex) {
+            return new String(this.raw);
+        }
+    }
+
+    public InputStream asStream() {
+        return new ByteArrayInputStream(this.raw);
+    }
+
 }

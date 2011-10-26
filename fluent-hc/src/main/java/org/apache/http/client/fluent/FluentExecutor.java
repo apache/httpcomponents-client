@@ -27,142 +27,150 @@
 package org.apache.http.client.fluent;
 
 import java.io.IOException;
-import java.util.List;
 
-import org.apache.http.HttpResponse;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.protocol.BasicHttpContext;
 
 public class FluentExecutor {
 
+    final static PoolingClientConnectionManager CONNMGR = new PoolingClientConnectionManager(
+            SchemeRegistryFactory.createSystemDefault());
+    final static DefaultHttpClient CLIENT = new DefaultHttpClient(CONNMGR);
+
     public static FluentExecutor newInstance() {
-        FluentExecutor fexe = new FluentExecutor();
-        return fexe;
+        return new FluentExecutor(CLIENT);
     }
 
-    private ThreadSafeClientConnManager localConnManager;
-    private SchemeRegistry localSchemeRegistry;
-    private SchemeSocketFactory localSocketFactory;
+    private final HttpClient httpclient;
+    private final BasicHttpContext localContext;
+    private final AuthCache authCache;
 
-    private FluentExecutor() {
-        localSchemeRegistry = SchemeRegistryFactory.createDefault();
-        localConnManager = new ThreadSafeClientConnManager(localSchemeRegistry);
-        localSocketFactory = PlainSocketFactory.getSocketFactory();
+    private CredentialsProvider credentialsProvider;
+    private CookieStore cookieStore;
 
+    FluentExecutor(final HttpClient httpclient) {
+        super();
+        this.httpclient = httpclient;
+        this.localContext = new BasicHttpContext();
+        this.authCache = new BasicAuthCache();
     }
 
-    public FluentResponse exec(FluentRequest req)
-            throws ClientProtocolException, IOException {
-        DefaultHttpClient client = getClient();
-        client.setCredentialsProvider(req.getCredentialsProvider());
-        client.setParams(req.getLocalParams());
-        HttpResponse resp = client.execute(req, req.getLocalContext());
-        FluentResponse fresp = new FluentResponse(resp);
-        return fresp;
-    }
-
-    public FluentResponse[] exec(final FluentRequest[] reqs)
-            throws InterruptedException {
-        if (reqs == null)
-            throw new NullPointerException("The request array may not be null.");
-        int length = reqs.length;
-        if (length == 0)
-            return new FluentResponse[0];
-        FluentResponse[] resps = new FluentResponse[length];
-        MultiRequestThread[] threads = new MultiRequestThread[length];
-        for (int id = 0; id < length; id++) {
-            threads[id] = new MultiRequestThread(this, reqs, resps, id);
+    public FluentExecutor auth(final AuthScope authScope, final Credentials creds) {
+        if (this.credentialsProvider == null) {
+            this.credentialsProvider = new BasicCredentialsProvider();
         }
-        for (int id = 0; id < length; id++) {
-            threads[id].start();
+        this.credentialsProvider.setCredentials(authScope, creds);
+        return this;
+    }
+
+    public FluentExecutor auth(final HttpHost host, final Credentials creds) {
+        AuthScope authScope = host != null ? new AuthScope(host) : AuthScope.ANY;
+        return auth(authScope, creds);
+    }
+
+    public FluentExecutor authPreemptive(final HttpHost host, final Credentials creds) {
+        auth(host, creds);
+        this.authCache.put(host, new BasicScheme());
+        return this;
+    }
+
+    public FluentExecutor auth(final Credentials cred) {
+        return auth(AuthScope.ANY, cred);
+    }
+
+    public FluentExecutor auth(final String username, final String password) {
+        return auth(new UsernamePasswordCredentials(username, password));
+    }
+
+    public FluentExecutor auth(final String username, final String password,
+            final String workstation, final String domain) {
+        return auth(new NTCredentials(username, password, workstation, domain));
+    }
+
+    public FluentExecutor auth(final HttpHost host,
+            final String username, final String password) {
+        return auth(host, new UsernamePasswordCredentials(username, password));
+    }
+
+    public FluentExecutor auth(final HttpHost host,
+            final String username, final String password,
+            final String workstation, final String domain) {
+        return auth(host, new NTCredentials(username, password, workstation, domain));
+    }
+
+    public FluentExecutor authPreemptive(final HttpHost host,
+            final String username, final String password) {
+        auth(host, username, password);
+        this.authCache.put(host, new BasicScheme());
+        return this;
+    }
+
+    public FluentExecutor clearAuth() {
+        if (this.credentialsProvider != null) {
+            this.credentialsProvider.clear();
         }
-        for (int id = 0; id < length; id++) {
-            threads[id].join();
+        return this;
+    }
+
+    public FluentExecutor cookieStore(final CookieStore cookieStore) {
+        this.cookieStore = cookieStore;
+        return this;
+    }
+
+    public FluentExecutor clearCookies() {
+        if (this.cookieStore != null) {
+            this.cookieStore.clear();
         }
-        return resps;
-    }
-
-    public DefaultHttpClient getClient() {
-        DefaultHttpClient client;
-        client = new DefaultHttpClient(localConnManager);
-        return client;
-    }
-
-    public int getMaxConnectionsPerRoute() {
-        return localConnManager.getDefaultMaxPerRoute();
-    }
-
-    public int getMaxTotalConnections() {
-        return localConnManager.getMaxTotal();
-    }
-
-    public Scheme getScheme(final String name) {
-        return localSchemeRegistry.getScheme(name);
-    }
-
-    public List<String> getSchemeNames() {
-        List<String> schemeNames = localSchemeRegistry.getSchemeNames();
-        return schemeNames;
-    }
-
-    public FluentExecutor registerScheme(final String name, final int port) {
-        Scheme sch = new Scheme(name, port, localSocketFactory);
-        localSchemeRegistry.register(sch);
         return this;
     }
 
-    public FluentExecutor setMaxConnectionsPerRoute(final int maxPerRoute) {
-        localConnManager.setDefaultMaxPerRoute(maxPerRoute);
-        return this;
+    public FluentResponse exec(
+            final FluentRequest req) throws ClientProtocolException, IOException {
+        this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);
+        this.localContext.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        HttpRequestBase httprequest = req.getHttpRequest();
+        httprequest.reset();
+        return new FluentResponse(this.httpclient.execute(httprequest, this.localContext));
     }
 
-    public FluentExecutor setMaxTotalConnections(final int maxTotal) {
-        localConnManager.setMaxTotal(maxTotal);
-        return this;
+    public static void setMaxTotal(int max) {
+        CONNMGR.setMaxTotal(max);
     }
 
-    public FluentExecutor unregisterAllSchemes() {
-        for (String name : getSchemeNames())
-            localSchemeRegistry.unregister(name);
-        return this;
+    public static void setDefaultMaxPerRoute(int max) {
+        CONNMGR.setDefaultMaxPerRoute(max);
     }
 
-    public FluentExecutor unregisterScheme(final String name) {
-        localSchemeRegistry.unregister(name);
-        return this;
-    }
-}
-
-class MultiRequestThread extends Thread {
-    private FluentExecutor executor;
-    private FluentRequest[] reqs;
-    private FluentResponse[] resps;
-    private int id;
-
-    MultiRequestThread(final FluentExecutor executor,
-            final FluentRequest[] reqs, final FluentResponse[] resps,
-            final int id) {
-        this.executor = executor;
-        this.reqs = reqs;
-        this.resps = resps;
-        this.id = id;
+    public static void setMaxPerRoute(final HttpRoute route, int max) {
+        CONNMGR.setMaxPerRoute(route, max);
     }
 
-    @Override
-    public void run() {
-        FluentRequest req = reqs[id];
-        try {
-            FluentResponse resp = executor.exec(req);
-            resp.loadContent();
-            resps[id] = resp;
-        } catch (Exception e) {
-            req.abort();
-        }
+    public static void registerScheme(final Scheme scheme) {
+        CONNMGR.getSchemeRegistry().register(scheme);
     }
+
+    public static void unregisterScheme(final String name) {
+        CONNMGR.getSchemeRegistry().unregister(name);
+    }
+
 }
