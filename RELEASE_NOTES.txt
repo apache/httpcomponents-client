@@ -1,6 +1,9 @@
 Changes since 4.1.2
 -------------------
 
+* [HTTPCLIENT-1140] Infinite loop in case of an authentication failure if WARN priority logging 
+  is disabled. 
+
 * [HTTPCLIENT-1127] Fixed deadlock between SingleClientConnManager.releaseConnection() and
   SingleClientConnManager.shutdown()
 

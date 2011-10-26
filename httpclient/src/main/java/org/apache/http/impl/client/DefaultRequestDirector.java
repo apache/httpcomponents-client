@@ -359,9 +359,9 @@ public class DefaultRequestDirector implements RequestDirector {
 
         virtualHost = (HttpHost) orig.getParams().getParameter(
                 ClientPNames.VIRTUAL_HOST);
-        
+
         // HTTPCLIENT-1092 - add the port if necessary
-        if (virtualHost != null && virtualHost.getPort() == -1) 
+        if (virtualHost != null && virtualHost.getPort() == -1)
         {
             int port = target.getPort();
             if (port != -1){
@@ -502,8 +502,8 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
-                        invalidateAuthIfSuccessful(this.proxyAuthState);                        
-                        invalidateAuthIfSuccessful(this.targetAuthState);                        
+                        invalidateAuthIfSuccessful(this.proxyAuthState);
+                        invalidateAuthIfSuccessful(this.targetAuthState);
                     }
                     // check if we can use the same connection for the followup
                     if (!followup.getRoute().equals(roureq.getRoute())) {
@@ -870,8 +870,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     } catch (AuthenticationException ex) {
                         if (this.log.isWarnEnabled()) {
                             this.log.warn("Authentication error: " +  ex.getMessage());
-                            break;
                         }
+                        break;
                     }
                     updateAuthState(this.proxyAuthState, proxy, credsProvider);
 
@@ -1095,8 +1095,8 @@ public class DefaultRequestDirector implements RequestDirector {
                 } catch (AuthenticationException ex) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication error: " +  ex.getMessage());
-                        return null;
                     }
+                    return null;
                 }
                 updateAuthState(this.targetAuthState, target, credsProvider);
 
@@ -1125,8 +1125,8 @@ public class DefaultRequestDirector implements RequestDirector {
                 } catch (AuthenticationException ex) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication error: " +  ex.getMessage());
-                        return null;
                     }
+                    return null;
                 }
                 updateAuthState(this.proxyAuthState, proxy, credsProvider);
 
