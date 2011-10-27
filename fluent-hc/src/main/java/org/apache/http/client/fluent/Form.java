@@ -26,48 +26,32 @@
 
 package org.apache.http.client.fluent;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
-public class Content {
+public class Form {
 
-    public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY); 
-    
-    private final byte[] raw;
-    private final ContentType type;
+    private final List<NameValuePair> params;
 
-    Content(final byte[] raw, final ContentType type) {
+    public static Form form() {
+        return new Form();
+    }
+
+    Form() {
         super();
-        this.raw = raw;
-        this.type = type;
+        this.params = new ArrayList<NameValuePair>();
     }
 
-    public ContentType getType() {
-        return this.type;
+    public Form add(final String name, final String value) {
+        this.params.add(new BasicNameValuePair(name, value));
+        return this;
     }
 
-    public byte[] asBytes() {
-        return this.raw.clone();
-    }
-
-    public String asString() {
-        String charset = this.type.getCharset();
-        if (charset == null) {
-            charset = HTTP.DEFAULT_CONTENT_TYPE;
-        }
-        try {
-            return new String(this.raw, charset);
-        } catch (UnsupportedEncodingException ex) {
-            return new String(this.raw);
-        }
-    }
-
-    public InputStream asStream() {
-        return new ByteArrayInputStream(this.raw);
+    public List<NameValuePair> build() {
+        return new ArrayList<NameValuePair>(this.params);
     }
 
 }

@@ -56,7 +56,7 @@ public class Response {
         }
     }
 
-    public void dispose() {
+    private void dispose() {
         if (this.consumed) {
             return;
         }
@@ -68,7 +68,12 @@ public class Response {
         }
     }
 
-    public <T> T handle(final ResponseHandler<T> handler) throws ClientProtocolException, IOException {
+    public void discardContent() {
+        dispose();
+    }
+
+    public <T> T handleResponse(
+            final ResponseHandler<T> handler) throws ClientProtocolException, IOException {
         assertNotConsumed();
         try {
             return handler.handleResponse(this.response);
@@ -77,8 +82,8 @@ public class Response {
         }
     }
 
-    public Content content() throws ClientProtocolException, IOException {
-        return handle(new ResponseHandler<Content>() {
+    public Content returnContent() throws ClientProtocolException, IOException {
+        return handleResponse(new ResponseHandler<Content>() {
 
             public Content handleResponse(
                     final HttpResponse response) throws ClientProtocolException, IOException {
@@ -89,17 +94,18 @@ public class Response {
                             statusLine.getReasonPhrase());
                 }
                 if (entity != null) {
-                    return new Content(EntityUtils.toByteArray(entity),
+                    return new Content(
+                            EntityUtils.toByteArray(entity),
                             ContentType.getOrDefault(entity));
                 } else {
-                    return null;
+                    return Content.NO_CONTENT;
                 }
             }
 
         });
     }
 
-    public HttpResponse response() throws IOException {
+    public HttpResponse returnResponse() throws IOException {
         assertNotConsumed();
         try {
             HttpEntity entity = this.response.getEntity();
@@ -113,7 +119,7 @@ public class Response {
         }
     }
 
-    public void save(final File file) throws IOException {
+    public void saveContent(final File file) throws IOException {
         assertNotConsumed();
         FileOutputStream out = new FileOutputStream(file);
         try {

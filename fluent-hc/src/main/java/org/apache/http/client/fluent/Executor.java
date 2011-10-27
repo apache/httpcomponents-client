@@ -87,8 +87,7 @@ public class Executor {
         return auth(authScope, creds);
     }
 
-    public Executor authPreemptive(final HttpHost host, final Credentials creds) {
-        auth(host, creds);
+    public Executor authPreemptive(final HttpHost host) {
         this.authCache.put(host, new BasicScheme());
         return this;
     }
@@ -117,13 +116,6 @@ public class Executor {
         return auth(host, new NTCredentials(username, password, workstation, domain));
     }
 
-    public Executor authPreemptive(final HttpHost host,
-            final String username, final String password) {
-        auth(host, username, password);
-        this.authCache.put(host, new BasicScheme());
-        return this;
-    }
-
     public Executor clearAuth() {
         if (this.credentialsProvider != null) {
             this.credentialsProvider.clear();
@@ -143,7 +135,7 @@ public class Executor {
         return this;
     }
 
-    public Response exec(
+    public Response execute(
             final Request req) throws ClientProtocolException, IOException {
         this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);

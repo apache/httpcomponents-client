@@ -26,6 +26,7 @@
 
 package org.apache.http.client.fluent;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -55,6 +56,7 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.params.CoreConnectionPNames;
@@ -139,7 +141,7 @@ public class Request {
         return this.request;
     }
 
-    public Response exec() throws ClientProtocolException, IOException {
+    public Response execute() throws ClientProtocolException, IOException {
         return new Response(Executor.CLIENT.execute(this.request));
     }
 
@@ -268,35 +270,43 @@ public class Request {
         return this;
     }
 
-    public Request htmlFormBody(final NameValuePair[] formParams, final String charset) {
+    public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final String charset) {
         try {
-            return body(new UrlEncodedFormEntity(Arrays.asList(formParams)));
+            return body(new UrlEncodedFormEntity(formParams));
         } catch (UnsupportedEncodingException ex) {
             throw new IllegalArgumentException(ex);
         }
     }
 
-    public Request htmlFormBody(final NameValuePair... formParams) {
-        return htmlFormBody(formParams, HTTP.DEFAULT_CONTENT_CHARSET);
+    public Request bodyForm(final Iterable <? extends NameValuePair> formParams) {
+        return bodyForm(formParams, HTTP.DEFAULT_CONTENT_CHARSET);
     }
 
-    public Request stringBody(final String s, final ContentType contentType) {
+    public Request bodyForm(final NameValuePair... formParams) {
+        return bodyForm(Arrays.asList(formParams), HTTP.DEFAULT_CONTENT_CHARSET);
+    }
+
+    public Request bodyString(final String s, final ContentType contentType) {
         return body(StringEntity.create(s, contentType));
     }
 
-    public Request byteArrayBody(final byte[] b) {
+    public Request bodyFile(final File file, final ContentType contentType) {
+        return body(new FileEntity(file, contentType));
+    }
+
+    public Request bodyByteArray(final byte[] b) {
         return body(new ByteArrayEntity(b));
     }
 
-    public Request byteArrayBody(final byte[] b, int off, int len) {
+    public Request bodyByteArray(final byte[] b, int off, int len) {
         return body(new ByteArrayEntity(b, off, len));
     }
 
-    public Request streamBody(final InputStream instream) {
+    public Request bodyStream(final InputStream instream) {
         return body(new InputStreamEntity(instream, -1));
     }
 
-    public Request streamBody(final InputStream instream, final ContentType contentType) {
+    public Request bodyStream(final InputStream instream, final ContentType contentType) {
         return body(new InputStreamEntity(instream, -1, contentType));
     }
 
