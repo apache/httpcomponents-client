@@ -250,12 +250,8 @@ public class Request {
 
     //// HTTP connection route operations
 
-    public Request proxy(final HttpHost proxy) {
+    public Request viaProxy(final HttpHost proxy) {
         return config(ConnRoutePNames.DEFAULT_PROXY, proxy);
-    }
-
-    public Request noProxy() {
-        return removeConfig(ConnRoutePNames.DEFAULT_PROXY);
     }
 
     //// HTTP entity operations

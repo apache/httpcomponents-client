@@ -56,7 +56,7 @@ public class FluentRequests {
         // as an HTML form and save the result to the file
         Request.Post("http://somehost/some-form")
                 .addHeader("X-Custom-header", "stuff")
-                .proxy(new HttpHost("myproxy", 8080))
+                .viaProxy(new HttpHost("myproxy", 8080))
                 .bodyForm(Form.form().add("username", "vip").add("password", "secret").build())
                 .execute().saveContent(new File("result.dump"));
     }

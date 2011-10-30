@@ -64,7 +64,7 @@ public class FluentExecutor {
         // as an HTML form and save the result to the file
         executor.execute(Request.Post("http://somehost/some-form")
                 .addHeader("X-Custom-header", "stuff")
-                .proxy(new HttpHost("myproxy", 8080))
+                .viaProxy(new HttpHost("myproxy", 8080))
                 .bodyForm(Form.form().add("username", "vip").add("password", "secret").build())
                 ).saveContent(new File("result.dump"));
     }

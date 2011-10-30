@@ -121,6 +121,11 @@ public class Response {
 
     public void saveContent(final File file) throws IOException {
         assertNotConsumed();
+        StatusLine statusLine = response.getStatusLine();
+        if (statusLine.getStatusCode() >= 300) {
+            throw new HttpResponseException(statusLine.getStatusCode(),
+                    statusLine.getReasonPhrase());
+        }
         FileOutputStream out = new FileOutputStream(file);
         try {
             HttpEntity entity = this.response.getEntity();
