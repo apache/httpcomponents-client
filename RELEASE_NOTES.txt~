@@ -88,7 +88,6 @@ Changelog
   idempotent methods given in the RFC 2616.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-
 Release 4.1.2
 -------------------
 
