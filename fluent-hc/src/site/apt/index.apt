@@ -31,13 +31,12 @@
 Fluent HC
 
 		This module provides an easy to use facade API for HttpClient based on the concept of
-		a fluent interface. Fluent HC exposes only the most fundamental functions of HttpClient
-		and is likely to be suitable mostly for simple use cases that do not require the full
-		flexibility of HttpClient. For instance, Fluent HC API relieves the users from having
-		to deal with resource deallocation and connection management. In most cases, though,
-		this comes at a price of having to buffer content of response messages in memory. However,
-		users can still use custom response handlers to process response streams of arbitrary
-		length.
+		a fluent interface. Fluent facade API exposes only the most fundamental functions of
+        HttpClient and is indended for simple use cases that do not require the full flexibility 
+        of HttpClient. For instance, fluent facade API relieves the users from having to deal with 
+        connection management and resource deallocation. In most cases, though, this comes at
+        a price of having to buffer content of response messages in memory. However, users can 
+        still use custom response handlers to process response streams of arbitrary length.
 
 ----------------------------------
 String result1 = Request.Get("http://somehost/")
@@ -92,8 +91,6 @@ Document result3 = Request.Get("http://somehost/content")
 });
 ----------------------------------
 
-    Project reports:
-
     {{{./apidocs/index.html}Javadocs}}
 
     {{{./xref/index.html}Project sources}}
@@ -101,3 +98,4 @@ Document result3 = Request.Get("http://somehost/content")
     {{{./dependencies.html}Dependencies}}
 
     {{{./issue-tracking.html}Issue Tracking}}
+
