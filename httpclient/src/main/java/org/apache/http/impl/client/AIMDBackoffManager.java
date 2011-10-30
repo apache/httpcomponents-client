@@ -65,7 +65,7 @@ public class AIMDBackoffManager implements BackoffManager {
     /**
      * Creates an <code>AIMDBackoffManager</code> to manage
      * per-host connection pool sizes represented by the
-     * given {@link MockConnPoolControl}.
+     * given {@link ConnPoolControl}.
      * @param connPerRoute per-host routing maximums to
      *   be managed
      */

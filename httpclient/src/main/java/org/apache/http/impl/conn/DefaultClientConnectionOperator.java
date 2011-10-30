@@ -269,8 +269,9 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * @return array of IP addresses
      * @exception  UnknownHostException  if no IP address for the host could be determined.
      *
-     * @see {@link DnsResolver}
-     * @see {@link SystemDefaultDnsResolver}
+     * @see DnsResolver
+     * @see SystemDefaultDnsResolver
+     *
      * @since 4.1
      */
     protected InetAddress[] resolveHostname(final String host) throws UnknownHostException {

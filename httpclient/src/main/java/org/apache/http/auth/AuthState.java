@@ -202,7 +202,7 @@ public class AuthState {
      *
      * @return actual authentication scope if available, <code>null</code otherwise
      *
-     * @deprecated use {@link #isChallenged()}
+     * @deprecated do not use.
      */
     @Deprecated
     public AuthScope getAuthScope() {
@@ -214,7 +214,7 @@ public class AuthState {
      *
      * @param authScope Authentication scope
      *
-     * @deprecated use {@link #setChallenged()} or {@link #setUnchallenged()}.
+     * @deprecated do not use.
      */
     @Deprecated
     public void setAuthScope(final AuthScope authScope) {
