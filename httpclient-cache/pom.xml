@@ -34,6 +34,7 @@
   </parent>
   <artifactId>httpclient-cache</artifactId>
   <name>HttpClient Cache</name>
+  <inceptionYear>2010</inceptionYear>
   <description>
    HttpComponents HttpClient - Cache
   </description>
