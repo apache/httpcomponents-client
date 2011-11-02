@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.2-alpha1-SNAPSHOT</version>
+    <version>4.2-alpha2-SNAPSHOT</version>
   </parent>
   <artifactId>fluent-hc</artifactId>
   <name>Fluent HttpClient</name>
