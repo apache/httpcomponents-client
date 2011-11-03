@@ -105,6 +105,7 @@ public class HttpAuthenticator {
                 authState.reset();
                 break;
             case CHALLENGED:
+            case HANDSHAKE:
                 if (authScheme == null) {
                     this.log.debug("Auth scheme is null");
                     authStrategy.authFailed(host, authState.getAuthScheme(), context);
@@ -137,6 +138,9 @@ public class HttpAuthenticator {
             }
             Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
             if (authOptions != null && !authOptions.isEmpty()) {
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Selected authorization options: " + authOptions);
+                }
                 authState.setState(AuthProtocolState.CHALLENGED);
                 authState.update(authOptions);
                 return true;
