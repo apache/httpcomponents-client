@@ -139,7 +139,7 @@ public class HttpAuthenticator {
             Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
             if (authOptions != null && !authOptions.isEmpty()) {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Selected authorization options: " + authOptions);
+                    this.log.debug("Selected authentication options: " + authOptions);
                 }
                 authState.setState(AuthProtocolState.CHALLENGED);
                 authState.update(authOptions);
