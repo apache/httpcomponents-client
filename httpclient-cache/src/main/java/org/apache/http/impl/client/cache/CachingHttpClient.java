@@ -29,6 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -119,7 +120,9 @@ public class CachingHttpClient implements HttpClient {
     private final AtomicLong cacheHits = new AtomicLong();
     private final AtomicLong cacheMisses = new AtomicLong();
     private final AtomicLong cacheUpdates = new AtomicLong();
-
+   
+    private final Map<ProtocolVersion, String> viaHeaders = new HashMap<ProtocolVersion, String>(4);
+    
     private final HttpClient backend;
     private final HttpCache responseCache;
     private final CacheValidityPolicy validityPolicy;
@@ -371,7 +374,7 @@ public class CachingHttpClient implements HttpClient {
         setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
 
         String via = generateViaHeader(request);
-
+        
         if (clientRequestsOurOptions(request)) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new OptionsHttp11Response();
@@ -601,16 +604,25 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private String generateViaHeader(HttpMessage msg) {
+                
+        final ProtocolVersion pv = msg.getProtocolVersion();
+        String existingEntry = viaHeaders.get(pv);
+        if (existingEntry != null) return existingEntry;
+
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
-        final ProtocolVersion pv = msg.getProtocolVersion();
+
+        String value;
         if ("http".equalsIgnoreCase(pv.getProtocol())) {
-            return String.format("%d.%d localhost (Apache-HttpClient/%s (cache))",
-                pv.getMajor(), pv.getMinor(), release);
+            value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getMajor(), pv.getMinor(),
+                    release);
         } else {
-            return String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))",
-                    pv.getProtocol(), pv.getMajor(), pv.getMinor(), release);
+            value = String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getProtocol(), pv.getMajor(),
+                    pv.getMinor(), release);
         }
+        viaHeaders.put(pv, value);
+
+        return value;
     }
 
     private void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
