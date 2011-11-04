@@ -1,6 +1,9 @@
 Changes since 4.2 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1137] Values for the Via header are cached and reused by httpclient-cache.
+  Contributed by Alin Vasile <alinachegalati at yahoo dot com>
+
 * [HTTPCLIENT-1142] Infinite loop on NTLM authentication failure.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
