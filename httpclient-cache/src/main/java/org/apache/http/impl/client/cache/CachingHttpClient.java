@@ -38,6 +38,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
@@ -64,6 +65,7 @@ import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
@@ -833,6 +835,8 @@ public class CachingHttpClient implements HttpClient {
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
             final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+            HttpEntity errorBody = backendResponse.getEntity();
+            if (errorBody != null) EntityUtils.consume(errorBody);
             return cachedResponse;
         }
 
