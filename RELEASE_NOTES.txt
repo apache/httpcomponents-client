@@ -6,7 +6,9 @@ Changes since 4.2 ALPHA1
 
 * [HTTPCLIENT-1142] Infinite loop on NTLM authentication failure.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
-
+  
+* [HTTPCLIENT-1143] CachingHttpClient leaks connections with stale-if-error.
+  Contributed by James Miller <jamesmiller01 at gmail dot com>
 
 Release 4.2 ALPHA1
 -------------------
