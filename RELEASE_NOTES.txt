@@ -6,6 +6,9 @@ Changes since 4.1.2
 
 * [HTTPCLIENT-1127] Fixed deadlock between SingleClientConnManager.releaseConnection() and
   SingleClientConnManager.shutdown()
+  
+* [HTTPCLIENT-1143] CachingHttpClient leaks connections with stale-if-error.
+  Contributed by James Miller <jamesmiller01 at gmail dot com>
 
 Release 4.1.2
 -------------------

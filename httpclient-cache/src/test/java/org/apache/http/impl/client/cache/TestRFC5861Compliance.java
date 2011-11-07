@@ -27,13 +27,17 @@
 package org.apache.http.impl.client.cache;
 
 import static org.junit.Assert.*;
+
+import java.io.ByteArrayInputStream;
 import java.util.Date;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpRequest;
 import org.junit.Test;
@@ -81,6 +85,34 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         verifyMocks();
         
         HttpTestUtils.assert110WarningFound(result);
+    }
+    
+    @Test
+    public void testConsumesErrorResponseWhenServingStale()
+            throws Exception{
+        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+                "public, max-age=5, stale-if-error=60");
+
+        backendExpectsAnyRequest().andReturn(resp1);
+
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp2 = HttpTestUtils.make500Response();
+        byte[] body = HttpTestUtils.getRandomBytes(101);
+        ByteArrayInputStream buf = new ByteArrayInputStream(body);
+        ConsumableInputStream cis = new ConsumableInputStream(buf);
+        HttpEntity entity = new InputStreamEntity(cis, 101);
+        resp2.setEntity(entity);
+
+        backendExpectsAnyRequest().andReturn(resp2);
+
+        replayMocks();
+        impl.execute(host,req1);
+        impl.execute(host,req2);
+        verifyMocks();
+
+        assertTrue(cis.wasClosed());
     }
     
     @Test
