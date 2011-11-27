@@ -139,16 +139,16 @@ public class TestHttpClient4 implements TestHttpAgent {
                     HttpEntity entity = response.getEntity();
                     if (entity != null) {
                         InputStream instream = entity.getContent();
-                        try {
-                            contentLen = 0;
-                            if (instream != null) {
+                        contentLen = 0;
+                        if (instream != null) {
+                            try {
                                 int l = 0;
                                 while ((l = instream.read(buffer)) != -1) {
                                     contentLen += l;
                                 }
+                            } finally {
+                                instream.close();
                             }
-                        } finally {
-                            instream.close();
                         }
                     }
                     if (response.getStatusLine().getStatusCode() == 200) {
