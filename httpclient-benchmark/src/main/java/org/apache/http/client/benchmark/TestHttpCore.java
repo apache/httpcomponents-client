@@ -180,18 +180,18 @@ public class TestHttpCore implements TestHttpAgent {
                         httpexecutor.postProcess(response, httpproc, context);
 
                         HttpEntity entity = response.getEntity();
-                        if (entity != null) {
+                        if (entity != null) { // TODO can this be null?
                             InputStream instream = entity.getContent();
-                            try {
+                            if (instream != null) {
                                 contentLen = 0;
-                                if (instream != null) {
-                                    int l = 0;
-                                    while ((l = instream.read(buffer)) != -1) {
-                                        contentLen += l;
-                                    }
+                                try {
+                                        int l = 0;
+                                        while ((l = instream.read(buffer)) != -1) {
+                                            contentLen += l;
+                                        }
+                                } finally {
+                                    instream.close();
                                 }
-                            } finally {
-                                instream.close();
                             }
                         }
                         if (connStrategy.keepAlive(response, context)) {
