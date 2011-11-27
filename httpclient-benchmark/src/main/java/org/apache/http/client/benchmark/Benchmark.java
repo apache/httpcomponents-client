@@ -156,7 +156,7 @@ public class Benchmark {
 
        private void rnd(
                final HttpServletRequest request,
-               final HttpServletResponse response) throws IOException, ServletException {
+               final HttpServletResponse response) throws IOException {
            int count = 100;
            String s = request.getParameter("c");
            try {
@@ -189,7 +189,7 @@ public class Benchmark {
 
        private void echo(
                final HttpServletRequest request,
-               final HttpServletResponse response) throws IOException, ServletException {
+               final HttpServletResponse response) throws IOException {
 
            ByteArrayOutputStream2 buffer = new ByteArrayOutputStream2();
            InputStream instream = request.getInputStream();
