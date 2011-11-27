@@ -136,7 +136,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             super.onException(x);
         }
 
-    };
+    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {

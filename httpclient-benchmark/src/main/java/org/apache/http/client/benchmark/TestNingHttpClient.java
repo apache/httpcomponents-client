@@ -135,7 +135,7 @@ public class TestNingHttpClient implements TestHttpAgent {
             this.stats.failure(this.contentLen);
         }
 
-    };
+    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
