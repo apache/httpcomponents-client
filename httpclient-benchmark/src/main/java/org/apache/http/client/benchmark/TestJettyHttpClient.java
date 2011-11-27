@@ -70,7 +70,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             try {
                 this.client.send(exchange);
             } catch (IOException ex) {
-                stats.failure(0);
+                stats.failure(0L);
             }
         }
         stats.waitFor();
@@ -100,6 +100,7 @@ public class TestJettyHttpClient implements TestHttpAgent {
             this.stats = stats;
         }
 
+        @Override
         protected void onResponseStatus(
                 final Buffer version, int status, final Buffer reason) throws IOException {
             this.status = status;
