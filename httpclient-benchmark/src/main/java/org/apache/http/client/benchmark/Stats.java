@@ -75,10 +75,6 @@ public class Stats {
         return failureCount;
     }
 
-    public void setFailureCount(int failureCount) {
-        this.failureCount = failureCount;
-    }
-
     public synchronized long getContentLen() {
         return contentLen;
     }
