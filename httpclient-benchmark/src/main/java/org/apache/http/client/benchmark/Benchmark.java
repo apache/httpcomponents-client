@@ -46,168 +46,168 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 public class Benchmark {
 
-   public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-       String ns = System.getProperty("hc.benchmark.n-requests", "200000");
-       String nc = System.getProperty("hc.benchmark.concurrent", "20");
-       String cls = System.getProperty("hc.benchmark.content-len", "2048");
+        String ns = System.getProperty("hc.benchmark.n-requests", "200000");
+        String nc = System.getProperty("hc.benchmark.concurrent", "20");
+        String cls = System.getProperty("hc.benchmark.content-len", "2048");
 
-       int n = Integer.parseInt(ns);
-       int c = Integer.parseInt(nc);
-       int contentLen = Integer.parseInt(cls);
+        int n = Integer.parseInt(ns);
+        int c = Integer.parseInt(nc);
+        int contentLen = Integer.parseInt(cls);
 
-       SocketConnector connector = new SocketConnector();
-       connector.setPort(0);
-       connector.setRequestBufferSize(12 * 1024);
-       connector.setResponseBufferSize(12 * 1024);
-       connector.setAcceptors(2);
-       connector.setAcceptQueueSize(c);
+        SocketConnector connector = new SocketConnector();
+        connector.setPort(0);
+        connector.setRequestBufferSize(12 * 1024);
+        connector.setResponseBufferSize(12 * 1024);
+        connector.setAcceptors(2);
+        connector.setAcceptQueueSize(c);
 
-       QueuedThreadPool threadpool = new QueuedThreadPool();
-       threadpool.setMinThreads(c);
-       threadpool.setMaxThreads(2000);
+        QueuedThreadPool threadpool = new QueuedThreadPool();
+        threadpool.setMinThreads(c);
+        threadpool.setMaxThreads(2000);
 
-       Server server = new Server();
-       server.addConnector(connector);
-       server.setThreadPool(threadpool);
-       server.setHandler(new RandomDataHandler());
+        Server server = new Server();
+        server.addConnector(connector);
+        server.setThreadPool(threadpool);
+        server.setHandler(new RandomDataHandler());
 
-       server.start();
-       int port = connector.getLocalPort();
+        server.start();
+        int port = connector.getLocalPort();
 
-       TestHttpAgent[] agents = new TestHttpAgent[] {
-               new TestHttpClient3(),
-               new TestHttpJRE(),
-               new TestHttpCore(),
-               new TestHttpClient4(),
-               new TestJettyHttpClient(),
-               new TestNingHttpClient()
-       };
+        TestHttpAgent[] agents = new TestHttpAgent[] {
+                new TestHttpClient3(),
+                new TestHttpJRE(),
+                new TestHttpCore(),
+                new TestHttpClient4(),
+                new TestJettyHttpClient(),
+                new TestNingHttpClient()
+        };
 
-       byte[] content = new byte[contentLen];
-       int r = Math.abs(content.hashCode());
-       for (int i = 0; i < content.length; i++) {
-           content[i] = (byte) ((r + i) % 96 + 32);
-       }
+        byte[] content = new byte[contentLen];
+        int r = Math.abs(content.hashCode());
+        for (int i = 0; i < content.length; i++) {
+            content[i] = (byte) ((r + i) % 96 + 32);
+        }
 
-       URI warmup = new URI("http", null, "localhost", port, "/rnd", "c=2048", null);
-       URI target1 = new URI("http", null, "localhost", port, "/rnd", "c=" + contentLen, null);
-       URI target2 = new URI("http", null, "localhost", port, "/echo", null, null);
+        URI warmup = new URI("http", null, "localhost", port, "/rnd", "c=2048", null);
+        URI target1 = new URI("http", null, "localhost", port, "/rnd", "c=" + contentLen, null);
+        URI target2 = new URI("http", null, "localhost", port, "/echo", null, null);
 
-       try {
-           for (TestHttpAgent agent: agents) {
-               try {
-                   agent.init();
-                   // Warm up
-                   agent.get(warmup, 500, 2);
-                   // Sleep a little
-                   Thread.sleep(5000);
-                   System.out.println("=================================");
-                   System.out.println("HTTP agent: " + agent.getClientName());
-                   System.out.println("---------------------------------");
-                   System.out.println(n + " GET requests");
-                   System.out.println("---------------------------------");
+        try {
+            for (TestHttpAgent agent: agents) {
+                try {
+                    agent.init();
+                    // Warm up
+                    agent.get(warmup, 500, 2);
+                    // Sleep a little
+                    Thread.sleep(5000);
 
-                   long startTime1 = System.currentTimeMillis();
-                   Stats stats1 = agent.get(target1, n, c);
-                   long finishTime1 = System.currentTimeMillis();
-                   Stats.printStats(target1, startTime1, finishTime1, stats1);
-                   System.out.println("---------------------------------");
-                   System.out.println(n + " POST requests");
-                   System.out.println("---------------------------------");
+                    System.out.println("=================================");
+                    System.out.println("HTTP agent: " + agent.getClientName());
+                    System.out.println("---------------------------------");
+                    System.out.println(n + " GET requests");
+                    System.out.println("---------------------------------");
 
-                   long startTime2 = System.currentTimeMillis();
-                   Stats stats2 = agent.post(target2, content, n, c);
-                   long finishTime2 = System.currentTimeMillis();
-                   Stats.printStats(target2, startTime2, finishTime2, stats2);
-               } finally {
-                   agent.shutdown();
-               }
-               System.out.println("---------------------------------");
-           }
-       } finally {
-           server.stop();
-       }
-       server.join();
+                    long startTime1 = System.currentTimeMillis();
+                    Stats stats1 = agent.get(target1, n, c);
+                    long finishTime1 = System.currentTimeMillis();
+                    Stats.printStats(target1, startTime1, finishTime1, stats1);
+                    System.out.println("---------------------------------");
+                    System.out.println(n + " POST requests");
+                    System.out.println("---------------------------------");
+
+                    long startTime2 = System.currentTimeMillis();
+                    Stats stats2 = agent.post(target2, content, n, c);
+                    long finishTime2 = System.currentTimeMillis();
+                    Stats.printStats(target2, startTime2, finishTime2, stats2);
+                } finally {
+                    agent.shutdown();
+                }
+                System.out.println("---------------------------------");
+            }
+        } finally {
+            server.stop();
+        }
+        server.join();
     }
 
-   static class RandomDataHandler extends AbstractHandler {
+    static class RandomDataHandler extends AbstractHandler {
 
-       public RandomDataHandler() {
-           super();
-       }
+        public RandomDataHandler() {
+            super();
+        }
 
-       public void handle(
-               final String target,
-               final Request baseRequest,
-               final HttpServletRequest request,
-               final HttpServletResponse response) throws IOException, ServletException {
-           if (target.equals("/rnd")) {
-               rnd(request, response);
-           } else if (target.equals("/echo")) {
-               echo(request, response);
-           } else {
-               response.setStatus(HttpStatus.NOT_FOUND_404);
-               Writer writer = response.getWriter();
-               writer.write("Target not found: " + target);
-               writer.flush();
-           }
-       }
+        public void handle(
+                final String target,
+                final Request baseRequest,
+                final HttpServletRequest request,
+                final HttpServletResponse response) throws IOException, ServletException {
+            if (target.equals("/rnd")) {
+                rnd(request, response);
+            } else if (target.equals("/echo")) {
+                echo(request, response);
+            } else {
+                response.setStatus(HttpStatus.NOT_FOUND_404);
+                Writer writer = response.getWriter();
+                writer.write("Target not found: " + target);
+                writer.flush();
+            }
+        }
 
-       private void rnd(
-               final HttpServletRequest request,
-               final HttpServletResponse response) throws IOException {
-           int count = 100;
-           String s = request.getParameter("c");
-           try {
-               count = Integer.parseInt(s);
-           } catch (NumberFormatException ex) {
-               response.setStatus(500);
-               Writer writer = response.getWriter();
-               writer.write("Invalid query format: " + request.getQueryString());
-               writer.flush();
-               return;
-           }
+        private void rnd(
+                final HttpServletRequest request,
+                final HttpServletResponse response) throws IOException {
+            int count = 100;
+            String s = request.getParameter("c");
+            try {
+                count = Integer.parseInt(s);
+            } catch (NumberFormatException ex) {
+                response.setStatus(500);
+                Writer writer = response.getWriter();
+                writer.write("Invalid query format: " + request.getQueryString());
+                writer.flush();
+                return;
+            }
 
-           response.setStatus(200);
-           response.setContentLength(count);
+            response.setStatus(200);
+            response.setContentLength(count);
 
-           OutputStream outstream = response.getOutputStream();
-           byte[] tmp = new byte[1024];
-           int r = Math.abs(tmp.hashCode());
-           int remaining = count;
-           while (remaining > 0) {
-               int chunk = Math.min(tmp.length, remaining);
-               for (int i = 0; i < chunk; i++) {
-                   tmp[i] = (byte) ((r + i) % 96 + 32);
-               }
-               outstream.write(tmp, 0, chunk);
-               remaining -= chunk;
-           }
-           outstream.flush();
-       }
+            OutputStream outstream = response.getOutputStream();
+            byte[] tmp = new byte[1024];
+            int r = Math.abs(tmp.hashCode());
+            int remaining = count;
+            while (remaining > 0) {
+                int chunk = Math.min(tmp.length, remaining);
+                for (int i = 0; i < chunk; i++) {
+                    tmp[i] = (byte) ((r + i) % 96 + 32);
+                }
+                outstream.write(tmp, 0, chunk);
+                remaining -= chunk;
+            }
+            outstream.flush();
+        }
 
-       private void echo(
-               final HttpServletRequest request,
-               final HttpServletResponse response) throws IOException {
+        private void echo(
+                final HttpServletRequest request,
+                final HttpServletResponse response) throws IOException {
 
-           ByteArrayOutputStream2 buffer = new ByteArrayOutputStream2();
-           InputStream instream = request.getInputStream();
-           if (instream != null) {
-               IO.copy(instream, buffer);
-               buffer.flush();
-           }
-           byte[] content = buffer.getBuf();
+            ByteArrayOutputStream2 buffer = new ByteArrayOutputStream2();
+            InputStream instream = request.getInputStream();
+            if (instream != null) {
+                IO.copy(instream, buffer);
+                buffer.flush();
+            }
+            byte[] content = buffer.getBuf();
 
-           response.setStatus(200);
-           response.setContentLength(content.length);
+            response.setStatus(200);
+            response.setContentLength(content.length);
 
-           OutputStream outstream = response.getOutputStream();
-           outstream.write(content);
-           outstream.flush();
-       }
+            OutputStream outstream = response.getOutputStream();
+            outstream.write(content);
+            outstream.flush();
+        }
 
-   }
+    }
 
 }
-
