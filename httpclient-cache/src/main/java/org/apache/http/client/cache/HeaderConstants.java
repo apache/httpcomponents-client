@@ -56,6 +56,9 @@ public class HeaderConstants {
     public static final String AGE = "Age";
     public static final String VARY = "Vary";
     public static final String ALLOW = "Allow";
+    public static final String VIA = "Via";
+    public static final String PUBLIC = "public";
+    public static final String PRIVATE = "private";
 
     public static final String CACHE_CONTROL = "Cache-Control";
     public static final String CACHE_CONTROL_NO_STORE = "no-store";
@@ -65,11 +68,14 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_MIN_FRESH = "min-fresh";
     public static final String CACHE_CONTROL_MUST_REVALIDATE = "must-revalidate";
     public static final String CACHE_CONTROL_PROXY_REVALIDATE = "proxy-revalidate";
+    public static final String STALE_IF_ERROR = "stale-if-error";
+    public static final String STALE_WHILE_REVALIDATE = "stale-while-revalidate";
 
     public static final String WARNING = "Warning";
     public static final String RANGE = "Range";
     public static final String CONTENT_RANGE = "Content-Range";
     public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
     public static final String PROXY_AUTHENTICATE = "Proxy-Authenticate";
+    public static final String AUTHORIZATION = "Authorization";
 
 }

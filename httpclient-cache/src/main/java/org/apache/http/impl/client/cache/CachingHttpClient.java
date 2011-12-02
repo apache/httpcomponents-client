@@ -64,6 +64,7 @@ import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
@@ -122,9 +123,9 @@ public class CachingHttpClient implements HttpClient {
     private final AtomicLong cacheHits = new AtomicLong();
     private final AtomicLong cacheMisses = new AtomicLong();
     private final AtomicLong cacheUpdates = new AtomicLong();
-   
+
     private final Map<ProtocolVersion, String> viaHeaders = new HashMap<ProtocolVersion, String>(4);
-    
+
     private final HttpClient backend;
     private final HttpCache responseCache;
     private final CacheValidityPolicy validityPolicy;
@@ -376,7 +377,7 @@ public class CachingHttpClient implements HttpClient {
         setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
 
         String via = generateViaHeader(request);
-        
+
         if (clientRequestsOurOptions(request)) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new OptionsHttp11Response();
@@ -538,7 +539,7 @@ public class CachingHttpClient implements HttpClient {
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
-            cachedResponse.addHeader("Warning","110 localhost \"Response is stale\"");
+            cachedResponse.addHeader(HeaderConstants.WARNING,"110 localhost \"Response is stale\"");
         }
         return cachedResponse;
     }
@@ -574,7 +575,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private boolean mayCallBackend(HttpRequest request) {
-        for (Header h: request.getHeaders("Cache-Control")) {
+        for (Header h: request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for (HeaderElement elt : h.getElements()) {
                 if ("only-if-cached".equals(elt.getName())) {
                     return false;
@@ -585,9 +586,9 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private boolean explicitFreshnessRequest(HttpRequest request, HttpCacheEntry entry, Date now) {
-        for(Header h : request.getHeaders("Cache-Control")) {
+        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
-                if ("max-stale".equals(elt.getName())) {
+                if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                     try {
                         int maxstale = Integer.parseInt(elt.getValue());
                         long age = validityPolicy.getCurrentAgeSecs(entry, now);
@@ -596,8 +597,8 @@ public class CachingHttpClient implements HttpClient {
                     } catch (NumberFormatException nfe) {
                         return true;
                     }
-                } else if ("min-fresh".equals(elt.getName())
-                            || "max-age".equals(elt.getName())) {
+                } else if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())
+                            || HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())) {
                     return true;
                 }
             }
@@ -606,7 +607,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private String generateViaHeader(HttpMessage msg) {
-                
+
         final ProtocolVersion pv = msg.getProtocolVersion();
         String existingEntry = viaHeaders.get(pv);
         if (existingEntry != null) return existingEntry;
@@ -688,8 +689,8 @@ public class CachingHttpClient implements HttpClient {
 
     private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
             HttpCacheEntry cacheEntry) {
-        final Header entryDateHeader = cacheEntry.getFirstHeader("Date");
-        final Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        final Header entryDateHeader = cacheEntry.getFirstHeader(HTTP.DATE_HEADER);
+        final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader != null && responseDateHeader != null) {
             try {
                 Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
@@ -813,7 +814,7 @@ public class CachingHttpClient implements HttpClient {
             responseDate = getCurrentDate();
         }
 
-        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+        backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
 
         int statusCode = backendResponse.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
@@ -891,15 +892,16 @@ public class CachingHttpClient implements HttpClient {
             // nop
         }
         if (existing == null) return false;
-        Header entryDateHeader = existing.getFirstHeader("Date");
+        Header entryDateHeader = existing.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader == null) return false;
-        Header responseDateHeader = backendResponse.getFirstHeader("Date");
+        Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (responseDateHeader == null) return false;
         try {
             Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
             Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
             return responseDate.before(entryDate);
         } catch (DateParseException e) {
+            // Empty on Purpose
         }
         return false;
     }

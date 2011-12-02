@@ -56,7 +56,7 @@ import org.apache.http.protocol.HTTP;
 class RequestProtocolCompliance {
 
     private static final List<String> disallowedWithNoCache =
-        Arrays.asList("min-fresh", "max-stale", "max-age");
+        Arrays.asList(HeaderConstants.CACHE_CONTROL_MIN_FRESH, HeaderConstants.CACHE_CONTROL_MAX_STALE, HeaderConstants.CACHE_CONTROL_MAX_AGE);
 
     /**
      * Test to see if the {@link HttpRequest} is HTTP1.1 compliant or not
@@ -120,19 +120,19 @@ class RequestProtocolCompliance {
     private void stripOtherFreshnessDirectivesWithNoCache(HttpRequest request) {
         List<HeaderElement> outElts = new ArrayList<HeaderElement>();
         boolean shouldStrip = false;
-        for(Header h : request.getHeaders("Cache-Control")) {
+        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
                 if (!disallowedWithNoCache.contains(elt.getName())) {
                     outElts.add(elt);
                 }
-                if ("no-cache".equals(elt.getName())) {
+                if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
                     shouldStrip = true;
                 }
             }
         }
         if (!shouldStrip) return;
-        request.removeHeaders("Cache-Control");
-        request.setHeader("Cache-Control", buildHeaderFromElements(outElts));
+        request.removeHeaders(HeaderConstants.CACHE_CONTROL);
+        request.setHeader(HeaderConstants.CACHE_CONTROL, buildHeaderFromElements(outElts));
     }
 
     private String buildHeaderFromElements(List<HeaderElement> outElts) {
@@ -376,9 +376,9 @@ class RequestProtocolCompliance {
     }
 
     private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(HttpRequest request) {
-        for(Header h : request.getHeaders("Cache-Control")) {
+        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
-                if ("no-cache".equalsIgnoreCase(elt.getName())
+                if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(elt.getName())
                     && elt.getValue() != null) {
                     return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;
                 }

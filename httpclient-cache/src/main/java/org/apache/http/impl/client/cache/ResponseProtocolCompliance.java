@@ -67,7 +67,7 @@ class ResponseProtocolCompliance {
      *
      * @param request The {@link HttpRequest} that generated an origin hit and response
      * @param response The {@link HttpResponse} from the origin server
-     * @throws IOException
+     * @throws IOException Bad things happened
      */
     public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
             throws IOException {
@@ -102,26 +102,31 @@ class ResponseProtocolCompliance {
             HttpResponse response) {
         Date responseDate = null;
         try {
-            responseDate = DateUtils.parseDate(response.getFirstHeader("Date").getValue());
+            responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER).getValue());
         } catch (DateParseException e) {
+            //Empty On Purpose
         }
+
         if (responseDate == null) return;
-        Header[] warningHeaders = response.getHeaders("Warning");
+
+        Header[] warningHeaders = response.getHeaders(HeaderConstants.WARNING);
+
         if (warningHeaders == null || warningHeaders.length == 0) return;
+
         List<Header> newWarningHeaders = new ArrayList<Header>();
         boolean modified = false;
         for(Header h : warningHeaders) {
             for(WarningValue wv : WarningValue.getWarningValues(h)) {
                 Date warnDate = wv.getWarnDate();
                 if (warnDate == null || warnDate.equals(responseDate)) {
-                    newWarningHeaders.add(new BasicHeader("Warning",wv.toString()));
+                    newWarningHeaders.add(new BasicHeader(HeaderConstants.WARNING,wv.toString()));
                 } else {
                     modified = true;
                 }
             }
         }
         if (modified) {
-            response.removeHeaders("Warning");
+            response.removeHeaders(HeaderConstants.WARNING);
             for(Header h : newWarningHeaders) {
                 response.addHeader(h);
             }
@@ -129,7 +134,7 @@ class ResponseProtocolCompliance {
     }
 
     private void identityIsNotUsedInContentEncoding(HttpResponse response) {
-        Header[] hdrs = response.getHeaders("Content-Encoding");
+        Header[] hdrs = response.getHeaders(HTTP.CONTENT_ENCODING);
         if (hdrs == null || hdrs.length == 0) return;
         List<Header> newHeaders = new ArrayList<Header>();
         boolean modified = false;
@@ -147,11 +152,11 @@ class ResponseProtocolCompliance {
             }
             String newHeaderValue = buf.toString();
             if (!"".equals(newHeaderValue)) {
-                newHeaders.add(new BasicHeader("Content-Encoding", newHeaderValue));
+                newHeaders.add(new BasicHeader(HTTP.CONTENT_ENCODING, newHeaderValue));
             }
         }
         if (!modified) return;
-        response.removeHeaders("Content-Encoding");
+        response.removeHeaders(HTTP.CONTENT_ENCODING);
         for (Header h : newHeaders) {
             response.addHeader(h);
         }
@@ -190,9 +195,9 @@ class ResponseProtocolCompliance {
     }
 
     private void ensure304DoesNotContainExtraEntityHeaders(HttpResponse response) {
-        String[] disallowedEntityHeaders = { "Allow", "Content-Encoding",
-                "Content-Language", "Content-Length", "Content-MD5",
-                "Content-Range", "Content-Type", "Last-Modified"
+        String[] disallowedEntityHeaders = { HeaderConstants.ALLOW, HTTP.CONTENT_ENCODING,
+                "Content-Language", HTTP.CONTENT_LEN, "Content-MD5",
+                "Content-Range", HTTP.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
         };
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
             for(String hdr : disallowedEntityHeaders) {

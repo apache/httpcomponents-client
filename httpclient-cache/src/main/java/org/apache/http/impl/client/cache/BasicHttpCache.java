@@ -47,6 +47,7 @@ import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.HTTP;
 
 class BasicHttpCache implements HttpCache {
 
@@ -157,7 +158,7 @@ class BasicHttpCache implements HttpCache {
             && status != HttpStatus.SC_PARTIAL_CONTENT) {
             return false;
         }
-        Header hdr = resp.getFirstHeader("Content-Length");
+        Header hdr = resp.getFirstHeader(HTTP.CONTENT_LEN);
         if (hdr == null) return false;
         int contentLength;
         try {
@@ -170,7 +171,7 @@ class BasicHttpCache implements HttpCache {
 
     HttpResponse generateIncompleteResponseError(HttpResponse response,
             Resource resource) {
-        int contentLength = Integer.parseInt(response.getFirstHeader("Content-Length").getValue());
+        int contentLength = Integer.parseInt(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
         HttpResponse error =
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
         error.setHeader("Content-Type","text/plain;charset=UTF-8");

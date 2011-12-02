@@ -113,17 +113,17 @@ class CacheValidityPolicy {
     }
 
     public boolean mustRevalidate(final HttpCacheEntry entry) {
-        return hasCacheControlDirective(entry, "must-revalidate");
+        return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE);
     }
 
     public boolean proxyRevalidate(final HttpCacheEntry entry) {
-        return hasCacheControlDirective(entry, "proxy-revalidate");
+        return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE);
     }
 
     public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, Date now) {
-        for (Header h : entry.getHeaders("Cache-Control")) {
+        for (Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
-                if ("stale-while-revalidate".equalsIgnoreCase(elt.getName())) {
+                if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
                     try {
                         int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
                         if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
@@ -142,9 +142,9 @@ class CacheValidityPolicy {
     public boolean mayReturnStaleIfError(HttpRequest request,
             HttpCacheEntry entry, Date now) {
         long stalenessSecs = getStalenessSecs(entry, now);
-        return mayReturnStaleIfError(request.getHeaders("Cache-Control"),
+        return mayReturnStaleIfError(request.getHeaders(HeaderConstants.CACHE_CONTROL),
                                      stalenessSecs)
-                || mayReturnStaleIfError(entry.getHeaders("Cache-Control"),
+                || mayReturnStaleIfError(entry.getHeaders(HeaderConstants.CACHE_CONTROL),
                                          stalenessSecs);
     }
 
@@ -152,7 +152,7 @@ class CacheValidityPolicy {
         boolean result = false;
         for(Header h : headers) {
             for(HeaderElement elt : h.getElements()) {
-                if ("stale-if-error".equals(elt.getName())) {
+                if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
                     try {
                         int staleIfErrorSecs = Integer.parseInt(elt.getValue());
                         if (stalenessSecs <= staleIfErrorSecs) {
@@ -304,7 +304,7 @@ class CacheValidityPolicy {
 
     public boolean hasCacheControlDirective(final HttpCacheEntry entry,
             final String directive) {
-        for (Header h : entry.getHeaders("Cache-Control")) {
+        for (Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
                 if (directive.equalsIgnoreCase(elt.getName())) {
                     return true;

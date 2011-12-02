@@ -91,9 +91,9 @@ class CachedResponseSuitabilityChecker {
 
     private long getMaxStale(HttpRequest request) {
         long maxstale = -1;
-        for(Header h : request.getHeaders("Cache-Control")) {
+        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
-                if ("max-stale".equals(elt.getName())) {
+                if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                     if ((elt.getValue() == null || "".equals(elt.getValue().trim()))
                             && maxstale == -1) {
                         maxstale = Long.MAX_VALUE;
@@ -246,9 +246,9 @@ class CachedResponseSuitabilityChecker {
     }
 
     private boolean hasUnsupportedConditionalHeaders(HttpRequest request) {
-        return (request.getFirstHeader("If-Range") != null
-                || request.getFirstHeader("If-Match") != null
-                || hasValidDateField(request, "If-Unmodified-Since"));
+        return (request.getFirstHeader(HeaderConstants.IF_RANGE) != null
+                || request.getFirstHeader(HeaderConstants.IF_MATCH) != null
+                || hasValidDateField(request, HeaderConstants.IF_UNMODIFIED_SINCE));
     }
 
     private boolean hasSupportedEtagValidator(HttpRequest request) {

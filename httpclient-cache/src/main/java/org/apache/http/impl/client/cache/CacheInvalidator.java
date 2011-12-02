@@ -43,6 +43,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.protocol.HTTP;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -215,16 +216,16 @@ class CacheInvalidator {
 
     private boolean responseAndEntryEtagsDiffer(HttpResponse response,
             HttpCacheEntry entry) {
-        Header entryEtag = entry.getFirstHeader("ETag");
-        Header responseEtag = response.getFirstHeader("ETag");
+        Header entryEtag = entry.getFirstHeader(HeaderConstants.ETAG);
+        Header responseEtag = response.getFirstHeader(HeaderConstants.ETAG);
         if (entryEtag == null || responseEtag == null) return false;
         return (!entryEtag.getValue().equals(responseEtag.getValue()));
     }
 
     private boolean responseDateNewerThanEntryDate(HttpResponse response,
             HttpCacheEntry entry) {
-        Header entryDateHeader = entry.getFirstHeader("Date");
-        Header responseDateHeader = response.getFirstHeader("Date");
+        Header entryDateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
+        Header responseDateHeader = response.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader == null || responseDateHeader == null) {
             return false;
         }

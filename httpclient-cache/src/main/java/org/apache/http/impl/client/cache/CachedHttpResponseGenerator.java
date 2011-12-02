@@ -61,10 +61,10 @@ class CachedHttpResponseGenerator {
     }
 
     /**
-     * If I was able to use a {@link CacheEntry} to response to the {@link org.apache.http.HttpRequest} then
+     * If I was able to use a {@link CacheEntity} to response to the {@link org.apache.http.HttpRequest} then
      * generate an {@link HttpResponse} based on the cache entry.
      * @param entry
-     *            {@link CacheEntry} to transform into an {@link HttpResponse}
+     *            {@link CacheEntity} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
     HttpResponse generateResponse(HttpCacheEntry entry) {
@@ -92,8 +92,8 @@ class CachedHttpResponseGenerator {
     }
 
     /**
-     * Generate a 304 - Not Modified response from a {@link CacheEntry}.  This should be
-     * used to respond to conditional requests, when the entry exists or has been revalidated.
+     * Generate a 304 - Not Modified response from a {@link CacheEntity}.  This should be
+     * used to respond to conditional requests, when the entry exists or has been re-validated.
      *
      * @param entry
      * @return
@@ -107,15 +107,15 @@ class CachedHttpResponseGenerator {
         //  (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
         // - Date, unless its omission is required by section 14.8.1
-        Header dateHeader = entry.getFirstHeader("Date");
+        Header dateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
         if (dateHeader == null) {
-             dateHeader = new BasicHeader("Date", DateUtils.formatDate(new Date()));
+             dateHeader = new BasicHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date()));
         }
         response.addHeader(dateHeader);
 
         // - ETag and/or Content-Location, if the header would have been sent
         //   in a 200 response to the same request
-        Header etagHeader = entry.getFirstHeader("ETag");
+        Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         if (etagHeader != null) {
             response.addHeader(etagHeader);
         }
@@ -128,17 +128,17 @@ class CachedHttpResponseGenerator {
         // - Expires, Cache-Control, and/or Vary, if the field-value might
         //   differ from that sent in any previous response for the same
         //   variant
-        Header expiresHeader = entry.getFirstHeader("Expires");
+        Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
         if (expiresHeader != null) {
             response.addHeader(expiresHeader);
         }
 
-        Header cacheControlHeader = entry.getFirstHeader("Cache-Control");
+        Header cacheControlHeader = entry.getFirstHeader(HeaderConstants.CACHE_CONTROL);
         if (cacheControlHeader != null) {
             response.addHeader(cacheControlHeader);
         }
 
-        Header varyHeader = entry.getFirstHeader("Vary");
+        Header varyHeader = entry.getFirstHeader(HeaderConstants.VARY);
         if (varyHeader != null) {
             response.addHeader(varyHeader);
         }

@@ -53,7 +53,7 @@ class ConditionalRequestBuilder {
      * the origin.  Build the origin {@link HttpRequest} here and return it.
      *
      * @param request the original request from the caller
-     * @param cacheEntry the entry that needs to be revalidated
+     * @param cacheEntry the entry that needs to be re-validated
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
@@ -80,7 +80,7 @@ class ConditionalRequestBuilder {
             }
         }
         if (mustRevalidate) {
-            wrapperRequest.addHeader("Cache-Control","max-age=0");
+            wrapperRequest.addHeader(HeaderConstants.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
         }
         return wrapperRequest;
 
@@ -133,8 +133,7 @@ class ConditionalRequestBuilder {
      * @param entry existing cache entry we are trying to validate
      * @return an unconditional validation request
      */
-    public HttpRequest buildUnconditionalRequest(HttpRequest request,
-            HttpCacheEntry entry) {
+    public HttpRequest buildUnconditionalRequest(HttpRequest request, HttpCacheEntry entry) {
         RequestWrapper wrapped;
         try {
             wrapped = new RequestWrapper(request);
@@ -143,13 +142,13 @@ class ConditionalRequestBuilder {
             return request;
         }
         wrapped.resetHeaders();
-        wrapped.addHeader("Cache-Control","no-cache");
-        wrapped.addHeader("Pragma","no-cache");
-        wrapped.removeHeaders("If-Range");
-        wrapped.removeHeaders("If-Match");
-        wrapped.removeHeaders("If-None-Match");
-        wrapped.removeHeaders("If-Unmodified-Since");
-        wrapped.removeHeaders("If-Modified-Since");
+        wrapped.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        wrapped.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        wrapped.removeHeaders(HeaderConstants.IF_RANGE);
+        wrapped.removeHeaders(HeaderConstants.IF_MATCH);
+        wrapped.removeHeaders(HeaderConstants.IF_NONE_MATCH);
+        wrapped.removeHeaders(HeaderConstants.IF_UNMODIFIED_SINCE);
+        wrapped.removeHeaders(HeaderConstants.IF_MODIFIED_SINCE);
         return wrapped;
     }
 
