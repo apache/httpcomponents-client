@@ -84,26 +84,26 @@ class ResponseCachingPolicy {
         }
 
         switch (response.getStatusLine().getStatusCode()) {
-        case HttpStatus.SC_OK:
-        case HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION:
-        case HttpStatus.SC_MULTIPLE_CHOICES:
-        case HttpStatus.SC_MOVED_PERMANENTLY:
-        case HttpStatus.SC_GONE:
-            // these response codes MAY be cached
-            cacheable = true;
-            log.debug("Response was cacheable");
-            break;
-        case HttpStatus.SC_PARTIAL_CONTENT:
-            // we don't implement Range requests and hence are not
-            // allowed to cache partial content
-            log.debug("Response was not cacheable (Partial Content)");
-            return cacheable;
+            case HttpStatus.SC_OK:
+            case HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION:
+            case HttpStatus.SC_MULTIPLE_CHOICES:
+            case HttpStatus.SC_MOVED_PERMANENTLY:
+            case HttpStatus.SC_GONE:
+                // these response codes MAY be cached
+                cacheable = true;
+                log.debug("Response was cacheable");
+                break;
+            case HttpStatus.SC_PARTIAL_CONTENT:
+                // we don't implement Range requests and hence are not
+                // allowed to cache partial content
+                log.debug("Response was not cacheable (Partial Content)");
+                return cacheable;
 
-        default:
-            // If the status code is not one of the recognized
-            // available codes in HttpStatus Don't Cache
-            log.debug("Response was not cacheable (Unknown Status code)");
-            return cacheable;
+            default:
+                // If the status code is not one of the recognized
+                // available codes in HttpStatus Don't Cache
+                log.debug("Response was not cacheable (Unknown Status code)");
+                return cacheable;
         }
 
         Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);

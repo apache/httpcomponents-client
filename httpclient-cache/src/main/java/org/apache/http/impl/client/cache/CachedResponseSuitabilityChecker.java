@@ -125,9 +125,15 @@ class CachedResponseSuitabilityChecker {
      *            {@link HttpRequest}
      * @param entry
      *            {@link HttpCacheEntry}
+     * @param now
+     *            Right now in time
      * @return boolean yes/no answer
      */
     public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry, Date now) {
+        if (!entry.getResource().isValid())  {
+            return false;
+        }
+
         if (!isFreshEnough(entry, request, now)) {
             log.trace("Cache entry was not fresh enough");
             return false;
@@ -213,7 +219,7 @@ class CachedResponseSuitabilityChecker {
 
     /**
      * Is this request the type of conditional request we support?
-     * @param request
+     * @param request The current httpRequest being made
      * @return {@code true} if the request is supported
      */
     public boolean isConditional(HttpRequest request) {
@@ -222,24 +228,26 @@ class CachedResponseSuitabilityChecker {
 
     /**
      * Check that conditionals that are part of this request match
-     * @param request
-     * @param entry
-     * @param now
+     * @param request The current httpRequest being made
+     * @param entry the cache entry
+     * @param now right NOW in time
      * @return {@code true} if the request matches all conditionals
      */
     public boolean allConditionalsMatch(HttpRequest request, HttpCacheEntry entry, Date now) {
         boolean hasEtagValidator = hasSupportedEtagValidator(request);
         boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
 
-        boolean etagValidatorMatches = (hasEtagValidator) ? etagValidatorMatches(request, entry) : false;
-        boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) ? lastModifiedValidatorMatches(request, entry, now) : false;
+        boolean etagValidatorMatches = (hasEtagValidator) && etagValidatorMatches(request, entry);
+        boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
 
         if ((hasEtagValidator && hasLastModifiedValidator)
             && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
             return false;
         } else if (hasEtagValidator && !etagValidatorMatches) {
             return false;
-        } if (hasLastModifiedValidator && !lastModifiedValidatorMatches) {
+        }
+
+        if (hasLastModifiedValidator && !lastModifiedValidatorMatches) {
             return false;
         }
         return true;
@@ -261,9 +269,9 @@ class CachedResponseSuitabilityChecker {
 
     /**
      * Check entry against If-None-Match
-     * @param request
-     * @param entry
-     * @return
+     * @param request The current httpRequest being made
+     * @param entry the cache entry
+     * @return boolean does the etag validator match
      */
     private boolean etagValidatorMatches(HttpRequest request, HttpCacheEntry entry) {
         Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
@@ -286,10 +294,10 @@ class CachedResponseSuitabilityChecker {
     /**
      * Check entry against If-Modified-Since, if If-Modified-Since is in the future it is invalid as per
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-     * @param request
-     * @param entry
-     * @param now
-     * @return
+     * @param request The current httpRequest being made
+     * @param entry the cache entry
+     * @param now right NOW in time
+     * @return  boolean Does the last modified header match
      */
     private boolean lastModifiedValidatorMatches(HttpRequest request, HttpCacheEntry entry, Date now) {
         Header lastModifiedHeader = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);

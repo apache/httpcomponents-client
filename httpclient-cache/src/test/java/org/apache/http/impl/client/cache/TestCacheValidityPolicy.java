@@ -138,12 +138,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testResidentTimeSecondsIsTimeSinceResponseTime() {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo);
-        impl = new CacheValidityPolicy() {
-            @Override
-            protected Date getCurrentDate() {
-                return now;
-            }
-        };
+        impl = new CacheValidityPolicy();
         assertEquals(6, impl.getResidentTimeSecs(entry, now));
     }
 
