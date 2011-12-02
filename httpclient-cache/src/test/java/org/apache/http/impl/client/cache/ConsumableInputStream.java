@@ -34,15 +34,15 @@ public class ConsumableInputStream extends InputStream {
 
     private ByteArrayInputStream buf;
     private boolean closed = false;
-    
+
     public ConsumableInputStream(ByteArrayInputStream buf) {
         this.buf = buf;
     }
-    
+
     public int read() throws IOException {
         return buf.read();
     }
-    
+
     @Override
     public void close() {
         closed = true;

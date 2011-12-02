@@ -1,6 +1,9 @@
 Changes since 4.2 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1147] When HttpClient-Cache cannot open cache file, should act like miss.
+  Contributed by Joe Campbell <joseph.r.campbell at gmail.com>
+
 * [HTTPCLIENT-1137] Values for the Via header are cached and reused by httpclient-cache.
   Contributed by Alin Vasile <alinachegalati at yahoo dot com>
 

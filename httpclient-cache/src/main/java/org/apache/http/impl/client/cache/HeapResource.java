@@ -64,4 +64,8 @@ public class HeapResource implements Resource {
     public void dispose() {
     }
 
+    public boolean isValid() {
+        return true;
+    }
+
 }

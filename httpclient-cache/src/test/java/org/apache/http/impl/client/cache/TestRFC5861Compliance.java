@@ -114,7 +114,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         assertTrue(cis.wasClosed());
     }
-    
+
     @Test
     public void testStaleIfErrorInResponseYieldsToMustRevalidate()
             throws Exception{

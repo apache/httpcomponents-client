@@ -81,10 +81,10 @@ class CacheValidityPolicy {
      * if last-modified and date are defined, freshness lifetime is coefficient*(date-lastModified),
      * else freshness lifetime is defaultLifetime
      *
-     * @param entry
-     * @param now
-     * @param coefficient
-     * @param defaultLifetime
+     * @param entry the cache entry
+     * @param now what time is it currently (When is right NOW)
+     * @param coefficient Part of the heuristic for cache entry freshness
+     * @param defaultLifetime How long can I assume a cache entry is default TTL
      * @return {@code true} if the response is fresh
      */
     public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
@@ -108,7 +108,10 @@ class CacheValidityPolicy {
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
-        return entry.getFirstHeader(HeaderConstants.ETAG) != null
+        if (!entry.getResource().isValid())
+            return false;
+        else
+            return entry.getFirstHeader(HeaderConstants.ETAG) != null
                 || entry.getFirstHeader(HeaderConstants.LAST_MODIFIED) != null;
     }
 
@@ -212,6 +215,7 @@ class CacheValidityPolicy {
      * This matters for deciding whether the cache entry is valid to serve as a
      * response. If these values do not match, we might have a partial response
      *
+     * @param entry The cache entry we are currently working with
      * @return boolean indicating whether actual length matches Content-Length
      */
     protected boolean contentLengthHeaderMatchesActualLength(final HttpCacheEntry entry) {
@@ -258,10 +262,6 @@ class CacheValidityPolicy {
 
     protected long getCorrectedInitialAgeSecs(final HttpCacheEntry entry) {
         return getCorrectedReceivedAgeSecs(entry) + getResponseDelaySecs(entry);
-    }
-
-    protected Date getCurrentDate() {
-        return new Date();
     }
 
     protected long getResidentTimeSecs(HttpCacheEntry entry, Date now) {
