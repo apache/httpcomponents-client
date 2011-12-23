@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
@@ -333,7 +334,7 @@ public class CachingHttpClient implements HttpClient {
     public <T> T execute(HttpHost target, HttpRequest request,
                          ResponseHandler<? extends T> responseHandler, HttpContext context) throws IOException {
         HttpResponse resp = execute(target, request, context);
-        return responseHandler.handleResponse(resp);
+        return handleAndConsume(responseHandler,resp);
     }
 
     public HttpResponse execute(HttpUriRequest request) throws IOException {
@@ -355,7 +356,38 @@ public class CachingHttpClient implements HttpClient {
     public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler,
                          HttpContext context) throws IOException {
         HttpResponse resp = execute(request, context);
-        return responseHandler.handleResponse(resp);
+        return handleAndConsume(responseHandler, resp);
+    }
+
+    private <T> T handleAndConsume(
+            final ResponseHandler<? extends T> responseHandler,
+            HttpResponse response) throws Error, IOException {
+        T result;
+        try {
+            result = responseHandler.handleResponse(response);
+        } catch (Exception t) {
+            HttpEntity entity = response.getEntity();
+            try {
+                EntityUtils.consume(entity);
+            } catch (Exception t2) {
+                // Log this exception. The original exception is more
+                // important and will be thrown to the caller.
+                this.log.warn("Error consuming content after an exception.", t2);
+            }
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
+            if (t instanceof IOException) {
+                throw (IOException) t;
+            }
+            throw new UndeclaredThrowableException(t);
+        }
+
+        // Handling the response was successful. Ensure that the content has
+        // been fully consumed.
+        HttpEntity entity = response.getEntity();
+        EntityUtils.consume(entity);
+        return result;
     }
 
     public ClientConnectionManager getConnectionManager() {

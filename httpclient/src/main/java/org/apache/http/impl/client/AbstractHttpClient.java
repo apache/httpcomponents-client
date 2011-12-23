@@ -943,7 +943,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         T result;
         try {
             result = responseHandler.handleResponse(response);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             HttpEntity entity = response.getEntity();
             try {
                 EntityUtils.consume(entity);
@@ -952,19 +952,12 @@ public abstract class AbstractHttpClient implements HttpClient {
                 // important and will be thrown to the caller.
                 this.log.warn("Error consuming content after an exception.", t2);
             }
-
-            if (t instanceof Error) {
-                throw (Error) t;
-            }
-
             if (t instanceof RuntimeException) {
                 throw (RuntimeException) t;
             }
-
             if (t instanceof IOException) {
                 throw (IOException) t;
             }
-
             throw new UndeclaredThrowableException(t);
         }
 
