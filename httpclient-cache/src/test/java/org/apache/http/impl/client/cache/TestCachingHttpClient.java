@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -50,6 +52,7 @@ import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
@@ -106,6 +109,7 @@ public class TestCachingHttpClient {
     private HttpContext context;
     private HttpParams params;
     private HttpCacheEntry entry;
+    private ConsumableInputStream cis;
 
     @SuppressWarnings("unchecked")
     @Before
@@ -620,12 +624,61 @@ public class TestCachingHttpClient {
 
         expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 theObject);
-
+        HttpEntity streamingEntity = makeStreamingEntity();
+        expect(theResponse.getEntity()).andReturn(streamingEntity);
         replayMocks();
         Object result = impl.execute(host, request, mockHandler, context);
         verifyMocks();
         Assert.assertEquals(1, c.getCount());
         Assert.assertSame(theObject, result);
+        Assert.assertTrue(cis.wasClosed());
+    }
+
+    @Test
+    public void testConsumesEntityOnExecuteWithException() throws Exception {
+
+        final Counter c = new Counter();
+        final HttpHost theHost = host;
+        final HttpRequest theRequest = request;
+        final HttpResponse theResponse = mockBackendResponse;
+        final HttpContext theContext = context;
+        impl = new CachingHttpClient(
+                mockBackend,
+                mockValidityPolicy,
+                mockResponsePolicy,
+                mockCache,
+                mockResponseGenerator,
+                mockRequestPolicy,
+                mockSuitabilityChecker,
+                mockConditionalRequestBuilder,
+                mockResponseProtocolCompliance,
+                mockRequestProtocolCompliance) {
+            @Override
+            public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
+                Assert.assertSame(theHost, target);
+                Assert.assertSame(theRequest, request);
+                Assert.assertSame(theContext, context);
+                c.incr();
+                return theResponse;
+            }
+        };
+        IOException ioException = new IOException("test exception");
+
+        expect(mockHandler.handleResponse(mockBackendResponse)).andThrow(ioException);
+        HttpEntity streamingEntity = makeStreamingEntity();
+        expect(theResponse.getEntity()).andReturn(streamingEntity).anyTimes();
+
+        replayMocks();
+        Object result = null;
+        try {
+            result = impl.execute(host, request, mockHandler, context);
+        } catch (Exception e) {
+            assertEquals(ioException, e);
+        }
+        verifyMocks();
+        Assert.assertEquals(1, c.getCount());
+        Assert.assertNull(result);
+        assertTrue(cis.wasClosed());
     }
 
     @Test
@@ -769,15 +822,16 @@ public class TestCachingHttpClient {
                 return theResponse;
             }
         };
-
         expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
                 theValue);
-
+        HttpEntity streamingEntity = makeStreamingEntity();
+        expect(theResponse.getEntity()).andReturn(streamingEntity);
         replayMocks();
         Object result = impl.execute(mockUriRequest, mockHandler, context);
         verifyMocks();
         Assert.assertEquals(1, c.getCount());
         Assert.assertSame(theValue, result);
+        Assert.assertTrue(cis.wasClosed());
     }
 
     @Test
@@ -1940,6 +1994,13 @@ public class TestCachingHttpClient {
         expect(
                 mockRequestProtocolCompliance.makeRequestCompliant(
                         (HttpRequest)anyObject())).andThrow(exception);
+    }
+
+    private HttpEntity makeStreamingEntity() {
+        byte[] body = HttpTestUtils.getRandomBytes(101);
+        ByteArrayInputStream buf = new ByteArrayInputStream(body);
+        cis = new ConsumableInputStream(buf);
+        return new InputStreamEntity(cis, 101);
     }
 
     private void mockImplMethods(String... methods) {

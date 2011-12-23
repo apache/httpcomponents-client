@@ -1,6 +1,10 @@
 Changes since 4.2 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1155] CachingHttpClient fails to ensure that the response content gets fully consumed 
+  when using a ResponseHandler, which can potentially lead to connection leaks.
+  Contributed by James Miller <jamesmiller01 at gmail dot com>
+  
 * [HTTPCLIENT-1147] When HttpClient-Cache cannot open cache file, should act like miss.
   Contributed by Joe Campbell <joseph.r.campbell at gmail.com>
 
