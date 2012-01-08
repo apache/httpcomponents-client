@@ -485,8 +485,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
                 String userinfo = wrapper.getURI().getUserInfo();
                 if (userinfo != null) {
-                    targetAuthState.setAuthScheme(new BasicScheme());
-                    targetAuthState.setCredentials(new UsernamePasswordCredentials(userinfo));
+                    targetAuthState.update(
+                            new BasicScheme(), new UsernamePasswordCredentials(userinfo));
                 }
 
                 // Reset headers on the request wrapper
