@@ -127,12 +127,24 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         client.set(url, 0, bos.toByteArray());
     }
 
-    public HttpCacheEntry getEntry(String url) throws IOException {
-        byte[] data = (byte[]) client.get(url);
-        if (null == data)
+    private byte[] convertToByteArray(Object o) {
+        if (o == null) return null;
+        if (!(o instanceof byte[])) {
+            log.warn("got a non-bytearray back from memcached: " + o);
             return null;
-        InputStream bis = new ByteArrayInputStream(data);
+        }
+        return (byte[])o;
+    }
+
+    private HttpCacheEntry reconstituteEntry(Object o) throws IOException {
+        byte[] out = convertToByteArray(o);
+        if (out == null) return null;
+        InputStream bis = new ByteArrayInputStream(out);
         return serializer.readFrom(bis);
+    }
+    
+    public HttpCacheEntry getEntry(String url) throws IOException {
+        return reconstituteEntry(client.get(url));
     }
 
     public void removeEntry(String url) throws IOException {
@@ -145,19 +157,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         do {
 
             CASValue<Object> v = client.gets(url);
-            byte[] oldBytes = null;
-            if (v != null) {
-                if (v.getValue() instanceof byte[]) {
-                    oldBytes = (byte[])v.getValue();
-                } else {
-                    log.warn("got non-bytearray back from memcached");
-                }
-            }
-            HttpCacheEntry existingEntry = null;
-            if (oldBytes != null) {
-                ByteArrayInputStream bis = new ByteArrayInputStream(oldBytes);
-                existingEntry = serializer.readFrom(bis);
-            }
+            HttpCacheEntry existingEntry = (v == null) ? null
+                    : reconstituteEntry(v.getValue());
             HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
             if (v == null) {
