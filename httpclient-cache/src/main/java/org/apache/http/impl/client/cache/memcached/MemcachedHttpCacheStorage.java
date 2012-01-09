@@ -37,6 +37,8 @@ import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.MemcachedClientIF;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateException;
@@ -74,6 +76,8 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  */
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
+    private static final Log log = LogFactory.getLog(MemcachedHttpCacheStorage.class);
+    
     private final MemcachedClientIF client;
     private final HttpCacheEntrySerializer serializer;
     private final int maxUpdateRetries;
@@ -84,7 +88,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * just have a single local memcached instance running on the same
      * machine as your application, for example.
      * @param address where the <i>memcached</i> daemon is running
-     * @throws IOException
+     * @throws IOException in case of an error
      */
     public MemcachedHttpCacheStorage(InetSocketAddress address) throws IOException {
         this(new MemcachedClient(address));
@@ -138,32 +142,39 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public void updateEntry(String url, HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;
-        do{
+        do {
 
-        CASValue<Object> v = client.gets(url);
-        byte[] oldBytes = (v != null) ? (byte[]) v.getValue() : null;
-        HttpCacheEntry existingEntry = null;
-        if (oldBytes != null) {
-            ByteArrayInputStream bis = new ByteArrayInputStream(oldBytes);
-            existingEntry = serializer.readFrom(bis);
-        }
-        HttpCacheEntry updatedEntry = callback.update(existingEntry);
-
-        if (v == null) {
-            putEntry(url, updatedEntry);
-            return;
-
-        } else {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            serializer.writeTo(updatedEntry, bos);
-            CASResponse casResult = client.cas(url, v.getCas(), bos.toByteArray());
-            if (casResult != CASResponse.OK) {
-                 numRetries++;
+            CASValue<Object> v = client.gets(url);
+            byte[] oldBytes = null;
+            if (v != null) {
+                if (v.getValue() instanceof byte[]) {
+                    oldBytes = (byte[])v.getValue();
+                } else {
+                    log.warn("got non-bytearray back from memcached");
+                }
             }
-            else return;
-        }
+            HttpCacheEntry existingEntry = null;
+            if (oldBytes != null) {
+                ByteArrayInputStream bis = new ByteArrayInputStream(oldBytes);
+                existingEntry = serializer.readFrom(bis);
+            }
+            HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
-    } while(numRetries <= maxUpdateRetries);
-    throw new HttpCacheUpdateException("Failed to update");
+            if (v == null) {
+                putEntry(url, updatedEntry);
+                return;
+
+            } else {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                serializer.writeTo(updatedEntry, bos);
+                CASResponse casResult = client.cas(url, v.getCas(), bos.toByteArray());
+                if (casResult != CASResponse.OK) {
+                    numRetries++;
+                } else return;
+            }
+
+        } while (numRetries <= maxUpdateRetries);
+
+        throw new HttpCacheUpdateException("Failed to update");
     }
 }

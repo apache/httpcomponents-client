@@ -1,5 +1,8 @@
 Changes since 4.1.2
 -------------------
+* [HTTPCLIENT-1152] MemcachedHttpCacheStorage should verify class of
+  returned object before casting.
+  Contributed by Rajika Kumarasiri <rajika at wso2 dot com>.
 
 * [HTTPCLIENT-1155] CachingHttpClient fails to ensure that the response content gets fully consumed 
   when using a ResponseHandler, which can potentially lead to connection leaks.
