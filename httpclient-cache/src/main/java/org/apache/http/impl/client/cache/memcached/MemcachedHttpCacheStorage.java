@@ -37,6 +37,8 @@ import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.MemcachedClientIF;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateException;
@@ -74,6 +76,8 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  */
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
+    private static final Log log = LogFactory.getLog(MemcachedHttpCacheStorage.class);
+    
     private final MemcachedClientIF client;
     private final HttpCacheEntrySerializer serializer;
     private final int maxUpdateRetries;
@@ -141,8 +145,14 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         do {
 
             CASValue<Object> v = client.gets(url);
-            byte[] oldBytes = (v != null && (v.getValue() instanceof byte[])) ? (byte[]) v.getValue() :
-                    null;
+            byte[] oldBytes = null;
+            if (v != null) {
+                if (v.getValue() instanceof byte[]) {
+                    oldBytes = (byte[])v.getValue();
+                } else {
+                    log.warn("got non-bytearray back from memcached");
+                }
+            }
             HttpCacheEntry existingEntry = null;
             if (oldBytes != null) {
                 ByteArrayInputStream bis = new ByteArrayInputStream(oldBytes);
