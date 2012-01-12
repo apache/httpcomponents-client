@@ -36,6 +36,7 @@ import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.MemcachedClientIF;
+import net.spy.memcached.OperationTimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,7 +125,11 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public void putEntry(String url, HttpCacheEntry entry) throws IOException  {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         serializer.writeTo(entry, bos);
-        client.set(url, 0, bos.toByteArray());
+        try {
+            client.set(url, 0, bos.toByteArray());
+        } catch (OperationTimeoutException ex) {
+            throw new MemcachedOperationTimeoutException(ex);
+        }
     }
 
     private byte[] convertToByteArray(Object o) {
@@ -144,36 +149,47 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
     
     public HttpCacheEntry getEntry(String url) throws IOException {
-        return reconstituteEntry(client.get(url));
+        try {
+            return reconstituteEntry(client.get(url));
+        } catch (OperationTimeoutException ex) {
+            throw new MemcachedOperationTimeoutException(ex);
+        }
     }
 
     public void removeEntry(String url) throws IOException {
-        client.delete(url);
+        try {
+            client.delete(url);
+        } catch (OperationTimeoutException ex) {
+            throw new MemcachedOperationTimeoutException(ex);
+        }
     }
 
     public void updateEntry(String url, HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;
         do {
+            try {
+                CASValue<Object> v = client.gets(url);
+                HttpCacheEntry existingEntry = (v == null) ? null
+                        : reconstituteEntry(v.getValue());
+                HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
-            CASValue<Object> v = client.gets(url);
-            HttpCacheEntry existingEntry = (v == null) ? null
-                    : reconstituteEntry(v.getValue());
-            HttpCacheEntry updatedEntry = callback.update(existingEntry);
+                if (v == null) {
+                    putEntry(url, updatedEntry);
+                    return;
 
-            if (v == null) {
-                putEntry(url, updatedEntry);
-                return;
-
-            } else {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                serializer.writeTo(updatedEntry, bos);
-                CASResponse casResult = client.cas(url, v.getCas(), bos.toByteArray());
-                if (casResult != CASResponse.OK) {
-                    numRetries++;
-                } else return;
+                } else {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    serializer.writeTo(updatedEntry, bos);
+                    CASResponse casResult = client.cas(url, v.getCas(),
+                            bos.toByteArray());
+                    if (casResult != CASResponse.OK) {
+                        numRetries++;
+                    } else return;
+                }
+            } catch (OperationTimeoutException ex) {
+                throw new MemcachedOperationTimeoutException(ex);
             }
-
         } while (numRetries <= maxUpdateRetries);
 
         throw new HttpCacheUpdateException("Failed to update");

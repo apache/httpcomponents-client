@@ -35,6 +35,7 @@ import junit.framework.TestCase;
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClientIF;
+import net.spy.memcached.OperationTimeoutException;
 
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
@@ -99,6 +100,22 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertSame(cacheEntry, resultingEntry);
+    }
+
+    @Test
+    public void testCacheGetThrowsTimeoutException()
+            throws UnsupportedEncodingException, IOException {
+        final String url = "foo";
+        EasyMock.expect(mockMemcachedClient.get(url)).andThrow(
+                new OperationTimeoutException("op timeout"));
+        replayMocks();
+        try {
+            impl.getEntry(url);
+            fail("IOException not thrown");
+        } catch (IOException ex) {
+            assertTrue(ex instanceof IOException);
+        }
+        verifyMocks();
     }
 
     @Test
@@ -187,6 +204,44 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
+    public void testCacheUpdateThrowsTimeoutException() throws IOException, HttpCacheUpdateException {
+        final String url = "foo";
+        final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
+
+        CASValue<Object> v = new CASValue<Object>(1234, new byte[] {});
+
+        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            public HttpCacheEntry update(HttpCacheEntry old) {
+                assertEquals(existingValue, old);
+                return updatedValue;
+            }
+        };
+
+        // get existing old entry
+        EasyMock.expect(mockMemcachedClient.gets(url)).andReturn(v);
+        EasyMock.expect(
+                mockSerializer.readFrom(EasyMock.isA(InputStream.class)))
+                .andReturn(existingValue);
+
+        // update
+        EasyMock.expect(
+                mockMemcachedClient.cas(EasyMock.eq(url), EasyMock.eq(v
+                        .getCas()), EasyMock.aryEq(new byte[0]))).andThrow(
+                new OperationTimeoutException("op timeout"));
+        mockSerializer.writeTo(EasyMock.same(updatedValue), EasyMock
+                .isA(OutputStream.class));
+        replayMocks();
+        try {
+            impl.updateEntry(url, callback);
+            fail("IOException not thrown");
+        } catch(IOException ex) {
+            assertTrue(ex instanceof IOException);
+        }
+        verifyMocks();
+    }
+
+    @Test
     public void testSingleCacheUpdateRetry() throws IOException,
             HttpCacheUpdateException {
         final String url = "foo";
@@ -261,6 +316,47 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
             fail("Expected HttpCacheUpdateException");
         } catch (HttpCacheUpdateException e) {
         }
+        verifyMocks();
+    }
+
+    @Test
+    public void testCachePutThrowsIOExceptionOnTimeout() throws Exception {
+        final String url = "foo";
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        impl = new MemcachedHttpCacheStorage(mockMemcachedClient);
+        
+        EasyMock.expect(mockMemcachedClient.set(EasyMock.eq(url), EasyMock.anyInt(), EasyMock.anyObject()))
+            .andThrow(new OperationTimeoutException(url));
+        
+        replayMocks();
+        boolean sawIOException = false;
+        try {
+            impl.putEntry(url, entry);
+            fail("should have thrown exception");
+        } catch (IOException expected) {
+            sawIOException = true;
+        }
+        assertTrue(sawIOException);
+        verifyMocks();
+    }
+    
+    @Test
+    public void testCacheDeleteThrowsIOExceptionOnTimeout() throws Exception {
+        final String url = "foo";
+        impl = new MemcachedHttpCacheStorage(mockMemcachedClient);
+        
+        EasyMock.expect(mockMemcachedClient.delete(url))
+            .andThrow(new OperationTimeoutException(url));
+        
+        replayMocks();
+        boolean sawIOException = false;
+        try {
+            impl.removeEntry(url);
+            fail("should have thrown exception");
+        } catch (IOException expected) {
+            sawIOException = true;
+        }
+        assertTrue(sawIOException);
         verifyMocks();
     }
 

@@ -1,5 +1,9 @@
 Changes since 4.1.2
 -------------------
+* [HTTPCLIENT-1157] MemcachedHttpCacheStroage should throw IOExceptions
+  instead of RuntimeExceptions.
+  Contributed by James Miller <jamesmiller01 at gmail dot com>.
+  
 * [HTTPCLIENT-1152] MemcachedHttpCacheStorage should verify class of
   returned object before casting.
   Contributed by Rajika Kumarasiri <rajika at wso2 dot com>.
