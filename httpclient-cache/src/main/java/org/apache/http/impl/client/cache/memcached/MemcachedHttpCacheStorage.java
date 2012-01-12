@@ -128,7 +128,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         try {
             client.set(url, 0, bos.toByteArray());
         } catch (OperationTimeoutException ex) {
-            throw new IOException(ex);
+            throw new MemcachedOperationTimeoutException(ex);
         }
     }
 
@@ -152,7 +152,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         try {
             return reconstituteEntry(client.get(url));
         } catch (OperationTimeoutException ex) {
-            throw new IOException(ex);
+            throw new MemcachedOperationTimeoutException(ex);
         }
     }
 
@@ -160,7 +160,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         try {
             client.delete(url);
         } catch (OperationTimeoutException ex) {
-            throw new IOException(ex);
+            throw new MemcachedOperationTimeoutException(ex);
         }
     }
 
@@ -188,7 +188,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
                     } else return;
                 }
             } catch (OperationTimeoutException ex) {
-                throw new IOException(ex);
+                throw new MemcachedOperationTimeoutException(ex);
             }
         } while (numRetries <= maxUpdateRetries);
 
