@@ -244,17 +244,17 @@ public class URLEncodedUtils {
      * list of parameters in an HTTP PUT or HTTP POST.
      *
      * @param parameters  The parameters to include.
-     * @param encoding The encoding to use.
+     * @param charset The encoding to use.
      *
      * @since 4.2
      */
     public static String format (
             final Iterable<? extends NameValuePair> parameters,
-            final String encoding) {
+            final String charset) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
-            final String encodedName = encode(parameter.getName(), encoding);
-            final String encodedValue = encode(parameter.getValue(), encoding);
+            final String encodedName = encode(parameter.getName(), charset);
+            final String encodedValue = encode(parameter.getValue(), charset);
             if (result.length() > 0) {
                 result.append(PARAMETER_SEPARATOR);
             }
@@ -267,25 +267,25 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
-    private static String decode (final String content, final String encoding) {
+    private static String decode (final String content, final String charset) {
         if (content == null) {
             return null;
         }
         try {
             return URLDecoder.decode(content,
-                    encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
+                    charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET);
         } catch (UnsupportedEncodingException problem) {
             throw new IllegalArgumentException(problem);
         }
     }
 
-    private static String encode (final String content, final String encoding) {
+    private static String encode (final String content, final String charset) {
         if (content == null) {
             return null;
         }
         try {
             return URLEncoder.encode(content,
-                    encoding != null ? encoding : HTTP.DEFAULT_CONTENT_CHARSET);
+                    charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET);
         } catch (UnsupportedEncodingException problem) {
             throw new IllegalArgumentException(problem);
         }
