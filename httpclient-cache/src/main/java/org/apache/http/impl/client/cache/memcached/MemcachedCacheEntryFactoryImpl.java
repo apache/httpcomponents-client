@@ -26,18 +26,20 @@
  */
 package org.apache.http.impl.client.cache.memcached;
 
-import java.io.IOException;
+import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
+import org.apache.http.client.cache.memcached.MemcachedCacheEntryFactory;
 
 /**
- * Raised when memcached times out on us.
+ * Default implementation of {@link MemcachedCacheEntryFactory}.
  */
-class MemcachedOperationTimeoutException extends IOException {
+public class MemcachedCacheEntryFactoryImpl implements MemcachedCacheEntryFactory {
 
-    private static final long serialVersionUID = 1608334789051537010L;
-
-    public MemcachedOperationTimeoutException(final Throwable cause) {
-        super(cause.getMessage());
-        initCause(cause);
+    public MemcachedCacheEntry getMemcachedCacheEntry(String key, HttpCacheEntry entry) {
+        return new MemcachedCacheEntryImpl(key, entry);
     }
 
+    public MemcachedCacheEntry getUnsetCacheEntry() {
+        return new MemcachedCacheEntryImpl(null, null);
+    }
 }

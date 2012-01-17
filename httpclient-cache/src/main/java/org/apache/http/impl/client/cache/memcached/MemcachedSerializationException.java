@@ -26,18 +26,16 @@
  */
 package org.apache.http.impl.client.cache.memcached;
 
-import java.io.IOException;
-
 /**
- * Raised when memcached times out on us.
+ * Raised when there is a problem serializing or deserializing cache
+ * entries into a byte representation suitable for memcached storage.
  */
-class MemcachedOperationTimeoutException extends IOException {
+public class MemcachedSerializationException extends RuntimeException {
 
-    private static final long serialVersionUID = 1608334789051537010L;
+    private static final long serialVersionUID = 2201652990656412236L;
 
-    public MemcachedOperationTimeoutException(final Throwable cause) {
-        super(cause.getMessage());
-        initCause(cause);
+    public MemcachedSerializationException(Throwable cause) {
+        super(cause);
     }
 
 }

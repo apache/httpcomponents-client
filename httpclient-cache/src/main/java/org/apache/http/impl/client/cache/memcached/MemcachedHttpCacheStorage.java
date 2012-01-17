@@ -26,10 +26,7 @@
  */
 package org.apache.http.impl.client.cache.memcached;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 
 import net.spy.memcached.CASResponse;
@@ -45,6 +42,9 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.memcached.KeyHashingScheme;
+import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
+import org.apache.http.client.cache.memcached.MemcachedCacheEntryFactory;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
@@ -57,8 +57,7 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  * <li>in-memory cached objects can survive an application restart since
  * they are held in a separate process</li>
  * <li>it becomes possible for several cooperating applications to share
- * a large <i>memcached</i> farm together, effectively providing cache
- * peering of a sort</li>
+ * a large <i>memcached</i> farm together</li>
  * </ol>
  * Note that in a shared memcached pool setting you may wish to make use
  * of the Ketama consistent hashing algorithm to reduce the number of
@@ -66,6 +65,19 @@ import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
  * fails (see the <a href="http://dustin.github.com/java-memcached-client/apidocs/net/spy/memcached/KetamaConnectionFactory.html">
  * KetamaConnectionFactory</a>).
  * </p>
+ * 
+ * <p>Because memcached places limits on the size of its keys, we need to
+ * introduce a key hashing scheme to map the annotated URLs the higher-level
+ * {@link CachingHttpClient} wants to use as keys onto ones that are suitable
+ * for use with memcached. Please see {@link KeyHashingScheme} if you would
+ * like to use something other than the provided {@link SHA256KeyHashingScheme}.</p>
+ * 
+ * <p>Because this hashing scheme can potentially result in key collisions (though
+ * highly unlikely), we need to store the higher-level logical storage key along
+ * with the {@link HttpCacheEntry} so that we can re-check it on retrieval. There
+ * is a default serialization scheme provided for this, although you can provide
+ * your own implementations of {@link MemcachedCacheEntry} and
+ * {@link MemcachedCacheEntryFactory} to customize this serialization.</p>
  *
  * <p>Please refer to the <a href="http://code.google.com/p/memcached/wiki/NewStart">
  * memcached documentation</a> and in particular to the documentation for
@@ -80,7 +92,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     private static final Log log = LogFactory.getLog(MemcachedHttpCacheStorage.class);
     
     private final MemcachedClientIF client;
-    private final HttpCacheEntrySerializer serializer;
+    private final KeyHashingScheme keyHashingScheme;
+    private final MemcachedCacheEntryFactory memcachedCacheEntryFactory;
     private final int maxUpdateRetries;
 
     /**
@@ -101,34 +114,79 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @param cache client to use for communicating with <i>memcached</i>
      */
     public MemcachedHttpCacheStorage(MemcachedClientIF cache) {
-        this(cache, new CacheConfig(), new DefaultHttpCacheEntrySerializer());
+        this(cache, new CacheConfig(), new MemcachedCacheEntryFactoryImpl(),
+                new SHA256KeyHashingScheme());
     }
 
     /**
      * Create a storage backend using the given <i>memcached</i> client and
      * applying the given cache configuration and cache entry serialization
-     * mechanism.
+     * mechanism. <b>Deprecation note:</b> In the process of fixing a bug
+     * based on the need to hash logical storage keys onto memcached cache
+     * keys, the serialization process was revamped. This constructor still
+     * works, but the serializer argument will be ignored and default
+     * implementations of the new framework will be used. You can still
+     * provide custom serialization by using the
+     * {@link #MemcachedHttpCacheStorage(MemcachedClientIF, CacheConfig,
+     * MemcachedCacheEntryFactory, KeyHashingScheme)} constructor.
      * @param client how to talk to <i>memcached</i>
      * @param config apply HTTP cache-related options
-     * @param serializer how to serialize the cache entries before writing
-     *   them out to <i>memcached</i>. The provided {@link
-     *   DefaultHttpCacheEntrySerializer} is a fine serialization mechanism
-     *   to use here.
+     * @param serializer <b>ignored</b>
      */
+    @Deprecated
     public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,
             HttpCacheEntrySerializer serializer) {
-        this.client = client;
-        this.maxUpdateRetries = config.getMaxUpdateRetries();
-        this.serializer = serializer;
+        this(client, config, new MemcachedCacheEntryFactoryImpl(),
+                new SHA256KeyHashingScheme());
     }
 
+    /**
+     * Create a storage backend using the given <i>memcached</i> client and
+     * applying the given cache configuration, serialization, and hashing
+     * mechanisms.
+     * @param client how to talk to <i>memcached</i>
+     * @param config apply HTTP cache-related options
+     * @param memcachedCacheEntryFactory Factory pattern used for obtaining
+     *   instances of alternative cache entry serialization mechanisms
+     * @param keyHashingScheme how to map higher-level logical "storage keys"
+     *   onto "cache keys" suitable for use with memcached
+     */
+    public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,
+            MemcachedCacheEntryFactory memcachedCacheEntryFactory,
+            KeyHashingScheme keyHashingScheme) {
+        this.client = client;
+        this.maxUpdateRetries = config.getMaxUpdateRetries();
+        this.memcachedCacheEntryFactory = memcachedCacheEntryFactory;
+        this.keyHashingScheme = keyHashingScheme;
+    }
+    
     public void putEntry(String url, HttpCacheEntry entry) throws IOException  {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        serializer.writeTo(entry, bos);
+        byte[] bytes = serializeEntry(url, entry);
+        String key = getCacheKey(url);
+        if (key == null) return;
         try {
-            client.set(url, 0, bos.toByteArray());
+            client.set(key, 0, bytes);
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
+        }
+    }
+
+    private String getCacheKey(String url) {
+        try {
+            return keyHashingScheme.hash(url);
+        } catch (MemcachedKeyHashingException mkhe) {
+            return null;
+        }
+    }
+
+    private byte[] serializeEntry(String url, HttpCacheEntry hce) throws IOException {
+        MemcachedCacheEntry mce = memcachedCacheEntryFactory.getMemcachedCacheEntry(url, hce);
+        try {
+            return mce.toByteArray();
+        } catch (MemcachedSerializationException mse) {
+            IOException ioe = new IOException();
+            ioe.initCause(mse);
+            throw ioe;
         }
     }
 
@@ -141,24 +199,35 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         return (byte[])o;
     }
 
-    private HttpCacheEntry reconstituteEntry(Object o) throws IOException {
-        byte[] out = convertToByteArray(o);
-        if (out == null) return null;
-        InputStream bis = new ByteArrayInputStream(out);
-        return serializer.readFrom(bis);
+    private MemcachedCacheEntry reconstituteEntry(Object o) throws IOException {
+        byte[] bytes = convertToByteArray(o);
+        if (bytes == null) return null;
+        MemcachedCacheEntry mce = memcachedCacheEntryFactory.getUnsetCacheEntry();
+        try {
+            mce.set(bytes);
+        } catch (MemcachedSerializationException mse) {
+            return null;
+        }
+        return mce;
     }
     
     public HttpCacheEntry getEntry(String url) throws IOException {
+        String key = getCacheKey(url);
+        if (key == null) return null;
         try {
-            return reconstituteEntry(client.get(url));
+            MemcachedCacheEntry mce = reconstituteEntry(client.get(key));
+            if (mce == null || !url.equals(mce.getStorageKey())) return null;
+            return mce.getHttpCacheEntry();
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
     }
 
     public void removeEntry(String url) throws IOException {
+        String key = getCacheKey(url);
+        if (key == null) return;
         try {
-            client.delete(url);
+            client.delete(key);
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
@@ -167,22 +236,30 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public void updateEntry(String url, HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;
+        String key = getCacheKey(url);
+        if (key == null) {
+            throw new HttpCacheUpdateException("couldn't generate cache key");
+        }
         do {
             try {
-                CASValue<Object> v = client.gets(url);
-                HttpCacheEntry existingEntry = (v == null) ? null
+                CASValue<Object> v = client.gets(key);
+                MemcachedCacheEntry mce = (v == null) ? null
                         : reconstituteEntry(v.getValue());
+                if (mce != null && (!url.equals(mce.getStorageKey()))) {
+                    mce = null;
+                }
+                HttpCacheEntry existingEntry = (mce == null) ? null
+                        : mce.getHttpCacheEntry();
                 HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
-                if (v == null) {
+                if (existingEntry == null) {
                     putEntry(url, updatedEntry);
                     return;
 
                 } else {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    serializer.writeTo(updatedEntry, bos);
-                    CASResponse casResult = client.cas(url, v.getCas(),
-                            bos.toByteArray());
+                    byte[] updatedBytes = serializeEntry(url, updatedEntry);
+                    CASResponse casResult = client.cas(key, v.getCas(),
+                            updatedBytes);
                     if (casResult != CASResponse.OK) {
                         numRetries++;
                     } else return;

@@ -26,18 +26,16 @@
  */
 package org.apache.http.impl.client.cache.memcached;
 
-import java.io.IOException;
-
 /**
- * Raised when memcached times out on us.
+ * Indicates a problem encountered when trying to map a
+ * logical "storage key" to a "cache key" suitable for use with
+ * memcached.
  */
-class MemcachedOperationTimeoutException extends IOException {
+public class MemcachedKeyHashingException extends RuntimeException {
 
-    private static final long serialVersionUID = 1608334789051537010L;
+    private static final long serialVersionUID = -7553380015989141114L;
 
-    public MemcachedOperationTimeoutException(final Throwable cause) {
-        super(cause.getMessage());
-        initCause(cause);
+    public MemcachedKeyHashingException(Throwable cause) {
+        super(cause);
     }
-
 }

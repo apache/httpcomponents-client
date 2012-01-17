@@ -23,21 +23,23 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */
-package org.apache.http.impl.client.cache.memcached;
-
-import java.io.IOException;
+ */package org.apache.http.client.cache.memcached;
 
 /**
- * Raised when memcached times out on us.
+ * Since the {@link HttpCacheStorage} interface expects to use variant-annotated
+ * URLs for its storage keys, but Memcached has a maximum key size, we need to
+ * support mapping storage keys to cache keys. Clients can implement this
+ * interface to change the way the mapping is done (for example, to add a prefix
+ * to all cache keys to provide a form of memcached namespacing).
  */
-class MemcachedOperationTimeoutException extends IOException {
+public interface KeyHashingScheme {
 
-    private static final long serialVersionUID = 1608334789051537010L;
-
-    public MemcachedOperationTimeoutException(final Throwable cause) {
-        super(cause.getMessage());
-        initCause(cause);
-    }
-
+    /** Maps a storage key to a cache key. The storage key is what
+     * the higher-level HTTP cache uses as a key; the cache key is what
+     * we use as a key for talking to memcached.
+     * @param storageKey what the higher-level HTTP cache wants to use
+     *   as its key for looking up cache entries
+     * @return a cache key suitable for use with memcached
+     */
+    public String hash(String storageKey);
 }
