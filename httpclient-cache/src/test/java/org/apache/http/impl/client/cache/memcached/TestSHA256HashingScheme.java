@@ -13,4 +13,5 @@ public class TestSHA256HashingScheme {
         String result = impl.hash("hello, hashing world");
         assertTrue(result != null && result.length() > 0);
     }
+    
 }

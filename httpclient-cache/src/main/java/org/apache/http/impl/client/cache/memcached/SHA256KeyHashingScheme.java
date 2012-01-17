@@ -37,7 +37,9 @@ import org.apache.http.client.cache.memcached.KeyHashingScheme;
 /**
  * This is a {@link KeyHashingScheme} based on the
  * <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-256</a>
- * algorithm.
+ * algorithm. The hashes produced are hex-encoded SHA-256
+ * digests and hence are always 64-character hexadecimal
+ * strings.
  */
 public class SHA256KeyHashingScheme implements KeyHashingScheme {
 
