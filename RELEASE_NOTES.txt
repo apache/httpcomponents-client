@@ -1,6 +1,12 @@
 Changes since 4.1.2
 -------------------
-* [HTTPCLIENT-1157] MemcachedHttpCacheStroage should throw IOExceptions
+* [HTTPCLIENT-1153] MemcachedHttpCacheStorage uses URL as cache key but
+  shouldn't; may exceed max memcached key length. Note that this bugfix
+  restores correct behavior by simply not caching these urls. A more
+  thorough fix to actually cache these will be available in version 4.2. 
+  Contributed by Jon Moore <jonm at apache dot org>.
+  
+* [HTTPCLIENT-1157] MemcachedHttpCacheStorage should throw IOExceptions
   instead of RuntimeExceptions.
   Contributed by James Miller <jamesmiller01 at gmail dot com>.
   

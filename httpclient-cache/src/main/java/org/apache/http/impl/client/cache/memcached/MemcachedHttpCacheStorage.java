@@ -129,6 +129,9 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
             client.set(url, 0, bos.toByteArray());
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
+        } catch (IllegalArgumentException iae) {
+            // url exceeds max key length for memcached
+            return;
         }
     }
 
@@ -153,6 +156,9 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
             return reconstituteEntry(client.get(url));
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
+        } catch (IllegalArgumentException iae) {
+            // url exceeds max key length for memcached
+            return null;
         }
     }
 
@@ -161,6 +167,9 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
             client.delete(url);
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
+        } catch (IllegalArgumentException iae) {
+            // url exceeds max key length for memcached
+            return;
         }
     }
 
@@ -189,6 +198,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
                 }
             } catch (OperationTimeoutException ex) {
                 throw new MemcachedOperationTimeoutException(ex);
+            } catch (IllegalArgumentException iae) {
+                throw new HttpCacheUpdateException("url exceeds max key length for memcached");
             }
         } while (numRetries <= maxUpdateRetries);
 
