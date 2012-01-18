@@ -127,7 +127,7 @@ public class URIUtils {
             final HttpHost target,
             boolean dropFragment) throws URISyntaxException {
         if (uri == null) {
-            throw new IllegalArgumentException("URI may nor be null");
+            throw new IllegalArgumentException("URI may not be null");
         }
         if (target != null) {
             return URIUtils.createURI(
