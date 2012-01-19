@@ -66,6 +66,7 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(new String[] {
                 AuthPolicy.SPNEGO,
+                AuthPolicy.KERBEROS,
                 AuthPolicy.NTLM,
                 AuthPolicy.DIGEST,
                 AuthPolicy.BASIC

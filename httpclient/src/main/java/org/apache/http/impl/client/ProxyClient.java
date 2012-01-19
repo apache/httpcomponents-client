@@ -56,8 +56,9 @@ import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpClientConnection;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
+import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
-import org.apache.http.impl.auth.NegotiateSchemeFactory;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
@@ -104,7 +105,8 @@ public class ProxyClient {
         this.authSchemeRegistry.register(AuthPolicy.BASIC, new BasicSchemeFactory());
         this.authSchemeRegistry.register(AuthPolicy.DIGEST, new DigestSchemeFactory());
         this.authSchemeRegistry.register(AuthPolicy.NTLM, new NTLMSchemeFactory());
-        this.authSchemeRegistry.register(AuthPolicy.SPNEGO, new NegotiateSchemeFactory());
+        this.authSchemeRegistry.register(AuthPolicy.SPNEGO, new SPNegoSchemeFactory());
+        this.authSchemeRegistry.register(AuthPolicy.KERBEROS, new KerberosSchemeFactory());
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
         this.params = params;
     }

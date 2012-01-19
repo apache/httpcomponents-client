@@ -26,7 +26,6 @@
 
 package org.apache.http.impl.auth;
 
-import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.params.HttpParams;
@@ -36,8 +35,10 @@ import org.apache.http.params.HttpParams;
  * scheme factory.
  *
  * @since 4.1
+ *
+ * @deprecated
  */
-@Immutable
+@Deprecated
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
 
     private final SpnegoTokenGenerator spengoGenerator;

@@ -26,22 +26,37 @@
 
 package org.apache.http.impl.auth;
 
-import java.io.IOException;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.params.HttpParams;
 
 /**
- * Abstract SPNEGO token generator. Implementations should take an Kerberos ticket and transform
- * into a SPNEGO token.
- * <p>
- * Implementations of this interface are expected to be thread-safe.
+ * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
+ * scheme factory.
  *
- * @since 4.1
- *
- * @deprecated subclass {@link KerberosScheme} and override
- *   {@link KerberosScheme#generateGSSToken(byte[], org.ietf.jgss.Oid, String)}
+ * @since 4.2
  */
-@Deprecated
-public interface SpnegoTokenGenerator {
+@Immutable
+public class SPNegoSchemeFactory implements AuthSchemeFactory {
 
-    byte [] generateSpnegoDERObject(byte [] kerberosTicket) throws IOException;
+    private final boolean stripPort;
+
+    public SPNegoSchemeFactory(boolean stripPort) {
+        super();
+        this.stripPort = stripPort;
+    }
+
+    public SPNegoSchemeFactory() {
+        this(false);
+    }
+
+    public AuthScheme newInstance(final HttpParams params) {
+        return new SPNegoScheme(this.stripPort);
+    }
+
+    public boolean isStripPort() {
+        return stripPort;
+    }
 
 }

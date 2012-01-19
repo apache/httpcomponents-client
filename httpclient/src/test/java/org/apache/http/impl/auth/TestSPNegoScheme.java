@@ -64,7 +64,7 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link NegotiateScheme}.
  */
-public class TestNegotiateScheme extends BasicServerTestBase {
+public class TestSPNegoScheme extends BasicServerTestBase {
 
     @Before
     public void setUp() throws Exception {
@@ -96,14 +96,14 @@ public class TestNegotiateScheme extends BasicServerTestBase {
      * Kerberos configuration.
      *
      */
-    private static class NegotiateSchemeWithMockGssManager extends NegotiateScheme {
+    private static class NegotiateSchemeWithMockGssManager extends SPNegoScheme {
 
         GSSManager manager = Mockito.mock(GSSManager.class);
         GSSName name = Mockito.mock(GSSName.class);
         GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
-            super(null, true);
+            super(true);
             Mockito.when(context.initSecContext(
                     Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt()))
                     .thenReturn("12345678".getBytes());
@@ -135,7 +135,7 @@ public class TestNegotiateScheme extends BasicServerTestBase {
 
     }
 
-    private static class NegotiateSchemeFactoryWithMockGssManager extends NegotiateSchemeFactory {
+    private static class NegotiateSchemeFactoryWithMockGssManager extends SPNegoSchemeFactory {
 
         NegotiateSchemeWithMockGssManager scheme;
 
@@ -161,7 +161,7 @@ public class TestNegotiateScheme extends BasicServerTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
 
-        NegotiateSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
+        SPNegoSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
         this.httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
 
