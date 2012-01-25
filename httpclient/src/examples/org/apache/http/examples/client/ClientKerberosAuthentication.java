@@ -34,12 +34,12 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.impl.auth.NegotiateSchemeFactory;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Kerberos auth example.
+ * SPNEGO (Kerberos) auth example.
  *
  * <p><b>Information</b></p>
  * <p>For the best compatibility use Java >= 1.6 as it supports SPNEGO authentication more
@@ -127,11 +127,7 @@ public class ClientKerberosAuthentication {
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
         try {
-            NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
-//            nsf.setStripPort(false);
-//            nsf.setSpengoGenerator(new BouncySpnegoTokenGenerator());
-
-            httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
+            httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, new SPNegoSchemeFactory());
 
             Credentials use_jaas_creds = new Credentials() {
 
