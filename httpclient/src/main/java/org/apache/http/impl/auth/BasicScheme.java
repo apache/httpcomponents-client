@@ -32,6 +32,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.InvalidCredentialsException;
@@ -61,11 +62,18 @@ public class BasicScheme extends RFC2617Scheme {
     private boolean complete;
 
     /**
-     * Default constructor for the basic authentication scheme.
+     * Creates an instance of <tt>BasicScheme</tt> with the given challenge
+     * state.
+     *
+     * @since 4.2
      */
-    public BasicScheme() {
-        super();
+    public BasicScheme(final ChallengeState challengeState) {
+        super(challengeState);
         this.complete = false;
+    }
+
+    public BasicScheme() {
+        this(null);
     }
 
     /**

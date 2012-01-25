@@ -35,6 +35,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
@@ -52,16 +53,24 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // proxy
+@NotThreadSafe
 public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
+    private ChallengeState challengeState;
+
     /**
-     * Flag whether authenticating against a proxy.
+     * Creates an instance of <tt>AuthSchemeBase</tt> with the given challenge
+     * state.
+     *
+     * @since 4.2
      */
-    private boolean proxy;
+    public AuthSchemeBase(final ChallengeState challengeState) {
+        super();
+        this.challengeState = challengeState;
+    }
 
     public AuthSchemeBase() {
-        super();
+        this(null);
     }
 
     /**
@@ -80,9 +89,9 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
         }
         String authheader = header.getName();
         if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
-            this.proxy = false;
+            this.challengeState = ChallengeState.TARGET;
         } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
-            this.proxy = true;
+            this.challengeState = ChallengeState.PROXY;
         } else {
             throw new MalformedChallengeException("Unexpected header name: " + authheader);
         }
@@ -132,12 +141,18 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     /**
      * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
      * otherwise.
-     *
-     * @return <code>true</code> if authenticating against a proxy, <code>false</code>
-     * otherwise
      */
     public boolean isProxy() {
-        return this.proxy;
+        return this.challengeState != null && this.challengeState == ChallengeState.PROXY;
+    }
+
+    /**
+     * Returns {@link ChallengeState} value or <code>null</code> if unchallenged.
+     *
+     * @since 4.2
+     */
+    public ChallengeState getChallengeState() {
+        return this.challengeState;
     }
 
     @Override

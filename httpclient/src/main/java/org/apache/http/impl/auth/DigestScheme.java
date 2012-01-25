@@ -44,6 +44,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
@@ -110,11 +111,18 @@ public class DigestScheme extends RFC2617Scheme {
     private String a2;
 
     /**
-     * Default constructor for the digest authetication scheme.
+     * Creates an instance of <tt>DigestScheme</tt> with the given challenge
+     * state.
+     *
+     * @since 4.2
      */
-    public DigestScheme() {
-        super();
+    public DigestScheme(final ChallengeState challengeState) {
+        super(challengeState);
         this.complete = false;
+    }
+
+    public DigestScheme() {
+        this(null);
     }
 
     /**

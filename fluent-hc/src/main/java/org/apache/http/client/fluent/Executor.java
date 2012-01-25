@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -88,7 +89,12 @@ public class Executor {
     }
 
     public Executor authPreemptive(final HttpHost host) {
-        this.authCache.put(host, new BasicScheme());
+        this.authCache.put(host, new BasicScheme(ChallengeState.TARGET));
+        return this;
+    }
+
+    public Executor authPreemptiveProxy(final HttpHost host) {
+        this.authCache.put(host, new BasicScheme(ChallengeState.PROXY));
         return this;
     }
 

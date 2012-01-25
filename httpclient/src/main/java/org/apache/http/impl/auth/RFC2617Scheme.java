@@ -33,6 +33,7 @@ import java.util.Map;
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HeaderElement;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.HeaderValueParser;
@@ -55,11 +56,18 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     private final Map<String, String> params;
 
     /**
-     * Default constructor for RFC2617 compliant authentication schemes.
+     * Creates an instance of <tt>RFC2617Scheme</tt> with the given challenge
+     * state.
+     *
+     * @since 4.2
      */
-    public RFC2617Scheme() {
-        super();
+    public RFC2617Scheme(final ChallengeState challengeState) {
+        super(challengeState);
         this.params = new HashMap<String, String>();
+    }
+
+    public RFC2617Scheme() {
+        this(null);
     }
 
     @Override
