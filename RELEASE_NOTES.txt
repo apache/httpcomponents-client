@@ -1,5 +1,11 @@
-Changes since 4.1.2
+Release 4.1.3
 -------------------
+
+The HttpClient 4.1.3 is a bug fix release that addresses a number of issues found since 4.1.2 
+primarily in the HTTP caching module. 
+
+All users of HttpClient are encouraged to upgrade.
+
 * [HTTPCLIENT-1153] MemcachedHttpCacheStorage uses URL as cache key but
   shouldn't; may exceed max memcached key length. Note that this bugfix
   restores correct behavior by simply not caching these urls. A more
@@ -29,6 +35,7 @@ Changes since 4.1.2
   
 * [HTTPCLIENT-1143] CachingHttpClient leaks connections with stale-if-error.
   Contributed by James Miller <jamesmiller01 at gmail dot com>
+
 
 Release 4.1.2
 -------------------
