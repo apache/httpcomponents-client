@@ -219,7 +219,18 @@
       </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>javadoc-aggregate</id>
+              <goals>
+                <goal>aggregate</goal>
+              </goals>
+              <phase>pre-site</phase>
+            </execution>
+          </executions>        
         <configuration>
+          <!-- reduce console output. Can override with -Dquiet=false -->
+          <quiet>true</quiet>
           <source>1.5</source>
           <links>
             <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
@@ -272,6 +283,16 @@
             <scope>runtime</scope>
           </dependency>
         </dependencies>
+        <executions>
+          <execution>
+            <id>tutorial-site</id>
+            <goals>
+              <goal>generate-html</goal>
+              <goal>generate-pdf</goal>
+            </goals>
+            <phase>pre-site</phase>
+          </execution>
+        </executions>        
         <configuration>
           <includes>index.xml</includes>
           <chunkedOutput>true</chunkedOutput>
@@ -286,13 +307,14 @@
             </entity>
           </entities>
           <postProcess>
-            <copy todir="target/site/tutorial">
-              <fileset dir="target/docbkx">
+            <copy todir="target/site/tutorial/html" 
+              failonerror="false">
+              <fileset dir="target/docbkx/html/index">
                 <include name="**/*.html" />
-                <include name="**/*.pdf" />
               </fileset>
             </copy>
-            <copy todir="target/site/tutorial/html">
+            <copy todir="target/site/tutorial/html" 
+              failonerror="false">
               <fileset dir="src/docbkx/resources">
                 <include name="**/*.css" />
                 <include name="**/*.png" />
@@ -300,7 +322,9 @@
                 <include name="**/*.jpg" />
               </fileset>
             </copy>
-            <move file="target/site/tutorial/pdf/index.pdf" tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" failonerror="false" />
+            <copy file="target/docbkx/pdf/index.pdf" 
+                  tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" 
+                  failonerror="false"/>
           </postProcess>
         </configuration>
       </plugin>

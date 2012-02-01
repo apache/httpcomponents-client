@@ -69,18 +69,10 @@
           <directory>target/site/apidocs</directory>
           <outputDirectory>javadoc</outputDirectory>
         </fileSet>
-        <!-- Tutorial (HTML) -->
+        <!-- Tutorial -->
         <fileSet>
-          <directory>target/docbkx/html</directory>
-          <outputDirectory>tutorial/html</outputDirectory>
-        </fileSet>
-        <fileSet>
-          <directory>src/docbkx/resources/css</directory>
-          <outputDirectory>tutorial/html/css</outputDirectory>
-        </fileSet>
-        <fileSet>
-          <directory>src/docbkx/resources/images</directory>
-          <outputDirectory>tutorial/html/images</outputDirectory>
+          <directory>target/site/tutorial</directory>
+          <outputDirectory>tutorial</outputDirectory>
         </fileSet>
         <!-- Base module -->
         <fileSet>
@@ -99,12 +91,4 @@
           </includes>
         </fileSet>
     </fileSets>
-    <files>
-        <!-- Tutorial (PDF) -->
-        <file>
-          <source>target/docbkx/pdf/index.pdf</source>
-          <outputDirectory>tutorial/pdf</outputDirectory>
-          <destName>httpclient-tutorial.pdf</destName>
-        </file>
-    </files>
 </assembly>
