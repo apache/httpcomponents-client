@@ -67,7 +67,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <httpcore.version>4.2-alpha2</httpcore.version>
+    <httpcore.version>4.2-beta1</httpcore.version>
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-codec.version>1.4</commons-codec.version>
     <ehcache.version>2.2.0</ehcache.version>

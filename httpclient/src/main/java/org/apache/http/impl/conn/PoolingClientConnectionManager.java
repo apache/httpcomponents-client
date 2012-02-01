@@ -280,18 +280,14 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         }
     }
 
-    public void shutdown(long waitMs) throws IOException {
-        this.log.debug("Connection manager is shutting down");
-        this.pool.shutdown(waitMs);
-        this.log.debug("Connection manager shut down");
-    }
-
     public void shutdown() {
+        this.log.debug("Connection manager is shutting down");
         try {
-            shutdown(2000);
+            this.pool.shutdown();
         } catch (IOException ex) {
-            this.log.error("I/O exception while shutting down connection pool", ex);
+            this.log.debug("I/O exception shutting down connection manager", ex);
         }
+        this.log.debug("Connection manager shut down");
     }
 
     public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
