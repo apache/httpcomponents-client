@@ -76,7 +76,7 @@
     <junit.version>4.9</junit.version>
     <easymock.version>2.5.2</easymock.version>
     <mockito.version>1.8.5</mockito.version>
-    <comparisonVersion>4.1</comparisonVersion>
+    <api.comparison.version>4.1</api.comparison.version>
   </properties>
 
   <repositories>
@@ -358,7 +358,7 @@
         <artifactId>clirr-maven-plugin</artifactId>
          <version>${hc.clirr.version}</version>
         <configuration>
-          <comparisonVersion>${comparisonVersion}</comparisonVersion>
+          <comparisonVersion>${api.comparison.version}</comparisonVersion>
         </configuration>
       </plugin>
 
