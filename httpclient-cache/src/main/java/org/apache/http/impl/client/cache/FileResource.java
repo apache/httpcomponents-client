@@ -31,8 +31,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.Resource;
 
@@ -50,34 +48,21 @@ public class FileResource implements Resource {
 
     private volatile boolean disposed;
 
-    private final Log log = LogFactory.getLog(getClass());
-
     public FileResource(final File file) {
         super();
         this.file = file;
         this.disposed = false;
     }
 
-    public boolean isValid() {
-        if (this.disposed || !file.exists()) {
-            log.warn("Resource has been deallocated");
-            return false;
-        }
-        return true;
-    }
-
     synchronized File getFile() {
-        isValid();
         return this.file;
     }
 
     public synchronized InputStream getInputStream() throws IOException {
-        isValid();
         return new FileInputStream(this.file);
     }
 
     public synchronized long length() {
-        isValid();
         return this.file.length();
     }
 

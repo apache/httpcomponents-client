@@ -108,10 +108,7 @@ class CacheValidityPolicy {
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
-        if (!entry.getResource().isValid())
-            return false;
-        else
-            return entry.getFirstHeader(HeaderConstants.ETAG) != null
+        return entry.getFirstHeader(HeaderConstants.ETAG) != null
                 || entry.getFirstHeader(HeaderConstants.LAST_MODIFIED) != null;
     }
 
