@@ -130,9 +130,6 @@ class CachedResponseSuitabilityChecker {
      * @return boolean yes/no answer
      */
     public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry, Date now) {
-        if (!entry.getResource().isValid())  {
-            return false;
-        }
 
         if (!isFreshEnough(entry, request, now)) {
             log.trace("Cache entry was not fresh enough");

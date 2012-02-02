@@ -57,9 +57,4 @@ public interface Resource extends Serializable {
      */
     void dispose();
 
-    /**
-     * Is this resource still valid to be used
-     */
-    boolean isValid();
-
 }
