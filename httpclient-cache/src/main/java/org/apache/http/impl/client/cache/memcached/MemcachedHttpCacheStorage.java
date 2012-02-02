@@ -46,7 +46,7 @@ import org.apache.http.client.cache.memcached.KeyHashingScheme;
 import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
 import org.apache.http.client.cache.memcached.MemcachedCacheEntryFactory;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.DefaultHttpCacheEntrySerializer;
+import org.apache.http.impl.client.cache.CachingHttpClient;
 
 /**
  * <p>This class is a storage backend that uses an external <i>memcached</i>

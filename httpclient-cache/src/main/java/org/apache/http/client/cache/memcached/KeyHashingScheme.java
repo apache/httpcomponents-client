@@ -25,6 +25,8 @@
  *
  */package org.apache.http.client.cache.memcached;
 
+import org.apache.http.client.cache.HttpCacheStorage;
+
 /**
  * Since the {@link HttpCacheStorage} interface expects to use variant-annotated
  * URLs for its storage keys, but Memcached has a maximum key size, we need to
