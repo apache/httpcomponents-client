@@ -32,7 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.cache.memcached.KeyHashingScheme;
 
 /**
  * This is a {@link KeyHashingScheme} based on the

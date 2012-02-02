@@ -1,6 +1,5 @@
 package org.apache.http.impl.client.cache.memcached;
 
-import org.apache.http.client.cache.memcached.KeyHashingScheme;
 
 /**
  * This is a {@link KeyHashingScheme} decorator that simply adds

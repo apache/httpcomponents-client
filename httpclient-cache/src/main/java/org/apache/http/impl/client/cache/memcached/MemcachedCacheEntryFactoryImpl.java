@@ -27,8 +27,6 @@
 package org.apache.http.impl.client.cache.memcached;
 
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
-import org.apache.http.client.cache.memcached.MemcachedCacheEntryFactory;
 
 /**
  * Default implementation of {@link MemcachedCacheEntryFactory}.

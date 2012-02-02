@@ -2,7 +2,6 @@ package org.apache.http.impl.client.cache.memcached;
 
 import static org.junit.Assert.*;
 
-import org.apache.http.client.cache.memcached.KeyHashingScheme;
 import org.junit.Before;
 import org.junit.Test;
 

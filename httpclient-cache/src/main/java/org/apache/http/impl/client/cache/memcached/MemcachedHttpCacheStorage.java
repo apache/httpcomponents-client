@@ -42,9 +42,6 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
-import org.apache.http.client.cache.memcached.KeyHashingScheme;
-import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
-import org.apache.http.client.cache.memcached.MemcachedCacheEntryFactory;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClient;
 

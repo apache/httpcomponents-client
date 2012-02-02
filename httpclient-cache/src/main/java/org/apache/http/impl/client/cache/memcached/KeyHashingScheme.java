@@ -23,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
- */package org.apache.http.client.cache.memcached;
+ */package org.apache.http.impl.client.cache.memcached;
 
 import org.apache.http.client.cache.HttpCacheStorage;
 

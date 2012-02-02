@@ -3,7 +3,6 @@ package org.apache.http.impl.client.cache.memcached;
 import static org.junit.Assert.*;
 
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.memcached.MemcachedCacheEntry;
 import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.junit.Test;
 
