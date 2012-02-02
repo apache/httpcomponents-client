@@ -41,7 +41,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -53,9 +52,16 @@ import org.apache.http.protocol.BasicHttpContext;
 
 public class Executor {
 
-    final static PoolingClientConnectionManager CONNMGR = new PoolingClientConnectionManager(
-            SchemeRegistryFactory.createSystemDefault());
-    final static DefaultHttpClient CLIENT = new DefaultHttpClient(CONNMGR);
+    final static PoolingClientConnectionManager CONNMGR;
+    final static DefaultHttpClient CLIENT;
+    
+    static {
+        CONNMGR = new PoolingClientConnectionManager(
+                SchemeRegistryFactory.createSystemDefault());
+        CONNMGR.setDefaultMaxPerRoute(100);
+        CONNMGR.setMaxTotal(200);
+        CLIENT = new DefaultHttpClient(CONNMGR);
+    }
 
     public static Executor newInstance() {
         return new Executor(CLIENT);
@@ -142,25 +148,13 @@ public class Executor {
     }
 
     public Response execute(
-            final Request req) throws ClientProtocolException, IOException {
+            final Request request) throws ClientProtocolException, IOException {
         this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);
         this.localContext.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
-        HttpRequestBase httprequest = req.getHttpRequest();
+        HttpRequestBase httprequest = request.getHttpRequest();
         httprequest.reset();
         return new Response(this.httpclient.execute(httprequest, this.localContext));
-    }
-
-    public static void setMaxTotal(int max) {
-        CONNMGR.setMaxTotal(max);
-    }
-
-    public static void setDefaultMaxPerRoute(int max) {
-        CONNMGR.setDefaultMaxPerRoute(max);
-    }
-
-    public static void setMaxPerRoute(final HttpRoute route, int max) {
-        CONNMGR.setMaxPerRoute(route, max);
     }
 
     public static void registerScheme(final Scheme scheme) {

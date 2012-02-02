@@ -26,53 +26,34 @@
 
 package org.apache.http.client.fluent;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
-public class Content {
+class ContentResponseHandler implements ResponseHandler<Content> {
 
-    public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY); 
-    
-    private final byte[] raw;
-    private final ContentType type;
-
-    Content(final byte[] raw, final ContentType type) {
-        super();
-        this.raw = raw;
-        this.type = type;
-    }
-
-    public ContentType getType() {
-        return this.type;
-    }
-
-    public byte[] asBytes() {
-        return this.raw.clone();
-    }
-
-    public String asString() {
-        String charset = this.type.getCharset();
-        if (charset == null) {
-            charset = HTTP.DEFAULT_CONTENT_TYPE;
+    public Content handleResponse(
+            final HttpResponse response) throws ClientProtocolException, IOException {
+        StatusLine statusLine = response.getStatusLine();
+        HttpEntity entity = response.getEntity();
+        if (statusLine.getStatusCode() >= 300) {
+            throw new HttpResponseException(statusLine.getStatusCode(),
+                    statusLine.getReasonPhrase());
         }
-        try {
-            return new String(this.raw, charset);
-        } catch (UnsupportedEncodingException ex) {
-            return new String(this.raw);
+        if (entity != null) {
+            return new Content(
+                    EntityUtils.toByteArray(entity),
+                    ContentType.getOrDefault(entity));
+        } else {
+            return Content.NO_CONTENT;
         }
     }
 
-    public InputStream asStream() {
-        return new ByteArrayInputStream(this.raw);
-    }
-
-    @Override
-    public String toString() {
-        return asString();
-    }
-    
 }

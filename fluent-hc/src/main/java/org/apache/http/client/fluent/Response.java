@@ -83,26 +83,7 @@ public class Response {
     }
 
     public Content returnContent() throws ClientProtocolException, IOException {
-        return handleResponse(new ResponseHandler<Content>() {
-
-            public Content handleResponse(
-                    final HttpResponse response) throws ClientProtocolException, IOException {
-                StatusLine statusLine = response.getStatusLine();
-                HttpEntity entity = response.getEntity();
-                if (statusLine.getStatusCode() >= 300) {
-                    throw new HttpResponseException(statusLine.getStatusCode(),
-                            statusLine.getReasonPhrase());
-                }
-                if (entity != null) {
-                    return new Content(
-                            EntityUtils.toByteArray(entity),
-                            ContentType.getOrDefault(entity));
-                } else {
-                    return Content.NO_CONTENT;
-                }
-            }
-
-        });
+        return handleResponse(new ContentResponseHandler());
     }
 
     public HttpResponse returnResponse() throws IOException {

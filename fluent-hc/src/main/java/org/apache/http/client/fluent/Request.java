@@ -306,4 +306,9 @@ public class Request {
         return body(new InputStreamEntity(instream, -1, contentType));
     }
 
+    @Override
+    public String toString() {
+        return this.request.getRequestLine().toString();
+    }
+    
 }
