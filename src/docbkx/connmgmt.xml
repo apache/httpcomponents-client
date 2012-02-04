@@ -270,37 +270,14 @@ sf.connectSocket(socket, address, null, params);
                     <interfacename>javax.net.ssl.SSLContext</interfacename> as a parameter and use
                 it to create custom configured SSL connections.</para>
             <programlisting><![CDATA[
-TrustManager easyTrustManager = new X509TrustManager() {
-
-    @Override
-    public void checkClientTrusted(
-            X509Certificate[] chain,
-            String authType) throws CertificateException {
-        // Oh, I am easy!
-    }
-
-    @Override
-    public void checkServerTrusted(
-            X509Certificate[] chain,
-            String authType) throws CertificateException {
-        // Oh, I am easy!
-    }
-
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-        return null;
-    }
-    
-};
-
+HttpParams params = new BasicHttpParams();
 SSLContext sslcontext = SSLContext.getInstance("TLS");
-sslcontext.init(null, new TrustManager[] { easyTrustManager }, null);
+sslcontext.init(null, null, null);
 
 SSLSocketFactory sf = new SSLSocketFactory(sslcontext); 
-SSLSocket socket = (SSLSocket) sf.createSocket();
+SSLSocket socket = (SSLSocket) sf.createSocket(params);
 socket.setEnabledCipherSuites(new String[] { "SSL_RSA_WITH_RC4_128_MD5" });
 
-HttpParams params = new BasicHttpParams();
 params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 1000L);
 InetSocketAddress address = new InetSocketAddress("locahost", 443);
 sf.connectSocket(socket, address, null, params);
@@ -485,7 +462,7 @@ httpclient.setRoutePlanner(new HttpRoutePlanner() {
 Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 SchemeRegistry sr = new SchemeRegistry();
 sr.register(http);
-ClientConnectionManager connMrg = new SingleClientConnManager(sr);
+ClientConnectionManager connMrg = new BasicClientConnectionManager(sr);
 
 // Request new connection. This can be a long process
 ClientConnectionRequest connRequest = connMrg.requestConnection(
@@ -539,27 +516,27 @@ try {
         </section>
         <section>
             <title>Simple connection manager</title>
-            <para><classname>SingleClientConnManager</classname> is a simple connection manager that
-                maintains only one connection at a time. Even though this class is thread-safe it
-                ought to be used by one execution thread only.
-                    <classname>SingleClientConnManager</classname> will make an effort to reuse the
-                connection for subsequent requests with the same route. It will, however, close the
-                existing connection and re-open it for the given route, if the route of the persistent
-                connection does not match that of the connection request. If the connection has been
-                already been allocated, then
-                    <exceptionname>java.lang.IllegalStateException</exceptionname> is thrown.</para>
-            <para><classname>SingleClientConnManager</classname> is used by HttpClient per
+            <para><classname>BasicClientConnectionManager</classname> is a simple connection manager
+                that maintains only one connection at a time. Even though this class is thread-safe 
+                it ought to be used by one execution thread only.
+                <classname>BasicClientConnectionManager</classname> will make an effort to reuse 
+                the connection for subsequent requests with the same route. It will, however, close 
+                the existing connection and re-open it for the given route, if the route of the 
+                persistent connection does not match that of the connection request. 
+                If the connection has been already been allocated, then <exceptionname>
+                java.lang.IllegalStateException</exceptionname> is thrown.</para>
+            <para><classname>BasicClientConnectionManager</classname> is used by HttpClient per
                 default.</para>
         </section>
         <section>
             <title>Pooling connection manager</title>
-            <para><classname>ThreadSafeClientConnManager</classname> is a more complex
+            <para><classname>PoolingClientConnectionManager</classname> is a more complex
                 implementation that manages a pool of client connections and is able to service
                 connection requests from multiple execution threads. Connections are pooled on a per
                 route basis. A request for a route for which the manager already has a persistent
                 connection available in the pool will be serviced by leasing a connection from
                 the pool rather than creating a brand new connection.</para>
-            <para><classname>ThreadSafeClientConnManager</classname> maintains a maximum limit of
+            <para><classname>PoolingClientConnectionManager</classname> maintains a maximum limit of
                 connections on a per route basis and in total. Per default this implementation will
                 create no more than 2 concurrent connections per given route and no more 20
                 connections in total. For many real-world applications these limits may prove too
@@ -573,14 +550,14 @@ schemeRegistry.register(
 schemeRegistry.register(
          new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 
-ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
 // Increase max total connection to 200
-cm.setMaxTotalConnections(200);
+cm.setMaxTotal(200);
 // Increase default max connection per route to 20
 cm.setDefaultMaxPerRoute(20);
 // Increase max connections for localhost:80 to 50
 HttpHost localhost = new HttpHost("locahost", 80);
-cm.setMaxForRoute(new HttpRoute(localhost), 50);
+cm.setMaxPerRoute(new HttpRoute(localhost), 50);
  
 HttpClient httpClient = new DefaultHttpClient(cm);
 ]]></programlisting>
@@ -604,22 +581,23 @@ httpclient.getConnectionManager().shutdown();
     </section>
     <section>
         <title>Multithreaded request execution</title>
-        <para>When equipped with a pooling connection manager such as ThreadSafeClientConnManager,
-            HttpClient can be used to execute multiple requests simultaneously using multiple
-            threads of execution.</para>
-        <para>The <classname>ThreadSafeClientConnManager</classname> will allocate connections based on
-            its configuration. If all connections for a given route have already been leased, a
-            request for a connection will block until a connection is released back to the pool. One
-            can ensure the connection manager does not block indefinitely in the connection request
-            operation by setting <literal>'http.conn-manager.timeout'</literal> to a positive value.
-            If the connection request cannot be serviced within the given time period
-                <exceptionname>ConnectionPoolTimeoutException</exceptionname> will be thrown.</para>
+        <para>When equipped with a pooling connection manager such as <classname>
+            PoolingClientConnectionManager</classname>, HttpClient can be used to execute multiple 
+            requests simultaneously using multiple threads of execution.</para>
+        <para>The <classname>PoolingClientConnectionManager</classname> will allocate connections 
+            based on its configuration. If all connections for a given route have already been 
+            leased, a request for a connection will block until a connection is released back to 
+            the pool. One can ensure the connection manager does not block indefinitely in the 
+            connection request operation by setting <literal>'http.conn-manager.timeout'</literal> 
+            to a positive value. If the connection request cannot be serviced within the given time 
+            period <exceptionname>ConnectionPoolTimeoutException</exceptionname> will be thrown.
+            </para>
         <programlisting><![CDATA[
 SchemeRegistry schemeRegistry = new SchemeRegistry();
 schemeRegistry.register(
         new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 
-ClientConnectionManager cm = new ThreadSafeClientConnManager(schemeRegistry);
+ClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
 HttpClient httpClient = new DefaultHttpClient(cm);
 
 // URIs to perform GETs on

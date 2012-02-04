@@ -40,9 +40,10 @@ HttpResponse response = httpclient.execute(httpget);
 HttpEntity entity = response.getEntity();
 if (entity != null) {
     InputStream instream = entity.getContent();
-    int l;
-    byte[] tmp = new byte[2048];
-    while ((l = instream.read(tmp)) != -1) {
+    try {
+        // do something useful
+    } finally {
+        instream.close();
     }
 }
 ]]></programlisting>
@@ -65,28 +66,16 @@ if (entity != null) {
 HttpGet httpget = new HttpGet(
      "http://www.google.com/search?hl=en&q=httpclient&btnG=Google+Search&aq=f&oq=");
 ]]></programlisting>
-            <para>HttpClient provides a number of utility methods to simplify creation and
-                modification of request URIs.</para>
-            <para>URI can be assembled programmatically:</para>
+            <para>HttpClient provides <classname>URIBuilder</classname> utility class to simplify 
+                creation and modification of request URIs.</para>
             <programlisting><![CDATA[
-URI uri = URIUtils.createURI("http", "www.google.com", -1, "/search", 
-    "q=httpclient&btnG=Google+Search&aq=f&oq=", null);
-HttpGet httpget = new HttpGet(uri);
-System.out.println(httpget.getURI());
-]]></programlisting>
-            <para>stdout &gt;</para>
-            <programlisting><![CDATA[
-http://www.google.com/search?q=httpclient&btnG=Google+Search&aq=f&oq=
-]]></programlisting>
-            <para>Query string can also be generated from individual parameters:</para>
-            <programlisting><![CDATA[
-List<NameValuePair> qparams = new ArrayList<NameValuePair>();
-qparams.add(new BasicNameValuePair("q", "httpclient"));
-qparams.add(new BasicNameValuePair("btnG", "Google Search"));
-qparams.add(new BasicNameValuePair("aq", "f"));
-qparams.add(new BasicNameValuePair("oq", null));
-URI uri = URIUtils.createURI("http", "www.google.com", -1, "/search", 
-    URLEncodedUtils.format(qparams, "UTF-8"), null);
+URIBuilder builder = new URIBuilder();
+builder.setScheme("http").setHost("www.google.com").setPath("/search")
+    .setParameter("q", "httpclient")
+    .setParameter("btnG", "Google Search")
+    .setParameter("aq", "f")
+    .setParameter("oq", "");
+URI uri = builder.build();
 HttpGet httpget = new HttpGet(uri);
 System.out.println(httpget.getURI());
 ]]></programlisting>
@@ -276,19 +265,16 @@ domain=localhost
                     supplied by the creator of the entity.</para>
                 <programlisting><![CDATA[
 StringEntity myEntity = new StringEntity("important message", 
-    "UTF-8");
+   ContentType.create("text/plain", "UTF-8"));
 
 System.out.println(myEntity.getContentType());
 System.out.println(myEntity.getContentLength());
-System.out.println(EntityUtils.getContentCharSet(myEntity));
 System.out.println(EntityUtils.toString(myEntity));
-System.out.println(EntityUtils.toByteArray(myEntity).length);
-]]></programlisting>
+System.out.println(EntityUtils.toByteArray(myEntity).length);]]></programlisting>
                 <para>stdout &gt;</para>
                 <programlisting><![CDATA[
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 17
-UTF-8
 important message
 17
 ]]></programlisting>
@@ -394,7 +380,7 @@ if (entity != null) {
                 <classname>FileEntity</classname>.</para>
             <programlisting><![CDATA[
 File file = new File("somefile.txt");
-FileEntity entity = new FileEntity(file, "text/plain; charset=\"UTF-8\"");
+FileEntity entity = new FileEntity(file, ContentType.create("text/plain", "UTF-8"));        
 
 HttpPost httppost = new HttpPost("http://localhost/action.do");
 httppost.setEntity(entity);
@@ -404,34 +390,6 @@ httppost.setEntity(entity);
                 implement a custom <interfacename>HttpEntity</interfacename> class which is
                 self-contained instead of using the generic <classname>InputStreamEntity</classname>.
                     <classname>FileEntity</classname> can be a good starting point.</para>
-            <section>
-                <title>Dynamic content entities</title>
-                <para>Often HTTP entities need to be generated dynamically based a particular
-                    execution context. HttpClient provides support for dynamic entities by using
-                    the <classname>EntityTemplate</classname> entity class and
-                        <interfacename>ContentProducer</interfacename> interface. Content producers
-                    are objects which produce their content on demand, by writing it out to an
-                    output stream. They are expected to be able produce their content every time
-                    they are requested to do so. So entities created with
-                        <classname>EntityTemplate</classname> are generally self-contained and
-                    repeatable.</para>
-                <programlisting><![CDATA[
-ContentProducer cp = new ContentProducer() {
-    public void writeTo(OutputStream outstream) throws IOException {
-        Writer writer = new OutputStreamWriter(outstream, "UTF-8");
-        writer.write("<response>");
-        writer.write("  <content>");
-        writer.write("    important stuff");
-        writer.write("  </content>");
-        writer.write("</response>");
-        writer.flush();
-    }
-};
-HttpEntity entity = new EntityTemplate(cp);
-HttpPost httppost = new HttpPost("http://localhost/handler.do");
-httppost.setEntity(entity);
-]]></programlisting>
-            </section>
             <section>
                 <title>HTML forms</title>
                 <para>Many applications need to simulate the process of submitting an
@@ -659,15 +617,6 @@ Final target: http://www.google.ch
                         target server (i.e. the request has not been fully transmitted to the
                         server).</para>
                 </listitem>
-                <listitem>
-                    <para>HttpClient will automatically retry those methods that have been fully
-                        transmitted to the server, but the server failed to respond with an HTTP
-                        status code (the server simply drops the connection without sending anything
-                        back). In this case it is assumed that the request has not been processed by
-                        the server and the application state has not changed. If this assumption may
-                        not hold true for the web server your application is targeting it is highly
-                        recommended to provide a custom exception handler.</para>
-                </listitem>
             </itemizedlist>
         </section>
         <section>
@@ -688,12 +637,20 @@ HttpRequestRetryHandler myRetryHandler = new HttpRequestRetryHandler() {
             // Do not retry if over max retry count
             return false;
         }
-        if (exception instanceof NoHttpResponseException) {
-            // Retry if the server dropped connection on us
-            return true;
+        if (exception instanceof InterruptedIOException) {
+            // Timeout
+            return false;
         }
-        if (exception instanceof SSLHandshakeException) {
-            // Do not retry on SSL handshake exception
+        if (exception instanceof UnknownHostException) {
+            // Unknown host
+            return false;
+        }
+        if (exception instanceof ConnectException) {
+            // Connection refused
+            return false;
+        }
+        if (exception instanceof SSLException) {
+            // SSL handshake exception
             return false;
         }
         HttpRequest request = (HttpRequest) context.getAttribute(

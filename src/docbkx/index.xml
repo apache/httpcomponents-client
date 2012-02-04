@@ -66,6 +66,7 @@
     <xi:include href="statemgmt.xml"/>
     <xi:include href="authentication.xml"/>
     <xi:include href="httpagent.xml"/>
+    <xi:include href="fluent.xml"/>
     <xi:include href="caching.xml"/>
     <xi:include href="advanced.xml"/>
     

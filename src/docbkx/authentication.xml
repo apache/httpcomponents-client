@@ -113,7 +113,7 @@ pwd
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>SPNEGO/Kerberos:</title>
+                    <title>SPNEGO:</title>
                     <para><literal>SPNEGO</literal> (<emphasis>S</emphasis>imple and
                             <emphasis>P</emphasis>rotected <literal>GSSAPI</literal>
                         <emphasis>Nego</emphasis>tiation Mechanism) is a <literal>GSSAPI</literal>
@@ -122,6 +122,12 @@ pwd
                             Negotiate</literal> authentication extension. The negotiable
                         sub-mechanisms include NTLM and Kerberos supported by Active Directory.
                         At present HttpClient only supports the Kerberos sub-mechanism. </para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Kerberos:</title>
+                    <para>Kerberos authentication implementation. </para>
                 </formalpara>
             </listitem>
         </itemizedlist>
@@ -209,7 +215,13 @@ httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
             <listitem>
                 <formalpara>
                     <title>AuthPolicy.SPNEGO:</title>
-                    <para>SPNEGO/Kerberos authentication</para>
+                    <para>SPNEGO authentication</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>AuthPolicy.KERBEROS:</title>
+                    <para>Kerberos authentication</para>
                 </formalpara>
             </listitem>
         </itemizedlist>
@@ -327,12 +339,12 @@ HttpResponse response = httpclient.execute(httpget, localContext);
 
 AuthState proxyAuthState = (AuthState) localContext.getAttribute(
     ClientContext.PROXY_AUTH_STATE);
-System.out.println("Proxy auth scope: " + proxyAuthState.getAuthScope());
+System.out.println("Proxy auth state: " + proxyAuthState.getState());
 System.out.println("Proxy auth scheme: " + proxyAuthState.getAuthScheme());
 System.out.println("Proxy auth credentials: " + proxyAuthState.getCredentials());
 AuthState targetAuthState = (AuthState) localContext.getAttribute(
     ClientContext.TARGET_AUTH_STATE);
-System.out.println("Target auth scope: " + targetAuthState.getAuthScope());
+System.out.println("Target auth state: " + targetAuthState.getState());
 System.out.println("Target auth scheme: " + targetAuthState.getAuthScheme());
 System.out.println("Target auth credentials: " + targetAuthState.getCredentials());
 ]]></programlisting>
@@ -490,7 +502,7 @@ EntityUtils.consume(entity2);
                 supports <literal>SPNEGO</literal> authentication more completely.</para>
             <para>The Sun JRE provides the supporting classes to do nearly all the Kerberos and
                     <literal>SPNEGO</literal> token handling. This means that a lot of the setup is
-                for the GSS classes. The <classname>NegotiateScheme</classname> is a simple class to
+                for the GSS classes. The <classname>SPNegoScheme</classname> is a simple class to
                 handle marshalling the tokens and reading and writing the correct headers.</para>
             <para>The best way to start is to grab the <literal>KerberosHttpClient.java</literal>
                 file in examples and try and get it to work. There are a lot of issues that can
@@ -582,40 +594,6 @@ Value Type: REG_DWORD
 Value: 0x01
 ]]>
             </programlisting>
-        </section>
-        <section>
-            <title>Customizing <literal>SPNEGO</literal> authentication scheme</title>
-            <para>In order to customize <literal>SPNEGO</literal> support a new instance of
-                the <classname>NegotiateSchemeFactory</classname> class must be created and
-                registered with the authentication scheme registry of HttpClient. </para>
-            <programlisting><![CDATA[
-DefaultHttpClient httpclient = new DefaultHttpClient();
-NegotiateSchemeFactory nsf = new NegotiateSchemeFactory();
-httpclient.getAuthSchemes().register(AuthPolicy.SPNEGO, nsf);
-]]>
-            </programlisting>
-            <para>There are several options that can be used to customize the behaviour of
-                    <classname>NegotiateSchemeFactory</classname>. </para>
-            <section>
-                <title>Strip port</title>
-                <para>Strips the port off service names e.g.
-                        <literal>HTTP/webserver.ad.example.net:8080</literal> ->
-                        <literal>HTTP/webserver.ad.example.net</literal></para>
-                <para>Found it useful when authenticating against JBoss Negotiation.</para>
-            </section>
-            <section>
-                <title>Custom <literal>SPNEGO</literal> token generator</title>
-                <para>Use this method to inject a custom
-                        <interfacename>SpnegoTokenGenerator</interfacename> class to do the Kerberos
-                    to <literal>SPNEGO</literal> token wrapping.
-                    The <classname>BouncySpnegoTokenGenerator</classname> implementation is provided
-                    as an unsupported contribution from the contrib package. This requires the
-                    BouncyCastle libraries <ulink url="http://www.bouncycastle.org/java.html"
-                        >"http://www.bouncycastle.org/java.html"</ulink>. Found especially useful 
-                    when using Java 1.5, which is known to provide only a limited support for 
-                    <literal>SPNEGO</literal> authentication.    
-                </para>
-            </section>
         </section>
     </section>
 
