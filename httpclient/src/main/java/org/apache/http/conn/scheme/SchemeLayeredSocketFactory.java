@@ -25,37 +25,41 @@
  *
  */
 
-package org.apache.http.mockup;
+package org.apache.http.conn.scheme;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * {@link LayeredSchemeSocketFactory} mockup implementation.
+ * Extended {@link SchemeSocketFactory} interface for layered sockets such as SSL/TLS.
+ *
+ * @since 4.2
  */
-public class SecureSocketFactoryMockup extends SocketFactoryMockup
-    implements SchemeLayeredSocketFactory {
+public interface SchemeLayeredSocketFactory extends SchemeSocketFactory {
 
-    /* A default instance of this mockup. */
-    public final static SchemeLayeredSocketFactory INSTANCE = new SecureSocketFactoryMockup("INSTANCE");
-
-    public SecureSocketFactoryMockup(String name) {
-        super(name);
-    }
-
-    // don't implement equals and hashcode, all instances are different!
-
-    @Override
-    public String toString() {
-        return "SecureSocketFactoryMockup." + mockup_name;
-    }
-
-
-    public Socket createLayeredSocket(Socket socket, String host, int port,
-                                      HttpParams params) {
-        throw new UnsupportedOperationException("I'm a mockup!");
-    }
+    /**
+     * Returns a socket connected to the given host that is layered over an
+     * existing socket.  Used primarily for creating secure sockets through
+     * proxies.
+     *
+     * @param socket the existing socket
+     * @param target    the name of the target host.
+     * @param port      the port to connect to on the target host
+     * @param params    HTTP parameters
+     *
+     * @return Socket a new socket
+     *
+     * @throws IOException if an I/O error occurs while creating the socket
+     * @throws UnknownHostException if the IP address of the host cannot be
+     * determined
+     */
+    Socket createLayeredSocket(
+        Socket socket,
+        String target,
+        int port,
+        HttpParams params) throws IOException, UnknownHostException;
 
 }

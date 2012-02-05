@@ -253,7 +253,7 @@ sf.connectSocket(socket, address, null, params);
 ]]></programlisting>
         <section>
             <title>Secure socket layering</title>
-            <para><interfacename>LayeredSchemeSocketFactory</interfacename> is an extension of
+            <para><interfacename>SchemeLayeredSocketFactory</interfacename> is an extension of
                 the <interfacename>SchemeSocketFactory</interfacename> interface. Layered socket 
                 factories are capable of creating sockets layered over an existing plain socket. 
                 Socket layering is used primarily for creating secure sockets through proxies.

@@ -81,6 +81,7 @@ public final class Scheme {
      *
      * @since 4.1
      */
+    @SuppressWarnings("deprecation")
     public Scheme(final String name, final int port, final SchemeSocketFactory factory) {
         if (name == null) {
             throw new IllegalArgumentException("Scheme name may not be null");
@@ -92,9 +93,17 @@ public final class Scheme {
             throw new IllegalArgumentException("Socket factory may not be null");
         }
         this.name = name.toLowerCase(Locale.ENGLISH);
-        this.socketFactory = factory;
         this.defaultPort = port;
-        this.layered = factory instanceof LayeredSchemeSocketFactory;
+        if (factory instanceof SchemeLayeredSocketFactory) {
+            this.layered = true;
+            this.socketFactory = factory;
+        } else if (factory instanceof LayeredSchemeSocketFactory) {
+            this.layered = true;
+            this.socketFactory = new SchemeLayeredSocketFactoryAdaptor2((LayeredSchemeSocketFactory) factory);
+        } else {
+            this.layered = false;
+            this.socketFactory = factory;
+        }
     }
 
     /**
@@ -130,7 +139,7 @@ public final class Scheme {
 
         this.name = name.toLowerCase(Locale.ENGLISH);
         if (factory instanceof LayeredSocketFactory) {
-            this.socketFactory = new LayeredSchemeSocketFactoryAdaptor(
+            this.socketFactory = new SchemeLayeredSocketFactoryAdaptor(
                     (LayeredSocketFactory) factory);
             this.layered = true;
         } else {

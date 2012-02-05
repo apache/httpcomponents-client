@@ -35,6 +35,7 @@ import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -146,7 +147,8 @@ import java.security.cert.CertificateException;
  */
 @SuppressWarnings("deprecation")
 @ThreadSafe
-public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSocketFactory {
+public class SSLSocketFactory implements SchemeLayeredSocketFactory,
+                                         LayeredSchemeSocketFactory, LayeredSocketFactory {
 
     public static final String TLS   = "TLS";
     public static final String SSL   = "SSL";
@@ -595,7 +597,28 @@ public class SSLSocketFactory implements LayeredSchemeSocketFactory, LayeredSock
     }
 
     /**
-     * @since 4.1
+     * @since 4.2
+     */
+    public Socket createLayeredSocket(
+        final Socket socket,
+        final String host,
+        final int port,
+        final HttpParams params) throws IOException, UnknownHostException {
+        SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket(
+              socket,
+              host,
+              port,
+              true);
+        prepareSocket(sslSocket);
+        if (this.hostnameVerifier != null) {
+            this.hostnameVerifier.verify(host, sslSocket);
+        }
+        // verifyHostName() didn't blowup - good!
+        return sslSocket;
+    }
+
+    /**
+     * @deprecated use {@link #createLayeredSocket(Socket, String, int, HttpParams)}
      */
     public Socket createLayeredSocket(
         final Socket socket,

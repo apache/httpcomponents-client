@@ -28,41 +28,44 @@
 package org.apache.http.conn.scheme;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-/**
- * Extended {@link SchemeSocketFactory} interface for layered sockets such as SSL/TLS.
- *
- * @since 4.1
- * 
- * @deprecated use {@link SchemeLayeredSocketFactory}
- */
-@Deprecated
-public interface LayeredSchemeSocketFactory extends SchemeSocketFactory {
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.params.HttpParams;
 
-    /**
-     * Returns a socket connected to the given host that is layered over an
-     * existing socket.  Used primarily for creating secure sockets through
-     * proxies.
-     *
-     * @param socket the existing socket
-     * @param target    the name of the target host.
-     * @param port      the port to connect to on the target host
-     * @param autoClose a flag for closing the underling socket when the created
-     * socket is closed
-     *
-     * @return Socket a new socket
-     *
-     * @throws IOException if an I/O error occurs while creating the socket
-     * @throws UnknownHostException if the IP address of the host cannot be
-     * determined
-     */
-    Socket createLayeredSocket(
-        Socket socket,
-        String target,
-        int port,
-        boolean autoClose
-    ) throws IOException, UnknownHostException;
+@Deprecated
+class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
+
+    private final LayeredSchemeSocketFactory factory;
+
+    SchemeLayeredSocketFactoryAdaptor2(final LayeredSchemeSocketFactory factory) {
+        super();
+        this.factory = factory;
+    }
+
+    public Socket createSocket(final HttpParams params) throws IOException {
+        return this.factory.createSocket(params);
+    }
+
+    public Socket connectSocket(
+            final Socket sock, 
+            final InetSocketAddress remoteAddress,
+            final InetSocketAddress localAddress, 
+            final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+        return this.factory.connectSocket(sock, remoteAddress, localAddress, params);
+    }
+
+    public boolean isSecure(Socket sock) throws IllegalArgumentException {
+        return this.factory.isSecure(sock);
+    }
+
+    public Socket createLayeredSocket(
+            final Socket socket,
+            final String target, int port,
+            final HttpParams params) throws IOException, UnknownHostException {
+        return this.factory.createLayeredSocket(socket, target, port, true);
+    }
 
 }

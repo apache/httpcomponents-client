@@ -48,7 +48,7 @@ import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
+import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
@@ -220,17 +220,17 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
 
         final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
-        if (!(schm.getSchemeSocketFactory() instanceof LayeredSchemeSocketFactory)) {
+        if (!(schm.getSchemeSocketFactory() instanceof SchemeLayeredSocketFactory)) {
             throw new IllegalArgumentException
                 ("Target scheme (" + schm.getName() +
                  ") must have layered socket factory.");
         }
 
-        LayeredSchemeSocketFactory lsf = (LayeredSchemeSocketFactory) schm.getSchemeSocketFactory();
+        SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
         Socket sock;
         try {
             sock = lsf.createLayeredSocket(
-                    conn.getSocket(), target.getHostName(), target.getPort(), true);
+                    conn.getSocket(), target.getHostName(), target.getPort(), params);
         } catch (ConnectException ex) {
             throw new HttpHostConnectException(target, ex);
         }

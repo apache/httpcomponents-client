@@ -31,13 +31,15 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.apache.http.params.HttpParams;
+
 @Deprecated
-class LayeredSchemeSocketFactoryAdaptor extends SchemeSocketFactoryAdaptor
-    implements LayeredSchemeSocketFactory {
+class SchemeLayeredSocketFactoryAdaptor extends SchemeSocketFactoryAdaptor
+    implements SchemeLayeredSocketFactory {
 
     private final LayeredSocketFactory factory;
 
-    LayeredSchemeSocketFactoryAdaptor(final LayeredSocketFactory factory) {
+    SchemeLayeredSocketFactoryAdaptor(final LayeredSocketFactory factory) {
         super(factory);
         this.factory = factory;
     }
@@ -45,8 +47,8 @@ class LayeredSchemeSocketFactoryAdaptor extends SchemeSocketFactoryAdaptor
     public Socket createLayeredSocket(
             final Socket socket,
             final String target, int port,
-            boolean autoClose) throws IOException, UnknownHostException {
-        return this.factory.createSocket(socket, target, port, autoClose);
+            final HttpParams params) throws IOException, UnknownHostException {
+        return this.factory.createSocket(socket, target, port, true);
     }
 
 }
