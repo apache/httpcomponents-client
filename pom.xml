@@ -353,7 +353,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
-          <comparisonVersion>${comparisonVersion}</comparisonVersion>
+          <comparisonVersion>${api.comparison.version}</comparisonVersion>
         </configuration>
       </plugin>
     </plugins>
