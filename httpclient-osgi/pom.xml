@@ -66,6 +66,12 @@
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>fluent-hc</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <properties>
@@ -113,6 +119,7 @@
             org.ietf.jgss,
             org.apache.commons.logging;version=${commons-logging.version},
             org.apache.http;version=${httpcore.version},
+            org.apache.http.concurrent;version=${httpcore.version},
             org.apache.http.entity;version=${httpcore.version},
             org.apache.http.io;version=${httpcore.version},
             org.apache.http.message;version=${httpcore.version},
