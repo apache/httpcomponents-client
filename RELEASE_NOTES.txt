@@ -1,5 +1,27 @@
-Changes since 4.2 ALPHA1
+Release 4.2 BETA1
 -------------------
+
+This is the first BETA release of HttpClient 4.2. This release completes development of several
+notable enhancements in HttpClient:
+
+* New facade API for HttpClient based on the concept of a fluent interface. The fluent API exposes
+  only the most fundamental functions of HttpClient and is intended for relatively simple use cases
+  that do not require the full flexibility of HttpClient. However, the fluent API almost fully
+  relieves the users from having to deal with connection management and resource deallocation.
+
+* Redesigned and rewritten connection management code. As of release 4.2 HttpClient will be using
+  pooling connection manager per default.
+
+* Enhanced HTTP authentication API that enables HttpClient to handle more complex authentication
+  scenarios. HttpClient 4.2 is now capable of making use of multiple authentication challenges
+  and retry authentication with a fall-back scheme in case the primary one fails. This can be
+  important for compatibility with Microsoft products that are often configured to use
+  SPNEGO/Kerberos as the preferred authentication scheme.
+
+
+Changelog
+-------------------
+
 * [HTTPCLIENT-1154] MemcachedHttpCacheStorage should allow client to
   specify custom prefix string for keys.
   Contributed by Jon Moore <jonm at apache dot org>.
