@@ -42,46 +42,46 @@ HttpClient Downloads
     in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
     by adding the following block to the dependency descriptor:
 
-* {HttpComponents Client 4.2-alpha1}
+* {HttpComponents Client 4.2-beta1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.2-alpha1</version>
+    <version>4.2-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime 4.2-alpha1}
+* {HttpComponents HttpMime 4.2-beta1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.2-alpha1</version>
+    <version>4.2-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpClient Cache 4.2-alpha1}
+* {HttpComponents HttpClient Cache 4.2-beta1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient-cache</artifactId>
-    <version>4.2-alpha1</version>
+    <version>4.2-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpClient Fluent 4.2-alpha1}
+* {HttpComponents HttpClient Fluent 4.2-beta1}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>hc-fluent</artifactId>
-    <version>4.2-alpha1</version>
+    <version>4.2-beta1</version>
     <scope>compile</scope>
   </dependency>
 -------------------------

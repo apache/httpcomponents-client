@@ -64,7 +64,7 @@ HttpClient Overview
 
     * Tunneled HTTPS connections through HTTP proxies, via the CONNECT method.
 
-    * Basic, Digest, NTLMv1, NTLMv2, NTLM2 Session, SNPNEGO/Kerberos authentication schemes.
+    * Basic, Digest, NTLMv1, NTLMv2, NTLM2 Session, SNPNEGO, Kerberos authentication schemes.
 
     * Plug-in mechanism for custom authentication schemes.
 

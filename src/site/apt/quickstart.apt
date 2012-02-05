@@ -33,8 +33,8 @@ HttpClient Quick Start
     [[1]] Download 'Binary' package of the latest official release from 
     the {{{http://hc.apache.org/downloads.cgi} project download page}}. 
   
-    There should be 5 jars in total (components marked with (*) are optional if MIME multipart 
-    support is not required)
+    There should be 7 jars in total (components marked with (*) include additional features and 
+    are optional)
   
     * commons-logging-<x.x.x>.jar
   
@@ -46,6 +46,10 @@ HttpClient Quick Start
   
     * httpmime-<x.x.x>.jar (*)
     
+    * httpclient-cache-<x.x.x>.jar (*)
+
+    * fluent-hc-<x.x.x>.jar (*)
+
     []
     
     [[2]] Take a look at the HttpClient tutorial shipped with the release package or available
