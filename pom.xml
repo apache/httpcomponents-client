@@ -35,7 +35,7 @@
   <groupId>org.apache.httpcomponents</groupId>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
-  <version>4.1.3-SNAPSHOT</version>
+  <version>4.1.4-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
