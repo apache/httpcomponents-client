@@ -50,4 +50,17 @@ public class TestRequestAcceptEncoding {
         Assert.assertEquals("gzip,deflate", header.getValue());
     }
 
+    @Test
+    public void testAcceptEncodingAlreadyPResent() throws Exception {
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+        request.addHeader("Accept-Encoding", "stuff");
+        HttpContext context = new BasicHttpContext();
+
+        HttpRequestInterceptor interceptor = new RequestAcceptEncoding();
+        interceptor.process(request, context);
+        Header header = request.getFirstHeader("Accept-Encoding");
+        Assert.assertNotNull(header);
+        Assert.assertEquals("stuff", header.getValue());
+    }
+
 }

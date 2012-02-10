@@ -52,7 +52,9 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
             final HttpContext context) throws HttpException, IOException {
 
         /* Signal support for Accept-Encoding transfer encodings. */
-        request.addHeader("Accept-Encoding", "gzip,deflate");
+        if (!request.containsHeader("Accept-Encoding")) {
+            request.addHeader("Accept-Encoding", "gzip,deflate");
+        } 
     }
 
 }
