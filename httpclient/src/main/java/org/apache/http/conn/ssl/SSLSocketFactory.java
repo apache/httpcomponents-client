@@ -296,12 +296,9 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
                 tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                 String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
-                if (trustStorePassword == null) {
-                    trustStorePassword = "changeit";
-                }
                 FileInputStream instream = new FileInputStream(trustStoreFile);
                 try {
-                    trustStore.load(instream, trustStorePassword.toCharArray());
+                    trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
                 } finally {
                     instream.close();
                 }
@@ -360,7 +357,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         try {
             return createSSLContext(TLS, null, null, null, null, null);
         } catch (Exception ex) {
-            throw new IllegalStateException("Failure initializing default SSL context", ex);
+            throw new SSLInitializationException("Failure initializing default SSL context", ex);
         }
     }
 
@@ -368,7 +365,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         try {
             return createSystemSSLContext(TLS, null);
         } catch (Exception ex) {
-            throw new IllegalStateException("Failure initializing default system SSL context", ex);
+            throw new SSLInitializationException("Failure initializing default system SSL context", ex);
         }
     }
 
