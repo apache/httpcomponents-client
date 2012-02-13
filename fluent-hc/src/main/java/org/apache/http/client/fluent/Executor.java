@@ -42,6 +42,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -56,8 +58,13 @@ public class Executor {
     final static DefaultHttpClient CLIENT;
     
     static {
-        CONNMGR = new PoolingClientConnectionManager(
-                SchemeRegistryFactory.createSystemDefault());
+        SchemeRegistry schemeRegistry;
+        try {
+            schemeRegistry = SchemeRegistryFactory.createSystemDefault();
+        } catch (SSLInitializationException ex) {
+            schemeRegistry = SchemeRegistryFactory.createDefault();
+        }
+        CONNMGR = new PoolingClientConnectionManager(schemeRegistry);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
         CLIENT = new DefaultHttpClient(CONNMGR);
@@ -65,6 +72,10 @@ public class Executor {
 
     public static Executor newInstance() {
         return new Executor(CLIENT);
+    }
+
+    public static Executor newInstance(final HttpClient httpclient) {
+        return new Executor(httpclient != null ? httpclient : CLIENT);
     }
 
     private final HttpClient httpclient;
