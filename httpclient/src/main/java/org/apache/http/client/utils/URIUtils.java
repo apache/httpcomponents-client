@@ -306,9 +306,18 @@ public class URIUtils {
                     if (host != null) {
                         int colon = host.indexOf(':');
                         if (colon >= 0) {
-                            if (colon + 1 < host.length()) {
+                            int pos = colon + 1;
+                            int len = 0;
+                            for (int i = pos; i < host.length(); i++) {
+                                if (Character.isDigit(host.charAt(i))) {
+                                    len++;
+                                } else {
+                                    break;
+                                }
+                            }
+                            if (len > 0) {
                                 try {
-                                    port = Integer.parseInt(host.substring(colon + 1));
+                                    port = Integer.parseInt(host.substring(pos, pos + len));
                                 } catch (NumberFormatException ex) {
                                 }
                             }

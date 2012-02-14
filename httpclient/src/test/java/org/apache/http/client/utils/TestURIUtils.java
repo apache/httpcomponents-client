@@ -341,9 +341,9 @@ public class TestURIUtils {
                 URIUtils.extractHost(new URI("http://local_host:8/abcd")));
 
         // URI seems to OK with missing port number
-        Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(
+        Assert.assertEquals(new HttpHost("localhost",-1),URIUtils.extractHost(
                 new URI("http://localhost:/abcd")));
-        Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(
+        Assert.assertEquals(new HttpHost("local_host",-1),URIUtils.extractHost(
                 new URI("http://local_host:/abcd")));
 
         Assert.assertEquals(new HttpHost("localhost",8080),
@@ -361,8 +361,10 @@ public class TestURIUtils {
 
         Assert.assertEquals(new HttpHost("localhost",8080),
                 URIUtils.extractHost(new URI("http://localhost:8080/;sessionid=stuff/abcd")));
-        Assert.assertEquals(new HttpHost("localhost",-1),
+        Assert.assertEquals(new HttpHost("localhost",8080),
                 URIUtils.extractHost(new URI("http://localhost:8080;sessionid=stuff/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",-1),
+                URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
     }
 
 }
