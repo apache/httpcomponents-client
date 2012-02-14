@@ -306,10 +306,13 @@ public class URIUtils {
                     if (host != null) {
                         int colon = host.indexOf(':');
                         if (colon >= 0) {
-                            if (colon+1 < host.length()) {
-                                port = Integer.parseInt(host.substring(colon+1));
+                            if (colon + 1 < host.length()) {
+                                try {
+                                    port = Integer.parseInt(host.substring(colon + 1));
+                                } catch (NumberFormatException ex) {
+                                }
                             }
-                            host = host.substring(0,colon);
+                            host = host.substring(0, colon);
                         }
                     }
                 }
