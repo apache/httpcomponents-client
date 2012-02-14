@@ -325,25 +325,46 @@ public class TestURIUtils {
 
     @Test
     public void testHTTPCLIENT_911() throws Exception{
-        Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(new URI("http://localhost/abcd")));
-        Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(new URI("http://localhost/abcd%3A")));
+        Assert.assertEquals(new HttpHost("localhost"),
+                URIUtils.extractHost(new URI("http://localhost/abcd")));
+        Assert.assertEquals(new HttpHost("localhost"),
+                URIUtils.extractHost(new URI("http://localhost/abcd%3A")));
         
-        Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(new URI("http://local_host/abcd")));
-        Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(new URI("http://local_host/abcd%3A")));
+        Assert.assertEquals(new HttpHost("local_host"),
+                URIUtils.extractHost(new URI("http://local_host/abcd")));
+        Assert.assertEquals(new HttpHost("local_host"),
+                URIUtils.extractHost(new URI("http://local_host/abcd%3A")));
         
-        Assert.assertEquals(new HttpHost("localhost",8),URIUtils.extractHost(new URI("http://localhost:8/abcd")));
-        Assert.assertEquals(new HttpHost("local_host",8),URIUtils.extractHost(new URI("http://local_host:8/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",8),
+                URIUtils.extractHost(new URI("http://localhost:8/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8),
+                URIUtils.extractHost(new URI("http://local_host:8/abcd")));
 
         // URI seems to OK with missing port number
-        Assert.assertEquals(new HttpHost("localhost"),URIUtils.extractHost(new URI("http://localhost:/abcd")));
-        Assert.assertEquals(new HttpHost("local_host"),URIUtils.extractHost(new URI("http://local_host:/abcd")));
+        Assert.assertEquals(new HttpHost("localhost"),
+                URIUtils.extractHost(new URI("http://localhost:/abcd")));
+        Assert.assertEquals(new HttpHost("local_host"),
+                URIUtils.extractHost(new URI("http://local_host:/abcd")));
 
-        Assert.assertEquals(new HttpHost("localhost",8080),URIUtils.extractHost(new URI("http://user:pass@localhost:8080/abcd")));
-        Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.extractHost(new URI("http://user:pass@local_host:8080/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",8080),
+                URIUtils.extractHost(new URI("http://user:pass@localhost:8080/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8080),
+                URIUtils.extractHost(new URI("http://user:pass@local_host:8080/abcd")));
 
-        Assert.assertEquals(new HttpHost("localhost",8080),URIUtils.extractHost(new URI("http://@localhost:8080/abcd")));
-        Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.extractHost(new URI("http://@local_host:8080/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",8080),
+                URIUtils.extractHost(new URI("http://@localhost:8080/abcd")));
+        Assert.assertEquals(new HttpHost("local_host",8080),
+                URIUtils.extractHost(new URI("http://@local_host:8080/abcd")));
 
+        Assert.assertEquals(new HttpHost("[2a00:1450:400c:c01::69]",8080),
+                URIUtils.extractHost(new URI("http://[2a00:1450:400c:c01::69]:8080/")));
+
+        Assert.assertEquals(new HttpHost("localhost",8080),
+                URIUtils.extractHost(new URI("http://localhost:8080/;sessionid=stuff/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",8080),
+                URIUtils.extractHost(new URI("http://localhost:8080;sessionid=stuff/abcd")));
+        Assert.assertEquals(new HttpHost("localhost",-1),
+                URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
     }
     
 }
