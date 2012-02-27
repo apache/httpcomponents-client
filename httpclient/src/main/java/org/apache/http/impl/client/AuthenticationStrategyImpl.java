@@ -245,17 +245,13 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         if (authhost == null) {
             throw new IllegalArgumentException("Host may not be null");
         }
-        if (authScheme == null) {
-            throw new IllegalArgumentException("Auth scheme may not be null");
-        }
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         if (authCache != null) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Removing from cache '" + authScheme.getSchemeName() +
-                        "' auth scheme for " + authhost);
+                this.log.debug("Clearing cached auth scheme for " + authhost);
             }
             authCache.remove(authhost);
         }

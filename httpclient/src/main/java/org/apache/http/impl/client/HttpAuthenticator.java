@@ -108,7 +108,7 @@ public class HttpAuthenticator {
             case HANDSHAKE:
                 if (authScheme == null) {
                     this.log.debug("Auth scheme is null");
-                    authStrategy.authFailed(host, authState.getAuthScheme(), context);
+                    authStrategy.authFailed(host, null, context);
                     authState.reset();
                     authState.setState(AuthProtocolState.FAILURE);
                     return false;
