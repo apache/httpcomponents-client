@@ -396,11 +396,6 @@ public class TestAuthenticationStrategy {
         } catch (IllegalArgumentException ex) {
         }
         try {
-            authStrategy.authFailed(authhost, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException ex) {
-        }
-        try {
             authStrategy.authFailed(authhost, authScheme, null);
             Assert.fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException ex) {
