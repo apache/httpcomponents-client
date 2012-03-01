@@ -28,12 +28,16 @@ package org.apache.http.impl.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
@@ -42,14 +46,17 @@ import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
 import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
@@ -394,6 +401,46 @@ public class TestClientAuthentication extends BasicServerTestBase {
         EntityUtils.consume(entity2);
 
         Assert.assertEquals(1, authHandler.getCount());
+    }
+
+    @Test
+    public void testBasicAuthenticationException() throws Exception {
+        localServer.register("*", new AuthHandler());
+        localServer.start();
+
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("test", "test"));
+
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.getAuthSchemes().register(AuthPolicy.BASIC, new AuthSchemeFactory() {
+            
+            public AuthScheme newInstance(final HttpParams params) {
+                
+                return new BasicScheme() {
+
+                    @Override
+                    public Header authenticate(
+                            final Credentials credentials, 
+                            final HttpRequest request) throws AuthenticationException {
+                        throw new AuthenticationException("Oopsie");
+                    }
+                    
+                };
+            }
+        });
+        
+        httpclient.setCredentialsProvider(credsProvider);
+
+        HttpContext context = new BasicHttpContext();
+
+        HttpGet httpget = new HttpGet("/");
+
+        HttpResponse response = httpclient.execute(getServerHttp(), httpget, context);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
     }
 
 }
