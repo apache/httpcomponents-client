@@ -626,6 +626,10 @@ for (int j = 0; j < threads.length; j++) {
 }
 
 ]]></programlisting>
+        <para>While <interfacename>HttpClient</interfacename> instances are thread safe and can be 
+              shared between multiple threads of execution, it is highly recommended that each 
+              thread maintains its own dedicated instance of <interfacename>HttpContext
+              </interfacename>.</para>
         <programlisting><![CDATA[
 static class GetThread extends Thread {
     

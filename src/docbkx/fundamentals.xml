@@ -473,6 +473,9 @@ byte[] response = httpclient.execute(httpget, handler);
             simply a collection of arbitrary named values. An application can populate context
             attributes prior to request execution or examine the context after the execution has
             been completed.</para>
+        <para><interfacename>HttpContext</interfacename> can contain arbitrary objects and 
+            therefore may be unsafe to share between multiple threads. It is recommended that
+            each thread of execution maintains its own context.</para>
         <para>In the course of HTTP request execution HttpClient adds the following attributes to
             the execution context:</para>
         <itemizedlist>
