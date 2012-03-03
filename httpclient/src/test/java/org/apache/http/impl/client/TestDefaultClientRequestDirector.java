@@ -185,6 +185,32 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
     }
 
     @Test
+    public void testClientLevelVirtualHostHeader() throws Exception {
+        int port = this.localServer.getServiceAddress().getPort();
+        this.localServer.register("*", new SimpleService());
+
+        HttpContext context = new BasicHttpContext();
+
+        String s = "http://localhost:" + port;
+        HttpGet httpget = new HttpGet(s);
+
+        String virtHost = "virtual";
+        this.httpclient.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, port));
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        // Check that Host header is generated as expected
+        Header[] headers = reqWrapper.getHeaders("host");
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals(virtHost+":"+port,headers[0].getValue());
+    }
+
+    @Test
     public void testDefaultHostAtRequestLevel() throws Exception {
         int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());

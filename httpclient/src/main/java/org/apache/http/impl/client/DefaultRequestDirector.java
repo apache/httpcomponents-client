@@ -410,8 +410,7 @@ public class DefaultRequestDirector implements RequestDirector {
         origWrapper.setParams(params);
         HttpRoute origRoute = determineRoute(target, origWrapper, context);
 
-        virtualHost = (HttpHost) orig.getParams().getParameter(
-                ClientPNames.VIRTUAL_HOST);
+        virtualHost = (HttpHost) origWrapper.getParams().getParameter(ClientPNames.VIRTUAL_HOST);
 
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
