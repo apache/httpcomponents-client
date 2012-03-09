@@ -171,7 +171,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
      *
      * @return the default SSL socket factory
      */
-    public static SSLSocketFactory getSocketFactory() {
+    public static SSLSocketFactory getSocketFactory() throws SSLInitializationException {
         return new SSLSocketFactory(createDefaultSSLContext());
     }
 
@@ -200,7 +200,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
      *
      * @return the system SSL socket factory
      */
-    public static SSLSocketFactory getSystemSocketFactory() {
+    public static SSLSocketFactory getSystemSocketFactory() throws SSLInitializationException {
         return new SSLSocketFactory(createSystemSSLContext());
     }
 
@@ -353,7 +353,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         return sslcontext;
     }
 
-    private static SSLContext createDefaultSSLContext() {
+    private static SSLContext createDefaultSSLContext() throws SSLInitializationException {
         try {
             return createSSLContext(TLS, null, null, null, null, null);
         } catch (Exception ex) {
@@ -361,7 +361,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         }
     }
 
-    private static SSLContext createSystemSSLContext() {
+    private static SSLContext createSystemSSLContext() throws SSLInitializationException {
         try {
             return createSystemSSLContext(TLS, null);
         } catch (Exception ex) {

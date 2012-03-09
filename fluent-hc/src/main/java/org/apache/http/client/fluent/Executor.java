@@ -27,6 +27,10 @@
 package org.apache.http.client.fluent;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -41,28 +45,44 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.protocol.BasicHttpContext;
 
 public class Executor {
 
     final static PoolingClientConnectionManager CONNMGR;
     final static DefaultHttpClient CLIENT;
-    
+
     static {
-        SchemeRegistry schemeRegistry;
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        SchemeSocketFactory plain = PlainSocketFactory.getSocketFactory();
+        schemeRegistry.register(new Scheme("http", 80, plain));
+        SchemeSocketFactory ssl = null;
         try {
-            schemeRegistry = SchemeRegistryFactory.createSystemDefault();
+            ssl = SSLSocketFactory.getSystemSocketFactory();
         } catch (SSLInitializationException ex) {
-            schemeRegistry = SchemeRegistryFactory.createDefault();
+            SSLContext sslcontext;
+            try {
+                sslcontext = SSLContext.getInstance(SSLSocketFactory.TLS);
+                sslcontext.init(null, null, null);
+                ssl = new SSLSocketFactory(sslcontext);
+            } catch (SecurityException ignore) {
+            } catch (KeyManagementException ignore) {
+            } catch (NoSuchAlgorithmException ignore) {
+            }
+        }
+        if (ssl != null) {
+            schemeRegistry.register(new Scheme("https", 443, ssl));
         }
         CONNMGR = new PoolingClientConnectionManager(schemeRegistry);
         CONNMGR.setDefaultMaxPerRoute(100);
