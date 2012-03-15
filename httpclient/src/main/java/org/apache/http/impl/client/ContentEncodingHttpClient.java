@@ -36,9 +36,18 @@ import org.apache.http.protocol.BasicHttpProcessor;
 /**
  * {@link DefaultHttpClient} sub-class which includes a {@link RequestAcceptEncoding}
  * for the request and response.
+ * 
+ * <b>Deprecation note:</b> due to the way this class modifies a response body
+ * without changing the response headers to reflect the entity changes, it cannot
+ * be used as the &quot;backend&quot; for a {@link CachingHttpClient} and still
+ * have uncompressed responses be cached. Users are encouraged to use the
+ * {@link CompressionDecorator} instead of this class, which can be wired in
+ * either before or after caching, depending on whether you want to cache
+ * responses in compressed or uncompressed form.
  *
  * @since 4.1
  */
+@Deprecated
 @ThreadSafe // since DefaultHttpClient is
 public class ContentEncodingHttpClient extends DefaultHttpClient {
 

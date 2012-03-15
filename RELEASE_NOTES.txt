@@ -21,6 +21,8 @@ notable enhancements in HttpClient:
 
 Changelog
 -------------------
+* [HTTPCLIENT-1164] Compressed entities are not being cached properly.
+  Contributed by Jon Moore <jonm at apache dot org>.
 
 * [HTTPCLIENT-1154] MemcachedHttpCacheStorage should allow client to
   specify custom prefix string for keys.

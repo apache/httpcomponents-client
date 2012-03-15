@@ -52,6 +52,8 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class ResponseContentEncoding implements HttpResponseInterceptor {
 
+    public static final String UNCOMPRESSED = "http.client.response.uncompressed"; 
+    
     /**
      * Handles the following {@code Content-Encoding}s by
      * using the appropriate decompressor to wrap the response Entity:
@@ -80,9 +82,11 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                     String codecname = codec.getName().toLowerCase(Locale.US);
                     if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
                         response.setEntity(new GzipDecompressingEntity(response.getEntity()));
+                        if (context != null) context.setAttribute(UNCOMPRESSED, true);  
                         return;
                     } else if ("deflate".equals(codecname)) {
                         response.setEntity(new DeflateDecompressingEntity(response.getEntity()));
+                        if (context != null) context.setAttribute(UNCOMPRESSED, true);
                         return;
                     } else if ("identity".equals(codecname)) {
 
