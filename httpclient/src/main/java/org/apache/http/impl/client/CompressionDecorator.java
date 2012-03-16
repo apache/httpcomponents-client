@@ -128,6 +128,7 @@ public class CompressionDecorator implements HttpClient {
             if (Boolean.TRUE.equals(context.getAttribute(ResponseContentEncoding.UNCOMPRESSED))) {
                 response.removeHeaders("Content-Length");
                 response.removeHeaders("Content-Encoding");
+                response.removeHeaders("Content-MD5");
             }
             return response;
         } catch (HttpException e) {

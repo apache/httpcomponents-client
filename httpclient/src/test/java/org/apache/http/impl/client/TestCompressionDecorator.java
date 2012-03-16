@@ -270,7 +270,7 @@ public class TestCompressionDecorator {
         assertSame(handled, impl.execute(host, request, mockHandler, ctx));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-
+    
     @Test
     public void successfullyUncompressesContent() throws Exception {
         final String plainText = "hello\n";
@@ -309,6 +309,29 @@ public class TestCompressionDecorator {
         
         HttpResponse result = impl.execute(request);
         assertNull(result.getFirstHeader("Content-Encoding"));
+    }
+    
+    @Test
+    public void uncompressedResponseHasContentMD5Removed() throws Exception {
+        final String plainText = "hello\n";
+        HttpResponse response = getGzippedResponse(plainText);
+        response.setHeader("Content-MD5","a checksum");
+        backend.setResponse(response);
+        
+        HttpResponse result = impl.execute(request);
+        assertNull(result.getFirstHeader("Content-MD5"));
+    }
+    
+    @Test
+    public void unencodedResponseRetainsContentMD5() throws Exception {
+        final String plainText = "hello\n";
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        response.setHeader("Content-MD5","a checksum");
+        response.setEntity(new ByteArrayEntity(plainText.getBytes()));
+        backend.setResponse(response);
+        
+        HttpResponse result = impl.execute(request);
+        assertNotNull(result.getFirstHeader("Content-MD5"));
     }
     
     private HttpResponse getGzippedResponse(final String plainText)
