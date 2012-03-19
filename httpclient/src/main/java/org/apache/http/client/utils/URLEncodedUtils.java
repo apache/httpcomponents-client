@@ -99,15 +99,17 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
-        List <NameValuePair> result = null;
+        List <NameValuePair> result = new ArrayList<NameValuePair>();
         ContentType contentType = ContentType.get(entity);
         if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
             String content = EntityUtils.toString(entity, HTTP.ASCII);
             if (content != null && content.length() > 0) {
-                result = parse(content, contentType.getCharset());
+                Scanner scanner = new Scanner(entity.getContent(), HTTP.ASCII);
+                parse(result, scanner, contentType.getCharset() != null ?
+                        contentType.getCharset() : HTTP.DEFAULT_CONTENT_CHARSET);
             }
         }
-        return result != null ? result : new ArrayList<NameValuePair>();
+        return result;
     }
 
     /**
@@ -142,24 +144,23 @@ public class URLEncodedUtils {
      *            Input that contains the parameters to parse.
      * @param encoding
      *            Encoding to use when decoding the parameters.
-     *
-     * @deprecated use {@link #parse(String, String)}
      */
-    @Deprecated
     public static void parse (
             final List <NameValuePair> parameters,
             final Scanner scanner,
-            final String encoding) {
+            final String charset) {
         scanner.useDelimiter(PARAMETER_SEPARATOR);
         while (scanner.hasNext()) {
-            final String[] nameValue = scanner.next().split(NAME_VALUE_SEPARATOR);
-            if (nameValue.length == 0 || nameValue.length > 2)
-                throw new IllegalArgumentException("bad parameter");
-
-            final String name = decode(nameValue[0], encoding);
+            String name = null;
             String value = null;
-            if (nameValue.length == 2)
-                value = decode(nameValue[1], encoding);
+            String token = scanner.next();
+            int i = token.indexOf(NAME_VALUE_SEPARATOR);
+            if (i != -1) {
+                name = decode(token.substring(0, i).trim(), charset);
+                value = decode(token.substring(i + 1).trim(), charset);
+            } else {
+                name = decode(token.trim(), charset);
+            }
             parameters.add(new BasicNameValuePair(name, value));
         }
     }
