@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.entity.ContentType;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -98,32 +99,15 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
-        List <NameValuePair> result = Collections.emptyList();
-
-        String contentType = null;
-        String charset = null;
-
-        Header h = entity.getContentType();
-        if (h != null) {
-            HeaderElement[] elems = h.getElements();
-            if (elems.length > 0) {
-                HeaderElement elem = elems[0];
-                contentType = elem.getName();
-                NameValuePair param = elem.getParameterByName("charset");
-                if (param != null) {
-                    charset = param.getValue();
-                }
-            }
-        }
-
-        if (contentType != null && contentType.equalsIgnoreCase(CONTENT_TYPE)) {
-            final String content = EntityUtils.toString(entity, HTTP.ASCII);
+        List <NameValuePair> result = null;
+        ContentType contentType = ContentType.get(entity);
+        if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
+            String content = EntityUtils.toString(entity, HTTP.ASCII);
             if (content != null && content.length() > 0) {
-                result = new ArrayList <NameValuePair>();
-                parse(result, new Scanner(content), charset);
+                result = parse(content, contentType.getCharset());
             }
         }
-        return result;
+        return result != null ? result : new ArrayList<NameValuePair>();
     }
 
     /**
@@ -188,12 +172,12 @@ public class URLEncodedUtils {
      *
      * @param s
      *            text to parse.
-     * @param encoding
+     * @param charset
      *            Encoding to use when decoding the parameters.
      *
      * @since 4.2
      */
-    public static List<NameValuePair> parse (final String s, final String encoding) {
+    public static List<NameValuePair> parse (final String s, final String charset) {
         if (s == null) {
             return Collections.emptyList();
         }
@@ -206,8 +190,8 @@ public class URLEncodedUtils {
             NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, DELIM);
             if (nvp.getName().length() > 0) {
                 list.add(new BasicNameValuePair(
-                        decode(nvp.getName(), encoding),
-                        decode(nvp.getValue(), encoding)));
+                        decode(nvp.getName(), charset),
+                        decode(nvp.getValue(), charset)));
             }
         }
         return list;
