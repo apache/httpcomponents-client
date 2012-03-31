@@ -30,6 +30,7 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
 
 import org.apache.http.annotation.NotThreadSafe;
 
@@ -147,10 +148,17 @@ public class BasicManagedEntity extends HttpEntityWrapper
     public boolean streamClosed(InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
+                boolean valid = managedConn.isOpen();
                 // this assumes that closing the stream will
                 // consume the remainder of the response body:
-                wrapped.close();
-                managedConn.markReusable();
+                try {
+                    wrapped.close();
+                    managedConn.markReusable();
+                } catch (SocketException ex) {
+                    if (valid) {
+                        throw ex;
+                    }
+                }
             }
         } finally {
             releaseManagedConnection();
