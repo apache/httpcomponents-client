@@ -49,7 +49,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -92,7 +91,7 @@ public class TestContentCodings extends ServerTestBase {
             }
         });
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -115,7 +114,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -138,7 +137,8 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
@@ -158,7 +158,8 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
@@ -224,48 +225,6 @@ public class TestContentCodings extends ServerTestBase {
     }
 
     /**
-     * Checks that we can turn off the new Content-Coding support. The default is that it's on, but that is a change
-     * to existing behaviour and might not be desirable in some situations.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testCanBeDisabledAtRequestTime() throws Exception {
-        final String entityText = "Hello, this is some plain text coming back.";
-
-        /* Assume that server will see an Accept-Encoding header. */
-        final boolean [] sawAcceptEncodingHeader = { true };
-
-        this.localServer.register("*", new HttpRequestHandler() {
-
-            /**
-             * {@inheritDoc}
-             */
-            public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
-                response.setEntity(new StringEntity(entityText));
-                response.addHeader("Content-Type", "text/plain");
-                Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
-
-                sawAcceptEncodingHeader[0] = acceptEncodings.length > 0;
-            }
-
-        });
-
-        AbstractHttpClient client = createHttpClient();
-        HttpGet request = new HttpGet("/some-resource");
-
-        client.removeRequestInterceptorByClass(RequestAcceptEncoding.class);
-
-        HttpResponse response = client.execute(getServerHttp(), request);
-
-        Assert.assertFalse("The Accept-Encoding header was not there", sawAcceptEncodingHeader[0]);
-        Assert.assertEquals("The entity isn't treated as gzip or zip content", entityText,
-                EntityUtils.toString(response.getEntity()));
-
-        client.getConnectionManager().shutdown();
-    }
-
-    /**
      * Test that the returned {@link HttpEntity} in the response correctly overrides
      * {@link HttpEntity#writeTo(OutputStream)} for gzip-encoding.
      *
@@ -277,7 +236,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -301,7 +260,8 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -319,7 +279,8 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+
         HttpGet request = new HttpGet("/some-resource");
         String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
@@ -333,7 +294,8 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        DefaultHttpClient client = createHttpClient();
+        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        
         HttpGet request = new HttpGet("/some-resource");
         String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
@@ -455,10 +417,6 @@ public class TestContentCodings extends ServerTestBase {
                 }
             }
         };
-    }
-
-    private DefaultHttpClient createHttpClient() {
-        return new ContentEncodingHttpClient();
     }
 
     /**
