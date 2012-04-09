@@ -69,7 +69,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <httpcore.version>4.2-beta1</httpcore.version>
     <commons-logging.version>1.1.1</commons-logging.version>
-    <commons-codec.version>1.4</commons-codec.version>
+    <commons-codec.version>1.6</commons-codec.version>
     <ehcache.version>2.2.0</ehcache.version>
     <memcached.version>2.6</memcached.version>
     <slf4j.version>1.5.11</slf4j.version>

@@ -1,6 +1,9 @@
 Changes since 4.2 BETA1
 -------------------
 
+* [HTTPCLIENT-1179] Upgraded Commons Codec dependency to version 1.6
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1177] always remove fragments from request URIs
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
