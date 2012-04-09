@@ -518,7 +518,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
-        Socket sock = socket != null ? socket : new Socket();
+        Socket sock = socket != null ? socket : this.socketfactory.createSocket();
         if (localAddress != null) {
             sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sock.bind(localAddress);
