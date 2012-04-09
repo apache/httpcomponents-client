@@ -115,8 +115,14 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
+        if (request == null) {
+            throw new IllegalArgumentException("HTTP request may not be null");
+        }
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
         }
         //get the location header to find out where to redirect to
         Header locationHeader = response.getFirstHeader("location");
@@ -133,63 +139,43 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
         URI uri = createLocationURI(location);
 
-        HttpParams params = response.getParams();
+        HttpParams params = request.getParams();
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
-        if (!uri.isAbsolute()) {
-            if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
-                throw new ProtocolException("Relative redirect location '"
-                        + uri + "' not allowed");
-            }
-            // Adjust location URI
-            HttpHost target = (HttpHost) context.getAttribute(
-                    ExecutionContext.HTTP_TARGET_HOST);
-            if (target == null) {
-                throw new IllegalStateException("Target host not available " +
-                        "in the HTTP context");
-            }
-            try {
+        try {
+            // Drop fragment
+            uri = URIUtils.rewriteURI(uri);
+            if (!uri.isAbsolute()) {
+                if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
+                    throw new ProtocolException("Relative redirect location '"
+                            + uri + "' not allowed");
+                }
+                // Adjust location URI
+                HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                if (target == null) {
+                    throw new IllegalStateException("Target host not available " +
+                            "in the HTTP context");
+                }
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
-            } catch (URISyntaxException ex) {
-                throw new ProtocolException(ex.getMessage(), ex);
             }
+        } catch (URISyntaxException ex) {
+            throw new ProtocolException(ex.getMessage(), ex);
         }
 
+        RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
+                REDIRECT_LOCATIONS);
+        if (redirectLocations == null) {
+            redirectLocations = new RedirectLocations();
+            context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
+        }
         if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
-
-            RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
-                    REDIRECT_LOCATIONS);
-
-            if (redirectLocations == null) {
-                redirectLocations = new RedirectLocations();
-                context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
-            }
-
-            URI redirectURI;
-            if (uri.getFragment() != null) {
-                try {
-                    HttpHost target = new HttpHost(
-                            uri.getHost(),
-                            uri.getPort(),
-                            uri.getScheme());
-                    redirectURI = URIUtils.rewriteURI(uri, target, true);
-                } catch (URISyntaxException ex) {
-                    throw new ProtocolException(ex.getMessage(), ex);
-                }
-            } else {
-                redirectURI = uri;
-            }
-
-            if (redirectLocations.contains(redirectURI)) {
-                throw new CircularRedirectException("Circular redirect to '" +
-                        redirectURI + "'");
-            } else {
-                redirectLocations.add(redirectURI);
+            if (redirectLocations.contains(uri)) {
+                throw new CircularRedirectException("Circular redirect to '" + uri + "'");
             }
         }
-
+        redirectLocations.add(uri);
         return uri;
     }
 

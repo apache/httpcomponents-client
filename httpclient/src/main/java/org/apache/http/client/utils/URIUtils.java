@@ -176,6 +176,33 @@ public class URIUtils {
     }
 
     /**
+     * A convenience method that creates a new {@link URI} whose scheme, host, port ,path,
+     * query are taken from the existing URI if it contains a fragment. The existing URI
+     * is returned unmodified if it has no fragment.
+     *
+     * @param uri
+     *            original URI.
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     */
+    public static URI rewriteURI(final URI uri) throws URISyntaxException {
+        if (uri == null) {
+            throw new IllegalArgumentException("URI may not be null");
+        }
+        if (uri.getFragment() != null) {
+            return URIUtils.createURI(
+                    uri.getScheme(),
+                    uri.getHost(),
+                    uri.getPort(),
+                    uri.getRawPath(),
+                    uri.getRawQuery(),
+                    null);
+        } else {
+            return uri;
+        }
+    }
+
+    /**
      * Resolves a URI reference against a base URI. Work-around for bug in
      * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
      *
