@@ -41,7 +41,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
  * without changing the response headers to reflect the entity changes, it cannot
  * be used as the &quot;backend&quot; for a {@link CachingHttpClient} and still
  * have uncompressed responses be cached. Users are encouraged to use the
- * {@link CompressionDecorator} instead of this class, which can be wired in
+ * {@link DecompressingHttpClient} instead of this class, which can be wired in
  * either before or after caching, depending on whether you want to cache
  * responses in compressed or uncompressed form.
  *

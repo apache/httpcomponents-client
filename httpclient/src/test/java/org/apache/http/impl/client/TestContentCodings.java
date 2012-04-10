@@ -91,7 +91,7 @@ public class TestContentCodings extends ServerTestBase {
             }
         });
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -114,7 +114,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -137,7 +137,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -158,7 +158,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -236,7 +236,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -260,7 +260,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = client.execute(getServerHttp(), request);
@@ -279,7 +279,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
 
         HttpGet request = new HttpGet("/some-resource");
         String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
@@ -294,7 +294,7 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        HttpClient client = new CompressionDecorator(new DefaultHttpClient());
+        HttpClient client = new DecompressingHttpClient(new DefaultHttpClient());
         
         HttpGet request = new HttpGet("/some-resource");
         String response = client.execute(getServerHttp(), request, new BasicResponseHandler());

@@ -47,7 +47,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
-/*
+/**
  * <p>Decorator adding support for compressed responses. This class sets
  * the <code>Accept-Encoding</code> header on requests to indicate
  * support for the <code>gzip</code> and <code>deflate</code>
@@ -63,27 +63,31 @@ import org.apache.http.util.EntityUtils;
  * but the content length experienced by reading the response body may
  * be different (hopefully higher!).</p>
  * 
- * <p>That said, this decorator is compatible with the {@link CachingHttpClient}
- * in that the two decorators can be added in either order and still have
- * cacheable responses be cached.</p> 
+ * <p>That said, this decorator is compatible with the 
+ * <code>CachingHttpClient</code> in that the two decorators can be added 
+ * in either order and still have cacheable responses be cached.</p> 
+ * 
+ * @since 4.2
  */
-public class CompressionDecorator implements HttpClient {
+public class DecompressingHttpClient implements HttpClient {
 
     private HttpClient backend;
     private HttpRequestInterceptor acceptEncodingInterceptor;
     private HttpResponseInterceptor contentEncodingInterceptor;
     
-    /*
+    /**
      * Constructs a decorator to ask for and handle compressed
      * entities on the fly.
      * @param backend the {@link HttpClient} to use for actually
      *   issuing requests
      */
-    public CompressionDecorator(HttpClient backend) {
+    public DecompressingHttpClient(HttpClient backend) {
         this(backend, new RequestAcceptEncoding(), new ResponseContentEncoding());
     }
     
-    CompressionDecorator(HttpClient backend, HttpRequestInterceptor requestInterceptor, HttpResponseInterceptor responseInterceptor) {
+    DecompressingHttpClient(HttpClient backend, 
+            HttpRequestInterceptor requestInterceptor, 
+            HttpResponseInterceptor responseInterceptor) {
         this.backend = backend;
         this.acceptEncodingInterceptor = requestInterceptor;
         this.contentEncodingInterceptor = responseInterceptor;

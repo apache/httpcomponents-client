@@ -60,12 +60,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestCompressionDecorator {
+public class TestDecompressingHttpClient {
     
     private DummyHttpClient backend;
     @Mock private ClientConnectionManager mockConnManager;
     @Mock private ResponseHandler<Object> mockHandler;
-    private CompressionDecorator impl;
+    private DecompressingHttpClient impl;
     private HttpUriRequest request;
     private HttpContext ctx;
     private HttpHost host;
@@ -77,7 +77,7 @@ public class TestCompressionDecorator {
     public void canCreate() {
         handled = new Object();
         backend = new DummyHttpClient();
-        impl = new CompressionDecorator(backend);
+        impl = new DecompressingHttpClient(backend);
         request = new HttpGet("http://localhost:8080");
         ctx = new BasicHttpContext();
         host = new HttpHost("www.example.com");
