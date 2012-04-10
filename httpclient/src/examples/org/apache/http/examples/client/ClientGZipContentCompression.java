@@ -28,8 +28,6 @@
 package org.apache.http.examples.client;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -39,8 +37,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -81,14 +79,16 @@ public class ClientGZipContentCompression {
                         final HttpResponse response,
                         final HttpContext context) throws HttpException, IOException {
                     HttpEntity entity = response.getEntity();
-                    Header ceheader = entity.getContentEncoding();
-                    if (ceheader != null) {
-                        HeaderElement[] codecs = ceheader.getElements();
-                        for (int i = 0; i < codecs.length; i++) {
-                            if (codecs[i].getName().equalsIgnoreCase("gzip")) {
-                                response.setEntity(
-                                        new GzipDecompressingEntity(response.getEntity()));
-                                return;
+                    if (entity != null) {
+                        Header ceheader = entity.getContentEncoding();
+                        if (ceheader != null) {
+                            HeaderElement[] codecs = ceheader.getElements();
+                            for (int i = 0; i < codecs.length; i++) {
+                                if (codecs[i].getName().equalsIgnoreCase("gzip")) {
+                                    response.setEntity(
+                                            new GzipDecompressingEntity(response.getEntity()));
+                                    return;
+                                }
                             }
                         }
                     }
@@ -123,30 +123,6 @@ public class ClientGZipContentCompression {
             // immediate deallocation of all system resources
             httpclient.getConnectionManager().shutdown();
         }
-    }
-
-    static class GzipDecompressingEntity extends HttpEntityWrapper {
-
-        public GzipDecompressingEntity(final HttpEntity entity) {
-            super(entity);
-        }
-
-        @Override
-        public InputStream getContent()
-            throws IOException, IllegalStateException {
-
-            // the wrapped entity's getContent() decides about repeatability
-            InputStream wrappedin = wrappedEntity.getContent();
-
-            return new GZIPInputStream(wrappedin);
-        }
-
-        @Override
-        public long getContentLength() {
-            // length of ungzipped content is not known
-            return -1;
-        }
-
     }
 
 }
