@@ -242,7 +242,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         sslcontext.init(keymanagers, trustmanagers, random);
         return sslcontext;
     }
-
+    
     private static SSLContext createSystemSSLContext(
             String algorithm,
             final SecureRandom random) throws IOException, NoSuchAlgorithmException, NoSuchProviderException,
@@ -481,7 +481,24 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     public SSLSocketFactory(
             final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
         super();
+        if (sslContext == null) {
+            throw new IllegalArgumentException("SSL context may not be null");
+        }
         this.socketfactory = sslContext.getSocketFactory();
+        this.hostnameVerifier = hostnameVerifier;
+        this.nameResolver = null;
+    }
+
+    /**
+     * @since 4.2
+     */
+    public SSLSocketFactory(
+            final javax.net.ssl.SSLSocketFactory socketfactory, 
+            final X509HostnameVerifier hostnameVerifier) {
+        if (socketfactory == null) {
+            throw new IllegalArgumentException("SSL socket factory may not be null");
+        }
+        this.socketfactory = socketfactory;
         this.hostnameVerifier = hostnameVerifier;
         this.nameResolver = null;
     }
