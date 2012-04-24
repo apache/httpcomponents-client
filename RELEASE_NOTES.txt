@@ -1,3 +1,12 @@
+Changes since 4.1.3
+-------------------
+
+* [HTTPCLIENT-1186] State of newly created connections in the connection pool is not always 
+  correctly updated potentially allowing those connections to be leased to users with a different 
+  security context. 
+  Contributed by Ralf Pöhlmann <rpn at methodpark.de> 
+
+
 Release 4.1.3
 -------------------
 
