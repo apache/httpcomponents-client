@@ -28,12 +28,12 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
+import org.apache.http.Consts;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.io.EofSensor;
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -67,7 +67,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         this.in = in;
         this.eofSensor = in instanceof EofSensor ? (EofSensor) in : null;
         this.wire = wire;
-        this.charset = charset != null ? charset : HTTP.ASCII;
+        this.charset = charset != null ? charset : Consts.ASCII.name();
     }
 
     public LoggingSessionInputBuffer(final SessionInputBuffer in, final Wire wire) {

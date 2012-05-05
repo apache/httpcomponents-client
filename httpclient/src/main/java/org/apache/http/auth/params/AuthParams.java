@@ -61,7 +61,7 @@ public final class AuthParams {
         String charset = (String) params.getParameter
             (AuthPNames.CREDENTIAL_CHARSET);
         if (charset == null) {
-            charset = HTTP.DEFAULT_PROTOCOL_CHARSET;
+            charset = HTTP.DEF_PROTOCOL_CHARSET.name();
         }
         return charset;
     }

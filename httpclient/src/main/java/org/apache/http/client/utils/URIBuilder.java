@@ -28,13 +28,14 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.2
@@ -66,18 +67,18 @@ public class URIBuilder {
         digestURI(uri);
     }
 
-    private List <NameValuePair> parseQuery(final String query, final String encoding) {
+    private List <NameValuePair> parseQuery(final String query, final Charset charset) {
         if (query != null && query.length() > 0) {
-            return URLEncodedUtils.parse(query, encoding);
+            return URLEncodedUtils.parse(query, charset);
         }
         return null;
     }
 
-    private String formatQuery(final List<NameValuePair> parameters, final String encoding) {
+    private String formatQuery(final List<NameValuePair> parameters, final Charset charset) {
         if (parameters == null) {
             return null;
         }
-        return URLEncodedUtils.format(parameters, encoding);
+        return URLEncodedUtils.format(parameters, charset);
     }
 
     /**
@@ -88,11 +89,11 @@ public class URIBuilder {
             return new URI(this.scheme, this.schemeSpecificPart, this.fragment);
         } else if (this.authority != null) {
             return new URI(this.scheme, this.authority,
-                    this.path, formatQuery(this.queryParams, HTTP.UTF_8), this.fragment);
+                    this.path, formatQuery(this.queryParams, Consts.UTF_8), this.fragment);
 
         } else {
             return new URI(this.scheme, this.userInfo, this.host, this.port,
-                    this.path, formatQuery(this.queryParams, HTTP.UTF_8), this.fragment);
+                    this.path, formatQuery(this.queryParams, Consts.UTF_8), this.fragment);
         }
     }
 
@@ -104,7 +105,7 @@ public class URIBuilder {
         this.port = uri.getPort();
         this.userInfo = uri.getUserInfo();
         this.path = uri.getPath();
-        this.queryParams = parseQuery(uri.getRawQuery(), HTTP.UTF_8);
+        this.queryParams = parseQuery(uri.getRawQuery(), Consts.UTF_8);
         this.fragment = uri.getFragment();
     }
 
@@ -175,7 +176,7 @@ public class URIBuilder {
      * Set URI query.
      */
     public URIBuilder setQuery(final String query) {
-        this.queryParams = parseQuery(query, HTTP.UTF_8);
+        this.queryParams = parseQuery(query, Consts.UTF_8);
         this.schemeSpecificPart = null;
         return this;
     }

@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +41,7 @@ import java.util.Scanner;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.entity.ContentType;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -79,7 +81,10 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse (final URI uri, final String encoding) {
         final String query = uri.getRawQuery();
         if (query != null && query.length() > 0) {
-            return parse(query, encoding);
+            List<NameValuePair> result = new ArrayList<NameValuePair>();
+            Scanner scanner = new Scanner(query);
+            parse(result, scanner, encoding);
+            return result;
         } else {
             return Collections.emptyList();
         }
@@ -99,17 +104,18 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
-        List <NameValuePair> result = new ArrayList<NameValuePair>();
         ContentType contentType = ContentType.get(entity);
         if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
-            String content = EntityUtils.toString(entity, HTTP.ASCII);
+            String content = EntityUtils.toString(entity, Consts.ASCII);
             if (content != null && content.length() > 0) {
-                Scanner scanner = new Scanner(entity.getContent(), HTTP.ASCII);
-                parse(result, scanner, contentType.getCharset() != null ?
-                        contentType.getCharset() : HTTP.DEFAULT_CONTENT_CHARSET);
+                Charset charset = contentType != null ? contentType.getCharset() : null;
+                if (charset == null) {
+                    charset = HTTP.DEF_CONTENT_CHARSET;
+                }
+                return parse(content, charset);
             }
         }
-        return result;
+        return Collections.emptyList();
     }
 
     /**
@@ -178,7 +184,7 @@ public class URLEncodedUtils {
      *
      * @since 4.2
      */
-    public static List<NameValuePair> parse (final String s, final String charset) {
+    public static List<NameValuePair> parse (final String s, final Charset charset) {
         if (s == null) {
             return Collections.emptyList();
         }
@@ -235,7 +241,7 @@ public class URLEncodedUtils {
      */
     public static String format (
             final Iterable<? extends NameValuePair> parameters,
-            final String charset) {
+            final Charset charset) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
             final String encodedName = encode(parameter.getName(), charset);
@@ -257,11 +263,18 @@ public class URLEncodedUtils {
             return null;
         }
         try {
-            return URLDecoder.decode(content,
-                    charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET);
-        } catch (UnsupportedEncodingException problem) {
-            throw new IllegalArgumentException(problem);
+            return URLDecoder.decode(content, 
+                    charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name());
+        } catch (UnsupportedEncodingException ex) {
+            throw new IllegalArgumentException(ex);
         }
+    }
+
+    private static String decode (final String content, final Charset charset) {
+        if (content == null) {
+            return null;
+        }
+        return decode(content, charset != null ? charset.name() : null);
     }
 
     private static String encode (final String content, final String charset) {
@@ -269,11 +282,18 @@ public class URLEncodedUtils {
             return null;
         }
         try {
-            return URLEncoder.encode(content,
-                    charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET);
-        } catch (UnsupportedEncodingException problem) {
-            throw new IllegalArgumentException(problem);
+            return URLEncoder.encode(content, 
+                    charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name());
+        } catch (UnsupportedEncodingException ex) {
+            throw new IllegalArgumentException(ex);
         }
+    }
+
+    private static String encode (final String content, final Charset charset) {
+        if (content == null) {
+            return null;
+        }
+        return encode(content, charset != null ? charset.name() : null);
     }
 
 }

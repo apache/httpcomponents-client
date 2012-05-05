@@ -28,11 +28,11 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 
+import org.apache.http.Consts;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionOutputBuffer;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -63,7 +63,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         super();
         this.out = out;
         this.wire = wire;
-        this.charset = charset != null ? charset : HTTP.ASCII;
+        this.charset = charset != null ? charset : Consts.ASCII.name();
     }
 
     public LoggingSessionOutputBuffer(final SessionOutputBuffer out, final Wire wire) {

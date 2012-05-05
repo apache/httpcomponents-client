@@ -29,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
@@ -55,12 +56,12 @@ public class Content {
     }
 
     public String asString() {
-        String charset = this.type.getCharset();
+        Charset charset = this.type.getCharset();
         if (charset == null) {
-            charset = HTTP.DEFAULT_CONTENT_TYPE;
+            charset = HTTP.DEF_CONTENT_CHARSET;
         }
         try {
-            return new String(this.raw, charset);
+            return new String(this.raw, charset.name());
         } catch (UnsupportedEncodingException ex) {
             return new String(this.raw);
         }

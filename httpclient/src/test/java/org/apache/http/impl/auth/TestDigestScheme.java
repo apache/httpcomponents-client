@@ -543,7 +543,7 @@ public class TestDigestScheme {
                 "qop=\"auth,auth-int\"";
         Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
         HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", HTTP.DEFAULT_CONTENT_CHARSET));
+        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", HTTP.DEF_CONTENT_CHARSET));
         Credentials cred = new UsernamePasswordCredentials("username","password");
         DigestScheme authscheme = new DigestScheme();
         HttpContext context = new BasicHttpContext();

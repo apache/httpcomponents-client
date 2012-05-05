@@ -28,6 +28,7 @@ package org.apache.http.impl.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -53,7 +54,6 @@ import org.apache.http.localserver.ResponseBasicUnauthorized;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -96,7 +96,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                StringEntity entity = new StringEntity("success", HTTP.ASCII);
+                StringEntity entity = new StringEntity("success", Consts.ASCII);
                 response.setEntity(entity);
             }
         }
@@ -295,7 +295,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         this.httpclient.setCredentialsProvider(credsProvider);
 
         HttpPost httppost = new HttpPost("/");
-        httppost.setEntity(new StringEntity("some important stuff", HTTP.ISO_8859_1));
+        httppost.setEntity(new StringEntity("some important stuff", Consts.ASCII));
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httppost);
         HttpEntity entity = response.getEntity();

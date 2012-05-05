@@ -172,7 +172,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
      */
     public static void setDefaultHttpParams(HttpParams params) {
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
+        HttpProtocolParams.setContentCharset(params, HTTP.DEF_CONTENT_CHARSET.name());
         HttpConnectionParams.setTcpNoDelay(params, true);
         HttpConnectionParams.setSocketBufferSize(params, 8192);
 

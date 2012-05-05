@@ -27,6 +27,7 @@
 package org.apache.http.client.entity;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.http.annotation.NotThreadSafe;
@@ -46,24 +47,6 @@ import org.apache.http.protocol.HTTP;
 @NotThreadSafe // AbstractHttpEntity is not thread-safe
 public class UrlEncodedFormEntity extends StringEntity {
 
-    public static UrlEncodedFormEntity create(
-            final Iterable <? extends NameValuePair> parameters, final String charset) {
-        try {
-            return new UrlEncodedFormEntity(parameters, charset);
-        } catch (UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException(ex.getMessage(), ex);
-        }
-    }
-    
-    public static UrlEncodedFormEntity create(
-            final Iterable <? extends NameValuePair> parameters) {
-        try {
-            return new UrlEncodedFormEntity(parameters, null);
-        } catch (UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException(ex.getMessage(), ex);
-        }
-    }
-
     /**
      * Constructs a new {@link UrlEncodedFormEntity} with the list
      * of parameters in the specified encoding.
@@ -76,7 +59,7 @@ public class UrlEncodedFormEntity extends StringEntity {
         final List <? extends NameValuePair> parameters,
         final String charset) throws UnsupportedEncodingException {
         super(URLEncodedUtils.format(parameters, 
-                charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET), 
+                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name()), 
                 ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
     }
 
@@ -92,9 +75,9 @@ public class UrlEncodedFormEntity extends StringEntity {
      */
     public UrlEncodedFormEntity (
         final Iterable <? extends NameValuePair> parameters,
-        final String charset) throws UnsupportedEncodingException {
+        final Charset charset) {
         super(URLEncodedUtils.format(parameters, 
-                charset != null ? charset : HTTP.DEFAULT_CONTENT_CHARSET), 
+                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET), 
                 ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
     }
 
@@ -107,7 +90,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      */
     public UrlEncodedFormEntity (
         final List <? extends NameValuePair> parameters) throws UnsupportedEncodingException {
-        this(parameters, null);
+        this(parameters, (Charset) null);
     }
 
     /**

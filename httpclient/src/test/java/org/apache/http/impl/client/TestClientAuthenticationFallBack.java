@@ -27,6 +27,7 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -44,7 +45,6 @@ import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ResponseConnControl;
@@ -96,7 +96,7 @@ public class TestClientAuthenticationFallBack extends BasicServerTestBase {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                StringEntity entity = new StringEntity("success", HTTP.ASCII);
+                StringEntity entity = new StringEntity("success", Consts.ASCII);
                 response.setEntity(entity);
             }
         }

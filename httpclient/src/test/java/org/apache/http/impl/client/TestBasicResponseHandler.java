@@ -50,7 +50,7 @@ public class TestBasicResponseHandler {
     public void testSuccessfulResponse() throws Exception {
         StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK");
         HttpResponse response = Mockito.mock(HttpResponse.class);
-        HttpEntity entity = StringEntity.create("stuff");
+        HttpEntity entity = new StringEntity("stuff");
         Mockito.when(response.getStatusLine()).thenReturn(sl);
         Mockito.when(response.getEntity()).thenReturn(entity);
 

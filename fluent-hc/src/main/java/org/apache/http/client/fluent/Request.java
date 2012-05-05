@@ -29,8 +29,8 @@ package org.apache.http.client.fluent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -266,24 +266,20 @@ public class Request {
         return this;
     }
 
-    public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final String charset) {
-        try {
-            return body(new UrlEncodedFormEntity(formParams));
-        } catch (UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+    public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
+        return body(new UrlEncodedFormEntity(formParams, charset));
     }
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams) {
-        return bodyForm(formParams, HTTP.DEFAULT_CONTENT_CHARSET);
+        return bodyForm(formParams, HTTP.DEF_CONTENT_CHARSET);
     }
 
     public Request bodyForm(final NameValuePair... formParams) {
-        return bodyForm(Arrays.asList(formParams), HTTP.DEFAULT_CONTENT_CHARSET);
+        return bodyForm(Arrays.asList(formParams), HTTP.DEF_CONTENT_CHARSET);
     }
 
     public Request bodyString(final String s, final ContentType contentType) {
-        return body(StringEntity.create(s, contentType));
+        return body(new StringEntity(s, contentType));
     }
 
     public Request bodyFile(final File file, final ContentType contentType) {

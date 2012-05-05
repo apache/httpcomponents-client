@@ -27,6 +27,7 @@
 package org.apache.http.client.fluent;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -71,11 +72,11 @@ public class FluentResponseHandling {
                     if (!contentType.equals(ContentType.APPLICATION_XML)) {
                         throw new ClientProtocolException("Unexpected content type:" + contentType);
                     }
-                    String charset = contentType.getCharset();
+                    Charset charset = contentType.getCharset();
                     if (charset == null) {
-                        charset = HTTP.DEFAULT_CONTENT_CHARSET;
+                        charset = HTTP.DEF_CONTENT_CHARSET;
                     }
-                    return docBuilder.parse(entity.getContent(), charset);
+                    return docBuilder.parse(entity.getContent(), charset.name());
                 } catch (ParserConfigurationException ex) {
                     throw new IllegalStateException(ex);
                 } catch (SAXException ex) {
