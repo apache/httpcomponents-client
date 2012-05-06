@@ -58,8 +58,8 @@ public class UrlEncodedFormEntity extends StringEntity {
     public UrlEncodedFormEntity (
         final List <? extends NameValuePair> parameters,
         final String charset) throws UnsupportedEncodingException {
-        super(URLEncodedUtils.format(parameters, 
-                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name()), 
+        super(URLEncodedUtils.format(parameters,
+                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name()),
                 ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
     }
 
@@ -69,15 +69,14 @@ public class UrlEncodedFormEntity extends StringEntity {
      *
      * @param parameters iterable collection of name/value pairs
      * @param charset encoding the name/value pairs be encoded with
-     * @throws UnsupportedEncodingException if the encoding isn't supported
      *
      * @since 4.2
      */
     public UrlEncodedFormEntity (
         final Iterable <? extends NameValuePair> parameters,
         final Charset charset) {
-        super(URLEncodedUtils.format(parameters, 
-                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET), 
+        super(URLEncodedUtils.format(parameters,
+                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET),
                 ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
     }
 
@@ -98,12 +97,11 @@ public class UrlEncodedFormEntity extends StringEntity {
      * of parameters with the default encoding of {@link HTTP#DEFAULT_CONTENT_CHARSET}
      *
      * @param parameters iterable collection of name/value pairs
-     * @throws UnsupportedEncodingException if the default encoding isn't supported
      *
      * @since 4.2
      */
     public UrlEncodedFormEntity (
-        final Iterable <? extends NameValuePair> parameters) throws UnsupportedEncodingException {
+        final Iterable <? extends NameValuePair> parameters) {
         this(parameters, null);
     }
 
