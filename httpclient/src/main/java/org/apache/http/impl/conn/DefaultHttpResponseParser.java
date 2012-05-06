@@ -34,7 +34,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
-import org.apache.http.HttpMessage;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
@@ -54,23 +54,19 @@ import org.apache.http.util.CharArrayBuffer;
  * <ul>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
  *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
- *  <li>{@link org.apache.http.conn.params.ConnConnectionPNames#MAX_STATUS_LINE_GARBAGE}</li>
  * </ul>
  *
- * @since 4.0
- * 
- * @deprecated (4.2) use {@link DefaultHttpResponseParser}
+ * @since 4.2
  */
 @ThreadSafe // no public methods
-public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
+public class DefaultHttpResponseParser extends AbstractMessageParser<HttpResponse> {
 
     private final Log log = LogFactory.getLog(getClass());
 
     private final HttpResponseFactory responseFactory;
     private final CharArrayBuffer lineBuf;
-    private final int maxGarbageLines;
 
-    public DefaultResponseParser(
+    public DefaultHttpResponseParser(
             final SessionInputBuffer buffer,
             final LineParser parser,
             final HttpResponseFactory responseFactory,
@@ -82,17 +78,10 @@ public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
         }
         this.responseFactory = responseFactory;
         this.lineBuf = new CharArrayBuffer(128);
-        this.maxGarbageLines = getMaxGarbageLines(params);
-    }
-
-    protected int getMaxGarbageLines(final HttpParams params) {
-        return params.getIntParameter(
-                org.apache.http.conn.params.ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE,
-                Integer.MAX_VALUE);
     }
 
     @Override
-    protected HttpMessage parseHead(
+    protected HttpResponse parseHead(
             final SessionInputBuffer sessionBuffer) throws IOException, HttpException {
         //read out the HTTP status string
         int count = 0;
@@ -109,7 +98,7 @@ public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
             if (lineParser.hasProtocolVersion(this.lineBuf, cursor)) {
                 // Got one
                 break;
-            } else if (i == -1 || count >= this.maxGarbageLines) {
+            } else if (i == -1 || reject(this.lineBuf, count)) {
                 // Giving up
                 throw new ProtocolException("The server failed to respond with a " +
                         "valid HTTP response");
@@ -124,4 +113,8 @@ public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
         return this.responseFactory.newHttpResponse(statusline, null);
     }
 
+    protected boolean reject(CharArrayBuffer line, int count) {
+        return false;
+    }
+    
 }

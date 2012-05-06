@@ -39,13 +39,14 @@ import org.apache.http.message.BasicLineParser;
 import org.apache.http.mockup.SessionInputBufferMockup;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Tests for <code>DefaultResponseParser</code>.
  */
-public class TestDefaultResponseParser {
+public class TestDefaultHttpResponseParser {
 
     @Test
     public void testResponseParsingWithSomeGarbage() throws Exception {
@@ -60,7 +61,7 @@ public class TestDefaultResponseParser {
 
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
@@ -91,15 +92,15 @@ public class TestDefaultResponseParser {
 
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
                 params) {
 
                     @Override
-                    protected int getMaxGarbageLines(HttpParams params) {
-                        return 2;
+                    protected boolean reject(final CharArrayBuffer line, int count) {
+                        return count >= 2;
                     }
 
         };
@@ -110,7 +111,7 @@ public class TestDefaultResponseParser {
     public void testResponseParsingNoResponse() throws Exception {
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),
@@ -127,7 +128,7 @@ public class TestDefaultResponseParser {
             "a lot more garbage\r\n";
         HttpParams params = new BasicHttpParams();
         SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultResponseParser(
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
                 inbuffer,
                 BasicLineParser.DEFAULT,
                 new DefaultHttpResponseFactory(),

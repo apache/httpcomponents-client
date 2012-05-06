@@ -26,7 +26,7 @@
 
 package org.apache.http.conn.params;
 
-import org.apache.http.impl.conn.DefaultResponseParser;
+import org.apache.http.impl.conn.DefaultHttpResponseParser;
 
 /**
  * Parameter names for HTTP client connections.
@@ -53,7 +53,7 @@ public interface ConnConnectionPNames {
      * Use {@link java.lang.Integer#MAX_VALUE} for unlimited number.
      * </p>
      *
-     * @deprecated Use custom {@link DefaultResponseParser} implementation
+     * @deprecated Use custom {@link DefaultHttpResponseParser} implementation
      */
     public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
 
