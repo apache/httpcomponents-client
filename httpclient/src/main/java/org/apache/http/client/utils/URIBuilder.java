@@ -38,6 +38,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
+ * {@link URI} builder for HTTP requests.
+ * 
  * @since 4.2
  */
 public class URIBuilder {
@@ -82,7 +84,7 @@ public class URIBuilder {
     }
 
     /**
-     * Builds a URI instance.
+     * Builds a {@link URI} instance.
      */
     public URI build() throws URISyntaxException {
         if (this.schemeSpecificPart != null) {
@@ -109,17 +111,11 @@ public class URIBuilder {
         this.fragment = uri.getFragment();
     }
 
-    /**
-     * Sets URI scheme.
-     */
     public URIBuilder setScheme(final String scheme) {
         this.scheme = scheme;
         return this;
     }
 
-    /**
-     * Sets URI user-info.
-     */
     public URIBuilder setUserInfo(final String userInfo) {
         this.userInfo = userInfo;
         this.schemeSpecificPart = null;
@@ -127,16 +123,10 @@ public class URIBuilder {
         return this;
     }
 
-    /**
-     * Sets URI user-info in a form of 'username:password'.
-     */
     public URIBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
     }
 
-    /**
-     * Sets URI host.
-     */
     public URIBuilder setHost(final String host) {
         this.host = host;
         this.schemeSpecificPart = null;
@@ -144,9 +134,6 @@ public class URIBuilder {
         return this;
     }
 
-    /**
-     * Sets URI port.
-     */
     public URIBuilder setPort(final int port) {
         this.port = port < 0 ? -1 : port;
         this.schemeSpecificPart = null;
@@ -154,36 +141,24 @@ public class URIBuilder {
         return this;
     }
 
-    /**
-     * Sets URI path.
-     */
     public URIBuilder setPath(final String path) {
         this.path = path;
         this.schemeSpecificPart = null;
         return this;
     }
 
-    /**
-     * Removes all query parameters.
-     */
     public URIBuilder removeQuery() {
         this.queryParams = null;
         this.schemeSpecificPart = null;
         return this;
     }
 
-    /**
-     * Set URI query.
-     */
     public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, Consts.UTF_8);
         this.schemeSpecificPart = null;
         return this;
     }
 
-    /**
-     * Adds a parameter-value pair to URI query.
-     */
     public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
@@ -193,9 +168,6 @@ public class URIBuilder {
         return this;
     }
 
-    /**
-     * Sets parameter-value pair to URI query removing existing parameters with the same name.
-     */
     public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
@@ -213,12 +185,52 @@ public class URIBuilder {
         return this;
     }
 
-    /**
-     * Sets URI fragment.
-     */
     public URIBuilder setFragment(final String fragment) {
         this.fragment = fragment;
         return this;
+    }
+
+    public String getScheme() {
+        return this.scheme;
+    }
+
+    public String getUserInfo() {
+        return this.userInfo;
+    }
+
+    public String getHost() {
+        return this.host;
+    }
+
+    public int getPort() {
+        return this.port;
+    }
+
+    public String getPath() {
+        return this.path;
+    }
+
+    public List<NameValuePair> getQueryParams() {
+        if (this.queryParams != null) {
+            return new ArrayList<NameValuePair>(this.queryParams);
+        } else {
+            return new ArrayList<NameValuePair>();
+        }
+    }
+
+    public String getFragment() {
+        return this.fragment;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("URI [scheme=").append(this.scheme)
+                .append(", userInfo=").append(this.userInfo).append(", host=").append(this.host)
+                .append(", port=").append(this.port).append(", path=").append(this.path)
+                .append(", queryParams=").append(this.queryParams).append(", fragment=")
+                .append(this.fragment).append("]");
+        return builder.toString();
     }
 
 }
