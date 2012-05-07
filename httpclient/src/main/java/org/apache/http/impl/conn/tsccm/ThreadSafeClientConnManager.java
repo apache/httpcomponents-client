@@ -64,10 +64,10 @@ import org.apache.http.impl.conn.SchemeRegistryFactory;
  *
  * @since 4.0
  *
- * @deprecated use {@link PoolingClientConnectionManager}
+ * @deprecated (4.2)  use {@link PoolingClientConnectionManager}
  */
 @ThreadSafe
-@Deprecated
+@Deprecated 
 public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     private final Log log;
@@ -75,7 +75,6 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /** The schemes supported by this connection manager. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
-    @Deprecated
     protected final AbstractConnPool connectionPool;
 
     /** The pool of connections being managed. */
@@ -148,9 +147,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @param params    the parameters for this manager.
      * @param schreg    the scheme registry.
      *
-     * @deprecated use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
+     * @deprecated (4.1)  use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
      */
-    @Deprecated
     public ThreadSafeClientConnManager(HttpParams params,
                                        SchemeRegistry schreg) {
         if (schreg == null) {
@@ -178,9 +176,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @return  the connection pool to use
      *
-     * @deprecated use #createConnectionPool(long, TimeUnit))
+     * @deprecated (4.1)  use #createConnectionPool(long, TimeUnit))
      */
-    @Deprecated
     protected AbstractConnPool createConnectionPool(final HttpParams params) {
         return new ConnPoolByRoute(connOperator, params);
     }

@@ -43,7 +43,7 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.1
  *
- * @deprecated use {@link SPNegoScheme} or {@link KerberosScheme}.
+ * @deprecated (4.2)  use {@link SPNegoScheme} or {@link KerberosScheme}.
  */
 @Deprecated
 public class NegotiateScheme extends GGSSchemeBase {
@@ -79,6 +79,12 @@ public class NegotiateScheme extends GGSSchemeBase {
      */
     public String getSchemeName() {
         return "Negotiate";
+    }
+
+    public Header authenticate(
+            final Credentials credentials,
+            final HttpRequest request) throws AuthenticationException {
+        return authenticate(credentials, request, null);
     }
 
     /**

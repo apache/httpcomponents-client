@@ -53,7 +53,7 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
 @Deprecated
 public abstract class AbstractPoolEntry {

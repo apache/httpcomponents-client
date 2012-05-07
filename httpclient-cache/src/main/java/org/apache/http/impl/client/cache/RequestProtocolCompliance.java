@@ -43,6 +43,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -184,7 +185,8 @@ class RequestProtocolCompliance {
 
     private void addContentTypeHeaderIfMissing(HttpEntityEnclosingRequest request) {
         if (request.getEntity().getContentType() == null) {
-            ((AbstractHttpEntity) request.getEntity()).setContentType(HTTP.OCTET_STREAM_TYPE);
+            ((AbstractHttpEntity) request.getEntity()).setContentType(
+                    ContentType.APPLICATION_OCTET_STREAM.getMimeType());
         }
     }
 

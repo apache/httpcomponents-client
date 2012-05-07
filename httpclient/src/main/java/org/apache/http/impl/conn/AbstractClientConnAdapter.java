@@ -67,7 +67,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
 @Deprecated
 @NotThreadSafe
@@ -126,9 +126,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     /**
-     * @deprecated use {@link #assertValid(OperatedClientConnection)}
+     * @deprecated (4.1)  use {@link #assertValid(OperatedClientConnection)}
      */
-    @Deprecated
     protected final void assertNotAborted() throws InterruptedIOException {
         if (isReleased()) {
             throw new InterruptedIOException("Connection has been shut down");

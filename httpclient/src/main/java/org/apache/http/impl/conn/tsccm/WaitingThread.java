@@ -43,9 +43,9 @@ import java.util.concurrent.locks.Condition;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
-@Deprecated
+@Deprecated 
 public class WaitingThread {
 
     /** The condition on which the thread is waiting. */

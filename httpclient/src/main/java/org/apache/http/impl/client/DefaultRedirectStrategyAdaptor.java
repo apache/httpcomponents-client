@@ -41,16 +41,14 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * @since 4.1
+ * @deprecated (4.1) do not use
  */
-@SuppressWarnings("deprecation")
 @Immutable
-@Deprecated
+@Deprecated 
 class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 
     private final RedirectHandler handler;
 
-    @Deprecated
     public DefaultRedirectStrategyAdaptor(final RedirectHandler handler) {
         super();
         this.handler = handler;

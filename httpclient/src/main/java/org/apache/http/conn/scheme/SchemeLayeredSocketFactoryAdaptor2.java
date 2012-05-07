@@ -35,7 +35,10 @@ import java.net.UnknownHostException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpParams;
 
-@Deprecated
+/**
+ * @deprecated (4.2) do not use
+ */
+@Deprecated 
 class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
 
     private final LayeredSchemeSocketFactory factory;

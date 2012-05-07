@@ -63,9 +63,9 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  *
- * @deprecated use {@link org.apache.http.pool.AbstractConnPool}
+ * @deprecated (4.2)  use {@link org.apache.http.pool.AbstractConnPool}
  */
-@Deprecated
+@Deprecated 
 public class ConnPoolByRoute extends AbstractConnPool {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -147,9 +147,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     /**
      * Creates a new connection pool, managed by route.
      *
-     * @deprecated use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute, int)}
+     * @deprecated (4.1)  use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute, int)}
      */
-    @Deprecated
     public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
         this(operator,
                 ConnManagerParams.getMaxConnectionsPerRoute(params),

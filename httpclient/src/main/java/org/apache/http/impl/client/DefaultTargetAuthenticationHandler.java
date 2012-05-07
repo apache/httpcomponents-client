@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  *
- * @deprecated use {@link TargetAuthenticationStrategy}
+ * @deprecated (4.2)  use {@link TargetAuthenticationStrategy}
  */
 @Deprecated
 @Immutable

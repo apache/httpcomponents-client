@@ -147,9 +147,9 @@ public class CacheConfig {
      * Returns the current maximum response body size that will be cached.
      * @return size in bytes
      *
-     * @deprecated use {@link #getMaxObjectSize()}
+     * @deprecated (4.2)  use {@link #getMaxObjectSize()}
      */
-    @Deprecated
+    @Deprecated 
     public int getMaxObjectSizeBytes() {
         return maxObjectSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) maxObjectSize;
     }
@@ -158,9 +158,9 @@ public class CacheConfig {
      * Specifies the maximum response body size that will be eligible for caching.
      * @param maxObjectSizeBytes size in bytes
      *
-     * @deprecated use {@link #setMaxObjectSize(long)}
+     * @deprecated (4.2)  use {@link #setMaxObjectSize(long)}
      */
-    @Deprecated
+    @Deprecated 
     public void setMaxObjectSizeBytes(int maxObjectSizeBytes) {
         if (maxObjectSizeBytes > Integer.MAX_VALUE) {
             this.maxObjectSize = Integer.MAX_VALUE;

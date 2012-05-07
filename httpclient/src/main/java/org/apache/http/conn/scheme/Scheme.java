@@ -117,9 +117,9 @@ public final class Scheme {
      *                  with this scheme
      * @param port      the default port for this scheme
      *
-     * @deprecated Use {@link #Scheme(String, int, SchemeSocketFactory)}
+     * @deprecated (4.1)  Use {@link #Scheme(String, int, SchemeSocketFactory)}
      */
-    @Deprecated
+    @Deprecated 
     public Scheme(final String name,
                   final SocketFactory factory,
                   final int port) {
@@ -166,7 +166,7 @@ public final class Scheme {
      *
      * @return  the socket factory for this scheme
      *
-     * @deprecated Use {@link #getSchemeSocketFactory()}
+     * @deprecated (4.1)  Use {@link #getSchemeSocketFactory()}
      */
     @Deprecated
     public final SocketFactory getSocketFactory() {

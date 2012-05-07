@@ -29,7 +29,7 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.Reference;
 
 /**
- * @deprecated do not use
+ * @deprecated (4.0)  do not use
  *
  * @since 4.0
  */

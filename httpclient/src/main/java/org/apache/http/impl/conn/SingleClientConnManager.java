@@ -58,10 +58,10 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  *
- * @deprecated use {@link BasicClientConnectionManager}
+ * @deprecated (4.2)  use {@link BasicClientConnectionManager}
  */
 @ThreadSafe
-@Deprecated
+@Deprecated 
 public class SingleClientConnManager implements ClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -105,9 +105,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @param params    the parameters for this manager
      * @param schreg    the scheme registry
      *
-     * @deprecated use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
+     * @deprecated (4.1)  use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
-    @Deprecated
     public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
         this(schreg);
@@ -361,10 +360,6 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
-    /**
-     * @deprecated no longer used
-     */
-    @Deprecated
     protected void revokeConnection() {
         ConnAdapter conn = managedConn;
         if (conn == null)

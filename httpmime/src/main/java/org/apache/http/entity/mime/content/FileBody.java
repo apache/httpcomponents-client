@@ -86,9 +86,9 @@ public class FileBody extends AbstractContentBody {
     }
 
     /**
-     * @deprecated use {@link #writeTo(OutputStream)}
+     * @deprecated (4.0)  use {@link #writeTo(OutputStream)}
      */
-    @Deprecated
+    @Deprecated 
     public void writeTo(final OutputStream out, int mode) throws IOException {
         writeTo(out);
     }

@@ -53,7 +53,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  *
- * @deprecated Do not use. For multihome support socket factories must implement
+ * @deprecated (4.1)  Do not use. For multihome support socket factories must implement
  * {@link SchemeSocketFactory} interface.
  */
 @Deprecated

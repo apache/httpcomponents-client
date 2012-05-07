@@ -35,7 +35,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * Thread to await something.
  */
-@Deprecated
+@Deprecated 
 public class AwaitThread extends Thread {
 
     protected final WaitingThread wait_object;

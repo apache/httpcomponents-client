@@ -45,7 +45,7 @@ import org.apache.http.HttpConnection;
  *
  * @since 4.0
  *
- * @deprecated no longer used
+ * @deprecated (4.1)  no longer used
  */
 @Deprecated
 public class IdleConnectionHandler {

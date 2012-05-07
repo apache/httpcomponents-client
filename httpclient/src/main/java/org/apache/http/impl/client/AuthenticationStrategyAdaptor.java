@@ -53,9 +53,8 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * @since 4.2
+ * @deprecated (4.2) do not use
  */
-@SuppressWarnings("deprecation")
 @Immutable
 @Deprecated
 class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
@@ -64,7 +63,6 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
 
     private final AuthenticationHandler handler;
 
-    @Deprecated
     public AuthenticationStrategyAdaptor(final AuthenticationHandler handler) {
         super();
         this.handler = handler;

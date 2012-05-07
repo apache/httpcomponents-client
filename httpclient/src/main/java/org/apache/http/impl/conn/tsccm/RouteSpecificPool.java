@@ -46,7 +46,7 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  *
- * @deprecated use {@link org.apache.http.pool.AbstractConnPool}
+ * @deprecated (4.2)  use {@link org.apache.http.pool.AbstractConnPool}
  */
 @Deprecated
 public class RouteSpecificPool {
@@ -56,7 +56,6 @@ public class RouteSpecificPool {
     /** The route this pool is for. */
     protected final HttpRoute route; //Immutable
 
-    @Deprecated
     protected final int maxEntries;
 
     /** Connections per route */
@@ -75,11 +74,9 @@ public class RouteSpecificPool {
     /** The number of created entries. */
     protected int numEntries;
 
-
     /**
-     * @deprecated use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
+     * @deprecated (4.1)  use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
      */
-    @Deprecated
     public RouteSpecificPool(HttpRoute route, int maxEntries) {
         this.route = route;
         this.maxEntries = maxEntries;

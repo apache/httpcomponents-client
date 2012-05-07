@@ -133,7 +133,7 @@ public class StringBody extends AbstractContentBody {
     }
 
     /**
-     * @deprecated use {@link #writeTo(OutputStream)}
+     * @deprecated (4.0)  use {@link #writeTo(OutputStream)}
      */
     @Deprecated
     public void writeTo(final OutputStream out, int mode) throws IOException {

@@ -89,7 +89,7 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
             super(entity);
         }
 
-        @Deprecated
+        @SuppressWarnings("deprecation")
         @Override
         public void consumeContent() throws IOException {
             consumed = true;

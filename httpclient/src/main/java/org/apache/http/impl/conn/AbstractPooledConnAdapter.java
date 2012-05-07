@@ -47,7 +47,7 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
 @Deprecated
 public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapter {
@@ -71,6 +71,8 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * Obtains the pool entry.
      *
      * @return  the pool entry, or <code>null</code> if detached
+     * 
+     * @deprecated (4.0.1) 
      */
     protected AbstractPoolEntry getPoolEntry() {
         return this.poolEntry;
@@ -91,9 +93,8 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     }
 
     /**
-     * @deprecated use {@link #assertValid(AbstractPoolEntry)}
+     * @deprecated (4.1)  use {@link #assertValid(AbstractPoolEntry)}
      */
-    @Deprecated
     protected final void assertAttached() {
         if (poolEntry == null) {
             throw new ConnectionShutdownException();

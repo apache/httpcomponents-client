@@ -36,6 +36,9 @@ import java.net.UnknownHostException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpParams;
 
+/**
+ * @deprecated (4.1) do not use
+ */
 @Deprecated
 class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
 

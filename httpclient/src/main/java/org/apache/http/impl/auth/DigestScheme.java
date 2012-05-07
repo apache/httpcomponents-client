@@ -45,6 +45,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
+import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
@@ -177,7 +178,10 @@ public class DigestScheme extends RFC2617Scheme {
         getParameters().put(name, value);
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     */
+    @Deprecated 
     public Header authenticate(
             final Credentials credentials, final HttpRequest request) throws AuthenticationException {
         return authenticate(credentials, request, new BasicHttpContext());

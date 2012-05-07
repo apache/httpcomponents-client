@@ -121,7 +121,7 @@ public interface AuthScheme {
      *
      * @return the authorization string
      *
-     * @deprecated Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     * @deprecated (4.1)  Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
     @Deprecated
     Header authenticate(Credentials credentials, HttpRequest request)

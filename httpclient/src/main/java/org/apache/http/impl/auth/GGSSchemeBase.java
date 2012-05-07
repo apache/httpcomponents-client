@@ -32,6 +32,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
@@ -45,6 +46,9 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 
+/**
+ * @since 4.2
+ */
 public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     enum State {
@@ -102,7 +106,10 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
         return this.state == State.TOKEN_GENERATED || this.state == State.FAILED;
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     */
+    @Deprecated 
     public Header authenticate(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {

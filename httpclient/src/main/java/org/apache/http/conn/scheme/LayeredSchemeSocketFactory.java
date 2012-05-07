@@ -36,7 +36,7 @@ import java.net.UnknownHostException;
  *
  * @since 4.1
  * 
- * @deprecated use {@link SchemeLayeredSocketFactory}
+ * @deprecated (4.2)  use {@link SchemeLayeredSocketFactory}
  */
 @Deprecated
 public interface LayeredSchemeSocketFactory extends SchemeSocketFactory {

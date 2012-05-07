@@ -157,13 +157,16 @@ public class AuthState {
     /**
      * Invalidates the authentication state by resetting its parameters.
      *
-     * @deprecated use {@link #reset()}
+     * @deprecated (4.2)  use {@link #reset()}
      */
-    @Deprecated
+    @Deprecated 
     public void invalidate() {
         reset();
     }
 
+    /**
+     * @deprecated (4.2) do not use
+     */
     @Deprecated
     public boolean isValid() {
         return this.authScheme != null;
@@ -174,9 +177,9 @@ public class AuthState {
      *
      * @param authScheme the {@link AuthScheme authentication scheme}
      *
-     * @deprecated use {@link #update(AuthScheme, Credentials)}
+     * @deprecated (4.2)  use {@link #update(AuthScheme, Credentials)}
      */
-    @Deprecated
+    @Deprecated 
     public void setAuthScheme(final AuthScheme authScheme) {
         if (authScheme == null) {
             reset();
@@ -190,7 +193,7 @@ public class AuthState {
      *
      * @param credentials User credentials
      *
-     * @deprecated use {@link #update(AuthScheme, Credentials)}
+     * @deprecated (4.2)  use {@link #update(AuthScheme, Credentials)}
      */
     @Deprecated
     public void setCredentials(final Credentials credentials) {
@@ -202,7 +205,7 @@ public class AuthState {
      *
      * @return actual authentication scope if available, <code>null</code otherwise
      *
-     * @deprecated do not use.
+     * @deprecated (4.2)  do not use.
      */
     @Deprecated
     public AuthScope getAuthScope() {
@@ -214,7 +217,7 @@ public class AuthState {
      *
      * @param authScope Authentication scope
      *
-     * @deprecated do not use.
+     * @deprecated (4.2)  do not use.
      */
     @Deprecated
     public void setAuthScope(final AuthScope authScope) {

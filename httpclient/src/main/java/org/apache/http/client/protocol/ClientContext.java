@@ -95,7 +95,7 @@ public interface ClientContext {
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
 
     /**
-     * @deprecated do not use
+     * @deprecated (4.1)  do not use
      */
     @Deprecated
     public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";

@@ -129,6 +129,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @param client how to talk to <i>memcached</i>
      * @param config apply HTTP cache-related options
      * @param serializer <b>ignored</b>
+     *
+     * @deprecated (4.2) do not use
      */
     @Deprecated
     public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,

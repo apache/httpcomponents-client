@@ -33,9 +33,9 @@ package org.apache.http.impl.conn.tsccm;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
-@Deprecated
+@Deprecated 
 public class WaitingThreadAborter {
 
     private WaitingThread waitingThread;

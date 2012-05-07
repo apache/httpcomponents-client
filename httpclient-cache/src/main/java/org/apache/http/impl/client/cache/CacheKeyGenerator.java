@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
@@ -44,7 +45,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -166,10 +166,10 @@ class CacheKeyGenerator {
                 if (!first) {
                     buf.append("&");
                 }
-                buf.append(URLEncoder.encode(headerName, HTTP.UTF_8));
+                buf.append(URLEncoder.encode(headerName, Consts.UTF_8.name()));
                 buf.append("=");
                 buf.append(URLEncoder.encode(getFullHeaderValue(req.getHeaders(headerName)),
-                        HTTP.UTF_8));
+                        Consts.UTF_8.name()));
                 first = false;
             }
             buf.append("}");

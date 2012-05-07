@@ -104,7 +104,9 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.1) Use {@link EntityUtils#consume(HttpEntity)}
+     */
     @Override
     public void consumeContent() throws IOException {
         ensureConsumed();

@@ -382,69 +382,65 @@ public abstract class AbstractHttpClient implements HttpClient {
         return new HttpRequestExecutor();
     }
 
-
     protected ConnectionReuseStrategy createConnectionReuseStrategy() {
         return new DefaultConnectionReuseStrategy();
     }
-
 
     protected ConnectionKeepAliveStrategy createConnectionKeepAliveStrategy() {
         return new DefaultConnectionKeepAliveStrategy();
     }
 
-
     protected HttpRequestRetryHandler createHttpRequestRetryHandler() {
         return new DefaultHttpRequestRetryHandler();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.1) do not use
+     */
+    @Deprecated 
     protected RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
     }
-
 
     protected AuthenticationStrategy createTargetAuthenticationStrategy() {
         return new TargetAuthenticationStrategy();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     protected AuthenticationHandler createTargetAuthenticationHandler() {
         return new DefaultTargetAuthenticationHandler();
     }
-
 
     protected AuthenticationStrategy createProxyAuthenticationStrategy() {
         return new ProxyAuthenticationStrategy();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     protected AuthenticationHandler createProxyAuthenticationHandler() {
         return new DefaultProxyAuthenticationHandler();
     }
-
 
     protected CookieStore createCookieStore() {
         return new BasicCookieStore();
     }
 
-
     protected CredentialsProvider createCredentialsProvider() {
         return new BasicCredentialsProvider();
     }
-
 
     protected HttpRoutePlanner createHttpRoutePlanner() {
         return new DefaultHttpRoutePlanner(getConnectionManager().getSchemeRegistry());
     }
 
-
     protected UserTokenHandler createUserTokenHandler() {
         return new DefaultUserTokenHandler();
     }
-
 
     // non-javadoc, see interface HttpClient
     public synchronized final HttpParams getParams() {
@@ -453,7 +449,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
         return defaultParams;
     }
-
 
     /**
      * Replaces the parameters.
@@ -553,19 +548,22 @@ public abstract class AbstractHttpClient implements HttpClient {
         return retryHandler;
     }
 
-
     public synchronized void setHttpRequestRetryHandler(final HttpRequestRetryHandler handler) {
         this.retryHandler = handler;
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.1) do not use
+     */
+    @Deprecated 
     public synchronized final RedirectHandler getRedirectHandler() {
         return createRedirectHandler();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.1) do not use
+     */
+    @Deprecated 
     public synchronized void setRedirectHandler(final RedirectHandler handler) {
         this.redirectStrategy = new DefaultRedirectStrategyAdaptor(handler);
     }
@@ -587,18 +585,21 @@ public abstract class AbstractHttpClient implements HttpClient {
         this.redirectStrategy = strategy;
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     public synchronized final AuthenticationHandler getTargetAuthenticationHandler() {
         return createTargetAuthenticationHandler();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     public synchronized void setTargetAuthenticationHandler(final AuthenticationHandler handler) {
         this.targetAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
-
 
     /**
      * @since 4.2
@@ -610,7 +611,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         return targetAuthStrategy;
     }
 
-
     /**
      * @since 4.2
      */
@@ -618,18 +618,21 @@ public abstract class AbstractHttpClient implements HttpClient {
         this.targetAuthStrategy = strategy;
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     public synchronized final AuthenticationHandler getProxyAuthenticationHandler() {
         return createProxyAuthenticationHandler();
     }
 
-
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     public synchronized void setProxyAuthenticationHandler(final AuthenticationHandler handler) {
         this.proxyAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
-
 
     /**
      * @since 4.2
@@ -641,14 +644,12 @@ public abstract class AbstractHttpClient implements HttpClient {
         return proxyAuthStrategy;
     }
 
-
     /**
      * @since 4.2
      */
     public synchronized void setProxyAuthenticationStrategy(final AuthenticationStrategy strategy) {
         this.proxyAuthStrategy = strategy;
     }
-
 
     public synchronized final CookieStore getCookieStore() {
         if (cookieStore == null) {
@@ -657,11 +658,9 @@ public abstract class AbstractHttpClient implements HttpClient {
         return cookieStore;
     }
 
-
     public synchronized void setCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
     }
-
 
     public synchronized final CredentialsProvider getCredentialsProvider() {
         if (credsProvider == null) {
@@ -670,11 +669,9 @@ public abstract class AbstractHttpClient implements HttpClient {
         return credsProvider;
     }
 
-
     public synchronized void setCredentialsProvider(final CredentialsProvider credsProvider) {
         this.credsProvider = credsProvider;
     }
-
 
     public synchronized final HttpRoutePlanner getRoutePlanner() {
         if (this.routePlanner == null) {
@@ -683,11 +680,9 @@ public abstract class AbstractHttpClient implements HttpClient {
         return this.routePlanner;
     }
 
-
     public synchronized void setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
     }
-
 
     public synchronized final UserTokenHandler getUserTokenHandler() {
         if (this.userTokenHandler == null) {
@@ -696,11 +691,9 @@ public abstract class AbstractHttpClient implements HttpClient {
         return this.userTokenHandler;
     }
 
-
     public synchronized void setUserTokenHandler(final UserTokenHandler handler) {
         this.userTokenHandler = handler;
     }
-
 
     protected synchronized final BasicHttpProcessor getHttpProcessor() {
         if (mutableProcessor == null) {
@@ -708,7 +701,6 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
         return mutableProcessor;
     }
-
 
     private synchronized final HttpProcessor getProtocolProcessor() {
         if (protocolProcessor == null) {
@@ -730,68 +722,56 @@ public abstract class AbstractHttpClient implements HttpClient {
         return protocolProcessor;
     }
 
-
     public synchronized int getResponseInterceptorCount() {
         return getHttpProcessor().getResponseInterceptorCount();
     }
-
 
     public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
         return getHttpProcessor().getResponseInterceptor(index);
     }
 
-
     public synchronized HttpRequestInterceptor getRequestInterceptor(int index) {
         return getHttpProcessor().getRequestInterceptor(index);
     }
 
-
     public synchronized int getRequestInterceptorCount() {
         return getHttpProcessor().getRequestInterceptorCount();
     }
-
 
     public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp) {
         getHttpProcessor().addInterceptor(itcp);
         protocolProcessor = null;
     }
 
-
     public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
-
 
     public synchronized void clearResponseInterceptors() {
         getHttpProcessor().clearResponseInterceptors();
         protocolProcessor = null;
     }
 
-
     public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
         protocolProcessor = null;
     }
-
 
     public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp) {
         getHttpProcessor().addInterceptor(itcp);
         protocolProcessor = null;
     }
 
-
     public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
 
-
     public synchronized void clearRequestInterceptors() {
         getHttpProcessor().clearRequestInterceptors();
         protocolProcessor = null;
     }
-
 
     public synchronized void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
@@ -803,7 +783,6 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         return execute(request, (HttpContext) null);
     }
-
 
     /**
      * Maps to {@link HttpClient#execute(HttpHost,HttpRequest,HttpContext)
@@ -931,6 +910,9 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
     }
 
+    /**
+     * @deprecated (4.1) do not use
+     */
     @Deprecated
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
@@ -960,7 +942,10 @@ public abstract class AbstractHttpClient implements HttpClient {
                 params);
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.2) do not use
+     */
+    @Deprecated 
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,

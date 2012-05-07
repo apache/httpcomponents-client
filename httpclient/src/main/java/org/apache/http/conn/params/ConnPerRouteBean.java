@@ -42,9 +42,9 @@ import org.apache.http.pool.ConnPoolControl;
  *
  * @since 4.0
  *
- * @deprecated use {@link ConnPoolControl}
+ * @deprecated (4.2)  use {@link ConnPoolControl}
  */
-@Deprecated
+@Deprecated 
 @ThreadSafe
 public final class ConnPerRouteBean implements ConnPerRoute {
 
@@ -65,10 +65,6 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this(DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
     }
 
-    /**
-     * @deprecated Use {@link #getDefaultMaxPerRoute()} instead
-     */
-    @Deprecated
     public int getDefaultMax() {
         return this.defaultMax;
     }

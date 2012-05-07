@@ -141,7 +141,10 @@ public class Wire {
         input(new byte[] {(byte) b});
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.1)  do not use
+     */
+    @Deprecated 
     public void output(final String s)
       throws IOException {
         if (s == null) {
@@ -150,7 +153,10 @@ public class Wire {
         output(s.getBytes());
     }
 
-    @Deprecated
+    /**
+     * @deprecated (4.1)  do not use
+     */
+    @Deprecated 
     public void input(final String s)
       throws IOException {
         if (s == null) {

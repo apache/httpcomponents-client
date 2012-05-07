@@ -38,9 +38,9 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.0
  *
- * @deprecated do not use
+ * @deprecated (4.2)  do not use
  */
-@Deprecated
+@Deprecated 
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */

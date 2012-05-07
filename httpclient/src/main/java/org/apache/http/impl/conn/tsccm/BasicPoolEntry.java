@@ -39,7 +39,7 @@ import org.apache.http.impl.conn.AbstractPoolEntry;
  *
  * @since 4.0
  *
- * @deprecated use {@link org.apache.http.pool.PoolEntry}
+ * @deprecated (4.2)  use {@link org.apache.http.pool.PoolEntry}
  */
 @Deprecated
 public class BasicPoolEntry extends AbstractPoolEntry {
@@ -50,10 +50,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     private long validUntil;
     private long expiry;
 
-    /**
-     * @deprecated do not use
-     */
-    @Deprecated
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route,
                           ReferenceQueue<Object> queue) {
@@ -110,7 +106,6 @@ public class BasicPoolEntry extends AbstractPoolEntry {
         return super.route;
     }
 
-    @Deprecated
     protected final BasicPoolEntryRef getWeakRef() {
         return null;
     }

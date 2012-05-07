@@ -34,15 +34,15 @@ package org.apache.http.client.params;
 public interface ClientPNames {
 
     /**
-     * @deprecated do not use
+     * @deprecated (4.2)  do not use
      */
     @Deprecated
     public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
 
     /**
-     * @deprecated do not use
+     * @deprecated (4.0) do not use
      */
-    @Deprecated
+    @Deprecated 
     public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory-object";
 
     /**

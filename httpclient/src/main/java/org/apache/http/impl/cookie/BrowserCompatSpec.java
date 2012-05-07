@@ -55,6 +55,9 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe // superclass is @NotThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
 
+    /**
+     * @deprecated (4.0) do not use
+     */
     @Deprecated
     protected static final String[] DATE_PATTERNS = new String[] {
             DateUtils.PATTERN_RFC1123,

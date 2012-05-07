@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @since 4.1
  *
- * @deprecated subclass {@link KerberosScheme} and override
+ * @deprecated (4.2)  subclass {@link KerberosScheme} and override
  *   {@link KerberosScheme#generateGSSToken(byte[], org.ietf.jgss.Oid, String)}
  */
 @Deprecated

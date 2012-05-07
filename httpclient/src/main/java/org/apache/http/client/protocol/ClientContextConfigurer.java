@@ -71,11 +71,11 @@ public class ClientContextConfigurer implements ClientContext {
     }
 
     /**
-     * @deprecated (4.1-alpha1) Use {@link HttpParams#setParameter(String, Object)} to set the parameters
+     * @deprecated (4.0) Use {@link HttpParams#setParameter(String, Object)} to set the parameters
      * {@link org.apache.http.auth.params.AuthPNames#TARGET_AUTH_PREF AuthPNames#TARGET_AUTH_PREF} and
      * {@link org.apache.http.auth.params.AuthPNames#PROXY_AUTH_PREF AuthPNames#PROXY_AUTH_PREF} instead
      */
-    @Deprecated
+    @Deprecated 
     public void setAuthSchemePref(final List<String> list) {
         this.context.setAttribute(AUTH_SCHEME_PREF, list);
     }

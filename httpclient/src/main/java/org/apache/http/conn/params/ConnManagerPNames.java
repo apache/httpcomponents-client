@@ -26,15 +26,14 @@
 
 package org.apache.http.conn.params;
 
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.CoreConnectionPNames;
-
 /**
  * Parameter names for connection managers in HttpConn.
  *
  * @since 4.0
- */
-@Deprecated
+ * 
+ * @deprecated (4.1.2) use configuration methods of the specific connection manager implementation.
+*/
+@Deprecated 
 public interface ConnManagerPNames {
 
     /**
@@ -43,10 +42,7 @@ public interface ConnManagerPNames {
      * {@link org.apache.http.conn.ClientConnectionManager}.
      * <p>
      * This parameter expects a value of type {@link Long}.
-     * <p>
-     * @deprecated use {@link CoreConnectionPNames#CONNECTION_TIMEOUT}
      */
-    @Deprecated
     public static final String TIMEOUT = "http.conn-manager.timeout";
 
     /**
@@ -56,10 +52,7 @@ public interface ConnManagerPNames {
      * <p>
      * This parameter expects a value of type {@link ConnPerRoute}.
      * <p>
-     * @deprecated use {@link ThreadSafeClientConnManager#setMaxForRoute(org.apache.http.conn.routing.HttpRoute, int)},
-     *  {@link ThreadSafeClientConnManager#getMaxForRoute(org.apache.http.conn.routing.HttpRoute)}
      */
-    @Deprecated
     public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
 
     /**
@@ -68,11 +61,7 @@ public interface ConnManagerPNames {
      * and applies to individual manager instances.
      * <p>
      * This parameter expects a value of type {@link Integer}.
-     * <p>
-     * @deprecated use {@link ThreadSafeClientConnManager#setMaxTotal(int)},
-     *  {@link ThreadSafeClientConnManager#getMaxTotal()}
      */
-    @Deprecated
     public static final String MAX_TOTAL_CONNECTIONS = "http.conn-manager.max-total";
 
 }

@@ -37,6 +37,7 @@ import java.net.UnknownHostException;
 import org.apache.http.annotation.Immutable;
 
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
@@ -67,6 +68,9 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
         return new PlainSocketFactory();
     }
 
+    /**
+     * @deprecated (4.1) use {@link DnsResolver}
+     */
     @Deprecated
     public PlainSocketFactory(final HostNameResolver nameResolver) {
         super();
@@ -153,7 +157,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     }
 
     /**
-     * @deprecated Use {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}
+     * @deprecated (4.1)  Use {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}
      */
     @Deprecated
     public Socket connectSocket(

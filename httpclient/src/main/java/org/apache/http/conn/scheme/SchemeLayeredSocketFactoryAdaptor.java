@@ -33,6 +33,9 @@ import java.net.UnknownHostException;
 
 import org.apache.http.params.HttpParams;
 
+/**
+ * @deprecated (4.2) do not use
+ */
 @Deprecated
 class SchemeLayeredSocketFactoryAdaptor extends SchemeSocketFactoryAdaptor
     implements SchemeLayeredSocketFactory {

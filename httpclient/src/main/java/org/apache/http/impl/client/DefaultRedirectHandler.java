@@ -55,7 +55,7 @@ import org.apache.http.protocol.ExecutionContext;
  *
  * @since 4.0
  *
- * @deprecated use {@link DefaultRedirectStrategy}.
+ * @deprecated (4.1)  use {@link DefaultRedirectStrategy}.
  */
 @Immutable
 @Deprecated

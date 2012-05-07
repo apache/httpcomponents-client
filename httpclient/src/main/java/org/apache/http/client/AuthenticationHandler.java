@@ -48,7 +48,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  *
- * @deprecated use {@link AuthenticationStrategy}
+ * @deprecated (4.2)  use {@link AuthenticationStrategy}
  */
 @Deprecated
 public interface AuthenticationHandler {
