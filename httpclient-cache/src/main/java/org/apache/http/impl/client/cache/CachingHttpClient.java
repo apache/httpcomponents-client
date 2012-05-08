@@ -756,6 +756,7 @@ public class CachingHttpClient implements HttpClient {
         HttpCacheEntry matchedEntry = matchingVariant.getEntry();
         
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
+            EntityUtils.consume(backendResponse.getEntity());
             return retryRequestUnconditionally(target, request, context,
                     matchedEntry);
         }
@@ -826,6 +827,7 @@ public class CachingHttpClient implements HttpClient {
         Date responseDate = getCurrentDate();
 
         if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
+            EntityUtils.consume(backendResponse.getEntity());
             HttpRequest unconditional = conditionalRequestBuilder
                 .buildUnconditionalRequest(request, cacheEntry);
             requestDate = getCurrentDate();
