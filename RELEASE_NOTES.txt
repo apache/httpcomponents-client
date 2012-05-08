@@ -1,6 +1,10 @@
 Changes since 4.2 BETA1
 -------------------
 
+* [HTTPCLIENT-1187] If a revalidation response is deemed too old CachingHttpClient fails to  
+  consume its content resulting in a connection leak.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1186] State of newly created connections in the connection pool is not always 
   correctly updated potentially allowing those connections to be leased to users with a different 
   security context. 
