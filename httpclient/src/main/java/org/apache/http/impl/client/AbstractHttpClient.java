@@ -77,8 +77,8 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.http.impl.conn.BasicClientConnectionManager;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
@@ -327,7 +327,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         if (factory != null) {
             connManager = factory.newInstance(params, registry);
         } else {
-            connManager = new PoolingClientConnectionManager(registry);
+            connManager = new BasicClientConnectionManager(registry);
         }
 
         return connManager;
