@@ -53,7 +53,7 @@ import org.apache.http.util.EntityUtils;
  * support for the <code>gzip</code> and <code>deflate</code>
  * compression schemes; it then checks the <code>Content-Encoding</code>
  * header on the response to uncompress any compressed response bodies.
- * The {@link InputStream} of the entity will contain the uncompressed
+ * The {@link java.io.InputStream} of the entity will contain the uncompressed
  * content.</p>
  * 
  * <p><b>N.B.</b> Any upstream clients of this class need to be aware that

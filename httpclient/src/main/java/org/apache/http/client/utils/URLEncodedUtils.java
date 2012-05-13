@@ -148,7 +148,7 @@ public class URLEncodedUtils {
      *            List to add parameters to.
      * @param scanner
      *            Input that contains the parameters to parse.
-     * @param encoding
+     * @param charset
      *            Encoding to use when decoding the parameters.
      */
     public static void parse (
