@@ -59,14 +59,6 @@ public class InputStreamBody extends AbstractContentBody {
         return this.in;
     }
 
-    /**
-     * @deprecated (4.0)  use {@link #writeTo(OutputStream)}
-     */
-    @Deprecated 
-    public void writeTo(final OutputStream out, int mode) throws IOException {
-        writeTo(out);
-    }
-
     public void writeTo(final OutputStream out) throws IOException {
         if (out == null) {
             throw new IllegalArgumentException("Output stream may not be null");

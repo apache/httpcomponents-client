@@ -33,7 +33,6 @@ import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -52,19 +51,11 @@ public class ClientParamBean extends HttpAbstractParamBean {
     }
 
     /**
-     * @deprecated (4.0)  do not use.
+     * @deprecated (4.2)  do not use.
      */
     @Deprecated 
     public void setConnectionManagerFactoryClassName (final String factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME, factory);
-    }
-
-    /**
-     * @deprecated (4.2)  do not use.
-     */
-    @Deprecated 
-    public void setConnectionManagerFactory(ClientConnectionManagerFactory factory) {
-        params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY, factory);
     }
 
     public void setHandleRedirects (final boolean handle) {

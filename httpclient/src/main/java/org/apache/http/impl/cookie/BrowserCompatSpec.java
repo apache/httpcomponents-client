@@ -55,27 +55,6 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe // superclass is @NotThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
 
-    /**
-     * @deprecated (4.0) do not use
-     */
-    @Deprecated
-    protected static final String[] DATE_PATTERNS = new String[] {
-            DateUtils.PATTERN_RFC1123,
-            DateUtils.PATTERN_RFC1036,
-            DateUtils.PATTERN_ASCTIME,
-            "EEE, dd-MMM-yyyy HH:mm:ss z",
-            "EEE, dd-MMM-yyyy HH-mm-ss z",
-            "EEE, dd MMM yy HH:mm:ss z",
-            "EEE dd-MMM-yyyy HH:mm:ss z",
-            "EEE dd MMM yyyy HH:mm:ss z",
-            "EEE dd-MMM-yyyy HH-mm-ss z",
-            "EEE dd-MMM-yy HH:mm:ss z",
-            "EEE dd MMM yy HH:mm:ss z",
-            "EEE,dd-MMM-yy HH:mm:ss z",
-            "EEE,dd-MMM-yyyy HH:mm:ss z",
-            "EEE, dd-MM-yyyy HH:mm:ss z",
-        };
-
     private static final String[] DEFAULT_DATE_PATTERNS = new String[] {
         DateUtils.PATTERN_RFC1123,
         DateUtils.PATTERN_RFC1036,

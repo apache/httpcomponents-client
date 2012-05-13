@@ -57,7 +57,7 @@ import org.apache.http.impl.conn.IdleConnectionHandler;
  * @deprecated (4.2) use {@link org.apache.http.pool.AbstractConnPool}
  */
 @Deprecated
-public abstract class AbstractConnPool implements RefQueueHandler {
+public abstract class AbstractConnPool {
 
     private final Log log;
 

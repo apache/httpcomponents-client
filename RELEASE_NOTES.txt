@@ -1,4 +1,4 @@
-Changes since 4.2 BETA1
+Release 4.2
 -------------------
 
 * [HTTPCLIENT-1187] If a revalidation response is deemed too old CachingHttpClient fails to  
@@ -15,6 +15,31 @@ Changes since 4.2 BETA1
 
 * [HTTPCLIENT-1177] always remove fragments from request URIs
   Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+Incompatible changes
+--------------------
+[Compared to release version 4.1.3]
+
+The following fields have been deprecated for some time now and have been deleted:
+
+org.apache.http.client.params.ClientPNames#CONNECTION_MANAGER_FACTORY
+org.apache.http.impl.cookie.BrowserCompatSpec#DATE_PATTERNS
+
+The following methods have been deprecated for some time now and have been deleted:
+
+org.apache.http.client.params.ClientParamBean#setConnectionManagerFactory(org.apache.http.conn.ClientConnectionManagerFactory)
+org.apache.http.client.protocol.ClientContextConfigurer#setAuthSchemePref(java.util.List)
+org.apache.http.entity.mime.content.FileBody#writeTo(java.io.OutputStream, int)
+org.apache.http.entity.mime.content.InputStreamBody#writeTo(java.io.OutputStream, int)
+org.apache.http.entity.mime.content.StringBody#writeTo(java.io.OutputStream, int)
+
+The following classes have been deprecated for some while now and have been deleted:
+
+org.apache.http.impl.conn.tsccm.RefQueueHandler
+org.apache.http.impl.conn.tsccm.AbstractConnPool no longer implements interface org.apache.http.impl.conn.tsccm.RefQueueHandler
+org.apache.http.impl.conn.tsccm.ConnPoolByRoute no longer implements interface org.apache.http.impl.conn.tsccm.RefQueueHandler
+org.apache.http.impl.conn.tsccm.RefQueueWorker
+
 
 
 Release 4.2 BETA1

@@ -40,12 +40,6 @@ public interface ClientPNames {
     public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
 
     /**
-     * @deprecated (4.0) do not use
-     */
-    @Deprecated 
-    public static final String CONNECTION_MANAGER_FACTORY = "http.connection-manager.factory-object";
-
-    /**
      * Defines whether redirects should be handled automatically
      * <p>
      * This parameter expects a value of type {@link Boolean}.
