@@ -28,7 +28,7 @@ Changelog
 * [HTTPCLIENT-1186] State of newly created connections in the connection pool is not always 
   correctly updated potentially allowing those connections to be leased to users with a different 
   security context. 
-  Contributed by Ralf Pöhlmann <rpn at methodpark.de> 
+  Contributed by Ralf Poehlmann <rpn at methodpark.de> 
 
 * [HTTPCLIENT-1179] Upgraded Commons Codec dependency to version 1.6
   Contributed by Oleg Kalnichevski <olegk at apache.org>
