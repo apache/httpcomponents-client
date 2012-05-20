@@ -34,7 +34,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
-  <version>4.2-beta2-SNAPSHOT</version>
+  <version>4.2.1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
@@ -307,14 +307,12 @@
             </entity>
           </entities>
           <postProcess>
-            <copy todir="target/site/tutorial/html" 
-              failonerror="false">
+            <copy todir="target/site/tutorial/html" failonerror="false">
               <fileset dir="target/docbkx/html/index">
                 <include name="**/*.html" />
               </fileset>
             </copy>
-            <copy todir="target/site/tutorial/html" 
-              failonerror="false">
+            <copy todir="target/site/tutorial/html" failonerror="false">
               <fileset dir="src/docbkx/resources">
                 <include name="**/*.css" />
                 <include name="**/*.png" />
@@ -322,9 +320,7 @@
                 <include name="**/*.jpg" />
               </fileset>
             </copy>
-            <copy file="target/docbkx/pdf/index.pdf" 
-                  tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" 
-                  failonerror="false"/>
+            <copy file="target/docbkx/pdf/index.pdf" tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" failonerror="false" />
           </postProcess>
         </configuration>
       </plugin>
@@ -354,6 +350,13 @@
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
           <comparisonVersion>${api.comparison.version}</comparisonVersion>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
         </configuration>
       </plugin>
     </plugins>
