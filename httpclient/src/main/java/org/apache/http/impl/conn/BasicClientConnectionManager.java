@@ -162,7 +162,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             }
             if (this.poolEntry != null && !this.poolEntry.getPlannedRoute().equals(route)) {
                 this.poolEntry.close();
-                this.poolEntry.getTracker().reset();
+                this.poolEntry = null;
             }
             if (this.poolEntry == null) {
                 String id = Long.toString(COUNTER.getAndIncrement());

@@ -1,3 +1,10 @@
+Changes since 4.2 
+-------------------
+
+* [HTTPCLIENT-1193] Fixed regression in the route tracking logic of the default connection manager 
+  causing cross-site redirect failures.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 Release 4.2
 -------------------
 
