@@ -91,7 +91,7 @@ public class TestURIBuilder {
         URIBuilder uribuilder = new URIBuilder(uri).setParameter("param", "some other stuff")
             .setParameter("blah", "blah");
         URI result = uribuilder.build();
-        Assert.assertEquals(new URI("http://localhost:80/?param=some+other+stuff&blah=blah"), result);
+        Assert.assertEquals(new URI("http://localhost:80/?param=some%20other%20stuff&blah=blah"), result);
     }
 
     @Test
@@ -101,7 +101,28 @@ public class TestURIBuilder {
             .addParameter("blah", "blah");
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/?param=stuff&blah&blah&" +
-                "param=some+other+stuff&blah=blah"), result);
+                "param=some%20other%20stuff&blah=blah"), result);
     }
 
+    @Test
+    public void testQueryEncoding() throws Exception {
+        URI uri1 = new URI("https://somehost.com/stuff?client_id=1234567890" +
+        		"&redirect_uri=https://somehost.com/blah%20blah/");
+        URI uri2 = new URIBuilder("https://somehost.com/stuff")
+            .addParameter("client_id","1234567890")
+            .addParameter("redirect_uri","https://somehost.com/blah blah/").build();
+        Assert.assertEquals(uri1, uri2);
+    }
+    
+    @Test
+    public void testPathEncoding() throws Exception {
+        URI uri1 = new URI("https://somehost.com/some%20path%20with%20blanks/");
+        URI uri2 = new URIBuilder()
+            .setScheme("https")
+            .setHost("somehost.com")
+            .setPath("/some path with blanks/")
+            .build();
+        Assert.assertEquals(uri1, uri2);
+    }
+    
 }

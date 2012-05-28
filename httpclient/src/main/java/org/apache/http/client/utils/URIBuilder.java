@@ -76,11 +76,22 @@ public class URIBuilder {
         return null;
     }
 
-    private String formatQuery(final List<NameValuePair> parameters, final Charset charset) {
+    private String formatQuery(final List<NameValuePair> parameters) {
         if (parameters == null) {
             return null;
         }
-        return URLEncodedUtils.format(parameters, charset);
+        final StringBuilder result = new StringBuilder();
+        for (final NameValuePair parameter : parameters) {
+            if (result.length() > 0) {
+                result.append("&");
+            }
+            result.append(parameter.getName());
+            if (parameter.getValue() != null) {
+                result.append("=");
+                result.append(parameter.getValue());
+            }
+        }
+        return result.toString();
     }
 
     /**
@@ -91,11 +102,11 @@ public class URIBuilder {
             return new URI(this.scheme, this.schemeSpecificPart, this.fragment);
         } else if (this.authority != null) {
             return new URI(this.scheme, this.authority,
-                    this.path, formatQuery(this.queryParams, Consts.UTF_8), this.fragment);
+                    this.path, formatQuery(this.queryParams), this.fragment);
 
         } else {
             return new URI(this.scheme, this.userInfo, this.host, this.port,
-                    this.path, formatQuery(this.queryParams, Consts.UTF_8), this.fragment);
+                    this.path, formatQuery(this.queryParams), this.fragment);
         }
     }
 
@@ -111,11 +122,17 @@ public class URIBuilder {
         this.fragment = uri.getFragment();
     }
 
+    /**
+     * Sets URI scheme.
+     */
     public URIBuilder setScheme(final String scheme) {
         this.scheme = scheme;
         return this;
     }
 
+    /**
+     * Sets URI user info.
+     */
     public URIBuilder setUserInfo(final String userInfo) {
         this.userInfo = userInfo;
         this.schemeSpecificPart = null;
@@ -123,10 +140,16 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Sets URI user info as a combination of username and password.
+     */
     public URIBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
     }
 
+    /**
+     * Sets URI host.
+     */
     public URIBuilder setHost(final String host) {
         this.host = host;
         this.schemeSpecificPart = null;
@@ -134,6 +157,9 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Sets URI port.
+     */
     public URIBuilder setPort(final int port) {
         this.port = port < 0 ? -1 : port;
         this.schemeSpecificPart = null;
@@ -141,24 +167,37 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Sets URI path. The value is expected to be unescaped and may contain non ASCII characters.
+     */
     public URIBuilder setPath(final String path) {
         this.path = path;
         this.schemeSpecificPart = null;
         return this;
     }
 
+    /**
+     * Removes URI query.
+     */
     public URIBuilder removeQuery() {
         this.queryParams = null;
         this.schemeSpecificPart = null;
         return this;
     }
 
+    /**
+     * Sets URI query. The value is expected to be escaped and may NOT contain non ASCII characters.
+     */
     public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, Consts.UTF_8);
         this.schemeSpecificPart = null;
         return this;
     }
 
+    /**
+     * Adds parameter to URI query. The parameter name and value are expected to be unescaped 
+     * and may contain non ASCII characters.
+     */
     public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
@@ -168,6 +207,10 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Sets parameter of URI query overriding existing value if set. The parameter name and value 
+     * are expected to be unescaped and may contain non ASCII characters.
+     */
     public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
             this.queryParams = new ArrayList<NameValuePair>();
@@ -185,6 +228,9 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Sets URI fragment.
+     */
     public URIBuilder setFragment(final String fragment) {
         this.fragment = fragment;
         return this;

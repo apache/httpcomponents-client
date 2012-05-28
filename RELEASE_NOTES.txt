@@ -1,6 +1,12 @@
 Changes since 4.2 
 -------------------
 
+* [HTTPCLIENT-1192] URIBuilder encodes query parameters twice.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1196] Fixed NPE in UrlEncodedFormEntity constructor thrown if charset is null.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1193] Fixed regression in the route tracking logic of the default connection manager 
   causing cross-site redirect failures.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
