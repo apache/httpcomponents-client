@@ -41,6 +41,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.ResponseContentEncoding;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -108,7 +109,7 @@ public class DecompressingHttpClient implements HttpClient {
 
     HttpHost getHttpHost(HttpUriRequest request) {
         URI uri = request.getURI();
-        return new HttpHost(uri.getAuthority());
+        return URIUtils.extractHost(uri);
     }
 
     public HttpResponse execute(HttpUriRequest request, HttpContext context)

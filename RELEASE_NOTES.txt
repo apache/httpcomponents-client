@@ -1,6 +1,9 @@
 Changes since 4.2 
 -------------------
 
+* [HTTPCLIENT-1200] DecompressingHttpClient fails to generate correct HttpHost context attribute.
+  Contributed by Guillaume Castagnino <casta+jira at xwing.info> 
+
 * [HTTPCLIENT-1192] URIBuilder encodes query parameters twice.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

@@ -103,7 +103,7 @@ public class TestDecompressingHttpClient {
     
     @Test
     public void extractsHostNameAndPortFromUriRequest() {
-        assertEquals(new HttpHost("www.example.com:8080"), 
+        assertEquals(new HttpHost("www.example.com", 8080), 
                 impl.getHttpHost(new HttpGet("http://www.example.com:8080/")));
     }
 
@@ -115,7 +115,7 @@ public class TestDecompressingHttpClient {
 
     @Test
     public void extractsIPAddressAndPortFromUriRequest() {
-        assertEquals(new HttpHost("10.0.0.1:8080"), 
+        assertEquals(new HttpHost("10.0.0.1", 8080), 
                 impl.getHttpHost(new HttpGet("http://10.0.0.1:8080/")));
     }
 
@@ -127,7 +127,7 @@ public class TestDecompressingHttpClient {
 
     @Test
     public void extractsLocalhostAndPortFromUriRequest() {
-        assertEquals(new HttpHost("localhost:8080"), 
+        assertEquals(new HttpHost("localhost", 8080), 
                 impl.getHttpHost(new HttpGet("http://localhost:8080/")));
     }
     
