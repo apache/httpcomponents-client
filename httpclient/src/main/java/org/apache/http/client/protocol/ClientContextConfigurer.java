@@ -27,15 +27,12 @@
 
 package org.apache.http.client.protocol;
 
-import java.util.List;
-
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.cookie.CookieSpecRegistry;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**

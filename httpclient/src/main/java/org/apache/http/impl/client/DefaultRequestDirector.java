@@ -931,7 +931,6 @@ public class DefaultRequestDirector implements RequestDirector {
             }
         }
 
-        @SuppressWarnings("null") // can't be null
         int status = response.getStatusLine().getStatusCode();
 
         if (status > 299) {
