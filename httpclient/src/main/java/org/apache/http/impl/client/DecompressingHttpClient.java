@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -126,7 +127,12 @@ public class DecompressingHttpClient implements HttpClient {
             HttpContext context) throws IOException, ClientProtocolException {
         try {
             if (context == null) context = new BasicHttpContext();
-            HttpRequest wrapped = new RequestWrapper(request);
+            HttpRequest wrapped;
+            if (request instanceof HttpEntityEnclosingRequest) {
+                wrapped = new EntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request);
+            } else {
+                wrapped = new RequestWrapper(request);
+            }
             acceptEncodingInterceptor.process(wrapped, context);
             HttpResponse response = backend.execute(target, wrapped, context);
             contentEncodingInterceptor.process(response, context);
@@ -137,7 +143,7 @@ public class DecompressingHttpClient implements HttpClient {
             }
             return response;
         } catch (HttpException e) {
-            throw new RuntimeException(e);
+            throw new ClientProtocolException(e);
         }
     }
 
