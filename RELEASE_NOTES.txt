@@ -1,5 +1,7 @@
 Changes since 4.2 
 -------------------
+* [HTTPCLIENT-1198] HttpHost is not set in HttpContext in CachingHttpClient.
+  Contributed by Jon Moore <jonm at apache.org>
 
 * [HTTPCLIENT-1200] DecompressingHttpClient fails to generate correct HttpHost context attribute.
   Contributed by Guillaume Castagnino <casta+jira at xwing.info> 
