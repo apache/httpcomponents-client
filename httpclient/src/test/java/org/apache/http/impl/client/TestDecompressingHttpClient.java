@@ -36,6 +36,7 @@ import java.util.zip.GZIPOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -44,6 +45,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ByteArrayEntity;
@@ -332,6 +334,15 @@ public class TestDecompressingHttpClient {
         
         HttpResponse result = impl.execute(request);
         assertNotNull(result.getFirstHeader("Content-MD5"));
+    }
+    
+    @Test
+    public void passesThroughTheBodyOfAPOST() throws Exception {
+    	when(mockHandler.handleResponse(isA(HttpResponse.class))).thenReturn(new Object());
+    	HttpPost post = new HttpPost("http://localhost:8080/");
+    	post.setEntity(new ByteArrayEntity("hello".getBytes()));
+    	impl.execute(host, post, mockHandler, ctx);
+    	assertNotNull(((HttpEntityEnclosingRequest)backend.getCapturedRequest()).getEntity());
     }
     
     private HttpResponse getGzippedResponse(final String plainText)
