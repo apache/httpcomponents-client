@@ -65,6 +65,7 @@ import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -440,20 +441,24 @@ public class CachingHttpClient implements HttpClient {
             HttpContext context, HttpCacheEntry entry)
             throws ClientProtocolException, IOException {
         recordCacheHit(target, request);
-
+        HttpResponse out = null;
         Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
-            return generateCachedResponse(request, context, entry, now);
-        }
-
-        if (!mayCallBackend(request)) {
-            return generateGatewayTimeout(context);
-        }
-
-        if (validityPolicy.isRevalidatable(entry)) {
+            out = generateCachedResponse(request, context, entry, now);
+        } else if (!mayCallBackend(request)) {
+            out = generateGatewayTimeout(context);
+        } else if (validityPolicy.isRevalidatable(entry)) {
             return revalidateCacheEntry(target, request, context, entry, now);
+        } else {
+        	return callBackend(target, request, context);
         }
-        return callBackend(target, request, context);
+        if (context != null) {
+        	context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        	context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
+        	context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
+        	context.setAttribute(ExecutionContext.HTTP_REQ_SENT, true);
+        }
+        return out;
     }
 
     private HttpResponse revalidateCacheEntry(HttpHost target,

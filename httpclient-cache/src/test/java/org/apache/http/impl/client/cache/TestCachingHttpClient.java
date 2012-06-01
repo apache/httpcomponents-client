@@ -60,6 +60,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
 import static org.easymock.classextension.EasyMock.*;
@@ -1871,7 +1872,137 @@ public class TestCachingHttpClient {
 
         Assert.assertSame(mockCachedResponse, resp);
     }
+    
+    private DummyHttpClient getContextSettingBackend(final Object value, final HttpResponse response) {
+    	return new DummyHttpClient() {
+    		@Override
+    		public HttpResponse execute(HttpHost target, HttpRequest request,
+    	            HttpContext context) throws IOException, ClientProtocolException {
+    			if (context != null) {
+    				context.setAttribute(ExecutionContext.HTTP_CONNECTION, value);
+    				context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, value);
+    				context.setAttribute(ExecutionContext.HTTP_REQ_SENT, value);
+    				context.setAttribute(ExecutionContext.HTTP_REQUEST, value);
+    				context.setAttribute(ExecutionContext.HTTP_RESPONSE, value);
+    				context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, value);
+    			}
+    			return response;
+    	    }
+    	};
+    }
+    
+	private void assertAllContextVariablesAreEqualTo(HttpContext ctx,
+			final Object value) {
+		assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
+    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
+    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
+    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
+    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
+    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+	}
 
+	@Test
+	public void testAllowsBackendToSetHttpContextVariablesOnCacheMiss() throws Exception {
+		final Object value = new Object(); 
+		impl = new CachingHttpClient(getContextSettingBackend(value, HttpTestUtils.make200Response()));
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request, ctx);
+		assertAllContextVariablesAreEqualTo(ctx, value);
+	}
+	
+	@Test
+	public void testDoesNotSetConnectionInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertNull(ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
+	}
+	
+	@Test
+	public void testDoesNotSetProxyHostInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertNull(ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
+	}
+	
+	@Test
+	public void testSetsTargetHostInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertSame(host, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+	}
+
+	@Test
+	public void testSetsRequestInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertSame(request, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
+	}
+
+	@Test
+	public void testSetsResponseInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		HttpResponse result = impl.execute(host, request, ctx);
+		assertSame(result, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
+	}
+	
+	@Test
+	public void testSetsRequestSentInContextOnCacheHit() throws Exception {
+		DummyHttpClient backend = new DummyHttpClient();
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control", "max-age=3600");
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertTrue((Boolean)ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
+	}
+	
+	@Test
+	public void testAllowsBackendToSetContextVariablesOnRevalidation() throws Exception {
+		final Object value = new Object(); 
+		HttpResponse response = HttpTestUtils.make200Response();
+		response.setHeader("Cache-Control","public");
+		response.setHeader("Etag", "\"v1\"");
+		DummyHttpClient backend = getContextSettingBackend(value, response);
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		HttpContext ctx = new BasicHttpContext();
+		impl.execute(host, request);
+		impl.execute(host, request, ctx);
+		assertAllContextVariablesAreEqualTo(ctx, value);
+	}
+	
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
