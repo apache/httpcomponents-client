@@ -178,16 +178,6 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void mustProvideResource() {
-        try {
-            new HttpCacheEntry(new Date(), new Date(), statusLine,
-                    new Header[]{}, null);
-            fail("Should have thrown exception");
-        } catch (IllegalArgumentException expected) {
-        }
-    }
-
-    @Test
     public void canRetrieveOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);

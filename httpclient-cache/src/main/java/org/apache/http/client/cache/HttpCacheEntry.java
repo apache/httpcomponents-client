@@ -97,9 +97,6 @@ public class HttpCacheEntry implements Serializable {
         if (responseHeaders == null) {
             throw new IllegalArgumentException("Response headers may not be null");
         }
-        if (resource == null) {
-            throw new IllegalArgumentException("Resource may not be null");
-        }
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;

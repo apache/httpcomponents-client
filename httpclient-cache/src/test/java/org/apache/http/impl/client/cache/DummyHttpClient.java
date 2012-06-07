@@ -50,6 +50,7 @@ public class DummyHttpClient implements HttpClient {
     private ClientConnectionManager connManager = new SingleClientConnManager();
     private HttpRequest request;
     private HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP",1,1), HttpStatus.SC_OK, "OK");
+    private int executions = 0;
     
     public void setParams(HttpParams params) {
         this.params = params;
@@ -78,24 +79,28 @@ public class DummyHttpClient implements HttpClient {
     public HttpResponse execute(HttpUriRequest request) throws IOException,
             ClientProtocolException {
         this.request = request;
+        executions++;
         return response;
     }
 
     public HttpResponse execute(HttpUriRequest request, HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
+        executions++;
         return response;
     }
 
     public HttpResponse execute(HttpHost target, HttpRequest request)
             throws IOException, ClientProtocolException {
         this.request = request;
+        executions++;
         return response;
     }
 
     public HttpResponse execute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException, ClientProtocolException {
         this.request = request;
+        executions++;
         return response;
     }
 
@@ -103,6 +108,7 @@ public class DummyHttpClient implements HttpClient {
             ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         this.request = request;
+        executions++;
         return responseHandler.handleResponse(response);
     }
 
@@ -110,6 +116,7 @@ public class DummyHttpClient implements HttpClient {
             ResponseHandler<? extends T> responseHandler, HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
+        executions++;
         return responseHandler.handleResponse(response);
     }
 
@@ -117,6 +124,7 @@ public class DummyHttpClient implements HttpClient {
             ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         this.request = request;
+        executions++;
         return responseHandler.handleResponse(response);
     }
 
@@ -124,7 +132,11 @@ public class DummyHttpClient implements HttpClient {
             ResponseHandler<? extends T> responseHandler, HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
+        executions++;
         return responseHandler.handleResponse(response);
     }
 
+    public int getExecutions() {
+    	return executions;
+    }
 }

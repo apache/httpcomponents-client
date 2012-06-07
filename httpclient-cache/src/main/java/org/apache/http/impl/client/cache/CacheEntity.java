@@ -35,6 +35,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.Resource;
 import org.apache.http.protocol.HTTP;
 
 @Immutable
@@ -66,7 +67,8 @@ class CacheEntity implements HttpEntity, Serializable {
     }
 
     public long getContentLength() {
-        return this.cacheEntry.getResource().length();
+        Resource resource = this.cacheEntry.getResource();
+		return (resource != null) ? resource.length() : 0L;
     }
 
     public InputStream getContent() throws IOException {

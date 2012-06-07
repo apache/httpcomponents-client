@@ -2003,6 +2003,19 @@ public class TestCachingHttpClient {
 		assertAllContextVariablesAreEqualTo(ctx, value);
 	}
 	
+	@Test
+	public void testCanCacheAResponseWithoutABody() throws Exception {
+		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+		response.setHeader("Date", DateUtils.formatDate(new Date()));
+		response.setHeader("Cache-Control","max-age=300");
+		DummyHttpClient backend = new DummyHttpClient();
+		backend.setResponse(response);
+		impl = new CachingHttpClient(backend);
+		impl.execute(host, request);
+		impl.execute(host, request);
+		assertEquals(1, backend.getExecutions());
+	}
+	
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
