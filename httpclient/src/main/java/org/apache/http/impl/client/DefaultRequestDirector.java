@@ -380,7 +380,6 @@ public class DefaultRequestDirector implements RequestDirector {
                 if (!uri.isAbsolute()) {
                     HttpHost target = route.getTargetHost();
                     uri = URIUtils.rewriteURI(uri, target, true);
-                    request.setURI(uri);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }
@@ -388,11 +387,11 @@ public class DefaultRequestDirector implements RequestDirector {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
                     uri = URIUtils.rewriteURI(uri, null);
-                    request.setURI(uri);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }
             }
+            request.setURI(uri);
 
         } catch (URISyntaxException ex) {
             throw new ProtocolException("Invalid URI: " +
