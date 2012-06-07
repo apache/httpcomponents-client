@@ -459,6 +459,14 @@ public class TestResponseCachingPolicy {
         response.removeHeaders("Cache-Control");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
+    
+    @Test
+    public void otherStatusCodesAreCacheableWithExplicitCachingHeaders() {
+    	response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+    	response.setHeader("Date", formatDate(now));
+    	response.setHeader("Cache-Control","max-age=300");
+    	Assert.assertTrue(policy.isResponseCacheable(request, response));
+    }
 
     private int getRandomStatus() {
         int rnd = (new Random()).nextInt(acceptableCodes.length);
