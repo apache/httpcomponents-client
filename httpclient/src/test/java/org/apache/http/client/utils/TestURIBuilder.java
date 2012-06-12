@@ -38,7 +38,36 @@ public class TestURIBuilder {
         URI uri = new URI("http", "stuff", "localhost", 80, "/some stuff", "param=stuff", "fragment");
         URIBuilder uribuilder = new URIBuilder(uri);
         URI result = uribuilder.build();
-        Assert.assertEquals(uri, result);
+        Assert.assertEquals(new URI("http://stuff@localhost:80/some%20stuff?param=stuff#fragment"), result);
+    }
+
+    @Test
+    public void testMutationToRelativeUri() throws Exception {
+        URI uri = new URI("http://stuff@localhost:80/stuff?param=stuff#fragment");
+        URIBuilder uribuilder = new URIBuilder(uri).setHost(null);
+        URI result = uribuilder.build();
+        Assert.assertEquals(new URI("http:///stuff?param=stuff#fragment"), result);
+    }
+
+    @Test
+    public void testMutationRemoveFragment() throws Exception {
+        URI uri = new URI("http://stuff@localhost:80/stuff?param=stuff#fragment");
+        URI result = new URIBuilder(uri).setFragment(null).build();
+        Assert.assertEquals(new URI("http://stuff@localhost:80/stuff?param=stuff"), result);
+    }
+
+    @Test
+    public void testMutationRemoveUserInfo() throws Exception {
+        URI uri = new URI("http://stuff@localhost:80/stuff?param=stuff#fragment");
+        URI result = new URIBuilder(uri).setUserInfo(null).build();
+        Assert.assertEquals(new URI("http://localhost:80/stuff?param=stuff#fragment"), result);
+    }
+
+    @Test
+    public void testMutationRemovePort() throws Exception {
+        URI uri = new URI("http://stuff@localhost:80/stuff?param=stuff#fragment");
+        URI result = new URIBuilder(uri).setPort(-1).build();
+        Assert.assertEquals(new URI("http://stuff@localhost/stuff?param=stuff#fragment"), result);
     }
 
     @Test
@@ -95,6 +124,16 @@ public class TestURIBuilder {
     }
 
     @Test
+    public void testParameterWithSpecialChar() throws Exception {
+        URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff", null);
+        URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "1 + 1 = 2")
+            .addParameter("param", "blah&blah");
+        URI result = uribuilder.build();
+        Assert.assertEquals(new URI("http://localhost:80/?param=stuff&param=1%20%2B%201%20%3D%202&" +
+                "param=blah%26blah"), result);
+    }
+
+    @Test
     public void testAddParameter() throws Exception {
         URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff&blah&blah", null);
         URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "some other stuff")
@@ -107,13 +146,13 @@ public class TestURIBuilder {
     @Test
     public void testQueryEncoding() throws Exception {
         URI uri1 = new URI("https://somehost.com/stuff?client_id=1234567890" +
-        		"&redirect_uri=https://somehost.com/blah%20blah/");
+                "&redirect_uri=https%3A%2F%2Fsomehost.com%2Fblah%20blah%2F");
         URI uri2 = new URIBuilder("https://somehost.com/stuff")
             .addParameter("client_id","1234567890")
             .addParameter("redirect_uri","https://somehost.com/blah blah/").build();
         Assert.assertEquals(uri1, uri2);
     }
-    
+
     @Test
     public void testPathEncoding() throws Exception {
         URI uri1 = new URI("https://somehost.com/some%20path%20with%20blanks/");
@@ -124,5 +163,5 @@ public class TestURIBuilder {
             .build();
         Assert.assertEquals(uri1, uri2);
     }
-    
+
 }

@@ -28,12 +28,12 @@
 package org.apache.http.client.utils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
@@ -258,42 +258,138 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
+    private static final BitSet UNRESERVED   = new BitSet(256);
+    private static final BitSet PUNCT        = new BitSet(256);
+    private static final BitSet SAFE         = new BitSet(256);
+    private static final BitSet PATHSAFE     = new BitSet(256);
+
+    static {
+        // unreserved chars
+        // alpha characters
+        for (int i = 'a'; i <= 'z'; i++) {
+            UNRESERVED.set(i);
+        }
+        for (int i = 'A'; i <= 'Z'; i++) {
+            UNRESERVED.set(i);
+        }
+        // numeric characters
+        for (int i = '0'; i <= '9'; i++) {
+            UNRESERVED.set(i);
+        }
+        UNRESERVED.set('_');
+        UNRESERVED.set('-');
+        UNRESERVED.set('!');
+        UNRESERVED.set('.');
+        UNRESERVED.set('~');
+        UNRESERVED.set('\'');
+        UNRESERVED.set('(');
+        UNRESERVED.set(')');
+        UNRESERVED.set('*');
+        // punct chats
+        PUNCT.set(',');
+        PUNCT.set(';');
+        PUNCT.set(':');
+        PUNCT.set('$');
+        PUNCT.set('&');
+        PUNCT.set('+');
+        PUNCT.set('=');
+        // URL path safe
+        SAFE.or(UNRESERVED);
+        SAFE.or(PUNCT);
+        // URL path safe
+        PATHSAFE.or(UNRESERVED);
+        PATHSAFE.or(PUNCT);
+        PATHSAFE.set('/');
+        PATHSAFE.set('@');
+    }
+
+    private static final int RADIX = 16;
+
+    private static String urlencode(
+            final String content, final Charset charset, final BitSet safechars) {
+        if (content == null) {
+            return null;
+        }
+        StringBuilder buf = new StringBuilder();
+        ByteBuffer bb = charset.encode(content);
+        while (bb.hasRemaining()) {
+            int b = bb.get() & 0xff;
+            if (safechars.get(b)) {
+                buf.append((char) b);
+            } else {
+                buf.append("%");
+                char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
+                char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
+                buf.append(hex1);
+                buf.append(hex2);
+            }
+        }
+        return buf.toString();
+    }
+
+    private static String urldecode(
+            final String content, final Charset charset) {
+        if (content == null) {
+            return null;
+        }
+        ByteBuffer bb = ByteBuffer.allocate(content.length());
+        CharBuffer cb = CharBuffer.wrap(content);
+        while (cb.hasRemaining()) {
+            char c = cb.get();
+            if (c == '%' && cb.remaining() >= 2) {
+                char uc = cb.get();
+                char lc = cb.get();
+                int u = Character.digit(uc, 16);
+                int l = Character.digit(lc, 16);
+                if (u != -1 && l != -1) {
+                    bb.put((byte) ((u << 4) + l));
+                } else {
+                    bb.put((byte) '%');
+                    bb.put((byte) uc);
+                    bb.put((byte) lc);
+                }
+            } else {
+                bb.put((byte) c);
+            }
+        }
+        bb.flip();
+        return charset.decode(bb).toString();
+    }
+
     private static String decode (final String content, final String charset) {
         if (content == null) {
             return null;
         }
-        try {
-            return URLDecoder.decode(content, 
-                    charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name());
-        } catch (UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+        return urldecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8);
     }
 
     private static String decode (final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
-        return decode(content, charset != null ? charset.name() : null);
+        return urldecode(content, charset != null ? charset : Consts.UTF_8);
     }
 
-    private static String encode (final String content, final String charset) {
+    private static String encode(final String content, final String charset) {
         if (content == null) {
             return null;
         }
-        try {
-            return URLEncoder.encode(content, 
-                    charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name());
-        } catch (UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+        return urlencode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, UNRESERVED);
     }
 
-    private static String encode (final String content, final Charset charset) {
+    private static String encode(final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
-        return encode(content, charset != null ? charset.name() : null);
+        return urlencode(content, charset != null ? charset : Consts.UTF_8, UNRESERVED);
+    }
+
+    static String enc(final String content, final Charset charset) {
+        return urlencode(content, charset, SAFE);
+    }
+
+    static String encPath(final String content, final Charset charset) {
+        return urlencode(content, charset, PATHSAFE);
     }
 
 }

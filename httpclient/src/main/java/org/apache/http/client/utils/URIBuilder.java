@@ -35,24 +35,29 @@ import java.util.List;
 
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
+import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
  * {@link URI} builder for HTTP requests.
- * 
+ *
  * @since 4.2
  */
 public class URIBuilder {
 
     private String scheme;
-    private String schemeSpecificPart;
-    private String authority;
+    private String encodedSchemeSpecificPart;
+    private String encodedAuthority;
     private String userInfo;
+    private String encodedUserInfo;
     private String host;
     private int port;
     private String path;
+    private String encodedPath;
+    private String encodedQuery;
     private List<NameValuePair> queryParams;
     private String fragment;
+    private String encodedFragment;
 
     public URIBuilder() {
         super();
@@ -76,50 +81,88 @@ public class URIBuilder {
         return null;
     }
 
-    private String formatQuery(final List<NameValuePair> parameters) {
-        if (parameters == null) {
-            return null;
-        }
-        final StringBuilder result = new StringBuilder();
-        for (final NameValuePair parameter : parameters) {
-            if (result.length() > 0) {
-                result.append("&");
-            }
-            result.append(parameter.getName());
-            if (parameter.getValue() != null) {
-                result.append("=");
-                result.append(parameter.getValue());
-            }
-        }
-        return result.toString();
-    }
-
     /**
      * Builds a {@link URI} instance.
      */
     public URI build() throws URISyntaxException {
-        if (this.schemeSpecificPart != null) {
-            return new URI(this.scheme, this.schemeSpecificPart, this.fragment);
-        } else if (this.authority != null) {
-            return new URI(this.scheme, this.authority,
-                    this.path, formatQuery(this.queryParams), this.fragment);
-
-        } else {
-            return new URI(this.scheme, this.userInfo, this.host, this.port,
-                    this.path, formatQuery(this.queryParams), this.fragment);
+        return new URI(buildString());
+    }
+    
+    private String buildString() {
+        StringBuilder sb = new StringBuilder();
+        if (this.scheme != null) {
+            sb.append(this.scheme).append(':');
         }
+        if (this.encodedSchemeSpecificPart != null) {
+            sb.append(this.encodedSchemeSpecificPart);
+        } else {
+            if (this.encodedAuthority != null) {
+                sb.append("//").append(this.encodedAuthority);
+            } else if (this.host != null) {
+                sb.append("//");
+                if (this.encodedUserInfo != null) {
+                    sb.append(this.encodedUserInfo).append("@");
+                } else if (this.userInfo != null) {
+                    sb.append(encodeUserInfo(this.userInfo)).append("@");
+                }
+                if (InetAddressUtils.isIPv6Address(this.host)) {
+                    sb.append("[").append(this.host).append("]");
+                } else {
+                    sb.append(this.host);
+                }
+                if (this.port >= 0) {
+                    sb.append(":").append(this.port);
+                }
+            }
+            if (this.encodedPath != null) {
+                sb.append(this.encodedPath);
+            } else if (this.path != null) {
+                sb.append(encodePath(this.path));
+            }
+            if (this.encodedQuery != null) {
+                sb.append("?").append(this.encodedQuery);
+            } else if (this.queryParams != null) {
+                sb.append("?").append(encodeQuery(this.queryParams));
+            }
+        }
+        if (this.encodedFragment != null) {
+            sb.append("#").append(this.encodedFragment);
+        } else if (this.fragment != null) {
+            sb.append("#").append(encodeFragment(this.fragment));
+        }
+        return sb.toString();
     }
 
     private void digestURI(final URI uri) {
         this.scheme = uri.getScheme();
-        this.schemeSpecificPart = uri.getSchemeSpecificPart();
-        this.authority = uri.getAuthority();
+        this.encodedSchemeSpecificPart = uri.getRawSchemeSpecificPart();
+        this.encodedAuthority = uri.getRawAuthority();
         this.host = uri.getHost();
         this.port = uri.getPort();
+        this.encodedUserInfo = uri.getRawUserInfo();
         this.userInfo = uri.getUserInfo();
+        this.encodedPath = uri.getRawPath();
         this.path = uri.getPath();
+        this.encodedQuery = uri.getQuery();
         this.queryParams = parseQuery(uri.getRawQuery(), Consts.UTF_8);
+        this.encodedFragment = uri.getRawFragment();
         this.fragment = uri.getFragment();
+    }
+
+    private String encodeUserInfo(final String userInfo) {
+        return URLEncodedUtils.enc(userInfo, Consts.UTF_8);
+    }
+
+    private String encodePath(final String path) {
+        return URLEncodedUtils.encPath(path, Consts.UTF_8);
+    }
+
+    private String encodeQuery(final List<NameValuePair> params) {
+        return URLEncodedUtils.format(params, Consts.UTF_8);
+    }
+
+    private String encodeFragment(final String fragment) {
+        return URLEncodedUtils.enc(fragment, Consts.UTF_8);
     }
 
     /**
@@ -131,17 +174,20 @@ public class URIBuilder {
     }
 
     /**
-     * Sets URI user info.
+     * Sets URI user info. The value is expected to be unescaped and may contain non ASCII
+     * characters.
      */
     public URIBuilder setUserInfo(final String userInfo) {
         this.userInfo = userInfo;
-        this.schemeSpecificPart = null;
-        this.authority = null;
+        this.encodedSchemeSpecificPart = null;
+        this.encodedAuthority = null;
+        this.encodedUserInfo = null;
         return this;
     }
 
     /**
-     * Sets URI user info as a combination of username and password.
+     * Sets URI user info as a combination of username and password. These values are expected to
+     * be unescaped and may contain non ASCII characters.
      */
     public URIBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
@@ -152,8 +198,8 @@ public class URIBuilder {
      */
     public URIBuilder setHost(final String host) {
         this.host = host;
-        this.schemeSpecificPart = null;
-        this.authority = null;
+        this.encodedSchemeSpecificPart = null;
+        this.encodedAuthority = null;
         return this;
     }
 
@@ -162,8 +208,8 @@ public class URIBuilder {
      */
     public URIBuilder setPort(final int port) {
         this.port = port < 0 ? -1 : port;
-        this.schemeSpecificPart = null;
-        this.authority = null;
+        this.encodedSchemeSpecificPart = null;
+        this.encodedAuthority = null;
         return this;
     }
 
@@ -172,7 +218,8 @@ public class URIBuilder {
      */
     public URIBuilder setPath(final String path) {
         this.path = path;
-        this.schemeSpecificPart = null;
+        this.encodedSchemeSpecificPart = null;
+        this.encodedPath = null;
         return this;
     }
 
@@ -181,7 +228,8 @@ public class URIBuilder {
      */
     public URIBuilder removeQuery() {
         this.queryParams = null;
-        this.schemeSpecificPart = null;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
         return this;
     }
 
@@ -190,12 +238,13 @@ public class URIBuilder {
      */
     public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, Consts.UTF_8);
-        this.schemeSpecificPart = null;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
         return this;
     }
 
     /**
-     * Adds parameter to URI query. The parameter name and value are expected to be unescaped 
+     * Adds parameter to URI query. The parameter name and value are expected to be unescaped
      * and may contain non ASCII characters.
      */
     public URIBuilder addParameter(final String param, final String value) {
@@ -203,12 +252,13 @@ public class URIBuilder {
             this.queryParams = new ArrayList<NameValuePair>();
         }
         this.queryParams.add(new BasicNameValuePair(param, value));
-        this.schemeSpecificPart = null;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
         return this;
     }
 
     /**
-     * Sets parameter of URI query overriding existing value if set. The parameter name and value 
+     * Sets parameter of URI query overriding existing value if set. The parameter name and value
      * are expected to be unescaped and may contain non ASCII characters.
      */
     public URIBuilder setParameter(final String param, final String value) {
@@ -224,15 +274,18 @@ public class URIBuilder {
             }
         }
         this.queryParams.add(new BasicNameValuePair(param, value));
-        this.schemeSpecificPart = null;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
         return this;
     }
 
     /**
-     * Sets URI fragment.
+     * Sets URI fragment. The value is expected to be unescaped and may contain non ASCII
+     * characters.
      */
     public URIBuilder setFragment(final String fragment) {
         this.fragment = fragment;
+        this.encodedFragment = null;
         return this;
     }
 
@@ -270,13 +323,7 @@ public class URIBuilder {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("URI [scheme=").append(this.scheme)
-                .append(", userInfo=").append(this.userInfo).append(", host=").append(this.host)
-                .append(", port=").append(this.port).append(", path=").append(this.path)
-                .append(", queryParams=").append(this.queryParams).append(", fragment=")
-                .append(this.fragment).append("]");
-        return builder.toString();
+        return buildString();
     }
 
 }
