@@ -68,7 +68,10 @@ public class URIUtils {
          *             components violates RFC&nbsp;2396, or if the authority
          *             component of the string is present but cannot be parsed
          *             as a server-based authority
+         *
+         * @deprecated (4.2) use {@link URIBuilder}.
          */
+    @Deprecated
     public static URI createURI(
             final String scheme,
             final String host,
@@ -76,7 +79,6 @@ public class URIUtils {
             final String path,
             final String query,
             final String fragment) throws URISyntaxException {
-
         StringBuilder buffer = new StringBuilder();
         if (host != null) {
             if (scheme != null) {
@@ -129,23 +131,21 @@ public class URIUtils {
         if (uri == null) {
             throw new IllegalArgumentException("URI may not be null");
         }
+        URIBuilder uribuilder = new URIBuilder(uri);
         if (target != null) {
-            return URIUtils.createURI(
-                    target.getSchemeName(),
-                    target.getHostName(),
-                    target.getPort(),
-                    normalizePath(uri.getRawPath()),
-                    uri.getRawQuery(),
-                    dropFragment ? null : uri.getRawFragment());
+            uribuilder.setScheme(target.getSchemeName());
+            uribuilder.setHost(target.getHostName());
+            uribuilder.setPort(target.getPort());
         } else {
-            return URIUtils.createURI(
-                    null,
-                    null,
-                    -1,
-                    normalizePath(uri.getRawPath()),
-                    uri.getRawQuery(),
-                    dropFragment ? null : uri.getRawFragment());
+            uribuilder.setScheme(null);
+            uribuilder.setHost(null);
+            uribuilder.setPort(-1);
         }
+        uribuilder.setPath(normalizePath(uribuilder.getPath()));
+        if (dropFragment) {
+            uribuilder.setFragment(null);
+        }
+        return uribuilder.build();
     }
 
     private static String normalizePath(String path) {
@@ -190,13 +190,7 @@ public class URIUtils {
             throw new IllegalArgumentException("URI may not be null");
         }
         if (uri.getFragment() != null) {
-            return URIUtils.createURI(
-                    uri.getScheme(),
-                    uri.getHost(),
-                    uri.getPort(),
-                    uri.getRawPath(),
-                    uri.getRawQuery(),
-                    null);
+            return new URIBuilder(uri).setFragment(null).build();
         } else {
             return uri;
         }
