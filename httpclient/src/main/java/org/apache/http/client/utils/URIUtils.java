@@ -189,8 +189,8 @@ public class URIUtils {
         if (uri == null) {
             throw new IllegalArgumentException("URI may not be null");
         }
-        if (uri.getFragment() != null) {
-            return new URIBuilder(uri).setFragment(null).build();
+        if (uri.getFragment() != null || uri.getUserInfo() != null) {
+            return new URIBuilder(uri).setFragment(null).setUserInfo(null).build();
         } else {
             return uri;
         }
