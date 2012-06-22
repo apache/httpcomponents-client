@@ -232,6 +232,19 @@ public class TestDefaultRedirectStrategy {
         Assert.assertEquals(URI.create("http://localhost/stuff"), uri);
     }
 
+    @Test
+    public void testGetLocationUriNormalized() throws Exception {
+        DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy(); 
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        HttpGet httpget = new HttpGet("http://localhost/");
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
+                HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response.addHeader("Location", "http://localhost/././stuff/../morestuff");
+        URI uri = redirectStrategy.getLocationURI(httpget, response, context);
+        Assert.assertEquals(URI.create("http://localhost/morestuff"), uri);
+    }
+
     @Test(expected=ProtocolException.class)
     public void testGetLocationUriRelativeLocationNotAllowed() throws Exception {
         DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy(); 

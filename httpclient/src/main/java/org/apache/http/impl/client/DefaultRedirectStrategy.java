@@ -184,7 +184,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      */
     protected URI createLocationURI(final String location) throws ProtocolException {
         try {
-            return new URI(location);
+            return new URI(location).normalize();
         } catch (URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }

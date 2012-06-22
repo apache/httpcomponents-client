@@ -1,5 +1,9 @@
 Changes since 4.2 
 -------------------
+
+* [HTTPCLIENT-1209] Redirect URIs are now normalized.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1202] ResponseCachingPolicy should honor explicit cache-control
   directives for other status codes
   Contributed by Jon Moore <jonm at apache.org>
