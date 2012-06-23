@@ -195,4 +195,9 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         return clone;
     }
 
+    @Override
+    public String toString() {
+        return getMethod() + " " + getURI() + " " + getProtocolVersion();
+    }    
+
 }
