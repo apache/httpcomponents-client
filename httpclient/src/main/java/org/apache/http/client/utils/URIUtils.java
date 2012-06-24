@@ -176,9 +176,9 @@ public class URIUtils {
     }
 
     /**
-     * A convenience method that creates a new {@link URI} whose scheme, host, port ,path,
-     * query are taken from the existing URI if it contains a fragment. The existing URI
-     * is returned unmodified if it has no fragment.
+     * A convenience method that creates a new {@link URI} whose scheme, host, port, path,
+     * query are taken from the existing URI, dropping any fragment or user-information.
+     * The existing URI is returned unmodified if it has no fragment or user-information.
      *
      * @param uri
      *            original URI.
