@@ -104,12 +104,12 @@ public class TestUriEscapes extends BasicServerTestBase {
 
     @Test
     public void testEscapedAmpersandInQueryAbsolute() throws Exception {
-        doTest("/path/a=b&c=%26d", false);
+        doTest("/path?a=b&c=%26d", false);
     }
 
     @Test
     public void testEscapedAmpersandInQueryRelative() throws Exception {
-        doTest("/path/a=b&c=%26d", true);
+        doTest("/path?a=b&c=%26d", true);
     }
 
     @Test
@@ -134,12 +134,12 @@ public class TestUriEscapes extends BasicServerTestBase {
 
     @Test
     public void testEscapedAmpersandInPathAbsolute() throws Exception {
-        doTest("/this%26that?a=b&c=d", false);
+        doTest("/this%26that?a=b&c=%26d", false);
     }
 
     @Test
     public void testEscapedAmpersandInPathRelative() throws Exception {
-        doTest("/this%26that?a=b&c=d", true);
+        doTest("/this%26that?a=b&c=%26d", true);
     }
 
     @Test
