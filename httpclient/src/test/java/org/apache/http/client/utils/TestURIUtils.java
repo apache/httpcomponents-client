@@ -26,6 +26,7 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.http.HttpHost;
 import org.junit.Assert;
@@ -40,7 +41,7 @@ public class TestURIUtils {
     private URI baseURI = URI.create("http://a/b/c/d;p?q");
 
     @Test
-    public void testRewite() throws Exception {
+    public void testRewrite() throws Exception {
         HttpHost target = new HttpHost("thathost", -1);
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost/stuff"), target).toString());
@@ -62,6 +63,27 @@ public class TestURIUtils {
                 URI.create("http://thathost/stuff#fragment")).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://userinfo@thathost/stuff#fragment")).toString());
+    }
+
+    @Test
+    public void testRewritePort() throws Exception {
+        HttpHost target = new HttpHost("thathost", 8080); // port should be copied
+        Assert.assertEquals("http://thathost:8080/stuff", URIUtils.rewriteURI(
+                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+        Assert.assertEquals("http://thathost:8080/stuff#crap", URIUtils.rewriteURI(
+                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
+        target = new HttpHost("thathost", -1); // input port should be dropped
+        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
+                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+        Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
+                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
+    }
+
+    @Test
+    public void testRewriteScheme() throws Exception {
+        HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
+        Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
+                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
     }
 
     @Test
