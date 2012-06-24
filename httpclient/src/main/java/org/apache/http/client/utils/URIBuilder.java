@@ -143,7 +143,7 @@ public class URIBuilder {
         this.userInfo = uri.getUserInfo();
         this.encodedPath = uri.getRawPath();
         this.path = uri.getPath();
-        this.encodedQuery = uri.getQuery();
+        this.encodedQuery = uri.getRawQuery();
         this.queryParams = parseQuery(uri.getRawQuery(), Consts.UTF_8);
         this.encodedFragment = uri.getRawFragment();
         this.fragment = uri.getFragment();
