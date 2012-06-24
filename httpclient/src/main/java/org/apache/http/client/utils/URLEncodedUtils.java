@@ -108,7 +108,7 @@ public class URLEncodedUtils {
         if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
             String content = EntityUtils.toString(entity, Consts.ASCII);
             if (content != null && content.length() > 0) {
-                Charset charset = contentType != null ? contentType.getCharset() : null;
+                Charset charset = contentType.getCharset();
                 if (charset == null) {
                     charset = HTTP.DEF_CONTENT_CHARSET;
                 }
@@ -285,7 +285,7 @@ public class URLEncodedUtils {
         UNRESERVED.set('(');
         UNRESERVED.set(')');
         UNRESERVED.set('*');
-        // punct chats
+        // punct chars
         PUNCT.set(',');
         PUNCT.set(';');
         PUNCT.set(':');
