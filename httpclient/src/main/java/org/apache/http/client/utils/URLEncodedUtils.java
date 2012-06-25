@@ -331,16 +331,14 @@ public class URLEncodedUtils {
             int b = bb.get() & 0xff;
             if (safechars.get(b)) {
                 buf.append((char) b);
+            } else if (blankAsPlus && b == ' ') {
+                buf.append('+');
             } else {
-                if (blankAsPlus && b == ' ') {
-                    buf.append('+');
-                } else {
-                    buf.append("%");
-                    char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
-                    char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
-                    buf.append(hex1);
-                    buf.append(hex2);
-                }
+                buf.append("%");
+                char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
+                char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
+                buf.append(hex1);
+                buf.append(hex2);
             }
         }
         return buf.toString();
