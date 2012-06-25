@@ -217,7 +217,7 @@ public class URIBuilder {
      * Sets URI path. The value is expected to be unescaped and may contain non ASCII characters.
      */
     public URIBuilder setPath(final String path) {
-        this.path = normalizePath(path);
+        this.path = path;
         this.encodedSchemeSpecificPart = null;
         this.encodedPath = null;
         return this;
