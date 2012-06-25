@@ -26,7 +26,6 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.http.HttpHost;
 import org.junit.Assert;
