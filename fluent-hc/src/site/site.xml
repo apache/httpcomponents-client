@@ -33,7 +33,7 @@
   <body>
     <menu name="HttpClient Overview">
       <item name="Description" href="../index.html"/>
-      <item name="Examples" href="../examples.html"/>
+      <item name="Quick Start" href="../quickstart.html"/>
     </menu>
     <menu ref="modules" />
     <menu ref="reports"/>      

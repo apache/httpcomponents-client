@@ -47,10 +47,21 @@ HttpClient Overview
 
 {Documentation}
 
-    * HttpClient Tutorial ( {{{./tutorial/html/index.html}HTML}} / {{{./tutorial/pdf/httpclient-tutorial.pdf}PDF}} )
+    [[1]] {{{./quickstart.html}Quick Start}} - contains a simple, complete example of an HTTP GET 
+    and POST with parameters.
+
+    [[1]] {{{./tutorial/html/index.html}HttpClient Tutorial}} - gives a detailed examination of the 
+    HttpClient API, which was written in close accordance with the (sometimes not very intuitive) 
+    HTTP specification/standard.  A copy is also shipped with the release.  
+    {{{./tutorial/pdf/httpclient-tutorial.pdf}A PDF version}} is also available
+        
+    [[1]] {{{./examples.html}HttpClient Examples}} - a set of examples demonstrating some of 
+    the more complex behavior. 
     
-    * Some examples of HttpClient in action can be found {{{./examples.html}here}}
-    
+    [[1]] {{{./primer.html}HttpClient Primer}} - explains the scope of HttpClient.
+    Note that HttpClient is not a browser.  It lacks the UI, HTML renderer and a JavaScript engine
+    that a browser will possess. 
+   
 {Features}
 
     * Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1

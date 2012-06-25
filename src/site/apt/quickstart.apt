@@ -34,7 +34,7 @@ HttpClient Quick Start
     the {{{http://hc.apache.org/downloads.cgi} project download page}}. 
   
     There should be 7 jars in total (components marked with (*) include additional features and 
-    are optional)
+    are optional) on the classpath.
   
     * commons-logging-<x.x.x>.jar
   
@@ -51,13 +51,75 @@ HttpClient Quick Start
     * fluent-hc-<x.x.x>.jar (*)
 
     []
+
+    [[2]] Quite often the easiest way to get started is with a short example. This example 
+    shows how to execute HTTP GET and POST requests using HttpClient native API.
+
+-------------    
+
+DefaultHttpClient httpclient = new DefaultHttpClient();
+HttpGet httpget = new HttpGet("http://targethost/homepage");
+
+HttpResponse response1 = httpclient.execute(httpget);
+
+// The underlying HTTP connection is still held by the response object 
+// to allow the response content to be streamed directly from the network socket. 
+// In order to ensure correct deallocation of system resources 
+// the user MUST either fully consume the response content  or abort request 
+// execution by calling HttpGet#releaseConnection().
+try {
+    System.out.println(response1.getStatusLine());
+    HttpEntity entity1 = response1.getEntity();
+    // do something useful with the response body
+    // and ensure it is fully consumed
+    EntityUtils.consume(entity1);
+} finally {
+    httpget.releaseConnection();
+}
+
+HttpPost httpost = new HttpPost("http://targethost/login");
+List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+nvps.add(new BasicNameValuePair("username", "vip"));
+nvps.add(new BasicNameValuePair("password", "secret"));
+httpost.setEntity(new UrlEncodedFormEntity(nvps));
+HttpResponse response2 = httpclient.execute(httpost);
+try {
+    System.out.println(response2.getStatusLine());
+    HttpEntity entity2 = response2.getEntity();
+    // do something useful with the response body
+    // and ensure it is fully consumed
+    EntityUtils.consume(entity2);
+} finally {
+    httpost.releaseConnection();
+}
+
+-------------    
+
+    [[3]] The same requests can be executed using a simpler, albeit less felxible, fluent API.
+
+-------------    
+
+// The fluent API relieves the user from having to deal with manual deallocation of system
+// resources at the cost of having to buffer response content in memory in some cases.
+
+Request.Get("http://targethost/homepage")
+    .execute().returnContent();
+Request.Post("http://targethost/login")
+    .bodyForm(Form.form().add("username",  "vip").add("password",  "secret").build())
+    .execute().returnContent();
+
+-------------    
     
-    [[2]] Take a look at the HttpClient tutorial shipped with the release package or available
-    {{{./tutorial/html/index.html}online}} to learn the HttpClient API.
+    Please note fluent facade API requires an optional module 'fluent-hc'.
     
-    [[3]] Another good way of getting started with HttpClient is by seeing it in action. Take 
-    a look at the samples shipped with the release package or available {{{./examples.html}online}}.
-    
-    [[4]] Please note that HttpClient is not a browser. Importantly it lacks UI, cache, HTML 
-    renderer and a JavaScript engine. To learn more about the scope of HttpClient please refer to 
-    {{{./primer.html}HttpClient Primer}}
+    [[4]] {{{./examples.html}HttpClient Examples}} - a set of examples demonstrating some of 
+    the more complex behavior. 
+
+    [[5]] {{{./tutorial/html/index.html}HttpClient Tutorial}} - gives a detailed examination of the 
+    HttpClient API, which was written in close accordance with the (sometimes not very intuitive) 
+    HTTP specification/standard.  A copy is also shipped with the release.  
+    {{{./tutorial/pdf/httpclient-tutorial.pdf}A PDF version}} is also available
+
+    [[6]] {{{./primer.html}HttpClient Primer}} - explains the scope of HttpClient.
+    Note that HttpClient is not a browser.  It lacks the UI, HTML renderer and a JavaScript engine
+    that a browser will possess.   
