@@ -162,10 +162,10 @@ public class URLEncodedUtils {
             String token = scanner.next();
             int i = token.indexOf(NAME_VALUE_SEPARATOR);
             if (i != -1) {
-                name = decode(token.substring(0, i).trim(), charset);
-                value = decode(token.substring(i + 1).trim(), charset);
+                name = decodeFormFields(token.substring(0, i).trim(), charset);
+                value = decodeFormFields(token.substring(i + 1).trim(), charset);
             } else {
-                name = decode(token.trim(), charset);
+                name = decodeFormFields(token.trim(), charset);
             }
             parameters.add(new BasicNameValuePair(name, value));
         }
@@ -197,8 +197,8 @@ public class URLEncodedUtils {
             NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, DELIM);
             if (nvp.getName().length() > 0) {
                 list.add(new BasicNameValuePair(
-                        decode(nvp.getName(), charset),
-                        decode(nvp.getValue(), charset)));
+                        decodeFormFields(nvp.getName(), charset),
+                        decodeFormFields(nvp.getValue(), charset)));
             }
         }
         return list;
@@ -216,8 +216,8 @@ public class URLEncodedUtils {
             final String encoding) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
-            final String encodedName = encode(parameter.getName(), encoding);
-            final String encodedValue = encode(parameter.getValue(), encoding);
+            final String encodedName = encodeFormFields(parameter.getName(), encoding);
+            final String encodedValue = encodeFormFields(parameter.getValue(), encoding);
             if (result.length() > 0) {
                 result.append(PARAMETER_SEPARATOR);
             }
@@ -244,8 +244,8 @@ public class URLEncodedUtils {
             final Charset charset) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
-            final String encodedName = encode(parameter.getName(), charset);
-            final String encodedValue = encode(parameter.getValue(), charset);
+            final String encodedName = encodeFormFields(parameter.getName(), charset);
+            final String encodedValue = encodeFormFields(parameter.getValue(), charset);
             if (result.length() > 0) {
                 result.append(PARAMETER_SEPARATOR);
             }
@@ -392,7 +392,7 @@ public class URLEncodedUtils {
      * @param charset the charset to use
      * @return
      */
-    private static String decode (final String content, final String charset) {
+    private static String decodeFormFields (final String content, final String charset) {
         if (content == null) {
             return null;
         }
@@ -406,7 +406,7 @@ public class URLEncodedUtils {
      * @param charset the charset to use
      * @return
      */
-    private static String decode (final String content, final Charset charset) {
+    private static String decodeFormFields (final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
@@ -420,7 +420,7 @@ public class URLEncodedUtils {
      * @param charset the charset to use
      * @return
      */
-    private static String encode(final String content, final String charset) {
+    private static String encodeFormFields (final String content, final String charset) {
         if (content == null) {
             return null;
         }
@@ -435,7 +435,7 @@ public class URLEncodedUtils {
      * @param charset the charset to use
      * @return
      */
-    private static String encode(final String content, final Charset charset) {
+    private static String encodeFormFields (final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
