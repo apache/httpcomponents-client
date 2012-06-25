@@ -261,6 +261,51 @@ public class TestURLEncodedUtils {
         Assert.assertEquals("Name8=xx%2C%20%20yy%20%20%2Czz", URLEncodedUtils.format(params, Consts.ASCII));
     }
 
+    @Test
+    public void testFormatString() throws Exception { // as above, using String
+        final List <NameValuePair> params = new ArrayList <NameValuePair>();
+        Assert.assertEquals(0, URLEncodedUtils.format(params, "US-ASCII").length());
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name0", null));
+        Assert.assertEquals("Name0", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name1", "Value1"));
+        Assert.assertEquals("Name1=Value1", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name2", ""));
+        Assert.assertEquals("Name2=", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name4", "Value 4&"));
+        Assert.assertEquals("Name4=Value%204%26", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name4", "Value+4&"));
+        Assert.assertEquals("Name4=Value%2B4%26", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name4", "Value 4& =4"));
+        Assert.assertEquals("Name4=Value%204%26%20%3D4", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name5", "aaa"));
+        params.add(new BasicNameValuePair("Name6", "bbb"));
+        Assert.assertEquals("Name5=aaa&Name6=bbb", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name7", "aaa"));
+        params.add(new BasicNameValuePair("Name7", "b,b"));
+        params.add(new BasicNameValuePair("Name7", "ccc"));
+        Assert.assertEquals("Name7=aaa&Name7=b%2Cb&Name7=ccc", URLEncodedUtils.format(params, "US-ASCII"));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));
+        Assert.assertEquals("Name8=xx%2C%20%20yy%20%20%2Czz", URLEncodedUtils.format(params, "US-ASCII"));
+    }
+
     private List <NameValuePair> parse (final String params) {
         return URLEncodedUtils.parse(params, Consts.UTF_8);
     }
