@@ -332,7 +332,7 @@ public class URLEncodedUtils {
             if (safechars.get(b)) {
                 buf.append((char) b);
             } else {
-                if (b == ' ' && blankAsPlus) {
+                if (blankAsPlus && b == ' ') {
                     buf.append('+');
                 } else {
                     buf.append("%");
@@ -377,7 +377,7 @@ public class URLEncodedUtils {
                     bb.put((byte) uc);
                     bb.put((byte) lc);
                 }
-            } else if (c == '+' && plusAsBlank) {
+            } else if (plusAsBlank && c == '+') {
                 bb.put((byte) ' ');
             } else {
                 bb.put((byte) c);
