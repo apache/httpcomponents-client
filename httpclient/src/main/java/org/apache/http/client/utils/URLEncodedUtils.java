@@ -258,9 +258,13 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
+    /** Unreserved characters, i.e. alphanumeric, plus: _ - ! . ~ ' ( ) * */
     private static final BitSet UNRESERVED   = new BitSet(256);
+    /** Punctuation characters: , ; : $ & + = */
     private static final BitSet PUNCT        = new BitSet(256);
+    /** Characters which are safe to use, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
     private static final BitSet SAFE         = new BitSet(256);
+    /** Characters which are safe to use in a path, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
     private static final BitSet PATHSAFE     = new BitSet(256);
 
     static {
@@ -384,10 +388,24 @@ public class URLEncodedUtils {
         return urlencode(content, charset != null ? charset : Consts.UTF_8, UNRESERVED);
     }
 
+    /**
+     * Encode a String using the {@link #SAFE} set of characters.
+     * 
+     * @param content the string to encode
+     * @param charset the charset to use
+     * @return the encoded string
+     */
     static String enc(final String content, final Charset charset) {
         return urlencode(content, charset, SAFE);
     }
 
+    /**
+     * Encode a String using the {@link #PATHSAFE} set of characters.
+     * 
+     * @param content the string to encode
+     * @param charset the charset to use
+     * @return the encoded string
+     */
     static String encPath(final String content, final Charset charset) {
         return urlencode(content, charset, PATHSAFE);
     }
