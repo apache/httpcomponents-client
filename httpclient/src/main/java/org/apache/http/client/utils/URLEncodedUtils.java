@@ -310,7 +310,10 @@ public class URLEncodedUtils {
     private static final int RADIX = 16;
 
     private static String urlencode(
-            final String content, final Charset charset, final BitSet safechars) {
+            final String content,
+            final Charset charset,
+            final BitSet safechars,
+            final boolean blankAsPlus) {
         if (content == null) {
             return null;
         }
@@ -321,18 +324,24 @@ public class URLEncodedUtils {
             if (safechars.get(b)) {
                 buf.append((char) b);
             } else {
-                buf.append("%");
-                char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
-                char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
-                buf.append(hex1);
-                buf.append(hex2);
+                if (b == ' ' && blankAsPlus) {
+                    buf.append('+');
+                } else {
+                    buf.append("%");
+                    char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
+                    char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
+                    buf.append(hex1);
+                    buf.append(hex2);
+                }
             }
         }
         return buf.toString();
     }
 
     private static String urldecode(
-            final String content, final Charset charset) {
+            final String content,
+            final Charset charset,
+            final boolean plusAsBlank) {
         if (content == null) {
             return null;
         }
@@ -352,6 +361,8 @@ public class URLEncodedUtils {
                     bb.put((byte) uc);
                     bb.put((byte) lc);
                 }
+            } else if (c == '+' && plusAsBlank) {
+                bb.put((byte) ' ');
             } else {
                 bb.put((byte) c);
             }
@@ -364,50 +375,51 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urldecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8);
+        return urldecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, true);
     }
 
     private static String decode (final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
-        return urldecode(content, charset != null ? charset : Consts.UTF_8);
+        return urldecode(content, charset != null ? charset : Consts.UTF_8, true);
     }
 
     private static String encode(final String content, final String charset) {
         if (content == null) {
             return null;
         }
-        return urlencode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, UNRESERVED);
+        return urlencode(content, charset != null ? Charset.forName(charset) :
+            Consts.UTF_8, UNRESERVED, true);
     }
 
     private static String encode(final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
-        return urlencode(content, charset != null ? charset : Consts.UTF_8, UNRESERVED);
+        return urlencode(content, charset != null ? charset : Consts.UTF_8, UNRESERVED, true);
     }
 
     /**
      * Encode a String using the {@link #SAFE} set of characters.
-     * 
+     *
      * @param content the string to encode
      * @param charset the charset to use
      * @return the encoded string
      */
     static String enc(final String content, final Charset charset) {
-        return urlencode(content, charset, SAFE);
+        return urlencode(content, charset, SAFE, false);
     }
 
     /**
      * Encode a String using the {@link #PATHSAFE} set of characters.
-     * 
+     *
      * @param content the string to encode
      * @param charset the charset to use
      * @return the encoded string
      */
     static String encPath(final String content, final Charset charset) {
-        return urlencode(content, charset, PATHSAFE);
+        return urlencode(content, charset, PATHSAFE, false);
     }
 
 }

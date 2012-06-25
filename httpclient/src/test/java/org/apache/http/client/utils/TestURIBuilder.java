@@ -120,7 +120,7 @@ public class TestURIBuilder {
         URIBuilder uribuilder = new URIBuilder(uri).setParameter("param", "some other stuff")
             .setParameter("blah", "blah");
         URI result = uribuilder.build();
-        Assert.assertEquals(new URI("http://localhost:80/?param=some%20other%20stuff&blah=blah"), result);
+        Assert.assertEquals(new URI("http://localhost:80/?param=some+other+stuff&blah=blah"), result);
     }
 
     @Test
@@ -129,7 +129,7 @@ public class TestURIBuilder {
         URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "1 + 1 = 2")
             .addParameter("param", "blah&blah");
         URI result = uribuilder.build();
-        Assert.assertEquals(new URI("http://localhost:80/?param=stuff&param=1%20%2B%201%20%3D%202&" +
+        Assert.assertEquals(new URI("http://localhost:80/?param=stuff&param=1+%2B+1+%3D+2&" +
                 "param=blah%26blah"), result);
     }
 
@@ -140,13 +140,13 @@ public class TestURIBuilder {
             .addParameter("blah", "blah");
         URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/?param=stuff&blah&blah&" +
-                "param=some%20other%20stuff&blah=blah"), result);
+                "param=some+other+stuff&blah=blah"), result);
     }
 
     @Test
     public void testQueryEncoding() throws Exception {
         URI uri1 = new URI("https://somehost.com/stuff?client_id=1234567890" +
-                "&redirect_uri=https%3A%2F%2Fsomehost.com%2Fblah%20blah%2F");
+                "&redirect_uri=https%3A%2F%2Fsomehost.com%2Fblah+blah%2F");
         URI uri2 = new URIBuilder("https://somehost.com/stuff")
             .addParameter("client_id","1234567890")
             .addParameter("redirect_uri","https://somehost.com/blah blah/").build();

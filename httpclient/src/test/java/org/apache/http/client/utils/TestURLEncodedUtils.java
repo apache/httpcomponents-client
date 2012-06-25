@@ -192,7 +192,7 @@ public class TestURLEncodedUtils {
 
         String s = URLEncodedUtils.format(parameters, HTTP.DEF_CONTENT_CHARSET);
 
-        Assert.assertEquals("english=hi%20there&swiss=Gr%FCezi_z%E4m%E4", s);
+        Assert.assertEquals("english=hi+there&swiss=Gr%FCezi_z%E4m%E4", s);
 
         StringEntity entity = new StringEntity(s, ContentType.create(
                 URLEncodedUtils.CONTENT_TYPE, HTTP.DEF_CONTENT_CHARSET));
@@ -235,7 +235,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4&"));
-        Assert.assertEquals("Name4=Value%204%26", URLEncodedUtils.format(params, Consts.ASCII));
+        Assert.assertEquals("Name4=Value+4%26", URLEncodedUtils.format(params, Consts.ASCII));
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value+4&"));
@@ -243,7 +243,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4& =4"));
-        Assert.assertEquals("Name4=Value%204%26%20%3D4", URLEncodedUtils.format(params, Consts.ASCII));
+        Assert.assertEquals("Name4=Value+4%26+%3D4", URLEncodedUtils.format(params, Consts.ASCII));
 
         params.clear();
         params.add(new BasicNameValuePair("Name5", "aaa"));
@@ -258,7 +258,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));
-        Assert.assertEquals("Name8=xx%2C%20%20yy%20%20%2Czz", URLEncodedUtils.format(params, Consts.ASCII));
+        Assert.assertEquals("Name8=xx%2C++yy++%2Czz", URLEncodedUtils.format(params, Consts.ASCII));
     }
 
     @Test
@@ -280,7 +280,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4&"));
-        Assert.assertEquals("Name4=Value%204%26", URLEncodedUtils.format(params, "US-ASCII"));
+        Assert.assertEquals("Name4=Value+4%26", URLEncodedUtils.format(params, "US-ASCII"));
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value+4&"));
@@ -288,7 +288,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name4", "Value 4& =4"));
-        Assert.assertEquals("Name4=Value%204%26%20%3D4", URLEncodedUtils.format(params, "US-ASCII"));
+        Assert.assertEquals("Name4=Value+4%26+%3D4", URLEncodedUtils.format(params, "US-ASCII"));
 
         params.clear();
         params.add(new BasicNameValuePair("Name5", "aaa"));
@@ -303,7 +303,7 @@ public class TestURLEncodedUtils {
 
         params.clear();
         params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));
-        Assert.assertEquals("Name8=xx%2C%20%20yy%20%20%2Czz", URLEncodedUtils.format(params, "US-ASCII"));
+        Assert.assertEquals("Name8=xx%2C++yy++%2Czz", URLEncodedUtils.format(params, "US-ASCII"));
     }
 
     private List <NameValuePair> parse (final String params) {
