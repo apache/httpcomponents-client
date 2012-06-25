@@ -309,6 +309,14 @@ public class URLEncodedUtils {
 
     private static final int RADIX = 16;
 
+    /**
+     * Emcode/escape a portion of a URL, to use with the query part ensure {@code plusAsBlank} is true.
+     * 
+     * @param content the portion to decode
+     * @param charset the charset to use
+     * @param blankAsPlus if {@code true}, then convert space to '+' (e.g. for www-url-form-encoded content), otherwise leave as is.
+     * @return
+     */
     private static String urlencode(
             final String content,
             final Charset charset,
@@ -338,6 +346,14 @@ public class URLEncodedUtils {
         return buf.toString();
     }
 
+    /**
+     * Decode/unescape a portion of a URL, to use with the query part ensure {@code plusAsBlank} is true.
+     * 
+     * @param content the portion to decode
+     * @param charset the charset to use
+     * @param plusAsBlank if {@code true}, then convert '+' to space (e.g. for www-url-form-encoded content), otherwise leave as is.
+     * @return
+     */
     private static String urldecode(
             final String content,
             final Charset charset,
@@ -371,6 +387,13 @@ public class URLEncodedUtils {
         return charset.decode(bb).toString();
     }
 
+    /**
+     * Decode/unescape www-url-form-encoded content.
+     * 
+     * @param content the content to decode, will decode '+' as space
+     * @param charset the charset to use
+     * @return
+     */
     private static String decode (final String content, final String charset) {
         if (content == null) {
             return null;
@@ -378,6 +401,13 @@ public class URLEncodedUtils {
         return urldecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, true);
     }
 
+    /**
+     * Decode/unescape www-url-form-encoded content.
+     * 
+     * @param content the content to decode, will decode '+' as space
+     * @param charset the charset to use
+     * @return
+     */
     private static String decode (final String content, final Charset charset) {
         if (content == null) {
             return null;
@@ -385,6 +415,13 @@ public class URLEncodedUtils {
         return urldecode(content, charset != null ? charset : Consts.UTF_8, true);
     }
 
+    /**
+     * Encode/escape www-url-form-encoded content.
+     * 
+     * @param content the content to encode, will convert space to '+'
+     * @param charset the charset to use
+     * @return
+     */
     private static String encode(final String content, final String charset) {
         if (content == null) {
             return null;
@@ -393,6 +430,13 @@ public class URLEncodedUtils {
             Consts.UTF_8, UNRESERVED, true);
     }
 
+    /**
+     * Encode/escape www-url-form-encoded content.
+     * 
+     * @param content the content to encode, will convert space to '+'
+     * @param charset the charset to use
+     * @return
+     */
     private static String encode(final String content, final Charset charset) {
         if (content == null) {
             return null;
@@ -403,7 +447,7 @@ public class URLEncodedUtils {
     /**
      * Encode a String using the {@link #SAFE} set of characters.
      *
-     * @param content the string to encode
+     * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
      */
@@ -414,7 +458,7 @@ public class URLEncodedUtils {
     /**
      * Encode a String using the {@link #PATHSAFE} set of characters.
      *
-     * @param content the string to encode
+     * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
      */
