@@ -115,9 +115,9 @@ public class URIBuilder {
                 }
             }
             if (this.encodedPath != null) {
-                sb.append(this.encodedPath);
+                sb.append(normalizePath(this.encodedPath));
             } else if (this.path != null) {
-                sb.append(encodePath(this.path));
+                sb.append(encodePath(normalizePath(this.path)));
             }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
@@ -217,7 +217,7 @@ public class URIBuilder {
      * Sets URI path. The value is expected to be unescaped and may contain non ASCII characters.
      */
     public URIBuilder setPath(final String path) {
-        this.path = path;
+        this.path = normalizePath(path);
         this.encodedSchemeSpecificPart = null;
         this.encodedPath = null;
         return this;
@@ -324,6 +324,22 @@ public class URIBuilder {
     @Override
     public String toString() {
         return buildString();
+    }
+
+    private static String normalizePath(String path) {
+        if (path == null) {
+            return null;
+        }
+        int n = 0;
+        for (; n < path.length(); n++) {
+            if (path.charAt(n) != '/') {
+                break;
+            }
+        }
+        if (n > 1) {
+            path = path.substring(n - 1);
+        }
+        return path;
     }
 
 }
