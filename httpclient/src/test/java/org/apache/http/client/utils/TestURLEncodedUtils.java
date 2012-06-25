@@ -27,6 +27,7 @@
 
 package org.apache.http.client.utils;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,6 +93,61 @@ public class TestURLEncodedUtils {
         assertNameValuePair(result.get(0), "Name8", "xx,  yy  ,zz");
 
         result = parse("price=10%20%E2%82%AC");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "price", "10 \u20AC");
+    }
+
+    @Test
+    public void testParseURLCodedContentString () throws Exception {
+        List <NameValuePair> result;
+
+        result = parseString("");
+        Assert.assertTrue(result.isEmpty());
+
+        result = parseString("Name0");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name0", null);
+
+        result = parseString("Name1=Value1");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name1", "Value1");
+
+        result = parseString("Name2=");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name2", "");
+
+        result = parseString("Name3");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name3", null);
+
+        result = parseString("Name4=Value%204%21");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name4", "Value 4!");
+
+        result = parseString("Name4=Value%2B4%21");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name4", "Value+4!");
+
+        result = parseString("Name4=Value%204%21%20%214");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name4", "Value 4! !4");
+
+        result = parseString("Name5=aaa&Name6=bbb");
+        Assert.assertEquals(2, result.size());
+        assertNameValuePair(result.get(0), "Name5", "aaa");
+        assertNameValuePair(result.get(1), "Name6", "bbb");
+
+        result = parseString("Name7=aaa&Name7=b%2Cb&Name7=ccc");
+        Assert.assertEquals(3, result.size());
+        assertNameValuePair(result.get(0), "Name7", "aaa");
+        assertNameValuePair(result.get(1), "Name7", "b,b");
+        assertNameValuePair(result.get(2), "Name7", "ccc");
+
+        result = parseString("Name8=xx%2C%20%20yy%20%20%2Czz");
+        Assert.assertEquals(1, result.size());
+        assertNameValuePair(result.get(0), "Name8", "xx,  yy  ,zz");
+
+        result = parseString("price=10%20%E2%82%AC");
         Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "price", "10 \u20AC");
     }
@@ -308,6 +364,10 @@ public class TestURLEncodedUtils {
 
     private List <NameValuePair> parse (final String params) {
         return URLEncodedUtils.parse(params, Consts.UTF_8);
+    }
+
+    private List <NameValuePair> parseString (final String uri) throws Exception {
+        return URLEncodedUtils.parse(new URI("?"+uri), "UTF-8");
     }
 
     private static void assertNameValuePair (
