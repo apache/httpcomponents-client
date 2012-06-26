@@ -258,7 +258,11 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
-    /** Unreserved characters, i.e. alphanumeric, plus: _ - ! . ~ ' ( ) * */
+    /** 
+     * Unreserved characters, i.e. alphanumeric, plus: {@code _ - ! . ~ ' ( ) *}
+     * <p>
+     *  This list is the same as the {@code unreserved} list in <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</>
+     */
     private static final BitSet UNRESERVED   = new BitSet(256);
     /** Punctuation characters: , ; : $ & + = */
     private static final BitSet PUNCT        = new BitSet(256);
