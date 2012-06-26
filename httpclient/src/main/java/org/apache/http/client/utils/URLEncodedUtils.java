@@ -261,16 +261,34 @@ public class URLEncodedUtils {
     /** 
      * Unreserved characters, i.e. alphanumeric, plus: {@code _ - ! . ~ ' ( ) *}
      * <p>
-     *  This list is the same as the {@code unreserved} list in <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</>
+     *  This list is the same as the {@code unreserved} list in
+     *  <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>
      */
     private static final BitSet UNRESERVED   = new BitSet(256);
-    /** Punctuation characters: , ; : $ & + = */
+    /**
+     * Punctuation characters: , ; : $ & + =
+     * <p>
+     * These are the additional characters allowed by userinfo.
+     */
     private static final BitSet PUNCT        = new BitSet(256);
-    /** Characters which are safe to use, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
-    private static final BitSet SAFE         = new BitSet(256);
+    /** Characters which are safe to use in userinfo, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
+    private static final BitSet USERINFO     = new BitSet(256);
     /** Characters which are safe to use in a path, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
     private static final BitSet PATHSAFE     = new BitSet(256);
+    /** Characters which are safe to use in a fragment, i.e. {@link #RESERVED} plus {@link #UNRESERVED} */
+    private static final BitSet FRAGMENT     = new BitSet(256);
 
+    /** 
+     * Reserved characters, i.e. {@code ;/?:@&=+$,[]}
+     * <p>
+     *  This list is the same as the {@code reserved} list in 
+     *  <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>
+     *  as augmented by
+     *  <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC 2732</a>
+     */
+    private static final BitSet RESERVED     = new BitSet(256);
+
+    
     /** 
      * Safe characters for x-www-form-urlencoded data, as per java.net.URLEncoder and browser behaviour,
      * i.e. alphanumeric plus {@code "-", "_", ".", "*"}
@@ -290,7 +308,7 @@ public class URLEncodedUtils {
         for (int i = '0'; i <= '9'; i++) {
             UNRESERVED.set(i);
         }
-        UNRESERVED.set('_');
+        UNRESERVED.set('_'); // these are the charactes of the "mark" list
         UNRESERVED.set('-');
         UNRESERVED.set('.');
         UNRESERVED.set('*');
@@ -308,14 +326,37 @@ public class URLEncodedUtils {
         PUNCT.set('&');
         PUNCT.set('+');
         PUNCT.set('=');
-        // URL path safe
-        SAFE.or(UNRESERVED);
-        SAFE.or(PUNCT);
+        // Safe for userinfo
+        USERINFO.or(UNRESERVED);
+        USERINFO.or(PUNCT);
+
         // URL path safe
         PATHSAFE.or(UNRESERVED);
-        PATHSAFE.or(PUNCT);
-        PATHSAFE.set('/');
+        PATHSAFE.set('/'); // segment separator
+        PATHSAFE.set(';'); // param separator
+        PATHSAFE.set(':'); // rest as per list in 2396, i.e. : @ & = + $ ,
         PATHSAFE.set('@');
+        PATHSAFE.set('&');
+        PATHSAFE.set('=');
+        PATHSAFE.set('+');
+        PATHSAFE.set('$');
+        PATHSAFE.set(',');
+        
+        RESERVED.set(';');
+        RESERVED.set('/');
+        RESERVED.set('?');
+        RESERVED.set(':');
+        RESERVED.set('@');
+        RESERVED.set('&');
+        RESERVED.set('=');
+        RESERVED.set('+');
+        RESERVED.set('$');
+        RESERVED.set(',');
+        RESERVED.set('['); // added by RFC 2732
+        RESERVED.set(']'); // added by RFC 2732
+        
+        FRAGMENT.or(RESERVED);
+        FRAGMENT.or(UNRESERVED);
     }
 
     private static final int RADIX = 16;
@@ -462,16 +503,29 @@ public class URLEncodedUtils {
     }
 
     /**
-     * Encode a String using the {@link #SAFE} set of characters.
+     * Encode a String using the {@link #USERINFO} set of characters.
      * <p>
-     * Used by URIBuilder to encode userinfo and fragment segments.
+     * Used by URIBuilder to encode the userinfo segment.
      * 
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
      */
-    static String enc(final String content, final Charset charset) {
-        return urlencode(content, charset, SAFE, false);
+    static String encUserInfo(final String content, final Charset charset) {
+        return urlencode(content, charset, USERINFO, false);
+    }
+
+    /**
+     * Encode a String using the {@link #FRAGMENT} set of characters.
+     * <p>
+     * Used by URIBuilder to encode the userinfo segment.
+     * 
+     * @param content the string to encode, does not convert space to '+'
+     * @param charset the charset to use
+     * @return the encoded string
+     */
+    static String encFragment(final String content, final Charset charset) {
+        return urlencode(content, charset, FRAGMENT, false);
     }
 
     /**

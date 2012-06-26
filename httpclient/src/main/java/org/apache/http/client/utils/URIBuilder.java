@@ -165,7 +165,7 @@ public class URIBuilder {
     }
 
     private String encodeUserInfo(final String userInfo) {
-        return URLEncodedUtils.enc(userInfo, Consts.UTF_8);
+        return URLEncodedUtils.encUserInfo(userInfo, Consts.UTF_8);
     }
 
     private String encodePath(final String path) {
@@ -177,7 +177,7 @@ public class URIBuilder {
     }
 
     private String encodeFragment(final String fragment) {
-        return URLEncodedUtils.enc(fragment, Consts.UTF_8);
+        return URLEncodedUtils.encFragment(fragment, Consts.UTF_8);
     }
 
     /**
