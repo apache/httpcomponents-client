@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -43,6 +44,7 @@ import org.apache.http.message.BasicNameValuePair;
  *
  * @since 4.2
  */
+@NotThreadSafe
 public class URIBuilder {
 
     private String scheme;
@@ -59,16 +61,29 @@ public class URIBuilder {
     private String fragment;
     private String encodedFragment;
 
+    /**
+     * Constructs an empty instance.
+     */
     public URIBuilder() {
         super();
         this.port = -1;
     }
 
+    /**
+     * Construct an instance from the string which must be a valid URI.
+     * 
+     * @param string a valid URI in string form
+     * @throws URISyntaxException if the input is not a valid URI
+     */
     public URIBuilder(final String string) throws URISyntaxException {
         super();
         digestURI(new URI(string));
     }
 
+    /**
+     * Construct an instance from the provided URI.
+     * @param uri
+     */
     public URIBuilder(final URI uri) {
         super();
         digestURI(uri);
