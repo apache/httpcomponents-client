@@ -271,6 +271,12 @@ public class URLEncodedUtils {
     /** Characters which are safe to use in a path, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
     private static final BitSet PATHSAFE     = new BitSet(256);
 
+    /** 
+     * Safe characters for x-www-form-urlencoded data, as per java.net.URLEncoder and browser behaviour,
+     * i.e. alphanumeric plus {@code "-", "_", ".", "*"}
+     */
+    private static final BitSet URLENCODER   = new BitSet(256);
+
     static {
         // unreserved chars
         // alpha characters
@@ -286,13 +292,14 @@ public class URLEncodedUtils {
         }
         UNRESERVED.set('_');
         UNRESERVED.set('-');
-        UNRESERVED.set('!');
         UNRESERVED.set('.');
+        UNRESERVED.set('*');
+        URLENCODER.or(UNRESERVED); // skip remaining unreserved characters
+        UNRESERVED.set('!');
         UNRESERVED.set('~');
         UNRESERVED.set('\'');
         UNRESERVED.set('(');
         UNRESERVED.set(')');
-        UNRESERVED.set('*');
         // punct chars
         PUNCT.set(',');
         PUNCT.set(';');
@@ -419,6 +426,10 @@ public class URLEncodedUtils {
 
     /**
      * Encode/escape www-url-form-encoded content.
+     * <p>
+     * Uses the {@link #URLENCODER} set of characters, rather than
+     * the {@link #UNRSERVED} set; this is for compatibilty with previous
+     * releases, URLEncoder.encode() and most browsers.
      * 
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
@@ -429,11 +440,15 @@ public class URLEncodedUtils {
             return null;
         }
         return urlencode(content, charset != null ? Charset.forName(charset) :
-            Consts.UTF_8, UNRESERVED, true);
+            Consts.UTF_8, URLENCODER, true);
     }
 
     /**
      * Encode/escape www-url-form-encoded content.
+     * <p>
+     * Uses the {@link #URLENCODER} set of characters, rather than
+     * the {@link #UNRSERVED} set; this is for compatibilty with previous
+     * releases, URLEncoder.encode() and most browsers.
      * 
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
@@ -443,12 +458,14 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlencode(content, charset != null ? charset : Consts.UTF_8, UNRESERVED, true);
+        return urlencode(content, charset != null ? charset : Consts.UTF_8, URLENCODER, true);
     }
 
     /**
      * Encode a String using the {@link #SAFE} set of characters.
-     *
+     * <p>
+     * Used by URIBuilder to encode userinfo and fragment segments.
+     * 
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
@@ -459,7 +476,9 @@ public class URLEncodedUtils {
 
     /**
      * Encode a String using the {@link #PATHSAFE} set of characters.
-     *
+     * <p>
+     * Used by URIBuilder to encode path segments.
+     * 
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
