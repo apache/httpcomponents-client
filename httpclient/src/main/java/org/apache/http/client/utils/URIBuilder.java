@@ -249,7 +249,9 @@ public class URIBuilder {
     }
 
     /**
-     * Sets URI query. The value is expected to be escaped and may NOT contain non ASCII characters.
+     * Sets URI query.
+     * <p>
+     * The value is expected to be encoded form data.
      */
     public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, Consts.UTF_8);
