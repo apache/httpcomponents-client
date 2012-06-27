@@ -73,11 +73,7 @@ try {
     // do something useful with the response body
     // and ensure it is fully consumed
     EntityUtils.consume(entity1);
-} 
-catch (IOException ex) { 
-    // Handle exception
-}
-finally {
+} finally {
     httpGet.releaseConnection();
 }
 
@@ -94,10 +90,7 @@ try {
     // do something useful with the response body
     // and ensure it is fully consumed
     EntityUtils.consume(entity2);
-} 
-catch (IOException ex) { 
-    // Handle exception
-finally {
+} finally {
     httpPost.releaseConnection();
 }
 
