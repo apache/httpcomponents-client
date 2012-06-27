@@ -1,6 +1,13 @@
 Changes since 4.2 
 -------------------
 
+HttpClient 4.2.1 (GA) is a bug fix release that addresses a number issues reported since release 4.2.
+
+Users of HttpClient 4.2 are advised to upgrade.
+
+Changelog
+-------------------
+
 * [HTTPCLIENT-1209] Redirect URIs are now normalized.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -18,7 +25,7 @@ Changes since 4.2
   Contributed by Guillaume Castagnino <casta+jira at xwing.info> 
 
 * [HTTPCLIENT-1192] URIBuilder encodes query parameters twice.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
+  Contributed by Oleg Kalnichevski <olegk at apache.org> and Sebastian Bazley <sebb at apache.org>.
 
 * [HTTPCLIENT-1196] Fixed NPE in UrlEncodedFormEntity constructor thrown if charset is null.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
