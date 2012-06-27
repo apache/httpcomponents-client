@@ -52,7 +52,7 @@ HttpClient Overview
 
     [[1]] {{{./tutorial/html/index.html}HttpClient Tutorial}} - gives a detailed examination of the 
     HttpClient API, which was written in close accordance with the (sometimes not very intuitive) 
-    HTTP specification/standard.  A copy is also shipped with the release.  
+    HTTP specification/standard. A copy is also shipped with the release.  
     {{{./tutorial/pdf/httpclient-tutorial.pdf}A PDF version}} is also available
         
     [[1]] {{{./examples.html}HttpClient Examples}} - a set of examples demonstrating some of 
