@@ -1,7 +1,8 @@
-Changes since 4.2 
+Release 4.2.1 
 -------------------
 
-HttpClient 4.2.1 (GA) is a bug fix release that addresses a number issues reported since release 4.2.
+HttpClient 4.2.1 (GA) is a bug fix release that addresses a number issues reported since 
+release 4.2.
 
 Users of HttpClient 4.2 are advised to upgrade.
 

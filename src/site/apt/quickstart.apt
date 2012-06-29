@@ -96,6 +96,9 @@ try {
 
 -------------    
 
+    Source can be downloaded 
+    {{{./httpclient/examples/org/apache/http/examples/client/QuickStart.java}here}}
+
     [[3]] The same requests can be executed using a simpler, albeit less flexible, fluent API.
 
 -------------    
@@ -111,14 +114,15 @@ Request.Post("http://targethost/login")
 
 -------------    
     
-    Please note fluent facade API requires an optional module 'fluent-hc'.
+    Source can be downloaded 
+    {{{./httpclient/examples/org/apache/http/examples/client/fuent/FluentQuickStart.java}here}}
     
     [[4]] {{{./examples.html}HttpClient Examples}} - a set of examples demonstrating some of 
     the more complex behavior. 
 
     [[5]] {{{./tutorial/html/index.html}HttpClient Tutorial}} - gives a detailed examination of the 
     HttpClient API, which was written in close accordance with the (sometimes not very intuitive) 
-    HTTP specification/standard.  A copy is also shipped with the release.  
+    HTTP specification/standard. A copy is also shipped with the release.  
     {{{./tutorial/pdf/httpclient-tutorial.pdf}A PDF version}} is also available
 
     [[6]] {{{./primer.html}HttpClient Primer}} - explains the scope of HttpClient.
