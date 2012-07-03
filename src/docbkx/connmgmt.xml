@@ -339,8 +339,10 @@ sf.connectSocket(socket, address, null, params);
                 implementation. One can specify a different hostname verifier implementation if
                 desired</para>
             <programlisting><![CDATA[
+SSLContext sslcontext = SSLContext.getInstance("TLS");
+sslcontext.init(null, null, null);
 SSLSocketFactory sf = new SSLSocketFactory(
-    SSLContext.getInstance("TLS"),
+    sslcontext,
     SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
 ]]></programlisting>
         </section>
@@ -356,8 +358,10 @@ SSLSocketFactory sf = new SSLSocketFactory(
         <programlisting><![CDATA[
 Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 
+SSLContext sslcontext = SSLContext.getInstance("TLS");
+sslcontext.init(null, null, null);
 SSLSocketFactory sf = new SSLSocketFactory(
-        SSLContext.getInstance("TLS"),
+        sslcontext,
         SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
 Scheme https = new Scheme("https", 443, sf);
 
