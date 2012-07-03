@@ -58,6 +58,7 @@ public class URIBuilder {
     private String encodedPath;
     private String encodedQuery;
     private List<NameValuePair> queryParams;
+    private String query;
     private String fragment;
     private String encodedFragment;
 
@@ -136,14 +137,23 @@ public class URIBuilder {
             }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
-            } else if (this.queryParams != null) {
-                sb.append("?").append(encodeQuery(this.queryParams));
+            } else if (this.query != null || this.queryParams != null) {
+                sb.append("?");
+                if (this.query != null) {
+                    sb.append(encodeUric(this.query));
+                }
+                if (this.queryParams != null) {
+                    if (this.query != null) {
+                        sb.append("&");
+                    }
+                    sb.append(encodeUrlForm(this.queryParams));
+                }
             }
         }
         if (this.encodedFragment != null) {
             sb.append("#").append(this.encodedFragment);
         } else if (this.fragment != null) {
-            sb.append("#").append(encodeFragment(this.fragment));
+            sb.append("#").append(encodeUric(this.fragment));
         }
         return sb.toString();
     }
@@ -172,12 +182,12 @@ public class URIBuilder {
         return URLEncodedUtils.encPath(path, Consts.UTF_8);
     }
 
-    private String encodeQuery(final List<NameValuePair> params) {
+    private String encodeUrlForm(final List<NameValuePair> params) {
         return URLEncodedUtils.format(params, Consts.UTF_8);
     }
 
-    private String encodeFragment(final String fragment) {
-        return URLEncodedUtils.encFragment(fragment, Consts.UTF_8);
+    private String encodeUric(final String fragment) {
+        return URLEncodedUtils.encUric(fragment, Consts.UTF_8);
     }
 
     /**
@@ -243,6 +253,7 @@ public class URIBuilder {
      */
     public URIBuilder removeQuery() {
         this.queryParams = null;
+        this.query = null;
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
         return this;
@@ -252,14 +263,58 @@ public class URIBuilder {
      * Sets URI query.
      * <p>
      * The value is expected to be encoded form data.
+     * 
+     * @deprecated (4.3) use {@link #setParameters(List)} or {@link #setParameters(NameValuePair...)}
+     * 
+     * @see URLEncodedUtils#parse
      */
+    @Deprecated
     public URIBuilder setQuery(final String query) {
         this.queryParams = parseQuery(query, Consts.UTF_8);
+        this.query = null;
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
         return this;
     }
-
+    
+    /**
+     * Sets URI query parameters. The parameter name / values are expected to be unescaped
+     * and may contain non ASCII characters.
+     * 
+     * @since 4.3
+     */
+    public URIBuilder setParameters(final List <NameValuePair> nvps) {
+        if (this.queryParams == null) {
+            this.queryParams = new ArrayList<NameValuePair>();
+        } else {
+            this.queryParams.clear();
+        }
+        this.queryParams.addAll(nvps);
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+    
+    /**
+     * Sets URI query parameters. The parameter name / values are expected to be unescaped
+     * and may contain non ASCII characters.
+     * 
+     * @since 4.3
+     */
+    public URIBuilder setParameters(final NameValuePair... nvps) {
+        if (this.queryParams == null) {
+            this.queryParams = new ArrayList<NameValuePair>();
+        } else {
+            this.queryParams.clear();
+        }
+        for (NameValuePair nvp: nvps) {
+            this.queryParams.add(nvp);
+        }
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+    
     /**
      * Adds parameter to URI query. The parameter name and value are expected to be unescaped
      * and may contain non ASCII characters.
@@ -296,6 +351,31 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * Clears URI query parameters.
+     * 
+     * @since 4.3
+     */
+    public URIBuilder clearParameters() {
+        this.queryParams = null;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+    
+    /**
+     * Sets custom URI query. The value is expected to be unescaped and may contain non ASCII
+     * characters. Please note, this method does NOT override query parameters if set.
+     * 
+     * @since 4.3
+     */
+    public URIBuilder setCustomQuery(final String query) {
+        this.query = query;
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+    
     /**
      * Sets URI fragment. The value is expected to be unescaped and may contain non ASCII
      * characters.

@@ -271,12 +271,15 @@ public class URLEncodedUtils {
      * These are the additional characters allowed by userinfo.
      */
     private static final BitSet PUNCT        = new BitSet(256);
-    /** Characters which are safe to use in userinfo, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
+    /** Characters which are safe to use in userinfo, 
+     * i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
     private static final BitSet USERINFO     = new BitSet(256);
-    /** Characters which are safe to use in a path, i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
+    /** Characters which are safe to use in a path, 
+     * i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
     private static final BitSet PATHSAFE     = new BitSet(256);
-    /** Characters which are safe to use in a fragment, i.e. {@link #RESERVED} plus {@link #UNRESERVED} */
-    private static final BitSet FRAGMENT     = new BitSet(256);
+    /** Characters which are safe to use in a query or a fragment, 
+     * i.e. {@link #RESERVED} plus {@link #UNRESERVED} */
+    private static final BitSet URIC     = new BitSet(256);
 
     /** 
      * Reserved characters, i.e. {@code ;/?:@&=+$,[]}
@@ -355,8 +358,8 @@ public class URLEncodedUtils {
         RESERVED.set('['); // added by RFC 2732
         RESERVED.set(']'); // added by RFC 2732
         
-        FRAGMENT.or(RESERVED);
-        FRAGMENT.or(UNRESERVED);
+        URIC.or(RESERVED);
+        URIC.or(UNRESERVED);
     }
 
     private static final int RADIX = 16;
@@ -516,16 +519,16 @@ public class URLEncodedUtils {
     }
 
     /**
-     * Encode a String using the {@link #FRAGMENT} set of characters.
+     * Encode a String using the {@link #URIC} set of characters.
      * <p>
-     * Used by URIBuilder to encode the userinfo segment.
+     * Used by URIBuilder to encode the query and fragment segments.
      * 
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
      */
-    static String encFragment(final String content, final Charset charset) {
-        return urlencode(content, charset, FRAGMENT, false);
+    static String encUric(final String content, final Charset charset) {
+        return urlencode(content, charset, URIC, false);
     }
 
     /**
