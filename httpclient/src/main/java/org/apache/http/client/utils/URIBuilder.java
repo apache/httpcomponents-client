@@ -137,17 +137,10 @@ public class URIBuilder {
             }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
-            } else if (this.query != null || this.queryParams != null) {
-                sb.append("?");
-                if (this.query != null) {
-                    sb.append(encodeUric(this.query));
-                }
-                if (this.queryParams != null) {
-                    if (this.query != null) {
-                        sb.append("&");
-                    }
-                    sb.append(encodeUrlForm(this.queryParams));
-                }
+            } else if (this.queryParams != null) {
+                sb.append("?").append(encodeUrlForm(this.queryParams));
+            } else if (this.query != null) {
+                sb.append("?").append(encodeUric(this.query));
             }
         }
         if (this.encodedFragment != null) {
@@ -280,6 +273,9 @@ public class URIBuilder {
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
      * 
      * @since 4.3
      */
@@ -292,12 +288,16 @@ public class URIBuilder {
         this.queryParams.addAll(nvps);
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
+        this.query = null;
         return this;
     }
     
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
      * 
      * @since 4.3
      */
@@ -312,12 +312,16 @@ public class URIBuilder {
         }
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
+        this.query = null;
         return this;
     }
     
     /**
      * Adds parameter to URI query. The parameter name and value are expected to be unescaped
      * and may contain non ASCII characters.
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
      */
     public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
@@ -326,12 +330,16 @@ public class URIBuilder {
         this.queryParams.add(new BasicNameValuePair(param, value));
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
+        this.query = null;
         return this;
     }
 
     /**
      * Sets parameter of URI query overriding existing value if set. The parameter name and value
      * are expected to be unescaped and may contain non ASCII characters.
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
      */
     public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
@@ -348,6 +356,7 @@ public class URIBuilder {
         this.queryParams.add(new BasicNameValuePair(param, value));
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
+        this.query = null;
         return this;
     }
 
@@ -365,7 +374,10 @@ public class URIBuilder {
     
     /**
      * Sets custom URI query. The value is expected to be unescaped and may contain non ASCII
-     * characters. Please note, this method does NOT override query parameters if set.
+     * characters. 
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove query parameters if present.
      * 
      * @since 4.3
      */
@@ -373,6 +385,7 @@ public class URIBuilder {
         this.query = query;
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
+        this.queryParams = null;
         return this;
     }
     

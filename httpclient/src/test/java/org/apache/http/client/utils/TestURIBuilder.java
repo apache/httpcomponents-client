@@ -155,11 +155,9 @@ public class TestURIBuilder {
 
     @Test
     public void testQueryAndParameterEncoding() throws Exception {
-        URI uri1 = new URI("https://somehost.com/stuff?this&that" +
-                "&param1=12345&param2=67890");
+        URI uri1 = new URI("https://somehost.com/stuff?param1=12345&param2=67890");
         URI uri2 = new URIBuilder("https://somehost.com/stuff")
             .setCustomQuery("this&that")
-            .clearParameters()
             .addParameter("param1","12345")
             .addParameter("param2","67890").build();
         Assert.assertEquals(uri1, uri2);
