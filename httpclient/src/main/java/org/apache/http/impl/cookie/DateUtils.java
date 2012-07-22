@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import java.lang.ref.SoftReference;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -200,6 +201,13 @@ public final class DateUtils {
         return formatter.format(date);
     }
 
+    /**
+     * Clears thread-local variable containing {@link DateFormat} cache.
+     */
+    public static void clearThreadLocal() {
+        DateFormatHolder.clearThreadLocal();
+    }
+
     /** This class should not be instantiated. */
     private DateUtils() {
     }
@@ -252,6 +260,10 @@ public final class DateUtils {
             }
 
             return format;
+        }
+
+        public static void clearThreadLocal() {
+            THREADLOCAL_FORMATS.remove();
         }
 
     }
