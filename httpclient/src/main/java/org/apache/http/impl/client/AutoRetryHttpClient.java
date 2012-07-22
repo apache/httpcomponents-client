@@ -44,6 +44,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
  * {@link HttpClient} implementation that can automatically retry the request in case of
@@ -154,16 +155,26 @@ public class AutoRetryHttpClient implements HttpClient {
             HttpContext context) throws IOException {
         for (int c = 1;; c++) {
             HttpResponse response = backend.execute(target, request, context);
-            if (retryStrategy.retryRequest(response, c, context)) {
-                long nextInterval = retryStrategy.getRetryInterval();
-                try {
-                    log.trace("Wait for " + nextInterval);
-                    Thread.sleep(nextInterval);
-                } catch (InterruptedException e) {
-                    throw new InterruptedIOException(e.getMessage());
+            try {
+                if (retryStrategy.retryRequest(response, c, context)) {
+                    EntityUtils.consume(response.getEntity());
+                    long nextInterval = retryStrategy.getRetryInterval();
+                    try {
+                        log.trace("Wait for " + nextInterval);
+                        Thread.sleep(nextInterval);
+                    } catch (InterruptedException e) {
+                        throw new InterruptedIOException(e.getMessage());
+                    }
+                } else {
+                    return response;
                 }
-            } else {
-                return response;
+            } catch (RuntimeException ex) {
+                try {
+                    EntityUtils.consume(response.getEntity());
+                } catch (IOException ioex) {
+                    log.warn("I/O error consuming response content", ioex);
+                }
+                throw ex;
             }
         }
     }
