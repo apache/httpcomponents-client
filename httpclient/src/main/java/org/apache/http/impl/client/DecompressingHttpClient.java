@@ -116,6 +116,15 @@ public class DecompressingHttpClient implements HttpClient {
         return execute(getHttpHost(request), request, (HttpContext)null);
     }
 
+    /**
+     * Gets the HttpClient to issue request.
+     * 
+     * @return the HttpClient to issue request
+     */
+    public HttpClient getHttpClient() {
+        return this.backend;
+    }
+
     HttpHost getHttpHost(HttpUriRequest request) {
         URI uri = request.getURI();
         return URIUtils.extractHost(uri);

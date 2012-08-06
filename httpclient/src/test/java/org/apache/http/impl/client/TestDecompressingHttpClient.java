@@ -80,6 +80,7 @@ public class TestDecompressingHttpClient {
         handled = new Object();
         backend = new DummyHttpClient();
         impl = new DecompressingHttpClient(backend);
+        assertEquals(backend, impl.getHttpClient());
         request = new HttpGet("http://localhost:8080");
         ctx = new BasicHttpContext();
         host = new HttpHost("www.example.com");
