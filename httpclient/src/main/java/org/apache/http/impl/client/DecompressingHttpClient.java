@@ -73,10 +73,18 @@ import org.apache.http.util.EntityUtils;
  */
 public class DecompressingHttpClient implements HttpClient {
 
-    private HttpClient backend;
-    private HttpRequestInterceptor acceptEncodingInterceptor;
-    private HttpResponseInterceptor contentEncodingInterceptor;
+    private final HttpClient backend;
+    private final HttpRequestInterceptor acceptEncodingInterceptor;
+    private final HttpResponseInterceptor contentEncodingInterceptor;
     
+    /**
+     * Constructs a decorator to ask for and handle compressed
+     * entities on the fly.
+     */
+    public DecompressingHttpClient() {
+        this(new DefaultHttpClient());
+    }
+
     /**
      * Constructs a decorator to ask for and handle compressed
      * entities on the fly.
@@ -86,7 +94,7 @@ public class DecompressingHttpClient implements HttpClient {
     public DecompressingHttpClient(HttpClient backend) {
         this(backend, new RequestAcceptEncoding(), new ResponseContentEncoding());
     }
-    
+        
     DecompressingHttpClient(HttpClient backend, 
             HttpRequestInterceptor requestInterceptor, 
             HttpResponseInterceptor responseInterceptor) {
