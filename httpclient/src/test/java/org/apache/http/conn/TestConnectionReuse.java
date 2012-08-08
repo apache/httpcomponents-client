@@ -36,21 +36,12 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RandomHandler;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -88,23 +79,11 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
-
-        SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", 80, sf));
-
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
-
+        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
         WorkerThread[] workers = new WorkerThread[10];
@@ -159,22 +138,11 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
-
-        SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", 80, sf));
-
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
@@ -220,22 +188,11 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
-
-        SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", 80, sf));
-
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
@@ -282,22 +239,12 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, "UTF-8");
-        HttpProtocolParams.setUserAgent(params, "TestAgent/1.1");
-        HttpProtocolParams.setUseExpectContinue(params, false);
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
-
-        SchemeRegistry supportedSchemes = new SchemeRegistry();
-        SchemeSocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", 80, sf));
-
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
+
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
         HttpResponse response = client.execute(target, new HttpGet("/random/2000"));

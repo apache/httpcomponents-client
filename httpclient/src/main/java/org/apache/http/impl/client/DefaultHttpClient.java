@@ -111,8 +111,11 @@ import org.apache.http.util.VersionInfo;
  * </ul>
  *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
 @ThreadSafe
+@Deprecated
 public class DefaultHttpClient extends AbstractHttpClient {
 
     /**
@@ -219,8 +222,6 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new ResponseProcessCookies());
         // HTTP authentication interceptors
         httpproc.addInterceptor(new RequestAuthCache());
-        httpproc.addInterceptor(new RequestTargetAuthentication());
-        httpproc.addInterceptor(new RequestProxyAuthentication());
         return httpproc;
     }
 

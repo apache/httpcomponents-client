@@ -39,13 +39,12 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.client.methods.HttpUriRequest;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
- *
  *
  * @since 4.0
  */
@@ -157,6 +156,8 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     /**
      * @since 4.2
+     * 
+     * @deprecated (4.3)
      */
     protected boolean requestIsAborted(final HttpRequest request) {
         HttpRequest req = request;

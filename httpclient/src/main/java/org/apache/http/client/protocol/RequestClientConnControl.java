@@ -36,9 +36,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.conn.HttpRoutedConnection;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
@@ -73,14 +71,11 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         }
 
         // Obtain the client connection (required)
-        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
-                ExecutionContext.HTTP_CONNECTION);
-        if (conn == null) {
-            this.log.debug("HTTP connection not set in the context");
+        RouteInfo route = (RouteInfo) context.getAttribute(ClientContext.ROUTE);
+        if (route == null) {
+            this.log.debug("Connection route not set in the context");
             return;
         }
-
-        HttpRoute route = conn.getRoute();
 
         if (route.getHopCount() == 1 || route.isTunnelled()) {
             if (!request.containsHeader(HTTP.CONN_DIRECTIVE)) {

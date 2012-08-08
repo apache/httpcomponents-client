@@ -101,8 +101,11 @@ import org.apache.http.params.HttpParams;
  * </p>
  *
  * @since 4.2
+ * 
+ * @deprecated (4.3) use {@link HttpClientBuilder}
  */
 @ThreadSafe
+@Deprecated
 public class SystemDefaultHttpClient extends DefaultHttpClient {
 
     public SystemDefaultHttpClient(final HttpParams params) {

@@ -24,24 +24,25 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.utils;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.junit.Test;
+package org.apache.http.client.methods;
 
-public class TestHttpClientUtils {
+import org.apache.http.concurrent.Cancellable;
 
-    @Test
-    public void testCloseQuietlyNullClient() throws Exception {
-        HttpClient httpClient = null;
-        HttpClientUtils.closeQuietly(httpClient);
-    }
+/**
+ * Interface to be implemented by any object that wishes to be notified of request execution
+ * events.
+ *
+ * @since 4.3
+ */
+public interface HttpExecutionAware {
 
-    @Test
-    public void testCloseQuietlyResponseNull() throws Exception {
-        HttpResponse response = null;
-        HttpClientUtils.closeQuietly(response);
-    }
+    boolean isAborted();
+
+    /**
+     * Sets {@link Cancellable} for the ongoing operation.
+     */
+    void setCancellable(Cancellable cancellable);
 
 }
+

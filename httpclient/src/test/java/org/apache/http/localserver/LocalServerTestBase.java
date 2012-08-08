@@ -30,26 +30,16 @@ package org.apache.http.localserver;
 import java.net.InetSocketAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
-import org.mockito.Mockito;
 
 /**
  * Base class for tests using {@link LocalTestServer}. The server will not be started
  * per default.
  */
-public abstract class BasicServerTestBase extends Mockito {
+public abstract class LocalServerTestBase {
 
     /** The local server for testing. */
     protected LocalTestServer localServer;
-    protected DefaultHttpClient httpclient;
-
-    @After
-    public void shutDownClient() throws Exception {
-        if (httpclient != null) {
-            httpclient.getConnectionManager().shutdown();
-        }
-    }
 
     @After
     public void shutDownServer() throws Exception {
@@ -58,6 +48,14 @@ public abstract class BasicServerTestBase extends Mockito {
         }
     }
 
+    protected void startServer() throws Exception {
+        if (localServer == null) {
+            localServer = new LocalTestServer(null, null);
+            localServer.registerDefaultHandlers();
+        }
+        localServer.start();
+    }
+    
     /**
      * Obtains the address of the local test server.
      *

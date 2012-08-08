@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,17 +49,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -67,7 +66,12 @@ import org.junit.Test;
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-public class TestContentCodings extends ServerTestBase {
+public class TestContentCodings extends IntegrationTestBase {
+
+    @Before
+    public void setUp() throws Exception {
+        startServer();
+    }
 
     /**
      * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows
@@ -91,14 +95,11 @@ public class TestContentCodings extends ServerTestBase {
             }
         });
 
-        HttpClient client = new DecompressingHttpClient();
-
+        this.httpclient = new HttpClientBuilder().build();
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
         Assert.assertNull(response.getEntity());
-
-        client.getConnectionManager().shutdown();
     }
 
     /**
@@ -114,14 +115,12 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
-
-        client.getConnectionManager().shutdown();
     }
 
     /**
@@ -137,14 +136,12 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
-
-        client.getConnectionManager().shutdown();
     }
 
     /**
@@ -158,14 +155,12 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
-
-        client.getConnectionManager().shutdown();
     }
 
     /**
@@ -186,13 +181,10 @@ public class TestContentCodings extends ServerTestBase {
          */
         int clients = 100;
 
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
         cm.setMaxTotal(clients);
 
-        final HttpClient httpClient = new DefaultHttpClient(cm);
+        this.httpclient = new HttpClientBuilder().setConnectionManager(cm).build();
 
         ExecutorService executor = Executors.newFixedThreadPool(clients);
 
@@ -202,7 +194,7 @@ public class TestContentCodings extends ServerTestBase {
         List<WorkerTask> workers = new ArrayList<WorkerTask>();
 
         for (int i = 0; i < clients; ++i) {
-            workers.add(new WorkerTask(httpClient, i % 2 == 0, startGate, endGate));
+            workers.add(new WorkerTask(this.httpclient, i % 2 == 0, startGate, endGate));
         }
 
         for (WorkerTask workerTask : workers) {
@@ -236,16 +228,15 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
+
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
 
         Assert.assertEquals(entityText, out.toString("utf-8"));
-
-        client.getConnectionManager().shutdown();
     }
 
     /**
@@ -260,17 +251,15 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = client.execute(getServerHttp(), request);
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
 
         Assert.assertEquals(entityText, out.toString("utf-8"));
-
-        client.getConnectionManager().shutdown();
     }
 
     @Test
@@ -279,13 +268,11 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        HttpClient client = new DecompressingHttpClient();
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpGet request = new HttpGet("/some-resource");
-        String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
+        String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
-
-        client.getConnectionManager().shutdown();
     }
 
     @Test
@@ -294,13 +281,11 @@ public class TestContentCodings extends ServerTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        HttpClient client = new DecompressingHttpClient();
-        
-        HttpGet request = new HttpGet("/some-resource");
-        String response = client.execute(getServerHttp(), request, new BasicResponseHandler());
-        Assert.assertEquals("The entity text is correctly transported", entityText, response);
+        this.httpclient = new HttpClientBuilder().build();
 
-        client.getConnectionManager().shutdown();
+        HttpGet request = new HttpGet("/some-resource");
+        String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
+        Assert.assertEquals("The entity text is correctly transported", entityText, response);
     }
 
     /**

@@ -46,12 +46,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +57,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link SSLSocketFactory}.
  */
-public class TestSSLSocketFactory extends BasicServerTestBase {
+public class TestSSLSocketFactory extends LocalServerTestBase {
 
     private KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException {
         String algo = KeyManagerFactory.getDefaultAlgorithm();
@@ -108,7 +106,6 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         this.localServer.registerDefaultHandlers();
 
         this.localServer.start();
-        this.httpclient = new DefaultHttpClient();
     }
 
     @Override
@@ -148,15 +145,14 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
     public void testBasicSSL() throws Exception {
         TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
 
+        HttpParams params = new BasicHttpParams();
         SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
-        Scheme https = new Scheme("https", 443, socketFactory);
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        socket = (SSLSocket) socketFactory.connectSocket(socket, address, null, params);
+        SSLSession sslsession = socket.getSession();
 
-        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
-
-        HttpHost target = getServerHttp();
-        HttpGet httpget = new HttpGet("/random/100");
-        HttpResponse response = this.httpclient.execute(target, httpget);
-        Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
     }
 
@@ -169,12 +165,10 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
                 SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        Scheme https = new Scheme("https", 443, socketFactory);
-        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
-
-        HttpHost target = getServerHttp();
-        HttpGet httpget = new HttpGet("/random/100");
-        this.httpclient.execute(target, httpget);
+        HttpParams params = new BasicHttpParams();
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        socketFactory.connectSocket(socket, address, null, params);
     }
 
     @Test
@@ -192,13 +186,10 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
 
         }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        Scheme https = new Scheme("https", 443, socketFactory);
-        this.httpclient.getConnectionManager().getSchemeRegistry().register(https);
-
-        HttpHost target = getServerHttp();
-        HttpGet httpget = new HttpGet("/random/100");
-        HttpResponse response = this.httpclient.execute(target, httpget);
-        Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+        HttpParams params = new BasicHttpParams();
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
+        InetSocketAddress address = this.localServer.getServiceAddress();
+        socketFactory.connectSocket(socket, address, null, params);
     }
 
 }

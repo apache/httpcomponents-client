@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.client;
 
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -34,12 +35,17 @@ import java.util.Queue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ContextAwareAuthScheme;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.protocol.HttpContext;
@@ -81,7 +87,24 @@ public class HttpAuthenticator {
         }
     }
 
-    public boolean authenticate(
+    /**
+     * @deprecated (4.3) use {@link #handleAuthChallenge(
+     *   HttpHost, HttpResponse, AuthenticationStrategy, AuthState, HttpContext)}.
+     */
+    @Deprecated
+    public boolean authenticate (
+            final HttpHost host,
+            final HttpResponse response,
+            final AuthenticationStrategy authStrategy,
+            final AuthState authState,
+            final HttpContext context) {
+        return handleAuthChallenge(host, response, authStrategy, authState, context);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public boolean handleAuthChallenge(
             final HttpHost host,
             final HttpResponse response,
             final AuthenticationStrategy authStrategy,
@@ -153,6 +176,82 @@ public class HttpAuthenticator {
             }
             authState.reset();
             return false;
+        }
+    }
+
+    /**
+     * @since 4.3
+     */
+    public void generateAuthResponse(
+            final HttpRequest request,
+            final AuthState authState,
+            final HttpContext context) throws HttpException, IOException {
+        AuthScheme authScheme = authState.getAuthScheme();
+        Credentials creds = authState.getCredentials();
+        switch (authState.getState()) {
+        case FAILURE:
+            return;
+        case SUCCESS:
+            ensureAuthScheme(authScheme);
+            if (authScheme.isConnectionBased()) {
+                return;
+            }
+            break;
+        case CHALLENGED:
+            Queue<AuthOption> authOptions = authState.getAuthOptions();
+            if (authOptions != null) {
+                while (!authOptions.isEmpty()) {
+                    AuthOption authOption = authOptions.remove();
+                    authScheme = authOption.getAuthScheme();
+                    creds = authOption.getCredentials();
+                    authState.update(authScheme, creds);
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Generating response to an authentication challenge using "
+                                + authScheme.getSchemeName() + " scheme");
+                    }
+                    try {
+                        Header header = doAuth(authScheme, creds, request, context);
+                        request.addHeader(header);
+                        break;
+                    } catch (AuthenticationException ex) {
+                        if (this.log.isWarnEnabled()) {
+                            this.log.warn(authScheme + " authentication error: " + ex.getMessage());
+                        }
+                    }
+                }
+                return;
+            } else {
+                ensureAuthScheme(authScheme);
+            }
+        }
+        if (authScheme != null) {
+            try {
+                Header header = doAuth(authScheme, creds, request, context);
+                request.addHeader(header);
+            } catch (AuthenticationException ex) {
+                if (this.log.isErrorEnabled()) {
+                    this.log.error(authScheme + " authentication error: " + ex.getMessage());
+                }
+            }
+        }
+    }
+
+    private void ensureAuthScheme(final AuthScheme authScheme) {
+        if (authScheme == null) {
+            throw new IllegalStateException("Auth scheme is not set");
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private Header doAuth(
+            final AuthScheme authScheme,
+            final Credentials creds,
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
+        if (authScheme instanceof ContextAwareAuthScheme) {
+            return ((ContextAwareAuthScheme) authScheme).authenticate(creds, request, context);
+        } else {
+            return authScheme.authenticate(creds, request);
         }
     }
 

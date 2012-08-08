@@ -37,7 +37,10 @@ import org.apache.http.annotation.NotThreadSafe;
  * is released on close or EOF.
  *
  * @since 4.0
+ * 
+ * @deprecated (4.3) do not use.
  */
+@Deprecated
 @NotThreadSafe
 public class BasicEofSensorWatcher implements EofSensorWatcher {
 

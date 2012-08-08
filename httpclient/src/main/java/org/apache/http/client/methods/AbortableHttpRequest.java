@@ -39,10 +39,11 @@ import org.apache.http.conn.ManagedClientConnection;
  * Interface representing an HTTP request that can be aborted by shutting
  * down the underlying HTTP connection.
  *
- *
- * <!-- empty lines to avoid svn diff problems -->
  * @since 4.0
+ * 
+ * @deprecated (4.3) use {@link HttpExecutionAware}
  */
+@Deprecated
 public interface AbortableHttpRequest {
 
     /**

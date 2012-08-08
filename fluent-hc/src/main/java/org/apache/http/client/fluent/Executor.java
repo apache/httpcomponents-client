@@ -54,14 +54,14 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 
 public class Executor {
 
     final static PoolingClientConnectionManager CONNMGR;
-    final static DefaultHttpClient CLIENT;
+    final static HttpClient CLIENT;
 
     static {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
@@ -87,7 +87,7 @@ public class Executor {
         CONNMGR = new PoolingClientConnectionManager(schemeRegistry);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
-        CLIENT = new DefaultHttpClient(CONNMGR);
+        CLIENT = new HttpClientBuilder().setConnectionManager(CONNMGR).build();
     }
 
     public static Executor newInstance() {

@@ -40,6 +40,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
@@ -48,8 +49,6 @@ import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
-import org.apache.http.client.protocol.RequestProxyAuthentication;
-import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -69,8 +68,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 
@@ -91,11 +88,8 @@ public class ProxyClient {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
         this.httpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
-                new RequestContent(),
-                new RequestTargetHost(),
                 new RequestClientConnControl(),
-                new RequestUserAgent(),
-                new RequestProxyAuthentication()
+                new RequestUserAgent()
         } );
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
@@ -131,45 +125,46 @@ public class ProxyClient {
         HttpContext context = new BasicHttpContext();
         HttpResponse response = null;
 
+        String host = target.getHostName();
+        int port = target.getPort();
+        if (port < 0) {
+            port = 80;
+        }
+
+        StringBuilder buffer = new StringBuilder(host.length() + 6);
+        buffer.append(host);
+        buffer.append(':');
+        buffer.append(Integer.toString(port));
+
+        String authority = buffer.toString();
+        ProtocolVersion ver = HttpProtocolParams.getVersion(this.params);
+        HttpRequest connect = new BasicHttpRequest("CONNECT", authority, ver);
+        connect.setParams(this.params);
+
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(new AuthScope(proxy), credentials);
+
+        // Populate the execution context
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, proxy);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ExecutionContext.HTTP_REQUEST, connect);
+        context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
+        context.setAttribute(ClientContext.CREDS_PROVIDER, credsProvider);
+        context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+
+        this.requestExec.preProcess(connect, this.httpProcessor, context);
+
         for (;;) {
             if (!conn.isOpen()) {
                 Socket socket = new Socket(proxy.getHostName(), proxy.getPort());
                 conn.bind(socket, this.params);
             }
-            String host = target.getHostName();
-            int port = target.getPort();
-            if (port < 0) {
-                port = 80;
-            }
 
-            StringBuilder buffer = new StringBuilder(host.length() + 6);
-            buffer.append(host);
-            buffer.append(':');
-            buffer.append(Integer.toString(port));
-
-            String authority = buffer.toString();
-            ProtocolVersion ver = HttpProtocolParams.getVersion(this.params);
-            HttpRequest connect = new BasicHttpRequest("CONNECT", authority, ver);
-            connect.setParams(this.params);
-
-            BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(new AuthScope(proxy), credentials);
-
-            // Populate the execution context
-            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-            context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, proxy);
-            context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-            context.setAttribute(ExecutionContext.HTTP_REQUEST, connect);
-            context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
-            context.setAttribute(ClientContext.CREDS_PROVIDER, credsProvider);
-            context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
-
-            this.requestExec.preProcess(connect, this.httpProcessor, context);
+            this.authenticator.generateAuthResponse(connect, this.proxyAuthState, context);
 
             response = this.requestExec.execute(connect, conn, context);
-
             response.setParams(this.params);
-            this.requestExec.postProcess(response, this.httpProcessor, context);
 
             int status = response.getStatusLine().getStatusCode();
             if (status < 200) {
@@ -180,7 +175,7 @@ public class ProxyClient {
             if (HttpClientParams.isAuthenticating(this.params)) {
                 if (this.authenticator.isAuthenticationRequested(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                    if (this.authenticator.authenticate(proxy, response,
+                    if (this.authenticator.handleAuthChallenge(proxy, response,
                             this.proxyAuthStrategy, this.proxyAuthState, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
@@ -190,6 +185,8 @@ public class ProxyClient {
                         } else {
                             conn.close();
                         }
+                        // discard previous auth header
+                        connect.removeHeaders(AUTH.PROXY_AUTH_RESP);
                     } else {
                         break;
                     }
@@ -216,7 +213,7 @@ public class ProxyClient {
         return conn.getSocket();
     }
 
-    static class ProxyConnection extends DefaultHttpClientConnection implements HttpRoutedConnection {
+    static class ProxyConnection extends DefaultHttpClientConnection {
 
         private final HttpRoute route;
 

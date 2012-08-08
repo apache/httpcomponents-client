@@ -40,19 +40,21 @@ import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.params.BasicHttpParams;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
 @Deprecated
-public class TestConnPoolByRoute extends ServerTestBase {
+public class TestConnPoolByRoute extends LocalServerTestBase {
 
     private ConnPoolByRoute impl;
     private HttpRoute route = new HttpRoute(new HttpHost("localhost"));
@@ -63,19 +65,18 @@ public class TestConnPoolByRoute extends ServerTestBase {
     @Mock private ClientConnectionOperator mockOperator;
 
     @Before
-    @Override
     public void setUp() throws Exception {
-        super.setUp();
+        startServer();
         impl = new ConnPoolByRoute(
-                new DefaultClientConnectionOperator(supportedSchemes),
+                new DefaultClientConnectionOperator(SchemeRegistryFactory.createDefault()),
                 new ConnPerRouteBean(), 1, -1, TimeUnit.MILLISECONDS);
     }
 
     private void useMockOperator() {
-        reset(mockOperator);
+        Mockito.reset(mockOperator);
         impl = new ConnPoolByRoute(
                 mockOperator, new ConnPerRouteBean(), 1, -1, TimeUnit.MILLISECONDS);
-        when(mockOperator.createConnection()).thenReturn(mockConnection);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection);
     }
 
     @Test
@@ -84,7 +85,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
 
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
-                supportedSchemes);
+                SchemeRegistryFactory.createDefault());
 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3);
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
@@ -129,7 +130,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
 
         ClientConnectionOperator operator = new DefaultClientConnectionOperator(
-                supportedSchemes);
+                SchemeRegistryFactory.createDefault());
 
         ConnPerRouteBean connPerRoute = new ConnPerRouteBean(3);
         ConnPoolByRoute connPool = new ConnPoolByRoute(operator, connPerRoute, 20);
@@ -198,13 +199,15 @@ public class TestConnPoolByRoute extends ServerTestBase {
 
     @Test(expected=IllegalArgumentException.class)
     public void nullConnPerRouteIsNotAllowed() {
-        new ConnPoolByRoute(new DefaultClientConnectionOperator(supportedSchemes),
+        new ConnPoolByRoute(new DefaultClientConnectionOperator(
+                SchemeRegistryFactory.createDefault()),
                 null, 1, -1, TimeUnit.MILLISECONDS);
     }
 
     @Test
     public void deprecatedConstructorIsStillSupported() {
-        new ConnPoolByRoute(new DefaultClientConnectionOperator(supportedSchemes),
+        new ConnPoolByRoute(new DefaultClientConnectionOperator(
+                SchemeRegistryFactory.createDefault()),
                 new BasicHttpParams());
     }
 
@@ -269,7 +272,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.shutdown();
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        verify(mockConnection, atLeastOnce()).close();
+        Mockito.verify(mockConnection, Mockito.atLeastOnce()).close();
     }
 
     @Test
@@ -278,7 +281,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         assertFalse(impl.freeConnections.isEmpty());
-        when(mockConnection.isOpen()).thenReturn(false);
+        Mockito.when(mockConnection.isOpen()).thenReturn(false);
         impl.deleteClosedConnections();
         assertTrue(impl.freeConnections.isEmpty());
         assertEquals(0, impl.numConnections);
@@ -290,7 +293,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         assertFalse(impl.freeConnections.isEmpty());
-        when(mockConnection.isOpen()).thenReturn(true);
+        Mockito.when(mockConnection.isOpen()).thenReturn(true);
         impl.deleteClosedConnections();
         assertFalse(impl.freeConnections.isEmpty());
         assertEquals(1, impl.numConnections);
@@ -303,7 +306,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         Thread.sleep(200L);
         impl.closeIdleConnections(1, TimeUnit.MILLISECONDS);
-        verify(mockConnection, atLeastOnce()).close();
+        Mockito.verify(mockConnection, Mockito.atLeastOnce()).close();
     }
 
     @Test
@@ -312,7 +315,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         impl.closeIdleConnections(3, TimeUnit.SECONDS);
-        verify(mockConnection, never()).close();
+        Mockito.verify(mockConnection, Mockito.never()).close();
     }
 
     @Test
@@ -322,7 +325,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
         Thread.sleep(200L);
         impl.closeExpiredConnections();
-        verify(mockConnection, atLeastOnce()).close();
+        Mockito.verify(mockConnection, Mockito.atLeastOnce()).close();
     }
 
     @Test
@@ -332,7 +335,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
         impl.freeEntry(entry, true, 10, TimeUnit.SECONDS);
         Thread.sleep(200L);
         impl.closeExpiredConnections();
-        verify(mockConnection, never()).close();
+        Mockito.verify(mockConnection, Mockito.never()).close();
     }
 
     @Test
@@ -340,21 +343,21 @@ public class TestConnPoolByRoute extends ServerTestBase {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, false, 0, TimeUnit.MILLISECONDS);
-        verify(mockConnection, atLeastOnce()).close();
+        Mockito.verify(mockConnection, Mockito.atLeastOnce()).close();
     }
 
     @Test
     public void handlesExceptionsWhenClosingConnections() throws Exception {
         useMockOperator();
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
-        doThrow(new IOException()).when(mockConnection).close();
+        Mockito.doThrow(new IOException()).when(mockConnection).close();
         impl.freeEntry(entry, false, 0, TimeUnit.MILLISECONDS);
     }
 
     @Test
     public void wakesUpWaitingThreadsWhenEntryAvailable() throws Exception {
         useMockOperator();
-        when(mockOperator.createConnection()).thenReturn(mockConnection);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection);
         impl.setMaxTotalConnections(1);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         final Flag f = new Flag(false);
@@ -378,7 +381,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
     @Test
     public void wakesUpWaitingThreadsOnOtherRoutesWhenEntryAvailable() throws Exception {
         useMockOperator();
-        when(mockOperator.createConnection()).thenReturn(mockConnection);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection);
         impl.setMaxTotalConnections(1);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         final Flag f = new Flag(false);
@@ -402,7 +405,7 @@ public class TestConnPoolByRoute extends ServerTestBase {
     @Test
     public void doesNotRecycleExpiredConnections() throws Exception {
         useMockOperator();
-        when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
         Thread.sleep(200L);
@@ -413,20 +416,20 @@ public class TestConnPoolByRoute extends ServerTestBase {
     @Test
     public void closesExpiredConnectionsWhenNotReusingThem() throws Exception {
         useMockOperator();
-        when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection, mockConnection2);
         BasicPoolEntry entry = impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         impl.freeEntry(entry, true, 1, TimeUnit.MILLISECONDS);
         Thread.sleep(200L);
         impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
-        verify(mockConnection, atLeastOnce()).close();
+        Mockito.verify(mockConnection, Mockito.atLeastOnce()).close();
     }
 
 
     @Test
     public void wakesUpWaitingThreadsOnShutdown() throws Exception {
         useMockOperator();
-        when(mockOperator.createConnection()).thenReturn(mockConnection);
-        when(mockOperator.createConnection()).thenReturn(mockConnection);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection);
+        Mockito.when(mockOperator.createConnection()).thenReturn(mockConnection);
         impl.setMaxTotalConnections(1);
         impl.requestPoolEntry(route, new Object()).getPoolEntry(-1, TimeUnit.MILLISECONDS);
         final Flag f = new Flag(false);

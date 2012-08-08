@@ -51,6 +51,8 @@ import org.apache.http.util.EntityUtils;
  * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
  *
  * @since 4.2
+ * 
+ * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
 @ThreadSafe
 public class AutoRetryHttpClient implements HttpClient {

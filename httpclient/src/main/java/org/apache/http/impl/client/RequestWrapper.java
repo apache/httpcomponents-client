@@ -37,6 +37,7 @@ import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.exec.HttpRequestWrapper;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
@@ -49,10 +50,12 @@ import org.apache.http.params.HttpProtocolParams;
  * This class is also capable of resetting the request headers to
  * the state of the original request.
  *
- *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use {@link HttpRequestWrapper}.
  */
 @NotThreadSafe
+@Deprecated 
 public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private final HttpRequest original;

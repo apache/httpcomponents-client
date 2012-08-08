@@ -33,6 +33,7 @@ import java.io.OutputStream;
 
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.impl.client.exec.HttpRequestWrapper;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -48,9 +49,11 @@ import org.apache.http.protocol.HTTP;
  * This class is also capable of resetting the request headers to
  * the state of the original request.
  *
- *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use {@link HttpRequestWrapper}.
  */
+@Deprecated 
 @NotThreadSafe // e.g. [gs]etEntity()
 public class EntityEnclosingRequestWrapper extends RequestWrapper
     implements HttpEntityEnclosingRequest {
@@ -89,7 +92,6 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
             super(entity);
         }
 
-        @SuppressWarnings("deprecation")
         @Override
         public void consumeContent() throws IOException {
             consumed = true;

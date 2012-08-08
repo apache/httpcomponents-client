@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,7 +42,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.BasicHttpContext;
@@ -58,7 +58,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClientReauthentication extends BasicServerTestBase {
+public class TestClientReauthentication extends IntegrationTestBase {
 
     public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
@@ -83,7 +83,7 @@ public class TestClientReauthentication extends BasicServerTestBase {
         httpproc.addInterceptor(new ResponseBasicUnauthorized());
 
         this.localServer = new LocalTestServer(httpproc, null);
-        this.httpclient = new DefaultHttpClient();
+        startServer();
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -141,12 +141,11 @@ public class TestClientReauthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpContext context = new BasicHttpContext();
         for (int i = 0; i < 10; i++) {

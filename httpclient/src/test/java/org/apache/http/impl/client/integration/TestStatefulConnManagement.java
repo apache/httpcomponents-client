@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 
@@ -37,8 +37,8 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -48,12 +48,18 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link DefaultRequestDirector}
+ * Test cases for state-ful connections.
  */
-public class TestStatefulConnManagement extends ServerTestBase {
+public class TestStatefulConnManagement extends IntegrationTestBase {
+
+    @Before
+    public void setUp() throws Exception {
+        startServer();
+    }
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -85,12 +91,23 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(params, 10);
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
 
+        UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
-        DefaultHttpClient client = new DefaultHttpClient(mgr, params);
+            public Object getUserToken(final HttpContext context) {
+                Integer id = (Integer) context.getAttribute("user");
+                return id;
+            }
+
+        };
+        
+        this.httpclient = new HttpClientBuilder()
+            .setConnectionManager(mgr)
+            .setUserTokenHandler(userTokenHandler)
+            .build();
 
         HttpContext[] contexts = new HttpContext[workerCount];
         HttpWorker[] workers = new HttpWorker[workerCount];
@@ -98,18 +115,8 @@ public class TestStatefulConnManagement extends ServerTestBase {
             HttpContext context = new BasicHttpContext();
             context.setAttribute("user", Integer.valueOf(i));
             contexts[i] = context;
-            workers[i] = new HttpWorker(context, requestCount, target, client);
+            workers[i] = new HttpWorker(context, requestCount, target, this.httpclient);
         }
-
-        client.setUserTokenHandler(new UserTokenHandler() {
-
-            public Object getUserToken(final HttpContext context) {
-                Integer id = (Integer) context.getAttribute("user");
-                return id;
-            }
-
-        });
-
 
         for (int i = 0; i < workers.length; i++) {
             workers[i].start();
@@ -207,24 +214,27 @@ public class TestStatefulConnManagement extends ServerTestBase {
         this.localServer.register("*", new SimpleService());
 
         // We build a client with 2 max active // connections, and 2 max per route.
-        PoolingClientConnectionManager connMngr = new PoolingClientConnectionManager(supportedSchemes);
+        PoolingClientConnectionManager connMngr = new PoolingClientConnectionManager();
         connMngr.setMaxTotal(maxConn);
         connMngr.setDefaultMaxPerRoute(maxConn);
 
-        DefaultHttpClient client = new DefaultHttpClient(connMngr);
-
-        client.setUserTokenHandler(new UserTokenHandler() {
+        UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             public Object getUserToken(final HttpContext context) {
                 return context.getAttribute("user");
             }
 
-        });
+        };
 
+        this.httpclient = new HttpClientBuilder()
+            .setConnectionManager(connMngr)
+            .setUserTokenHandler(userTokenHandler)
+            .build();
+        
         // Bottom of the pool : a *keep alive* connection to Route 1.
         HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
-        HttpResponse response1 = client.execute(
+        HttpResponse response1 = this.httpclient.execute(
                 new HttpHost("localhost", port), new HttpGet("/"), context1);
         EntityUtils.consume(response1.getEntity());
 
@@ -237,7 +247,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
         HttpContext context2 = new BasicHttpContext();
-        HttpResponse response2 = client.execute(
+        HttpResponse response2 = this.httpclient.execute(
                 new HttpHost("127.0.0.1", port), new HttpGet("/"), context2);
         EntityUtils.consume(response2.getEntity());
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
@@ -252,7 +262,7 @@ public class TestStatefulConnManagement extends ServerTestBase {
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
         HttpContext context3 = new BasicHttpContext();
-        HttpResponse response3 = client.execute(
+        HttpResponse response3 = this.httpclient.execute(
                 new HttpHost("localhost", port), new HttpGet("/"), context3);
 
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool

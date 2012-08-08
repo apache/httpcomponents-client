@@ -32,17 +32,14 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class TestRequestClientConnControl {
 
@@ -75,10 +72,7 @@ public class TestRequestClientConnControl {
         HttpHost target = new HttpHost("localhost", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
 
         HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -100,10 +94,7 @@ public class TestRequestClientConnControl {
         HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
 
         HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -125,10 +116,7 @@ public class TestRequestClientConnControl {
         HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
 
         HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -151,10 +139,7 @@ public class TestRequestClientConnControl {
         HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
 
         HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -177,10 +162,7 @@ public class TestRequestClientConnControl {
         HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
 
         HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);

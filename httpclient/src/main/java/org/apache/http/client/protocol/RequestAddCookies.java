@@ -47,8 +47,9 @@ import org.apache.http.ProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.conn.HttpRoutedConnection;
-import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.RouteInfo;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -111,7 +112,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        // Obtain the target host (required)
+        // Obtain the target host, possibly virtual (required)
         HttpHost targetHost = (HttpHost) context.getAttribute(
                 ExecutionContext.HTTP_TARGET_HOST);
         if (targetHost == null) {
@@ -119,11 +120,10 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        // Obtain the client connection (required)
-        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
-                ExecutionContext.HTTP_CONNECTION);
-        if (conn == null) {
-            this.log.debug("HTTP connection not set in the context");
+        // Obtain the route (required)
+        RouteInfo route = (RouteInfo) context.getAttribute(ClientContext.ROUTE);
+        if (route == null) {
+            this.log.debug("Connection route not set in the context");
             return;
         }
 
@@ -147,9 +147,13 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
-            HttpRoute route = conn.getRoute();
             if (route.getHopCount() == 1) {
-                port = conn.getRemotePort();
+                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                        ClientContext.SCHEME_REGISTRY);
+                if (schemeRegistry != null) {
+                    Scheme scheme = schemeRegistry.getScheme(targetHost);
+                    port = scheme.resolvePort(port);
+                }
             } else {
                 // Target port will be selected by the proxy.
                 // Use conventional ports for known schemes
@@ -158,17 +162,15 @@ public class RequestAddCookies implements HttpRequestInterceptor {
                     port = 80;
                 } else if (scheme.equalsIgnoreCase("https")) {
                     port = 443;
-                } else {
-                    port = 0;
                 }
             }
         }
 
         CookieOrigin cookieOrigin = new CookieOrigin(
                 hostName,
-                port,
+                port >= 0 ? port : 0,
                 requestURI.getPath(),
-                conn.isSecure());
+                route.isSecure());
 
         // Get an instance of the selected cookie policy
         CookieSpec cookieSpec = registry.getCookieSpec(policy, request.getParams());

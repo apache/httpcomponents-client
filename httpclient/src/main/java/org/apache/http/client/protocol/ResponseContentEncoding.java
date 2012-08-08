@@ -78,16 +78,17 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
             Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 HeaderElement[] codecs = ceheader.getElements();
+                boolean uncompressed = false;
                 for (HeaderElement codec : codecs) {
                     String codecname = codec.getName().toLowerCase(Locale.US);
                     if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
                         response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-                        if (context != null) context.setAttribute(UNCOMPRESSED, true);  
-                        return;
+                        uncompressed = true;
+                        break;
                     } else if ("deflate".equals(codecname)) {
                         response.setEntity(new DeflateDecompressingEntity(response.getEntity()));
-                        if (context != null) context.setAttribute(UNCOMPRESSED, true);
-                        return;
+                        uncompressed = true;
+                        break;
                     } else if ("identity".equals(codecname)) {
 
                         /* Don't need to transform the content - no-op */
@@ -95,6 +96,11 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                     } else {
                         throw new HttpException("Unsupported Content-Coding: " + codec.getName());
                     }
+                }
+                if (uncompressed) {
+                    response.removeHeaders("Content-Length");
+                    response.removeHeaders("Content-Encoding");
+                    response.removeHeaders("Content-MD5");
                 }
             }
         }

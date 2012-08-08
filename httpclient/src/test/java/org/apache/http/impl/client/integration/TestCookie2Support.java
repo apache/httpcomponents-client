@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.client.protocol;
+package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,14 +39,13 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.localserver.BasicServerTestBase;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -60,14 +59,12 @@ import org.junit.Test;
 /**
  * Cookie2 support tests.
  */
-public class TestCookie2Support extends BasicServerTestBase {
+public class TestCookie2Support extends IntegrationTestBase {
 
     @Before
     public void setUp() throws Exception {
-        this.localServer = new LocalTestServer(null, null);
-        this.localServer.registerDefaultHandlers();
-        this.localServer.start();
-        this.httpclient = new DefaultHttpClient();
+        startServer();
+        this.httpclient = new HttpClientBuilder().build();
     }
 
     private static class CookieVer0Service implements HttpRequestHandler {

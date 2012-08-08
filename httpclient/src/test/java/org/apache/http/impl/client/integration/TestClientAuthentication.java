@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,8 +46,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.BasicAuthTokenExtractor;
-import org.apache.http.localserver.BasicServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
@@ -69,7 +71,7 @@ import org.junit.Test;
 /**
  * Unit tests for automatic client authentication.
  */
-public class TestClientAuthentication extends BasicServerTestBase {
+public class TestClientAuthentication extends IntegrationTestBase {
 
     @Before
     public void setUp() throws Exception {
@@ -80,9 +82,8 @@ public class TestClientAuthentication extends BasicServerTestBase {
         httpproc.addInterceptor(new ResponseConnControl());
         httpproc.addInterceptor(new RequestBasicAuth());
         httpproc.addInterceptor(new ResponseBasicUnauthorized());
-
         this.localServer = new LocalTestServer(httpproc, null);
-        this.httpclient = new DefaultHttpClient();
+        startServer();
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -156,12 +157,9 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
-
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -178,13 +176,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationFailure() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "all-wrong"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -201,13 +197,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -238,8 +232,7 @@ public class TestClientAuthentication extends BasicServerTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -257,13 +250,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -286,13 +277,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new StringEntity("some important stuff", Consts.ASCII));
@@ -310,19 +299,16 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
-
         try {
             this.httpclient.execute(getServerHttp(), httppost);
             Assert.fail("ClientProtocolException should have been thrown");
@@ -368,16 +354,16 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("test", "test"));
-
         TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
 
-        this.httpclient.setCredentialsProvider(credsProvider);
-        this.httpclient.setTargetAuthenticationStrategy(authStrategy);
+        this.httpclient = new HttpClientBuilder()
+            .setCredentialsProvider(credsProvider)
+            .setTargetAuthenticationStrategy(authStrategy)
+            .build();
 
         HttpContext context = new BasicHttpContext();
 
@@ -401,10 +387,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
+
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
@@ -416,10 +403,11 @@ public class TestClientAuthentication extends BasicServerTestBase {
     @Test
     public void testAuthenticationUserinfoInRequestFailure() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
+
+        this.httpclient = new HttpClientBuilder().build();
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();

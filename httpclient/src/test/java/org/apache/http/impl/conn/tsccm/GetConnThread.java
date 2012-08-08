@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.conn;
+package org.apache.http.impl.conn.tsccm;
 
 import java.util.concurrent.TimeUnit;
 

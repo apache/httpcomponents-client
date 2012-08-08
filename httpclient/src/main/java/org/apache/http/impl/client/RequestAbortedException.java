@@ -24,24 +24,32 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.utils;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.junit.Test;
+package org.apache.http.impl.client;
 
-public class TestHttpClientUtils {
+import java.io.InterruptedIOException;
 
-    @Test
-    public void testCloseQuietlyNullClient() throws Exception {
-        HttpClient httpClient = null;
-        HttpClientUtils.closeQuietly(httpClient);
+import org.apache.http.annotation.Immutable;
+
+/**
+ * Signals that the request has been aborted.
+ *
+ * @since 4.3
+ */
+@Immutable
+public class RequestAbortedException extends InterruptedIOException {
+
+    private static final long serialVersionUID = 4973849966012490112L;
+
+    public RequestAbortedException(final String message) {
+        super(message);
     }
 
-    @Test
-    public void testCloseQuietlyResponseNull() throws Exception {
-        HttpResponse response = null;
-        HttpClientUtils.closeQuietly(response);
+    public RequestAbortedException(final String message, final Throwable cause) {
+        super(message);
+        if (cause != null) {
+            initCause(cause);
+        }
     }
 
 }

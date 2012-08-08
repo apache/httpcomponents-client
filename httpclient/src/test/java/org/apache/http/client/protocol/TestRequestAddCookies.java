@@ -26,7 +26,6 @@
 
 package org.apache.http.client.protocol;
 
-import java.net.InetAddress;
 import java.util.Date;
 
 import org.apache.http.Header;
@@ -37,10 +36,12 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecRegistry;
@@ -62,7 +63,6 @@ import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 @SuppressWarnings("boxing")
 public class TestRequestAddCookies {
@@ -127,13 +127,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -164,13 +160,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -191,13 +183,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, null);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -218,13 +206,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, null);
 
@@ -245,13 +229,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, null);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -294,13 +274,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -323,13 +299,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -344,17 +316,16 @@ public class TestRequestAddCookies {
         this.target = new HttpHost("localhost.local");
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-        Mockito.when(conn.getRemoteAddress()).thenReturn(InetAddress.getByName("localhost"));
-        Mockito.when(conn.getRemotePort()).thenReturn(1234);
+        Scheme http = new Scheme("http", 1234, PlainSocketFactory.getSocketFactory());
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(http);
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
+        context.setAttribute(ClientContext.SCHEME_REGISTRY, schemeRegistry);
 
         HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
@@ -375,14 +346,9 @@ public class TestRequestAddCookies {
         this.target = new HttpHost("localhost.local");
         HttpRoute route = new HttpRoute(this.target, null, new HttpHost("localhost", 8888), false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-        Mockito.when(conn.getRemotePort()).thenReturn(1234);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -406,15 +372,9 @@ public class TestRequestAddCookies {
         HttpRoute route = new HttpRoute(this.target, null, new HttpHost("localhost", 8888), true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.TRUE);
-        Mockito.when(conn.getRemoteAddress()).thenReturn(InetAddress.getByName("localhost"));
-        Mockito.when(conn.getRemotePort()).thenReturn(1234);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -444,13 +404,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -479,13 +435,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -522,13 +474,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
@@ -560,13 +508,9 @@ public class TestRequestAddCookies {
 
         HttpRoute route = new HttpRoute(this.target, null, false);
 
-        HttpRoutedConnection conn = Mockito.mock(HttpRoutedConnection.class);
-        Mockito.when(conn.getRoute()).thenReturn(route);
-        Mockito.when(conn.isSecure()).thenReturn(Boolean.FALSE);
-
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 

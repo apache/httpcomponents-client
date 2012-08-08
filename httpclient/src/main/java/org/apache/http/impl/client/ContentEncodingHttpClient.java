@@ -47,6 +47,8 @@ import org.apache.http.protocol.BasicHttpProcessor;
  * responses in compressed or uncompressed form.
  *
  * @since 4.1
+ * 
+ * @deprecated (4.2) use {@link HttpClientBuilder}
  */
 @Deprecated
 @ThreadSafe // since DefaultHttpClient is

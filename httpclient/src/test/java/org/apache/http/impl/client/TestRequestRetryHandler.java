@@ -30,9 +30,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.Scheme;
@@ -54,16 +55,13 @@ public class TestRequestRetryHandler {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, new OppsieSchemeSocketFactory()));
         ClientConnectionManager connManager = new PoolingClientConnectionManager(schemeRegistry);
-
-        assertOnRetry(connManager);
-    }
-
-    protected void assertOnRetry(ClientConnectionManager connManager) throws Exception {
-        DefaultHttpClient client = new DefaultHttpClient(connManager);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
-        client.setHttpRequestRetryHandler(testRetryHandler);
 
-        HttpRequestBase request = new HttpGet("http://www.example.com/");
+        HttpClient client = new HttpClientBuilder()
+            .setConnectionManager(connManager)
+            .setRetryHandler(testRetryHandler).build();
+
+        HttpUriRequest request = new HttpGet("http://www.example.com/");
 
         HttpConnectionParams.setConnectionTimeout(request.getParams(), 1);
         try {

@@ -45,6 +45,7 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 public interface ManagedClientConnection extends
     HttpClientConnection, HttpRoutedConnection, ConnectionReleaseTrigger {
 

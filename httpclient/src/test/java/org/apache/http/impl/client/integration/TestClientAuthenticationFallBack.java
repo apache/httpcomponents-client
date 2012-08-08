@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 
@@ -41,7 +41,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -56,7 +56,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClientAuthenticationFallBack extends BasicServerTestBase {
+public class TestClientAuthenticationFallBack extends IntegrationTestBase {
 
     public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
@@ -82,7 +82,7 @@ public class TestClientAuthenticationFallBack extends BasicServerTestBase {
         httpproc.addInterceptor(new ResponseBasicUnauthorized());
 
         this.localServer = new LocalTestServer(httpproc, null);
-        this.httpclient = new DefaultHttpClient();
+        startServer();
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -133,13 +133,11 @@ public class TestClientAuthenticationFallBack extends BasicServerTestBase {
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
-        this.localServer.start();
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-
-        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 

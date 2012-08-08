@@ -37,22 +37,15 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
-import org.apache.http.localserver.ServerTestBase;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestIdleConnectionEviction extends ServerTestBase {
+public class TestIdleConnectionEviction extends LocalServerTestBase {
 
-    @Override
     @Before
     public void setUp() throws Exception {
         this.localServer = new LocalTestServer(null, null);
@@ -62,17 +55,11 @@ public class TestIdleConnectionEviction extends ServerTestBase {
 
     @Test
     public void testIdleConnectionEviction() throws Exception {
-        HttpParams params = new BasicHttpParams();
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
-
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
         cm.setDefaultMaxPerRoute(10);
         cm.setMaxTotal(50);
 
-        DefaultHttpClient httpclient = new DefaultHttpClient(cm, params);
+        HttpClient httpclient = new HttpClientBuilder().setConnectionManager(cm).build();
 
         IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(cm);
         idleConnectionMonitor.start();

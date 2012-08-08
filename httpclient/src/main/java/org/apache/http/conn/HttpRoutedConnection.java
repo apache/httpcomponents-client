@@ -36,7 +36,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * Interface to access routing information of a client side connection.
  *
  * @since 4.1
+ *
+ * @deprecated (4.3) no longer used
  */
+@Deprecated
 public interface HttpRoutedConnection extends HttpInetConnection {
 
     /**

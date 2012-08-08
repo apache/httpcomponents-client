@@ -36,6 +36,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthState;
 import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -44,7 +45,10 @@ import org.apache.http.protocol.HttpContext;
  * based on the actual state of the HTTP authentication context.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link HttpAuthenticator}.
  */
+@Deprecated
 @Immutable
 public class RequestProxyAuthentication extends RequestAuthenticationBase {
 

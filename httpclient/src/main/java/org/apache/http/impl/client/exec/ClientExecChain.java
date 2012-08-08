@@ -25,44 +25,34 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.exec;
 
-import org.apache.http.annotation.NotThreadSafe;
+import java.io.IOException;
 
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * A request with the route along which it should be sent.
+ * This interface represents an element in the HTTP request execution chain. Each element can
+ * either be a decorator around another element that implements a cross cutting aspect or
+ * a self-contained executor capable of producing a response for the given request.
+ * <p/>
+ * Important: please note it is required for decorators that implement post execution aspects
+ * or response post-processing of any sort to release resources associated with the response
+ * by calling {@link HttpResponseWrapper#releaseConnection()} or {@link HttpResponseWrapper#close()}
+ * methods in case of an I/O, protocol or runtime exception, or in case the response is not
+ * propagated to the caller.
  *
- * @since 4.0
- * 
- * @deprecated (4.3) do not use.
+ * @since 4.3
  */
-@Deprecated
-@NotThreadSafe // RequestWrapper is @NotThreadSafe
-public class RoutedRequest {
+public interface ClientExecChain {
 
-    protected final RequestWrapper request; // @NotThreadSafe
-    protected final HttpRoute route; // @Immutable
-
-    /**
-     * Creates a new routed request.
-     *
-     * @param req   the request
-     * @param route   the route
-     */
-    public RoutedRequest(final RequestWrapper req, final HttpRoute route) {
-        super();
-        this.request = req;
-        this.route   = route;
-    }
-
-    public final RequestWrapper getRequest() {
-        return request;
-    }
-
-    public final HttpRoute getRoute() {
-        return route;
-    }
+    HttpResponseWrapper execute(
+            HttpRoute route,
+            HttpRequestWrapper request,
+            HttpContext context,
+            HttpExecutionAware execAware) throws IOException, HttpException;
 
 }

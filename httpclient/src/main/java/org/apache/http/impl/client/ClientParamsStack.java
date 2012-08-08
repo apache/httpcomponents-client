@@ -29,6 +29,7 @@ package org.apache.http.impl.client;
 
 import org.apache.http.annotation.NotThreadSafe;
 
+import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.AbstractHttpParams;
 
@@ -64,11 +65,12 @@ import org.apache.http.params.AbstractHttpParams;
  * an empty params collection, since it avoids searching the empty collection
  * when looking up parameters.
  *
- *
- *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use {@link DefaultedHttpParams}
  */
 @NotThreadSafe
+@Deprecated
 public class ClientParamsStack extends AbstractHttpParams {
 
     /** The application parameter collection, or <code>null</code>. */

@@ -31,44 +31,55 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestBasicConnManager extends ServerTestBase {
+public class TestBasicConnManager extends LocalServerTestBase {
 
-    public BasicClientConnectionManager createConnManager(SchemeRegistry schreg) {
-        if (schreg == null)
-            schreg = supportedSchemes;
-        return new BasicClientConnectionManager(schreg);
+    @Before 
+    public void setup() throws Exception {
+        startServer();
     }
-
+    
     /**
      * Tests that SCM can still connect to the same host after
      * a connection was aborted.
      */
     @Test
     public void testOpenAfterAbort() throws Exception {
-        BasicClientConnectionManager mgr = createConnManager(null);
+        BasicClientConnectionManager mgr = new BasicClientConnectionManager();
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         ManagedClientConnection conn = mgr.getConnection(route, null);
         conn.abortConnection();
 
         conn = mgr.getConnection(route, null);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
         mgr.releaseConnection(conn, -1, null);
         mgr.shutdown();
@@ -79,24 +90,30 @@ public class TestBasicConnManager extends ServerTestBase {
      */
     @Test
     public void testReleaseConnectionWithTimeLimits() throws Exception {
+        BasicClientConnectionManager mgr = new BasicClientConnectionManager();
 
-        BasicClientConnectionManager mgr = createConnManager(null);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
+        int      rsplen = 8;
+        String      uri = "/random/" + rsplen;
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
-
-        HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
         ManagedClientConnection conn = mgr.getConnection(route, null);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
-        // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(
-                request, conn, target,
-                httpExecutor, httpProcessor, defaultParams, httpContext);
+        // a new context is created for each test case, no need to reset
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+
+        HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+        
+        HttpRequestExecutor exec = new HttpRequestExecutor();
+        exec.preProcess(request, httpProcessor, context);
+        HttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -113,10 +130,9 @@ public class TestBasicConnManager extends ServerTestBase {
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        conn.open(route, context, params);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
@@ -134,9 +150,8 @@ public class TestBasicConnManager extends ServerTestBase {
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
@@ -153,10 +168,9 @@ public class TestBasicConnManager extends ServerTestBase {
         Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        conn.open(route, context, params);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
@@ -171,14 +185,15 @@ public class TestBasicConnManager extends ServerTestBase {
 
     @Test
     public void testCloseExpiredConnections() throws Exception {
+        BasicClientConnectionManager mgr = new BasicClientConnectionManager();
 
-        BasicClientConnectionManager mgr = createConnManager(null);
-
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         ManagedClientConnection conn =  mgr.getConnection(route, null);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
         conn.markReusable();
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);
 
@@ -198,11 +213,10 @@ public class TestBasicConnManager extends ServerTestBase {
 
     @Test(expected=IllegalStateException.class)
     public void testAlreadyLeased() throws Exception {
+        BasicClientConnectionManager mgr = new BasicClientConnectionManager();
 
-        BasicClientConnectionManager mgr = createConnManager(null);
-
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
 
         ManagedClientConnection conn =  mgr.getConnection(route, null);
         mgr.releaseConnection(conn, 100, TimeUnit.MILLISECONDS);

@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -54,22 +55,34 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.localserver.ServerTestBase;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests for <code>PoolingClientConnectionManager</code> that do require a server
  * to communicate with.
  */
-public class TestPoolingConnManager extends ServerTestBase {
+public class TestPoolingConnManager extends LocalServerTestBase {
 
+    @Before 
+    public void setup() throws Exception {
+        startServer();
+    }
+    
     /**
      * Tests executing several requests in parallel.
      */
@@ -90,22 +103,8 @@ public class TestPoolingConnManager extends ServerTestBase {
 
         ExecReqThread[] threads = new ExecReqThread [COUNT];
         for (int i=0; i<COUNT; i++) {
-
-            HttpRequest request = new BasicHttpRequest
-                ("GET", uri, HttpVersion.HTTP_1_1);
-
-            ExecReqThread.RequestSpec ertrs = new ExecReqThread.RequestSpec();
-            ertrs.executor = httpExecutor;
-            ertrs.processor = httpProcessor;
-            ertrs.context = new BasicHttpContext(null);
-            ertrs.params = defaultParams;
-
-            ertrs.context.setAttribute
-                (ExecutionContext.HTTP_TARGET_HOST, target);
-            ertrs.context.setAttribute
-                (ExecutionContext.HTTP_REQUEST, request);
-
-            threads[i] = new ExecReqThread(mgr, route, 5000L, ertrs);
+            HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+            threads[i] = new ExecReqThread(request, route, mgr, 5000L);
         }
 
         for (int i=0; i<threads.length; i++) {
@@ -155,21 +154,27 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        int      rsplen = 8;
+        String      uri = "/random/" + rsplen;
 
-        HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
-
+        HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
+        
         ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
-        // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(
-                request, conn, target,
-                httpExecutor, httpProcessor, defaultParams, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+
+        HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+        
+        HttpRequestExecutor exec = new HttpRequestExecutor();
+        exec.preProcess(request, httpProcessor, context);
+        HttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -194,11 +199,11 @@ public class TestPoolingConnManager extends ServerTestBase {
         conn = getConnection(mgr, route);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
+        conn.open(route, context, params);
+
         // repeat the communication, no need to prepare the request again
-        conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
@@ -216,9 +221,8 @@ public class TestPoolingConnManager extends ServerTestBase {
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
@@ -241,21 +245,27 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        int      rsplen = 8;
+        String      uri = "/random/" + rsplen;
 
-        HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
-        // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(
-                request, conn, target,
-                httpExecutor, httpProcessor, defaultParams, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+
+        HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+        
+        HttpRequestExecutor exec = new HttpRequestExecutor();
+        exec.preProcess(request, httpProcessor, context);
+        HttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -281,10 +291,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        conn.open(route, context, params);
+        
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
@@ -302,9 +312,8 @@ public class TestPoolingConnManager extends ServerTestBase {
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
@@ -321,10 +330,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        conn.open(route, httpContext, defaultParams);
-        httpContext.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        response = httpExecutor.execute(request, conn, httpContext);
-        httpExecutor.postProcess(response, httpProcessor, httpContext);
+        conn.open(route, context, params);
+        
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
@@ -343,11 +352,13 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -382,11 +393,13 @@ public class TestPoolingConnManager extends ServerTestBase {
                 SchemeRegistryFactory.createDefault(), 100, TimeUnit.MILLISECONDS);
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -425,21 +438,28 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        int      rsplen = 8;
+        String      uri = "/random/" + rsplen;
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
         ManagedClientConnection conn = getConnection(mgr, route);
-        conn.open(route, httpContext, defaultParams);
+        conn.open(route, context, params);
 
-        // a new context is created for each testcase, no need to reset
-        HttpResponse response = Helper.execute(
-                request, conn, target,
-                httpExecutor, httpProcessor, defaultParams, httpContext);
+        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+
+        HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+        
+        HttpRequestExecutor exec = new HttpRequestExecutor();
+        exec.preProcess(request, httpProcessor, context);
+        HttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
@@ -478,8 +498,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         final ManagedClientConnection conn = getConnection(mgr, route);
 
@@ -498,7 +520,7 @@ public class TestPoolingConnManager extends ServerTestBase {
         abortingThread.start();
 
         try {
-            conn.open(route, httpContext, defaultParams);
+            conn.open(route, context, params);
             Assert.fail("expected SocketException");
         } catch(SocketException expected) {}
 
@@ -529,8 +551,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         final ManagedClientConnection conn = getConnection(mgr, route);
 
@@ -549,7 +573,7 @@ public class TestPoolingConnManager extends ServerTestBase {
         abortingThread.start();
 
         try {
-            conn.open(route, httpContext, defaultParams);
+            conn.open(route, context, params);
             Assert.fail("expected exception");
         } catch(IOException expected) {
             Assert.assertEquals("Connection already shutdown", expected.getMessage());
@@ -582,8 +606,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(registry);
         mgr.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         final ManagedClientConnection conn = getConnection(mgr, route);
 
@@ -602,7 +628,7 @@ public class TestPoolingConnManager extends ServerTestBase {
         abortingThread.start();
 
         try {
-            conn.open(route, httpContext, defaultParams);
+            conn.open(route, context, params);
             Assert.fail("expected SocketException");
         } catch(SocketException expected) {}
 
@@ -644,8 +670,10 @@ public class TestPoolingConnManager extends ServerTestBase {
         mgr.setMaxTotal(1);
         Assert.assertNotNull(operatorRef.get());
 
-        final HttpHost target = getServerHttp();
-        final HttpRoute route = new HttpRoute(target, null, false);
+        HttpHost target = getServerHttp();
+        HttpRoute route = new HttpRoute(target, null, false);
+        HttpContext context = new BasicHttpContext();
+        HttpParams params = new BasicHttpParams();
 
         final ManagedClientConnection conn = getConnection(mgr, route);
 
@@ -664,7 +692,7 @@ public class TestPoolingConnManager extends ServerTestBase {
         abortingThread.start();
 
         try {
-            conn.open(route, httpContext, defaultParams);
+            conn.open(route, context, params);
             Assert.fail("expected exception");
         } catch(IOException iox) {
         }

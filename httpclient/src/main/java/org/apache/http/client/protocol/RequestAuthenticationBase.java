@@ -44,6 +44,7 @@ import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 
+@Deprecated
 abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
 
     final Log log = LogFactory.getLog(getClass());
@@ -112,7 +113,6 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private Header authenticate(
             final AuthScheme authScheme,
             final Credentials creds,

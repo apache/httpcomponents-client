@@ -45,7 +45,10 @@ import org.apache.http.util.EntityUtils;
  * the unmanaged entity in the response with a managed one.
  *
  * @since 4.0
+ * 
+ * @deprecated (4.3) do not use.
  */
+@Deprecated
 @NotThreadSafe
 public class BasicManagedEntity extends HttpEntityWrapper
     implements ConnectionReleaseTrigger, EofSensorWatcher {

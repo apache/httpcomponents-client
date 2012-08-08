@@ -27,126 +27,94 @@
 
 package org.apache.http.impl.conn;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.protocol.RequestConnControl;
+import org.apache.http.protocol.RequestContent;
 import org.apache.http.util.EntityUtils;
 
+class ExecReqThread extends Thread {
 
-/**
- * Executes a request from a new thread.
- *
- */
-public class ExecReqThread extends GetConnThread {
+    private final HttpRequest request;
+    private final HttpRoute route;
+    private final ClientConnectionManager connman;
+    private final long timeout;
+    
+    private volatile Exception exception;
+    private volatile HttpResponse response;
+    private volatile byte[] response_data;
 
-    protected final ClientConnectionManager conn_manager;
-    protected final RequestSpec     request_spec;
-    protected volatile HttpResponse response;
-    protected volatile byte[]       response_data;
-
-
-    /**
-     * Executes a request.
-     * This involves the following steps:
-     * <ol>
-     * <li>obtain a connection (see base class)</li>
-     * <li>open the connection</li>
-     * <li>prepare context and request</li>
-     * <li>execute request to obtain the response</li>
-     * <li>consume the response entity (if there is one)</li>
-     * <li>release the connection</li>
-     * </ol>
-     */
-    public ExecReqThread(ClientConnectionManager mgr,
-                         HttpRoute route, long timeout,
-                         RequestSpec reqspec) {
-        super(mgr, route, timeout);
-        this.conn_manager = mgr;
-
-        request_spec = reqspec;
+    public ExecReqThread(
+            HttpRequest request,
+            HttpRoute route, 
+            ClientConnectionManager mgr,
+            long timeout) {
+        super();
+        this.request = request;
+        this.route = route;
+        this.connman = mgr;
+        this.timeout = timeout;
     }
 
+    public Exception getException() {
+        return this.exception;
+    }
 
     public HttpResponse getResponse() {
-        return response;
+        return this.response;
     }
 
     public byte[] getResponseData() {
-        return response_data;
+        return this.response_data;
     }
 
-
-    /**
-     * This method is invoked when the thread is started.
-     * It invokes the base class implementation.
-     */
     @Override
     public void run() {
-        super.run();    // obtain connection
-        if (connection == null)
-            return;     // problem obtaining connection
-
         try {
-            request_spec.context.setAttribute
-                (ExecutionContext.HTTP_CONNECTION, connection);
+            
+            HttpProcessor processor = new ImmutableHttpProcessor(
+                    new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+            HttpRequestExecutor executor = new HttpRequestExecutor();
+            HttpContext context = new BasicHttpContext();
+            HttpParams params = new BasicHttpParams();
+            
+            ClientConnectionRequest connRequest = this.connman.requestConnection(this.route, null);
+            ManagedClientConnection conn = connRequest.getConnection(this.timeout, TimeUnit.MILLISECONDS);
+            try {
+                context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.route.getTargetHost());
+                context.setAttribute(ClientContext.ROUTE, this.route);
+                context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
 
-            doOpenConnection();
+                conn.open(this.route, context, params);
 
-            HttpRequest request = (HttpRequest) request_spec.context.
-                getAttribute(ExecutionContext.HTTP_REQUEST);
-            request_spec.executor.preProcess
-                (request, request_spec.processor, request_spec.context);
+                executor.preProcess(this.request, processor, context);
 
-            response = request_spec.executor.execute
-                (request, connection, request_spec.context);
-
-            request_spec.executor.postProcess
-                (response, request_spec.processor, request_spec.context);
-
-            doConsumeResponse();
-
+                this.response = executor.execute(this.request, conn, context);
+                if (this.response.getEntity() != null) {
+                    this.response_data = EntityUtils.toByteArray(this.response.getEntity());
+                }
+            } finally {
+                this.connman.releaseConnection(conn, -1, null);
+            }
         } catch (Exception ex) {
-            if (exception != null)
-                exception = ex;
-
-        } finally {
-            conn_manager.releaseConnection(connection, -1, null);
+            this.exception = ex;
         }
-    }
-
-
-    /**
-     * Opens the connection after it has been obtained.
-     */
-    protected void doOpenConnection() throws Exception {
-        connection.open
-            (conn_route, request_spec.context, request_spec.params);
-    }
-
-    /**
-     * Reads the response entity, if there is one.
-     */
-    protected void doConsumeResponse() throws Exception {
-        if (response.getEntity() != null)
-            response_data = EntityUtils.toByteArray(response.getEntity());
-    }
-
-
-    /**
-     * Helper class collecting request data.
-     * The request and target are expected in the context.
-     */
-    public static class RequestSpec {
-        public HttpRequestExecutor executor;
-        public HttpProcessor processor;
-        public HttpContext context;
-        public HttpParams params;
     }
 
 }

@@ -70,7 +70,10 @@ import org.apache.http.util.EntityUtils;
  * in either order and still have cacheable responses be cached.</p> 
  * 
  * @since 4.2
+ * 
+ * @deprecated (4.3) use {@link HttpClientBuilder}
  */
+@Deprecated
 public class DecompressingHttpClient implements HttpClient {
 
     private final HttpClient backend;
@@ -153,11 +156,6 @@ public class DecompressingHttpClient implements HttpClient {
             acceptEncodingInterceptor.process(wrapped, context);
             HttpResponse response = backend.execute(target, wrapped, context);
             contentEncodingInterceptor.process(response, context);
-            if (Boolean.TRUE.equals(context.getAttribute(ResponseContentEncoding.UNCOMPRESSED))) {
-                response.removeHeaders("Content-Length");
-                response.removeHeaders("Content-Encoding");
-                response.removeHeaders("Content-MD5");
-            }
             return response;
         } catch (HttpException e) {
             throw new ClientProtocolException(e);
