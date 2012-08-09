@@ -115,12 +115,4 @@ public interface ClientContext {
      */
     public static final String USER_TOKEN            = "http.user-token";
 
-    /**
-     * Attribute name of a {@link javax.net.SSLSession} object that represents
-     * the actual SSL session.
-     *
-     * @since 4.3
-     */
-    public static final String SSL_SESSION           = "http.ssl-session";
-
 }

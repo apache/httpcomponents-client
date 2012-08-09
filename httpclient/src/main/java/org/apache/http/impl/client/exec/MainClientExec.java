@@ -221,7 +221,6 @@ public class MainClientExec implements ClientExecChain {
         }
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
-        context.setAttribute(ClientContext.SSL_SESSION, managedConn.getSSLSession());
 
         if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
             // validate connection
