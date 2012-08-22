@@ -80,7 +80,7 @@ HttpClient Downloads
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>hc-fluent</artifactId>
+    <artifactId>fluent-hc</artifactId>
     <version>4.2.1</version>
     <scope>compile</scope>
   </dependency>
