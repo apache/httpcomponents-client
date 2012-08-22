@@ -426,11 +426,13 @@ public class CachingHttpClient implements HttpClient {
         flushEntriesInvalidatedByRequest(target, request);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
+            log.debug("Request is not servable from cache");
             return callBackend(target, request, context);
         }
 
         HttpCacheEntry entry = satisfyFromCache(target, request);
         if (entry == null) {
+            log.debug("Cache miss");
             return handleCacheMiss(target, request, context);
         }
 
@@ -444,12 +446,16 @@ public class CachingHttpClient implements HttpClient {
         HttpResponse out = null;
         Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
+            log.debug("Cache hit");
             out = generateCachedResponse(request, context, entry, now);
         } else if (!mayCallBackend(request)) {
+            log.debug("Cache entry not suitable but only-if-cached requested");
             out = generateGatewayTimeout(context);
         } else if (validityPolicy.isRevalidatable(entry)) {
+            log.debug("Revalidating cache entry");
             return revalidateCacheEntry(target, request, context, entry, now);
         } else {
+            log.debug("Cache entry not usable; calling backend");
         	return callBackend(target, request, context);
         }
         if (context != null) {
@@ -464,12 +470,12 @@ public class CachingHttpClient implements HttpClient {
     private HttpResponse revalidateCacheEntry(HttpHost target,
             HttpRequest request, HttpContext context, HttpCacheEntry entry,
             Date now) throws ClientProtocolException {
-        log.trace("Revalidating the cache entry");
 
         try {
             if (asynchRevalidator != null
                 && !staleResponseNotAllowed(request, entry, now)
                 && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
+                log.trace("Serving stale with asynchronous revalidation");
                 final HttpResponse resp = generateCachedResponse(request, context, entry, now);
 
                 asynchRevalidator.revalidateCacheEntry(target, request, context, entry);
@@ -615,6 +621,7 @@ public class CachingHttpClient implements HttpClient {
         for (Header h: request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for (HeaderElement elt : h.getElements()) {
                 if ("only-if-cached".equals(elt.getName())) {
+                    log.trace("Request marked only-if-cached");
                     return false;
                 }
             }

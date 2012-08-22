@@ -401,10 +401,10 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void doesNotFlushEntrySpecifiedByContentLocationIfNotNewer()
+    public void doesNotFlushEntrySpecifiedByContentLocationIfOlder()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", formatDate(tenSecondsAgo));
         String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
@@ -475,7 +475,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void doesNotFlushEntrySpecifiedByContentLocationIfResponseHasNoDate()
+    public void flushesEntrySpecifiedByContentLocationIfResponseHasNoDate()
             throws Exception {
         response.setHeader("ETag", "\"new-etag\"");
         response.removeHeaders("Date");
@@ -488,6 +488,7 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -495,7 +496,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void doesNotFlushEntrySpecifiedByContentLocationIfEntryHasNoDate()
+    public void flushesEntrySpecifiedByContentLocationIfEntryHasNoDate()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
@@ -507,6 +508,7 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -514,7 +516,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void doesNotFlushEntrySpecifiedByContentLocationIfResponseHasMalformedDate()
+    public void flushesEntrySpecifiedByContentLocationIfResponseHasMalformedDate()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", "blarg");
@@ -527,6 +529,7 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -534,7 +537,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void doesNotFlushEntrySpecifiedByContentLocationIfEntryHasMalformedDate()
+    public void flushesEntrySpecifiedByContentLocationIfEntryHasMalformedDate()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
@@ -547,6 +550,7 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
