@@ -199,7 +199,10 @@ class CacheInvalidator {
         HttpCacheEntry entry = getEntry(cacheKey);
         if (entry == null) return;
 
-        if (!responseDateNewerThanEntryDate(response, entry)) return;
+        // do not invalidate if response is strictly older than entry
+        // or if the etags match
+        
+        if (responseDateOlderThanEntryDate(response, entry)) return;
         if (!responseAndEntryEtagsDiffer(response, entry)) return;
 
         flushUriIfSameHost(reqURL, canonURL);
@@ -222,18 +225,20 @@ class CacheInvalidator {
         return (!entryEtag.getValue().equals(responseEtag.getValue()));
     }
 
-    private boolean responseDateNewerThanEntryDate(HttpResponse response,
+    private boolean responseDateOlderThanEntryDate(HttpResponse response,
             HttpCacheEntry entry) {
         Header entryDateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
         Header responseDateHeader = response.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader == null || responseDateHeader == null) {
+            /* be conservative; should probably flush */
             return false;
         }
         try {
             Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
             Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-            return responseDate.after(entryDate);
+            return responseDate.before(entryDate);
         } catch (DateParseException e) {
+            /* flushing is always safe */
             return false;
         }
     }

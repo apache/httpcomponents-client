@@ -1752,5 +1752,27 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
     }
+    
+    @Test
+    public void issues304EvenWithWeakETag() throws Exception {
+        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=300");
+        resp1.setHeader("ETag","W/\"weak-sauce\"");
+        
+        backendExpectsAnyRequest().andReturn(resp1);
+        
+        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("If-None-Match","W/\"weak-sauce\"");
+        
+        replayMocks();
+        impl.execute(host, req1);
+        HttpResponse result = impl.execute(host, req2);
+        verifyMocks();
+        
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+                       
+    }
 
 }

@@ -123,17 +123,13 @@
   <section id="rfc2616compliance">
     <title>RFC-2616 Compliance</title>
 
-    <para>HttpClient Cache makes an effort to be at least <emphasis>conditionally
+    <para>We believe HttpClient Cache is <emphasis>unconditionally
     compliant</emphasis> with <ulink
     url="http://www.ietf.org/rfc/rfc2616.txt">RFC-2616</ulink>. That is,
-    wherever the specification indicates MUST or MUST NOT for HTTP caches, the
-    caching layer attempts to behave in a way that satisfies those
-    requirements. This means the caching module won't produce incorrect
-    behavior when you drop it in. At the same time, the project is continuing
-    to work on unconditional compliance, which would add compliance with all the
-    SHOULDs and SHOULD NOTs, many of which we already comply with. We just can't
-    claim fully unconditional compliance until we satisfy <emphasis>all</emphasis>
-    of them.</para>
+    wherever the specification indicates MUST, MUST NOT, SHOULD, or SHOULD NOT
+    for HTTP caches, the caching layer attempts to behave in a way that satisfies
+    those requirements. This means the caching module won't produce incorrect
+    behavior when you drop it in. </para>
   </section>
 
   <section>
@@ -226,7 +222,7 @@ case VALIDATED:
     offers high performance, it may not be appropriate for your application due to
     the limitation on size or because the cache entries are ephemeral and don't
     survive an application restart. The current release includes support for storing
-    cache entries using Ehcache and memcached implementations, which allow for
+    cache entries using EhCache and memcached implementations, which allow for
     spilling cache entries to disk or storing them in an external process.</para>
     
     <para>If none of those options are suitable for your application, it is
