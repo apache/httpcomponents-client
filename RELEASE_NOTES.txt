@@ -1,5 +1,8 @@
 Changes since 4.2.1
 
+* [HTTPCLIENT-1223] Cache could be more aggressive on cache invalidations
+  from Content-Location. Contributed by Jon Moore <jonm at apache.org>.
+
 * [HTTPCLIENT-1217] AutoRetryHttpClient does not release connection used by the previous response 
   when request is retried
   Contributed by Oleg Kalnichevski <olegk at apache.org>
