@@ -555,13 +555,13 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
-                        if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (proxyAuthState.getState().compareTo(AuthProtocolState.CHALLENGED) > 0
                                 && proxyAuthState.getAuthScheme() != null
                                 && proxyAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting proxy auth state");
                             proxyAuthState.reset();
                         }
-                        if (targetAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (targetAuthState.getState().compareTo(AuthProtocolState.CHALLENGED) > 0
                                 && targetAuthState.getAuthScheme() != null
                                 && targetAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting target auth state");
