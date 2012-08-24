@@ -555,13 +555,13 @@ public class DefaultRequestDirector implements RequestDirector {
                         managedConn.markReusable();
                     } else {
                         managedConn.close();
-                        if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (proxyAuthState.getState().compareTo(AuthProtocolState.CHALLENGED) > 0
                                 && proxyAuthState.getAuthScheme() != null
                                 && proxyAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting proxy auth state");
                             proxyAuthState.reset();
                         }
-                        if (targetAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (targetAuthState.getState().compareTo(AuthProtocolState.CHALLENGED) > 0
                                 && targetAuthState.getAuthScheme() != null
                                 && targetAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting target auth state");
@@ -1053,6 +1053,36 @@ public class DefaultRequestDirector implements RequestDirector {
         RequestWrapper request = roureq.getRequest();
 
         HttpParams params = request.getParams();
+
+        if (HttpClientParams.isAuthenticating(params)) {
+            HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+            if (target == null) {
+                target = route.getTargetHost();
+            }
+            if (target.getPort() < 0) {
+                Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
+                target = new HttpHost(target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
+            }
+            if (this.authenticator.isAuthenticationRequested(target, response,
+                    this.targetAuthStrategy, this.targetAuthState, context)) {
+                if (this.authenticator.authenticate(target, response,
+                        this.targetAuthStrategy, this.targetAuthState, context)) {
+                    // Re-try the same request via the same route
+                    return roureq;
+                }
+            }
+
+            HttpHost proxy = route.getProxyHost();
+            if (this.authenticator.isAuthenticationRequested(proxy, response,
+                    this.proxyAuthStrategy, this.proxyAuthState, context)) {
+                if (this.authenticator.authenticate(proxy, response,
+                        this.proxyAuthStrategy, this.proxyAuthState, context)) {
+                    // Re-try the same request via the same route
+                    return roureq;
+                }
+            }
+        }
+        
         if (HttpClientParams.isRedirecting(params) &&
                 this.redirectStrategy.isRedirected(request, response, context)) {
 
@@ -1103,38 +1133,6 @@ public class DefaultRequestDirector implements RequestDirector {
             return newRequest;
         }
 
-        if (HttpClientParams.isAuthenticating(params)) {
-            HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-            if (target == null) {
-                target = route.getTargetHost();
-            }
-            if (target.getPort() < 0) {
-                Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
-                target = new HttpHost(target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
-            }
-            if (this.authenticator.isAuthenticationRequested(target, response,
-                    this.targetAuthStrategy, this.targetAuthState, context)) {
-                if (this.authenticator.authenticate(target, response,
-                        this.targetAuthStrategy, this.targetAuthState, context)) {
-                    // Re-try the same request via the same route
-                    return roureq;
-                } else {
-                    return null;
-                }
-            }
-
-            HttpHost proxy = route.getProxyHost();
-            if (this.authenticator.isAuthenticationRequested(proxy, response,
-                    this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                if (this.authenticator.authenticate(proxy, response,
-                        this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                    // Re-try the same request via the same route
-                    return roureq;
-                } else {
-                    return null;
-                }
-            }
-        }
         return null;
     } // handleResponse
 
