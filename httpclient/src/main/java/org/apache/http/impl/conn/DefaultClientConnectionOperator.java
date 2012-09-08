@@ -43,6 +43,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.HttpInetSocketAddress;
@@ -137,6 +138,15 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         return new DefaultClientConnection();
     }
 
+    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
+        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
+                ClientContext.SCHEME_REGISTRY);
+        if (reg == null) {
+            reg = this.schemeRegistry;
+        }
+        return reg;
+    }
+    
     public void openConnection(
             final OperatedClientConnection conn,
             final HttpHost target,
@@ -156,7 +166,8 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             throw new IllegalStateException("Connection must not be open");
         }
 
-        Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        SchemeRegistry registry = getSchemeRegistry(context);
+        Scheme schm = registry.getScheme(target.getSchemeName());
         SchemeSocketFactory sf = schm.getSchemeSocketFactory();
 
         InetAddress[] addresses = resolveHostname(target.getHostName());
@@ -219,7 +230,8 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             throw new IllegalStateException("Connection must be open");
         }
 
-        final Scheme schm = schemeRegistry.getScheme(target.getSchemeName());
+        SchemeRegistry registry = getSchemeRegistry(context);
+        Scheme schm = registry.getScheme(target.getSchemeName());
         if (!(schm.getSchemeSocketFactory() instanceof SchemeLayeredSocketFactory)) {
             throw new IllegalArgumentException
                 ("Target scheme (" + schm.getName() +

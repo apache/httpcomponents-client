@@ -156,8 +156,9 @@ class InternalHttpClient extends AbstractBasicHttpClient {
             HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
             wrapper.setParams(params);
             wrapper.setVirtualHost(virtualHost);
-            HttpRoute route = determineRoute(target, wrapper, context);
-            return this.execChain.execute(route, wrapper, setupContext(context), execListner);
+            HttpContext localcontext = setupContext(context);
+            HttpRoute route = determineRoute(target, wrapper, localcontext);
+            return this.execChain.execute(route, wrapper, localcontext, execListner);
         } catch (HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }

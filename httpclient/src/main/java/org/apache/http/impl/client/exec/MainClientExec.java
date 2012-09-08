@@ -62,6 +62,7 @@ import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.impl.client.RequestAbortedException;
@@ -453,6 +454,15 @@ public class MainClientExec implements ClientExecChain {
         } while (step > HttpRouteDirector.COMPLETE);
     }
 
+    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
+        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
+                ClientContext.SCHEME_REGISTRY);
+        if (reg == null) {
+            reg = this.connManager.getSchemeRegistry();
+        }
+        return reg;
+    }
+    
     /**
      * Creates a tunnel to the target server.
      * The connection must be established to the (last) proxy.
@@ -476,8 +486,8 @@ public class MainClientExec implements ClientExecChain {
         String host = target.getHostName();
         int port = target.getPort();
         if (port < 0) {
-            Scheme scheme = connManager.getSchemeRegistry().
-                getScheme(target.getSchemeName());
+            SchemeRegistry registry = getSchemeRegistry(context);
+            Scheme scheme = registry.getScheme(target.getSchemeName());
             port = scheme.getDefaultPort();
         }
 
