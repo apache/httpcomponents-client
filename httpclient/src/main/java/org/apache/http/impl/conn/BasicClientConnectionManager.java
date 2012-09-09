@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpClientConnection;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
@@ -152,11 +153,11 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         if (route == null) {
             throw new IllegalArgumentException("Route may not be null.");
         }
-        assertNotShutdown();
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Get connection for route " + route);
-        }
         synchronized (this) {
+            assertNotShutdown();
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Get connection for route " + route);
+            }
             if (this.conn != null) {
                 throw new IllegalStateException(MISUSE_MESSAGE);
             }
@@ -179,17 +180,26 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    private void shutdownConnection(final HttpClientConnection conn) {
+        try {
+            conn.shutdown();
+        } catch (IOException iox) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("I/O exception shutting down connection", iox);
+            }
+        }
+    }
+    
     public void releaseConnection(final ManagedClientConnection conn, long keepalive, TimeUnit tunit) {
-        assertNotShutdown();
         if (!(conn instanceof ManagedClientConnectionImpl)) {
             throw new IllegalArgumentException("Connection class mismatch, " +
                  "connection not obtained from this manager");
         }
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Releasing connection " + conn);
-        }
         ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
         synchronized (managedConn) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Releasing connection " + conn);
+            }
             if (managedConn.getPoolEntry() == null) {
                 return; // already released
             }
@@ -198,15 +208,13 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                 throw new IllegalStateException("Connection not obtained from this manager");
             }
             synchronized (this) {
+                if (this.shutdown) {
+                    shutdownConnection(managedConn);
+                    return;
+                }
                 try {
                     if (managedConn.isOpen() && !managedConn.isMarkedReusable()) {
-                        try {
-                            managedConn.shutdown();
-                        } catch (IOException iox) {
-                            if (this.log.isDebugEnabled()) {
-                                this.log.debug("I/O exception shutting down released connection", iox);
-                            }
-                        }
+                        shutdownConnection(managedConn);
                     }
                     this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
                     if (this.log.isDebugEnabled()) {
@@ -230,8 +238,8 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     public void closeExpiredConnections() {
-        assertNotShutdown();
         synchronized (this) {
+            assertNotShutdown();
             long now = System.currentTimeMillis();
             if (this.poolEntry != null && this.poolEntry.isExpired(now)) {
                 this.poolEntry.close();
@@ -244,8 +252,8 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         if (tunit == null) {
             throw new IllegalArgumentException("Time unit must not be null.");
         }
-        assertNotShutdown();
         synchronized (this) {
+            assertNotShutdown();
             long time = tunit.toMillis(idletime);
             if (time < 0) {
                 time = 0;
@@ -259,8 +267,8 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     public void shutdown() {
-        this.shutdown = true;
         synchronized (this) {
+            this.shutdown = true;
             try {
                 if (this.poolEntry != null) {
                     this.poolEntry.close();
