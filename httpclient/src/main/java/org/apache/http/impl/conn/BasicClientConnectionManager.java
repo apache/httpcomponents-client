@@ -46,16 +46,16 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 
 /**
  * A connection manager for a single connection. This connection manager maintains only one active
- * connection at a time. Even though this class is thread-safe it ought to be used by one execution
- * thread only.
+ * connection. Even though this class is fully thread-safe it ought to be used by one execution 
+ * thread only, as only one thread a time can lease the connection at a time.
  * <p/>
- * BasicClientConnManager will make an effort to reuse the connection for subsequent requests
+ * This connection manager will make an effort to reuse the connection for subsequent requests
  * with the same {@link HttpRoute route}. It will, however, close the existing connection and
  * open it for the given route, if the route of the persistent connection does not match that
  * of the connection request. If the connection has been already been allocated
  * {@link IllegalStateException} is thrown.
  * <p/>
- * This connection manager implementation can be used inside a EJB container instead of
+ * This connection manager implementation should be used inside an EJB container instead of
  * {@link PoolingClientConnectionManager}.
  *
  * @since 4.2
