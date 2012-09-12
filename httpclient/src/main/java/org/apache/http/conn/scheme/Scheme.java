@@ -36,11 +36,12 @@ import org.apache.http.util.LangUtils;
  * Encapsulates specifics of a protocol scheme such as "http" or "https". Schemes are identified
  * by lowercase names. Supported schemes are typically collected in a {@link SchemeRegistry
  * SchemeRegistry}.
- * <p>
+ * <p/>
  * For example, to configure support for "https://" URLs, you could write code like the following:
  * <pre>
  * Scheme https = new Scheme("https", 443, new MySecureSocketFactory());
- * SchemeRegistry.DEFAULT.register(https);
+ * SchemeRegistry registry = new SchemeRegistry();
+ * registry.register(https);
  * </pre>
  *
  * @since 4.0
