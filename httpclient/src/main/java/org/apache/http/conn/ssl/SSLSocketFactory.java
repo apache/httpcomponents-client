@@ -178,7 +178,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     /**
      * Gets the default factory, which uses system properties for initializing the SSL context
      * as described in
-     * <a href="http://download.oracle.com/javase/1,5.0/docs/guide/security/jsse/JSSERefGuide.html">
+     * <a href="http://docs.oracle.com/javase/1.5.0/docs/guide/security/jsse/JSSERefGuide.html">
      * "JavaTM Secure Socket Extension (JSSE) Reference Guide for the JavaTM 2 Platform
      * Standard Edition 5</a>
      * <p>
