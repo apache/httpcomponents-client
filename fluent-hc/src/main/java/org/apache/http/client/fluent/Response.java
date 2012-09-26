@@ -68,10 +68,16 @@ public class Response {
         }
     }
 
+    /**
+     * Discards response content and deallocates all resources associated with it.
+     */
     public void discardContent() {
         dispose();
     }
 
+    /**
+     * Handles the response using the specified {@link ResponseHandler}
+     */
     public <T> T handleResponse(
             final ResponseHandler<T> handler) throws ClientProtocolException, IOException {
         assertNotConsumed();

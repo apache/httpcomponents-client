@@ -58,6 +58,12 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 
+/**
+ * An Executor for fluent requests
+ * <p/>
+ * A {@link PoolingClientConnectionManager} with maximum 100 connections per route and
+ * a total maximum of 200 connections is used internally.
+ */
 public class Executor {
 
     final static PoolingClientConnectionManager CONNMGR;
@@ -178,6 +184,14 @@ public class Executor {
         return this;
     }
 
+    /**
+     * Executes the request. Please Note that response content must be processed 
+     * or discarded using {@link Response#discardContent()}, otherwise the
+     * connection used for the request might not be released to the pool.
+     * 
+     * @see Response#handleResponse(org.apache.http.client.ResponseHandler)
+     * @see Response#discardContent()
+     */
     public Response execute(
             final Request request) throws ClientProtocolException, IOException {
         this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
