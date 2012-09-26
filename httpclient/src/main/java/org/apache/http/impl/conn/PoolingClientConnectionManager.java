@@ -229,7 +229,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             // Should never happen
             throw new InterruptedException();
         } catch (TimeoutException ex) {
-            throw new ConnectionPoolTimeoutException("Timeout waiting for connection");
+            throw new ConnectionPoolTimeoutException("Timeout waiting for connection from pool");
         }
     }
 
