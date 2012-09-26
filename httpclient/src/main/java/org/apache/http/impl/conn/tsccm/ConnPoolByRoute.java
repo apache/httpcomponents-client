@@ -414,7 +414,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     if (!success && (deadline != null) &&
                         (deadline.getTime() <= System.currentTimeMillis())) {
                         throw new ConnectionPoolTimeoutException
-                            ("Timeout waiting for connection");
+                            ("Timeout waiting for connection from pool");
                     }
                 }
             } // while no entry
