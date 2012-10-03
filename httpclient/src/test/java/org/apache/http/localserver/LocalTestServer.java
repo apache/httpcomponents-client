@@ -320,6 +320,19 @@ public class LocalTestServer {
     }
 
     /**
+     * Creates an instance of {@link DefaultHttpServerConnection} to be used
+     * in the Worker thread.
+     * <p>
+     * This method can be overridden in a super class in order to provide
+     * a different implementation of the {@link DefaultHttpServerConnection}.
+     *
+     * @return DefaultHttpServerConnection.
+     */
+    protected DefaultHttpServerConnection createHttpServerConnection() {
+      return new DefaultHttpServerConnection();
+    }
+
+    /**
      * The request listener.
      * Accepts incoming connections and launches a service thread.
      */
@@ -337,7 +350,7 @@ public class LocalTestServer {
                 while (!interrupted()) {
                     Socket socket = servicedSocket.accept();
                     acceptedConnections.incrementAndGet();
-                    DefaultHttpServerConnection conn = new DefaultHttpServerConnection();
+                    DefaultHttpServerConnection conn = createHttpServerConnection();
                     conn.bind(socket, httpservice.getParams());
                     // Start worker thread
                     Worker worker = new Worker(conn);
