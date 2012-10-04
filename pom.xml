@@ -67,7 +67,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <httpcore.version>4.2.1</httpcore.version>
+    <httpcore.version>4.2.2</httpcore.version>
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-codec.version>1.6</commons-codec.version>
     <ehcache.version>2.2.0</ehcache.version>
@@ -76,7 +76,7 @@
     <junit.version>4.9</junit.version>
     <easymock.version>2.5.2</easymock.version>
     <mockito.version>1.8.5</mockito.version>
-    <api.comparison.version>4.1</api.comparison.version>
+    <api.comparison.version>4.2</api.comparison.version>
   </properties>
 
   <repositories>
