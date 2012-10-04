@@ -26,6 +26,7 @@
 package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.http.Consts;
@@ -36,15 +37,21 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
@@ -66,7 +73,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");
+                response.addHeader(AUTH.WWW_AUTH, "MyBasic realm=\"test realm\"");
             }
         }
 
@@ -142,10 +149,42 @@ public class TestClientReauthentication extends IntegrationTestBase {
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
 
+        BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
+
+            @Override
+            public AuthScheme newInstance(HttpParams params) {
+                return new BasicScheme() {
+
+                    @Override
+                    public String getSchemeName() {
+                        return "MyBasic";
+                    }
+
+                };
+            }
+
+        };
+
+        TargetAuthenticationStrategy myAuthStrategy = new TargetAuthenticationStrategy() {
+
+            @Override
+            protected boolean isCachable(final AuthScheme authScheme) {
+                return "MyBasic".equalsIgnoreCase(authScheme.getSchemeName());
+            }
+
+        };
+
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = new HttpClientBuilder()
+            .registerAuthScheme("MyBasic", myBasicAuthSchemeFactory)
+            .setTargetAuthenticationStrategy(myAuthStrategy)
+            .setCredentialsProvider(credsProvider)
+            .build();
+
+        this.httpclient.getParams().setParameter(AuthPNames.TARGET_AUTH_PREF,
+                Collections.singletonList("MyBasic"));
 
         HttpContext context = new BasicHttpContext();
         for (int i = 0; i < 10; i++) {
