@@ -91,7 +91,7 @@ public class TestHttpCacheJiraNumber1147 {
         ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
         HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
-        HttpClient client = EasyMock.createMock(HttpClient.class);
+        HttpClient client = EasyMock.createNiceMock(HttpClient.class);
         HttpGet get = new HttpGet("http://somehost/");
         HttpContext context = new BasicHttpContext();
         HttpHost target = new HttpHost("somehost");

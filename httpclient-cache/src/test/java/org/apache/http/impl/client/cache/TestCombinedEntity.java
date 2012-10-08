@@ -38,7 +38,7 @@ public class TestCombinedEntity {
 
     @Test
     public void testCombinedEntityBasics() throws Exception {
-        Resource resource = EasyMock.createMock(Resource.class);
+        Resource resource = EasyMock.createNiceMock(Resource.class);
         EasyMock.expect(resource.getInputStream()).andReturn(
                 new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
         resource.dispose();

@@ -98,9 +98,9 @@ public class TestProtocolDeviations {
         params.setMaxCacheEntries(MAX_ENTRIES);
 
         HttpCache cache = new BasicHttpCache(params);
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockEntity = EasyMock.createMock(HttpEntity.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
+        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockEntity = EasyMock.createNiceMock(HttpEntity.class);
+        mockCache = EasyMock.createNiceMock(HttpCache.class);
 
         impl = new CachingHttpClient(mockBackend, cache, params);
     }
@@ -203,7 +203,7 @@ public class TestProtocolDeviations {
         (new Random()).nextBytes(bytes);
 
         HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
-                new Object[] { bytes }).addMockedMethods("getContentLength").createMock();
+                new Object[] { bytes }).addMockedMethods("getContentLength").createNiceMock();
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);
 

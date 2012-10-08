@@ -73,8 +73,8 @@ public abstract class AbstractProtocolTest {
         params.setMaxCacheEntries(MAX_ENTRIES);
         params.setMaxObjectSize(MAX_BYTES);
         cache = new BasicHttpCache(params);
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
+        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockCache = EasyMock.createNiceMock(HttpCache.class);
         impl = new CachingHttpClient(mockBackend, cache, params);
     }
 
@@ -95,8 +95,8 @@ public abstract class AbstractProtocolTest {
     }
 
     protected void emptyMockCacheExpectsNoPuts() throws Exception {
-        mockBackend = EasyMock.createMock(HttpClient.class);
-        mockCache = EasyMock.createMock(HttpCache.class);
+        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockCache = EasyMock.createNiceMock(HttpCache.class);
 
         impl = new CachingHttpClient(mockBackend, mockCache, params);
 

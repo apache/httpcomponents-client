@@ -57,7 +57,7 @@ public class TestCachedHttpResponseGenerator {
                 new BasicHeader("Content-Length", "150") };
 
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, sixSecondsAgo, hdrs);
-        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
+        mockValidityPolicy = EasyMock.createNiceMock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
     }
 

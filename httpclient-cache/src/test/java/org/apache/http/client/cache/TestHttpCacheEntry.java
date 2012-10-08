@@ -59,7 +59,7 @@ public class TestHttpCacheEntry {
         nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
-        mockResource = createMock(Resource.class);
+        mockResource = createNiceMock(Resource.class);
     }
 
     private HttpCacheEntry makeEntry(Header[] headers) {

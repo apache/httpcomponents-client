@@ -71,7 +71,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
         }
         CACHE_MANAGER.addCache(TEST_EHCACHE_NAME);
         HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
-        mockBackend = EasyMock.createMock(HttpClient.class);
+        mockBackend = EasyMock.createNiceMock(HttpClient.class);
 
         impl = new CachingHttpClient(mockBackend, new HeapResourceFactory(), storage, params);
     }

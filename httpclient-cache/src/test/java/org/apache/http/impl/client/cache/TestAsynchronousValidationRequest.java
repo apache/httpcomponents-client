@@ -49,12 +49,12 @@ public class TestAsynchronousValidationRequest {
 
     @Before
     public void setUp() {
-        mockParent = EasyMock.createMock(AsynchronousValidator.class);
-        mockClient = EasyMock.createMock(CachingHttpClient.class);
+        mockParent = EasyMock.createNiceMock(AsynchronousValidator.class);
+        mockClient = EasyMock.createNiceMock(CachingHttpClient.class);
         target = new HttpHost("foo.example.com");
         request = new HttpGet("/");
-        mockContext = EasyMock.createMock(HttpContext.class);
-        mockCacheEntry = EasyMock.createMock(HttpCacheEntry.class);
+        mockContext = EasyMock.createNiceMock(HttpContext.class);
+        mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
     }
 
     @Test

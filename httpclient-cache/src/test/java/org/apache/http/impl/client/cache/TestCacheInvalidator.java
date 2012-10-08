@@ -73,9 +73,9 @@ public class TestCacheInvalidator {
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         host = new HttpHost("foo.example.com");
-        mockStorage = createMock(HttpCacheStorage.class);
+        mockStorage = createNiceMock(HttpCacheStorage.class);
         cacheKeyGenerator = new CacheKeyGenerator();
-        mockEntry = createMock(HttpCacheEntry.class);
+        mockEntry = createNiceMock(HttpCacheEntry.class);
         request = HttpTestUtils.makeDefaultRequest();
         response = HttpTestUtils.make200Response();
 
