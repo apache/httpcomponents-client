@@ -115,25 +115,25 @@ public class TestCachingHttpClient {
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
-        mockRequestPolicy = createMock(CacheableRequestPolicy.class);
-        mockValidityPolicy = createMock(CacheValidityPolicy.class);
-        mockBackend = createMock(HttpClient.class);
-        mockCache = createMock(HttpCache.class);
-        mockSuitabilityChecker = createMock(CachedResponseSuitabilityChecker.class);
-        mockResponsePolicy = createMock(ResponseCachingPolicy.class);
-        mockConnectionManager = createMock(ClientConnectionManager.class);
-        mockHandler = createMock(ResponseHandler.class);
-        mockBackendResponse = createMock(HttpResponse.class);
-        mockUriRequest = createMock(HttpUriRequest.class);
-        mockCacheEntry = createMock(HttpCacheEntry.class);
-        mockResponseGenerator = createMock(CachedHttpResponseGenerator.class);
-        mockCachedResponse = createMock(HttpResponse.class);
-        mockConditionalRequestBuilder = createMock(ConditionalRequestBuilder.class);
-        mockConditionalRequest = createMock(HttpRequest.class);
-        mockStatusLine = createMock(StatusLine.class);
-        mockResponseProtocolCompliance = createMock(ResponseProtocolCompliance.class);
-        mockRequestProtocolCompliance = createMock(RequestProtocolCompliance.class);
-        mockStorage = createMock(HttpCacheStorage.class);
+        mockRequestPolicy = createNiceMock(CacheableRequestPolicy.class);
+        mockValidityPolicy = createNiceMock(CacheValidityPolicy.class);
+        mockBackend = createNiceMock(HttpClient.class);
+        mockCache = createNiceMock(HttpCache.class);
+        mockSuitabilityChecker = createNiceMock(CachedResponseSuitabilityChecker.class);
+        mockResponsePolicy = createNiceMock(ResponseCachingPolicy.class);
+        mockConnectionManager = createNiceMock(ClientConnectionManager.class);
+        mockHandler = createNiceMock(ResponseHandler.class);
+        mockBackendResponse = createNiceMock(HttpResponse.class);
+        mockUriRequest = createNiceMock(HttpUriRequest.class);
+        mockCacheEntry = createNiceMock(HttpCacheEntry.class);
+        mockResponseGenerator = createNiceMock(CachedHttpResponseGenerator.class);
+        mockCachedResponse = createNiceMock(HttpResponse.class);
+        mockConditionalRequestBuilder = createNiceMock(ConditionalRequestBuilder.class);
+        mockConditionalRequest = createNiceMock(HttpRequest.class);
+        mockStatusLine = createNiceMock(StatusLine.class);
+        mockResponseProtocolCompliance = createNiceMock(ResponseProtocolCompliance.class);
+        mockRequestProtocolCompliance = createNiceMock(RequestProtocolCompliance.class);
+        mockStorage = createNiceMock(HttpCacheStorage.class);
 
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
@@ -2159,7 +2159,7 @@ public class TestCachingHttpClient {
                 mockSuitabilityChecker,
                 mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance).addMockedMethods(methods).createMock();
+                mockRequestProtocolCompliance).addMockedMethods(methods).createNiceMock();
     }
 
 }

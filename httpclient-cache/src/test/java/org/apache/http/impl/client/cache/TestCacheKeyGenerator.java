@@ -53,8 +53,8 @@ public class TestCacheKeyGenerator {
     @Before
     public void setUp() throws Exception {
         host = new HttpHost("foo.example.com");
-        mockEntry = EasyMock.createMock(HttpCacheEntry.class);
-        mockRequest = EasyMock.createMock(HttpRequest.class);
+        mockEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
+        mockRequest = EasyMock.createNiceMock(HttpRequest.class);
         extractor = new CacheKeyGenerator();
     }
 

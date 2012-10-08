@@ -63,7 +63,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
-        mockValidityPolicy = EasyMock.createMock(CacheValidityPolicy.class);
+        mockValidityPolicy = EasyMock.createNiceMock(CacheValidityPolicy.class);
         entry = HttpTestUtils.makeCacheEntry();
 
         impl = new CachedResponseSuitabilityChecker(new CacheConfig());

@@ -550,7 +550,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testRequestsExpecting100ContinueBehaviorShouldSetExpectHeader() throws Exception {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
                 BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
-                .addMockedMethods("expectContinue").createMock();
+                .addMockedMethods("expectContinue").createNiceMock();
         post.setEntity(new BasicHttpEntity());
         post.setHeader("Content-Length", "128");
 
@@ -595,7 +595,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             throws Exception {
         BasicHttpEntityEnclosingRequest post = EasyMock.createMockBuilder(
                 BasicHttpEntityEnclosingRequest.class).withConstructor("POST", "/", HttpVersion.HTTP_1_1)
-                .addMockedMethods("expectContinue").createMock();
+                .addMockedMethods("expectContinue").createNiceMock();
         post.setEntity(new BasicHttpEntity());
         post.setHeader("Content-Length", "128");
 

@@ -57,13 +57,13 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     @Override
     @Before
     public void setUp() throws Exception {
-        mockMemcachedClient = EasyMock.createMock(MemcachedClientIF.class);
-        mockKeyHashingScheme = EasyMock.createMock(KeyHashingScheme.class);
-        mockMemcachedCacheEntryFactory = EasyMock.createMock(MemcachedCacheEntryFactory.class);
-        mockMemcachedCacheEntry = EasyMock.createMock(MemcachedCacheEntry.class);
-        mockMemcachedCacheEntry2 = EasyMock.createMock(MemcachedCacheEntry.class);
-        mockMemcachedCacheEntry3 = EasyMock.createMock(MemcachedCacheEntry.class);
-        mockMemcachedCacheEntry4 = EasyMock.createMock(MemcachedCacheEntry.class);
+        mockMemcachedClient = EasyMock.createNiceMock(MemcachedClientIF.class);
+        mockKeyHashingScheme = EasyMock.createNiceMock(KeyHashingScheme.class);
+        mockMemcachedCacheEntryFactory = EasyMock.createNiceMock(MemcachedCacheEntryFactory.class);
+        mockMemcachedCacheEntry = EasyMock.createNiceMock(MemcachedCacheEntry.class);
+        mockMemcachedCacheEntry2 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
+        mockMemcachedCacheEntry3 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
+        mockMemcachedCacheEntry4 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
         CacheConfig config = new CacheConfig();
         config.setMaxUpdateRetries(1);
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
