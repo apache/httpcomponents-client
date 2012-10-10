@@ -42,7 +42,11 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class CloneUtils {
 
-    public static Object clone(final Object obj) throws CloneNotSupportedException {
+    /**
+     * @since 4.3
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T cloneObject(final T obj) throws CloneNotSupportedException {
         if (obj == null) {
             return null;
         }
@@ -55,7 +59,7 @@ public class CloneUtils {
                 throw new NoSuchMethodError(ex.getMessage());
             }
             try {
-                return m.invoke(obj, (Object []) null);
+                return (T) m.invoke(obj, (Object []) null);
             } catch (InvocationTargetException ex) {
                 Throwable cause = ex.getCause();
                 if (cause instanceof CloneNotSupportedException) {
@@ -69,6 +73,10 @@ public class CloneUtils {
         } else {
             throw new CloneNotSupportedException();
         }
+    }
+
+    public static Object clone(final Object obj) throws CloneNotSupportedException {
+        return cloneObject(obj);
     }
 
     /**

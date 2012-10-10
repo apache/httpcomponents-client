@@ -69,7 +69,7 @@ public abstract class HttpEntityEnclosingRequestBase
         HttpEntityEnclosingRequestBase clone =
             (HttpEntityEnclosingRequestBase) super.clone();
         if (this.entity != null) {
-            clone.entity = (HttpEntity) CloneUtils.clone(this.entity);
+            clone.entity = CloneUtils.cloneObject(this.entity);
         }
         return clone;
     }

@@ -42,8 +42,6 @@ import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
-import org.apache.http.message.HeaderGroup;
-import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
 /**
@@ -234,8 +232,8 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         clone.abortLock = new ReentrantLock();
         clone.aborted = false;
         clone.cancellable = null;
-        clone.headergroup = (HeaderGroup) CloneUtils.clone(this.headergroup);
-        clone.params = (HttpParams) CloneUtils.clone(this.params);
+        clone.headergroup = CloneUtils.cloneObject(this.headergroup);
+        clone.params = CloneUtils.cloneObject(this.params);
         return clone;
     }
 
