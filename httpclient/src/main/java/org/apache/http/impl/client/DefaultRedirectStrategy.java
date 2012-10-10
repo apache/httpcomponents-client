@@ -35,6 +35,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -42,8 +43,15 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.utils.URIUtils;
@@ -210,9 +218,35 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
             return new HttpHead(uri);
+        } else if (method.equalsIgnoreCase(HttpGet.METHOD_NAME)) {
+            return new HttpGet(uri);
         } else {
+            int status = response.getStatusLine().getStatusCode();
+            if (status == HttpStatus.SC_TEMPORARY_REDIRECT) {
+                if (method.equalsIgnoreCase(HttpPost.METHOD_NAME)) {
+                    return copyEntity(new HttpPost(uri), request);
+                } else if (method.equalsIgnoreCase(HttpPut.METHOD_NAME)) {
+                    return copyEntity(new HttpPut(uri), request);
+                } else if (method.equalsIgnoreCase(HttpDelete.METHOD_NAME)) {
+                    return new HttpDelete(uri);
+                } else if (method.equalsIgnoreCase(HttpTrace.METHOD_NAME)) {
+                    return new HttpTrace(uri);
+                } else if (method.equalsIgnoreCase(HttpOptions.METHOD_NAME)) {
+                    return new HttpOptions(uri);
+                } else if (method.equalsIgnoreCase(HttpPatch.METHOD_NAME)) {
+                    return copyEntity(new HttpPatch(uri), request);
+                }
+            }
             return new HttpGet(uri);
         }
+    }
+
+    private HttpUriRequest copyEntity(
+            final HttpEntityEnclosingRequestBase redirect, final HttpRequest original) {
+        if (original instanceof HttpEntityEnclosingRequest) {
+            redirect.setEntity(((HttpEntityEnclosingRequest) original).getEntity());
+        }
+        return redirect;
     }
 
 }

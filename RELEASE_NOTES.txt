@@ -1,5 +1,9 @@
 Changes since 4.2.1
 
+* [HTTPCLIENT-1248]: Default and lax redirect strategies should not convert requests redirected 
+  with 307 status to GET method.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1215] BasicAuthCache does not take default ports into consideration when
   looking up cached authentication details by HttpHost key.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
