@@ -51,25 +51,34 @@ public class BasicAuthCache implements AuthCache {
         this.map = new HashMap<HttpHost, AuthScheme>();
     }
 
+    protected HttpHost getKey(final HttpHost host) {
+        if (host.getPort() <= 0) {
+            int port = host.getSchemeName().equalsIgnoreCase("https") ? 443 : 80;
+            return new HttpHost(host.getHostName(), port, host.getSchemeName());
+        } else {
+            return host;
+        }
+    }
+
     public void put(final HttpHost host, final AuthScheme authScheme) {
         if (host == null) {
             throw new IllegalArgumentException("HTTP host may not be null");
         }
-        this.map.put(host, authScheme);
+        this.map.put(getKey(host), authScheme);
     }
 
     public AuthScheme get(final HttpHost host) {
         if (host == null) {
             throw new IllegalArgumentException("HTTP host may not be null");
         }
-        return this.map.get(host);
+        return this.map.get(getKey(host));
     }
 
     public void remove(final HttpHost host) {
         if (host == null) {
             throw new IllegalArgumentException("HTTP host may not be null");
         }
-        this.map.remove(host);
+        this.map.remove(getKey(host));
     }
 
     public void clear() {

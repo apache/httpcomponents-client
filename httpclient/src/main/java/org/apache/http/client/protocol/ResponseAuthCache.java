@@ -84,9 +84,9 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                 this.log.debug("Target auth state: " + targetState.getState());
             }
             if (isCachable(targetState)) {
+                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                        ClientContext.SCHEME_REGISTRY);
                 if (target.getPort() < 0) {
-                    SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
-                            ClientContext.SCHEME_REGISTRY);
                     Scheme scheme = schemeRegistry.getScheme(target);
                     target = new HttpHost(target.getHostName(),
                             scheme.resolvePort(target.getPort()), target.getSchemeName());
