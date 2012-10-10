@@ -1,6 +1,10 @@
 Changes since 4.2.1 
 -------------------
 
+* [HTTPCLIENT-1215] BasicAuthCache does not take default ports into consideration when
+  looking up cached authentication details by HttpHost key.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1241] (regression) Preemptive BASIC authentication failure should be considered 
   final and no further attempts to re-authenticate using the same credentials should be made. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>

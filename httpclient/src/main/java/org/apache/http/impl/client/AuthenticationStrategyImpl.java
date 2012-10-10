@@ -54,6 +54,7 @@ import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
@@ -220,7 +221,9 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         if (isCachable(authScheme)) {
             AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
             if (authCache == null) {
-                authCache = new BasicAuthCache();
+                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                        ClientContext.SCHEME_REGISTRY);
+                authCache = new BasicAuthCache(schemeRegistry);
                 context.setAttribute(ClientContext.AUTH_CACHE, authCache);
             }
             if (this.log.isDebugEnabled()) {
