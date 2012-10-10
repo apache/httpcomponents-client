@@ -59,7 +59,7 @@ public final class DateUtils {
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
      */
-    public static final String PATTERN_RFC1036 = "EEEE, dd-MMM-yy HH:mm:ss zzz";
+    public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
