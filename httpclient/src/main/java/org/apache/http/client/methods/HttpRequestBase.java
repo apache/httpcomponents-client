@@ -58,6 +58,7 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
     private Lock abortLock;
     private volatile boolean aborted;
 
+    private ProtocolVersion version;
     private URI uri;
     private Cancellable cancellable;
 
@@ -68,8 +69,15 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
 
     public abstract String getMethod();
 
+    /**
+     * @since 4.3
+     */
+    public void setProtocolVersion(final ProtocolVersion version) {
+        this.version = version;
+    }
+
     public ProtocolVersion getProtocolVersion() {
-        return HttpProtocolParams.getVersion(getParams());
+        return version != null ? version : HttpProtocolParams.getVersion(getParams());
     }
 
     /**
@@ -240,6 +248,6 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
     @Override
     public String toString() {
         return getMethod() + " " + getURI() + " " + getProtocolVersion();
-    }    
+    }
 
 }
