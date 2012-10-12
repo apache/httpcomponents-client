@@ -45,7 +45,7 @@ public class TestRequestBuilder {
 
     @Test
     public void testBasicGet() throws Exception {
-        HttpUriRequest request = RequestBuilder.create().build();
+        HttpUriRequest request = RequestBuilder.createGet().build();
         Assert.assertNotNull(request);
         Assert.assertEquals("GET", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
@@ -54,9 +54,18 @@ public class TestRequestBuilder {
     }
 
     @Test
+    public void testArbitraryMethod() throws Exception {
+        HttpUriRequest request = RequestBuilder.create("Whatever").build();
+        Assert.assertNotNull(request);
+        Assert.assertEquals("Whatever", request.getMethod());
+        Assert.assertEquals(URI.create("/"), request.getURI());
+        Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
+    }
+
+    @Test
     public void testBasicWithEntity() throws Exception {
         HttpEntity entity = new BasicHttpEntity();
-        HttpUriRequest request = RequestBuilder.create().setEntity(entity).build();
+        HttpUriRequest request = RequestBuilder.createPost().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("POST", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
@@ -68,7 +77,7 @@ public class TestRequestBuilder {
     @Test
     public void testGetWithEntity() throws Exception {
         HttpEntity entity = new BasicHttpEntity();
-        HttpUriRequest request = RequestBuilder.create().setMethod("get").setEntity(entity).build();
+        HttpUriRequest request = RequestBuilder.createGet().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("GET", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
@@ -81,8 +90,7 @@ public class TestRequestBuilder {
     public void testCopy() throws Exception {
         HttpEntity entity = new StringEntity("stuff");
         HttpParams params = new BasicHttpParams();
-        HttpUriRequest request = RequestBuilder.create()
-            .setMethod("put")
+        HttpUriRequest request = RequestBuilder.createPut()
             .setUri(URI.create("/stuff"))
             .setVersion(HttpVersion.HTTP_1_0)
             .addHeader("header1", "stuff")
@@ -108,8 +116,7 @@ public class TestRequestBuilder {
     public void testClone() throws Exception {
         HttpEntity entity = new StringEntity("stuff");
         HttpParams params = new BasicHttpParams();
-        HttpUriRequest request = RequestBuilder.create()
-            .setMethod("put")
+        HttpUriRequest request = RequestBuilder.createPut()
             .setUri(URI.create("/stuff"))
             .setVersion(HttpVersion.HTTP_1_0)
             .addHeader("header1", "stuff")
@@ -147,15 +154,14 @@ public class TestRequestBuilder {
         HttpParams params = new BasicHttpParams();
         Header h1 = new BasicHeader("header1", "stuff");
         Header h2 = new BasicHeader("header1", "more-stuff");
-        RequestBuilder builder = RequestBuilder.create()
-            .setMethod("put")
+        RequestBuilder builder = RequestBuilder.createPut()
             .setUri("/stuff")
             .setVersion(HttpVersion.HTTP_1_0)
             .addHeader(h1)
             .addHeader(h2)
             .setEntity(entity)
             .setParams(params);
-        Assert.assertEquals("put", builder.getMethod());
+        Assert.assertEquals("PUT", builder.getMethod());
         Assert.assertEquals(URI.create("/stuff"), builder.getUri());
         Assert.assertEquals(HttpVersion.HTTP_1_0, builder.getVersion());
         Assert.assertSame(h1, builder.getFirstHeader("header1"));

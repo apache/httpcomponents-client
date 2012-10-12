@@ -28,7 +28,6 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
-import java.util.Locale;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
@@ -55,12 +54,45 @@ public class RequestBuilder {
     private HttpEntity entity;
     private HttpParams params;
 
-    RequestBuilder() {
+    RequestBuilder(final String method) {
         super();
+        this.method = method;
     }
 
-    public static RequestBuilder create() {
-        return new RequestBuilder();
+    RequestBuilder() {
+        this(null);
+    }
+
+    public static RequestBuilder create(final String method) {
+        return new RequestBuilder(method);
+    }
+
+    public static RequestBuilder createGet() {
+        return new RequestBuilder(HttpGet.METHOD_NAME);
+    }
+
+    public static RequestBuilder createHead() {
+        return new RequestBuilder(HttpHead.METHOD_NAME);
+    }
+
+    public static RequestBuilder createPost() {
+        return new RequestBuilder(HttpPost.METHOD_NAME);
+    }
+
+    public static RequestBuilder createPut() {
+        return new RequestBuilder(HttpPut.METHOD_NAME);
+    }
+
+    public static RequestBuilder createDelete() {
+        return new RequestBuilder(HttpDelete.METHOD_NAME);
+    }
+
+    public static RequestBuilder createTrace() {
+        return new RequestBuilder(HttpTrace.METHOD_NAME);
+    }
+
+    public static RequestBuilder createOptions() {
+        return new RequestBuilder(HttpOptions.METHOD_NAME);
     }
 
     public static RequestBuilder copy(final HttpRequest request) {
@@ -212,8 +244,8 @@ public class RequestBuilder {
     }
 
     private String getMethodName() {
-        return this.method != null ? this.method.toUpperCase(Locale.US) :
-            (this.entity != null ? "POST" : "GET");
+        return this.method != null ? this.method : 
+            (this.entity != null ? HttpPost.METHOD_NAME : HttpGet.METHOD_NAME);
     }
 
     public HttpUriRequest build() {
