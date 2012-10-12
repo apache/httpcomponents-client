@@ -1383,16 +1383,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
      */
     @Test
-    public void responseToGetWithQueryFrom1_0OriginIsNotCached()
+    public void responseToGetWithQueryFrom1_0OriginAndNoExpiresIsNotCached()
         throws Exception {
-        HttpRequest req1 = new HttpGet("http://foo.example.com/bar?baz=quux");
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(200));
-        resp1.setHeader("Content-Length","200");
-        resp1.setHeader("Date", formatDate(now));
-        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
-
-        backendExpectsAnyRequest().andReturn(resp1);
 
         HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
@@ -1403,23 +1395,13 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1);
         impl.execute(host, req2);
         verifyMocks();
     }
 
     @Test
-    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyIsNotCached()
+    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyAndNoExpiresIsNotCached()
         throws Exception {
-        HttpRequest req1 = new HttpGet("http://foo.example.com/bar?baz=quux");
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(200));
-        resp1.setHeader("Content-Length","200");
-        resp1.setHeader("Date", formatDate(now));
-        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
-        resp1.setHeader("Via","1.0 someproxy");
-
-        backendExpectsAnyRequest().andReturn(resp1);
 
         HttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
@@ -1431,7 +1413,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1);
         impl.execute(host, req2);
         verifyMocks();
     }

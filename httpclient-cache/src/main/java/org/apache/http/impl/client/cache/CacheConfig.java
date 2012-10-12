@@ -138,6 +138,7 @@ public class CacheConfig {
     private float heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
     private long heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
     private boolean isSharedCache = true;
+    private boolean neverCache1_0ResponsesWithQueryString = false;
     private int asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
     private int asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
     private int asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
@@ -206,6 +207,25 @@ public class CacheConfig {
      */
     public void setSharedCache(boolean isSharedCache) {
         this.isSharedCache = isSharedCache;
+    }
+
+    /**
+     * Returns whether the cache will never cache HTTP 1.0 responses with a query string or not.
+     * @return {@code true} to not cache query string responses, {@code false} to cache if explicit cache headers are
+     * found
+     */
+    public boolean isNeverCache1_0ResponsesWithQueryString() {
+        return neverCache1_0ResponsesWithQueryString;
+    }
+
+    /**
+     * Sets whether the cache should never cache HTTP 1.0 responses with a query string or not.
+     * @param neverCache1_0ResponsesWithQueryString true to never cache responses with a query string, false to
+     * cache if explicit cache headers are found.  Set this to {@code true} to better emulate IE, which also never
+     * caches responses, regardless of what caching headers may be present.
+     */
+    public void setNeverCache1_0ResponsesWithQueryString(boolean neverCache1_0ResponsesWithQueryString) {
+        this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
     }
 
     /**
