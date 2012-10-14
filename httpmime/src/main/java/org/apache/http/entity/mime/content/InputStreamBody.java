@@ -31,9 +31,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 /**
+ * Binary body part backed by an input stream.
+ *
+ * @see MultipartEntityBuilder
  *
  * @since 4.0
  */
@@ -42,8 +47,25 @@ public class InputStreamBody extends AbstractContentBody {
     private final InputStream in;
     private final String filename;
 
+    /**
+     * @since 4.1
+     *
+     * @deprecated (4.3) use {@link InputStreamBody#InputStreamBody(InputStream, ContentType,
+     *  String)} or {@link MultipartEntityBuilder}
+     */
     public InputStreamBody(final InputStream in, final String mimeType, final String filename) {
-        super(mimeType);
+        this(in, ContentType.create(mimeType), filename);
+    }
+
+    public InputStreamBody(final InputStream in, final String filename) {
+        this(in, ContentType.DEFAULT_BINARY, filename);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public InputStreamBody(final InputStream in, final ContentType contentType, final String filename) {
+        super(contentType);
         if (in == null) {
             throw new IllegalArgumentException("Input stream may not be null");
         }
@@ -51,8 +73,11 @@ public class InputStreamBody extends AbstractContentBody {
         this.filename = filename;
     }
 
-    public InputStreamBody(final InputStream in, final String filename) {
-        this(in, "application/octet-stream", filename);
+    /**
+     * @since 4.3
+     */
+    public InputStreamBody(final InputStream in, final ContentType contentType) {
+        this(in, contentType, null);
     }
 
     public InputStream getInputStream() {
@@ -77,10 +102,6 @@ public class InputStreamBody extends AbstractContentBody {
 
     public String getTransferEncoding() {
         return MIME.ENC_BINARY;
-    }
-
-    public String getCharset() {
-        return null;
     }
 
     public long getContentLength() {

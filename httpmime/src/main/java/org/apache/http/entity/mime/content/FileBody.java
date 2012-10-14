@@ -33,9 +33,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 /**
+ * Binary body part backed by a file.
+ *
+ * @see MultipartEntityBuilder
  *
  * @since 4.0
  */
@@ -43,42 +48,64 @@ public class FileBody extends AbstractContentBody {
 
     private final File file;
     private final String filename;
-    private final String charset;
 
     /**
      * @since 4.1
+     *
+     * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType, String)}
+     *   or {@link MultipartEntityBuilder}
      */
+    @Deprecated
     public FileBody(final File file,
                     final String filename,
                     final String mimeType,
                     final String charset) {
-        super(mimeType);
-        if (file == null) {
-            throw new IllegalArgumentException("File may not be null");
-        }
-        this.file = file;
-        if (filename != null)
-            this.filename = filename;
-        else
-            this.filename = file.getName();
-        this.charset = charset;
+        this(file, ContentType.create(mimeType, charset), filename);
     }
 
     /**
      * @since 4.1
+     *
+     * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType)}
+     *   or {@link MultipartEntityBuilder}
      */
+    @Deprecated
     public FileBody(final File file,
                     final String mimeType,
                     final String charset) {
         this(file, null, mimeType, charset);
     }
 
+    /**
+     * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType)}
+     *   or {@link MultipartEntityBuilder}
+     */
+    @Deprecated
     public FileBody(final File file, final String mimeType) {
-        this(file, mimeType, null);
+        this(file, ContentType.create(mimeType), null);
     }
 
     public FileBody(final File file) {
-        this(file, "application/octet-stream");
+        this(file, ContentType.DEFAULT_BINARY, file != null ? file.getName() : null);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public FileBody(final File file, final ContentType contentType, final String filename) {
+        super(contentType);
+        if (file == null) {
+            throw new IllegalArgumentException("File may not be null");
+        }
+        this.file = file;
+        this.filename = filename;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public FileBody(final File file, final ContentType contentType) {
+        this(file, contentType, null);
     }
 
     public InputStream getInputStream() throws IOException {
@@ -104,10 +131,6 @@ public class FileBody extends AbstractContentBody {
 
     public String getTransferEncoding() {
         return MIME.ENC_BINARY;
-    }
-
-    public String getCharset() {
-        return charset;
     }
 
     public long getContentLength() {

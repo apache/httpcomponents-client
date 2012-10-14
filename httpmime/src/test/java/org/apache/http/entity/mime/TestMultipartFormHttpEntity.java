@@ -34,6 +34,7 @@ import java.nio.charset.Charset;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
@@ -95,8 +96,8 @@ public class TestMultipartFormHttpEntity {
     @Test
     public void testRepeatable() throws Exception {
         MultipartEntity entity = new MultipartEntity();
-        entity.addPart("p1", new StringBody("blah blah"));
-        entity.addPart("p2", new StringBody("yada yada"));
+        entity.addPart("p1", new StringBody("blah blah", ContentType.DEFAULT_TEXT));
+        entity.addPart("p2", new StringBody("yada yada", ContentType.DEFAULT_TEXT));
         Assert.assertTrue(entity.isRepeatable());
         Assert.assertFalse(entity.isChunked());
         Assert.assertFalse(entity.isStreaming());
@@ -127,9 +128,9 @@ public class TestMultipartFormHttpEntity {
     public void testNonRepeatable() throws Exception {
         MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new InputStreamBody(
-                new ByteArrayInputStream("blah blah".getBytes()), null));
+                new ByteArrayInputStream("blah blah".getBytes()), ContentType.DEFAULT_BINARY));
         entity.addPart("p2", new InputStreamBody(
-                new ByteArrayInputStream("yada yada".getBytes()), null));
+                new ByteArrayInputStream("yada yada".getBytes()), ContentType.DEFAULT_BINARY));
         Assert.assertFalse(entity.isRepeatable());
         Assert.assertTrue(entity.isChunked());
         Assert.assertTrue(entity.isStreaming());

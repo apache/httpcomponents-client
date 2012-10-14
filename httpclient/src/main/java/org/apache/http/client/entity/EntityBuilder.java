@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -70,10 +71,6 @@ public class EntityBuilder {
         return new EntityBuilder();
     }
 
-    public String getText() {
-        return text;
-    }
-
     private void clearContent() {
         this.text = null;
         this.binary = null;
@@ -81,6 +78,10 @@ public class EntityBuilder {
         this.parameters = null;
         this.serializable = null;
         this.file = null;
+    }
+
+    public String getText() {
+        return text;
     }
 
     public EntityBuilder setText(final String text) {
@@ -117,6 +118,10 @@ public class EntityBuilder {
         clearContent();
         this.parameters = parameters;
         return this;
+    }
+
+    public EntityBuilder setParameters(final NameValuePair... parameters) {
+        return setParameters(Arrays.asList(parameters));
     }
 
     public Serializable getSerializable() {

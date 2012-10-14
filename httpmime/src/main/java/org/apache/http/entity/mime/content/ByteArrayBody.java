@@ -29,11 +29,15 @@ package org.apache.http.entity.mime.content;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 
 /**
- * Body part that is built using a byte array containing a file.
+ * Binary body part backed by a byte array.
+ *
+ * @see MultipartEntityBuilder
  *
  * @since 4.1
  */
@@ -55,9 +59,19 @@ public class ByteArrayBody extends AbstractContentBody {
      * @param data The contents of the file contained in this part.
      * @param mimeType The mime type of the file contained in this part.
      * @param filename The name of the file contained in this part.
+     *
+     * @deprecated (4.3) use {@link ByteArrayBody#ByteArrayBody(byte[], ContentType, String)}
+     *   or {@link MultipartEntityBuilder}
      */
     public ByteArrayBody(final byte[] data, final String mimeType, final String filename) {
-        super(mimeType);
+        this(data, ContentType.create(mimeType), filename);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public ByteArrayBody(final byte[] data, final ContentType contentType, final String filename) {
+        super(contentType);
         if (data == null) {
             throw new IllegalArgumentException("byte[] may not be null");
         }

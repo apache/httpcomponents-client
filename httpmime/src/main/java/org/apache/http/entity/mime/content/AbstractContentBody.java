@@ -27,42 +27,71 @@
 
 package org.apache.http.entity.mime.content;
 
+import java.nio.charset.Charset;
+
+import org.apache.http.entity.ContentType;
+
 /**
  *
  * @since 4.0
  */
 public abstract class AbstractContentBody implements ContentBody {
 
-    private final String mimeType;
-    private final String mediaType;
-    private final String subType;
+    private final ContentType contentType;
 
-    public AbstractContentBody(final String mimeType) {
+    /**
+     * @since 4.3
+     */
+    public AbstractContentBody(final ContentType contentType) {
         super();
-        if (mimeType == null) {
-            throw new IllegalArgumentException("MIME type may not be null");
+        if (contentType == null) {
+            throw new IllegalArgumentException("Content type may not be null");
         }
-        this.mimeType = mimeType;
-        int i = mimeType.indexOf('/');
-        if (i != -1) {
-            this.mediaType = mimeType.substring(0, i);
-            this.subType = mimeType.substring(i + 1);
-        } else {
-            this.mediaType = mimeType;
-            this.subType = null;
-        }
+        this.contentType = contentType;
+    }
+
+    /**
+     * @deprecated (4.3) use {@link AbstractContentBody#AbstractContentBody(ContentType)}
+     */
+    @Deprecated
+    public AbstractContentBody(final String mimeType) {
+        this(ContentType.parse(mimeType));
+    }
+
+    /**
+     * @since 4.3
+     */
+    public ContentType getContentType() {
+        return this.contentType;
     }
 
     public String getMimeType() {
-        return this.mimeType;
+        return this.contentType.getMimeType();
     }
 
     public String getMediaType() {
-        return this.mediaType;
+        String mimeType = this.contentType.getMimeType();
+        int i = mimeType.indexOf('/');
+        if (i != -1) {
+            return mimeType.substring(0, i);
+        } else {
+            return mimeType;
+        }
     }
 
     public String getSubType() {
-        return this.subType;
+        String mimeType = this.contentType.getMimeType();
+        int i = mimeType.indexOf('/');
+        if (i != -1) {
+            return mimeType.substring(i + 1);
+        } else {
+            return null;
+        }
+    }
+
+    public String getCharset() {
+        Charset charset = this.contentType.getCharset();
+        return charset != null ? charset.name() : null;
     }
 
 }

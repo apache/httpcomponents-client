@@ -29,6 +29,7 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.junit.Assert;
@@ -38,10 +39,10 @@ public class TestMultipartContentBody {
 
     @Test
     public void testStringBody() throws Exception {
-        StringBody b1 = new StringBody("text");
+        StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
         Assert.assertEquals(4, b1.getContentLength());
 
-        Assert.assertEquals("US-ASCII", b1.getCharset());
+        Assert.assertEquals("ISO-8859-1", b1.getCharset());
 
         Assert.assertNull(b1.getFilename());
         Assert.assertEquals("text/plain", b1.getMimeType());
@@ -50,7 +51,8 @@ public class TestMultipartContentBody {
 
         Assert.assertEquals(MIME.ENC_8BIT, b1.getTransferEncoding());
 
-        StringBody b2 = new StringBody("more text", "text/other", MIME.DEFAULT_CHARSET);
+        StringBody b2 = new StringBody("more text", 
+                ContentType.create("text/other", MIME.DEFAULT_CHARSET));
         Assert.assertEquals(9, b2.getContentLength());
         Assert.assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());
 
@@ -77,7 +79,7 @@ public class TestMultipartContentBody {
         Assert.assertEquals(MIME.ENC_BINARY, b1.getTransferEncoding());
 
         InputStreamBody b2 = new InputStreamBody(
-                new ByteArrayInputStream(stuff), "some/stuff", "stuff");
+                new ByteArrayInputStream(stuff), ContentType.create("some/stuff"), "stuff");
         Assert.assertEquals(-1, b2.getContentLength());
         Assert.assertNull(b2.getCharset());
         Assert.assertEquals("stuff", b2.getFilename());

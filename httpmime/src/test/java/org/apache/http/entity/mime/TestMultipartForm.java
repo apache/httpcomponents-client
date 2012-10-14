@@ -34,6 +34,8 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import org.apache.http.Consts;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.HttpMultipart;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -50,13 +52,14 @@ public class TestMultipartForm {
         HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
-                new StringBody("this stuff"));
+                new StringBody("this stuff", ContentType.DEFAULT_TEXT));
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
-                new StringBody("that stuff", Charset.forName("UTF-8")));
+                new StringBody("that stuff", ContentType.create(
+                        ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8)));
         FormBodyPart p3 = new FormBodyPart(
                 "field3",
-                new StringBody("all kind of stuff"));
+                new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
@@ -69,7 +72,7 @@ public class TestMultipartForm {
         String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
-            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "this stuff\r\n" +
@@ -81,7 +84,7 @@ public class TestMultipartForm {
             "that stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field3\"\r\n" +
-            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
@@ -157,7 +160,7 @@ public class TestMultipartForm {
                 new FileBody(tmpfile));
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
-                new FileBody(tmpfile, "test-file", "text/plain", "ANSI_X3.4-1968"));
+                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
         FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
@@ -181,7 +184,7 @@ public class TestMultipartForm {
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"; " +
                 "filename=\"test-file\"\r\n" +
-            "Content-Type: text/plain; charset=ANSI_X3.4-1968\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
             "Content-Transfer-Encoding: binary\r\n" +
             "\r\n" +
             "some random whatever\r\n" +
@@ -277,10 +280,10 @@ public class TestMultipartForm {
         HttpMultipart multipart = new HttpMultipart("form-data", "foo");
         FormBodyPart p1 = new FormBodyPart(
                 "field1",
-                new StringBody(s1, Charset.forName("ISO-8859-1")));
+                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1"))));
         FormBodyPart p2 = new FormBodyPart(
                 "field2",
-                new StringBody(s2, Charset.forName("KOI8-R")));
+                new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R"))));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);

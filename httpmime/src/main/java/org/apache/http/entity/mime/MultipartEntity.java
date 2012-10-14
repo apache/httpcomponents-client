@@ -123,6 +123,13 @@ public class MultipartEntity implements HttpEntity {
         return buffer.toString();
     }
 
+    /**
+     * @since 4.3
+     */
+    protected HttpMultipart getMultipart() {
+        return multipart;
+    }
+
     public void addPart(final FormBodyPart bodyPart) {
         this.multipart.addBodyPart(bodyPart);
         this.dirty = true;
