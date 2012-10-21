@@ -1,4 +1,13 @@
-Changes since 4.2.1
+Release 4.2.2 
+-------------------
+
+HttpClient 4.2.2 (GA) is a bug fix release that addresses a number of issues reported since 
+release 4.2.1.
+
+Users of HttpClient 4.2 are advised to upgrade.
+
+Changelog
+-------------------
 
 * [HTTPCLIENT-1248]: Default and lax redirect strategies should not convert requests redirected 
   with 307 status to GET method.  
