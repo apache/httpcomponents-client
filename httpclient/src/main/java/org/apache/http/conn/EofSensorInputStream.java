@@ -33,14 +33,8 @@ import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * A stream wrapper that triggers actions on {@link #close close()} and EOF.
- * Primarily used to auto-release an underlying
- * {@link ManagedClientConnection connection}
- * when the response body is consumed or no longer needed.
- * <p>
- * This class is based on <code>AutoCloseInputStream</code> in HttpClient 3.1,
- * but has notable differences. It does not allow mark/reset, distinguishes
- * different kinds of event, and does not always close the underlying stream
- * on EOF. That decision is left to the {@link EofSensorWatcher watcher}.
+ * Primarily used to auto-release an underlying managed connection when the response
+ * body is consumed or no longer needed.
  *
  * @see EofSensorWatcher
  *
@@ -87,13 +81,19 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     public EofSensorInputStream(final InputStream in,
                                 final EofSensorWatcher watcher) {
         if (in == null) {
-            throw new IllegalArgumentException
-                ("Wrapped stream may not be null.");
+            throw new IllegalArgumentException("Wrapped stream may not be null");
         }
-
         wrappedStream = in;
         selfClosed = false;
         eofWatcher = watcher;
+    }
+
+    boolean isSelfClosed() {
+        return selfClosed;
+    }
+
+    InputStream getWrappedStream() {
+        return wrappedStream;
     }
 
     /**
@@ -148,18 +148,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
 
     @Override
     public int read(byte[] b) throws IOException {
-        int l = -1;
-
-        if (isReadAllowed()) {
-            try {
-                l = wrappedStream.read(b);
-                checkEOF(l);
-            } catch (IOException ex) {
-                checkAbort();
-                throw ex;
-            }
-        }
-        return l;
+        return read(b, 0, b.length);
     }
 
     @Override

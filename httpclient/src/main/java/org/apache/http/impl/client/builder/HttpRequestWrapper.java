@@ -27,11 +27,7 @@
 
 package org.apache.http.impl.client.builder;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.http.annotation.NotThreadSafe;
 
@@ -44,10 +40,8 @@ import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -62,34 +56,22 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
     private final HttpRequest original;
 
     private URI uri;
-    private String method;
-    private ProtocolVersion version;
     private HttpHost virtualHost;
 
-    private HttpRequestWrapper(
-            final ProtocolVersion version,
-            final URI uri,
-            final String method,
-            final HttpRequest request) {
+    private HttpRequestWrapper(final HttpRequest request) {
         super();
         this.original = request;
-        this.uri = uri;
-        this.method = method;
-        this.version = version;
+        if (request instanceof HttpUriRequest) {
+            this.uri = ((HttpUriRequest) request).getURI();
+        } else {
+            this.uri = null;
+        }
         setParams(request.getParams());
         setHeaders(request.getAllHeaders());
     }
 
     public ProtocolVersion getProtocolVersion() {
-        if (this.version != null) {
-            return this.version;
-        } else {
-            return HttpProtocolParams.getVersion(getParams());
-        }
-    }
-
-    public void setProtocolVersion(final ProtocolVersion version) {
-        this.version = version;
+        return this.original.getProtocolVersion();
     }
 
     public URI getURI() {
@@ -101,18 +83,18 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
     }
 
     public RequestLine getRequestLine() {
+        ProtocolVersion version = this.original.getRequestLine().getProtocolVersion();
+        String method = this.original.getRequestLine().getMethod();
         String uritext = null;
         if (this.uri != null) {
-            uritext = uri.toASCIIString();
+            uritext = this.uri.toASCIIString();
+        } else {
+            uritext = this.original.getRequestLine().getUri();
         }
         if (uritext == null || uritext.length() == 0) {
             uritext = "/";
         }
-        return new BasicRequestLine(this.method, uritext, getProtocolVersion());
-    }
-
-    public String getMethod() {
-        return this.method;
+        return new BasicRequestLine(method, uritext, version);
     }
 
     public HttpRequest getOriginal() {
@@ -133,22 +115,17 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
     @Override
     public String toString() {
-        return this.method + " " + this.uri + " " + this.headergroup;
+        return getRequestLine() + " " + this.headergroup;
     }
 
     static class HttpEntityEnclosingRequestWrapper extends HttpRequestWrapper
         implements HttpEntityEnclosingRequest {
 
         private HttpEntity entity;
-        private boolean consumed;
 
-        public HttpEntityEnclosingRequestWrapper(
-                final ProtocolVersion version,
-                final URI uri,
-                final String method,
-                final HttpEntityEnclosingRequest request)
+        public HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request)
             throws ProtocolException {
-            super(version, uri, method, request);
+            super(request);
             setEntity(request.getEntity());
         }
 
@@ -157,7 +134,7 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
         }
 
         public void setEntity(final HttpEntity entity) {
-            this.entity = entity != null ? new EntityWrapper(entity) : null;
+            this.entity = entity != null ? new RequestEntityWrapper(entity) : null;
         }
 
         public boolean expectContinue() {
@@ -167,32 +144,7 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
         @Override
         public boolean isRepeatable() {
-            return this.entity == null || this.entity.isRepeatable() || !this.consumed;
-        }
-
-        class EntityWrapper extends HttpEntityWrapper {
-
-            EntityWrapper(final HttpEntity entity) {
-                super(entity);
-            }
-
-            @Deprecated
-            @Override
-            public void consumeContent() throws IOException {
-                consumed = true;
-                super.consumeContent();
-            }
-
-            @Override
-            public InputStream getContent() throws IOException {
-                return super.getContent();
-            }
-
-            @Override
-            public void writeTo(final OutputStream outstream) throws IOException {
-                consumed = true;
-                super.writeTo(outstream);
-            }
+            return this.entity == null || this.entity.isRepeatable();
         }
 
     }
@@ -201,28 +153,10 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
         if (request == null) {
             return null;
         }
-        ProtocolVersion version;
-        URI uri;
-        String method;
-        if (request instanceof HttpUriRequest) {
-            version = ((HttpUriRequest) request).getProtocolVersion();
-            uri = ((HttpUriRequest) request).getURI();
-            method = ((HttpUriRequest) request).getMethod();
-        } else {
-            RequestLine requestLine = request.getRequestLine();
-            version = request.getProtocolVersion();
-            try {
-                uri = new URI(requestLine.getUri());
-            } catch (URISyntaxException ex) {
-                throw new ProtocolException("Invalid request URI: " + requestLine.getUri(), ex);
-            }
-            method = request.getRequestLine().getMethod();
-        }
         if (request instanceof HttpEntityEnclosingRequest) {
-            return new HttpEntityEnclosingRequestWrapper(version, uri, method,
-                    (HttpEntityEnclosingRequest) request);
+            return new HttpEntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request);
         } else {
-            return new HttpRequestWrapper(version, uri, method, request);
+            return new HttpRequestWrapper(request);
         }
     }
 

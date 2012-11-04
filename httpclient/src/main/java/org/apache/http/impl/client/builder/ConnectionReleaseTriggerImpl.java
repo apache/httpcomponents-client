@@ -95,8 +95,22 @@ class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancella
                 return;
             }
             this.released = true;
-            this.manager.releaseConnection(this.managedConn,
-                    this.state, this.validDuration, this.tunit);
+            if (this.reusable) {
+                this.manager.releaseConnection(this.managedConn,
+                        this.state, this.validDuration, this.tunit);
+            } else {
+                try {
+                    this.managedConn.close();
+                    log.debug("Connection discarded");
+                } catch (IOException ex) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug(ex.getMessage(), ex);
+                    }
+                } finally {
+                    this.manager.releaseConnection(
+                            this.managedConn, null, 0, TimeUnit.MILLISECONDS);
+                }
+            }
         }
     }
 

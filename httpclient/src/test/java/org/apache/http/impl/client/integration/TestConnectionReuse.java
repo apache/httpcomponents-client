@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.conn;
+package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

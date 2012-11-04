@@ -37,10 +37,9 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
 import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.util.EntityUtils;
 
 /**
- * A wrapper class for {@link HttpEntity} encloded in a response message.
+ * A wrapper class for {@link HttpEntity} enclosed in a response message.
  *
  * @since 4.3
  */
@@ -66,7 +65,6 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         if (this.connReleaseTrigger != null) {
             try {
                 if (this.connReleaseTrigger.isReusable()) {
-                    EntityUtils.consume(this.wrappedEntity);
                     this.connReleaseTrigger.releaseConnection();
                 }
             } finally {
@@ -93,8 +91,12 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
 
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
-        this.wrappedEntity.writeTo(outstream);
-        releaseConnection();
+        try {
+            this.wrappedEntity.writeTo(outstream);
+            releaseConnection();
+        } finally {
+            cleanup();
+        }
     }
 
     public boolean eofDetected(final InputStream wrapped) throws IOException {

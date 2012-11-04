@@ -78,23 +78,25 @@ class ProtocolExec implements ClientExecChain {
             final HttpRoute route) throws ProtocolException {
         try {
             URI uri = request.getURI();
-            if (route.getProxyHost() != null && !route.isTunnelled()) {
-                // Make sure the request URI is absolute
-                if (!uri.isAbsolute()) {
-                    HttpHost target = route.getTargetHost();
-                    uri = URIUtils.rewriteURI(uri, target, true);
+            if (uri != null) {
+                if (route.getProxyHost() != null && !route.isTunnelled()) {
+                    // Make sure the request URI is absolute
+                    if (!uri.isAbsolute()) {
+                        HttpHost target = route.getTargetHost();
+                        uri = URIUtils.rewriteURI(uri, target, true);
+                    } else {
+                        uri = URIUtils.rewriteURI(uri);
+                    }
                 } else {
-                    uri = URIUtils.rewriteURI(uri);
+                    // Make sure the request URI is relative
+                    if (uri.isAbsolute()) {
+                        uri = URIUtils.rewriteURI(uri, null);
+                    } else {
+                        uri = URIUtils.rewriteURI(uri);
+                    }
                 }
-            } else {
-                // Make sure the request URI is relative
-                if (uri.isAbsolute()) {
-                    uri = URIUtils.rewriteURI(uri, null);
-                } else {
-                    uri = URIUtils.rewriteURI(uri);
-                }
+                request.setURI(uri);
             }
-            request.setURI(uri);
         } catch (URISyntaxException ex) {
             throw new ProtocolException("Invalid URI: " +
                     request.getRequestLine().getUri(), ex);
