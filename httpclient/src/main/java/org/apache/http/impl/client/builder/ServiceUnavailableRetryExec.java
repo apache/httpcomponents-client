@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
@@ -68,17 +69,17 @@ class ServiceUnavailableRetryExec implements ClientExecChain {
         this.retryStrategy = retryStrategy;
     }
 
-    public HttpResponseWrapper execute(
+    public CloseableHttpResponse execute(
             final HttpRoute route, 
             final HttpRequestWrapper request,
             final HttpContext context, 
             final HttpExecutionAware execAware) throws IOException, HttpException {
         for (int c = 1;; c++) {
-            HttpResponseWrapper response = this.requestExecutor.execute(
+            CloseableHttpResponse response = this.requestExecutor.execute(
                     route, request, context, execAware);
             try {
                 if (this.retryStrategy.retryRequest(response, c, context)) {
-                    response.releaseConnection();
+                    response.close();
                     long nextInterval = this.retryStrategy.getRetryInterval();
                     try {
                         this.log.trace("Wait for " + nextInterval);

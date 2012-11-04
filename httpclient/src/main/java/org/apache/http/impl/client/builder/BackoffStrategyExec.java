@@ -34,6 +34,7 @@ import org.apache.http.HttpException;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ConnectionBackoffStrategy;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
@@ -67,7 +68,7 @@ class BackoffStrategyExec implements ClientExecChain {
         this.backoffManager = backoffManager;
     }
 
-    public HttpResponseWrapper execute(
+    public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpContext context,
@@ -81,7 +82,7 @@ class BackoffStrategyExec implements ClientExecChain {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
-        HttpResponseWrapper out = null;
+        CloseableHttpResponse out = null;
         try {
             out = this.requestExecutor.execute(route, request, context, execAware);
         } catch (Exception ex) {

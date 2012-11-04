@@ -41,6 +41,7 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
@@ -49,6 +50,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 /**
  * The following parameters can be used to customize the behavior of this
@@ -89,7 +91,7 @@ class RedirectExec implements ClientExecChain {
         this.redirectStrategy = redirectStrategy;
     }
 
-    public HttpResponseWrapper execute(
+    public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpContext context,
@@ -108,7 +110,7 @@ class RedirectExec implements ClientExecChain {
         HttpRoute currentRoute = route;
         HttpRequestWrapper currentRequest = request;
         for (int redirectCount = 0;;) {
-            HttpResponseWrapper response = requestExecutor.execute(
+            CloseableHttpResponse response = requestExecutor.execute(
                     currentRoute, currentRequest, context, execAware);
             try {
                 if (HttpClientParams.isRedirecting(params) &&
@@ -157,7 +159,8 @@ class RedirectExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Redirecting to '" + uri + "' via " + currentRoute);
                     }
-                    response.releaseConnection();
+                    EntityUtils.consume(response.getEntity());
+                    response.close();
                 } else {
                     return response;
                 }
@@ -171,9 +174,11 @@ class RedirectExec implements ClientExecChain {
                 // Protocol exception related to a direct.
                 // The underlying connection may still be salvaged.
                 try {
-                    response.releaseConnection();
+                    EntityUtils.consume(response.getEntity());
                 } catch (IOException ioex) {
                     this.log.debug("I/O error while releasing connection", ioex);
+                } finally {
+                    response.close();
                 }
                 throw ex;
             }

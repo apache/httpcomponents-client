@@ -49,6 +49,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
@@ -167,7 +168,7 @@ class MainClientExec implements ClientExecChain {
         this.userTokenHandler   = userTokenHandler;
     }
 
-    public HttpResponseWrapper execute(
+    public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpContext context,
@@ -352,9 +353,9 @@ class MainClientExec implements ClientExecChain {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
-                return HttpResponseWrapper.wrap(response, null);
+                return HttpResponseProxy.newProxy(response, null);
             } else {
-                return HttpResponseWrapper.wrap(response, releaseTrigger);
+                return HttpResponseProxy.newProxy(response, releaseTrigger);
             }
         } catch (ConnectionShutdownException ex) {
             InterruptedIOException ioex = new InterruptedIOException(

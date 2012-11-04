@@ -39,6 +39,7 @@ import org.apache.http.ProtocolException;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.utils.URIUtils;
@@ -100,7 +101,7 @@ class ProtocolExec implements ClientExecChain {
         }
     }
 
-    public HttpResponseWrapper execute(
+    public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpContext context,
@@ -148,7 +149,7 @@ class ProtocolExec implements ClientExecChain {
 
         this.httpProcessor.process(request, context);
 
-        HttpResponseWrapper response = this.requestExecutor.execute(route, request, context, execAware);
+        CloseableHttpResponse response = this.requestExecutor.execute(route, request, context, execAware);
         try {
             // Run response protocol interceptors
             context.setAttribute(ExecutionContext.HTTP_RESPONSE, response);

@@ -30,6 +30,7 @@ package org.apache.http.impl.client.builder;
 import java.io.IOException;
 
 import org.apache.http.HttpException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
@@ -41,15 +42,14 @@ import org.apache.http.protocol.HttpContext;
  * <p/>
  * Important: please note it is required for decorators that implement post execution aspects
  * or response post-processing of any sort to release resources associated with the response
- * by calling {@link HttpResponseWrapper#releaseConnection()} or {@link HttpResponseWrapper#close()}
- * methods in case of an I/O, protocol or runtime exception, or in case the response is not
- * propagated to the caller.
+ * by calling {@link HttpResponseProxy#close()} methods in case of an I/O, protocol or runtime 
+ * exception, or in case the response is not propagated to the caller.
  *
  * @since 4.3
  */
 interface ClientExecChain {
 
-    HttpResponseWrapper execute(
+    CloseableHttpResponse execute(
             HttpRoute route,
             HttpRequestWrapper request,
             HttpContext context,
