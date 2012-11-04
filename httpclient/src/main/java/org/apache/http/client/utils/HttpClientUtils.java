@@ -31,11 +31,13 @@ import java.io.IOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 /**
  * Static helpers for dealing with {@link HttpResponse}s.
- * 
+ *
  * @since 4.2
  */
 public class HttpClientUtils {
@@ -47,7 +49,7 @@ public class HttpClientUtils {
      * Unconditionally close a response.
      * <p>
      * Example Code:
-     * 
+     *
      * <pre>
      * HttpResponse httpResponse = null;
      * try {
@@ -58,11 +60,11 @@ public class HttpClientUtils {
      *     HttpClientUtils.closeQuietly(httpResponse);
      * }
      * </pre>
-     * 
+     *
      * @param response
      *            the HttpResponse to release resources, may be null or already
      *            closed.
-     * 
+     *
      * @since 4.2
      */
     public static void closeQuietly(final HttpResponse response) {
@@ -78,11 +80,46 @@ public class HttpClientUtils {
     }
 
     /**
+     * Unconditionally close a response.
+     * <p>
+     * Example Code:
+     *
+     * <pre>
+     * HttpResponse httpResponse = null;
+     * try {
+     *     httpResponse = httpClient.execute(httpGet);
+     * } catch (Exception e) {
+     *     // error handling
+     * } finally {
+     *     HttpClientUtils.closeQuietly(httpResponse);
+     * }
+     * </pre>
+     *
+     * @param response
+     *            the HttpResponse to release resources, may be null or already
+     *            closed.
+     *
+     * @since 4.3
+     */
+    public static void closeQuietly(final CloseableHttpResponse response) {
+        if (response != null) {
+            try {
+                try {
+                    EntityUtils.consume(response.getEntity());
+                } finally {
+                    response.close();
+                }
+            } catch (final IOException ex) {
+            }
+        }
+    }
+
+    /**
      * Unconditionally close a httpClient. Shuts down the underlying connection
      * manager and releases the resources.
      * <p>
      * Example Code:
-     * 
+     *
      * <pre>
      * HttpClient httpClient = null;
      * try {
@@ -93,7 +130,7 @@ public class HttpClientUtils {
      *   HttpClientUtils.closeQuietly(httpClient);
      * }
      * </pre>
-     * 
+     *
      * @param httpClient
      *            the HttpClient to close, may be null or already closed.
      * @since 4.2
@@ -104,6 +141,36 @@ public class HttpClientUtils {
     public static void closeQuietly(final HttpClient httpClient) {
         if (httpClient != null) {
             httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    /**
+     * Unconditionally close a httpClient. Shuts down the underlying connection
+     * manager and releases the resources.
+     * <p>
+     * Example Code:
+     *
+     * <pre>
+     * CloseableHttpClient httpClient = HttpClients.createDefault();
+     * try {
+     *   ...
+     * } catch (Exception e) {
+     *   // error handling
+     * } finally {
+     *   HttpClientUtils.closeQuietly(httpClient);
+     * }
+     * </pre>
+     *
+     * @param httpClient
+     *            the HttpClient to close, may be null or already closed.
+     * @since 4.3
+     */
+    public static void closeQuietly(final CloseableHttpClient httpClient) {
+        if (httpClient != null) {
+            try {
+                httpClient.close();
+            } catch (final IOException ex) {
+            }
         }
     }
 
