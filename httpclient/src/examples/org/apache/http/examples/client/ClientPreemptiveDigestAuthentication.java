@@ -27,22 +27,25 @@ package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
  * An example of HttpClient can be customized to authenticate
  * preemptively using DIGEST scheme.
- * <b/>
+ * <p/>
  * Generally, preemptive authentication can be considered less
  * secure than a response to an authentication challenge
  * and therefore discouraged.
@@ -50,14 +53,14 @@ import org.apache.http.util.EntityUtils;
 public class ClientPreemptiveDigestAuthentication {
 
     public static void main(String[] args) throws Exception {
-
         HttpHost targetHost = new HttpHost("localhost", 80, "http");
-
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(
+                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+                new UsernamePasswordCredentials("username", "password"));
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setCredentialsProvider(credsProvider).build();
         try {
-            httpclient.getCredentialsProvider().setCredentials(
-                    new AuthScope(targetHost.getHostName(), targetHost.getPort()),
-                    new UsernamePasswordCredentials("username", "password"));
 
             // Create AuthCache instance
             AuthCache authCache = new BasicAuthCache();
@@ -80,22 +83,22 @@ public class ClientPreemptiveDigestAuthentication {
             System.out.println("to target: " + targetHost);
 
             for (int i = 0; i < 3; i++) {
-                HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
-                HttpEntity entity = response.getEntity();
+                CloseableHttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
+                try {
+                    HttpEntity entity = response.getEntity();
 
-                System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
+                    System.out.println("----------------------------------------");
+                    System.out.println(response.getStatusLine());
+                    if (entity != null) {
+                        System.out.println("Response content length: " + entity.getContentLength());
+                    }
+                    EntityUtils.consume(entity);
+                } finally {
+                    response.close();
                 }
-                EntityUtils.consume(entity);
             }
-
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 

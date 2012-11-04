@@ -25,9 +25,8 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,6 +40,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
@@ -55,7 +55,7 @@ import org.apache.http.util.EntityUtils;
  * @since 4.3
  */
 @NotThreadSafe
-public class HttpResponseWrapper implements HttpResponse, ConnectionReleaseTrigger, Closeable {
+class HttpResponseWrapper implements CloseableHttpResponse, ConnectionReleaseTrigger {
 
     private final HttpResponse original;
     private final ConnectionReleaseTriggerImpl connReleaseTrigger;

@@ -45,7 +45,7 @@ import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -64,7 +64,7 @@ public class TestCookie2Support extends IntegrationTestBase {
     @Before
     public void setUp() throws Exception {
         startServer();
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
     }
 
     private static class CookieVer0Service implements HttpRequestHandler {

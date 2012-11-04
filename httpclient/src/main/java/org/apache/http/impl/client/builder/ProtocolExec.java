@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -52,7 +52,7 @@ import org.apache.http.protocol.HttpProcessor;
  * @since 4.3
  */
 @ThreadSafe
-public class ProtocolExec implements ClientExecChain {
+class ProtocolExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

@@ -37,7 +37,6 @@ import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.exec.HttpRequestWrapper;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
@@ -52,7 +51,7 @@ import org.apache.http.params.HttpProtocolParams;
  *
  * @since 4.0
  * 
- * @deprecated (4.3) use {@link HttpRequestWrapper}.
+ * @deprecated (4.3) do not use.
  */
 @NotThreadSafe
 @Deprecated 

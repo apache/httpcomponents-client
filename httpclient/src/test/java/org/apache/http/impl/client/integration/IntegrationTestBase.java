@@ -25,18 +25,18 @@
  */
 package org.apache.http.impl.client.integration;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.junit.After;
 
 public class IntegrationTestBase extends LocalServerTestBase {
 
-    protected HttpClient httpclient;
+    protected CloseableHttpClient httpclient;
 
     @After
     public void shutDownClient() throws Exception {
         if (this.httpclient != null) {
-            this.httpclient.getConnectionManager().shutdown();
+            this.httpclient.close();
         }
     }
 

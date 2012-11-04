@@ -28,10 +28,10 @@
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
  * This example demonstrates how to abort an HTTP method before its normal completion.
@@ -39,29 +39,30 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public class ClientAbortMethod {
 
     public final static void main(String[] args) throws Exception {
-        HttpClient httpclient = new DefaultHttpClient();
+        CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             HttpGet httpget = new HttpGet("http://www.apache.org/");
 
             System.out.println("executing request " + httpget.getURI());
-            HttpResponse response = httpclient.execute(httpget);
-            HttpEntity entity = response.getEntity();
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            try {
+                HttpEntity entity = response.getEntity();
 
-            System.out.println("----------------------------------------");
-            System.out.println(response.getStatusLine());
-            if (entity != null) {
-                System.out.println("Response content length: " + entity.getContentLength());
+                System.out.println("----------------------------------------");
+                System.out.println(response.getStatusLine());
+                if (entity != null) {
+                    System.out.println("Response content length: " + entity.getContentLength());
+                }
+                System.out.println("----------------------------------------");
+
+                // Do not feel like reading the response body
+                // Call abort on the request object
+                httpget.abort();
+            } finally {
+                response.close();
             }
-            System.out.println("----------------------------------------");
-
-            // Do not feel like reading the response body
-            // Call abort on the request object
-            httpget.abort();
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 

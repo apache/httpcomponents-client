@@ -57,7 +57,7 @@ public class TestRequestRetryHandler {
         HttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(schemeRegistry);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
 
-        HttpClient client = new HttpClientBuilder()
+        HttpClient client = HttpClients.custom()
             .setConnectionManager(connManager)
             .setRetryHandler(testRetryHandler).build();
 

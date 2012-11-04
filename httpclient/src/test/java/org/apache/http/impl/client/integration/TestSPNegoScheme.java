@@ -45,13 +45,12 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.SPNegoScheme;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
-
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSManager;
@@ -64,7 +63,7 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
- * Tests for {@link NegotiateScheme}.
+ * Tests for {@link SPNegoScheme}.
  */
 public class TestSPNegoScheme extends IntegrationTestBase {
 
@@ -164,7 +163,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .registerAuthScheme(AuthPolicy.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();
@@ -196,7 +195,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
         
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .registerAuthScheme(AuthPolicy.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();

@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -33,13 +33,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
@@ -51,8 +51,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecRegistry;
-import org.apache.http.impl.client.exec.ClientExecChain;
-import org.apache.http.impl.client.exec.HttpRequestWrapper;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.SyncBasicHttpParams;
@@ -62,8 +61,9 @@ import org.apache.http.protocol.HttpContext;
 /**
  * @since 4.3
  */
+@SuppressWarnings("deprecation")
 @ThreadSafe
-class InternalHttpClient extends AbstractBasicHttpClient {
+class InternalHttpClient extends CloseableHttpClient {
 
     private final ClientExecChain execChain;
     private final HttpClientConnectionManager connManager;
@@ -143,7 +143,7 @@ class InternalHttpClient extends AbstractBasicHttpClient {
         return context;
     }
 
-    public HttpResponse execute(
+    public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
@@ -171,6 +171,10 @@ class InternalHttpClient extends AbstractBasicHttpClient {
 
     public HttpParams getParams() {
         return this.params;
+    }
+
+    public void close() {
+        getConnectionManager().shutdown();
     }
 
     public ClientConnectionManager getConnectionManager() {

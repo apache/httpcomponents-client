@@ -44,7 +44,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -88,7 +88,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
 
         String s = "/path";
@@ -110,7 +110,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
         EntityUtils.consume(response.getEntity());
 
@@ -136,7 +136,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         String virtHost = "virtual";
         httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, port));
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
@@ -166,7 +166,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         String virtHost = "virtual";
         int virtPort = 9876;
         httpget.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, virtPort));
@@ -194,7 +194,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         String s = "http://localhost:" + port;
         HttpGet httpget = new HttpGet(s);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         String virtHost = "virtual";
         this.httpclient.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(virtHost, port));
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
@@ -219,7 +219,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         HttpHost target1 = new HttpHost("whatever", 80);
         HttpHost target2 = new HttpHost("localhost", port);
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target1);
 
         String s = "/path";
@@ -284,7 +284,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         };
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .addInterceptorFirst(interceptor)
             .setRequestExecutor(new FaultyHttpRequestExecutor("Oppsie"))
             .setRetryHandler(requestRetryHandler)
@@ -324,7 +324,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         };
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setRequestExecutor(new FaultyHttpRequestExecutor("a message showing that this failed"))
             .setRetryHandler(requestRetryHandler)
             .build();

@@ -38,8 +38,10 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.entity.GzipDecompressingEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -59,9 +61,8 @@ import org.apache.http.util.EntityUtils;
 public class ClientGZipContentCompression {
 
     public final static void main(String[] args) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        try {
-            httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .addInterceptorFirst(new HttpRequestInterceptor() {
 
                 public void process(
                         final HttpRequest request,
@@ -69,11 +70,8 @@ public class ClientGZipContentCompression {
                     if (!request.containsHeader("Accept-Encoding")) {
                         request.addHeader("Accept-Encoding", "gzip");
                     }
-                }
 
-            });
-
-            httpclient.addResponseInterceptor(new HttpResponseInterceptor() {
+                }}).addInterceptorFirst(new HttpResponseInterceptor() {
 
                 public void process(
                         final HttpResponse response,
@@ -94,34 +92,33 @@ public class ClientGZipContentCompression {
                     }
                 }
 
-            });
-
+            }).build();
+        try {
             HttpGet httpget = new HttpGet("http://www.apache.org/");
 
             // Execute HTTP request
             System.out.println("executing request " + httpget.getURI());
-            HttpResponse response = httpclient.execute(httpget);
-
-            System.out.println("----------------------------------------");
-            System.out.println(response.getStatusLine());
-            System.out.println(response.getLastHeader("Content-Encoding"));
-            System.out.println(response.getLastHeader("Content-Length"));
-            System.out.println("----------------------------------------");
-
-            HttpEntity entity = response.getEntity();
-
-            if (entity != null) {
-                String content = EntityUtils.toString(entity);
-                System.out.println(content);
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            try {
                 System.out.println("----------------------------------------");
-                System.out.println("Uncompressed size: "+content.length());
-            }
+                System.out.println(response.getStatusLine());
+                System.out.println(response.getLastHeader("Content-Encoding"));
+                System.out.println(response.getLastHeader("Content-Length"));
+                System.out.println("----------------------------------------");
 
+                HttpEntity entity = response.getEntity();
+
+                if (entity != null) {
+                    String content = EntityUtils.toString(entity);
+                    System.out.println(content);
+                    System.out.println("----------------------------------------");
+                    System.out.println("Uncompressed size: "+content.length());
+                }
+            } finally {
+                response.close();
+            }
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 

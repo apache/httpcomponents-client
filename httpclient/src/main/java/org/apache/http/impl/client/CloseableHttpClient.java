@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.client;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
@@ -41,20 +42,26 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
+ * Minimal implementation of {@link HttpClient} that also implements {@link Closeable}.
+ *
  * @since 4.3
  */
 @ThreadSafe
-public abstract class AbstractBasicHttpClient implements HttpClient {
+public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    public HttpResponse execute(
+    public abstract CloseableHttpResponse execute(HttpHost target, HttpRequest request,
+            HttpContext context) throws IOException, ClientProtocolException;
+
+    public CloseableHttpResponse execute(
             final HttpUriRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
         if (request == null) {
@@ -79,12 +86,12 @@ public abstract class AbstractBasicHttpClient implements HttpClient {
         return target;
     }
 
-    public HttpResponse execute(
+    public CloseableHttpResponse execute(
             final HttpUriRequest request) throws IOException, ClientProtocolException {
         return execute(request, (HttpContext) null);
     }
 
-    public HttpResponse execute(
+    public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request) throws IOException, ClientProtocolException {
         return execute(target, request, (HttpContext) null);

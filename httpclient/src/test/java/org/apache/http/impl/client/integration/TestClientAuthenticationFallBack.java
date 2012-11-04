@@ -41,7 +41,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -137,7 +137,7 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 

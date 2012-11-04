@@ -37,7 +37,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
@@ -55,6 +54,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
@@ -72,6 +72,7 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.http.impl.client.builder.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicClientConnectionManager;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
@@ -178,7 +179,7 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
  */
 @ThreadSafe
 @Deprecated
-public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
+public abstract class AbstractHttpClient extends CloseableHttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -775,7 +776,7 @@ public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
         protocolProcessor = null;
     }
 
-    public final HttpResponse execute(HttpHost target, HttpRequest request,
+    public final CloseableHttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
         throws IOException, ClientProtocolException {
 
@@ -828,9 +829,10 @@ public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
                                 ClientPNames.DEFAULT_HOST);
                 HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
 
-                HttpResponse out;
+                CloseableHttpResponse out;
                 try {
-                    out = director.execute(target, request, execContext);
+                    out = CloseableHttpResponseProxy.newProxy(
+                            director.execute(target, request, execContext));
                 } catch (RuntimeException re) {
                     if (connectionBackoffStrategy.shouldBackoff(re)) {
                         backoffManager.backOff(route);
@@ -851,7 +853,8 @@ public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
                 }
                 return out;
             } else {
-                return director.execute(target, request, execContext);
+                return CloseableHttpResponseProxy.newProxy(
+                        director.execute(target, request, execContext));
             }
         } catch(HttpException httpException) {
             throw new ClientProtocolException(httpException);
@@ -974,6 +977,11 @@ public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
     protected HttpParams determineParams(HttpRequest req) {
         return new ClientParamsStack
             (null, getParams(), req.getParams(), null);
+    }
+
+
+    public void close() {
+        getConnectionManager().shutdown();
     }
 
 }

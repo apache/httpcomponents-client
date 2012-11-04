@@ -24,17 +24,17 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.utils;
+
+package org.apache.http.client.methods;
+
+import java.io.Closeable;
 
 import org.apache.http.HttpResponse;
-import org.junit.Test;
 
-public class TestHttpClientUtils {
-
-    @Test
-    public void testCloseQuietlyResponseNull() throws Exception {
-        HttpResponse response = null;
-        HttpClientUtils.closeQuietly(response);
-    }
-
+/**
+ * Extended version of the {@link HttpResponse} interface that also extends {@link Closeable}.
+ * 
+ * @since 4.3
+ */
+public interface CloseableHttpResponse extends HttpResponse, Closeable {
 }

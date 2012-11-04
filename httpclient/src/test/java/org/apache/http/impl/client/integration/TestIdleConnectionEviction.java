@@ -37,7 +37,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
@@ -60,7 +60,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         cm.setDefaultMaxPerRoute(10);
         cm.setMaxTotal(50);
 
-        HttpClient httpclient = new HttpClientBuilder().setConnectionManager(cm).build();
+        HttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
 
         IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(cm);
         idleConnectionMonitor.start();

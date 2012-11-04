@@ -49,11 +49,11 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
-import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
@@ -164,7 +164,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         this.localServer.register("*", new AuthHandler());
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -185,7 +185,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "all-wrong"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -206,7 +206,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 
@@ -237,7 +237,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -259,7 +259,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpPut httpput = new HttpPut("/");
         httpput.setEntity(new InputStreamEntity(
@@ -286,7 +286,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new StringEntity("some important stuff", Consts.ASCII));
@@ -308,7 +308,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
         HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
@@ -361,7 +361,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
                 new UsernamePasswordCredentials("test", "test"));
         TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setCredentialsProvider(credsProvider)
             .setTargetAuthenticationStrategy(authStrategy)
             .build();
@@ -393,7 +393,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
@@ -409,7 +409,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         HttpHost target = getServerHttp();
         HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         HttpEntity entity = response.getEntity();
@@ -457,7 +457,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         credsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setCredentialsProvider(credsProvider)
             .build();
 
@@ -488,7 +488,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         credsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("test", "stuff"));
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setCredentialsProvider(credsProvider)
             .build();
 

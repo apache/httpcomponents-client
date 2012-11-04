@@ -50,7 +50,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.SM;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
@@ -71,7 +71,7 @@ public class TestRedirects extends IntegrationTestBase {
     @Before
     public void setUp() throws Exception {
         startServer();
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.createDefault();
     }
 
     private static class BasicRedirectService implements HttpRequestHandler {

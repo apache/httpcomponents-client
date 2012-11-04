@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -46,7 +46,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @ThreadSafe
-public class ServiceUnavailableRetryExec implements ClientExecChain {
+class ServiceUnavailableRetryExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

@@ -72,6 +72,7 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe // connSecure, targetHost
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection, HttpSSLConnection, HttpContext {

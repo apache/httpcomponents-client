@@ -37,13 +37,17 @@ import java.net.UnknownHostException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
@@ -56,37 +60,38 @@ import org.apache.http.util.EntityUtils;
 public class ClientExecuteSOCKS {
 
     public static void main(String[] args)throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
+        schemeRegistry.register(new Scheme("http", 80, new MySchemeSocketFactory()));
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
         try {
             httpclient.getParams().setParameter("socks.host", "mysockshost");
             httpclient.getParams().setParameter("socks.port", 1234);
-            httpclient.getConnectionManager().getSchemeRegistry().register(
-                    new Scheme("http", 80, new MySchemeSocketFactory()));
 
             HttpHost target = new HttpHost("www.apache.org", 80, "http");
-            HttpGet req = new HttpGet("/");
+            HttpGet request = new HttpGet("/");
 
             System.out.println("executing request to " + target + " via SOCKS proxy");
-            HttpResponse rsp = httpclient.execute(target, req);
-            HttpEntity entity = rsp.getEntity();
+            CloseableHttpResponse response = httpclient.execute(target, request);
+            try {
+                HttpEntity entity = response.getEntity();
 
-            System.out.println("----------------------------------------");
-            System.out.println(rsp.getStatusLine());
-            Header[] headers = rsp.getAllHeaders();
-            for (int i = 0; i<headers.length; i++) {
-                System.out.println(headers[i]);
+                System.out.println("----------------------------------------");
+                System.out.println(response.getStatusLine());
+                Header[] headers = response.getAllHeaders();
+                for (int i = 0; i<headers.length; i++) {
+                    System.out.println(headers[i]);
+                }
+                System.out.println("----------------------------------------");
+
+                if (entity != null) {
+                    System.out.println(EntityUtils.toString(entity));
+                }
+            } finally {
+                response.close();
             }
-            System.out.println("----------------------------------------");
-
-            if (entity != null) {
-                System.out.println(EntityUtils.toString(entity));
-            }
-
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 

@@ -38,7 +38,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RandomHandler;
@@ -83,7 +83,7 @@ public class TestConnectionReuse {
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
+        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
         WorkerThread[] workers = new WorkerThread[10];
@@ -142,7 +142,7 @@ public class TestConnectionReuse {
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
+        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
@@ -192,7 +192,7 @@ public class TestConnectionReuse {
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
+        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
@@ -243,7 +243,7 @@ public class TestConnectionReuse {
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
-        HttpClient client = new HttpClientBuilder().setConnectionManager(mgr).build();
+        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
         HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 

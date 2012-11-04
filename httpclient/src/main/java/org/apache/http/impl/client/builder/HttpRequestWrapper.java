@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +57,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.3
  */
 @NotThreadSafe
-public class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
+class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
     private final HttpRequest original;
 

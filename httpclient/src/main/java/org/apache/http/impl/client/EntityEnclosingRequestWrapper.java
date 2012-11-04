@@ -33,7 +33,6 @@ import java.io.OutputStream;
 
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.impl.client.exec.HttpRequestWrapper;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -51,7 +50,7 @@ import org.apache.http.protocol.HTTP;
  *
  * @since 4.0
  * 
- * @deprecated (4.3) use {@link HttpRequestWrapper}.
+ * @deprecated (4.3) do not use.
  */
 @Deprecated 
 @NotThreadSafe // e.g. [gs]etEntity()

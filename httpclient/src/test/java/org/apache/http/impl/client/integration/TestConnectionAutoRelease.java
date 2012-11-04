@@ -40,12 +40,12 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.MalformedChunkCodingException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpServerConnection;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.ExecutionContext;
@@ -64,7 +64,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
     public void setUp() throws Exception {
         startServer();
         this.mgr = new PoolingHttpClientConnectionManager();
-        this.httpclient = new HttpClientBuilder().setConnectionManager(this.mgr).build();
+        this.httpclient = HttpClients.custom().setConnectionManager(this.mgr).build();
     }
 
     @Test

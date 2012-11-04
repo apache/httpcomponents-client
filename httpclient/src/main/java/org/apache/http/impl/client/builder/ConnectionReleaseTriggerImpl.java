@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

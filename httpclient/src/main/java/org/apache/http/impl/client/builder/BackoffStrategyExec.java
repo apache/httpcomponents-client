@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -42,7 +42,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @ThreadSafe
-public class BackoffStrategyExec implements ClientExecChain {
+class BackoffStrategyExec implements ClientExecChain {
 
     private final ClientExecChain requestExecutor;
     private final ConnectionBackoffStrategy connectionBackoffStrategy;

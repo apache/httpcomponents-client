@@ -31,13 +31,15 @@ import java.util.List;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -48,59 +50,62 @@ import org.apache.http.util.EntityUtils;
 public class ClientFormLogin {
 
     public static void main(String[] args) throws Exception {
-
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        BasicCookieStore cookieStore = new BasicCookieStore();
+        CloseableHttpClient httpclient = HttpClients.custom().setCookieStore(cookieStore).build();
         try {
             HttpGet httpget = new HttpGet("https://portal.sun.com/portal/dt");
 
-            HttpResponse response = httpclient.execute(httpget);
-            HttpEntity entity = response.getEntity();
+            CloseableHttpResponse response1 = httpclient.execute(httpget);
+            try {
+                HttpEntity entity = response1.getEntity();
 
-            System.out.println("Login form get: " + response.getStatusLine());
-            EntityUtils.consume(entity);
+                System.out.println("Login form get: " + response1.getStatusLine());
+                EntityUtils.consume(entity);
 
-            System.out.println("Initial set of cookies:");
-            List<Cookie> cookies = httpclient.getCookieStore().getCookies();
-            if (cookies.isEmpty()) {
-                System.out.println("None");
-            } else {
-                for (int i = 0; i < cookies.size(); i++) {
-                    System.out.println("- " + cookies.get(i).toString());
+                System.out.println("Initial set of cookies:");
+                List<Cookie> cookies = cookieStore.getCookies();
+                if (cookies.isEmpty()) {
+                    System.out.println("None");
+                } else {
+                    for (int i = 0; i < cookies.size(); i++) {
+                        System.out.println("- " + cookies.get(i).toString());
+                    }
                 }
+            } finally {
+                response1.close();
             }
 
             HttpPost httpost = new HttpPost("https://portal.sun.com/amserver/UI/Login?" +
                     "org=self_registered_users&" +
                     "goto=/portal/dt&" +
                     "gotoOnFail=/portal/dt?error=true");
-
             List <NameValuePair> nvps = new ArrayList <NameValuePair>();
             nvps.add(new BasicNameValuePair("IDToken1", "username"));
             nvps.add(new BasicNameValuePair("IDToken2", "password"));
 
             httpost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
 
-            response = httpclient.execute(httpost);
-            entity = response.getEntity();
+            CloseableHttpResponse response2 = httpclient.execute(httpost);
+            try {
+                HttpEntity entity = response2.getEntity();
 
-            System.out.println("Login form get: " + response.getStatusLine());
-            EntityUtils.consume(entity);
+                System.out.println("Login form get: " + response2.getStatusLine());
+                EntityUtils.consume(entity);
 
-            System.out.println("Post logon cookies:");
-            cookies = httpclient.getCookieStore().getCookies();
-            if (cookies.isEmpty()) {
-                System.out.println("None");
-            } else {
-                for (int i = 0; i < cookies.size(); i++) {
-                    System.out.println("- " + cookies.get(i).toString());
+                System.out.println("Post logon cookies:");
+                List<Cookie> cookies = cookieStore.getCookies();
+                if (cookies.isEmpty()) {
+                    System.out.println("None");
+                } else {
+                    for (int i = 0; i < cookies.size(); i++) {
+                        System.out.println("- " + cookies.get(i).toString());
+                    }
                 }
+            } finally {
+                response2.close();
             }
-
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 }

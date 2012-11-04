@@ -47,7 +47,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
@@ -177,7 +177,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .registerAuthScheme("MyBasic", myBasicAuthSchemeFactory)
             .setTargetAuthenticationStrategy(myAuthStrategy)
             .setCredentialsProvider(credsProvider)

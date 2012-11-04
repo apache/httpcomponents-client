@@ -31,11 +31,11 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -45,39 +45,36 @@ import org.apache.http.util.EntityUtils;
 public class ClientCustomSSL {
 
     public final static void main(String[] args) throws Exception {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+        KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
+        FileInputStream instream = new FileInputStream(new File("my.keystore"));
         try {
-            KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
-            FileInputStream instream = new FileInputStream(new File("my.keystore"));
-            try {
-                trustStore.load(instream, "nopassword".toCharArray());
-            } finally {
-                try { instream.close(); } catch (Exception ignore) {}
-            }
-
-            SSLSocketFactory socketFactory = new SSLSocketFactory(trustStore);
-            Scheme sch = new Scheme("https", 443, socketFactory);
-            httpclient.getConnectionManager().getSchemeRegistry().register(sch);
+            trustStore.load(instream, "nopassword".toCharArray());
+        } finally {
+            instream.close();
+        }
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setSSLSocketFactory(new SSLSocketFactory(trustStore)).build();
+        try {
 
             HttpGet httpget = new HttpGet("https://localhost/");
 
             System.out.println("executing request" + httpget.getRequestLine());
 
-            HttpResponse response = httpclient.execute(httpget);
-            HttpEntity entity = response.getEntity();
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            try {
+                HttpEntity entity = response.getEntity();
 
-            System.out.println("----------------------------------------");
-            System.out.println(response.getStatusLine());
-            if (entity != null) {
-                System.out.println("Response content length: " + entity.getContentLength());
+                System.out.println("----------------------------------------");
+                System.out.println(response.getStatusLine());
+                if (entity != null) {
+                    System.out.println("Response content length: " + entity.getContentLength());
+                }
+                EntityUtils.consume(entity);
+            } finally {
+                response.close();
             }
-            EntityUtils.consume(entity);
-
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 

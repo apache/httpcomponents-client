@@ -34,7 +34,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Static helpers for dealing with {@link HttpResponse}s and {@link HttpClient}s.
+ * Static helpers for dealing with {@link HttpResponse}s.
  * 
  * @since 4.2
  */
@@ -97,7 +97,10 @@ public class HttpClientUtils {
      * @param httpClient
      *            the HttpClient to close, may be null or already closed.
      * @since 4.2
+     *
+     * @deprecated (4.3) do not use.
      */
+    @Deprecated
     public static void closeQuietly(final HttpClient httpClient) {
         if (httpClient != null) {
             httpClient.getConnectionManager().shutdown();

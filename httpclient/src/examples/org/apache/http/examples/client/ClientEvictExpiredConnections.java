@@ -29,12 +29,12 @@ package org.apache.http.examples.client;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -44,10 +44,10 @@ import org.apache.http.util.EntityUtils;
 public class ClientEvictExpiredConnections {
 
     public static void main(String[] args) throws Exception {
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
-
-        HttpClient httpclient = new DefaultHttpClient(cm);
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(cm).build();
         try {
             // create an array of URIs to perform GETs on
             String[] urisToGet = {
@@ -62,21 +62,25 @@ public class ClientEvictExpiredConnections {
 
             for (int i = 0; i < urisToGet.length; i++) {
                 String requestURI = urisToGet[i];
-                HttpGet req = new HttpGet(requestURI);
+                HttpGet request = new HttpGet(requestURI);
 
                 System.out.println("executing request " + requestURI);
 
-                HttpResponse rsp = httpclient.execute(req);
-                HttpEntity entity = rsp.getEntity();
+                CloseableHttpResponse response = httpclient.execute(request);
+                try {
+                    HttpEntity entity = response.getEntity();
 
-                System.out.println("----------------------------------------");
-                System.out.println(rsp.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
+                    System.out.println("----------------------------------------");
+                    System.out.println(response.getStatusLine());
+                    if (entity != null) {
+                        System.out.println("Response content length: " + entity.getContentLength());
+                    }
+                    System.out.println("----------------------------------------");
+
+                    EntityUtils.consume(entity);
+                } finally {
+                    response.close();
                 }
-                System.out.println("----------------------------------------");
-
-                EntityUtils.consume(entity);
             }
 
             // Sleep 10 sec and let the connection evictor do its job
@@ -87,20 +91,17 @@ public class ClientEvictExpiredConnections {
             connEvictor.join();
 
         } finally {
-            // When HttpClient instance is no longer needed,
-            // shut down the connection manager to ensure
-            // immediate deallocation of all system resources
-            httpclient.getConnectionManager().shutdown();
+            httpclient.close();
         }
     }
 
     public static class IdleConnectionEvictor extends Thread {
 
-        private final ClientConnectionManager connMgr;
+        private final HttpClientConnectionManager connMgr;
 
         private volatile boolean shutdown;
 
-        public IdleConnectionEvictor(ClientConnectionManager connMgr) {
+        public IdleConnectionEvictor(HttpClientConnectionManager connMgr) {
             super();
             this.connMgr = connMgr;
         }

@@ -52,7 +52,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -95,7 +95,7 @@ public class TestContentCodings extends IntegrationTestBase {
             }
         });
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
@@ -115,7 +115,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
@@ -136,7 +136,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
@@ -155,7 +155,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
@@ -184,7 +184,7 @@ public class TestContentCodings extends IntegrationTestBase {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(clients);
 
-        this.httpclient = new HttpClientBuilder().setConnectionManager(cm).build();
+        this.httpclient = HttpClients.custom().setConnectionManager(cm).build();
 
         ExecutorService executor = Executors.newFixedThreadPool(clients);
 
@@ -228,7 +228,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
@@ -251,7 +251,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         HttpResponse response = this.httpclient.execute(getServerHttp(), request);
@@ -268,7 +268,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
@@ -281,7 +281,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.custom().build();
 
         HttpGet request = new HttpGet("/some-resource");
         String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());

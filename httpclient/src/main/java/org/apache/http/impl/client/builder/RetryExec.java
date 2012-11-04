@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.exec;
+package org.apache.http.impl.client.builder;
 
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @NotThreadSafe // e.g. managedConn
-public class RetryExec implements ClientExecChain {
+class RetryExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

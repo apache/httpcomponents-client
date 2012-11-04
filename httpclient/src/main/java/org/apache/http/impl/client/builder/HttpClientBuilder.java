@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.builder;
 
 import java.net.ProxySelector;
 import java.util.ArrayList;
@@ -76,13 +76,16 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
-import org.apache.http.impl.client.exec.BackoffStrategyExec;
-import org.apache.http.impl.client.exec.ClientExecChain;
-import org.apache.http.impl.client.exec.MainClientExec;
-import org.apache.http.impl.client.exec.ProtocolExec;
-import org.apache.http.impl.client.exec.RedirectExec;
-import org.apache.http.impl.client.exec.RetryExec;
-import org.apache.http.impl.client.exec.ServiceUnavailableRetryExec;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.DefaultUserTokenHandler;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.NoopUserTokenHandler;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
@@ -226,7 +229,11 @@ public class HttpClientBuilder {
     private int maxConnTotal = 0;
     private int maxConnPerRoute = 0;
 
-    public HttpClientBuilder() {
+    public static HttpClientBuilder create() {
+        return new HttpClientBuilder();
+    }
+
+    HttpClientBuilder() {
         super();
     }
 
@@ -432,7 +439,7 @@ public class HttpClientBuilder {
         return protocolExec;
     }
 
-    public HttpClient build() {
+    public CloseableHttpClient build() {
         // Create main request executor
         HttpRequestExecutor requestExec = this.requestExec;
         if (requestExec == null) {

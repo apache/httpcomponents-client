@@ -50,7 +50,8 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.message.BasicHeader;
@@ -110,7 +111,7 @@ public class TestAbortHandling extends IntegrationTestBase {
 
         t.start();
 
-        this.httpclient = new HttpClientBuilder().build();
+        this.httpclient = HttpClients.createDefault();
 
         HttpContext context = new BasicHttpContext();
         try {
@@ -123,11 +124,6 @@ public class TestAbortHandling extends IntegrationTestBase {
         Assert.assertNotNull("Request should exist",reqWrapper);
     }
 
-    /**
-     * Tests that if abort is called on an {@link AbortableHttpRequest} while
-     * {@link DefaultRequestDirector} is allocating a connection, that the
-     * connection is properly aborted.
-     */
     @Test
     public void testAbortInAllocate() throws Exception {
         CountDownLatch connLatch = new CountDownLatch(1);
@@ -135,7 +131,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final ConMan conMan = new ConMan(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final HttpClient client = new HttpClientBuilder().setConnectionManager(conMan).build();
+        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
         this.httpclient = client;
@@ -175,7 +171,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final HttpClient client = new HttpClientBuilder().setConnectionManager(conMan).build();
+        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new CustomGet("a", releaseLatch);
         this.httpclient = client;
@@ -215,7 +211,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
-        final HttpClient client = new HttpClientBuilder().setConnectionManager(conMan).build();
+        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
         this.httpclient = client;
@@ -261,7 +257,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final ConnMan4 conMan = new ConnMan4(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final HttpClient client = new HttpClientBuilder().setConnectionManager(conMan).build();
+        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
         this.httpclient = client;
@@ -315,7 +311,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                 Mockito.any(HttpRoute.class), Mockito.any())).thenReturn(connrequest);
         Mockito.when(connmgr.getSchemeRegistry()).thenReturn(schemeRegistry);
 
-        final HttpClient client = new HttpClientBuilder().setConnectionManager(connmgr).build();
+        final HttpClient client = HttpClients.custom().setConnectionManager(connmgr).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
 

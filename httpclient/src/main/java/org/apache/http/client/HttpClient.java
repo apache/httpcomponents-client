@@ -34,6 +34,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.client.builder.HttpClientBuilder;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -47,7 +48,7 @@ import org.apache.http.protocol.HttpContext;
  * <p/>
  * The usual execution flow can be demonstrated by the code snippet below:
  * <PRE>
- * HttpClient httpclient = new DefaultHttpClient();
+ * MinimalHttpClient httpclient = HttpClientBuilder.buildDefault();
  *
  * // Prepare a request object
  * HttpGet httpget = new HttpGet("http://www.apache.org/");
@@ -93,15 +94,15 @@ import org.apache.http.protocol.HttpContext;
  *
  *     }
  *
- *     // When HttpClient instance is no longer needed,
- *     // shut down the connection manager to ensure
- *     // immediate deallocation of all system resources
- *     httpclient.getConnectionManager().shutdown();
+ *     // When HttpClient instance is no longer needed, it can be closed
+ *     // to ensure immediate deallocation of all system resources
+ *     httpclient.close();
  * }
  * </PRE>
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 public interface HttpClient {
 
 
@@ -119,7 +120,10 @@ public interface HttpClient {
      * Obtains the connection manager used by this client.
      *
      * @return  the connection manager
+     *
+     * @deprecated (4.3) use {@link HttpClientBuilder}.
      */
+    @Deprecated
     ClientConnectionManager getConnectionManager();
 
     /**

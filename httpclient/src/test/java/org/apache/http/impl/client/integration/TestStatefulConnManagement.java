@@ -37,7 +37,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -104,7 +104,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         };
         
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setConnectionManager(mgr)
             .setUserTokenHandler(userTokenHandler)
             .build();
@@ -235,7 +235,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         };
 
-        this.httpclient = new HttpClientBuilder()
+        this.httpclient = HttpClients.custom()
             .setConnectionManager(connMngr)
             .setUserTokenHandler(userTokenHandler)
             .build();
