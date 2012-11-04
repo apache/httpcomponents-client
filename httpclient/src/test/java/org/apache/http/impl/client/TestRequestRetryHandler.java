@@ -34,12 +34,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -54,7 +54,7 @@ public class TestRequestRetryHandler {
 
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, new OppsieSchemeSocketFactory()));
-        ClientConnectionManager connManager = new PoolingClientConnectionManager(schemeRegistry);
+        HttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(schemeRegistry);
         TestHttpRequestRetryHandler testRetryHandler = new TestHttpRequestRetryHandler();
 
         HttpClient client = new HttpClientBuilder()

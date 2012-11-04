@@ -44,7 +44,6 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
@@ -59,15 +58,17 @@ import org.apache.http.util.EntityUtils;
 public class HttpResponseWrapper implements HttpResponse, ConnectionReleaseTrigger, Closeable {
 
     private final HttpResponse original;
+    private final ConnectionReleaseTriggerImpl connReleaseTrigger;
     private HttpEntity entity;
-    private ManagedClientConnection conn;
 
-    private HttpResponseWrapper(final HttpResponse original, final ManagedClientConnection conn) {
+    private HttpResponseWrapper(
+            final HttpResponse original,
+            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
         super();
         this.original = original;
-        this.conn = conn;
+        this.connReleaseTrigger = connReleaseTrigger;
         HttpEntity entity = original.getEntity();
-        if (conn != null && entity != null && entity.isStreaming()) {
+        if (connReleaseTrigger != null && entity != null && entity.isStreaming()) {
             this.entity = new EntityWrapper(entity);
         }
     }
@@ -185,23 +186,21 @@ public class HttpResponseWrapper implements HttpResponse, ConnectionReleaseTrigg
     }
 
     private void cleanup() throws IOException {
-        if (this.conn != null) {
-            this.conn.abortConnection();
-            this.conn = null;
+        if (this.connReleaseTrigger != null) {
+            this.connReleaseTrigger.abortConnection();
         }
     }
 
     public void releaseConnection() throws IOException {
-        if (this.conn != null) {
+        if (this.connReleaseTrigger != null) {
             try {
-                if (this.conn.isMarkedReusable()) {
+                if (this.connReleaseTrigger.isReusable()) {
                     HttpEntity entity = this.original.getEntity();
                     if (entity != null) {
                         EntityUtils.consume(entity);
                     }
+                    this.connReleaseTrigger.releaseConnection();
                 }
-                this.conn.releaseConnection();
-                this.conn = null;
             } finally {
                 cleanup();
             }
@@ -258,7 +257,7 @@ public class HttpResponseWrapper implements HttpResponse, ConnectionReleaseTrigg
 
         public boolean streamClosed(InputStream wrapped) throws IOException {
             try {
-                boolean open = conn != null && conn.isOpen();
+                boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
                 // this assumes that closing the stream will
                 // consume the remainder of the response body:
                 try {
@@ -284,8 +283,8 @@ public class HttpResponseWrapper implements HttpResponse, ConnectionReleaseTrigg
 
     public static HttpResponseWrapper wrap(
             final HttpResponse response,
-            final ManagedClientConnection conn) {
-        return new HttpResponseWrapper(response, conn);
+            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
+        return new HttpResponseWrapper(response, connReleaseTrigger);
     }
 
 }

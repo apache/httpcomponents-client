@@ -37,6 +37,7 @@ import org.apache.http.conn.DnsResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
+@Deprecated
 public class TestDefaultClientConnectOperator {
 
     @Test

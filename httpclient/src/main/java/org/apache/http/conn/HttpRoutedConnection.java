@@ -37,7 +37,7 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.1
  *
- * @deprecated (4.3) no longer used
+ * @deprecated (4.3) replaced by {@link HttpClientConnectionManager}.
  */
 @Deprecated
 public interface HttpRoutedConnection extends HttpInetConnection {

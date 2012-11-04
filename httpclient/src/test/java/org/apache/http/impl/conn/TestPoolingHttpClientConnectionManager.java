@@ -29,76 +29,55 @@ package org.apache.http.impl.conn;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpVersion;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.conn.tsccm.GetConnThread;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Tests for <code>PoolingClientConnectionManager</code> that do not require a server to
- * communicate with.
+ * {@link PoolingHttpClientConnectionManager} tests.
  */
-public class TestPoolingConnManagerNoServer {
+public class TestPoolingHttpClientConnectionManager {
 
-    private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr,
+    private static HttpClientConnection getConnection(
+            final HttpClientConnectionManager mgr,
             final HttpRoute route,
             long timeout,
             TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
-        return connRequest.getConnection(timeout, unit);
+        ConnectionRequest connRequest = mgr.requestConnection(route, null);
+        return connRequest.get(timeout, unit);
     }
 
-    private static ManagedClientConnection getConnection(
-            final ClientConnectionManager mgr,
+    private static HttpClientConnection getConnection(
+            final HttpClientConnectionManager mgr,
             final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
-        ClientConnectionRequest connRequest = mgr.requestConnection(route, null);
-        return connRequest.getConnection(0, null);
-    }
-
-    /**
-     * Instantiates default parameters.
-     *
-     * @return  the default parameters
-     */
-    public HttpParams createDefaultParams() {
-
-        HttpParams params = new BasicHttpParams();
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-
-        return params;
+        ConnectionRequest connRequest = mgr.requestConnection(route, null);
+        return connRequest.get(0, null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testIllegalConstructor() {
-        new PoolingClientConnectionManager(null);
+        new PoolingHttpClientConnectionManager(null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testGetConnection()
             throws InterruptedException, ConnectionPoolTimeoutException {
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
-        ManagedClientConnection conn = getConnection(mgr, route);
+        HttpClientConnection conn = getConnection(mgr, route);
         Assert.assertNotNull(conn);
-        Assert.assertNull(conn.getRoute());
         Assert.assertFalse(conn.isOpen());
 
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
 
         try {
             getConnection(mgr, null);
@@ -113,7 +92,7 @@ public class TestPoolingConnManagerNoServer {
     public void testMaxConnTotal()
             throws InterruptedException, ConnectionPoolTimeoutException {
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(2);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -122,9 +101,9 @@ public class TestPoolingConnManagerNoServer {
         HttpHost target2 = new HttpHost("www.test2.invalid", 80, "http");
         HttpRoute route2 = new HttpRoute(target2, null, false);
 
-        ManagedClientConnection conn1 = getConnection(mgr, route1);
+        HttpClientConnection conn1 = getConnection(mgr, route1);
         Assert.assertNotNull(conn1);
-        ManagedClientConnection conn2 = getConnection(mgr, route2);
+        HttpClientConnection conn2 = getConnection(mgr, route2);
         Assert.assertNotNull(conn2);
 
         try {
@@ -136,7 +115,7 @@ public class TestPoolingConnManagerNoServer {
         }
 
         // release one of the connections
-        mgr.releaseConnection(conn2, -1, null);
+        mgr.releaseConnection(conn2, null, -1, null);
         conn2 = null;
 
         // there should be a connection available now
@@ -159,20 +138,20 @@ public class TestPoolingConnManagerNoServer {
         HttpHost target3 = new HttpHost("www.test3.invalid", 80, "http");
         HttpRoute route3 = new HttpRoute(target3, null, false);
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(100);
         mgr.setDefaultMaxPerRoute(1);
         mgr.setMaxPerRoute(route2, 2);
         mgr.setMaxPerRoute(route3, 3);
 
         // route 3, limit 3
-        ManagedClientConnection conn1 =
+        HttpClientConnection conn1 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
-        ManagedClientConnection conn2 =
+        HttpClientConnection conn2 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
-        ManagedClientConnection conn3 =
+        HttpClientConnection conn3 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn3);
         try {
@@ -203,18 +182,16 @@ public class TestPoolingConnManagerNoServer {
         } catch (ConnectionPoolTimeoutException e) {
             // expected
         }
-
-
         // check releaseConnection with invalid arguments
         try {
-            mgr.releaseConnection(null, -1, null);
+            mgr.releaseConnection(null, null, -1, null);
             Assert.fail("null connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
         }
         try {
-            ManagedClientConnection conn = Mockito.mock(ManagedClientConnection.class);
-            mgr.releaseConnection(conn, -1, null);
+            HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
+            mgr.releaseConnection(conn, null, -1, null);
             Assert.fail("foreign connection adapter not detected");
         } catch (IllegalArgumentException iax) {
             // expected
@@ -226,7 +203,7 @@ public class TestPoolingConnManagerNoServer {
     @Test
     public void testReleaseConnection() throws Exception {
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(3);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -238,11 +215,11 @@ public class TestPoolingConnManagerNoServer {
         HttpRoute route3 = new HttpRoute(target3, null, false);
 
         // the first three allocations should pass
-        ManagedClientConnection conn1 =
+        HttpClientConnection conn1 =
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
-        ManagedClientConnection conn2 =
+        HttpClientConnection conn2 =
             getConnection(mgr, route2, 10L, TimeUnit.MILLISECONDS);
-        ManagedClientConnection conn3 =
+        HttpClientConnection conn3 =
             getConnection(mgr, route3, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
         Assert.assertNotNull(conn2);
@@ -270,7 +247,7 @@ public class TestPoolingConnManagerNoServer {
         }
 
         // now release one and check that exactly that one can be obtained then
-        mgr.releaseConnection(conn2, -1, null);
+        mgr.releaseConnection(conn2, null, -1, null);
         conn2 = null;
         try {
             getConnection(mgr, route1, 10L, TimeUnit.MILLISECONDS);
@@ -292,26 +269,17 @@ public class TestPoolingConnManagerNoServer {
     }
 
     @Test
-    public void testDeleteClosedConnections()
-            throws InterruptedException, ConnectionPoolTimeoutException {
-
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+    public void testDeleteClosedConnections() throws Exception {
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
-        ManagedClientConnection conn = getConnection(mgr, route);
+        HttpClientConnection conn = getConnection(mgr, route);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
-        conn.markReusable();
-        mgr.releaseConnection(conn, -1, null);
-
-        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
-
-        // this implicitly deletes them
-        mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
+        mgr.releaseConnection(conn, null, -1, null);
 
         Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
         Assert.assertEquals(0, mgr.getStats(route).getAvailable());
@@ -323,7 +291,7 @@ public class TestPoolingConnManagerNoServer {
     public void testShutdown() throws Exception {
         // 3.x: TestHttpConnectionManager.testShutdown
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
@@ -333,7 +301,7 @@ public class TestPoolingConnManagerNoServer {
         // get the only connection, then start an extra thread
         // on shutdown, the extra thread should get an exception
 
-        ManagedClientConnection conn =
+        HttpClientConnection conn =
             getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
         gct.start();
@@ -345,7 +313,7 @@ public class TestPoolingConnManagerNoServer {
         // First release the connection. If the manager keeps working
         // despite the shutdown, this will deblock the extra thread.
         // The release itself should turn into a no-op, without exception.
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
 
 
         gct.join(10000);
@@ -369,14 +337,14 @@ public class TestPoolingConnManagerNoServer {
     public void testInterruptThread() throws Exception {
         // 3.x: TestHttpConnectionManager.testWaitingThreadInterrupted
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
         // get the only connection, then start an extra thread
-        ManagedClientConnection conn =
+        HttpClientConnection conn =
             getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct = new GetConnThread(mgr, route, 0L); // no timeout
         gct.start();
@@ -402,7 +370,7 @@ public class TestPoolingConnManagerNoServer {
             // expected
         }
 
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull("should have gotten a connection", conn);
@@ -414,7 +382,7 @@ public class TestPoolingConnManagerNoServer {
     public void testReusePreference() throws Exception {
         // 3.x: TestHttpConnectionManager.testHostReusePreference
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target1 = new HttpHost("www.test1.invalid", 80, "http");
@@ -423,7 +391,7 @@ public class TestPoolingConnManagerNoServer {
         HttpRoute route2 = new HttpRoute(target2, null, false);
 
         // get the only connection, then start two extra threads
-        ManagedClientConnection conn =
+        HttpClientConnection conn =
             getConnection(mgr, route1, 1L, TimeUnit.MILLISECONDS);
         GetConnThread gct1 = new GetConnThread(mgr, route1, 1000L);
         GetConnThread gct2 = new GetConnThread(mgr, route2, 1000L);
@@ -438,7 +406,7 @@ public class TestPoolingConnManagerNoServer {
 
         // releasing the connection for route1 should deblock thread1
         // the other thread gets a timeout
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
 
         gct1.join(10000);
         gct2.join(10000);
@@ -453,20 +421,20 @@ public class TestPoolingConnManagerNoServer {
 
     @Test
     public void testAbortAfterRequestStarts() throws Exception {
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
         // get the only connection, then start an extra thread
-        ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
-        ClientConnectionRequest request = mgr.requestConnection(route, null);
+        HttpClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
+        ConnectionRequest request = mgr.requestConnection(route, null);
         GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
         gct.start();
         Thread.sleep(100); // give extra thread time to block
 
-        request.abortRequest();
+        request.cancel();
 
         gct.join(10000);
         Assert.assertNotNull("thread should have gotten an exception",
@@ -483,7 +451,7 @@ public class TestPoolingConnManagerNoServer {
             // expected
         }
 
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull("should have gotten a connection", conn);
@@ -493,16 +461,16 @@ public class TestPoolingConnManagerNoServer {
 
     @Test
     public void testAbortBeforeRequestStarts() throws Exception {
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
 
         HttpHost target = new HttpHost("www.test.invalid", 80, "http");
         HttpRoute route = new HttpRoute(target, null, false);
 
         // get the only connection, then start an extra thread
-        ManagedClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
-        ClientConnectionRequest request = mgr.requestConnection(route, null);
-        request.abortRequest();
+        HttpClientConnection conn = getConnection(mgr, route, 1L, TimeUnit.MILLISECONDS);
+        ConnectionRequest request = mgr.requestConnection(route, null);
+        request.cancel();
 
         GetConnThread gct = new GetConnThread(request, route, 0L); // no timeout
         gct.start();
@@ -523,12 +491,53 @@ public class TestPoolingConnManagerNoServer {
             // expected
         }
 
-        mgr.releaseConnection(conn, -1, null);
+        mgr.releaseConnection(conn, null, -1, null);
         // this time: no exception
         conn = getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
         Assert.assertNotNull("should have gotten a connection", conn);
 
         mgr.shutdown();
+    }
+
+    public class GetConnThread extends Thread {
+
+        private final ConnectionRequest connRequest;
+        private final long timeout;
+
+        private volatile HttpClientConnection connection;
+        private volatile Exception exception;
+
+        public GetConnThread(
+                final HttpClientConnectionManager mgr,
+                final HttpRoute route, long timeout) {
+            this(mgr.requestConnection(route, null), route, timeout);
+        }
+
+        public GetConnThread(
+                final ConnectionRequest connRequest,
+                final HttpRoute route, long timeout) {
+            super();
+            this.connRequest = connRequest;
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void run() {
+            try {
+                connection = connRequest.get(timeout, TimeUnit.MILLISECONDS);
+            } catch (Exception ex) {
+                exception = ex;
+            }
+        }
+
+        public Throwable getException() {
+            return exception;
+        }
+
+        public HttpClientConnection getConnection() {
+            return connection;
+        }
+
     }
 
 }

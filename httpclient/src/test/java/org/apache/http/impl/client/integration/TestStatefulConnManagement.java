@@ -27,6 +27,7 @@ package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -35,10 +36,9 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -91,14 +91,14 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(params, 10);
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
 
         UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             public Object getUserToken(final HttpContext context) {
-                Integer id = (Integer) context.getAttribute("user");
+                String id = (String) context.getAttribute("user");
                 return id;
             }
 
@@ -113,9 +113,10 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         HttpWorker[] workers = new HttpWorker[workerCount];
         for (int i = 0; i < contexts.length; i++) {
             HttpContext context = new BasicHttpContext();
-            context.setAttribute("user", Integer.valueOf(i));
             contexts[i] = context;
-            workers[i] = new HttpWorker(context, requestCount, target, this.httpclient);
+            workers[i] = new HttpWorker(
+                    "user" + i,
+                    context, requestCount, target, this.httpclient);
         }
 
         for (int i = 0; i < workers.length; i++) {
@@ -134,12 +135,12 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         for (int i = 0; i < contexts.length; i++) {
             HttpContext context = contexts[i];
-            Integer id = (Integer) context.getAttribute("user");
+            String uid = (String) context.getAttribute("user");
 
             for (int r = 0; r < requestCount; r++) {
-                Integer state = (Integer) context.getAttribute("r" + r);
+                String state = (String) context.getAttribute("r" + r);
                 Assert.assertNotNull(state);
-                Assert.assertEquals(id, state);
+                Assert.assertEquals(uid, state);
             }
         }
 
@@ -147,6 +148,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
     static class HttpWorker extends Thread {
 
+        private final String uid;
         private final HttpContext context;
         private final int requestCount;
         private final HttpHost target;
@@ -156,11 +158,13 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         private volatile int count;
 
         public HttpWorker(
+                final String uid,
                 final HttpContext context,
                 int requestCount,
                 final HttpHost target,
                 final HttpClient httpclient) {
             super();
+            this.uid = uid;
             this.context = context;
             this.requestCount = requestCount;
             this.target = target;
@@ -179,6 +183,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         @Override
         public void run() {
             try {
+                this.context.setAttribute("user", this.uid);
                 for (int r = 0; r < this.requestCount; r++) {
                     HttpGet httpget = new HttpGet("/");
                     HttpResponse response = this.httpclient.execute(
@@ -187,11 +192,15 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
                             this.context);
                     this.count++;
 
-                    ManagedClientConnection conn = (ManagedClientConnection) this.context.getAttribute(
+                    HttpClientConnection conn = (HttpClientConnection) this.context.getAttribute(
                             ExecutionContext.HTTP_CONNECTION);
-
-                    this.context.setAttribute("r" + r, conn.getState());
-
+                    HttpContext connContext = (HttpContext) conn;
+                    String connuid = (String) connContext.getAttribute("user");
+                    if (connuid == null) {
+                        connContext.setAttribute("user", this.uid);
+                        connuid = this.uid;
+                    }
+                    this.context.setAttribute("r" + r, connuid);
                     EntityUtils.consume(response.getEntity());
                 }
 
@@ -214,7 +223,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         this.localServer.register("*", new SimpleService());
 
         // We build a client with 2 max active // connections, and 2 max per route.
-        PoolingClientConnectionManager connMngr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager connMngr = new PoolingHttpClientConnectionManager();
         connMngr.setMaxTotal(maxConn);
         connMngr.setDefaultMaxPerRoute(maxConn);
 

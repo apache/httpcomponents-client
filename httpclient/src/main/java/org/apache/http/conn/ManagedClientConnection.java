@@ -44,8 +44,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * Instances are typically obtained from a connection manager.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) replaced by {@link HttpClientConnectionManager}.
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public interface ManagedClientConnection extends
     HttpClientConnection, HttpRoutedConnection, HttpSSLConnection, ConnectionReleaseTrigger {
 

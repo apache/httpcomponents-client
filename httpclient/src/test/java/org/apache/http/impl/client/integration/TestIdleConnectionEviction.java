@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.conn;
+package org.apache.http.impl.client.integration;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +36,9 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.util.EntityUtils;
@@ -55,7 +56,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
     @Test
     public void testIdleConnectionEviction() throws Exception {
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setDefaultMaxPerRoute(10);
         cm.setMaxTotal(50);
 
@@ -131,10 +132,10 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
     public static class IdleConnectionMonitor extends Thread {
 
-        private final ClientConnectionManager cm;
+        private final HttpClientConnectionManager cm;
         private volatile boolean shutdown;
 
-        public IdleConnectionMonitor(final ClientConnectionManager cm) {
+        public IdleConnectionMonitor(final HttpClientConnectionManager cm) {
             super();
             this.cm = cm;
             setDaemon(true);

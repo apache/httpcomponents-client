@@ -33,6 +33,9 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.commons.logging.Log;
@@ -51,6 +54,7 @@ import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.io.SessionOutputBuffer;
 
+import org.apache.http.conn.HttpSSLConnection;
 import org.apache.http.conn.OperatedClientConnection;
 
 /**
@@ -70,7 +74,7 @@ import org.apache.http.conn.OperatedClientConnection;
  */
 @NotThreadSafe // connSecure, targetHost
 public class DefaultClientConnection extends SocketHttpClientConnection
-    implements OperatedClientConnection, HttpContext {
+    implements OperatedClientConnection, HttpSSLConnection, HttpContext {
 
     private final Log log = LogFactory.getLog(getClass());
     private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
@@ -107,6 +111,14 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     public final Socket getSocket() {
         return this.socket;
+    }
+
+    public SSLSession getSSLSession() {
+        if (this.socket instanceof SSLSocket) {
+            return ((SSLSocket) this.socket).getSession();
+        } else {
+            return null;
+        }
     }
 
     public void opening(Socket sock, HttpHost target) throws IOException {

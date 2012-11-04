@@ -31,31 +31,27 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.HttpClientConnection;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.pool.PoolEntry;
 
 /**
- * @since 4.2
- *
- * @deprecated (4.3) no longer used.
+ * @since 4.3
  */
-@Deprecated
-class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
+@ThreadSafe
+class CPoolEntry extends PoolEntry<HttpRoute, DefaultClientConnection> {
 
     private final Log log;
-    private final RouteTracker tracker;
 
-    public HttpPoolEntry(
+    public CPoolEntry(
             final Log log,
             final String id,
             final HttpRoute route,
-            final OperatedClientConnection conn,
+            final DefaultClientConnection conn,
             final long timeToLive, final TimeUnit tunit) {
         super(id, route, conn, timeToLive, tunit);
         this.log = log;
-        this.tracker = new RouteTracker(route);
     }
 
     @Override
@@ -67,27 +63,15 @@ class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
         return expired;
     }
 
-    RouteTracker getTracker() {
-        return this.tracker;
-    }
-
-    HttpRoute getPlannedRoute() {
-        return getRoute();
-    }
-
-    HttpRoute getEffectiveRoute() {
-        return this.tracker.toRoute();
-    }
-
     @Override
     public boolean isClosed() {
-        OperatedClientConnection conn = getConnection();
+        HttpClientConnection conn = getConnection();
         return !conn.isOpen();
     }
 
     @Override
     public void close() {
-        OperatedClientConnection conn = getConnection();
+        HttpClientConnection conn = getConnection();
         try {
             conn.close();
         } catch (IOException ex) {

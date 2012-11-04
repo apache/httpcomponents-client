@@ -28,10 +28,12 @@ package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -41,16 +43,15 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.Cancellable;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.ConnectionRequest;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.mockup.SocketFactoryMockup;
@@ -171,7 +172,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         this.localServer.register("*", new BasicService());
 
         final CountDownLatch releaseLatch = new CountDownLatch(1);
-        final PoolingClientConnectionManager conMan = new PoolingClientConnectionManager();
+        final PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final HttpClient client = new HttpClientBuilder().setConnectionManager(conMan).build();
@@ -210,7 +211,7 @@ public class TestAbortHandling extends IntegrationTestBase {
     public void testAbortBeforeExecute() throws Exception {
         this.localServer.register("*", new BasicService());
 
-        final PoolingClientConnectionManager conMan = new PoolingClientConnectionManager();
+        final PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
@@ -296,15 +297,17 @@ public class TestAbortHandling extends IntegrationTestBase {
      */
     @Test
     public void testSocketConnectFailureReleasesConnection() throws Exception {
-        ManagedClientConnection conn = Mockito.mock(ManagedClientConnection.class);
-        Mockito.doThrow(new ConnectException()).when(conn).open(
-                Mockito.any(HttpRoute.class),
+        HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
+        ConnectionRequest connrequest = Mockito.mock(ConnectionRequest.class);
+        Mockito.when(connrequest.get(
+                Mockito.anyInt(), Mockito.any(TimeUnit.class))).thenReturn(conn);
+        HttpClientConnectionManager connmgr = Mockito.mock(HttpClientConnectionManager.class);
+        Mockito.doThrow(new ConnectException()).when(connmgr).connect(
+                Mockito.any(HttpClientConnection.class),
+                Mockito.any(HttpHost.class),
+                Mockito.any(InetAddress.class),
                 Mockito.any(HttpContext.class),
                 Mockito.any(HttpParams.class));
-        ClientConnectionRequest connrequest = Mockito.mock(ClientConnectionRequest.class);
-        Mockito.when(connrequest.getConnection(
-                Mockito.anyInt(), Mockito.any(TimeUnit.class))).thenReturn(conn);
-        ClientConnectionManager connmgr = Mockito.mock(ClientConnectionManager.class);
 
         SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
 
@@ -321,7 +324,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             Assert.fail("expected IOException");
         } catch(IOException expected) {}
 
-        Mockito.verify(conn).abortConnection();
+        Mockito.verify(connmgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
     }
 
     private static class BasicService implements HttpRequestHandler {
@@ -352,7 +355,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         }
     }
 
-    private static class ConnMan4 extends PoolingClientConnectionManager {
+    private static class ConnMan4 extends PoolingHttpClientConnectionManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
 
@@ -363,19 +366,20 @@ public class TestAbortHandling extends IntegrationTestBase {
         }
 
         @Override
-        public ClientConnectionRequest requestConnection(HttpRoute route, Object state) {
+        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
             // If this is the redirect route, stub the return value
             // so-as to pretend the host is waiting on a slot...
             if(route.getTargetHost().getHostName().equals("localhost")) {
                 final Thread currentThread = Thread.currentThread();
 
-                return new ClientConnectionRequest() {
+                return new ConnectionRequest() {
 
-                    public void abortRequest() {
+                    public boolean cancel() {
                         currentThread.interrupt();
+                        return true;
                     }
 
-                    public ManagedClientConnection getConnection(
+                    public HttpClientConnection get(
                             long timeout, TimeUnit tunit)
                             throws InterruptedException,
                             ConnectionPoolTimeoutException {
@@ -388,7 +392,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                         if(!awaitLatch.await(timeout, tunit))
                             throw new ConnectionPoolTimeoutException();
 
-                        return Mockito.mock(ManagedClientConnection.class);
+                        return Mockito.mock(HttpClientConnection.class);
                     }
                 };
             } else {
@@ -398,7 +402,7 @@ public class TestAbortHandling extends IntegrationTestBase {
     }
 
 
-    static class ConMan implements ClientConnectionManager {
+    static class ConMan implements HttpClientConnectionManager {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
 
@@ -415,28 +419,25 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public ManagedClientConnection getConnection(HttpRoute route) {
-            throw new UnsupportedOperationException("just a mockup");
-        }
-
-        public ManagedClientConnection getConnection(HttpRoute route,
+        public HttpClientConnection getConnection(HttpRoute route,
                 long timeout, TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public ClientConnectionRequest requestConnection(
+        public ConnectionRequest requestConnection(
                 final HttpRoute route,
                 final Object state) {
 
             final Thread currentThread = Thread.currentThread();
 
-            return new ClientConnectionRequest() {
+            return new ConnectionRequest() {
 
-                public void abortRequest() {
+                public boolean cancel() {
                     currentThread.interrupt();
+                    return true;
                 }
 
-                public ManagedClientConnection getConnection(
+                public HttpClientConnection get(
                         long timeout, TimeUnit tunit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {
@@ -449,8 +450,9 @@ public class TestAbortHandling extends IntegrationTestBase {
                     if(!awaitLatch.await(timeout, tunit))
                         throw new ConnectionPoolTimeoutException();
 
-                    return Mockito.mock(ManagedClientConnection.class);
+                    return Mockito.mock(HttpClientConnection.class);
                 }
+
             };
         }
 
@@ -464,11 +466,22 @@ public class TestAbortHandling extends IntegrationTestBase {
             return registry;
         }
 
-        public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
+        public void shutdown() {
+        }
+
+        public void releaseConnection(HttpClientConnection conn, Object newState,
+                long validDuration, TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public void shutdown() {
+        public void connect(HttpClientConnection conn, HttpHost host, InetAddress localAddress,
+                HttpContext context, HttpParams params) throws IOException {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public void upgrade(HttpClientConnection conn, HttpHost host, HttpContext context,
+                HttpParams params) throws IOException {
+            throw new UnsupportedOperationException("just a mockup");
         }
     }
 

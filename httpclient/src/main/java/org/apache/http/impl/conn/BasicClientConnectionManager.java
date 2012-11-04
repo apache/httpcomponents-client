@@ -59,8 +59,11 @@ import org.apache.http.conn.scheme.SchemeRegistry;
  * {@link PoolingClientConnectionManager}.
  *
  * @since 4.2
+ *
+ * @deprecated (4.3) use {@link BasicHttpClientConnectionManager}.
  */
 @ThreadSafe
+@Deprecated
 public class BasicClientConnectionManager implements ClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());

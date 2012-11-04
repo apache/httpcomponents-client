@@ -51,6 +51,12 @@ import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
+/**
+ * @since 4.2
+ *
+ * @deprecated (4.3) no longer used.
+ */
+@Deprecated
 @NotThreadSafe
 class ManagedClientConnectionImpl implements ManagedClientConnection {
 

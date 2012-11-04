@@ -51,7 +51,10 @@ import org.apache.http.protocol.HttpContext;
  * from multiple threads.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) replaced by {@link HttpClientConnectionManager}.
  */
+@Deprecated
 public interface ClientConnectionOperator {
 
     /**

@@ -31,43 +31,42 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.conn.OperatedClientConnection;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
 import org.apache.http.pool.ConnFactory;
 
 /**
- * @since 4.2
- *
- * @deprecated (4.3) no longer used.
+ * @since 4.3
  */
-@Deprecated
-class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection, HttpPoolEntry> {
+@ThreadSafe
+class CPool extends AbstractConnPool<HttpRoute, DefaultClientConnection, CPoolEntry> {
 
     private static AtomicLong COUNTER = new AtomicLong();
 
-    private final Log log;
+    private final Log log = LogFactory.getLog(HttpClientConnectionManager.class);
     private final long timeToLive;
     private final TimeUnit tunit;
 
-    public HttpConnPool(final Log log,
+    public CPool(
             final int defaultMaxPerRoute, final int maxTotal,
             final long timeToLive, final TimeUnit tunit) {
         super(new InternalConnFactory(), defaultMaxPerRoute, maxTotal);
-        this.log = log;
         this.timeToLive = timeToLive;
         this.tunit = tunit;
     }
 
     @Override
-    protected HttpPoolEntry createEntry(final HttpRoute route, final OperatedClientConnection conn) {
+    protected CPoolEntry createEntry(final HttpRoute route, final DefaultClientConnection conn) {
         String id = Long.toString(COUNTER.getAndIncrement());
-        return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
+        return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 
-    static class InternalConnFactory implements ConnFactory<HttpRoute, OperatedClientConnection> {
+    static class InternalConnFactory implements ConnFactory<HttpRoute, DefaultClientConnection> {
 
-        public OperatedClientConnection create(final HttpRoute route) throws IOException {
+        public DefaultClientConnection create(final HttpRoute route) throws IOException {
             return new DefaultClientConnection();
         }
 

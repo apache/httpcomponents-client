@@ -84,7 +84,10 @@ import org.apache.http.conn.DnsResolver;
  * </ul>
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link PoolingHttpClientConnectionManager}.
  */
+@Deprecated
 @ThreadSafe
 public class DefaultClientConnectionOperator implements ClientConnectionOperator {
 

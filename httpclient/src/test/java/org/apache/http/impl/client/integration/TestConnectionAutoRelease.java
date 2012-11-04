@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -39,14 +40,13 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.MalformedChunkCodingException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpServerConnection;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -58,12 +58,12 @@ import org.junit.Test;
 
 public class TestConnectionAutoRelease extends IntegrationTestBase {
 
-    private PoolingClientConnectionManager mgr;
+    private PoolingHttpClientConnectionManager mgr;
 
     @Before
     public void setUp() throws Exception {
         startServer();
-        this.mgr = new PoolingClientConnectionManager();
+        this.mgr = new PoolingHttpClientConnectionManager();
         this.httpclient = new HttpClientBuilder().setConnectionManager(this.mgr).build();
     }
 
@@ -82,9 +82,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         HttpResponse response = this.httpclient.execute(target, httpget);
 
-        ClientConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
+        ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
-            connreq.getConnection(250, TimeUnit.MILLISECONDS);
+            connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException expected) {
         }
@@ -99,9 +99,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
+        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
-        this.mgr.releaseConnection(conn, -1, null);
+        this.mgr.releaseConnection(conn, null, -1, null);
     }
 
     @Test
@@ -119,9 +119,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         HttpResponse response = this.httpclient.execute(target, httpget);
 
-        ClientConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
+        ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
-            connreq.getConnection(250, TimeUnit.MILLISECONDS);
+            connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException expected) {
         }
@@ -137,9 +137,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
+        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
-        this.mgr.releaseConnection(conn, -1, null);
+        this.mgr.releaseConnection(conn, null, -1, null);
     }
 
     @Test
@@ -157,9 +157,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         HttpResponse response = this.httpclient.execute(target, httpget);
 
-        ClientConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
+        ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
-            connreq.getConnection(250, TimeUnit.MILLISECONDS);
+            connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException expected) {
         }
@@ -173,9 +173,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
+        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
-        this.mgr.releaseConnection(conn, -1, null);
+        this.mgr.releaseConnection(conn, null, -1, null);
     }
 
     @Test
@@ -224,9 +224,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         HttpResponse response = this.httpclient.execute(target, httpget);
 
-        ClientConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
+        ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
-            connreq.getConnection(250, TimeUnit.MILLISECONDS);
+            connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (ConnectionPoolTimeoutException expected) {
         }
@@ -246,9 +246,9 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        ManagedClientConnection conn = connreq.getConnection(250, TimeUnit.MILLISECONDS);
+        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
-        this.mgr.releaseConnection(conn, -1, null);
+        this.mgr.releaseConnection(conn, null, -1, null);
     }
 
 }

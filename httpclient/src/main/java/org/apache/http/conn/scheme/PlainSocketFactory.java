@@ -148,11 +148,6 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
         if (sock == null) {
             throw new IllegalArgumentException("Socket may not be null.");
         }
-        // This check is performed last since it calls a method implemented
-        // by the argument object. getClass() is final in java.lang.Object.
-        if (sock.isClosed()) {
-            throw new IllegalArgumentException("Socket is closed.");
-        }
         return false;
     }
 

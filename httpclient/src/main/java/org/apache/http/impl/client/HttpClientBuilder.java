@@ -61,8 +61,8 @@ import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
@@ -83,8 +83,8 @@ import org.apache.http.impl.client.exec.ProtocolExec;
 import org.apache.http.impl.client.exec.RedirectExec;
 import org.apache.http.impl.client.exec.RetryExec;
 import org.apache.http.impl.client.exec.ServiceUnavailableRetryExec;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
@@ -185,7 +185,7 @@ public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
     private SchemeLayeredSocketFactory sslSocketFactory;
-    private ClientConnectionManager connManager;
+    private HttpClientConnectionManager connManager;
     private ConnectionReuseStrategy reuseStrategy;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     private AuthenticationStrategy targetAuthStrategy;
@@ -240,7 +240,7 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setConnectionManager(final ClientConnectionManager connManager) {
+    public final HttpClientBuilder setConnectionManager(final HttpClientConnectionManager connManager) {
         this.connManager = connManager;
         return this;
     }
@@ -438,7 +438,7 @@ public class HttpClientBuilder {
         if (requestExec == null) {
             requestExec = new HttpRequestExecutor();
         }
-        ClientConnectionManager connManager = this.connManager;
+        HttpClientConnectionManager connManager = this.connManager;
         if (connManager == null) {
             SchemeRegistry schemeRegistry = systemProperties ?
                     SchemeRegistryFactory.createSystemDefault() :
@@ -446,7 +446,7 @@ public class HttpClientBuilder {
             if (sslSocketFactory != null) {
                 schemeRegistry.register(new Scheme("https", 443, sslSocketFactory));
             }
-            PoolingClientConnectionManager poolingmgr = new PoolingClientConnectionManager(
+            PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                     schemeRegistry);
             if (systemProperties) {
                 String s = System.getProperty("http.keepAlive");

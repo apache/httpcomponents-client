@@ -24,27 +24,22 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.http.impl.conn;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import org.apache.http.conn.DnsResolver;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.HttpConnectionFactory;
 
 /**
- * DNS resolver that uses the default OS implementation for resolving host names.
- *
- * @since 4.2
+ * @since 4.3
  */
-public class SystemDefaultDnsResolver implements DnsResolver {
+@Immutable
+public class DefaultClientConnectionFactory implements HttpConnectionFactory<DefaultClientConnection> {
 
-    public static final SystemDefaultDnsResolver INSTANCE = new SystemDefaultDnsResolver();
+    public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
 
-    /**
-     * {@inheritDoc}
-     */
-    public InetAddress[] resolve(String host) throws UnknownHostException {
-        return InetAddress.getAllByName(host);
+    public DefaultClientConnection create() {
+        return new DefaultClientConnection();
     }
 
 }

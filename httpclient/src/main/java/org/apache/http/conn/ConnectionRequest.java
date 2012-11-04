@@ -29,15 +29,15 @@ package org.apache.http.conn;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpClientConnection;
+import org.apache.http.concurrent.Cancellable;
+
 /**
- * Encapsulates a request for a {@link ManagedClientConnection}.
+ * Encapsulates a request for a {@link HttpClientConnection}.
  *
- * @since 4.0
- *
- * @deprecated (4.3) replaced by {@link ConnectionRequest}.
+ * @since 4.3
  */
-@Deprecated
-public interface ClientConnectionRequest {
+public interface ConnectionRequest extends Cancellable {
 
     /**
      * Obtains a connection within a given time.
@@ -46,7 +46,7 @@ public interface ClientConnectionRequest {
      * {@link ClientConnectionManager#shutdown() shut down}.
      * Timeouts are handled with millisecond precision.
      *
-     * If {@link #abortRequest()} is called while this is blocking or
+     * If {@link #cancel()} is called while this is blocking or
      * before this began, an {@link InterruptedException} will
      * be thrown.
      *
@@ -62,13 +62,7 @@ public interface ClientConnectionRequest {
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    ManagedClientConnection getConnection(long timeout, TimeUnit tunit)
+    HttpClientConnection get(long timeout, TimeUnit tunit)
         throws InterruptedException, ConnectionPoolTimeoutException;
-
-    /**
-     * Aborts the call to {@link #getConnection(long, TimeUnit)},
-     * causing it to throw an {@link InterruptedException}.
-     */
-    void abortRequest();
 
 }

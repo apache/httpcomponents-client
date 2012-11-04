@@ -66,7 +66,10 @@ import org.apache.http.conn.DnsResolver;
  * can be adjusted using HTTP parameters.
  *
  * @since 4.2
+ *
+ * @deprecated (4.3) use {@link PoolingHttpClientConnectionManager}.
  */
+@Deprecated
 @ThreadSafe
 public class PoolingClientConnectionManager implements ClientConnectionManager, ConnPoolControl<HttpRoute> {
 

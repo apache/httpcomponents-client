@@ -55,18 +55,18 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 
 /**
  * An Executor for fluent requests
  * <p/>
- * A {@link PoolingClientConnectionManager} with maximum 100 connections per route and
+ * A {@link PoolingHttpClientConnectionManager} with maximum 100 connections per route and
  * a total maximum of 200 connections is used internally.
  */
 public class Executor {
 
-    final static PoolingClientConnectionManager CONNMGR;
+    final static PoolingHttpClientConnectionManager CONNMGR;
     final static HttpClient CLIENT;
 
     static {
@@ -90,7 +90,7 @@ public class Executor {
         if (ssl != null) {
             schemeRegistry.register(new Scheme("https", 443, ssl));
         }
-        CONNMGR = new PoolingClientConnectionManager(schemeRegistry);
+        CONNMGR = new PoolingHttpClientConnectionManager(schemeRegistry);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
         CLIENT = new HttpClientBuilder().setConnectionManager(CONNMGR).build();

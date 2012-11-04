@@ -39,7 +39,7 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RandomHandler;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -79,7 +79,7 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -138,7 +138,7 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -188,7 +188,7 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
@@ -239,7 +239,7 @@ public class TestConnectionReuse {
 
         InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingClientConnectionManager mgr = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 

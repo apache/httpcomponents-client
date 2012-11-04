@@ -53,7 +53,7 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -181,7 +181,7 @@ public class TestContentCodings extends IntegrationTestBase {
          */
         int clients = 100;
 
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(clients);
 
         this.httpclient = new HttpClientBuilder().setConnectionManager(cm).build();

@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -43,8 +44,12 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionRequest;
+import org.apache.http.conn.ManagedClientConnection;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.client.exec.ClientExecChain;
 import org.apache.http.impl.client.exec.HttpRequestWrapper;
@@ -61,7 +66,7 @@ import org.apache.http.protocol.HttpContext;
 class InternalHttpClient extends AbstractBasicHttpClient {
 
     private final ClientExecChain execChain;
-    private final ClientConnectionManager connManager;
+    private final HttpClientConnectionManager connManager;
     private final HttpRoutePlanner routePlanner;
     private final CookieSpecRegistry cookieSpecRegistry;
     private final AuthSchemeRegistry authSchemeRegistry;
@@ -71,7 +76,7 @@ class InternalHttpClient extends AbstractBasicHttpClient {
 
     public InternalHttpClient(
             final ClientExecChain execChain,
-            final ClientConnectionManager connManager,
+            final HttpClientConnectionManager connManager,
             final HttpRoutePlanner routePlanner,
             final CookieSpecRegistry cookieSpecRegistry,
             final AuthSchemeRegistry authSchemeRegistry,
@@ -169,7 +174,38 @@ class InternalHttpClient extends AbstractBasicHttpClient {
     }
 
     public ClientConnectionManager getConnectionManager() {
-        return this.connManager;
+
+        return new ClientConnectionManager() {
+
+            public void shutdown() {
+                connManager.shutdown();
+            }
+
+            public ClientConnectionRequest requestConnection(
+                    HttpRoute route, Object state) {
+                throw new UnsupportedOperationException();
+            }
+
+            public void releaseConnection(
+                    ManagedClientConnection conn,
+                    long validDuration, TimeUnit timeUnit) {
+                throw new UnsupportedOperationException();
+            }
+
+            public SchemeRegistry getSchemeRegistry() {
+                throw new UnsupportedOperationException();
+            }
+
+            public void closeIdleConnections(long idletime, TimeUnit tunit) {
+                connManager.closeIdleConnections(idletime, tunit);
+            }
+
+            public void closeExpiredConnections() {
+                connManager.closeExpiredConnections();
+            }
+
+        };
+
     }
 
 }
