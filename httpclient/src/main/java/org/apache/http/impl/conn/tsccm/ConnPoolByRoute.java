@@ -149,7 +149,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @deprecated (4.1)  use {@link ConnPoolByRoute#ConnPoolByRoute(ClientConnectionOperator, ConnPerRoute, int)}
      */
-    public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
+    @Deprecated
+	public ConnPoolByRoute(final ClientConnectionOperator operator, final HttpParams params) {
         this(operator,
                 ConnManagerParams.getMaxConnectionsPerRoute(params),
                 ConnManagerParams.getMaxTotalConnections(params));

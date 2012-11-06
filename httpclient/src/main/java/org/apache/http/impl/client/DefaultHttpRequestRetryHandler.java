@@ -159,7 +159,8 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * 
      * @deprecated (4.3)
      */
-    protected boolean requestIsAborted(final HttpRequest request) {
+    @Deprecated
+	protected boolean requestIsAborted(final HttpRequest request) {
         HttpRequest req = request;
         if (request instanceof RequestWrapper) { // does not forward request to original
             req = ((RequestWrapper) request).getOriginal();

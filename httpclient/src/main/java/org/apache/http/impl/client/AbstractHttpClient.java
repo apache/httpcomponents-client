@@ -776,7 +776,8 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         protocolProcessor = null;
     }
 
-    public final CloseableHttpResponse execute(HttpHost target, HttpRequest request,
+    @Override
+	public final CloseableHttpResponse execute(HttpHost target, HttpRequest request,
                                       HttpContext context)
         throws IOException, ClientProtocolException {
 

@@ -58,7 +58,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated (4.1)  use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
-    public static long getTimeout(final HttpParams params) {
+    @Deprecated
+	public static long getTimeout(final HttpParams params) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }
@@ -74,7 +75,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @deprecated (4.1)  use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
-    public static void setTimeout(final HttpParams params, long timeout) {
+    @Deprecated
+	public static void setTimeout(final HttpParams params, long timeout) {
         if (params == null) {
             throw new IllegalArgumentException("HTTP parameters may not be null");
         }

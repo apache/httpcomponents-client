@@ -107,7 +107,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
      *
      * @deprecated (4.1)  use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
-    public SingleClientConnManager(HttpParams params,
+    @Deprecated
+	public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
         this(schreg);
     }

@@ -128,7 +128,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     /**
      * @deprecated (4.1)  use {@link #assertValid(OperatedClientConnection)}
      */
-    protected final void assertNotAborted() throws InterruptedIOException {
+    @Deprecated
+	protected final void assertNotAborted() throws InterruptedIOException {
         if (isReleased()) {
             throw new InterruptedIOException("Connection has been shut down");
         }

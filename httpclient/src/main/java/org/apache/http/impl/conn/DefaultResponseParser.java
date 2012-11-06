@@ -61,6 +61,7 @@ import org.apache.http.util.CharArrayBuffer;
  * 
  * @deprecated (4.2) use {@link DefaultHttpResponseParser}
  */
+@Deprecated
 @ThreadSafe // no public methods
 public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
 

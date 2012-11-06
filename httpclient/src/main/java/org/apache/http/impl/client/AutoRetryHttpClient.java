@@ -55,6 +55,7 @@ import org.apache.http.util.EntityUtils;
  * 
  * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
+@Deprecated
 @ThreadSafe
 public class AutoRetryHttpClient implements HttpClient {
 

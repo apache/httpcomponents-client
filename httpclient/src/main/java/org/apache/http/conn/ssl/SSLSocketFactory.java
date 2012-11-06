@@ -634,7 +634,8 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     /**
      * @deprecated use {@link #createLayeredSocket(Socket, String, int, HttpParams)}
      */
-    public Socket createLayeredSocket(
+    @Deprecated
+	public Socket createLayeredSocket(
         final Socket socket,
         final String host,
         final int port,

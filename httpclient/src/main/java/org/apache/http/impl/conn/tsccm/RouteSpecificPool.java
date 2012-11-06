@@ -77,7 +77,8 @@ public class RouteSpecificPool {
     /**
      * @deprecated (4.1)  use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
      */
-    public RouteSpecificPool(HttpRoute route, int maxEntries) {
+    @Deprecated
+	public RouteSpecificPool(HttpRoute route, int maxEntries) {
         this.route = route;
         this.maxEntries = maxEntries;
         this.connPerRoute = new ConnPerRoute() {

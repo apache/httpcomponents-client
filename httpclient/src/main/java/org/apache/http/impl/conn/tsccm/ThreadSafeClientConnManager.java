@@ -149,7 +149,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @deprecated (4.1)  use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
      */
-    public ThreadSafeClientConnManager(HttpParams params,
+    @Deprecated
+	public ThreadSafeClientConnManager(HttpParams params,
                                        SchemeRegistry schreg) {
         if (schreg == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
@@ -178,7 +179,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @deprecated (4.1)  use #createConnectionPool(long, TimeUnit))
      */
-    protected AbstractConnPool createConnectionPool(final HttpParams params) {
+    @Deprecated
+	protected AbstractConnPool createConnectionPool(final HttpParams params) {
         return new ConnPoolByRoute(connOperator, params);
     }
 

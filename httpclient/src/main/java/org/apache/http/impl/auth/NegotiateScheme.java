@@ -81,7 +81,8 @@ public class NegotiateScheme extends GGSSchemeBase {
         return "Negotiate";
     }
 
-    public Header authenticate(
+    @Override
+	public Header authenticate(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
         return authenticate(credentials, request, null);

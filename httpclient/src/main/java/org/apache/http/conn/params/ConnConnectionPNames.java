@@ -55,7 +55,8 @@ public interface ConnConnectionPNames {
      *
      * @deprecated Use custom {@link DefaultHttpResponseParser} implementation
      */
-    public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
+    @Deprecated
+	public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
 
 
 }

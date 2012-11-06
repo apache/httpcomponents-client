@@ -50,7 +50,8 @@ public class ConnConnectionParamBean extends HttpAbstractParamBean {
     /**
      * @deprecated (4.2)  Use custom {@link DefaultHttpResponseParser} implementation
      */
-    public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
+    @Deprecated
+	public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
         params.setIntParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, maxStatusLineGarbage);
     }
 
