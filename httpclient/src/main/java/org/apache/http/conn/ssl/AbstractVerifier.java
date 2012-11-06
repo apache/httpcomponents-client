@@ -43,8 +43,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
@@ -204,9 +202,10 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                                  !isIPAddress(host);
 
             if(doWildcard) {
-                if (parts[0].length() > 1) { // e.g. server*
-                    String prefix = parts[0].substring(0, parts.length-2); // e.g. server
-                    String suffix = cn.substring(parts[0].length()); // skip wildcard part from cn
+                String firstpart = parts[0];
+                if (firstpart.length() > 1) { // e.g. server*
+                    String prefix = firstpart.substring(0, firstpart.length() - 1); // e.g. server
+                    String suffix = cn.substring(firstpart.length()); // skip wildcard part from cn
                     String hostSuffix = hostName.substring(prefix.length()); // skip wildcard part from host
                     match = hostName.startsWith(prefix) && hostSuffix.endsWith(suffix);
                 } else {
@@ -302,8 +301,6 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             c = cert.getSubjectAlternativeNames();
         }
         catch(CertificateParsingException cpe) {
-            Logger.getLogger(AbstractVerifier.class.getName())
-                    .log(Level.FINE, "Error parsing certificate.", cpe);
         }
         if(c != null) {
             for (List<?> aC : c) {
