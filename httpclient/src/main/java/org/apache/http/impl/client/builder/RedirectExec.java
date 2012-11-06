@@ -46,6 +46,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.params.HttpParams;
@@ -128,12 +129,11 @@ class RedirectExec implements ClientExecChain {
                     currentRequest.setParams(params);
 
                     URI uri = currentRequest.getURI();
+                    HttpHost newTarget = URIUtils.extractHost(uri);
                     if (uri.getHost() == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " +
                                 uri);
                     }
-
-                    HttpHost newTarget = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
