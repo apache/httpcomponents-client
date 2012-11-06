@@ -44,7 +44,7 @@ public class InetAddressUtils {
 
     private static final Pattern IPV4_PATTERN =
         Pattern.compile(
-                "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
+                "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
 
     private static final Pattern IPV6_STD_PATTERN =
         Pattern.compile(
