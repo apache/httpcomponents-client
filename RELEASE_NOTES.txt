@@ -1,7 +1,10 @@
-Changes since 4.2.1 
+Changes in trunk
 -------------------
 
-* [HTTPCLIENT-1248]: Default and lax redirect strategies should not convert requests redirected 
+* [HTTPCLIENT-1255] AbstractVerifier incorrectly parses certificate CN containing wildcard
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1248] Default and lax redirect strategies should not convert requests redirected
   with 307 status to GET method.  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

@@ -300,7 +300,7 @@ public class TestHostnameVerifier {
     }
 
     @Test
-    public void HTTPCLIENT_1097() {
+    public void testHTTPCLIENT_1097() {
         String cns[];
         String alt[] = {};
         X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
@@ -316,6 +316,17 @@ public class TestHostnameVerifier {
         checkWildcard("s*.co.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
         checkWildcard("s*.gouv.uk", false); // 2 character TLD, invalid 2TLD
+    }
+
+    @Test
+    public void testHTTPCLIENT_1255() {
+        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        X509HostnameVerifier shv = new StrictHostnameVerifier();
+
+        String cns[] = new String []{"m*.a.b.c.com"}; // component part
+        String alt[] = {};
+        checkMatching(bhv, "mail.a.b.c.com", cns, alt, false); // OK
+        checkMatching(shv, "mail.a.b.c.com", cns, alt, false); // OK
     }
 
     // Helper
