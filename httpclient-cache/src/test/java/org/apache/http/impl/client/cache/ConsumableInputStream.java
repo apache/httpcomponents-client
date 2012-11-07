@@ -39,6 +39,7 @@ public class ConsumableInputStream extends InputStream {
         this.buf = buf;
     }
 
+    @Override
     public int read() throws IOException {
         return buf.read();
     }
