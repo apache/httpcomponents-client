@@ -129,7 +129,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         verifyMocks();
     }
     
-    public void testThrowsIOExceptionWhenMemcachedPutTimesOut() throws IOException {
+    public void testThrowsIOExceptionWhenMemcachedPutTimesOut() {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
@@ -154,7 +154,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCachePutThrowsIOExceptionIfCannotSerializeEntry() throws IOException {
+    public void testCachePutThrowsIOExceptionIfCannotSerializeEntry() {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
@@ -260,8 +260,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testThrowsIOExceptionIfMemcachedTimesOutOnGet() throws UnsupportedEncodingException,
-            IOException {
+    public void testThrowsIOExceptionIfMemcachedTimesOutOnGet() {
         final String url = "foo";
         final String key = "key";
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
@@ -298,7 +297,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCacheRemoveThrowsIOExceptionOnMemcachedTimeout() throws IOException {
+    public void testCacheRemoveThrowsIOExceptionOnMemcachedTimeout() {
         final String url = "foo";
         final String key = "key";
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
@@ -423,8 +422,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
     
     @Test
-    public void testCacheUpdateThrowsExceptionsIfCASFailsEnoughTimes() throws IOException,
-            HttpCacheUpdateException {
+    public void testCacheUpdateThrowsExceptionsIfCASFailsEnoughTimes() throws IOException {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
@@ -535,8 +533,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
 
 
     @Test
-    public void testUpdateThrowsIOExceptionIfMemcachedTimesOut() throws IOException,
-            HttpCacheUpdateException {
+    public void testUpdateThrowsIOExceptionIfMemcachedTimesOut() throws HttpCacheUpdateException {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
