@@ -67,7 +67,7 @@ public class TestDefaultHttpResponseParser {
                 new DefaultHttpResponseFactory(),
                 params);
 
-        HttpResponse response = (HttpResponse) parser.parse();
+        HttpResponse response = parser.parse();
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
