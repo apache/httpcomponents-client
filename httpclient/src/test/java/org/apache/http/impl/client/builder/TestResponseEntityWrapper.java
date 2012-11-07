@@ -48,7 +48,7 @@ public class TestResponseEntityWrapper {
     @Before
     public void setup() throws Exception {
         instream = Mockito.mock(InputStream.class);
-        entity = Mockito.mock(HttpEntity.class);;
+        entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.getContent()).thenReturn(instream);
         releaseTrigger = Mockito.mock(ConnectionReleaseTriggerImpl.class);
         wrapper = new ResponseEntityWrapper(entity, releaseTrigger);

@@ -41,7 +41,7 @@ public class TestRequestEntityWrapper {
 
     @Before
     public void setup() throws Exception {
-        entity = Mockito.mock(HttpEntity.class);;
+        entity = Mockito.mock(HttpEntity.class);
         wrapper = new RequestEntityWrapper(entity);
     }
 
