@@ -72,6 +72,7 @@ class BasicIdGenerator {
         buffer.append('.');
         Formatter formatter = new Formatter(buffer, Locale.US);
         formatter.format("%1$016x-%2$08x", this.count, rndnum);
+        formatter.close();
         buffer.append('.');
         buffer.append(this.hostname);
     }
