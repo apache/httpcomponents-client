@@ -462,7 +462,7 @@ public class CachingHttpClient implements HttpClient {
         	context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
         	context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
         	context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
-        	context.setAttribute(ExecutionContext.HTTP_REQ_SENT, true);
+        	context.setAttribute(ExecutionContext.HTTP_REQ_SENT, Boolean.TRUE);
         }
         return out;
     }
