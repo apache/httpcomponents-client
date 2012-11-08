@@ -556,7 +556,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         Capture<HttpEntityEnclosingRequest> reqCap = new Capture<HttpEntityEnclosingRequest>();
 
-        EasyMock.expect(post.expectContinue()).andReturn(true).anyTimes();
+        EasyMock.expect(post.expectContinue()).andReturn(Boolean.TRUE).anyTimes();
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.capture(reqCap),
                         (HttpContext) EasyMock.isNull())).andReturn(originResponse);
@@ -601,7 +601,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         Capture<HttpEntityEnclosingRequest> reqCap = new Capture<HttpEntityEnclosingRequest>();
 
-        EasyMock.expect(post.expectContinue()).andReturn(false).anyTimes();
+        EasyMock.expect(post.expectContinue()).andReturn(Boolean.FALSE).anyTimes();
         EasyMock.expect(
                 mockBackend.execute(EasyMock.eq(host), EasyMock.capture(reqCap),
                         (HttpContext) EasyMock.isNull())).andReturn(originResponse);

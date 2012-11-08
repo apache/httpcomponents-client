@@ -1985,7 +1985,7 @@ public class TestCachingHttpClient {
 		HttpContext ctx = new BasicHttpContext();
 		impl.execute(host, request);
 		impl.execute(host, request, ctx);
-		assertTrue((Boolean)ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
+		assertEquals(Boolean.TRUE, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
 	}
 	
 	@Test
