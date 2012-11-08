@@ -49,7 +49,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testClose() throws Exception {
-        Mockito.when(eofwatcher.streamClosed(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.streamClosed(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
 
         eofstream.close();
 
@@ -79,7 +79,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testReleaseConnection() throws Exception {
-        Mockito.when(eofwatcher.streamClosed(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.streamClosed(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
 
         eofstream.releaseConnection();
 
@@ -94,7 +94,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testAbortConnection() throws Exception {
-        Mockito.when(eofwatcher.streamAbort(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.streamAbort(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
 
         eofstream.abortConnection();
 
@@ -124,7 +124,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testRead() throws Exception {
-        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
         Mockito.when(instream.read()).thenReturn(0, -1);
 
         Assert.assertEquals(0, eofstream.read());
@@ -147,7 +147,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testReadIOError() throws Exception {
-        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
         Mockito.when(instream.read()).thenThrow(new IOException());
 
         try {
@@ -163,7 +163,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testReadByteArray() throws Exception {
-        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
         Mockito.when(instream.read(Mockito.<byte []>any(), Mockito.anyInt(), Mockito.anyInt()))
             .thenReturn(1, -1);
 
@@ -189,7 +189,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testReadByteArrayIOError() throws Exception {
-        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.eofDetected(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
         Mockito.when(instream.read(Mockito.<byte []>any(), Mockito.anyInt(), Mockito.anyInt()))
             .thenThrow(new IOException());
 
@@ -207,7 +207,7 @@ public class TestEofSensorInputStream {
 
     @Test
     public void testReadAfterAbort() throws Exception {
-        Mockito.when(eofwatcher.streamAbort(Mockito.<InputStream>any())).thenReturn(true);
+        Mockito.when(eofwatcher.streamAbort(Mockito.<InputStream>any())).thenReturn(Boolean.TRUE);
 
         eofstream.abortConnection();
 

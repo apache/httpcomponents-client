@@ -56,7 +56,7 @@ public class TestHttpClientUtils {
         HttpResponse response = Mockito.mock(HttpResponse.class);
         HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
-        Mockito.when(entity.isStreaming()).thenReturn(false);
+        Mockito.when(entity.isStreaming()).thenReturn(Boolean.FALSE);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(entity, Mockito.never()).getContent();
     }
@@ -67,7 +67,7 @@ public class TestHttpClientUtils {
         HttpEntity entity = Mockito.mock(HttpEntity.class);
         InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
-        Mockito.when(entity.isStreaming()).thenReturn(true);
+        Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(entity.getContent()).thenReturn(instream);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(instream).close();
@@ -103,7 +103,7 @@ public class TestHttpClientUtils {
         CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
         HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
-        Mockito.when(entity.isStreaming()).thenReturn(false);
+        Mockito.when(entity.isStreaming()).thenReturn(Boolean.FALSE);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(entity, Mockito.never()).getContent();
         Mockito.verify(response).close();
@@ -115,7 +115,7 @@ public class TestHttpClientUtils {
         HttpEntity entity = Mockito.mock(HttpEntity.class);
         InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
-        Mockito.when(entity.isStreaming()).thenReturn(true);
+        Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(entity.getContent()).thenReturn(instream);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(instream).close();

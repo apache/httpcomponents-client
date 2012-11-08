@@ -97,7 +97,7 @@ public class TestHttpClientConnectionManagerBase {
         CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
                 -1, TimeUnit.MILLISECONDS);
 
-        Mockito.when(future.isCancelled()).thenReturn(false);
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
 
@@ -120,7 +120,7 @@ public class TestHttpClientConnectionManagerBase {
         CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
                 -1, TimeUnit.MILLISECONDS);
 
-        Mockito.when(future.isCancelled()).thenReturn(true);
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
 
@@ -133,7 +133,7 @@ public class TestHttpClientConnectionManagerBase {
         HttpHost target = new HttpHost("localhost");
         HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(future.isCancelled()).thenReturn(true);
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenThrow(new TimeoutException());
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
 
@@ -149,10 +149,10 @@ public class TestHttpClientConnectionManagerBase {
         CPoolEntry entry = Mockito.spy(new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
                 -1, TimeUnit.MILLISECONDS));
 
-        Mockito.when(future.isCancelled()).thenReturn(false);
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
-        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
         ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         HttpClientConnection conn1 = connRequest1.get(1, TimeUnit.SECONDS);
@@ -174,10 +174,10 @@ public class TestHttpClientConnectionManagerBase {
         CPoolEntry entry = Mockito.spy(new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
                 -1, TimeUnit.MILLISECONDS));
 
-        Mockito.when(future.isCancelled()).thenReturn(false);
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
-        Mockito.when(conn.isOpen()).thenReturn(false);
+        Mockito.when(conn.isOpen()).thenReturn(Boolean.FALSE);
 
         ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         HttpClientConnection conn1 = connRequest1.get(1, TimeUnit.SECONDS);

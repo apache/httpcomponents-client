@@ -84,7 +84,7 @@ public class TestHttpAuthenticator {
         this.authState = new AuthState();
         this.authScheme = Mockito.mock(ContextAwareAuthScheme.class);
         Mockito.when(this.authScheme.getSchemeName()).thenReturn("Basic");
-        Mockito.when(this.authScheme.isComplete()).thenReturn(true);
+        Mockito.when(this.authScheme.isComplete()).thenReturn(Boolean.TRUE);
         this.context = new BasicHttpContext();
         this.host = new HttpHost("localhost", 80);
         this.proxy = new HttpHost("localhost", 8888);
