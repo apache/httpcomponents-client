@@ -257,6 +257,10 @@ public class DigestScheme extends RFC2617Scheme {
         String opaque = getParameter("opaque");
         String method = getParameter("methodname");
         String algorithm = getParameter("algorithm");
+        // If an algorithm is not specified, default to MD5.
+        if (algorithm == null) {
+            algorithm = "MD5";
+        }
 
         Set<String> qopset = new HashSet<String>(8);
         int qop = QOP_UNKNOWN;
@@ -280,10 +284,6 @@ public class DigestScheme extends RFC2617Scheme {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
-        // If an algorithm is not specified, default to MD5.
-        if (algorithm == null) {
-            algorithm = "MD5";
-        }
         String charset = getParameter("charset");
         if (charset == null) {
             charset = "ISO-8859-1";
@@ -418,9 +418,8 @@ public class DigestScheme extends RFC2617Scheme {
             params.add(new BasicNameValuePair("nc", nc));
             params.add(new BasicNameValuePair("cnonce", cnonce));
         }
-        if (algorithm != null) {
-            params.add(new BasicNameValuePair("algorithm", algorithm));
-        }
+        // algorithm cannot be null here
+        params.add(new BasicNameValuePair("algorithm", algorithm));
         if (opaque != null) {
             params.add(new BasicNameValuePair("opaque", opaque));
         }
