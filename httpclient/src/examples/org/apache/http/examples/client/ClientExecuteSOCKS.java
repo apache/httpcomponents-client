@@ -104,7 +104,7 @@ public class ClientExecuteSOCKS {
             String proxyHost = (String) params.getParameter("socks.host");
             Integer proxyPort = (Integer) params.getParameter("socks.port");
 
-            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort);
+            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort.intValue());
             Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
             return new Socket(proxy);
         }
