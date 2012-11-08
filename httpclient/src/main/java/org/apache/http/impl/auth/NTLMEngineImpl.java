@@ -29,6 +29,7 @@ package org.apache.http.impl.auth;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Locale;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -80,6 +81,42 @@ final class NTLMEngineImpl implements NTLMEngine {
         SIGNATURE = new byte[bytesWithoutNull.length + 1];
         System.arraycopy(bytesWithoutNull, 0, SIGNATURE, 0, bytesWithoutNull.length);
         SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
+    }
+
+    private static byte[] convert0(final String text) throws NTLMEngineException {
+        if (text == null) {
+            return null;
+        }
+        try {
+            return text.getBytes("UnicodeLittleUnmarked");
+        } catch (java.io.UnsupportedEncodingException ex) {
+            throw new NTLMEngineException("Unicode not supported", ex);
+        }
+    }
+
+    private static byte[] convert(final String text) throws NTLMEngineException {
+        if (text == null) {
+            return new byte[] {};
+        }
+        return convert0(text);
+    }
+
+    private static String convert0(final byte[] b) throws NTLMEngineException {
+        if (b == null) {
+            return null;
+        }
+        try {
+            return new String(b, "UnicodeLittleUnmarked");
+        } catch (java.io.UnsupportedEncodingException ex) {
+            throw new NTLMEngineException("Unicode not supported", ex);
+        }
+    }
+
+    private static String convert(final byte[] b) throws NTLMEngineException {
+        if (b == null) {
+            return "";
+        }
+        return convert0(b);
     }
 
     /**
@@ -172,6 +209,9 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     /** Strip dot suffix from a name */
     private static String stripDotSuffix(String value) {
+        if (value == null) {
+            return null;
+        }
         int index = value.indexOf(".");
         if (index != -1)
             return value.substring(0, index);
@@ -413,14 +453,10 @@ final class NTLMEngineImpl implements NTLMEngine {
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
     private static byte[] ntlmHash(String password) throws NTLMEngineException {
-        try {
-            byte[] unicodePassword = password.getBytes("UnicodeLittleUnmarked");
-            MD4 md4 = new MD4();
-            md4.update(unicodePassword);
-            return md4.getOutput();
-        } catch (java.io.UnsupportedEncodingException e) {
-            throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
-        }
+        byte[] unicodePassword = convert(password);
+        MD4 md4 = new MD4();
+        md4.update(unicodePassword);
+        return md4.getOutput();
     }
 
     /**
@@ -438,16 +474,12 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] ntlmv2Hash(String target, String user, String password)
             throws NTLMEngineException {
-        try {
-            byte[] ntlmHash = ntlmHash(password);
-            HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
-            // Upper case username, mixed case target!!
-            hmacMD5.update(user.toUpperCase().getBytes("UnicodeLittleUnmarked"));
-            hmacMD5.update(target.getBytes("UnicodeLittleUnmarked"));
-            return hmacMD5.getOutput();
-        } catch (java.io.UnsupportedEncodingException e) {
-            throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
-        }
+        byte[] ntlmHash = ntlmHash(password);
+        HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
+        // Upper case username, mixed case target!!
+        hmacMD5.update(convert(user.toUpperCase(Locale.US)));
+        hmacMD5.update(convert(target));
+        return hmacMD5.getOutput();
     }
 
     /**
@@ -759,17 +791,13 @@ final class NTLMEngineImpl implements NTLMEngine {
         /** Constructor. Include the arguments the message will need */
         Type1Message(String domain, String host) throws NTLMEngineException {
             super();
-            try {
-                // Strip off domain name from the host!
-                host = convertHost(host);
-                // Use only the base domain name!
-                domain = convertDomain(domain);
+            // Strip off domain name from the host!
+            host = convertHost(host);
+            // Use only the base domain name!
+            domain = convertDomain(domain);
 
-                hostBytes = host.getBytes("UnicodeLittleUnmarked");
-                domainBytes = domain.toUpperCase().getBytes("UnicodeLittleUnmarked");
-            } catch (java.io.UnsupportedEncodingException e) {
-                throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
-            }
+            hostBytes = convert(host);
+            domainBytes = convert(domain != null ? domain.toUpperCase(Locale.US) : null);
         }
 
         /**
@@ -847,11 +875,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (getMessageLength() >= 12 + 8) {
                 byte[] bytes = readSecurityBuffer(12);
                 if (bytes.length != 0) {
-                    try {
-                        target = new String(bytes, "UnicodeLittleUnmarked");
-                    } catch (java.io.UnsupportedEncodingException e) {
-                        throw new NTLMEngineException(e.getMessage(), e);
-                    }
+                    target = convert(bytes);
                 }
             }
 
@@ -943,14 +967,9 @@ final class NTLMEngineImpl implements NTLMEngine {
                 ntResp = new byte[0];
                 lmResp = getLMResponse(password, nonce);
             }
-
-            try {
-                domainBytes = domain.toUpperCase().getBytes("UnicodeLittleUnmarked");
-                hostBytes = host.getBytes("UnicodeLittleUnmarked");
-                userBytes = user.getBytes("UnicodeLittleUnmarked");
-            } catch (java.io.UnsupportedEncodingException e) {
-                throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
-            }
+            domainBytes = convert(domain != null ? domain.toUpperCase(Locale.US) : null);
+            hostBytes = convert(host);
+            userBytes = convert(user);
         }
 
         /** Assemble the response */

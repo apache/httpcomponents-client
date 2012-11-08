@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1258] Fixed NullPointerException in NTLMEngineImpl caused by null NT domain
+  attribute.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1254] Redirect with underscore in hostname causes ProtocolException.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
