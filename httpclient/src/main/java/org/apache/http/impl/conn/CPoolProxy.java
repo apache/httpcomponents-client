@@ -112,9 +112,9 @@ class CPoolProxy implements InvocationHandler {
             shutdown();
             return null;
         } else if (mname.equals("isOpen")) {
-            return isOpen();
+            return Boolean.valueOf(isOpen());
         } else if (mname.equals("isStale")) {
-            return isStale();
+            return Boolean.valueOf(isStale());
         } else {
             HttpClientConnection conn = getConnection();
             if (conn == null) {
