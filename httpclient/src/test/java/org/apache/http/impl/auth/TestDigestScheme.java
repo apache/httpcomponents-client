@@ -421,8 +421,7 @@ public class TestDigestScheme {
         }
         HeaderElement[] elements = BasicHeaderValueParser.parseElements(s.substring(7), null);
         Map<String, String> map = new HashMap<String, String>(elements.length);
-        for (int i = 0; i < elements.length; i++) {
-            HeaderElement element = elements[i];
+        for (HeaderElement element : elements) {
             map.put(element.getName(), element.getValue());
         }
         return map;

@@ -119,22 +119,21 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
                     context, requestCount, target, this.httpclient);
         }
 
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].start();
+        for (HttpWorker worker : workers) {
+            worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].join(10000);
+        for (HttpWorker worker : workers) {
+            worker.join(10000);
         }
-        for (int i = 0; i < workers.length; i++) {
-            Exception ex = workers[i].getException();
+        for (HttpWorker worker : workers) {
+            Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
-            Assert.assertEquals(requestCount, workers[i].getCount());
+            Assert.assertEquals(requestCount, worker.getCount());
         }
 
-        for (int i = 0; i < contexts.length; i++) {
-            HttpContext context = contexts[i];
+        for (HttpContext context : contexts) {
             String uid = (String) context.getAttribute("user");
 
             for (int r = 0; r < requestCount; r++) {

@@ -358,8 +358,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
-        for (int i = 0; i < this.proxyChain.length; i++) {
-            hash = LangUtils.hashCode(hash, this.proxyChain[i]);
+        for (HttpHost element : this.proxyChain) {
+            hash = LangUtils.hashCode(hash, element);
         }
         hash = LangUtils.hashCode(hash, this.secure);
         hash = LangUtils.hashCode(hash, this.tunnelled);

@@ -215,8 +215,8 @@ public class TestMultipartForm {
     private static String constructString(int [] unicodeChars) {
         StringBuilder buffer = new StringBuilder();
         if (unicodeChars != null) {
-            for (int i = 0; i < unicodeChars.length; i++) {
-                buffer.append((char)unicodeChars[i]);
+            for (int unicodeChar : unicodeChars) {
+                buffer.append((char)unicodeChar);
             }
         }
         return buffer.toString();

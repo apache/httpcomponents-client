@@ -95,13 +95,11 @@ public class TestConnectionReuse {
                     10, false);
         }
 
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
+        for (WorkerThread worker : workers) {
             worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
-            workers[i].join(10000);
+        for (WorkerThread worker : workers) {
+            worker.join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
@@ -155,13 +153,11 @@ public class TestConnectionReuse {
                     10, false);
         }
 
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
+        for (WorkerThread worker : workers) {
             worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
-            workers[i].join(10000);
+        for (WorkerThread worker : workers) {
+            worker.join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
@@ -205,13 +201,11 @@ public class TestConnectionReuse {
                     10, true);
         }
 
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
+        for (WorkerThread worker : workers) {
             worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            WorkerThread worker = workers[i];
-            workers[i].join(10000);
+        for (WorkerThread worker : workers) {
+            worker.join(10000);
             Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;

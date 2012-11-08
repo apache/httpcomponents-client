@@ -709,8 +709,8 @@ final class NTLMEngineImpl implements NTLMEngine {
          *            the bytes to add.
          */
         protected void addBytes(byte[] bytes) {
-            for (int i = 0; i < bytes.length; i++) {
-                messageContents[currentOutputPosition] = bytes[i];
+            for (byte b : bytes) {
+                messageContents[currentOutputPosition] = b;
                 currentOutputPosition++;
             }
         }

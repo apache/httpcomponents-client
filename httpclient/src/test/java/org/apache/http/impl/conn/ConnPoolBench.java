@@ -65,11 +65,11 @@ public class ConnPoolBench {
             workers[i] = new WorkerThread1(pool, reps);
         }
         long start = System.currentTimeMillis();
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].start();
+        for (WorkerThread1 worker : workers) {
+            worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].join();
+        for (WorkerThread1 worker : workers) {
+            worker.join();
         }
         long finish = System.currentTimeMillis();
         float totalTimeSec = (float) (finish - start) / 1000;
@@ -93,11 +93,11 @@ public class ConnPoolBench {
             workers[i] = new WorkerThread2(pool, reps);
         }
         long start = System.currentTimeMillis();
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].start();
+        for (WorkerThread2 worker : workers) {
+            worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].join();
+        for (WorkerThread2 worker : workers) {
+            worker.join();
         }
         long finish = System.currentTimeMillis();
         float totalTimeSec = (float) (finish - start) / 1000;

@@ -58,8 +58,8 @@ public class TestBasicScheme {
     public void testBasicAuthenticationWith88591Chars() throws Exception {
         int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
         StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < germanChars.length; i++) {
-            buffer.append((char)germanChars[i]);
+        for (int germanChar : germanChars) {
+            buffer.append((char)germanChar);
         }
 
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("dh", buffer.toString());

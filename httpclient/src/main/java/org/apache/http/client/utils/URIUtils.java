@@ -252,16 +252,16 @@ public class URIUtils {
         }
         String[] inputSegments = path.split("/");
         Stack<String> outputSegments = new Stack<String>();
-        for (int i = 0; i < inputSegments.length; i++) {
-            if ((inputSegments[i].length() == 0)
-                || (".".equals(inputSegments[i]))) {
+        for (String inputSegment : inputSegments) {
+            if ((inputSegment.length() == 0)
+                || (".".equals(inputSegment))) {
                 // Do nothing
-            } else if ("..".equals(inputSegments[i])) {
+            } else if ("..".equals(inputSegment)) {
                 if (!outputSegments.isEmpty()) {
                     outputSegments.pop();
                 }
             } else {
-                outputSegments.push(inputSegments[i]);
+                outputSegments.push(inputSegment);
             }
         }
         StringBuilder outputBuffer = new StringBuilder();

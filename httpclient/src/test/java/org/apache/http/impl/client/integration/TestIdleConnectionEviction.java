@@ -72,12 +72,12 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(httpclient, target, httpget, 200);
         }
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].start();
+        for (WorkerThread worker : workers) {
+            worker.start();
         }
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].join();
-            Exception ex = workers[i].getException();
+        for (WorkerThread worker : workers) {
+            worker.join();
+            Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }

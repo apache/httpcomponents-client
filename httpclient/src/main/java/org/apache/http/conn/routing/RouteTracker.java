@@ -329,8 +329,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
         if (this.proxyChain != null) {
-            for (int i = 0; i < this.proxyChain.length; i++) {
-                hash = LangUtils.hashCode(hash, this.proxyChain[i]);
+            for (HttpHost element : this.proxyChain) {
+                hash = LangUtils.hashCode(hash, element);
             }
         }
         hash = LangUtils.hashCode(hash, this.connected);
@@ -365,8 +365,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             cab.append('s');
         cab.append("}->");
         if (this.proxyChain != null) {
-            for (int i=0; i<this.proxyChain.length; i++) {
-                cab.append(this.proxyChain[i]);
+            for (HttpHost element : this.proxyChain) {
+                cab.append(element);
                 cab.append("->");
             }
         }
