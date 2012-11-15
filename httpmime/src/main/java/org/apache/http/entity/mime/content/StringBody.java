@@ -134,7 +134,7 @@ public class StringBody extends AbstractContentBody {
     /**
      * Create a StringBody from the specified text.
      * The mime type is set to "text/plain".
-     * The hosts default charset is used.
+     * The {@linkplain Consts#ASCII ASCII} charset is used.
      *
      * @param text to be used for the body, not {@code null}
      * @throws UnsupportedEncodingException

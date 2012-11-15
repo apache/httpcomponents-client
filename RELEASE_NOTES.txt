@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1260]
+  Javadoc incorrectly states StringBody(String)'s encoding uses the system default. 
+  Contributed by Tim <tdhutt at gmail.com> and Gary Gregory <ggregory at apache.org> 
+
 * [HTTPCLIENT-1254] Redirect with underscore in hostname causes ProtocolException.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
