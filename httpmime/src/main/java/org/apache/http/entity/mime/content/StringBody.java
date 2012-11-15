@@ -43,7 +43,7 @@ import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 /**
- * Text body part backed by a String.
+ * Text body part backed by a byte array.
  *
  * @see MultipartEntityBuilder
  *
