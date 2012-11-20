@@ -29,6 +29,7 @@ package org.apache.http.conn.ssl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.security.Principal;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import javax.net.ssl.SSLException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link X509HostnameVerifier}.
@@ -336,7 +338,7 @@ public class TestHostnameVerifier {
 
     @Test
     // Various checks of 2TLDs
-    public void testacceptableCountryWildcards() {
+    public void testAcceptableCountryWildcards() {
         checkWildcard("*.co.org", true); // Not a 2 character TLD
         checkWildcard("s*.co.org", true); // Not a 2 character TLD
         checkWildcard("*.co.uk", false); // 2 character TLD, invalid 2TLD
@@ -345,4 +347,17 @@ public class TestHostnameVerifier {
         checkWildcard("*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
         checkWildcard("s*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
     }
+
+    public void testGetCNs() {
+        Principal principal = Mockito.mock(Principal.class);
+        X509Certificate cert = Mockito.mock(X509Certificate.class);
+        Mockito.when(cert.getSubjectDN()).thenReturn(principal);
+        Mockito.when(principal.toString()).thenReturn("bla,  bla, blah");
+        Assert.assertArrayEquals(new String[] {}, AbstractVerifier.getCNs(cert));
+        Mockito.when(principal.toString()).thenReturn("Cn=,  Cn=  , CN, OU=CN=");
+        Assert.assertArrayEquals(new String[] {}, AbstractVerifier.getCNs(cert));
+        Mockito.when(principal.toString()).thenReturn("  Cn=blah,  CN= blah , OU=CN=yada");
+        Assert.assertArrayEquals(new String[] {"blah", " blah"}, AbstractVerifier.getCNs(cert));
+    }
+
 }
