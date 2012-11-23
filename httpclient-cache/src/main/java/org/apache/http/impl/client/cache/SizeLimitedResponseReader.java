@@ -100,7 +100,13 @@ class SizeLimitedResponseReader {
         }
         String uri = request.getRequestLine().getUri();
         instream = entity.getContent();
-        resource = resourceFactory.generate(uri, instream, limit);
+        try {
+            resource = resourceFactory.generate(uri, instream, limit);
+        } finally {
+            if (!limit.isReached()) {
+                instream.close();
+            }
+        }
     }
 
     boolean isLimitReached() {

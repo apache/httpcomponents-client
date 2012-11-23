@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,9 +49,11 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -377,6 +380,30 @@ public class TestBasicHttpCache {
         assertNotNull(variants);
         assertEquals(2, variants.size());
 
+    }
+
+    @Test
+    public void testOriginalResponseWithNoContentSizeHeaderIsReleased() throws Exception {
+        HttpHost host = new HttpHost("foo.example.com");
+        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+
+        Date now = new Date();
+        Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+
+        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        BasicHttpEntity entity = new BasicHttpEntity();
+        ConsumableInputStream inputStream = new ConsumableInputStream(new ByteArrayInputStream(HttpTestUtils.getRandomBytes(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1)));
+        entity.setContent(inputStream);
+        originResponse.setEntity(entity);
+        originResponse.setHeader("Cache-Control","public, max-age=3600");
+        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
+        originResponse.setHeader("ETag", "\"etag\"");
+
+        HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        EntityUtils.consume(result.getEntity());
+        assertTrue(inputStream.wasClosed());
     }
 
 }
