@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1263] CachingHttpClient fails to release connections back to the connection
+  manager for some type of HTTP response messages when used together with DecompressingHttpClient.  
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1258] Fixed NullPointerException in NTLMEngineImpl caused by null NT domain
   attribute.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

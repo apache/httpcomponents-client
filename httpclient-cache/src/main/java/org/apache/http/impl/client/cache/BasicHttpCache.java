@@ -48,6 +48,7 @@ import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 class BasicHttpCache implements HttpCache {
 
@@ -238,25 +239,33 @@ class BasicHttpCache implements HttpCache {
             throws IOException {
 
         SizeLimitedResponseReader responseReader = getResponseReader(request, originResponse);
-        responseReader.readResponse();
+        try {
+            responseReader.readResponse();
 
-        if (responseReader.isLimitReached()) {
-            return responseReader.getReconstructedResponse();
+            if (responseReader.isLimitReached()) {
+                return responseReader.getReconstructedResponse();
+            }
+
+            Resource resource = responseReader.getResource();
+            if (isIncompleteResponse(originResponse, resource)) {
+                return generateIncompleteResponseError(originResponse, resource);
+            }
+
+            HttpCacheEntry entry = new HttpCacheEntry(
+                    requestSent,
+                    responseReceived,
+                    originResponse.getStatusLine(),
+                    originResponse.getAllHeaders(),
+                    resource);
+            storeInCache(host, request, entry);
+            return responseGenerator.generateResponse(entry);
+        } catch (IOException ex) {
+            EntityUtils.consume(originResponse.getEntity());
+            throw ex;
+        } catch (RuntimeException ex) {
+            EntityUtils.consumeQuietly(originResponse.getEntity());
+            throw ex;
         }
-
-        Resource resource = responseReader.getResource();
-        if (isIncompleteResponse(originResponse, resource)) {
-            return generateIncompleteResponseError(originResponse, resource);
-        }
-
-        HttpCacheEntry entry = new HttpCacheEntry(
-                requestSent,
-                responseReceived,
-                originResponse.getStatusLine(),
-                originResponse.getAllHeaders(),
-                resource);
-        storeInCache(host, request, entry);
-        return responseGenerator.generateResponse(entry);
     }
 
     SizeLimitedResponseReader getResponseReader(HttpRequest request, HttpResponse backEndResponse) {
