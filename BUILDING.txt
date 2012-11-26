@@ -8,6 +8,8 @@ Version 2.1.0 or above is required, which requires JDK 1.4 or later.
 However, it is recommended that you use Maven 2.2.1 or later, which  
 require JDK 1.5 or above, as does HttpClient itself.
 
+Maven 3.0.x and Clover are not compatible and will cause a build error.
+
 Maven installation and configuration instructions can be found here:
 
 http://maven.apache.org/run-maven/index.html
