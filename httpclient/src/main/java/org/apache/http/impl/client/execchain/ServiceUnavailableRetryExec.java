@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -47,7 +47,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * @since 4.3
  */
 @Immutable
-class ServiceUnavailableRetryExec implements ClientExecChain {
+public class ServiceUnavailableRetryExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

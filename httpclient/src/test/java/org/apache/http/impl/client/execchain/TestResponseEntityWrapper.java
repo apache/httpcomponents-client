@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +33,8 @@ import java.net.SocketException;
 import junit.framework.Assert;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.impl.client.execchain.ConnectionReleaseTriggerImpl;
+import org.apache.http.impl.client.execchain.ResponseEntityWrapper;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;

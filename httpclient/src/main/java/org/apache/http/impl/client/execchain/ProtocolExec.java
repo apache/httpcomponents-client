@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.net.URI;
@@ -56,7 +56,7 @@ import org.apache.http.protocol.HttpProcessor;
  */
 @Immutable
 @SuppressWarnings("deprecation")
-class ProtocolExec implements ClientExecChain {
+public class ProtocolExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

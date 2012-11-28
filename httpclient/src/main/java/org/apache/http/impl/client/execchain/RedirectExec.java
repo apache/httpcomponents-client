@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.net.URI;
@@ -54,7 +54,7 @@ import org.apache.http.util.EntityUtils;
  * @since 4.3
  */
 @ThreadSafe
-class RedirectExec implements ClientExecChain {
+public class RedirectExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

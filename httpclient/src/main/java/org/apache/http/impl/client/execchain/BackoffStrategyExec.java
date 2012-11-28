@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -43,7 +43,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * @since 4.3
  */
 @Immutable
-class BackoffStrategyExec implements ClientExecChain {
+public class BackoffStrategyExec implements ClientExecChain {
 
     private final ClientExecChain requestExecutor;
     private final ConnectionBackoffStrategy connectionBackoffStrategy;

@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.net.URI;
 
@@ -50,7 +50,7 @@ import org.apache.http.protocol.HTTP;
  * @since 4.3
  */
 @NotThreadSafe
-class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
+public class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
     private final HttpRequest original;
 

@@ -23,7 +23,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import junit.framework.Assert;
 
@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.execchain.ConnectionReleaseTriggerImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

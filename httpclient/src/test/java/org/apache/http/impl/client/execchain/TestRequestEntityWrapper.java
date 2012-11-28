@@ -23,13 +23,14 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.OutputStream;
 
 import junit.framework.Assert;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.impl.client.execchain.RequestEntityWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

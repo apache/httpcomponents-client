@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -78,7 +78,7 @@ import org.apache.http.util.EntityUtils;
  * @since 4.3
  */
 @Immutable
-class MainClientExec implements ClientExecChain {
+public class MainClientExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 

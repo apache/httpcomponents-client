@@ -1,4 +1,4 @@
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client.execchain;
 
 import java.io.IOException;
 import java.io.OutputStream;
