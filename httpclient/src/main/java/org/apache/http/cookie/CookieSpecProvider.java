@@ -25,27 +25,22 @@
  *
  */
 
-package org.apache.http.auth;
+package org.apache.http.cookie;
 
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * Factory for {@link AuthScheme} implementations.
+ * Factory for {@link CookieSpec} implementations.
  *
- * @since 4.0
- *
- * @deprecated (4.3) use {@link AuthSchemeProvider}
+ * @since 4.3
  */
-@Deprecated
-public interface AuthSchemeFactory {
+public interface CookieSpecProvider {
 
     /**
-     * Creates an instance of {@link AuthScheme} using given HTTP parameters.
-     *
-     * @param params HTTP parameters.
+     * Creates an instance of {@link CookieSpec}.
      *
      * @return auth scheme.
      */
-    AuthScheme newInstance(HttpParams params);
+    CookieSpec create(HttpContext context);
 
 }

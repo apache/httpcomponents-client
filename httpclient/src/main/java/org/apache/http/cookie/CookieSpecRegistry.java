@@ -33,19 +33,24 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
-
+import org.apache.http.config.Registry;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Cookie specification registry that can be used to obtain the corresponding
  * cookie specification implementation for a given type of type or version of
  * cookie.
  *
- *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link Registry}.
  */
 @ThreadSafe
+@Deprecated
 public final class CookieSpecRegistry {
 
     private final ConcurrentHashMap<String,CookieSpecFactory> registeredSpecs;
@@ -152,6 +157,18 @@ public final class CookieSpecRegistry {
         }
         registeredSpecs.clear();
         registeredSpecs.putAll(map);
+    }
+
+    public CookieSpecProvider lookup(final String name) {
+        return new CookieSpecProvider() {
+
+            public CookieSpec create(HttpContext context) {
+                HttpRequest request = (HttpRequest) context.getAttribute(
+                        ExecutionContext.HTTP_REQUEST);
+                return getCookieSpec(name, request.getParams());
+            }
+
+        };
     }
 
 }

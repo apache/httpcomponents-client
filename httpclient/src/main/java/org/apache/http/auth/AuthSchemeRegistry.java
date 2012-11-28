@@ -32,18 +32,26 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.Registry;
 
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Authentication scheme registry that can be used to obtain the corresponding
  * authentication scheme implementation for a given type of authorization challenge.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link Registry}
  */
 @ThreadSafe
-public final class AuthSchemeRegistry {
+@Deprecated
+public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
 
     private final ConcurrentHashMap<String,AuthSchemeFactory> registeredSchemes;
 
@@ -139,6 +147,18 @@ public final class AuthSchemeRegistry {
         }
         registeredSchemes.clear();
         registeredSchemes.putAll(map);
+    }
+
+    public AuthSchemeProvider lookup(final String name) {
+        return new AuthSchemeProvider() {
+
+            public AuthScheme create(HttpContext context) {
+                HttpRequest request = (HttpRequest) context.getAttribute(
+                        ExecutionContext.HTTP_REQUEST);
+                return getAuthScheme(name, request.getParams());
+            }
+
+        };
     }
 
 }
