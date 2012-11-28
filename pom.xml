@@ -65,8 +65,6 @@
   </scm>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <httpcore.version>4.3-alpha1</httpcore.version>
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-codec.version>1.6</commons-codec.version>
