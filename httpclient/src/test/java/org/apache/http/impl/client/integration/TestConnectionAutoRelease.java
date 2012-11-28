@@ -44,9 +44,9 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.impl.DefaultHttpServerConnection;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -197,7 +197,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
                         // do something comletely ugly in order to trigger
                         // MalformedChunkCodingException
-                        DefaultHttpServerConnection conn = (DefaultHttpServerConnection)
+                        DefaultBHttpServerConnection conn = (DefaultBHttpServerConnection)
                             context.getAttribute(ExecutionContext.HTTP_CONNECTION);
                         try {
                             conn.sendResponseHeader(response);

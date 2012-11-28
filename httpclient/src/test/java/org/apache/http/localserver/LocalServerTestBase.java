@@ -53,6 +53,7 @@ public abstract class LocalServerTestBase {
             localServer = new LocalTestServer(null, null);
             localServer.registerDefaultHandlers();
         }
+        localServer.setTimeout(5000);
         localServer.start();
     }
     

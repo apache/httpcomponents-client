@@ -60,9 +60,10 @@ import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
@@ -80,13 +81,13 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     @Before
     public void setUp() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
-        httpproc.addInterceptor(new RequestBasicAuth());
-        httpproc.addInterceptor(new ResponseBasicUnauthorized());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer())
+            .add(new ResponseContent())
+            .add(new ResponseConnControl())
+            .add(new RequestBasicAuth())
+            .add(new ResponseBasicUnauthorized()).build();
         this.localServer = new LocalTestServer(httpproc, null);
         startServer();
     }
@@ -222,15 +223,15 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     @Test
     public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
-        httpproc.addInterceptor(new RequestBasicAuth());
-        httpproc.addInterceptor(new ResponseBasicUnauthorized());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer(LocalTestServer.ORIGIN))
+            .add(new ResponseContent())
+            .add(new ResponseConnControl())
+            .add(new RequestBasicAuth())
+            .add(new ResponseBasicUnauthorized()).build();
         this.localServer = new LocalTestServer(
-                httpproc, null, null, new AuthExpectationVerifier(), null, null);
+                httpproc, null, null, new AuthExpectationVerifier(), null);
         this.localServer.register("*", new AuthHandler());
         this.localServer.start();
 

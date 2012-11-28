@@ -43,32 +43,29 @@ import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpServerConnection;
+import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpResponseFactory;
-import org.apache.http.impl.DefaultHttpServerConnection;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.SyncBasicHttpParams;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.protocol.HttpRequestHandlerRegistry;
 import org.apache.http.protocol.HttpService;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 
 /**
  * Local HTTP server for tests that require one.
  * Based on the <code>ElementalHttpServer</code> example in HttpCore.
  */
 public class LocalTestServer {
+
+    public final static String ORIGIN = "LocalTestServer/1.1";
 
     /**
      * The local address to bind to.
@@ -80,7 +77,7 @@ public class LocalTestServer {
         new InetSocketAddress("127.0.0.1", 0);
 
     /** The request handler registry. */
-    private final HttpRequestHandlerRegistry handlerRegistry;
+    private final UriHttpRequestHandlerMapper handlerRegistry;
 
     private final HttpService httpservice;
 
@@ -99,6 +96,8 @@ public class LocalTestServer {
     /** The number of connections this accepted. */
     private final AtomicInteger acceptedConnections = new AtomicInteger(0);
 
+    private volatile int timeout;
+
     /**
      * Creates a new test server.
      *
@@ -109,30 +108,36 @@ public class LocalTestServer {
      *                  server, or <code>null</code> to use
      *                  {@link #newConnectionReuseStrategy() default}
      *                  strategy.
-     * @param params    the parameters to be used by the server, or
-     *                  <code>null</code> to use
-     *                  {@link #newDefaultParams default} parameters
+     * @param responseFactory the response factory to be used by the
+     *                  server, or <code>null</code> to use
+     *                  {@link #newHttpResponseFactory() default} factory.
+     * @param expectationVerifier. the expectation verifier. May be
+     *                  <code>null</code>.
      * @param sslcontext optional SSL context if the server is to leverage
      *                   SSL/TLS transport security
      */
     public LocalTestServer(
-            final BasicHttpProcessor proc,
+            final HttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat,
             final HttpResponseFactory responseFactory,
             final HttpExpectationVerifier expectationVerifier,
-            final HttpParams params,
             final SSLContext sslcontext) {
         super();
-        this.handlerRegistry = new HttpRequestHandlerRegistry();
+        this.handlerRegistry = new UriHttpRequestHandlerMapper();
         this.workers = Collections.synchronizedSet(new HashSet<Worker>());
         this.httpservice = new HttpService(
             proc != null ? proc : newProcessor(),
             reuseStrat != null ? reuseStrat: newConnectionReuseStrategy(),
             responseFactory != null ? responseFactory: newHttpResponseFactory(),
             handlerRegistry,
-            expectationVerifier,
-            params != null ? params : newDefaultParams());
+            expectationVerifier);
         this.sslcontext = sslcontext;
+    }
+
+    public LocalTestServer(
+            final HttpProcessor proc,
+            final ConnectionReuseStrategy reuseStrat) {
+        this(proc, reuseStrat, null, null, null);
     }
 
     /**
@@ -141,23 +146,7 @@ public class LocalTestServer {
      * @param sslcontext SSL context
      */
     public LocalTestServer(final SSLContext sslcontext) {
-        this(null, null, null, null, null, sslcontext);
-    }
-
-    /**
-     * Creates a new test server.
-     *
-     * @param proc      the HTTP processors to be used by the server, or
-     *                  <code>null</code> to use a
-     *                  {@link #newProcessor default} processor
-     * @param params    the parameters to be used by the server, or
-     *                  <code>null</code> to use
-     *                  {@link #newDefaultParams default} parameters
-     */
-    public LocalTestServer(
-            BasicHttpProcessor proc,
-            HttpParams params) {
-        this(proc, null, null, null, params, null);
+        this(null, null, null, null, sslcontext);
     }
 
     /**
@@ -169,36 +158,18 @@ public class LocalTestServer {
         return new ImmutableHttpProcessor(
                 new HttpResponseInterceptor[] {
                         new ResponseDate(),
-                        new ResponseServer(),
+                        new ResponseServer(ORIGIN),
                         new ResponseContent(),
                         new ResponseConnControl()
                 });
     }
 
-
-    /**
-     * Obtains a set of reasonable default parameters for a server.
-     *
-     * @return  default parameters
-     */
-    protected HttpParams newDefaultParams() {
-        HttpParams params = new SyncBasicHttpParams();
-        params
-            .setIntParameter(CoreConnectionPNames.SO_TIMEOUT, 60000)
-            .setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE, 8 * 1024)
-            .setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false)
-            .setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, true)
-            .setParameter(CoreProtocolPNames.ORIGIN_SERVER,
-                          "LocalTestServer/1.1");
-        return params;
-    }
-
     protected ConnectionReuseStrategy newConnectionReuseStrategy() {
-        return new DefaultConnectionReuseStrategy();
+        return DefaultConnectionReuseStrategy.INSTANCE;
     }
 
     protected HttpResponseFactory newHttpResponseFactory() {
-        return new DefaultHttpResponseFactory();
+        return DefaultHttpResponseFactory.INSTANCE;
     }
 
     /**
@@ -222,7 +193,6 @@ public class LocalTestServer {
         handlerRegistry.register("/random/*", new RandomHandler());
     }
 
-
     /**
      * Registers a handler with the local registry.
      *
@@ -233,7 +203,6 @@ public class LocalTestServer {
         handlerRegistry.register(pattern, handler);
     }
 
-
     /**
      * Unregisters a handler from the local registry.
      *
@@ -243,6 +212,13 @@ public class LocalTestServer {
         handlerRegistry.unregister(pattern);
     }
 
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
 
     /**
      * Starts this test server.
@@ -259,6 +235,7 @@ public class LocalTestServer {
             ssock = new ServerSocket();
         }
 
+        ssock.setSoTimeout(timeout);
         ssock.setReuseAddress(true); // probably pointless for port '0'
         ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;
@@ -318,16 +295,16 @@ public class LocalTestServer {
     }
 
     /**
-     * Creates an instance of {@link DefaultHttpServerConnection} to be used
+     * Creates an instance of {@link DefaultBHttpServerConnection} to be used
      * in the Worker thread.
      * <p>
      * This method can be overridden in a super class in order to provide
-     * a different implementation of the {@link DefaultHttpServerConnection}.
+     * a different implementation of the {@link DefaultBHttpServerConnection}.
      *
-     * @return DefaultHttpServerConnection.
+     * @return DefaultBHttpServerConnection.
      */
-    protected DefaultHttpServerConnection createHttpServerConnection() {
-      return new DefaultHttpServerConnection();
+    protected DefaultBHttpServerConnection createHttpServerConnection() {
+      return new DefaultBHttpServerConnection(8 * 1024);
     }
 
     /**
@@ -348,8 +325,9 @@ public class LocalTestServer {
                 while (!interrupted()) {
                     Socket socket = servicedSocket.accept();
                     acceptedConnections.incrementAndGet();
-                    DefaultHttpServerConnection conn = createHttpServerConnection();
-                    conn.bind(socket, httpservice.getParams());
+                    DefaultBHttpServerConnection conn = createHttpServerConnection();
+                    conn.bind(socket);
+                    conn.setSocketTimeout(timeout);
                     // Start worker thread
                     Worker worker = new Worker(conn);
                     workers.add(worker);
