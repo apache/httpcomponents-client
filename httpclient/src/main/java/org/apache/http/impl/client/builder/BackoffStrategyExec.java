@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import org.apache.http.HttpException;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -42,7 +42,7 @@ import org.apache.http.conn.routing.HttpRoute;
 /**
  * @since 4.3
  */
-@ThreadSafe
+@Immutable
 class BackoffStrategyExec implements ClientExecChain {
 
     private final ClientExecChain requestExecutor;

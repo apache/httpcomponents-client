@@ -33,7 +33,7 @@ import java.io.InterruptedIOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -46,7 +46,7 @@ import org.apache.http.conn.routing.HttpRoute;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Immutable
 class ServiceUnavailableRetryExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());

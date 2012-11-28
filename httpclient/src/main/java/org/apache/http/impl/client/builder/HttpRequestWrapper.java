@@ -34,7 +34,6 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
@@ -56,7 +55,6 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
     private final HttpRequest original;
 
     private URI uri;
-    private HttpHost virtualHost;
 
     private HttpRequestWrapper(final HttpRequest request) {
         super();
@@ -98,14 +96,6 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
     public HttpRequest getOriginal() {
         return this.original;
-    }
-
-    public HttpHost getVirtualHost() {
-        return this.virtualHost;
-    }
-
-    public void setVirtualHost(final HttpHost virtualHost) {
-        this.virtualHost = virtualHost;
     }
 
     public boolean isRepeatable() {

@@ -44,7 +44,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpParamConfig;
+import org.apache.http.client.params.HttpClientParamConfig;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
@@ -105,7 +105,7 @@ class InternalHttpClient extends CloseableHttpClient {
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
-        this.defaultConfig = defaultConfig != null ? defaultConfig : RequestConfig.DEFAULT;
+        this.defaultConfig = defaultConfig;
         this.params = new BasicHttpParams();
     }
 
@@ -160,21 +160,18 @@ class InternalHttpClient extends CloseableHttpClient {
             execListner = (HttpExecutionAware) request;
         }
         try {
-            HttpParams params = request.getParams();
-            HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
-
             HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
-            wrapper.setVirtualHost(virtualHost);
             HttpClientContext localcontext = setupContext(context);
             HttpRoute route = determineRoute(target, wrapper, localcontext);
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
-            } else {
-                config = HttpParamConfig.getRequestConfig(params);
             }
             if (config == null) {
                 config = this.defaultConfig;
+            }
+            if (config == null) {
+                config = HttpClientParamConfig.getRequestConfig(params);
             }
             localcontext.setRequestConfig(config);
             return this.execChain.execute(route, wrapper, localcontext, execListner);

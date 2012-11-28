@@ -37,7 +37,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
 
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
@@ -83,15 +82,6 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         schemeRegistry = schreg;
     }
 
-    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
-        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
-                ClientContext.SCHEME_REGISTRY);
-        if (reg == null) {
-            reg = this.schemeRegistry;
-        }
-        return reg;
-    }
-    
     public HttpRoute determineRoute(HttpHost target,
                                     HttpRequest request,
                                     HttpContext context)
@@ -123,8 +113,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 
         final Scheme schm;
         try {
-            SchemeRegistry registry = getSchemeRegistry(context);
-            schm = registry.getScheme(target.getSchemeName());
+            schm = this.schemeRegistry.getScheme(target.getSchemeName());
         } catch (IllegalStateException ex) {
             throw new HttpException(ex.getMessage());
         }

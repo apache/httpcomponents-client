@@ -50,13 +50,6 @@ import org.apache.http.protocol.HttpContext;
  * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
  * though not the {@link
  * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
- * </ul>
  *
  * @since 4.3
  */

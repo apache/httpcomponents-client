@@ -33,9 +33,10 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -57,6 +58,7 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.builder.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 
 /**
@@ -133,12 +135,22 @@ public class Executor {
     }
 
     public Executor authPreemptive(final HttpHost host) {
-        this.authCache.put(host, new BasicScheme(ChallengeState.TARGET));
+        BasicScheme basicScheme = new BasicScheme();
+        try {
+            basicScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "BASIC "));
+        } catch (MalformedChallengeException ingnore) {
+        }
+        this.authCache.put(host, basicScheme);
         return this;
     }
 
     public Executor authPreemptiveProxy(final HttpHost host) {
-        this.authCache.put(host, new BasicScheme(ChallengeState.PROXY));
+        BasicScheme basicScheme = new BasicScheme();
+        try {
+            basicScheme.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC "));
+        } catch (MalformedChallengeException ingnore) {
+        }
+        this.authCache.put(host, basicScheme);
         return this;
     }
 

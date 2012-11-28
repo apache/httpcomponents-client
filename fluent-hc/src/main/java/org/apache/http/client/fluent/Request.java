@@ -53,6 +53,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.params.HttpClientParamConfig;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
@@ -64,6 +65,7 @@ import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
+@SuppressWarnings("deprecation")
 public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
@@ -142,6 +144,7 @@ public class Request {
     }
 
     public Response execute() throws ClientProtocolException, IOException {
+        this.request.setConfig(HttpClientParamConfig.getRequestConfig(this.localParams));
         return new Response(Executor.CLIENT.execute(this.request));
     }
 
@@ -204,13 +207,19 @@ public class Request {
         return this;
     }
 
-    //// HTTP config parameter operations
-
+    /**
+     * @deprecated (4.3)
+     */
+    @Deprecated
     public Request config(final String param, final Object object) {
         this.localParams.setParameter(param, object);
         return this;
     }
 
+    /**
+     * @deprecated (4.3)
+     */
+    @Deprecated
     public Request removeConfig(final String param) {
         this.localParams.removeParameter(param);
         return this;
@@ -219,7 +228,8 @@ public class Request {
     //// HTTP protocol parameter operations
 
     public Request version(final HttpVersion version) {
-        return config(CoreProtocolPNames.PROTOCOL_VERSION, version);
+        this.request.setProtocolVersion(version);
+        return this;
     }
 
     public Request elementCharset(final String charset) {
@@ -231,7 +241,8 @@ public class Request {
     }
 
     public Request userAgent(final String agent) {
-        return config(CoreProtocolPNames.USER_AGENT, agent);
+        this.request.setHeader(HTTP.USER_AGENT, agent);
+        return this;
     }
 
     //// HTTP connection parameter operations

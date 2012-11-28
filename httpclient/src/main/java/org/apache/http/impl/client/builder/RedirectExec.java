@@ -139,7 +139,6 @@ class RedirectExec implements ClientExecChain {
                                 proxyAuthState.reset();
                             }
                         }
-                        request.setVirtualHost(null);
                     }
 
                     currentRoute = this.routePlanner.determineRoute(newTarget, currentRequest, context);

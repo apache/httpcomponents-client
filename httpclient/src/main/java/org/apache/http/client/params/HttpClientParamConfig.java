@@ -42,9 +42,9 @@ import org.apache.http.params.HttpProtocolParams;
  * @since 4.3
  */
 @Deprecated
-public final class HttpParamConfig {
+public final class HttpClientParamConfig {
 
-    private HttpParamConfig() {
+    private HttpClientParamConfig() {
     }
 
     @SuppressWarnings("unchecked")

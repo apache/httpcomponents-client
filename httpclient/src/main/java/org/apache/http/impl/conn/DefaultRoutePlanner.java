@@ -36,6 +36,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
@@ -49,6 +50,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @Immutable
+@SuppressWarnings("deprecation")
 public class DefaultRoutePlanner implements HttpRoutePlanner {
 
     private final SchemePortResolver schemePortResolver;
@@ -69,6 +71,13 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (request == null) {
             throw new IllegalArgumentException("Request may not be null");
         }
+
+        // If we have a forced route, we can do without a target.
+        HttpRoute route = ConnRouteParams.getForcedRoute(request.getParams());
+        if (route != null) {
+            return route;
+        }
+
         HttpClientContext clientContext = HttpClientContext.adapt(context);
         RequestConfig config = clientContext.getRequestConfig();
         InetAddress local = config.getLocalAddress();

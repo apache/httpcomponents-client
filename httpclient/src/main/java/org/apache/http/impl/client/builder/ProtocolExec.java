@@ -36,23 +36,26 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 
 /**
  * @since 4.3
  */
-@ThreadSafe
+@Immutable
+@SuppressWarnings("deprecation")
 class ProtocolExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -133,7 +136,8 @@ class ProtocolExec implements ClientExecChain {
         // Re-write request URI if needed
         rewriteRequestURI(request, route);
 
-        HttpHost virtualHost = request.getVirtualHost();
+        HttpParams params = request.getParams();
+        HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
             int port = target.getPort();

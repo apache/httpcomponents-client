@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -40,16 +39,15 @@ import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -60,18 +58,20 @@ import org.apache.http.util.EntityUtils;
 public class ClientExecuteSOCKS {
 
     public static void main(String[] args)throws Exception {
-        SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
-        schemeRegistry.register(new Scheme("http", 80, new MySchemeSocketFactory()));
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", new MyConnectionSocketFactory())
+            .build();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
         CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
         try {
-            httpclient.getParams().setParameter("socks.host", "mysockshost");
-            httpclient.getParams().setParameter("socks.port", 1234);
+            InetSocketAddress socksaddr = new InetSocketAddress("mysockshost", 1234);
+            HttpClientContext context = HttpClientContext.create();
+            context.setAttribute("socks.address", socksaddr);
 
             HttpHost target = new HttpHost("www.apache.org", 80, "http");
             HttpGet request = new HttpGet("/");
 
-            System.out.println("executing request to " + target + " via SOCKS proxy");
+            System.out.println("executing request to " + target + " via SOCKS proxy " + socksaddr);
             CloseableHttpResponse response = httpclient.execute(target, request);
             try {
                 HttpEntity entity = response.getEntity();
@@ -95,54 +95,37 @@ public class ClientExecuteSOCKS {
         }
     }
 
-    static class MySchemeSocketFactory implements SchemeSocketFactory {
+    static class MyConnectionSocketFactory implements ConnectionSocketFactory {
 
-        public Socket createSocket(final HttpParams params) throws IOException {
-            if (params == null) {
-                throw new IllegalArgumentException("HTTP parameters may not be null");
-            }
-            String proxyHost = (String) params.getParameter("socks.host");
-            Integer proxyPort = (Integer) params.getParameter("socks.port");
-
-            InetSocketAddress socksaddr = new InetSocketAddress(proxyHost, proxyPort.intValue());
+        public Socket createSocket(final HttpContext context) throws IOException {
+            InetSocketAddress socksaddr = (InetSocketAddress) context.getAttribute("socks.address");
             Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
             return new Socket(proxy);
         }
 
         public Socket connectSocket(
+                final int connectTimeout,
                 final Socket socket,
+                final HttpHost host,
                 final InetSocketAddress remoteAddress,
                 final InetSocketAddress localAddress,
-                final HttpParams params)
-                    throws IOException, UnknownHostException, ConnectTimeoutException {
-            if (remoteAddress == null) {
-                throw new IllegalArgumentException("Remote address may not be null");
-            }
-            if (params == null) {
-                throw new IllegalArgumentException("HTTP parameters may not be null");
-            }
+                final HttpContext context) throws IOException, ConnectTimeoutException {
             Socket sock;
             if (socket != null) {
                 sock = socket;
             } else {
-                sock = createSocket(params);
+                sock = createSocket(context);
             }
             if (localAddress != null) {
-                sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
                 sock.bind(localAddress);
             }
-            int timeout = HttpConnectionParams.getConnectionTimeout(params);
             try {
-                sock.connect(remoteAddress, timeout);
+                sock.connect(remoteAddress, connectTimeout);
             } catch (SocketTimeoutException ex) {
                 throw new ConnectTimeoutException("Connect to " + remoteAddress.getHostName() + "/"
                         + remoteAddress.getAddress() + " timed out");
             }
             return sock;
-        }
-
-        public boolean isSecure(final Socket sock) throws IllegalArgumentException {
-            return false;
         }
 
     }
