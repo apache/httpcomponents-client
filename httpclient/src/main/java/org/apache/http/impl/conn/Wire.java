@@ -36,7 +36,7 @@ import org.apache.commons.logging.Log;
 
 /**
  * Logs data to the wire LOG.
- *
+ * TODO: make package private. Should not be part of the public API.
  *
  * @since 4.0
  */
@@ -44,9 +44,18 @@ import org.apache.commons.logging.Log;
 public class Wire {
 
     private final Log log;
+    private final String id;
+
+    /**
+     * @since 4.3
+     */
+    public Wire(Log log, String id) {
+        this.log = log;
+        this.id = id;
+    }
 
     public Wire(Log log) {
-        this.log = log;
+        this(log, "");
     }
 
     private void wire(String header, InputStream instream)
@@ -60,7 +69,7 @@ public class Wire {
                     buffer.append("[\\n]\"");
                     buffer.insert(0, "\"");
                     buffer.insert(0, header);
-                    log.debug(buffer.toString());
+                    log.debug(id + " " + buffer.toString());
                     buffer.setLength(0);
             } else if ((ch < 32) || (ch > 127)) {
                 buffer.append("[0x");
@@ -74,7 +83,7 @@ public class Wire {
             buffer.append('\"');
             buffer.insert(0, '\"');
             buffer.insert(0, header);
-            log.debug(buffer.toString());
+            log.debug(id + " " + buffer.toString());
         }
     }
 
