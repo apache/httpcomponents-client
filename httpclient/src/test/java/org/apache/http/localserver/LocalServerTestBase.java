@@ -46,6 +46,7 @@ public abstract class LocalServerTestBase {
         if (localServer != null) {
             localServer.stop();
         }
+        localServer = null;
     }
 
     protected void startServer() throws Exception {

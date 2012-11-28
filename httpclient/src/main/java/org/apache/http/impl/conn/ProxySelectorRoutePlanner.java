@@ -68,8 +68,11 @@ import org.apache.http.conn.params.ConnRouteParams;
  * </ul>
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link SystemDefaultRoutePlanner}
  */
 @NotThreadSafe // e.g [gs]etProxySelector()
+@Deprecated
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
 
     /** The scheme registry. */

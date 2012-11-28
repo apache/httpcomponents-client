@@ -29,15 +29,19 @@ package org.apache.http.impl.auth;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * Kerberos authentication scheme factory.
+ * {@link AuthSchemeProvider} implementation that creates and initializes
+ * {@link KerberosScheme} instances.
  *
  * @since 4.2
  */
 @Immutable
-public class KerberosSchemeFactory implements AuthSchemeFactory {
+@SuppressWarnings("deprecation")
+public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
     private final boolean stripPort;
 
@@ -50,12 +54,16 @@ public class KerberosSchemeFactory implements AuthSchemeFactory {
         this(false);
     }
 
+    public boolean isStripPort() {
+        return stripPort;
+    }
+
     public AuthScheme newInstance(final HttpParams params) {
         return new KerberosScheme(this.stripPort);
     }
 
-    public boolean isStripPort() {
-        return stripPort;
+    public AuthScheme create(final HttpContext context) {
+        return new KerberosScheme(this.stripPort);
     }
 
 }

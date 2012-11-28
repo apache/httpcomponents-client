@@ -70,8 +70,10 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
             return;
         }
 
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         // Obtain the client connection (required)
-        RouteInfo route = (RouteInfo) context.getAttribute(ClientContext.ROUTE);
+        RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
             this.log.debug("Connection route not set in the context");
             return;

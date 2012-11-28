@@ -27,6 +27,10 @@
 
 package org.apache.http.client.protocol;
 
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.cookie.CookieSpecProvider;
+
 /**
  * {@link org.apache.http.protocol.HttpContext} attribute names for
  * client side HTTP protocol processing.
@@ -46,12 +50,15 @@ public interface ClientContext {
     /**
      * Attribute name of a {@link org.apache.http.conn.scheme.Scheme}
      * object that represents the actual protocol scheme registry.
+     *
+     * @deprecated (4.3) do not use
      */
+    @Deprecated
     public static final String SCHEME_REGISTRY   = "http.scheme-registry";
 
     /**
-     * Attribute name of a {@link org.apache.http.cookie.CookieSpecRegistry}
-     * object that represents the actual cookie specification registry.
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link CookieSpecProvider} registry.
      */
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
 
@@ -72,12 +79,6 @@ public interface ClientContext {
      * object that represents the actual cookie store.
      */
     public static final String COOKIE_STORE          = "http.cookie-store";
-
-    /**
-     * Attribute name of a {@link org.apache.http.auth.AuthSchemeRegistry}
-     * object that represents the actual authentication scheme registry.
-     */
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
     /**
      * Attribute name of a {@link org.apache.http.client.CredentialsProvider}
@@ -114,5 +115,17 @@ public interface ClientContext {
      * the actual user identity such as user {@link java.security.Principal}.
      */
     public static final String USER_TOKEN            = "http.user-token";
+
+    /**
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link AuthSchemeProvider} registry.
+     */
+    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
+
+    /**
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link ConnectionSocketFactory} registry.
+     */
+    public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
 }

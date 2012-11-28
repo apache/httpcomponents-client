@@ -34,7 +34,6 @@ import java.net.SocketTimeoutException;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.protocol.HttpContext;
 
@@ -63,27 +62,18 @@ public class PlainSocketFactory implements ConnectionSocketFactory {
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
-            final SocketConfig config,
             final HttpHost host,
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpContext context) throws IOException, ConnectTimeoutException {
         Socket sock = socket != null ? socket : createSocket(context);
-        SocketConfig sconf = config != null ? config : SocketConfig.DEFAULT;
         if (localAddress != null) {
-            sock.setReuseAddress(sconf.isSoReuseAddress());
             sock.bind(localAddress);
         }
         try {
-            sock.setSoTimeout(sconf.getSoTimeout());
             sock.connect(remoteAddress, connectTimeout);
         } catch (SocketTimeoutException ex) {
             throw new ConnectTimeoutException(host, remoteAddress);
-        }
-        sock.setTcpNoDelay(sconf.isTcpNoDelay());
-        int linger = sconf.getSoLinger();
-        if (linger >= 0) {
-            sock.setSoLinger(linger > 0, linger);
         }
         return sock;
     }

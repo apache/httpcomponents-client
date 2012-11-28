@@ -48,6 +48,8 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
 
+    public static final DefaultConnectionKeepAliveStrategy INSTANCE = new DefaultConnectionKeepAliveStrategy();
+
     public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
         if (response == null) {
             throw new IllegalArgumentException("HTTP response may not be null");

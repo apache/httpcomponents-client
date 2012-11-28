@@ -33,23 +33,31 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecFactory} implementation that creates and initializes
+ * {@link CookieSpecProvider} implementation that creates and initializes
  * {@link BrowserCompatSpec} instances.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
- * </ul>
  *
  * @since 4.0
  */
 @Immutable
-public class BrowserCompatSpecFactory implements CookieSpecFactory {
+@SuppressWarnings("deprecation")
+public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecProvider {
+
+    private final String[] datepatterns;
+
+    public BrowserCompatSpecFactory(final String[] datepatterns) {
+        super();
+        this.datepatterns = datepatterns;
+    }
+
+    public BrowserCompatSpecFactory() {
+        this(null);
+    }
 
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
@@ -65,6 +73,10 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory {
         } else {
             return new BrowserCompatSpec();
         }
+    }
+
+    public CookieSpec create(final HttpContext context) {
+        return new BrowserCompatSpec(this.datepatterns);
     }
 
 }

@@ -51,6 +51,8 @@ import org.apache.http.protocol.ExecutionContext;
 @Immutable
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
+    public static final DefaultHttpRequestRetryHandler INSTANCE = new DefaultHttpRequestRetryHandler();
+
     /** the number of times a method will be retried */
     private final int retryCount;
 

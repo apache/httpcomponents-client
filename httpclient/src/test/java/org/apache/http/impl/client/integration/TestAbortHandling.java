@@ -47,16 +47,11 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.mockup.SocketFactoryMockup;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -302,14 +297,10 @@ public class TestAbortHandling extends IntegrationTestBase {
                 Mockito.any(HttpClientConnection.class),
                 Mockito.any(HttpHost.class),
                 Mockito.any(InetAddress.class),
-                Mockito.any(HttpContext.class),
-                Mockito.any(HttpParams.class));
-
-        SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
+                Mockito.any(HttpContext.class));
 
         Mockito.when(connmgr.requestConnection(
                 Mockito.any(HttpRoute.class), Mockito.any())).thenReturn(connrequest);
-        Mockito.when(connmgr.getSchemeRegistry()).thenReturn(schemeRegistry);
 
         final HttpClient client = HttpClients.custom().setConnectionManager(connmgr).build();
         final HttpContext context = new BasicHttpContext();
@@ -452,31 +443,28 @@ public class TestAbortHandling extends IntegrationTestBase {
             };
         }
 
-        public HttpParams getParams() {
-            throw new UnsupportedOperationException("just a mockup");
-        }
-
-        public SchemeRegistry getSchemeRegistry() {
-            SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", 80, new SocketFactoryMockup(null)));
-            return registry;
-        }
-
         public void shutdown() {
         }
 
-        public void releaseConnection(HttpClientConnection conn, Object newState,
+        public void releaseConnection(
+                final HttpClientConnection conn,
+                final Object newState,
                 long validDuration, TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public void connect(HttpClientConnection conn, HttpHost host, InetAddress localAddress,
-                HttpContext context, HttpParams params) throws IOException {
+        public void connect(
+                final HttpClientConnection conn,
+                final HttpHost host,
+                final InetAddress localAddress,
+                final HttpContext context) throws IOException {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public void upgrade(HttpClientConnection conn, HttpHost host, HttpContext context,
-                HttpParams params) throws IOException {
+        public void upgrade(
+                final HttpClientConnection conn,
+                final HttpHost host,
+                final HttpContext context) throws IOException {
             throw new UnsupportedOperationException("just a mockup");
         }
     }

@@ -153,7 +153,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
         BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
             @Override
-            public AuthScheme newInstance(HttpParams params) {
+            public AuthScheme create(HttpContext context) {
                 return new BasicScheme() {
 
                     @Override

@@ -42,6 +42,7 @@ import org.junit.Test;
 /**
  * Test cases for {@link CookieSpecRegistry}.
  */
+@Deprecated
 public class TestCookiePolicy {
 
     private static final String BROWSER_COMPATIBILITY    = "BROWSER_COMPATIBILITY";

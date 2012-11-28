@@ -53,6 +53,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ConnectionRequest;
@@ -61,8 +62,6 @@ import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.routing.RouteTracker;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.impl.client.RequestAbortedException;
@@ -183,18 +182,22 @@ class MainClientExec implements ClientExecChain {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
-        AuthState targetAuthState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
+        AuthState targetAuthState = clientContext.getTargetAuthState();
         if (targetAuthState == null) {
             targetAuthState = new AuthState();
+            context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
         }
-        AuthState proxyAuthState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
+        AuthState proxyAuthState = clientContext.getProxyAuthState();
         if (proxyAuthState == null) {
             proxyAuthState = new AuthState();
+            context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
         }
 
         HttpParams params = request.getParams();
 
-        Object userToken = context.getAttribute(ClientContext.USER_TOKEN);
+        Object userToken = clientContext.getUserToken();
 
         final ConnectionRequest connRequest = connManager.requestConnection(route, userToken);
         if (execAware != null) {
@@ -394,12 +397,12 @@ class MainClientExec implements ClientExecChain {
 
             case HttpRouteDirector.CONNECT_TARGET:
                 this.connManager.connect(
-                        managedConn, route.getTargetHost(), route.getLocalAddress(), context, params);
+                        managedConn, route.getTargetHost(), route.getLocalAddress(), context);
                 tracker.connectTarget(route.isSecure());
                 break;
             case HttpRouteDirector.CONNECT_PROXY:
                 this.connManager.connect(
-                        managedConn, route.getProxyHost(), route.getLocalAddress(), context, params);
+                        managedConn, route.getProxyHost(), route.getLocalAddress(), context);
                 HttpHost proxy  = route.getProxyHost();
                 tracker.connectProxy(proxy, false);
                 break;
@@ -421,7 +424,7 @@ class MainClientExec implements ClientExecChain {
             }   break;
 
             case HttpRouteDirector.LAYER_PROTOCOL:
-                this.connManager.upgrade(managedConn, route.getTargetHost(), context, params);
+                this.connManager.upgrade(managedConn, route.getTargetHost(), context);
                 break;
 
             case HttpRouteDirector.UNREACHABLE:
@@ -438,15 +441,6 @@ class MainClientExec implements ClientExecChain {
         } while (step > HttpRouteDirector.COMPLETE);
     }
 
-    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
-        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
-                ClientContext.SCHEME_REGISTRY);
-        if (reg == null) {
-            reg = this.connManager.getSchemeRegistry();
-        }
-        return reg;
-    }
-    
     /**
      * Creates a tunnel to the target server.
      * The connection must be established to the (last) proxy.
@@ -467,20 +461,7 @@ class MainClientExec implements ClientExecChain {
         HttpHost proxy = route.getProxyHost();
         HttpResponse response = null;
 
-        String host = target.getHostName();
-        int port = target.getPort();
-        if (port < 0) {
-            SchemeRegistry registry = getSchemeRegistry(context);
-            Scheme scheme = registry.getScheme(target.getSchemeName());
-            port = scheme.getDefaultPort();
-        }
-
-        StringBuilder buffer = new StringBuilder(host.length() + 6);
-        buffer.append(host);
-        buffer.append(':');
-        buffer.append(Integer.toString(port));
-
-        String authority = buffer.toString();
+        String authority = target.toHostString();
         ProtocolVersion ver = HttpProtocolParams.getVersion(params);
         HttpRequest connect = new BasicHttpRequest("CONNECT", authority, ver);
         connect.setParams(params);
@@ -490,7 +471,7 @@ class MainClientExec implements ClientExecChain {
         for (;;) {
             if (!managedConn.isOpen()) {
                 this.connManager.connect(
-                        managedConn, route.getProxyHost(), route.getLocalAddress(), context, params);
+                        managedConn, route.getProxyHost(), route.getLocalAddress(), context);
             }
 
             connect.removeHeaders(AUTH.PROXY_AUTH_RESP);
@@ -586,8 +567,10 @@ class MainClientExec implements ClientExecChain {
                 target = route.getTargetHost();
             }
             if (target.getPort() < 0) {
-                Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
-                target = new HttpHost(target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
+                target = new HttpHost(
+                        target.getHostName(),
+                        route.getTargetHost().getPort(),
+                        target.getSchemeName());
             }
             if (this.authenticator.isAuthenticationRequested(target, response,
                     this.targetAuthStrategy, targetAuthState, context)) {

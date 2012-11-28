@@ -31,11 +31,15 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.builder.HttpClientBuilder;
 
 /**
  * @since 4.1
+ *
+ * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
 @ThreadSafe
+@Deprecated
 public final class SchemeRegistryFactory {
 
     /**

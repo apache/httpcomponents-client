@@ -38,13 +38,11 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -59,7 +57,7 @@ public class ClientInteractiveAuthentication {
                 .setCredentialsProvider(credsProvider).build();
         try {
             // Create local execution context
-            HttpContext localContext = new BasicHttpContext();
+            HttpClientContext localContext = HttpClientContext.create();
 
             HttpGet httpget = new HttpGet("http://localhost/test");
 
@@ -77,17 +75,18 @@ public class ClientInteractiveAuthentication {
 
                     int sc = response.getStatusLine().getStatusCode();
 
+                    RouteInfo route = localContext.getHttpRoute();
                     AuthState authState = null;
                     HttpHost authhost = null;
                     if (sc == HttpStatus.SC_UNAUTHORIZED) {
                         // Target host authentication required
-                        authState = (AuthState) localContext.getAttribute(ClientContext.TARGET_AUTH_STATE);
-                        authhost = (HttpHost) localContext.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                        authState = localContext.getTargetAuthState();
+                        authhost = route.getTargetHost();
                     }
                     if (sc == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
                         // Proxy authentication required
-                        authState = (AuthState) localContext.getAttribute(ClientContext.PROXY_AUTH_STATE);
-                        authhost = (HttpHost) localContext.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
+                        authState = localContext.getProxyAuthState();
+                        authhost = route.getProxyHost();
                     }
 
                     if (authState != null) {

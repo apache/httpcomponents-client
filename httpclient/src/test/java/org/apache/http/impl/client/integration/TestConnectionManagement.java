@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,21 +42,18 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -114,10 +110,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -151,7 +146,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         conn = getConnection(mgr, route);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         // repeat the communication, no need to prepare the request again
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -203,10 +198,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -241,7 +235,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -276,7 +270,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -301,10 +295,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         HttpHost target = getServerHttp();
         HttpRoute route = new HttpRoute(target, null, false);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -336,16 +329,15 @@ public class TestConnectionManagement extends LocalServerTestBase {
     public void testCloseExpiredTTLConnections() throws Exception {
 
         PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(
-                SchemeRegistryFactory.createDefault(), 100, TimeUnit.MILLISECONDS);
+                100, TimeUnit.MILLISECONDS);
         mgr.setMaxTotal(1);
 
         HttpHost target = getServerHttp();
         HttpRoute route = new HttpRoute(target, null, false);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -388,13 +380,12 @@ public class TestConnectionManagement extends LocalServerTestBase {
         int      rsplen = 8;
         String      uri = "/random/" + rsplen;
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+        mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -437,9 +428,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
-        SchemeRegistry registry = new SchemeRegistry();
-        registry.register(scheme);
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", stallingSocketFactory)
+            .build();
 
         final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
         mgr.setMaxTotal(1);
@@ -447,7 +438,6 @@ public class TestConnectionManagement extends LocalServerTestBase {
         HttpHost target = getServerHttp();
         HttpRoute route = new HttpRoute(target, null, false);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         final HttpClientConnection conn = getConnection(mgr, route);
 
@@ -467,7 +457,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
             Assert.fail("expected SocketException");
         } catch(SocketException expected) {}
 
@@ -491,9 +481,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
-        SchemeRegistry registry = new SchemeRegistry();
-        registry.register(scheme);
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", stallingSocketFactory)
+            .build();
 
         final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
         mgr.setMaxTotal(1);
@@ -501,7 +491,6 @@ public class TestConnectionManagement extends LocalServerTestBase {
         HttpHost target = getServerHttp();
         HttpRoute route = new HttpRoute(target, null, false);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         final HttpClientConnection conn = getConnection(mgr, route);
 
@@ -521,7 +510,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
             Assert.fail("IOException expected");
         } catch(IOException expected) {
         }
@@ -546,9 +535,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
                 connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
-        Scheme scheme = new Scheme("http", 80, stallingSocketFactory);
-        SchemeRegistry registry = new SchemeRegistry();
-        registry.register(scheme);
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", stallingSocketFactory)
+            .build();
 
         final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
         mgr.setMaxTotal(1);
@@ -556,7 +545,6 @@ public class TestConnectionManagement extends LocalServerTestBase {
         HttpHost target = getServerHttp();
         HttpRoute route = new HttpRoute(target, null, false);
         HttpContext context = new BasicHttpContext();
-        HttpParams params = new BasicHttpParams();
 
         final HttpClientConnection conn = getConnection(mgr, route);
 
@@ -576,7 +564,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
+            mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context);
             Assert.fail("IOException expected");
         } catch(IOException expected) {
         }
@@ -630,27 +618,30 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
     }
 
-    private static class StallingSocketFactory extends LatchSupport implements SchemeSocketFactory {
+    private static class StallingSocketFactory extends LatchSupport implements ConnectionSocketFactory {
 
-        private final SchemeSocketFactory delegate;
+        private final ConnectionSocketFactory delegate;
 
         public StallingSocketFactory(
                 final CountDownLatch continueLatch,
                 final WaitPolicy waitPolicy,
-                final SchemeSocketFactory delegate) {
+                final ConnectionSocketFactory delegate) {
             super(continueLatch, waitPolicy);
             this.delegate = delegate;
         }
 
         public Socket connectSocket(
+                final int connectTimeout,
                 final Socket sock,
+                final HttpHost host,
                 final InetSocketAddress remoteAddress,
                 final InetSocketAddress localAddress,
-                final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+                final HttpContext context) throws IOException, ConnectTimeoutException {
             if(waitPolicy == WaitPolicy.BEFORE_CONNECT)
                 latch();
 
-            Socket socket = delegate.connectSocket(sock, remoteAddress, localAddress, params);
+            Socket socket = delegate.connectSocket(
+                    connectTimeout, sock, host, remoteAddress, localAddress, context);
 
             if(waitPolicy == WaitPolicy.AFTER_CONNECT)
                 latch();
@@ -658,16 +649,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
             return socket;
         }
 
-        public Socket createSocket(final HttpParams params) throws IOException {
+        public Socket createSocket(final HttpContext context) throws IOException {
             if(waitPolicy == WaitPolicy.BEFORE_CREATE)
                 latch();
 
-            return delegate.createSocket(params);
+            return delegate.createSocket(context);
         }
 
-        public boolean isSecure(Socket sock) throws IllegalArgumentException {
-            return delegate.isSecure(sock);
-        }
     }
 
     private enum WaitPolicy { BEFORE_CREATE, BEFORE_CONNECT, AFTER_CONNECT, AFTER_OPEN }

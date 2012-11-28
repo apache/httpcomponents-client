@@ -92,7 +92,7 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
                             scheme.resolvePort(target.getPort()), target.getSchemeName());
                 }
                 if (authCache == null) {
-                    authCache = new BasicAuthCache(schemeRegistry);
+                    authCache = new BasicAuthCache();
                     context.setAttribute(ClientContext.AUTH_CACHE, authCache);
                 }
                 switch (targetState.getState()) {

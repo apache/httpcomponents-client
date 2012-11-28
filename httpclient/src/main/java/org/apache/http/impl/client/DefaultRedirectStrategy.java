@@ -72,6 +72,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
+    public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
+
     /**
      * Redirectable methods.
      */

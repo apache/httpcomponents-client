@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.http.HttpHost;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.protocol.HttpContext;
 
@@ -60,8 +59,6 @@ public interface ConnectionSocketFactory {
      * @param connectTimeout connect timeout.
      * @param sock the socket to connect, as obtained from {@link #createSocket(HttpContext)}.
      * <code>null</code> indicates that a new socket should be created and connected.
-     * @param config Socket configuration. If <code>null</cpde> {@link SocketConfig#DEFAULT}
-     *   will be used.
      * @param host target host as specified by the caller (end user).
      * @param remoteAddress the resolved remote address to connect to.
      * @param localAddress the local address to bind the socket to, or <code>null</code> for any.
@@ -78,7 +75,6 @@ public interface ConnectionSocketFactory {
     Socket connectSocket(
         int connectTimeout,
         Socket sock,
-        SocketConfig config,
         HttpHost host,
         InetSocketAddress remoteAddress,
         InetSocketAddress localAddress,

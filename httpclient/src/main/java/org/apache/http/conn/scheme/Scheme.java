@@ -29,6 +29,8 @@ package org.apache.http.conn.scheme;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.config.Registry;
+import org.apache.http.conn.SchemePortResolver;
 
 import org.apache.http.util.LangUtils;
 
@@ -45,8 +47,12 @@ import org.apache.http.util.LangUtils;
  * </pre>
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link SchemePortResolver} for default port resolution
+ *  and {@link Registry} for socket factory lookups.
  */
 @Immutable
+@Deprecated
 public final class Scheme {
 
     /** The name of this scheme, in lowercase. (e.g. http, https) */
@@ -82,7 +88,6 @@ public final class Scheme {
      *
      * @since 4.1
      */
-    @SuppressWarnings("deprecation")
     public Scheme(final String name, final int port, final SchemeSocketFactory factory) {
         if (name == null) {
             throw new IllegalArgumentException("Scheme name may not be null");

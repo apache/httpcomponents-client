@@ -27,6 +27,7 @@
 package org.apache.http.conn;
 
 import org.apache.http.HttpConnection;
+import org.apache.http.config.ConnectionConfig;
 
 /**
  * Generic {@link HttpConnection} factory.
@@ -35,6 +36,6 @@ import org.apache.http.HttpConnection;
  */
 public interface HttpConnectionFactory<T extends HttpConnection> {
 
-    T create();
+    T create(ConnectionConfig config);
 
 }

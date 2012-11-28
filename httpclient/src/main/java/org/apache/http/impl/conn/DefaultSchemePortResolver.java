@@ -24,25 +24,34 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.impl.conn;
 
-package org.apache.http.conn.scheme;
-
-import org.junit.Assert;
-import org.junit.Test;
+import org.apache.http.HttpHost;
+import org.apache.http.conn.SchemePortResolver;
 
 /**
- * Unit tests for {@link Scheme}.
+ * Default {@link SchemePortResolver}.
+ *
+ * @since 4.3
  */
-@Deprecated
-public class TestScheme {
+public class DefaultSchemePortResolver implements SchemePortResolver {
 
-    @Test
-    public void testPortResolution() {
-        Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-        Assert.assertEquals(80, http.resolvePort(0));
-        Assert.assertEquals(80, http.resolvePort(-1));
-        Assert.assertEquals(8080, http.resolvePort(8080));
-        Assert.assertEquals(80808080, http.resolvePort(80808080));
+    public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
+
+    public int resolve(final HttpHost host) {
+        if (host == null) {
+            throw new IllegalArgumentException("HTTP host may not be null");
+        }
+        int port = host.getPort();
+        if (port > 0) {
+            return port;
+        } else {
+            if ("https".equalsIgnoreCase(host.getSchemeName())) {
+                return 443;
+            } else {
+                return 80;
+            }
+        }
     }
 
 }

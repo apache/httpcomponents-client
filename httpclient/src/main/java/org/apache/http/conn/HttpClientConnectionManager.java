@@ -33,8 +33,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -52,8 +50,6 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 public interface HttpClientConnectionManager {
-
-    SchemeRegistry getSchemeRegistry();
 
     /**
      * Returns a new {@link ClientConnectionRequest}, from which a
@@ -84,11 +80,11 @@ public interface HttpClientConnectionManager {
 
     void connect(
             HttpClientConnection conn, HttpHost host, InetAddress localAddress,
-            HttpContext context, HttpParams params) throws IOException;
+            HttpContext context) throws IOException;
 
     void upgrade(
             HttpClientConnection conn, HttpHost host,
-            HttpContext context,  HttpParams params) throws IOException;
+            HttpContext context) throws IOException;
 
     /**
      * Closes idle connections in the pool.

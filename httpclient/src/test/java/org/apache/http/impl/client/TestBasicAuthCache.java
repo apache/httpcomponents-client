@@ -29,9 +29,7 @@ package org.apache.http.impl.client;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
+import org.apache.http.conn.SchemePortResolver;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -64,11 +62,9 @@ public class TestBasicAuthCache {
 
     @Test
     public void testGetKeyWithSchemeRegistry() throws Exception {
-        SchemeSocketFactory socketFactory = Mockito.mock(SchemeSocketFactory.class);
-        Scheme scheme = new Scheme("https", 443, socketFactory);
-        SchemeRegistry registory = new SchemeRegistry();
-        registory.register(scheme);
-        BasicAuthCache cache = new BasicAuthCache(registory);
+        SchemePortResolver schemePortResolver = Mockito.mock(SchemePortResolver.class);
+        BasicAuthCache cache = new BasicAuthCache(schemePortResolver);
+        Mockito.when(schemePortResolver.resolve(new HttpHost("localhost", -1, "https"))).thenReturn(443);
         HttpHost target = new HttpHost("localhost", 443, "https");
         Assert.assertSame(target, cache.getKey(target));
         Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));

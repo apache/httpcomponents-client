@@ -27,7 +27,13 @@
 
 package org.apache.http.impl.conn;
 
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+
 import org.apache.http.annotation.Immutable;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.HttpConnectionFactory;
 
@@ -39,8 +45,27 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
 
     public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
 
-    public SocketClientConnection create() {
-        return new SocketClientConnectionImpl(8 * 1024);
+    public SocketClientConnection create(final ConnectionConfig config) {
+        ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
+        CharsetDecoder chardecoder = null;
+        CharsetEncoder charencoder = null;
+        Charset charset = cconfig.getCharset();
+        CodingErrorAction malformedInputAction = cconfig.getMalformedInputAction() != null ?
+                cconfig.getMalformedInputAction() : CodingErrorAction.REPORT;
+        CodingErrorAction unmappableInputAction = cconfig.getUnmappableInputAction() != null ?
+                cconfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
+        if (charset != null) {
+            chardecoder = charset.newDecoder();
+            chardecoder.onMalformedInput(malformedInputAction);
+            chardecoder.onUnmappableCharacter(unmappableInputAction);
+            charencoder = charset.newEncoder();
+            charencoder.onMalformedInput(malformedInputAction);
+            charencoder.onUnmappableCharacter(unmappableInputAction);
+        }
+        return new SocketClientConnectionImpl(8 * 1024,
+                chardecoder, charencoder,
+                cconfig.getMessageConstraints(),
+                null, null, null, null);
     }
 
 }

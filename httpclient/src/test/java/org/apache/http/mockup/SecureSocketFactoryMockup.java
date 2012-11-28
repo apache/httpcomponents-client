@@ -35,6 +35,7 @@ import org.apache.http.params.HttpParams;
 /**
  * {@link LayeredSchemeSocketFactory} mockup implementation.
  */
+@Deprecated
 public class SecureSocketFactoryMockup extends SocketFactoryMockup
     implements SchemeLayeredSocketFactory {
 

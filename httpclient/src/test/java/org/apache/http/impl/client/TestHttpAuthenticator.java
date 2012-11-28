@@ -38,7 +38,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthProtocolState;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
@@ -48,6 +48,8 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestScheme;
@@ -71,10 +73,9 @@ public class TestHttpAuthenticator {
     private ContextAwareAuthScheme authScheme;
     private HttpContext context;
     private HttpHost host;
-    private HttpHost proxy;
     private Credentials credentials;
     private BasicCredentialsProvider credentialsProvider;
-    private AuthSchemeRegistry authSchemeRegistry;
+    private Lookup<AuthSchemeProvider> authSchemeRegistry;
     private AuthCache authCache;
     private HttpAuthenticator httpAuthenticator;
 
@@ -87,17 +88,15 @@ public class TestHttpAuthenticator {
         Mockito.when(this.authScheme.isComplete()).thenReturn(Boolean.TRUE);
         this.context = new BasicHttpContext();
         this.host = new HttpHost("localhost", 80);
-        this.proxy = new HttpHost("localhost", 8888);
         this.context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.host);
-        this.context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         this.credentials = Mockito.mock(Credentials.class);
         this.credentialsProvider = new BasicCredentialsProvider();
         this.credentialsProvider.setCredentials(AuthScope.ANY, this.credentials);
         this.context.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
-        this.authSchemeRegistry = new AuthSchemeRegistry();
-        this.authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        this.authSchemeRegistry.register("digest", new DigestSchemeFactory());
-        this.authSchemeRegistry.register("ntlm", new NTLMSchemeFactory());
+        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory())
+            .register("ntlm", new NTLMSchemeFactory()).build();
         this.context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         this.authCache = Mockito.mock(AuthCache.class);
         this.context.setAttribute(ClientContext.AUTH_CACHE, this.authCache);

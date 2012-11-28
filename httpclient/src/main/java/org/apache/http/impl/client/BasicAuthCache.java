@@ -32,8 +32,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.impl.conn.DefaultSchemePortResolver;
 
 /**
  * Default implementation of {@link AuthCache}.
@@ -43,8 +43,8 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 @NotThreadSafe
 public class BasicAuthCache implements AuthCache {
 
-    private final SchemeRegistry schemeRegistry;
     private final HashMap<HttpHost, AuthScheme> map;
+    private final SchemePortResolver schemePortResolver;
 
     /**
      * Default constructor.
@@ -53,10 +53,11 @@ public class BasicAuthCache implements AuthCache {
      *
      * @since 4.3
      */
-    public BasicAuthCache(final SchemeRegistry schemeRegistry) {
+    public BasicAuthCache(final SchemePortResolver schemePortResolver) {
         super();
-        this.schemeRegistry = schemeRegistry;
         this.map = new HashMap<HttpHost, AuthScheme>();
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
+            DefaultSchemePortResolver.INSTANCE;
     }
 
     public BasicAuthCache() {
@@ -65,13 +66,7 @@ public class BasicAuthCache implements AuthCache {
 
     protected HttpHost getKey(final HttpHost host) {
         if (host.getPort() <= 0) {
-            int port;
-            if (this.schemeRegistry != null) {
-                Scheme scheme = this.schemeRegistry.getScheme(host);
-                port = scheme.resolvePort(host.getPort());
-            } else {
-                port = host.getSchemeName().equalsIgnoreCase("https") ? 443 : 80;
-            }
+            int port = schemePortResolver.resolve(host);
             return new HttpHost(host.getHostName(), port, host.getSchemeName());
         } else {
             return host;

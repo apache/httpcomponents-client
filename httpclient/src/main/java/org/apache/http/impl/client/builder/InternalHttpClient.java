@@ -34,7 +34,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -43,14 +43,16 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Lookup;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
-import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.params.HttpParams;
@@ -61,15 +63,14 @@ import org.apache.http.protocol.HttpContext;
 /**
  * @since 4.3
  */
-@SuppressWarnings("deprecation")
 @ThreadSafe
 class InternalHttpClient extends CloseableHttpClient {
 
     private final ClientExecChain execChain;
     private final HttpClientConnectionManager connManager;
     private final HttpRoutePlanner routePlanner;
-    private final CookieSpecRegistry cookieSpecRegistry;
-    private final AuthSchemeRegistry authSchemeRegistry;
+    private final Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final HttpParams params;
@@ -78,11 +79,10 @@ class InternalHttpClient extends CloseableHttpClient {
             final ClientExecChain execChain,
             final HttpClientConnectionManager connManager,
             final HttpRoutePlanner routePlanner,
-            final CookieSpecRegistry cookieSpecRegistry,
-            final AuthSchemeRegistry authSchemeRegistry,
+            final Lookup<CookieSpecProvider> cookieSpecRegistry,
+            final Lookup<AuthSchemeProvider> authSchemeRegistry,
             final CookieStore cookieStore,
-            final CredentialsProvider credentialsProvider,
-            final HttpParams params) {
+            final CredentialsProvider credentialsProvider) {
         super();
         if (execChain == null) {
             throw new IllegalArgumentException("HTTP client exec chain may not be null");
@@ -100,7 +100,7 @@ class InternalHttpClient extends CloseableHttpClient {
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
-        this.params = params != null ? params : new SyncBasicHttpParams();
+        this.params = new SyncBasicHttpParams();
     }
 
     private HttpRoute determineRoute(
@@ -118,15 +118,13 @@ class InternalHttpClient extends CloseableHttpClient {
     }
 
     private HttpContext setupContext(final HttpContext localContext) {
-        HttpContext context = localContext != null ? localContext : new BasicHttpContext();
+        HttpClientContext context = HttpClientContext.adapt(
+                localContext != null ? localContext : new BasicHttpContext());
         if (context.getAttribute(ClientContext.TARGET_AUTH_STATE) == null) {
             context.setAttribute(ClientContext.TARGET_AUTH_STATE, new AuthState());
         }
         if (context.getAttribute(ClientContext.PROXY_AUTH_STATE) == null) {
             context.setAttribute(ClientContext.PROXY_AUTH_STATE, new AuthState());
-        }
-        if (context.getAttribute(ClientContext.SCHEME_REGISTRY) == null) {
-            context.setAttribute(ClientContext.SCHEME_REGISTRY, this.connManager.getSchemeRegistry());
         }
         if (context.getAttribute(ClientContext.AUTHSCHEME_REGISTRY) == null) {
             context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
@@ -175,9 +173,10 @@ class InternalHttpClient extends CloseableHttpClient {
     }
 
     public void close() {
-        getConnectionManager().shutdown();
+        connManager.shutdown();
     }
 
+    @SuppressWarnings("deprecation")
     public ClientConnectionManager getConnectionManager() {
 
         return new ClientConnectionManager() {

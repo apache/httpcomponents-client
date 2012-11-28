@@ -235,7 +235,6 @@ public class LocalTestServer {
             ssock = new ServerSocket();
         }
 
-        ssock.setSoTimeout(timeout);
         ssock.setReuseAddress(true); // probably pointless for port '0'
         ssock.bind(TEST_SERVER_ADDR);
         servicedSocket = ssock;

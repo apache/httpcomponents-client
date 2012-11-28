@@ -36,9 +36,8 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.UserTokenHandler;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SocketClientConnection;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -58,24 +57,25 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
+    public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();
+
     public Object getUserToken(final HttpContext context) {
+
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         Principal userPrincipal = null;
 
-        AuthState targetAuthState = (AuthState) context.getAttribute(
-                ClientContext.TARGET_AUTH_STATE);
+        AuthState targetAuthState = clientContext.getTargetAuthState();
         if (targetAuthState != null) {
             userPrincipal = getAuthPrincipal(targetAuthState);
             if (userPrincipal == null) {
-                AuthState proxyAuthState = (AuthState) context.getAttribute(
-                        ClientContext.PROXY_AUTH_STATE);
+                AuthState proxyAuthState = clientContext.getProxyAuthState();
                 userPrincipal = getAuthPrincipal(proxyAuthState);
             }
         }
 
         if (userPrincipal == null) {
-            HttpConnection conn = (HttpConnection) context.getAttribute(
-                    ExecutionContext.HTTP_CONNECTION);
+            HttpConnection conn = clientContext.getConnection();
             if (conn instanceof SocketClientConnection) {
                 SSLSession sslsession = ((SocketClientConnection) conn).getSSLSession();
                 if (sslsession != null) {

@@ -45,7 +45,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -106,6 +106,9 @@ class RedirectExec implements ClientExecChain {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
+
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         HttpParams params = request.getParams();
         int maxRedirects = params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
         HttpRoute currentRoute = route;
@@ -137,14 +140,12 @@ class RedirectExec implements ClientExecChain {
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
-                        AuthState targetAuthState = (AuthState) context.getAttribute(
-                                ClientContext.TARGET_AUTH_STATE);
+                        AuthState targetAuthState = clientContext.getTargetAuthState();
                         if (targetAuthState != null) {
                             this.log.debug("Resetting target auth state");
                             targetAuthState.reset();
                         }
-                        AuthState proxyAuthState = (AuthState) context.getAttribute(
-                                ClientContext.PROXY_AUTH_STATE);
+                        AuthState proxyAuthState = clientContext.getProxyAuthState();
                         if (proxyAuthState != null) {
                             AuthScheme authScheme = proxyAuthState.getAuthScheme();
                             if (authScheme != null && authScheme.isConnectionBased()) {

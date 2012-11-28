@@ -28,6 +28,9 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -36,14 +39,17 @@ import java.util.concurrent.TimeoutException;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.params.HttpParams;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.pool.ConnPool;
 import org.apache.http.protocol.HttpContext;
 
@@ -61,20 +67,27 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
 
     private final ConnPool<HttpRoute, CPoolEntry> pool;
     private final HttpClientConnectionOperator connectionOperator;
+    private final Map<HttpHost, SocketConfig> socketConfigMap;
+    private final Map<HttpHost, ConnectionConfig> connectionConfigMap;
+    private volatile SocketConfig defaultSocketConfig;
+    private volatile ConnectionConfig defaultConnectionConfig;
 
     HttpClientConnectionManagerBase(
             final ConnPool<HttpRoute, CPoolEntry> pool,
-            final SchemeRegistry schemeRegistry,
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
         if (pool == null) {
             throw new IllegalArgumentException("Connection pool may nor be null");
         }
-        if (schemeRegistry == null) {
-            throw new IllegalArgumentException("Scheme registry may nor be null");
-        }
         this.pool = pool;
-        this.connectionOperator = new HttpClientConnectionOperator(schemeRegistry, dnsResolver);
+        this.connectionOperator = new HttpClientConnectionOperator(
+                socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.socketConfigMap = new ConcurrentHashMap<HttpHost, SocketConfig>();
+        this.connectionConfigMap = new ConcurrentHashMap<HttpHost, ConnectionConfig>();
+        this.defaultSocketConfig = SocketConfig.DEFAULT;
+        this.defaultConnectionConfig = ConnectionConfig.DEFAULT;
     }
 
     @Override
@@ -84,10 +97,6 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
         } finally {
             super.finalize();
         }
-    }
-
-    public SchemeRegistry getSchemeRegistry() {
-        return this.connectionOperator.getSchemeRegistry();
     }
 
     protected void onConnectionLeaseRequest(final HttpRoute route, final Object state) {
@@ -184,8 +193,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
             final HttpClientConnection managedConn,
             final HttpHost host,
             final InetAddress local,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
+            final HttpContext context) throws IOException {
         if (managedConn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
@@ -194,14 +202,24 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
-        this.connectionOperator.connect(conn, host, local, context, params);
+        SocketConfig socketConfig = this.socketConfigMap.get(host);
+        if (socketConfig == null) {
+            socketConfig = this.defaultSocketConfig;
+        }
+        ConnectionConfig connConfig = this.connectionConfigMap.get(host);
+        if (connConfig == null) {
+            connConfig = this.defaultConnectionConfig;
+        }
+
+        InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
+        this.connectionOperator.connect(conn, host, localAddress,
+                connConfig.getConnectTimeout(), socketConfig, context);
     }
 
     public void upgrade(
             final HttpClientConnection managedConn,
             final HttpHost host,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
+            final HttpContext context) throws IOException {
         if (managedConn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
@@ -210,7 +228,41 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
-        this.connectionOperator.upgrade(conn, host, context, params);
+        this.connectionOperator.upgrade(conn, host, context);
+    }
+
+    public SocketConfig getDefaultSocketConfig() {
+        return this.defaultSocketConfig;
+    }
+
+    public void setDefaultSocketConfig(final SocketConfig defaultSocketConfig) {
+        this.defaultSocketConfig = defaultSocketConfig != null ? defaultSocketConfig :
+            SocketConfig.DEFAULT;
+    }
+
+    public ConnectionConfig getDefaultConnectionConfig() {
+        return this.defaultConnectionConfig;
+    }
+
+    public void setDefaultConnectionConfig(final ConnectionConfig defaultConnectionConfig) {
+        this.defaultConnectionConfig = defaultConnectionConfig != null ? defaultConnectionConfig :
+            ConnectionConfig.DEFAULT;
+    }
+
+    public SocketConfig getSocketConfig(final HttpHost host) {
+        return this.socketConfigMap.get(host);
+    }
+
+    public void setSocketConfig(final HttpHost host, final SocketConfig socketConfig) {
+        this.socketConfigMap.put(host, socketConfig);
+    }
+
+    public ConnectionConfig getConnectionConfig(final HttpHost host) {
+        return this.connectionConfigMap.get(host);
+    }
+
+    public void setConnectionConfig(final HttpHost host, final ConnectionConfig connectionConfig) {
+        this.connectionConfigMap.put(host, connectionConfig);
     }
 
 }

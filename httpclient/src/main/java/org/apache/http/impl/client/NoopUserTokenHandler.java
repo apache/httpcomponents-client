@@ -38,6 +38,8 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class NoopUserTokenHandler implements UserTokenHandler {
 
+    public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();
+
     public Object getUserToken(final HttpContext context) {
         return null;
     }

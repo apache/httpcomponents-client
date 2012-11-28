@@ -28,20 +28,15 @@
 package org.apache.http.impl.client.builder;
 
 import java.net.ProxySelector;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.HttpVersion;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AuthSchemeFactory;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ConnectionBackoffStrategy;
@@ -61,14 +56,17 @@ import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.cookie.CookieSpecFactory;
-import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
@@ -78,34 +76,27 @@ import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.DefaultUserTokenHandler;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.NoopUserTokenHandler;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
+import org.apache.http.impl.conn.DefaultRoutePlanner;
+import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.DefaultHttpRoutePlanner;
-import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.params.SyncBasicHttpParams;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
@@ -136,50 +127,6 @@ import org.apache.http.util.VersionInfo;
  *  <li>http.maxConnections</li>
  * </ul>
  * </p>
- * <p>
- * This class sets up the following parameters if not explicitly set:
- * <ul>
- * <li>Version: HttpVersion.HTTP_1_1</li>
- * <li>ContentCharset: HTTP.DEFAULT_CONTENT_CHARSET</li>
- * <li>NoTcpDelay: true</li>
- * <li>SocketBufferSize: 8192</li>
- * <li>UserAgent: Apache-HttpClient/release (java 1.5)</li>
- * </ul>
- * <p>
- * The following parameters can be used to customize the behavior of {@link HttpClient}
- * produced by this builder:
- * <ul>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#USE_EXPECT_CONTINUE}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#WAIT_FOR_CONTINUE}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#USER_AGENT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_LINGER}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_REUSEADDR}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#STALE_CONNECTION_CHECK}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
- *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
- *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
- *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#COOKIE_POLICY}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_AUTHENTICATION}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_REDIRECTS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#MAX_REDIRECTS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#ALLOW_CIRCULAR_REDIRECTS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#VIRTUAL_HOST}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HOST}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
- * </ul>
  *
  * @since 4.3
  */
@@ -187,34 +134,31 @@ import org.apache.http.util.VersionInfo;
 public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
-    private SchemeLayeredSocketFactory sslSocketFactory;
+    private LayeredConnectionSocketFactory sslSocketFactory;
     private HttpClientConnectionManager connManager;
+    private SchemePortResolver schemePortResolver;
     private ConnectionReuseStrategy reuseStrategy;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     private AuthenticationStrategy targetAuthStrategy;
     private AuthenticationStrategy proxyAuthStrategy;
     private UserTokenHandler userTokenHandler;
-
     private HttpProcessor httpprocessor;
+
     private LinkedList<HttpRequestInterceptor> requestFirst;
     private LinkedList<HttpRequestInterceptor> requestLast;
     private LinkedList<HttpResponseInterceptor> responseFirst;
     private LinkedList<HttpResponseInterceptor> responseLast;
 
     private HttpRequestRetryHandler retryHandler;
-
     private HttpRoutePlanner routePlanner;
     private RedirectStrategy redirectStrategy;
-
     private ConnectionBackoffStrategy connectionBackoffStrategy;
     private BackoffManager backoffManager;
-
     private ServiceUnavailableRetryStrategy serviceUnavailStrategy;
-    
-    private HttpParams params;
-
-    private Map<String, AuthSchemeFactory> authShemes;
-    private Map<String, CookieSpecFactory> cookieSpecs;
+    private Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Map<String, AuthSchemeProvider> authShemes;
+    private Map<String, CookieSpecProvider> cookieSpecs;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
 
@@ -242,13 +186,21 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setSSLSocketFactory(final SchemeLayeredSocketFactory sslSocketFactory) {
+    public final HttpClientBuilder setSSLSocketFactory(
+            final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
         return this;
     }
 
-    public final HttpClientBuilder setConnectionManager(final HttpClientConnectionManager connManager) {
+    public final HttpClientBuilder setConnectionManager(
+            final HttpClientConnectionManager connManager) {
         this.connManager = connManager;
+        return this;
+    }
+
+    public final HttpClientBuilder setSchemePortResolver(
+            final SchemePortResolver schemePortResolver) {
+        this.schemePortResolver = schemePortResolver;
         return this;
     }
 
@@ -372,11 +324,6 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setParams(final HttpParams params) {
-        this.params = params;
-        return this;
-    }
-
     public final HttpClientBuilder setCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
@@ -388,21 +335,33 @@ public class HttpClientBuilder {
         return this;
     }
 
+    public final HttpClientBuilder setAuthSchemeRegistry(
+            final Lookup<AuthSchemeProvider> authSchemeRegistry) {
+        this.authSchemeRegistry = authSchemeRegistry;
+        return this;
+    }
+
+    public final HttpClientBuilder setCookieSpecRegistry(
+            final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+        this.cookieSpecRegistry = cookieSpecRegistry;
+        return this;
+    }
+
     public final HttpClientBuilder registerAuthScheme(
-            final String name, final AuthSchemeFactory authSchemeFactory) {
+            final String name, final AuthSchemeProvider authSchemeProvider) {
         if (this.authShemes == null) {
-            this.authShemes = new HashMap<String, AuthSchemeFactory>();
+            this.authShemes = new HashMap<String, AuthSchemeProvider>();
         }
-        this.authShemes.put(name, authSchemeFactory);
+        this.authShemes.put(name, authSchemeProvider);
         return this;
     }
 
     public final HttpClientBuilder registerCookiePolicy(
-            final String name, final CookieSpecFactory cookieSpecFactory) {
+            final String name, final CookieSpecProvider cookieSpecProvider) {
         if (this.cookieSpecs == null) {
-            this.cookieSpecs = new HashMap<String, CookieSpecFactory>();
+            this.cookieSpecs = new HashMap<String, CookieSpecProvider>();
         }
-        this.cookieSpecs.put(name, cookieSpecFactory);
+        this.cookieSpecs.put(name, cookieSpecProvider);
         return this;
     }
 
@@ -447,14 +406,19 @@ public class HttpClientBuilder {
         }
         HttpClientConnectionManager connManager = this.connManager;
         if (connManager == null) {
-            SchemeRegistry schemeRegistry = systemProperties ?
-                    SchemeRegistryFactory.createSystemDefault() :
-                        SchemeRegistryFactory.createDefault();
-            if (sslSocketFactory != null) {
-                schemeRegistry.register(new Scheme("https", 443, sslSocketFactory));
+            LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
+            if (sslSocketFactory == null) {
+                if (systemProperties) {
+                    sslSocketFactory = SSLSocketFactory.getSystemSocketFactory();
+                } else {
+                    sslSocketFactory = SSLSocketFactory.getSocketFactory();
+                }
             }
             PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
-                    schemeRegistry);
+                    RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainSocketFactory.getSocketFactory())
+                        .register("https", sslSocketFactory)
+                        .build());
             if (systemProperties) {
                 String s = System.getProperty("http.keepAlive");
                 if ("true".equalsIgnoreCase(s)) {
@@ -478,34 +442,39 @@ public class HttpClientBuilder {
             if (systemProperties) {
                 String s = System.getProperty("http.keepAlive");
                 if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategy = new DefaultConnectionReuseStrategy();
+                    reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategy = new NoConnectionReuseStrategy();
+                    reuseStrategy = NoConnectionReuseStrategy.INSTANCE;
                 }
             } else {
-                reuseStrategy = new DefaultConnectionReuseStrategy();
+                reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
             }
         }
         ConnectionKeepAliveStrategy keepAliveStrategy = this.keepAliveStrategy;
         if (keepAliveStrategy == null) {
-            keepAliveStrategy = new DefaultConnectionKeepAliveStrategy();
+            keepAliveStrategy = DefaultConnectionKeepAliveStrategy.INSTANCE;
         }
         AuthenticationStrategy targetAuthStrategy = this.targetAuthStrategy;
         if (targetAuthStrategy == null) {
-            targetAuthStrategy = new TargetAuthenticationStrategy();
+            targetAuthStrategy = TargetAuthenticationStrategy.INSTANCE;
         }
         AuthenticationStrategy proxyAuthStrategy = this.proxyAuthStrategy;
         if (proxyAuthStrategy == null) {
-            proxyAuthStrategy = new ProxyAuthenticationStrategy();
+            proxyAuthStrategy = ProxyAuthenticationStrategy.INSTANCE;
         }
         UserTokenHandler userTokenHandler = this.userTokenHandler;
         if (userTokenHandler == null) {
             if (!connectionStateDisabled) {
-                userTokenHandler = new DefaultUserTokenHandler();
+                userTokenHandler = DefaultUserTokenHandler.INSTANCE;
             } else {
-                userTokenHandler = new NoopUserTokenHandler();
+                userTokenHandler = NoopUserTokenHandler.INSTANCE;
             }
         }
+        SchemePortResolver schemePortResolver = this.schemePortResolver;
+        if (schemePortResolver == null) {
+            schemePortResolver = DefaultSchemePortResolver.INSTANCE;
+        }
+
         ClientExecChain execChain = new MainClientExec(
                 requestExec,
                 connManager,
@@ -519,40 +488,56 @@ public class HttpClientBuilder {
 
         HttpProcessor httpprocessor = this.httpprocessor;
         if (httpprocessor == null) {
-            ListBuilder<HttpRequestInterceptor> reqlb = new ListBuilder<HttpRequestInterceptor>();
-            reqlb.addAll(requestFirst);
-            reqlb.addAll(
+
+            VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
+                    HttpClientBuilder.class.getClassLoader());
+            String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
+            String defaultAgent = "Apache-HttpClient/" + release + " (java 1.5)";
+
+            HttpProcessorBuilder b = HttpProcessorBuilder.create();
+            if (requestFirst != null) {
+                for (HttpRequestInterceptor i: requestFirst) {
+                    b.addFirst(i);
+                }
+            }
+            if (responseFirst != null) {
+                for (HttpResponseInterceptor i: responseFirst) {
+                    b.addFirst(i);
+                }
+            }
+            b.addAll(
                     new RequestDefaultHeaders(),
                     new RequestContent(),
                     new RequestTargetHost(),
                     new RequestClientConnControl(),
-                    new RequestUserAgent(),
+                    new RequestUserAgent(defaultAgent),
                     new RequestExpectContinue());
             if (!cookieManagementDisabled) {
-                reqlb.add(new RequestAddCookies());
+                b.add(new RequestAddCookies());
             }
             if (!contentCompressionDisabled) {
-                reqlb.add(new RequestAcceptEncoding());
+                b.add(new RequestAcceptEncoding());
             }
             if (!authCachingDisabled) {
-                reqlb.add(new RequestAuthCache());
+                b.add(new RequestAuthCache());
             }
-            reqlb.addAll(requestLast);
-
-            ListBuilder<HttpResponseInterceptor> reslb = new ListBuilder<HttpResponseInterceptor>();
-            reslb.addAll(responseFirst);
             if (!cookieManagementDisabled) {
-                reslb.add(new ResponseProcessCookies());
+                b.add(new ResponseProcessCookies());
             }
             if (!contentCompressionDisabled) {
-                reslb.add(new ResponseContentEncoding());
+                b.add(new ResponseContentEncoding());
             }
-            reslb.addAll(responseLast);
-            List<HttpRequestInterceptor> reqincps = reqlb.build();
-            List<HttpResponseInterceptor> resincps = reslb.build();
-            httpprocessor = new ImmutableHttpProcessor(
-                    reqincps.toArray(new HttpRequestInterceptor[reqincps.size()]),
-                    resincps.toArray(new HttpResponseInterceptor[resincps.size()]));
+            if (requestLast != null) {
+                for (HttpRequestInterceptor i: requestLast) {
+                    b.addLast(i);
+                }
+            }
+            if (responseLast != null) {
+                for (HttpResponseInterceptor i: responseLast) {
+                    b.addLast(i);
+                }
+            }
+            httpprocessor = b.build();
         }
         execChain = new ProtocolExec(execChain, httpprocessor);
 
@@ -562,7 +547,7 @@ public class HttpClientBuilder {
         if (!automaticRetriesDisabled) {
             HttpRequestRetryHandler retryHandler = this.retryHandler;
             if (retryHandler == null) {
-                retryHandler = new DefaultHttpRequestRetryHandler();
+                retryHandler = DefaultHttpRequestRetryHandler.INSTANCE;
             }
             execChain = new RetryExec(execChain, retryHandler);
         }
@@ -571,17 +556,16 @@ public class HttpClientBuilder {
         HttpRoutePlanner routePlanner = this.routePlanner;
         if (routePlanner == null) {
             if (systemProperties) {
-                routePlanner = new ProxySelectorRoutePlanner(
-                        connManager.getSchemeRegistry(),
-                        ProxySelector.getDefault());
+                routePlanner = new SystemDefaultRoutePlanner(
+                        schemePortResolver, ProxySelector.getDefault());
             } else {
-                routePlanner = new DefaultHttpRoutePlanner(connManager.getSchemeRegistry());
+                routePlanner = new DefaultRoutePlanner(schemePortResolver);
             }
         }
         if (!redirectHandlingDisabled) {
             RedirectStrategy redirectStrategy = this.redirectStrategy;
             if (redirectStrategy == null) {
-                redirectStrategy = new DefaultRedirectStrategy();
+                redirectStrategy = DefaultRedirectStrategy.INSTANCE;
             }
             execChain = new RedirectExec(execChain, routePlanner, redirectStrategy);
         }
@@ -598,35 +582,37 @@ public class HttpClientBuilder {
             execChain = new BackoffStrategyExec(execChain, connectionBackoffStrategy, backoffManager);
         }
 
-        HttpParams params = this.params;
-        if (params == null) {
-            params = new SyncBasicHttpParams();
-            setDefaultHttpParams(params);
-        }
-
-        CookieSpecRegistry cookieSpecRegistry = new CookieSpecRegistry();
-        cookieSpecRegistry.register(CookiePolicy.BEST_MATCH, new BestMatchSpecFactory());
-        cookieSpecRegistry.register(CookiePolicy.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory());
-        cookieSpecRegistry.register(CookiePolicy.NETSCAPE, new NetscapeDraftSpecFactory());
-        cookieSpecRegistry.register(CookiePolicy.RFC_2109, new RFC2109SpecFactory());
-        cookieSpecRegistry.register(CookiePolicy.RFC_2965, new RFC2965SpecFactory());
-        cookieSpecRegistry.register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory());
-        if (cookieSpecs != null) {
-            for (Map.Entry<String, CookieSpecFactory> entry: cookieSpecs.entrySet()) {
-                cookieSpecRegistry.register(entry.getKey(), entry.getValue());
+        Lookup<AuthSchemeProvider> authSchemeRegistry = this.authSchemeRegistry;
+        if (authSchemeRegistry == null) {
+            RegistryBuilder<AuthSchemeProvider> b = RegistryBuilder.<AuthSchemeProvider>create();
+            b.register(AuthPolicy.BASIC, new BasicSchemeFactory())
+                .register(AuthPolicy.DIGEST, new DigestSchemeFactory())
+                .register(AuthPolicy.NTLM, new NTLMSchemeFactory())
+                .register(AuthPolicy.SPNEGO, new SPNegoSchemeFactory())
+                .register(AuthPolicy.KERBEROS, new KerberosSchemeFactory())
+                .build();
+            if (authShemes != null) {
+                for (Map.Entry<String, AuthSchemeProvider> entry: authShemes.entrySet()) {
+                    b.register(entry.getKey(), entry.getValue());
+                }
             }
+            authSchemeRegistry = b.build();
         }
-
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register(AuthPolicy.BASIC, new BasicSchemeFactory());
-        authSchemeRegistry.register(AuthPolicy.DIGEST, new DigestSchemeFactory());
-        authSchemeRegistry.register(AuthPolicy.NTLM, new NTLMSchemeFactory());
-        authSchemeRegistry.register(AuthPolicy.SPNEGO, new SPNegoSchemeFactory());
-        authSchemeRegistry.register(AuthPolicy.KERBEROS, new KerberosSchemeFactory());
-        if (authShemes != null) {
-            for (Map.Entry<String, AuthSchemeFactory> entry: authShemes.entrySet()) {
-                authSchemeRegistry.register(entry.getKey(), entry.getValue());
+        Lookup<CookieSpecProvider> cookieSpecRegistry = this.cookieSpecRegistry;
+        if (cookieSpecRegistry == null) {
+            RegistryBuilder<CookieSpecProvider> b = RegistryBuilder.<CookieSpecProvider>create();
+            b.register(CookiePolicy.BEST_MATCH, new BestMatchSpecFactory())
+                .register(CookiePolicy.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+                .register(CookiePolicy.NETSCAPE, new NetscapeDraftSpecFactory())
+                .register(CookiePolicy.RFC_2109, new RFC2109SpecFactory())
+                .register(CookiePolicy.RFC_2965, new RFC2965SpecFactory())
+                .register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory());
+            if (cookieSpecs != null) {
+                for (Map.Entry<String, CookieSpecProvider> entry: cookieSpecs.entrySet()) {
+                    b.register(entry.getKey(), entry.getValue());
+                }
             }
+            cookieSpecRegistry = b.build();
         }
 
         CookieStore defaultCookieStore = this.cookieStore;
@@ -646,80 +632,7 @@ public class HttpClientBuilder {
                 cookieSpecRegistry,
                 authSchemeRegistry,
                 defaultCookieStore,
-                defaultCredentialsProvider,
-                params);
-    }
-
-    static class ListBuilder<E> {
-
-        private final LinkedList<E> list;
-        private final Map<Class<?>, E> uniqueClasses;
-
-        ListBuilder() {
-            this.list = new LinkedList<E>();
-            this.uniqueClasses = new HashMap<Class<?>, E>();
-        }
-
-        public void add(final E e) {
-            if (e == null) {
-                return;
-            }
-            E previous = this.uniqueClasses.remove(e.getClass());
-            if (previous != null) {
-                this.list.remove(previous);
-            }
-            this.list.add(e);
-            this.uniqueClasses.put(e.getClass(), e);
-        }
-
-        public void addAll(final Collection<E> c) {
-            if (c == null) {
-                return;
-            }
-            for (E e: c) {
-                add(e);
-            }
-        }
-
-        public void addAll(E... c) {
-            if (c == null) {
-                return;
-            }
-            for (E e: c) {
-                add(e);
-            }
-        }
-
-        public List<E> build() {
-            return new ArrayList<E>(this.list);
-        }
-
-    }
-
-    /**
-     * Saves the default set of HttpParams in the provided parameter.
-     * These are:
-     * <ul>
-     * <li>{@link CoreProtocolPNames#PROTOCOL_VERSION}: 1.1</li>
-     * <li>{@link CoreProtocolPNames#HTTP_CONTENT_CHARSET}: ISO-8859-1</li>
-     * <li>{@link CoreConnectionPNames#TCP_NODELAY}: true</li>
-     * <li>{@link CoreConnectionPNames#SOCKET_BUFFER_SIZE}: 8192</li>
-     * <li>{@link CoreProtocolPNames#USER_AGENT}: Apache-HttpClient/<release> (java 1.5)</li>
-     * </ul>
-     */
-    public static void setDefaultHttpParams(HttpParams params) {
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setContentCharset(params, HTTP.DEF_CONTENT_CHARSET.name());
-        HttpConnectionParams.setTcpNoDelay(params, true);
-        HttpConnectionParams.setSocketBufferSize(params, 8192);
-
-        // determine the release version from packaged version info
-        final VersionInfo vi = VersionInfo.loadVersionInfo
-            ("org.apache.http.client", HttpClientBuilder.class.getClassLoader());
-        final String release = (vi != null) ?
-            vi.getRelease() : VersionInfo.UNAVAILABLE;
-        HttpProtocolParams.setUserAgent(params,
-                "Apache-HttpClient/" + release + " (java 1.5)");
+                defaultCredentialsProvider);
     }
 
 }

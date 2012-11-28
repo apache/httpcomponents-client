@@ -29,22 +29,20 @@ package org.apache.http.client.protocol;
 import java.util.Date;
 
 import org.apache.http.Header;
-import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -64,12 +62,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("boxing")
 public class TestRequestAddCookies {
 
     private HttpHost target;
     private CookieStore cookieStore;
-    private CookieSpecRegistry cookieSpecRegistry;
+    private Lookup<CookieSpecProvider> cookieSpecRegistry;
 
     @Before
     public void setUp() {
@@ -86,25 +83,14 @@ public class TestRequestAddCookies {
         cookie2.setPath("/");
         this.cookieStore.addCookie(cookie2);
 
-        this.cookieSpecRegistry = new CookieSpecRegistry();
-        this.cookieSpecRegistry.register(
-                CookiePolicy.BEST_MATCH,
-                new BestMatchSpecFactory());
-        this.cookieSpecRegistry.register(
-                CookiePolicy.BROWSER_COMPATIBILITY,
-                new BrowserCompatSpecFactory());
-        this.cookieSpecRegistry.register(
-                CookiePolicy.NETSCAPE,
-                new NetscapeDraftSpecFactory());
-        this.cookieSpecRegistry.register(
-                CookiePolicy.RFC_2109,
-                new RFC2109SpecFactory());
-        this.cookieSpecRegistry.register(
-                CookiePolicy.RFC_2965,
-                new RFC2965SpecFactory());
-        this.cookieSpecRegistry.register(
-                CookiePolicy.IGNORE_COOKIES,
-                new IgnoreSpecFactory());
+        this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+            .register(CookiePolicy.BEST_MATCH, new BestMatchSpecFactory())
+            .register(CookiePolicy.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+            .register(CookiePolicy.NETSCAPE, new NetscapeDraftSpecFactory())
+            .register(CookiePolicy.RFC_2109, new RFC2109SpecFactory())
+            .register(CookiePolicy.RFC_2965, new RFC2965SpecFactory())
+            .register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory())
+            .build();
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -293,7 +279,7 @@ public class TestRequestAddCookies {
         Assert.assertEquals("name1=value1; name2=value2", headers1[0].getValue());
     }
 
-    @Test(expected=HttpException.class)
+    @Test
     public void testAuthScopeInvalidRequestURI() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "crap:");
 
@@ -314,18 +300,13 @@ public class TestRequestAddCookies {
         HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("localhost.local");
-        HttpRoute route = new HttpRoute(this.target, null, false);
-
-        Scheme http = new Scheme("http", 1234, PlainSocketFactory.getSocketFactory());
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(http);
+        HttpRoute route = new HttpRoute(new HttpHost("localhost.local", 1234), null, false);
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
-        context.setAttribute(ClientContext.SCHEME_REGISTRY, schemeRegistry);
 
         HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
@@ -344,7 +325,8 @@ public class TestRequestAddCookies {
         HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("localhost.local");
-        HttpRoute route = new HttpRoute(this.target, null, new HttpHost("localhost", 8888), false);
+        HttpRoute route = new HttpRoute(
+                new HttpHost("localhost.local", 80), null, new HttpHost("localhost", 8888), false);
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
@@ -369,8 +351,9 @@ public class TestRequestAddCookies {
         HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("localhost", -1, "https");
-        HttpRoute route = new HttpRoute(this.target, null, new HttpHost("localhost", 8888), true,
-                TunnelType.TUNNELLED, LayerType.LAYERED);
+        HttpRoute route = new HttpRoute(
+                new HttpHost("localhost", 443, "https"), null,
+                new HttpHost("localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);

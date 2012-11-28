@@ -71,23 +71,22 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         // Obtain actual CookieSpec instance
-        CookieSpec cookieSpec = (CookieSpec) context.getAttribute(
-                ClientContext.COOKIE_SPEC);
+        CookieSpec cookieSpec = clientContext.getCookieSpec();
         if (cookieSpec == null) {
             this.log.debug("Cookie spec not specified in HTTP context");
             return;
         }
         // Obtain cookie store
-        CookieStore cookieStore = (CookieStore) context.getAttribute(
-                ClientContext.COOKIE_STORE);
+        CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
             this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance
-        CookieOrigin cookieOrigin = (CookieOrigin) context.getAttribute(
-                ClientContext.COOKIE_ORIGIN);
+        CookieOrigin cookieOrigin = clientContext.getCookieOrigin();
         if (cookieOrigin == null) {
             this.log.debug("Cookie origin not specified in HTTP context");
             return;

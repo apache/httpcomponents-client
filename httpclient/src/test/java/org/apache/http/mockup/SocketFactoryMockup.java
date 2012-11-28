@@ -39,6 +39,7 @@ import org.apache.http.params.HttpParams;
 /**
  * {@link SchemeSocketFactory} mockup implementation.
  */
+@Deprecated
 public class SocketFactoryMockup implements SchemeSocketFactory {
 
     /* A default instance of this mockup. */

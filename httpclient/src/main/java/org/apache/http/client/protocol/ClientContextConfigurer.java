@@ -39,8 +39,11 @@ import org.apache.http.protocol.HttpContext;
  * Configuration facade for {@link HttpContext} instances.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link HttpClientContext}
  */
 @NotThreadSafe
+@Deprecated
 public class ClientContextConfigurer implements ClientContext {
 
     private final HttpContext context;

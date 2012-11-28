@@ -38,9 +38,7 @@ import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParamConfig;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -58,6 +56,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -545,8 +544,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             host = new HttpHost(remoteAddress.getHostName(), remoteAddress.getPort(), "https");
         }
         int connectTimeout = HttpConnectionParams.getConnectionTimeout(params);
-        SocketConfig config = HttpParamConfig.getSocketConfig(params);
-        return connectSocket(connectTimeout, socket, config, host, remoteAddress, localAddress, null);
+        return connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, null);
     }
 
     /**
@@ -693,7 +691,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
-            final SocketConfig config,
             final HttpHost host,
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
@@ -705,8 +702,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             throw new IllegalArgumentException("Remote address may not be null");
         }
         Socket sock = socket != null ? socket : createSocket(context);
-        PlainSocketFactory.INSTANCE.connectSocket(
-                connectTimeout, socket, config, host, remoteAddress, localAddress, context);
+        if (localAddress != null) {
+            sock.bind(localAddress);
+        }
+        try {
+            sock.connect(remoteAddress, connectTimeout);
+        } catch (SocketTimeoutException ex) {
+            throw new ConnectTimeoutException(host, remoteAddress);
+        }
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             verifyHostname((SSLSocket) sock, host.getHostName());

@@ -38,7 +38,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.auth.params.AuthPNames;
@@ -46,6 +46,8 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestScheme;
@@ -175,9 +177,9 @@ public class TestAuthenticationStrategy {
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
 
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        authSchemeRegistry.register("digest", new DigestSchemeFactory());
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
         Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
@@ -196,9 +198,9 @@ public class TestAuthenticationStrategy {
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        authSchemeRegistry.register("digest", new DigestSchemeFactory());
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -220,9 +222,9 @@ public class TestAuthenticationStrategy {
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        authSchemeRegistry.register("digest", new DigestSchemeFactory());
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -249,9 +251,9 @@ public class TestAuthenticationStrategy {
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
         challenges.put("whatever", new BasicHeader(AUTH.WWW_AUTH, "Whatever realm=\"realm3\""));
 
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        authSchemeRegistry.register("digest", new DigestSchemeFactory());
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -281,9 +283,9 @@ public class TestAuthenticationStrategy {
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 
-        AuthSchemeRegistry authSchemeRegistry = new AuthSchemeRegistry();
-        authSchemeRegistry.register("basic", new BasicSchemeFactory());
-        authSchemeRegistry.register("digest", new DigestSchemeFactory());
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("basic", new BasicSchemeFactory())
+            .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();

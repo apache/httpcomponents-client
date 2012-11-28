@@ -73,7 +73,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     @Override
     protected void parseChallenge(
             final CharArrayBuffer buffer, int pos, int len) throws MalformedChallengeException {
-        HeaderValueParser parser = BasicHeaderValueParser.DEFAULT;
+        HeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
         ParserCursor cursor = new ParserCursor(pos, buffer.length());
         HeaderElement[] elements = parser.parseElements(buffer, cursor);
         if (elements.length == 0) {

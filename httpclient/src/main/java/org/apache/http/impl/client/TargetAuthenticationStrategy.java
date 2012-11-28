@@ -41,6 +41,8 @@ import org.apache.http.client.AuthenticationStrategy;
 @Immutable
 public class TargetAuthenticationStrategy extends AuthenticationStrategyImpl {
 
+    public static final TargetAuthenticationStrategy INSTANCE = new TargetAuthenticationStrategy();
+
     public TargetAuthenticationStrategy() {
         super(HttpStatus.SC_UNAUTHORIZED, AUTH.WWW_AUTH, AuthPNames.TARGET_AUTH_PREF);
     }

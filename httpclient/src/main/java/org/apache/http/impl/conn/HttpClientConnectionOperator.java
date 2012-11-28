@@ -37,17 +37,18 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.SocketClientConnection;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.params.HttpParams;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.protocol.HttpContext;
 
 @Immutable
@@ -55,33 +56,31 @@ class HttpClientConnectionOperator {
 
     private final Log log = LogFactory.getLog(HttpClientConnectionManager.class);
 
-    private final SchemeRegistry schemeRegistry;
+    private final Lookup<ConnectionSocketFactory> socketFactoryRegistry;
+    private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
 
     HttpClientConnectionOperator(
-            final SchemeRegistry schemeRegistry,
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
-        if (schemeRegistry == null) {
-            throw new IllegalArgumentException("Scheme registry may nor be null");
+        if (socketFactoryRegistry == null) {
+            throw new IllegalArgumentException("Socket factory registry may nor be null");
         }
-        this.schemeRegistry = schemeRegistry;
-        this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
+        this.socketFactoryRegistry = socketFactoryRegistry;
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
+            DefaultSchemePortResolver.INSTANCE;
+        this.dnsResolver = dnsResolver != null ? dnsResolver :
+            SystemDefaultDnsResolver.INSTANCE;
     }
 
-    public SchemeRegistry getSchemeRegistry() {
-        return this.schemeRegistry;
-    }
-
-    public DnsResolver getDnsResolver() {
-        return this.dnsResolver;
-    }
-
-    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
-        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
-                ClientContext.SCHEME_REGISTRY);
+    @SuppressWarnings("unchecked")
+    private Lookup<ConnectionSocketFactory> getSocketFactoryRegistry(final HttpContext context) {
+        Lookup<ConnectionSocketFactory> reg = (Lookup<ConnectionSocketFactory>)
+            context.getAttribute(ClientContext.SOCKET_FACTORY_REGISTRY);
         if (reg == null) {
-            reg = this.schemeRegistry;
+            reg = this.socketFactoryRegistry;
         }
         return reg;
     }
@@ -89,33 +88,40 @@ class HttpClientConnectionOperator {
     public void connect(
             final SocketClientConnection conn,
             final HttpHost host,
-            final InetAddress local,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
-        SchemeRegistry registry = getSchemeRegistry(context);
-        Scheme schm = registry.getScheme(host.getSchemeName());
-        SchemeSocketFactory sf = schm.getSchemeSocketFactory();
-
+            final InetSocketAddress localAddress,
+            final int connectTimeout,
+            final SocketConfig socketConfig,
+            final HttpContext context) throws IOException {
+        Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
+        ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        if (sf == null) {
+            throw new IOException("Unsupported scheme: " + host.getSchemeName());
+        }
         InetAddress[] addresses = this.dnsResolver.resolve(host.getHostName());
-        int port = schm.resolvePort(host.getPort());
+        int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < addresses.length; i++) {
             InetAddress address = addresses[i];
             boolean last = i == addresses.length - 1;
 
-            Socket sock = sf.createSocket(params);
+            Socket sock = sf.createSocket(context);
+            sock.setReuseAddress(socketConfig.isSoReuseAddress());
             conn.bind(sock);
 
-            InetSocketAddress remoteAddress = new HttpInetSocketAddress(host, address, port);
-            InetSocketAddress localAddress = null;
-            if (local != null) {
-                localAddress = new InetSocketAddress(local, 0);
-            }
+            InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting to " + remoteAddress);
             }
             try {
-                Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
-                conn.bind(connsock);
+                sock.setSoTimeout(socketConfig.getSoTimeout());
+                sock = sf.connectSocket(
+                        connectTimeout, sock, host, remoteAddress, localAddress, context);
+                sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
+                sock.setKeepAlive(socketConfig.isSoKeepAlive());
+                int linger = socketConfig.getSoLinger();
+                if (linger >= 0) {
+                    sock.setSoLinger(linger > 0, linger);
+                }
+                conn.bind(sock);
                 return;
             } catch (ConnectException ex) {
                 if (last) {
@@ -136,21 +142,22 @@ class HttpClientConnectionOperator {
     public void upgrade(
             final SocketClientConnection conn,
             final HttpHost host,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
-        SchemeRegistry registry = getSchemeRegistry(context);
-        Scheme schm = registry.getScheme(host.getSchemeName());
-        if (!(schm.getSchemeSocketFactory() instanceof SchemeLayeredSocketFactory)) {
-            throw new IllegalArgumentException
-                ("Target scheme (" + schm.getName() +
-                 ") must have layered socket factory.");
+            final HttpContext context) throws IOException {
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
+        ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        if (sf == null) {
+            sf = PlainSocketFactory.INSTANCE;
         }
-        SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
-        Socket sock;
+        if (!(sf instanceof LayeredConnectionSocketFactory)) {
+            throw new IllegalArgumentException
+                ("Target scheme (" + host.getSchemeName() + ") must have layered socket factory");
+        }
+        LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
+        Socket sock = conn.getSocket();
         try {
-            int port = schm.resolvePort(host.getPort());
-            sock = lsf.createLayeredSocket(
-                    conn.getSocket(), host.getHostName(), port, params);
+            int port = this.schemePortResolver.resolve(host);
+            sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
         } catch (ConnectException ex) {
             throw new HttpHostConnectException(host, ex);
         }

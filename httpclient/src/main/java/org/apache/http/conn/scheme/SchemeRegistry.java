@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.Registry;
 
 import org.apache.http.HttpHost;
 
@@ -40,8 +41,11 @@ import org.apache.http.HttpHost;
  * Schemes are identified by lowercase names.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link Registry}
  */
 @ThreadSafe
+@Deprecated
 public final class SchemeRegistry {
 
     /** The available schemes in this registry. */

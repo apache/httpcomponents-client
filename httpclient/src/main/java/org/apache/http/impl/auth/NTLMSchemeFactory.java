@@ -31,19 +31,26 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link AuthSchemeFactory} implementation that creates and initializes
+ * {@link AuthSchemeProvider} implementation that creates and initializes
  * {@link NTLMScheme} instances configured to use the default {@link NTLMEngine}
  * implementation.
  *
  * @since 4.1
  */
 @Immutable
-public class NTLMSchemeFactory implements AuthSchemeFactory {
+@SuppressWarnings("deprecation")
+public class NTLMSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
     public AuthScheme newInstance(final HttpParams params) {
+        return new NTLMScheme(new NTLMEngineImpl());
+    }
+
+    public AuthScheme create(final HttpContext context) {
         return new NTLMScheme(new NTLMEngineImpl());
     }
 

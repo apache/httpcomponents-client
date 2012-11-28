@@ -33,9 +33,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
 
@@ -64,37 +69,53 @@ public class PoolingHttpClientConnectionManager extends HttpClientConnectionMana
 
     private final CPool pool;
 
+    private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
+        return RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainSocketFactory.getSocketFactory())
+                .register("https", SSLSocketFactory.getSocketFactory())
+                .build();
+    }
+
     public PoolingHttpClientConnectionManager() {
-        this(SchemeRegistryFactory.createDefault());
+        this(getDefaultRegistry());
     }
 
-    public PoolingHttpClientConnectionManager(final SchemeRegistry schreg) {
-        this(schreg, -1, TimeUnit.MILLISECONDS);
-    }
-
-    public PoolingHttpClientConnectionManager(
-            final SchemeRegistry schreg, final DnsResolver dnsResolver) {
-        this(schreg, dnsResolver, -1, TimeUnit.MILLISECONDS);
+    public PoolingHttpClientConnectionManager(final long timeToLive, final TimeUnit tunit) {
+        this(getDefaultRegistry(), timeToLive, tunit);
     }
 
     public PoolingHttpClientConnectionManager(
-            final SchemeRegistry schemeRegistry,
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
+        this(socketFactoryRegistry, -1, TimeUnit.MILLISECONDS);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final DnsResolver dnsResolver) {
+        this(socketFactoryRegistry, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final long timeToLive, final TimeUnit tunit) {
-        this(new CPool(2, 20, timeToLive, tunit), schemeRegistry, null);
+        this(new CPool(2, 20, timeToLive, tunit), socketFactoryRegistry, null, null);
     }
 
     public PoolingHttpClientConnectionManager(
-            final SchemeRegistry schemeRegistry,
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final long timeToLive, final TimeUnit tunit) {
-        this(new CPool(2, 20, timeToLive, tunit), schemeRegistry, dnsResolver);
+        this(new CPool(2, 20, timeToLive, tunit),
+                socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 
     PoolingHttpClientConnectionManager(
             final CPool pool,
-            final SchemeRegistry schemeRegistry,
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
-        super(pool, schemeRegistry, dnsResolver);
+        super(pool, socketFactoryRegistry, schemePortResolver, dnsResolver);
         this.pool = pool;
     }
 

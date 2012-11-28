@@ -24,50 +24,20 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.conn;
 
-package org.apache.http.mockup;
-
-import java.io.IOException;
-
-import org.apache.http.HttpConnection;
-import org.apache.http.HttpConnectionMetrics;
+import org.apache.http.HttpHost;
 
 /**
- * {@link HttpConnection} mockup implementation.
+ * Default port resolver for protocol schemes.
  *
+ * @since 4.3
  */
-public class HttpConnectionMockup implements HttpConnection {
+public interface SchemePortResolver {
 
-    private boolean open = true;
+    /**
+     * Returns the actual port for the host based on the protocol scheme.
+     */
+    int resolve(HttpHost host);
 
-    public HttpConnectionMockup() {
-        super();
-    }
-
-    public void close() throws IOException {
-        this.open = false;
-    }
-
-    public void shutdown() throws IOException {
-        this.open = false;
-    }
-
-    public int getSocketTimeout() {
-        return 0;
-    }
-
-    public boolean isOpen() {
-        return this.open;
-    }
-
-    public boolean isStale() {
-        return false;
-    }
-
-    public void setSocketTimeout(int timeout) {
-    }
-
-    public HttpConnectionMetrics getMetrics() {
-        return null;
-    }
 }

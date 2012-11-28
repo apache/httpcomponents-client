@@ -48,8 +48,8 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.LocalTestServer;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -143,13 +143,13 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Test
     public void testBasicSSL() throws Exception {
+        HttpHost host = new HttpHost("localhost", 443, "https");
+        HttpContext context = new BasicHttpContext();
         TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-
-        HttpParams params = new BasicHttpParams();
         SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
-        InetSocketAddress address = this.localServer.getServiceAddress();
-        socket = (SSLSocket) socketFactory.connectSocket(socket, address, null, params);
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
         SSLSession sslsession = socket.getSession();
 
         Assert.assertNotNull(sslsession);
@@ -158,6 +158,8 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Test(expected=SSLPeerUnverifiedException.class)
     public void testSSLTrustVerification() throws Exception {
+        HttpHost host = new HttpHost("localhost", 443, "https");
+        HttpContext context = new BasicHttpContext();
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
@@ -165,14 +167,15 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
                 SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        HttpParams params = new BasicHttpParams();
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
-        InetSocketAddress address = this.localServer.getServiceAddress();
-        socketFactory.connectSocket(socket, address, null, params);
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 
     @Test
     public void testSSLTrustVerificationOverride() throws Exception {
+        HttpHost host = new HttpHost("localhost", 443, "https");
+        HttpContext context = new BasicHttpContext();
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
@@ -186,10 +189,9 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
         }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        HttpParams params = new BasicHttpParams();
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(params);
-        InetSocketAddress address = this.localServer.getServiceAddress();
-        socketFactory.connectSocket(socket, address, null, params);
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 
 }

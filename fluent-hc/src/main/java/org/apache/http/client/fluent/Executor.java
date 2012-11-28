@@ -45,10 +45,11 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
@@ -70,10 +71,7 @@ public class Executor {
     final static HttpClient CLIENT;
 
     static {
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        SchemeSocketFactory plain = PlainSocketFactory.getSocketFactory();
-        schemeRegistry.register(new Scheme("http", 80, plain));
-        SchemeSocketFactory ssl = null;
+        LayeredConnectionSocketFactory ssl = null;
         try {
             ssl = SSLSocketFactory.getSystemSocketFactory();
         } catch (SSLInitializationException ex) {
@@ -87,10 +85,13 @@ public class Executor {
             } catch (NoSuchAlgorithmException ignore) {
             }
         }
-        if (ssl != null) {
-            schemeRegistry.register(new Scheme("https", 443, ssl));
-        }
-        CONNMGR = new PoolingHttpClientConnectionManager(schemeRegistry);
+
+        Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", PlainSocketFactory.getSocketFactory())
+            .register("https", ssl != null ? ssl : SSLSocketFactory.getSocketFactory())
+            .build();
+
+        CONNMGR = new PoolingHttpClientConnectionManager(sfr);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
         CLIENT = HttpClientBuilder.create().setConnectionManager(CONNMGR).build();
@@ -202,12 +203,18 @@ public class Executor {
         return new Response(this.httpclient.execute(httprequest, this.localContext));
     }
 
-    public static void registerScheme(final Scheme scheme) {
-        CONNMGR.getSchemeRegistry().register(scheme);
+    /**
+     * @deprecated (4.3) do not use.
+     */
+    @Deprecated
+    public static void registerScheme(final org.apache.http.conn.scheme.Scheme scheme) {
     }
 
+    /**
+     * @deprecated (4.3) do not use.
+     */
+    @Deprecated
     public static void unregisterScheme(final String name) {
-        CONNMGR.getSchemeRegistry().unregister(name);
     }
 
 }

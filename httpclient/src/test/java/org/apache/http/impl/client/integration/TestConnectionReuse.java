@@ -42,9 +42,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RandomHandler;
-import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
@@ -67,11 +68,11 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer())
+            .add(new ResponseContent())
+            .add(new ResponseConnControl()).build();
 
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
@@ -124,11 +125,11 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new AlwaysCloseConn());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer())
+            .add(new ResponseContent())
+            .add(new AlwaysCloseConn()).build();
 
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
@@ -172,11 +173,11 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer())
+            .add(new ResponseContent())
+            .add(new ResponseConnControl()).build();
 
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());
@@ -220,12 +221,12 @@ public class TestConnectionReuse {
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
-        httpproc.addInterceptor(new ResponseDate());
-        httpproc.addInterceptor(new ResponseServer());
-        httpproc.addInterceptor(new ResponseContent());
-        httpproc.addInterceptor(new ResponseConnControl());
-        httpproc.addInterceptor(new ResponseKeepAlive());
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+            .add(new ResponseDate())
+            .add(new ResponseServer())
+            .add(new ResponseContent())
+            .add(new ResponseConnControl())
+            .add(new ResponseKeepAlive()).build();
 
         this.localServer = new LocalTestServer(httpproc, null);
         this.localServer.register("/random/*", new RandomHandler());

@@ -27,23 +27,17 @@
 
 package org.apache.http.impl.conn;
 
-
 import java.net.InetAddress;
-
-import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.protocol.HttpContext;
-
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-
-import org.apache.http.conn.params.ConnRouteParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}. This implementation
@@ -59,85 +53,62 @@ import org.apache.http.conn.params.ConnRouteParams;
  *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
  * </ul>
  *
- * @since 4.0
- *
- * @deprecated (4.3) use {@link DefaultRoutePlanner}
+ * @since 4.3
  */
-@ThreadSafe
-@Deprecated
-public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
+@Immutable
+public class DefaultRoutePlanner implements HttpRoutePlanner {
 
-    /** The scheme registry. */
-    protected final SchemeRegistry schemeRegistry; // class is @ThreadSafe
+    private final SchemePortResolver schemePortResolver;
 
-    /**
-     * Creates a new default route planner.
-     *
-     * @param schreg    the scheme registry
-     */
-    public DefaultHttpRoutePlanner(SchemeRegistry schreg) {
-        if (schreg == null) {
-            throw new IllegalArgumentException
-                ("SchemeRegistry must not be null.");
-        }
-        schemeRegistry = schreg;
+    public DefaultRoutePlanner(final SchemePortResolver schemePortResolver) {
+        super();
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
+            DefaultSchemePortResolver.INSTANCE;
     }
 
-    private SchemeRegistry getSchemeRegistry(final HttpContext context) {
-        SchemeRegistry reg = (SchemeRegistry) context.getAttribute(
-                ClientContext.SCHEME_REGISTRY);
-        if (reg == null) {
-            reg = this.schemeRegistry;
+    public HttpRoute determineRoute(
+            final HttpHost host,
+            final HttpRequest request,
+            final HttpContext context) throws HttpException {
+        if (host == null) {
+            throw new IllegalArgumentException("Target host may not be null");
         }
-        return reg;
-    }
-    
-    public HttpRoute determineRoute(HttpHost target,
-                                    HttpRequest request,
-                                    HttpContext context)
-        throws HttpException {
-
         if (request == null) {
-            throw new IllegalStateException
-                ("Request must not be null.");
+            throw new IllegalArgumentException("Request may not be null");
         }
-
         // If we have a forced route, we can do without a target.
-        HttpRoute route =
-            ConnRouteParams.getForcedRoute(request.getParams());
-        if (route != null)
+        HttpRoute route = ConnRouteParams.getForcedRoute(request.getParams());
+        if (route != null) {
             return route;
-
+        }
         // If we get here, there is no forced route.
         // So we need a target to compute a route.
+        InetAddress local = ConnRouteParams.getLocalAddress(request.getParams());
+        HttpHost proxy = determineProxy(host, request, context);
 
-        if (target == null) {
-            throw new IllegalStateException
-                ("Target host must not be null.");
+        HttpHost target;
+        if (host.getPort() <= 0) {
+            target = new HttpHost(
+                    host.getHostName(),
+                    this.schemePortResolver.resolve(host),
+                    host.getSchemeName());
+        } else {
+            target = host;
         }
-
-        final InetAddress local =
-            ConnRouteParams.getLocalAddress(request.getParams());
-        final HttpHost proxy =
-            ConnRouteParams.getDefaultProxy(request.getParams());
-
-        final Scheme schm;
-        try {
-            SchemeRegistry registry = getSchemeRegistry(context);
-            schm = registry.getScheme(target.getSchemeName());
-        } catch (IllegalStateException ex) {
-            throw new HttpException(ex.getMessage());
-        }
-        // as it is typically used for TLS/SSL, we assume that
-        // a layered scheme implies a secure connection
-        final boolean secure = schm.isLayered();
-
+        boolean secure = target.getSchemeName().equalsIgnoreCase("https");
         if (proxy == null) {
             route = new HttpRoute(target, local, secure);
         } else {
             route = new HttpRoute(target, local, proxy, secure);
         }
         return route;
+    }
+
+    protected HttpHost determineProxy(
+            final HttpHost target,
+            final HttpRequest request,
+            final HttpContext context) throws HttpException {
+        return ConnRouteParams.getDefaultProxy(request.getParams());
     }
 
 }

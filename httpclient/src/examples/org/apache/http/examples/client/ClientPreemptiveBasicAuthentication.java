@@ -34,6 +34,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -70,8 +71,8 @@ public class ClientPreemptiveBasicAuthentication {
             authCache.put(targetHost, basicAuth);
 
             // Add AuthCache to the execution context
-            BasicHttpContext localcontext = new BasicHttpContext();
-            localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+            HttpClientContext localContext = HttpClientContext.create();
+            localContext.setAuthCache(authCache);
 
             HttpGet httpget = new HttpGet("/");
 
@@ -79,7 +80,7 @@ public class ClientPreemptiveBasicAuthentication {
             System.out.println("to target: " + targetHost);
 
             for (int i = 0; i < 3; i++) {
-                CloseableHttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
+                CloseableHttpResponse response = httpclient.execute(targetHost, httpget, localContext);
                 try {
                     HttpEntity entity = response.getEntity();
 

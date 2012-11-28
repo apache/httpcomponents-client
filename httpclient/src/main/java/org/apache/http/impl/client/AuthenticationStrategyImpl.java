@@ -45,7 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
@@ -53,8 +53,8 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Lookup;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
@@ -150,16 +150,15 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         Queue<AuthOption> options = new LinkedList<AuthOption>();
-        AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
-                ClientContext.AUTHSCHEME_REGISTRY);
+        Lookup<AuthSchemeProvider> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
             this.log.debug("Auth scheme registry not set in the context");
             return options;
         }
-        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
-                ClientContext.CREDS_PROVIDER);
+        CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
             this.log.debug("Credentials provider not set in the context");
             return options;
@@ -177,25 +176,26 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         for (String id: authPrefs) {
             Header challenge = challenges.get(id.toLowerCase(Locale.US));
             if (challenge != null) {
-                try {
-                    AuthScheme authScheme = registry.getAuthScheme(id, response.getParams());
-                    authScheme.processChallenge(challenge);
-
-                    AuthScope authScope = new AuthScope(
-                            authhost.getHostName(),
-                            authhost.getPort(),
-                            authScheme.getRealm(),
-                            authScheme.getSchemeName());
-
-                    Credentials credentials = credsProvider.getCredentials(authScope);
-                    if (credentials != null) {
-                        options.add(new AuthOption(authScheme, credentials));
-                    }
-                } catch (IllegalStateException e) {
+                AuthSchemeProvider authSchemeProvider = registry.lookup(id);
+                if (authSchemeProvider == null) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication scheme " + id + " not supported");
                         // Try again
                     }
+                    continue;
+                }
+                AuthScheme authScheme = authSchemeProvider.create(context);
+                authScheme.processChallenge(challenge);
+
+                AuthScope authScope = new AuthScope(
+                        authhost.getHostName(),
+                        authhost.getPort(),
+                        authScheme.getRealm(),
+                        authScheme.getSchemeName());
+
+                Credentials credentials = credsProvider.getCredentials(authScope);
+                if (credentials != null) {
+                    options.add(new AuthOption(authScheme, credentials));
                 }
             } else {
                 if (this.log.isDebugEnabled()) {
@@ -218,13 +218,14 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
+
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         if (isCachable(authScheme)) {
-            AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+            AuthCache authCache = clientContext.getAuthCache();
             if (authCache == null) {
-                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
-                        ClientContext.SCHEME_REGISTRY);
-                authCache = new BasicAuthCache(schemeRegistry);
-                context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                authCache = new BasicAuthCache();
+                clientContext.setAuthCache(authCache);
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Caching '" + authScheme.getSchemeName() +
@@ -251,7 +252,10 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
+        AuthCache authCache = clientContext.getAuthCache();
         if (authCache != null) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Clearing cached auth scheme for " + authhost);

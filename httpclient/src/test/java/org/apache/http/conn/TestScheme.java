@@ -40,6 +40,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Scheme} and {@link SchemeRegistry}.
  */
+@Deprecated
 public class TestScheme {
 
     @Test

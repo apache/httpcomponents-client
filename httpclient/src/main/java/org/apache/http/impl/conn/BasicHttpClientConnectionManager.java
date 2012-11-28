@@ -29,6 +29,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -38,14 +39,21 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpConnectionFactory;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.params.HttpParams;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.LangUtils;
 
@@ -92,26 +100,48 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private boolean leased;
 
     @GuardedBy("this")
+    private SocketConfig socketConfig;
+
+    @GuardedBy("this")
+    private ConnectionConfig connConfig;
+
+    @GuardedBy("this")
     private volatile boolean shutdown;
 
-    public BasicHttpClientConnectionManager(
-            final SchemeRegistry schemeRegistry,
-            final DnsResolver dnsResolver,
-            final HttpConnectionFactory<SocketClientConnection> connFactory) {
-        if (schemeRegistry == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
-        this.connectionOperator = new HttpClientConnectionOperator(schemeRegistry, dnsResolver);
-        this.connFactory = connFactory != null ? connFactory : DefaultClientConnectionFactory.INSTANCE;
-        this.expiry = Long.MAX_VALUE;
+    private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
+        return RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("https", PlainSocketFactory.getSocketFactory())
+                .register("https", SSLSocketFactory.getSocketFactory())
+                .build();
     }
 
-    public BasicHttpClientConnectionManager(final SchemeRegistry schemeRegistry) {
-        this(schemeRegistry, null, null);
+    public BasicHttpClientConnectionManager(
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        super();
+        this.connectionOperator = new HttpClientConnectionOperator(
+                socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.connFactory = connFactory != null ? connFactory : DefaultClientConnectionFactory.INSTANCE;
+        this.expiry = Long.MAX_VALUE;
+        this.socketConfig = SocketConfig.DEFAULT;
+        this.connConfig = ConnectionConfig.DEFAULT;
+    }
+
+    public BasicHttpClientConnectionManager(
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+        this(socketFactoryRegistry, connFactory, null, null);
+    }
+
+    public BasicHttpClientConnectionManager(
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry) {
+        this(socketFactoryRegistry, null, null, null);
     }
 
     public BasicHttpClientConnectionManager() {
-        this(SchemeRegistryFactory.createDefault(), null, null);
+        this(getDefaultRegistry(), null, null, null);
     }
 
     @Override
@@ -123,16 +153,28 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    public SchemeRegistry getSchemeRegistry() {
-        return this.connectionOperator.getSchemeRegistry();
-    }
-
     HttpRoute getRoute() {
         return route;
     }
 
     Object getState() {
         return state;
+    }
+
+    public synchronized SocketConfig getSocketConfig() {
+        return socketConfig;
+    }
+
+    public synchronized void setSocketConfig(final SocketConfig socketConfig) {
+        this.socketConfig = socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
+    }
+
+    public synchronized ConnectionConfig getConnectionConfig() {
+        return connConfig;
+    }
+
+    public synchronized void setConnectionConfig(final ConnectionConfig connConfig) {
+        this.connConfig = connConfig != null ? connConfig : ConnectionConfig.DEFAULT;
     }
 
     public final ConnectionRequest requestConnection(
@@ -210,7 +252,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.state = state;
         checkExpiry();
         if (this.conn == null) {
-            this.conn = this.connFactory.create();
+            this.conn = this.connFactory.create(this.connConfig);
         }
         this.leased = true;
         return this.conn;
@@ -266,8 +308,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final HttpClientConnection conn,
             final HttpHost host,
             final InetAddress local,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
+            final HttpContext context) throws IOException {
         if (conn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
@@ -277,14 +318,15 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (conn != this.conn) {
             throw new IllegalArgumentException("Connection not obtained from this manager");
         }
-        this.connectionOperator.connect(this.conn, host, local, context, params);
+        InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
+        this.connectionOperator.connect(this.conn, host, localAddress,
+                this.connConfig.getConnectTimeout(), this.socketConfig, context);
     }
 
     public void upgrade(
             final HttpClientConnection conn,
             final HttpHost host,
-            final HttpContext context,
-            final HttpParams params) throws IOException {
+            final HttpContext context) throws IOException {
         if (conn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
@@ -294,7 +336,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (conn != this.conn) {
             throw new IllegalArgumentException("Connection not obtained from this manager");
         }
-        this.connectionOperator.upgrade(this.conn, host, context, params);
+        this.connectionOperator.upgrade(this.conn, host, context);
     }
 
     public synchronized void closeExpiredConnections() {

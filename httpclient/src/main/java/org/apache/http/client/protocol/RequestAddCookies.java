@@ -34,8 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -43,20 +41,18 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.ProtocolException;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.RouteInfo;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecRegistry;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.ExecutionContext;
 
 /**
  * Request interceptor that matches cookies available in the current
@@ -96,32 +92,31 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         // Obtain cookie store
-        CookieStore cookieStore = (CookieStore) context.getAttribute(
-                ClientContext.COOKIE_STORE);
+        CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
             this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
 
         // Obtain the registry of cookie specs
-        CookieSpecRegistry registry = (CookieSpecRegistry) context.getAttribute(
-                ClientContext.COOKIESPEC_REGISTRY);
+        Lookup<CookieSpecProvider> registry = clientContext.getCookieSpecRegistry();
         if (registry == null) {
             this.log.debug("CookieSpec registry not specified in HTTP context");
             return;
         }
 
         // Obtain the target host, possibly virtual (required)
-        HttpHost targetHost = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        HttpHost targetHost = clientContext.getTargetHost();
         if (targetHost == null) {
             this.log.debug("Target host not set in the context");
             return;
         }
 
         // Obtain the route (required)
-        RouteInfo route = (RouteInfo) context.getAttribute(ClientContext.ROUTE);
+        RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
             this.log.debug("Connection route not set in the context");
             return;
@@ -138,42 +133,29 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         } else {
             try {
                 requestURI = new URI(request.getRequestLine().getUri());
-            } catch (URISyntaxException ex) {
-                throw new ProtocolException("Invalid request URI: " +
-                        request.getRequestLine().getUri(), ex);
+            } catch (URISyntaxException ignore) {
+                requestURI = null;
             }
         }
 
         String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
-            if (route.getHopCount() == 1) {
-                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
-                        ClientContext.SCHEME_REGISTRY);
-                if (schemeRegistry != null) {
-                    Scheme scheme = schemeRegistry.getScheme(targetHost);
-                    port = scheme.resolvePort(port);
-                }
-            } else {
-                // Target port will be selected by the proxy.
-                // Use conventional ports for known schemes
-                String scheme = targetHost.getSchemeName();
-                if (scheme.equalsIgnoreCase("http")) {
-                    port = 80;
-                } else if (scheme.equalsIgnoreCase("https")) {
-                    port = 443;
-                }
-            }
+            port = route.getTargetHost().getPort();
         }
 
         CookieOrigin cookieOrigin = new CookieOrigin(
                 hostName,
                 port >= 0 ? port : 0,
-                requestURI.getPath(),
+                requestURI != null ? requestURI.getPath() : "/",
                 route.isSecure());
 
         // Get an instance of the selected cookie policy
-        CookieSpec cookieSpec = registry.getCookieSpec(policy, request.getParams());
+        CookieSpecProvider provider = registry.lookup(policy);
+        if (provider == null) {
+            throw new HttpException("Unsupported cookie policy: " + policy);
+        }
+        CookieSpec cookieSpec = provider.create(clientContext);
         // Get all cookies available in the HTTP state
         List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
         // Find cookies matching the given origin

@@ -35,16 +35,16 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
+import org.apache.http.config.Lookup;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.params.HttpParams;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.pool.ConnPool;
+import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,8 +54,9 @@ public class TestHttpClientConnectionManagerBase {
 
     private SocketClientConnection conn;
     private Socket socket;
-    private SchemeSocketFactory plainSocketFactory;
-    private SchemeRegistry schemeRegistry;
+    private ConnectionSocketFactory plainSocketFactory;
+    private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
+    private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
     private Future<CPoolEntry> future;
     private ConnPool<HttpRoute, CPoolEntry> pool;
@@ -66,17 +67,14 @@ public class TestHttpClientConnectionManagerBase {
     public void setup() throws Exception {
         conn = Mockito.mock(SocketClientConnection.class);
         socket = Mockito.mock(Socket.class);
-        plainSocketFactory = Mockito.mock(SchemeSocketFactory.class);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpParams>any())).thenReturn(socket);
+        plainSocketFactory = Mockito.mock(ConnectionSocketFactory.class);
+        socketFactoryRegistry = Mockito.mock(Lookup.class);
+        schemePortResolver = Mockito.mock(SchemePortResolver.class);
         dnsResolver = Mockito.mock(DnsResolver.class);
-
-        Scheme http = new Scheme("http", 80, plainSocketFactory);
-        schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(http);
-
         pool = Mockito.mock(ConnPool.class);
         future = Mockito.mock(Future.class);
-        mgr = new HttpClientConnectionManagerBase(pool, schemeRegistry, dnsResolver) {
+        mgr = new HttpClientConnectionManagerBase(
+                pool, socketFactoryRegistry, schemePortResolver, dnsResolver) {
 
             public void closeIdleConnections(long idletime, TimeUnit tunit) {
             }
@@ -99,6 +97,11 @@ public class TestHttpClientConnectionManagerBase {
                 -1, TimeUnit.MILLISECONDS);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
+        Mockito.when(schemePortResolver.resolve(target)).thenReturn(80);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+
+        Mockito.when(future.isCancelled()).thenReturn(false);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(route, null, null)).thenReturn(future);
 

@@ -43,9 +43,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -73,29 +71,30 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
+        AuthCache authCache = clientContext.getAuthCache();
         if (authCache == null) {
             this.log.debug("Auth cache not set in the context");
             return;
         }
 
-        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
-                ClientContext.CREDS_PROVIDER);
+        CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
             this.log.debug("Credentials provider not set in the context");
             return;
         }
 
-        HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+        RouteInfo route = clientContext.getHttpRoute();
+        HttpHost target = clientContext.getTargetHost();
         if (target.getPort() < 0) {
-            SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
-                    ClientContext.SCHEME_REGISTRY);
-            Scheme scheme = schemeRegistry.getScheme(target);
-            target = new HttpHost(target.getHostName(),
-                    scheme.resolvePort(target.getPort()), target.getSchemeName());
+            target = new HttpHost(
+                    target.getHostName(),
+                    route.getTargetHost().getPort(),
+                    target.getSchemeName());
         }
 
-        AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        AuthState targetState = clientContext.getTargetAuthState();
         if (target != null && targetState != null && targetState.getState() == AuthProtocolState.UNCHALLENGED) {
             AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
@@ -103,8 +102,8 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             }
         }
 
-        HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
-        AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
+        HttpHost proxy = route.getProxyHost();
+        AuthState proxyState = clientContext.getProxyAuthState();
         if (proxy != null && proxyState != null && proxyState.getState() == AuthProtocolState.UNCHALLENGED) {
             AuthScheme authScheme = authCache.get(proxy);
             if (authScheme != null) {

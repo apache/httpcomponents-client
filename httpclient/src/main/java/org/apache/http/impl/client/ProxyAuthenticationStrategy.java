@@ -41,6 +41,8 @@ import org.apache.http.client.AuthenticationStrategy;
 @Immutable
 public class ProxyAuthenticationStrategy extends AuthenticationStrategyImpl {
 
+    public static final ProxyAuthenticationStrategy INSTANCE = new ProxyAuthenticationStrategy();
+
     public ProxyAuthenticationStrategy() {
         super(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, AUTH.PROXY_AUTH, AuthPNames.PROXY_AUTH_PREF);
     }
