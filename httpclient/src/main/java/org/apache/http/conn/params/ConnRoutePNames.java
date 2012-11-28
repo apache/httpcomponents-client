@@ -26,11 +26,16 @@
 
 package org.apache.http.conn.params;
 
+import org.apache.http.client.config.RequestConfig;
+
 /**
  * Parameter names for connection routing.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}.
  */
+@Deprecated
 public interface ConnRoutePNames {
 
     /**

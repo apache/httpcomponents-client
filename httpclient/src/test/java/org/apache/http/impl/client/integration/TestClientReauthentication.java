@@ -26,7 +26,7 @@
 package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.http.Consts;
@@ -41,8 +41,8 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
@@ -51,7 +51,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -178,18 +177,19 @@ public class TestClientReauthentication extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
+        RequestConfig config = RequestConfig.custom()
+            .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
+            .build();
         this.httpclient = HttpClients.custom()
             .registerAuthScheme("MyBasic", myBasicAuthSchemeFactory)
             .setTargetAuthenticationStrategy(myAuthStrategy)
             .setCredentialsProvider(credsProvider)
             .build();
 
-        this.httpclient.getParams().setParameter(AuthPNames.TARGET_AUTH_PREF,
-                Collections.singletonList("MyBasic"));
-
         HttpContext context = new BasicHttpContext();
         for (int i = 0; i < 10; i++) {
             HttpGet httpget = new HttpGet("/");
+            httpget.setConfig(config);
             HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
             HttpEntity entity = response.getEntity();
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());

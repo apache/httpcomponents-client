@@ -26,17 +26,18 @@
 
 package org.apache.http.client.params;
 
+import org.apache.http.client.config.RequestConfig;
+
 /**
  * Parameter names for HTTP client parameters.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}
  */
+@Deprecated
 public interface ClientPNames {
 
-    /**
-     * @deprecated (4.2)  do not use
-     */
-    @Deprecated
     public static final String CONNECTION_MANAGER_FACTORY_CLASS_NAME = "http.connection-manager.factory-class-name";
 
     /**

@@ -40,7 +40,7 @@ import org.apache.http.params.HttpParams;
  *
  * @see ConnManagerPNames
  * 
- * @deprecated (4.1.2) use configuration methods of the specific connection manager implementation.
+ * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
 @Deprecated 
 @Immutable

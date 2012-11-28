@@ -26,15 +26,19 @@
 
 package org.apache.http.impl.auth;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.annotation.NotThreadSafe;
 
+import org.apache.http.Consts;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.HeaderValueParser;
 import org.apache.http.message.ParserCursor;
@@ -47,27 +51,55 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe // AuthSchemeBase, params
 public abstract class RFC2617Scheme extends AuthSchemeBase {
 
-    /**
-     * Authentication parameter map.
-     */
     private final Map<String, String> params;
+    private final Charset credentialsCharset;
 
     /**
      * Creates an instance of <tt>RFC2617Scheme</tt> with the given challenge
      * state.
      *
      * @since 4.2
+     *
+     * @deprecated (4.3) do not use.
      */
+    @Deprecated
     public RFC2617Scheme(final ChallengeState challengeState) {
         super(challengeState);
         this.params = new HashMap<String, String>();
+        this.credentialsCharset = Consts.ASCII;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public RFC2617Scheme(final Charset credentialsCharset) {
+        super();
+        this.params = new HashMap<String, String>();
+        this.credentialsCharset = credentialsCharset != null ? credentialsCharset : Consts.ASCII;
     }
 
     public RFC2617Scheme() {
-        this(null);
+        this(Consts.ASCII);
+    }
+
+
+    /**
+     * @since 4.3
+     */
+    public Charset getCredentialsCharset() {
+        return credentialsCharset;
+    }
+
+    String getCredentialsCharset(final HttpRequest request) {
+        String charset = (String) request.getParams().getParameter(AuthPNames.CREDENTIAL_CHARSET);
+        if (charset == null) {
+            charset = getCredentialsCharset().name();
+        }
+        return charset;
     }
 
     @Override

@@ -27,6 +27,8 @@
 
 package org.apache.http.auth.params;
 
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -36,7 +38,11 @@ import org.apache.http.params.HttpParams;
  * using Java Beans conventions.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig} and constructor parameters of
+ *   {@link AuthSchemeProvider}s.
  */
+@Deprecated
 public class AuthParamBean extends HttpAbstractParamBean {
 
     public AuthParamBean (final HttpParams params) {

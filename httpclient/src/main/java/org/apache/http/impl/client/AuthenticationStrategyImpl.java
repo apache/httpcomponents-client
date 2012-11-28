@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -52,7 +53,8 @@ import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.protocol.HTTP;
@@ -60,28 +62,26 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 
 @Immutable
-class AuthenticationStrategyImpl implements AuthenticationStrategy {
+abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(new String[] {
-                AuthPolicy.SPNEGO,
-                AuthPolicy.KERBEROS,
-                AuthPolicy.NTLM,
-                AuthPolicy.DIGEST,
-                AuthPolicy.BASIC
+                AuthSchemes.SPNEGO,
+                AuthSchemes.KERBEROS,
+                AuthSchemes.NTLM,
+                AuthSchemes.DIGEST,
+                AuthSchemes.BASIC
     }));
 
     private final int challengeCode;
     private final String headerName;
-    private final String prefParamName;
 
-    AuthenticationStrategyImpl(int challengeCode, final String headerName, final String prefParamName) {
+    AuthenticationStrategyImpl(int challengeCode, final String headerName) {
         super();
         this.challengeCode = challengeCode;
         this.headerName = headerName;
-        this.prefParamName = prefParamName;
     }
 
     public boolean isAuthenticationRequested(
@@ -133,6 +133,8 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
         return map;
     }
 
+    abstract Collection<String> getPreferredAuthSchemes(RequestConfig config);
+
     public Queue<AuthOption> select(
             final Map<String, Header> challenges,
             final HttpHost authhost,
@@ -163,9 +165,8 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
             this.log.debug("Credentials provider not set in the context");
             return options;
         }
-
-        @SuppressWarnings("unchecked")
-        List<String> authPrefs = (List<String>) response.getParams().getParameter(this.prefParamName);
+        RequestConfig config = clientContext.getRequestConfig();
+        Collection<String> authPrefs = getPreferredAuthSchemes(config);
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
@@ -240,8 +241,8 @@ class AuthenticationStrategyImpl implements AuthenticationStrategy {
             return false;
         }
         String schemeName = authScheme.getSchemeName();
-        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
-                schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
+        return schemeName.equalsIgnoreCase(AuthSchemes.BASIC) ||
+                schemeName.equalsIgnoreCase(AuthSchemes.DIGEST);
     }
 
     public void authFailed(

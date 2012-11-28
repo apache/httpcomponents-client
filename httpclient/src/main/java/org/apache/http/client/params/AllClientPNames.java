@@ -29,6 +29,7 @@ package org.apache.http.client.params;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.auth.params.AuthPNames;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.cookie.params.CookieSpecPNames;
 import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.params.ConnConnectionPNames;
@@ -46,8 +47,10 @@ import org.apache.http.conn.params.ConnRoutePNames;
  * in which the respective constants are actually defined.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public interface AllClientPNames extends
     CoreConnectionPNames, CoreProtocolPNames,
     ClientPNames, AuthPNames, CookieSpecPNames,

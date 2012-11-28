@@ -32,6 +32,7 @@ import org.apache.http.annotation.Immutable;
 
 import org.apache.http.HttpHost;
 import org.apache.http.params.HttpParams;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
@@ -39,7 +40,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * in {@link HttpParams}.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}.
  */
+@Deprecated
 @Immutable
 public class ConnRouteParams implements ConnRoutePNames {
 

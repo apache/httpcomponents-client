@@ -33,6 +33,8 @@ import org.apache.http.HttpVersion;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +59,8 @@ public class TestDefaultRoutePlanner {
         HttpHost target = new HttpHost("somehost", 80, "http");
         HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpRoute route = routePlanner.determineRoute(target, request, null);
+        HttpContext context = new BasicHttpContext();
+        HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -71,7 +74,8 @@ public class TestDefaultRoutePlanner {
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
         HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpRoute route = routePlanner.determineRoute(target, request, null);
+        HttpContext context = new BasicHttpContext();
+        HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(new HttpHost("somehost", 443, "https"), route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());

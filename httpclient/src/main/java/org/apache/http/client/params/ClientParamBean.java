@@ -30,6 +30,7 @@ package org.apache.http.client.params;
 import java.util.Collection;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.config.RequestConfig;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -42,7 +43,10 @@ import org.apache.http.params.HttpParams;
  * Java Beans conventions.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}
  */
+@Deprecated
 @NotThreadSafe
 public class ClientParamBean extends HttpAbstractParamBean {
 

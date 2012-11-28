@@ -26,9 +26,12 @@
 
 package org.apache.http.impl.auth;
 
+import java.nio.charset.Charset;
+
 import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
@@ -38,7 +41,6 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -47,12 +49,6 @@ import org.apache.http.util.EncodingUtils;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
- * </ul>
  *
  * @since 4.0
  */
@@ -63,18 +59,28 @@ public class BasicScheme extends RFC2617Scheme {
     private boolean complete;
 
     /**
+     * @since 4.3
+     */
+    public BasicScheme(final Charset credentialsCharset) {
+        super(credentialsCharset);
+        this.complete = false;
+    }
+
+    /**
      * Creates an instance of <tt>BasicScheme</tt> with the given challenge
      * state.
      *
      * @since 4.2
+     *
+     * @deprecated (4.3) do not use.
      */
+    @Deprecated
     public BasicScheme(final ChallengeState challengeState) {
         super(challengeState);
-        this.complete = false;
     }
 
     public BasicScheme() {
-        this(null);
+        this(Consts.ASCII);
     }
 
     /**
@@ -153,9 +159,24 @@ public class BasicScheme extends RFC2617Scheme {
         if (request == null) {
             throw new IllegalArgumentException("HTTP request may not be null");
         }
+        StringBuilder tmp = new StringBuilder();
+        tmp.append(credentials.getUserPrincipal().getName());
+        tmp.append(":");
+        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
-        String charset = AuthParams.getCredentialCharset(request.getParams());
-        return authenticate(credentials, charset, isProxy());
+        byte[] base64password = Base64.encodeBase64(
+                EncodingUtils.getBytes(tmp.toString(), getCredentialsCharset(request)));
+
+        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        if (isProxy()) {
+            buffer.append(AUTH.PROXY_AUTH_RESP);
+        } else {
+            buffer.append(AUTH.WWW_AUTH_RESP);
+        }
+        buffer.append(": Basic ");
+        buffer.append(base64password, 0, base64password.length);
+
+        return new BufferedHeader(buffer);
     }
 
     /**
@@ -166,7 +187,10 @@ public class BasicScheme extends RFC2617Scheme {
      * @param charset The charset to use for encoding the credentials
      *
      * @return a basic authorization header
+     *
+     * @deprecated (4.3) use {@link #authenticate(Credentials, HttpRequest, HttpContext)}.
      */
+    @Deprecated
     public static Header authenticate(
             final Credentials credentials,
             final String charset,

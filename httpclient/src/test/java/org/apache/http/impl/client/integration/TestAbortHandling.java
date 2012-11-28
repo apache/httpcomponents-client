@@ -297,6 +297,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                 Mockito.any(HttpClientConnection.class),
                 Mockito.any(HttpHost.class),
                 Mockito.any(InetAddress.class),
+                Mockito.anyInt(),
                 Mockito.any(HttpContext.class));
 
         Mockito.when(connmgr.requestConnection(
@@ -457,6 +458,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                 final HttpClientConnection conn,
                 final HttpHost host,
                 final InetAddress localAddress,
+                final int connectTimeout,
                 final HttpContext context) throws IOException {
             throw new UnsupportedOperationException("just a mockup");
         }

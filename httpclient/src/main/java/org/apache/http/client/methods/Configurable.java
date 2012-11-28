@@ -25,57 +25,17 @@
  *
  */
 
-package org.apache.http.client.params;
+package org.apache.http.client.methods;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * Configuration interface for HTTP requests.
  *
- * @since 4.0
- *
- * @deprecated (4.3) use {@link CookieSpecs}
+ * @since 4.3
  */
-@Deprecated
-@Immutable
-public final class CookiePolicy {
+public interface Configurable {
 
-    /**
-     * The policy that provides high degree of compatibilty
-     * with common cookie management of popular HTTP agents.
-     */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
-
-    /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
-
-    /**
-     * The RFC 2109 compliant policy.
-     */
-    public static final String RFC_2109 = "rfc2109";
-
-    /**
-     * The RFC 2965 compliant policy.
-     */
-    public static final String RFC_2965 = "rfc2965";
-
-    /**
-     * The default 'best match' policy.
-     */
-    public static final String BEST_MATCH = "best-match";
-
-    /**
-     * The policy that ignores cookies.
-     *
-     * @since 4.1-beta1
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-
-    private CookiePolicy() {
-        super();
-    }
+    RequestConfig getConfig();
 
 }

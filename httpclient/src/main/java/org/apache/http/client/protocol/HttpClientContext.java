@@ -33,6 +33,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo;
@@ -156,6 +157,15 @@ public class HttpClientContext extends HttpCoreContext implements ClientContext 
 
     public void setUserToken(final Object obj) {
         setAttribute(USER_TOKEN, obj);
+    }
+
+    public RequestConfig getRequestConfig() {
+        RequestConfig config = getAttribute(REQUEST_CONFIG, RequestConfig.class);
+        return config != null ? config : RequestConfig.DEFAULT;
+    }
+
+    public void setRequestConfig(final RequestConfig config) {
+        setAttribute(REQUEST_CONFIG, config);
     }
 
 }

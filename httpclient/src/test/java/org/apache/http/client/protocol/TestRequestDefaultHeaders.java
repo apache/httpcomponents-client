@@ -34,7 +34,6 @@ import junit.framework.Assert;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
@@ -55,10 +54,9 @@ public class TestRequestDefaultHeaders {
         HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
         List<Header> defheaders = new ArrayList<Header>();
         defheaders.add(new BasicHeader("custom", "stuff"));
-        request.getParams().setParameter(AllClientPNames.DEFAULT_HEADERS, defheaders);
         HttpContext context = new BasicHttpContext();
 
-        HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
+        HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, context);
         Header header1 = request.getFirstHeader("custom");
         Assert.assertNull(header1);
@@ -70,10 +68,9 @@ public class TestRequestDefaultHeaders {
         request.addHeader("custom", "stuff");
         List<Header> defheaders = new ArrayList<Header>();
         defheaders.add(new BasicHeader("custom", "more stuff"));
-        request.getParams().setParameter(AllClientPNames.DEFAULT_HEADERS, defheaders);
         HttpContext context = new BasicHttpContext();
 
-        HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
+        HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, context);
         Header[] headers = request.getHeaders("custom");
         Assert.assertNotNull(headers);

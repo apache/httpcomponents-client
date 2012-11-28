@@ -47,7 +47,6 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 
 /**
@@ -107,7 +106,7 @@ class ProtocolExec implements ClientExecChain {
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
-            final HttpContext context,
+            final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
@@ -119,12 +118,10 @@ class ProtocolExec implements ClientExecChain {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
-
         HttpHost target = route.getTargetHost();
 
         // Get user info from the URI
-        AuthState targetAuthState = clientContext.getTargetAuthState();
+        AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState != null) {
             String userinfo = request.getURI().getUserInfo();
             if (userinfo != null) {

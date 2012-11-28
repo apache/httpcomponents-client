@@ -25,57 +25,47 @@
  *
  */
 
-package org.apache.http.client.params;
+package org.apache.http.client.config;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.config.CookieSpecs;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * Standard authentication schemes supported by HttpClient.
  *
- * @since 4.0
- *
- * @deprecated (4.3) use {@link CookieSpecs}
+ * @since 4.3
  */
-@Deprecated
 @Immutable
-public final class CookiePolicy {
+public final class AuthSchemes {
 
     /**
-     * The policy that provides high degree of compatibilty
-     * with common cookie management of popular HTTP agents.
+     * Basic authentication scheme as defined in RFC2617 (considered inherently
+     * insecure, but most widely supported)
      */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
+    public static final String BASIC = "Basic";
 
     /**
-     * The Netscape cookie draft compliant policy.
+     * Digest authentication scheme as defined in RFC2617.
      */
-    public static final String NETSCAPE = "netscape";
+    public static final String DIGEST = "Digest";
 
     /**
-     * The RFC 2109 compliant policy.
+     * The NTLM scheme is a proprietary Microsoft Windows Authentication
+     * protocol (considered to be the most secure among currently supported
+     * authentication schemes).
      */
-    public static final String RFC_2109 = "rfc2109";
+    public static final String NTLM = "NTLM";
 
     /**
-     * The RFC 2965 compliant policy.
+     * SPNEGO Authentication scheme.
      */
-    public static final String RFC_2965 = "rfc2965";
+    public static final String SPNEGO = "negotiate";
 
     /**
-     * The default 'best match' policy.
+     * Kerberos Authentication scheme.
      */
-    public static final String BEST_MATCH = "best-match";
+    public static final String KERBEROS = "Kerberos";
 
-    /**
-     * The policy that ignores cookies.
-     *
-     * @since 4.1-beta1
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-
-    private CookiePolicy() {
-        super();
+    private AuthSchemes() {
     }
 
 }

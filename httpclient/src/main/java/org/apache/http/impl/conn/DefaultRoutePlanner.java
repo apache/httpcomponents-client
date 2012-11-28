@@ -33,8 +33,9 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
@@ -44,14 +45,6 @@ import org.apache.http.protocol.HttpContext;
  * is based on {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
  * It will not make use of any Java system properties, nor of system or
  * browser proxy settings.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#LOCAL_ADDRESS}</li>
- *  <li>{@link org.apache.http.conn.params.ConnRoutePNames#FORCED_ROUTE}</li>
- * </ul>
  *
  * @since 4.3
  */
@@ -76,15 +69,13 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (request == null) {
             throw new IllegalArgumentException("Request may not be null");
         }
-        // If we have a forced route, we can do without a target.
-        HttpRoute route = ConnRouteParams.getForcedRoute(request.getParams());
-        if (route != null) {
-            return route;
-        }
-        // If we get here, there is no forced route.
-        // So we need a target to compute a route.
-        InetAddress local = ConnRouteParams.getLocalAddress(request.getParams());
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        RequestConfig config = clientContext.getRequestConfig();
+        InetAddress local = config.getLocalAddress();
         HttpHost proxy = determineProxy(host, request, context);
+        if (proxy == null) {
+            proxy = config.getDefaultProxy();
+        }
 
         HttpHost target;
         if (host.getPort() <= 0) {
@@ -97,18 +88,17 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
         boolean secure = target.getSchemeName().equalsIgnoreCase("https");
         if (proxy == null) {
-            route = new HttpRoute(target, local, secure);
+            return new HttpRoute(target, local, secure);
         } else {
-            route = new HttpRoute(target, local, proxy, secure);
+            return new HttpRoute(target, local, proxy, secure);
         }
-        return route;
     }
 
     protected HttpHost determineProxy(
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        return ConnRouteParams.getDefaultProxy(request.getParams());
+        return null;
     }
 
 }

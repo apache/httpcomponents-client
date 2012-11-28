@@ -27,11 +27,16 @@
 
 package org.apache.http.cookie.params;
 
+import org.apache.http.cookie.CookieSpecProvider;
+
 /**
  * Parameter names for HTTP cookie management classes.
  *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use constructor parameters of {@link CookieSpecProvider}s.
  */
+@Deprecated
 public interface CookieSpecPNames {
 
     /**

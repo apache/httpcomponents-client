@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.concurrent.Cancellable;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -45,15 +46,14 @@ import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
 
 /**
- * Basic implementation of an HTTP request that can be modified. Methods of the
- * {@link AbortableHttpRequest} interface implemented by this class are thread safe.
+ * Base implementation of {@link HttpUriRequest}.
  *
  * @since 4.0
  */
 @SuppressWarnings("deprecation")
 @NotThreadSafe
 public abstract class HttpRequestBase extends AbstractHttpMessage
-    implements HttpUriRequest, HttpExecutionAware, AbortableHttpRequest, Cloneable {
+    implements HttpUriRequest, Configurable, HttpExecutionAware, AbortableHttpRequest, Cloneable {
 
     private Lock abortLock;
     private volatile boolean aborted;
@@ -61,6 +61,7 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
     private ProtocolVersion version;
     private URI uri;
     private Cancellable cancellable;
+    private RequestConfig config;
 
     public HttpRequestBase() {
         super();
@@ -106,6 +107,14 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
 
     public void setURI(final URI uri) {
         this.uri = uri;
+    }
+
+    public RequestConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(final RequestConfig config) {
+        this.config = config;
     }
 
     @Deprecated

@@ -40,8 +40,8 @@ import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * @since 4.3
@@ -70,7 +70,7 @@ class RetryExec implements ClientExecChain {
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
-            final HttpContext context,
+            final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");

@@ -43,8 +43,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.cookie.Cookie;
@@ -58,14 +59,6 @@ import org.apache.http.protocol.HttpContext;
  * Request interceptor that matches cookies available in the current
  * {@link CookieStore} to the request being executed and generates
  * corresponding <code>Cookie</code> request headers.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#DATE_PATTERNS}</li>
- *  <li>{@link org.apache.http.cookie.params.CookieSpecPNames#SINGLE_COOKIE_HEADER}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#COOKIE_POLICY}</li>
- * </ul>
  *
  * @since 4.0
  */
@@ -122,7 +115,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        String policy = HttpClientParams.getCookiePolicy(request.getParams());
+        RequestConfig config = clientContext.getRequestConfig();
+        String policy = config.getCookieSpec();
+        if (policy == null) {
+            policy = CookieSpecs.BEST_MATCH;
+        }
         if (this.log.isDebugEnabled()) {
             this.log.debug("CookieSpec selected: " + policy);
         }

@@ -28,12 +28,18 @@
 package org.apache.http.auth.params;
 
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.config.RequestConfig;
 
 /**
  * Parameter names for HTTP authentication classes.
  *
  * @since 4.0
- */
+ *
+ * @deprecated (4.3) use {@link RequestConfig} and constructor parameters of
+ *   {@link AuthSchemeProvider}s.
+*/
+@Deprecated
 public interface AuthPNames {
 
     /**

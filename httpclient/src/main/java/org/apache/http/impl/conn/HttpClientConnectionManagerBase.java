@@ -193,6 +193,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
             final HttpClientConnection managedConn,
             final HttpHost host,
             final InetAddress local,
+            final int connectTimeout,
             final HttpContext context) throws IOException {
         if (managedConn == null) {
             throw new IllegalArgumentException("Connection may not be null");
@@ -213,7 +214,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
 
         InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(conn, host, localAddress,
-                connConfig.getConnectTimeout(), socketConfig, context);
+                connectTimeout, socketConfig, context);
     }
 
     public void upgrade(

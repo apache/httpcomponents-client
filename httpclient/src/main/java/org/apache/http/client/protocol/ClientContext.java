@@ -125,7 +125,17 @@ public interface ClientContext {
     /**
      * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
      * the actual {@link ConnectionSocketFactory} registry.
+     *
+     * @since 4.3
      */
     public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.config.RequestConfig} object that
+     * represents the actual request configuration.
+     *
+     * @since 4.3
+     */
+    public static final String REQUEST_CONFIG = "http.request-config";
 
 }

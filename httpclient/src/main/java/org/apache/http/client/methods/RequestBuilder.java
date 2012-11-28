@@ -36,10 +36,10 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.HeaderGroup;
-import org.apache.http.params.HttpParams;
 
 /**
  * @since 4.3
@@ -52,7 +52,7 @@ public class RequestBuilder {
     private URI uri;
     private HeaderGroup headergroup;
     private HttpEntity entity;
-    private HttpParams params;
+    private RequestConfig config;
 
     RequestBuilder(final String method) {
         super();
@@ -124,7 +124,11 @@ public class RequestBuilder {
         } else {
             entity = null;
         }
-        params = request.getParams();
+        if (request instanceof Configurable) {
+            this.config = ((Configurable) request).getConfig();
+        } else {
+            this.config = null;
+        }
         return this;
     }
 
@@ -234,12 +238,12 @@ public class RequestBuilder {
         return this;
     }
 
-    public HttpParams getParams() {
-        return params;
+    public RequestConfig getConfig() {
+        return config;
     }
 
-    public RequestBuilder setParams(final HttpParams params) {
-        this.params = params;
+    public RequestBuilder setConfig(final RequestConfig config) {
+        this.config = config;
         return this;
     }
 
@@ -264,9 +268,7 @@ public class RequestBuilder {
         if (this.headergroup != null) {
             result.setHeaders(this.headergroup.getAllHeaders());
         }
-        if (this.params != null) {
-            result.setParams(this.params);
-        }
+        result.setConfig(this.config);
         return result;
     }
 

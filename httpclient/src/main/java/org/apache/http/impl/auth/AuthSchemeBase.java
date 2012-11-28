@@ -63,6 +63,8 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      * state.
      *
      * @since 4.2
+     *
+     * @deprecated (4.3) do not use.
      */
     public AuthSchemeBase(final ChallengeState challengeState) {
         super();
@@ -70,7 +72,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     }
 
     public AuthSchemeBase() {
-        this(null);
+        super();
     }
 
     /**

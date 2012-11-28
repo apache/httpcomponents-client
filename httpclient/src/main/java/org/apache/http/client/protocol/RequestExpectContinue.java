@@ -28,62 +28,53 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
-import java.util.Collection;
 
-import org.apache.http.annotation.Immutable;
-
-import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.params.ClientPNames;
+import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
- * Request interceptor that adds default request headers.
+ * RequestExpectContinue is responsible for enabling the 'expect-continue'
+ * handshake by adding <code>Expect</code> header.
+ * <p/>
+ * This interceptor takes into account {@link RequestConfig#isExpectContinueEnabled()}
+ * setting.
  *
- * @since 4.0
+ * @since 4.3
  */
-@SuppressWarnings("deprecation")
 @Immutable
-public class RequestDefaultHeaders implements HttpRequestInterceptor {
+public class RequestExpectContinue implements HttpRequestInterceptor {
 
-    private final Collection<? extends Header> defaultHeaders;
-
-    /**
-     * @since 4.3
-     */
-    public RequestDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
+    public RequestExpectContinue() {
         super();
-        this.defaultHeaders = defaultHeaders;
-    }
-
-    public RequestDefaultHeaders() {
-        this(null);
     }
 
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
+        Args.notNull(request, "HTTP request");
 
-        String method = request.getRequestLine().getMethod();
-        if (method.equalsIgnoreCase("CONNECT")) {
-            return;
-        }
-
-        // Add default headers
-        @SuppressWarnings("unchecked")
-        Collection<? extends Header> defHeaders = (Collection<? extends Header>)
-            request.getParams().getParameter(ClientPNames.DEFAULT_HEADERS);
-        if (defHeaders == null) {
-            defHeaders = this.defaultHeaders;
-        }
-
-        if (defHeaders != null) {
-            for (Header defHeader : defHeaders) {
-                request.addHeader(defHeader);
+        if (!request.containsHeader(HTTP.EXPECT_DIRECTIVE)) {
+            if (request instanceof HttpEntityEnclosingRequest) {
+                ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
+                HttpEntity entity = ((HttpEntityEnclosingRequest)request).getEntity();
+                // Do not send the expect header if request body is known to be empty
+                if (entity != null
+                        && entity.getContentLength() != 0 && !ver.lessEquals(HttpVersion.HTTP_1_0)) {
+                    HttpClientContext clientContext = HttpClientContext.adapt(context);
+                    RequestConfig config = clientContext.getRequestConfig();
+                    if (config.isExpectContinueEnabled()) {
+                        request.addHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
+                    }
+                }
             }
         }
     }

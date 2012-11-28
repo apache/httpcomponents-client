@@ -41,7 +41,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthProtocolState;
@@ -49,9 +48,9 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
@@ -68,11 +67,7 @@ import org.apache.http.impl.client.RequestAbortedException;
 import org.apache.http.impl.client.TunnelRefusedException;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -80,30 +75,6 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 
 /**
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#USE_EXPECT_CONTINUE}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#WAIT_FOR_CONTINUE}</li>
- *  <li>{@link org.apache.http.params.CoreProtocolPNames#USER_AGENT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_LINE_LENGTH}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#MAX_HEADER_COUNT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_TIMEOUT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_LINGER}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#SO_REUSEADDR}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT}</li>
- *  <li>{@link org.apache.http.params.CoreConnectionPNames#STALE_CONNECTION_CHECK}</li>
- *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_AUTHENTICATION}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
- * </ul>
- *
  * @since 4.3
  */
 @ThreadSafe
@@ -170,7 +141,7 @@ class MainClientExec implements ClientExecChain {
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
-            final HttpContext context,
+            final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
@@ -182,22 +153,18 @@ class MainClientExec implements ClientExecChain {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
-
-        AuthState targetAuthState = clientContext.getTargetAuthState();
+        AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState == null) {
             targetAuthState = new AuthState();
             context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
         }
-        AuthState proxyAuthState = clientContext.getProxyAuthState();
+        AuthState proxyAuthState = context.getProxyAuthState();
         if (proxyAuthState == null) {
             proxyAuthState = new AuthState();
             context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
         }
 
-        HttpParams params = request.getParams();
-
-        Object userToken = clientContext.getUserToken();
+        Object userToken = context.getUserToken();
 
         final ConnectionRequest connRequest = connManager.requestConnection(route, userToken);
         if (execAware != null) {
@@ -209,17 +176,19 @@ class MainClientExec implements ClientExecChain {
             }
         }
 
+        RequestConfig config = context.getRequestConfig();
+
         HttpClientConnection managedConn;
         try {
-            long timeout = HttpClientParams.getConnectionManagerTimeout(params);
-            managedConn = connRequest.get(timeout, TimeUnit.MILLISECONDS);
+            int timeout = config.getConnectionRequestTimeout();
+            managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
         } catch(InterruptedException interrupted) {
             throw new RequestAbortedException("Request aborted", interrupted);
         }
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
 
-        if (HttpConnectionParams.isStaleCheckingEnabled(params)) {
+        if (config.isStaleConnectionCheckEnabled()) {
             // validate connection
             if (managedConn.isOpen()) {
                 this.log.debug("Stale connection check");
@@ -266,7 +235,10 @@ class MainClientExec implements ClientExecChain {
                         break;
                     }
                 } else {
-                    managedConn.setSocketTimeout(HttpConnectionParams.getSoTimeout(params));
+                    int timeout = config.getSocketTimeout();
+                    if (timeout >= 0) {
+                        managedConn.setSocketTimeout(timeout);
+                    }
                 }
 
                 if (execAware != null && execAware.isAborted()) {
@@ -291,7 +263,6 @@ class MainClientExec implements ClientExecChain {
                 }
 
                 response = requestExecutor.execute(request, managedConn, context);
-                response.setParams(params);
 
                 // The connection is in or can be brought to a re-usable state.
                 if (reuseStrategy.keepAlive(response, context)) {
@@ -385,8 +356,9 @@ class MainClientExec implements ClientExecChain {
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
-            final HttpContext context) throws HttpException, IOException {
-        HttpParams params = request.getParams();
+            final HttpClientContext context) throws HttpException, IOException {
+        RequestConfig config = context.getRequestConfig();
+        int timeout = config.getConnectTimeout();
         RouteTracker tracker = new RouteTracker(route);
         int step;
         do {
@@ -397,17 +369,24 @@ class MainClientExec implements ClientExecChain {
 
             case HttpRouteDirector.CONNECT_TARGET:
                 this.connManager.connect(
-                        managedConn, route.getTargetHost(), route.getLocalAddress(), context);
+                        managedConn,
+                        route.getTargetHost(), route.getLocalAddress(),
+                        timeout > 0 ? timeout : 0,
+                        context);
                 tracker.connectTarget(route.isSecure());
                 break;
             case HttpRouteDirector.CONNECT_PROXY:
                 this.connManager.connect(
-                        managedConn, route.getProxyHost(), route.getLocalAddress(), context);
+                        managedConn,
+                        route.getProxyHost(), route.getLocalAddress(),
+                        timeout > 0 ? timeout : 0,
+                        context);
                 HttpHost proxy  = route.getProxyHost();
                 tracker.connectProxy(proxy, false);
                 break;
             case HttpRouteDirector.TUNNEL_TARGET: {
-                boolean secure = createTunnelToTarget(proxyAuthState, managedConn, route, request, context);
+                boolean secure = createTunnelToTarget(
+                        proxyAuthState, managedConn, route, request, context);
                 this.log.debug("Tunnel to target created.");
                 tracker.tunnelTarget(secure);
             }   break;
@@ -454,24 +433,27 @@ class MainClientExec implements ClientExecChain {
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
-            final HttpContext context) throws HttpException, IOException {
+            final HttpClientContext context) throws HttpException, IOException {
 
-        HttpParams params = request.getParams();
+        RequestConfig config = context.getRequestConfig();
+        int timeout = config.getConnectTimeout();
+
         HttpHost target = route.getTargetHost();
         HttpHost proxy = route.getProxyHost();
         HttpResponse response = null;
 
         String authority = target.toHostString();
-        ProtocolVersion ver = HttpProtocolParams.getVersion(params);
-        HttpRequest connect = new BasicHttpRequest("CONNECT", authority, ver);
-        connect.setParams(params);
+        HttpRequest connect = new BasicHttpRequest("CONNECT", authority, request.getProtocolVersion());
 
         this.requestExecutor.preProcess(connect, this.proxyHttpProcessor, context);
 
         for (;;) {
             if (!managedConn.isOpen()) {
                 this.connManager.connect(
-                        managedConn, route.getProxyHost(), route.getLocalAddress(), context);
+                        managedConn,
+                        route.getProxyHost(), route.getLocalAddress(),
+                        timeout > 0 ? timeout : 0,
+                        context);
             }
 
             connect.removeHeaders(AUTH.PROXY_AUTH_RESP);
@@ -485,7 +467,7 @@ class MainClientExec implements ClientExecChain {
                         response.getStatusLine());
             }
 
-            if (HttpClientParams.isAuthenticating(params)) {
+            if (config.isAuthenticationEnabled()) {
                 if (this.authenticator.isAuthenticationRequested(proxy, response,
                         this.proxyAuthStrategy, proxyAuthState, context)) {
                     if (this.authenticator.handleAuthChallenge(proxy, response,
@@ -538,7 +520,7 @@ class MainClientExec implements ClientExecChain {
     private boolean createTunnelToProxy(
             final HttpRoute route,
             final int hop,
-            final HttpContext context) throws HttpException, IOException {
+            final HttpClientContext context) throws HttpException, IOException {
 
         // Have a look at createTunnelToTarget and replicate the parts
         // you need in a custom derived class. If your proxies don't require
@@ -558,11 +540,10 @@ class MainClientExec implements ClientExecChain {
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpResponse response,
-            final HttpContext context) throws HttpException, IOException {
-
-        HttpParams params = request.getParams();
-        if (HttpClientParams.isAuthenticating(params)) {
-            HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+            final HttpClientContext context) throws HttpException, IOException {
+        RequestConfig config = context.getRequestConfig();
+        if (config.isAuthenticationEnabled()) {
+            HttpHost target = context.getTargetHost();
             if (target == null) {
                 target = route.getTargetHost();
             }

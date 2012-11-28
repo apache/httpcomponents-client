@@ -308,6 +308,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final HttpClientConnection conn,
             final HttpHost host,
             final InetAddress local,
+            final int connectTimeout,
             final HttpContext context) throws IOException {
         if (conn == null) {
             throw new IllegalArgumentException("Connection may not be null");
@@ -320,7 +321,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
         InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(this.conn, host, localAddress,
-                this.connConfig.getConnectTimeout(), this.socketConfig, context);
+                connectTimeout, this.socketConfig, context);
     }
 
     public void upgrade(

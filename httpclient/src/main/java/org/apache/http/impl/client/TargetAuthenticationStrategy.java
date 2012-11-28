@@ -27,11 +27,13 @@
 
 package org.apache.http.impl.client;
 
+import java.util.Collection;
+
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.AuthenticationStrategy;
+import org.apache.http.client.config.RequestConfig;
 
 /**
  * Default {@link AuthenticationStrategy} implementation for proxy host authentication.
@@ -44,7 +46,12 @@ public class TargetAuthenticationStrategy extends AuthenticationStrategyImpl {
     public static final TargetAuthenticationStrategy INSTANCE = new TargetAuthenticationStrategy();
 
     public TargetAuthenticationStrategy() {
-        super(HttpStatus.SC_UNAUTHORIZED, AUTH.WWW_AUTH, AuthPNames.TARGET_AUTH_PREF);
+        super(HttpStatus.SC_UNAUTHORIZED, AUTH.WWW_AUTH);
+    }
+
+    @Override
+    Collection<String> getPreferredAuthSchemes(final RequestConfig config) {
+        return config.getTargetPreferredAuthSchemes();
     }
 
 }

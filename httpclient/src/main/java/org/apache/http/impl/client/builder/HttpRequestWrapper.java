@@ -66,7 +66,6 @@ class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
         } else {
             this.uri = null;
         }
-        setParams(request.getParams());
         setHeaders(request.getAllHeaders());
     }
 

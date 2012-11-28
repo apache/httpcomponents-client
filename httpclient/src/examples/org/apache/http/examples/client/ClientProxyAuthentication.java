@@ -30,9 +30,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -55,9 +55,9 @@ public class ClientProxyAuthentication {
             HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https");
             HttpHost proxy = new HttpHost("localhost", 8080);
 
-            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-
+            RequestConfig config = RequestConfig.custom().setDefaultProxy(proxy).build();
             HttpGet httpget = new HttpGet("/");
+            httpget.setConfig(config);
 
             System.out.println("executing request: " + httpget.getRequestLine());
             System.out.println("via proxy: " + proxy);

@@ -43,6 +43,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.NonRepeatableRequestException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -58,7 +59,6 @@ import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
@@ -240,12 +240,13 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
+        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         HttpPut httpput = new HttpPut("/");
+        httpput.setConfig(config);
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1));
-        httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
 
         HttpResponse response = this.httpclient.execute(getServerHttp(), httpput);
         HttpEntity entity = response.getEntity();
@@ -262,12 +263,13 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 
+        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         HttpPut httpput = new HttpPut("/");
+        httpput.setConfig(config);
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1));
-        httpput.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, false);
 
         try {
             this.httpclient.execute(getServerHttp(), httpput);

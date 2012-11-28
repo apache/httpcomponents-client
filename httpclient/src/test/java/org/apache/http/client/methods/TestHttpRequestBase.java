@@ -33,7 +33,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.LangUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,11 +42,9 @@ public class TestHttpRequestBase {
     @Test
     public void testBasicProperties() throws Exception {
         HttpGet httpget = new HttpGet("http://host/path");
-        httpget.getParams().setParameter(
-                HttpProtocolParams.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
         Assert.assertEquals("GET", httpget.getRequestLine().getMethod());
         Assert.assertEquals("http://host/path", httpget.getRequestLine().getUri());
-        Assert.assertEquals(HttpVersion.HTTP_1_0, httpget.getRequestLine().getProtocolVersion());
+        Assert.assertEquals(HttpVersion.HTTP_1_1, httpget.getRequestLine().getProtocolVersion());
     }
 
     @Test
@@ -62,8 +59,6 @@ public class TestHttpRequestBase {
         httpget.addHeader("h1", "this header");
         httpget.addHeader("h2", "that header");
         httpget.addHeader("h3", "all sorts of headers");
-        httpget.getParams().setParameter("p1", Integer.valueOf(1));
-        httpget.getParams().setParameter("p2", "whatever");
         HttpGet clone = (HttpGet) httpget.clone();
 
         Assert.assertEquals(httpget.getMethod(), clone.getMethod());
@@ -73,11 +68,6 @@ public class TestHttpRequestBase {
         Header[] headers2 = clone.getAllHeaders();
 
         Assert.assertTrue(LangUtils.equals(headers1, headers2));
-        Assert.assertTrue(httpget.getParams() != clone.getParams());
-
-        Assert.assertEquals(Integer.valueOf(1), clone.getParams().getParameter("p1"));
-        Assert.assertEquals("whatever", clone.getParams().getParameter("p2"));
-        Assert.assertEquals(null, clone.getParams().getParameter("p3"));
     }
 
     @Test
@@ -86,8 +76,6 @@ public class TestHttpRequestBase {
         httppost.addHeader("h1", "this header");
         httppost.addHeader("h2", "that header");
         httppost.addHeader("h3", "all sorts of headers");
-        httppost.getParams().setParameter("p1", Integer.valueOf(1));
-        httppost.getParams().setParameter("p2", "whatever");
         HttpPost clone = (HttpPost) httppost.clone();
 
         Assert.assertEquals(httppost.getMethod(), clone.getMethod());
@@ -97,11 +85,6 @@ public class TestHttpRequestBase {
         Header[] headers2 = clone.getAllHeaders();
 
         Assert.assertTrue(LangUtils.equals(headers1, headers2));
-        Assert.assertTrue(httppost.getParams() != clone.getParams());
-
-        Assert.assertEquals(Integer.valueOf(1), clone.getParams().getParameter("p1"));
-        Assert.assertEquals("whatever", clone.getParams().getParameter("p2"));
-        Assert.assertEquals(null, clone.getParams().getParameter("p3"));
 
         Assert.assertNull(clone.getEntity());
 

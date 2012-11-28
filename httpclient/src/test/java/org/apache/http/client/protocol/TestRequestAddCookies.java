@@ -33,8 +33,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.params.AllClientPNames;
-import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.routing.HttpRoute;
@@ -84,12 +84,12 @@ public class TestRequestAddCookies {
         this.cookieStore.addCookie(cookie2);
 
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookiePolicy.BEST_MATCH, new BestMatchSpecFactory())
-            .register(CookiePolicy.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
-            .register(CookiePolicy.NETSCAPE, new NetscapeDraftSpecFactory())
-            .register(CookiePolicy.RFC_2109, new RFC2109SpecFactory())
-            .register(CookiePolicy.RFC_2965, new RFC2965SpecFactory())
-            .register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory())
+            .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+            .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
+            .register(CookieSpecs.RFC_2109, new RFC2109SpecFactory())
+            .register(CookieSpecs.RFC_2965, new RFC2965SpecFactory())
+            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
             .build();
     }
 
@@ -256,13 +256,14 @@ public class TestRequestAddCookies {
     @Test
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         HttpRequest request = new BasicHttpRequest("GET", "/");
-        request.getParams().setParameter(AllClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-
+        RequestConfig config = RequestConfig.custom()
+            .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build();
         HttpRoute route = new HttpRoute(this.target, null, false);
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 

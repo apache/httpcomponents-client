@@ -27,6 +27,7 @@
 package org.apache.http.client.params;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.config.RequestConfig;
 
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -35,7 +36,10 @@ import org.apache.http.params.HttpParams;
  * An adaptor for manipulating HTTP client parameters in {@link HttpParams}.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link RequestConfig}
  */
+@Deprecated
 @Immutable
 public class HttpClientParams {
 

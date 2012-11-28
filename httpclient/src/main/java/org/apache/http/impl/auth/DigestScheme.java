@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import java.util.StringTokenizer;
 
 import org.apache.http.annotation.NotThreadSafe;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -49,7 +51,6 @@ import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.auth.params.AuthParams;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BufferedHeader;
@@ -64,22 +65,10 @@ import org.apache.http.util.EncodingUtils;
  * Currently only qop=auth or no qop is supported. qop=auth-int
  * is unsupported. If auth and auth-int are provided, auth is
  * used.
- * <p>
- * Credential charset is configured via the
- * {@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}
- * parameter of the HTTP request.
- * <p>
+ * <p/>
  * Since the digest username is included as clear text in the generated
  * Authentication header, the charset of the username must be compatible
- * with the
- * {@link org.apache.http.params.CoreProtocolPNames#HTTP_ELEMENT_CHARSET
- *        http element charset}.
- * <p>
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.auth.params.AuthPNames#CREDENTIAL_CHARSET}</li>
- * </ul>
+ * with the HTTP element charset used by the connection.
  *
  * @since 4.0
  */
@@ -112,18 +101,28 @@ public class DigestScheme extends RFC2617Scheme {
     private String a2;
 
     /**
+     * @since 4.3
+     */
+    public DigestScheme(final Charset credentialsCharset) {
+        super(credentialsCharset);
+        this.complete = false;
+    }
+
+    /**
      * Creates an instance of <tt>DigestScheme</tt> with the given challenge
      * state.
      *
      * @since 4.2
+     *
+     * @deprecated (4.3) do not use.
      */
+    @Deprecated
     public DigestScheme(final ChallengeState challengeState) {
         super(challengeState);
-        this.complete = false;
     }
 
     public DigestScheme() {
-        this(null);
+        this(Consts.ASCII);
     }
 
     /**
@@ -181,7 +180,7 @@ public class DigestScheme extends RFC2617Scheme {
     /**
      * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
-    @Deprecated 
+    @Deprecated
     public Header authenticate(
             final Credentials credentials, final HttpRequest request) throws AuthenticationException {
         return authenticate(credentials, request, new BasicHttpContext());
@@ -224,8 +223,7 @@ public class DigestScheme extends RFC2617Scheme {
         getParameters().put("uri", request.getRequestLine().getUri());
         String charset = getParameter("charset");
         if (charset == null) {
-            charset = AuthParams.getCredentialCharset(request.getParams());
-            getParameters().put("charset", charset);
+            getParameters().put("charset", getCredentialsCharset(request));
         }
         return createDigestHeader(credentials, request);
     }
@@ -430,7 +428,7 @@ public class DigestScheme extends RFC2617Scheme {
                 buffer.append(", ");
             }
             boolean noQuotes = "nc".equals(param.getName()) || "qop".equals(param.getName());
-            BasicHeaderValueFormatter.DEFAULT.formatNameValuePair(buffer, param, !noQuotes);
+            BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
         }
         return new BufferedHeader(buffer);
     }

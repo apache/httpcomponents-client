@@ -37,8 +37,8 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link ClientExecChain} implementation that can automatically retry the request in case of
@@ -72,7 +72,7 @@ class ServiceUnavailableRetryExec implements ClientExecChain {
     public CloseableHttpResponse execute(
             final HttpRoute route, 
             final HttpRequestWrapper request,
-            final HttpContext context, 
+            final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         for (int c = 1;; c++) {
             CloseableHttpResponse response = this.requestExecutor.execute(

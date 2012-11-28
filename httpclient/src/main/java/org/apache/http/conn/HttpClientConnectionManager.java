@@ -79,7 +79,9 @@ public interface HttpClientConnectionManager {
             HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit);
 
     void connect(
-            HttpClientConnection conn, HttpHost host, InetAddress localAddress,
+            HttpClientConnection conn,
+            HttpHost host, InetAddress localAddress,
+            int connectTimeout,
             HttpContext context) throws IOException;
 
     void upgrade(

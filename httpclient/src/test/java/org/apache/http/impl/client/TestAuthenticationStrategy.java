@@ -41,10 +41,10 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -274,8 +274,10 @@ public class TestAuthenticationStrategy {
     public void testCustomAuthPreference() throws Exception {
         TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.getParams().setParameter(AuthPNames.TARGET_AUTH_PREF,
-                Arrays.asList(new String[] {AuthPolicy.BASIC } ));
+        RequestConfig config = RequestConfig.custom()
+            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
+            .build();
+
         HttpHost authhost = new HttpHost("somehost", 80);
         HttpContext context = new BasicHttpContext();
 
@@ -287,6 +289,7 @@ public class TestAuthenticationStrategy {
             .register("basic", new BasicSchemeFactory())
             .register("digest", new DigestSchemeFactory()).build();
         context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
+        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80),

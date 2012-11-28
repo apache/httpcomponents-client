@@ -39,9 +39,12 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.HttpParamConfig;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
@@ -54,9 +57,8 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.params.DefaultedHttpParams;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -64,6 +66,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @ThreadSafe
+@SuppressWarnings("deprecation")
 class InternalHttpClient extends CloseableHttpClient {
 
     private final ClientExecChain execChain;
@@ -73,6 +76,7 @@ class InternalHttpClient extends CloseableHttpClient {
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
+    private final RequestConfig defaultConfig;
     private final HttpParams params;
 
     public InternalHttpClient(
@@ -82,7 +86,8 @@ class InternalHttpClient extends CloseableHttpClient {
             final Lookup<CookieSpecProvider> cookieSpecRegistry,
             final Lookup<AuthSchemeProvider> authSchemeRegistry,
             final CookieStore cookieStore,
-            final CredentialsProvider credentialsProvider) {
+            final CredentialsProvider credentialsProvider,
+            final RequestConfig defaultConfig) {
         super();
         if (execChain == null) {
             throw new IllegalArgumentException("HTTP client exec chain may not be null");
@@ -100,7 +105,8 @@ class InternalHttpClient extends CloseableHttpClient {
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
-        this.params = new SyncBasicHttpParams();
+        this.defaultConfig = defaultConfig != null ? defaultConfig : RequestConfig.DEFAULT;
+        this.params = new BasicHttpParams();
     }
 
     private HttpRoute determineRoute(
@@ -117,7 +123,7 @@ class InternalHttpClient extends CloseableHttpClient {
         return this.routePlanner.determineRoute(host, request, context);
     }
 
-    private HttpContext setupContext(final HttpContext localContext) {
+    private HttpClientContext setupContext(final HttpContext localContext) {
         HttpClientContext context = HttpClientContext.adapt(
                 localContext != null ? localContext : new BasicHttpContext());
         if (context.getAttribute(ClientContext.TARGET_AUTH_STATE) == null) {
@@ -154,14 +160,23 @@ class InternalHttpClient extends CloseableHttpClient {
             execListner = (HttpExecutionAware) request;
         }
         try {
-            HttpParams params = new DefaultedHttpParams(request.getParams(), getParams());
+            HttpParams params = request.getParams();
             HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
 
             HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
-            wrapper.setParams(params);
             wrapper.setVirtualHost(virtualHost);
-            HttpContext localcontext = setupContext(context);
+            HttpClientContext localcontext = setupContext(context);
             HttpRoute route = determineRoute(target, wrapper, localcontext);
+            RequestConfig config = null;
+            if (request instanceof Configurable) {
+                config = ((Configurable) request).getConfig();
+            } else {
+                config = HttpParamConfig.getRequestConfig(params);
+            }
+            if (config == null) {
+                config = this.defaultConfig;
+            }
+            localcontext.setRequestConfig(config);
             return this.execChain.execute(route, wrapper, localcontext, execListner);
         } catch (HttpException httpException) {
             throw new ClientProtocolException(httpException);
@@ -173,10 +188,9 @@ class InternalHttpClient extends CloseableHttpClient {
     }
 
     public void close() {
-        connManager.shutdown();
+        this.connManager.shutdown();
     }
 
-    @SuppressWarnings("deprecation")
     public ClientConnectionManager getConnectionManager() {
 
         return new ClientConnectionManager() {

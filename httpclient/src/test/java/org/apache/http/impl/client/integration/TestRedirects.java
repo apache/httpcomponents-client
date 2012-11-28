@@ -27,8 +27,7 @@
 package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;
@@ -43,9 +42,9 @@ import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.RedirectException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.SM;
 import org.apache.http.entity.StringEntity;
@@ -400,10 +399,13 @@ public class TestRedirects extends IntegrationTestBase {
         HttpHost target = getServerHttp();
         this.localServer.register("*", new CircularRedirectService());
 
-        this.httpclient.getParams().setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
-        this.httpclient.getParams().setIntParameter(ClientPNames.MAX_REDIRECTS, 5);
+        RequestConfig config = RequestConfig.custom()
+            .setCircularRedirectsAllowed(true)
+            .setMaxRedirects(5)
+            .build();
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
+        httpget.setConfig(config);
         try {
             this.httpclient.execute(target, httpget);
         } catch (ClientProtocolException e) {
@@ -417,10 +419,12 @@ public class TestRedirects extends IntegrationTestBase {
         HttpHost target = getServerHttp();
         this.localServer.register("*", new CircularRedirectService());
 
-        this.httpclient.getParams().setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false);
+        RequestConfig config = RequestConfig.custom()
+            .setCircularRedirectsAllowed(false)
+            .build();
 
         HttpGet httpget = new HttpGet("/circular-oldlocation/");
-
+        httpget.setConfig(config);
         try {
             this.httpclient.execute(target, httpget);
         } catch (ClientProtocolException e) {
@@ -478,9 +482,9 @@ public class TestRedirects extends IntegrationTestBase {
 
         HttpContext context = new BasicHttpContext();
 
-        this.httpclient.getParams().setBooleanParameter(
-                ClientPNames.REJECT_RELATIVE_REDIRECT, false);
+        RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         HttpGet httpget = new HttpGet("/oldlocation/");
+        httpget.setConfig(config);
 
         HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
@@ -502,9 +506,9 @@ public class TestRedirects extends IntegrationTestBase {
 
         HttpContext context = new BasicHttpContext();
 
-        this.httpclient.getParams().setBooleanParameter(
-                ClientPNames.REJECT_RELATIVE_REDIRECT, false);
+        RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         HttpGet httpget = new HttpGet("/test/oldlocation");
+        httpget.setConfig(config);
 
         HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
@@ -524,10 +528,9 @@ public class TestRedirects extends IntegrationTestBase {
         HttpHost target = getServerHttp();
         this.localServer.register("*", new RelativeRedirectService());
 
-        this.httpclient.getParams().setBooleanParameter(
-                ClientPNames.REJECT_RELATIVE_REDIRECT, true);
+        RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
         HttpGet httpget = new HttpGet("/oldlocation/");
-
+        httpget.setConfig(config);
         try {
             this.httpclient.execute(target, httpget);
         } catch (ClientProtocolException e) {
@@ -597,16 +600,14 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
+        this.httpclient = HttpClients.custom()
+            .setDefaultHeaders(Arrays.asList(new BasicHeader(HTTP.USER_AGENT, "my-test-client")))
+            .build();
         HttpHost target = getServerHttp();
 
         this.localServer.register("*", new BasicRedirectService());
 
         HttpContext context = new BasicHttpContext();
-
-        List<Header> defaultHeaders = new ArrayList<Header>(1);
-        defaultHeaders.add(new BasicHeader(HTTP.USER_AGENT, "my-test-client"));
-
-        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HEADERS, defaultHeaders);
 
         HttpGet httpget = new HttpGet("/oldlocation/");
 

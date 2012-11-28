@@ -30,6 +30,7 @@ package org.apache.http.cookie.params;
 import java.util.Collection;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.cookie.CookieSpecProvider;
 
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
@@ -40,7 +41,10 @@ import org.apache.http.params.HttpParams;
  * conventions.
  *
  * @since 4.0
+ * 
+ * @deprecated (4.3) use constructor parameters of {@link CookieSpecProvider}s.
  */
+@Deprecated
 @NotThreadSafe
 public class CookieSpecParamBean extends HttpAbstractParamBean {
 

@@ -35,19 +35,17 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.SPNegoScheme;
-import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -132,16 +130,15 @@ public class TestSPNegoScheme extends IntegrationTestBase {
 
     }
 
-    private static class NegotiateSchemeFactoryWithMockGssManager extends SPNegoSchemeFactory {
+    private static class NegotiateSchemeProviderWithMockGssManager implements AuthSchemeProvider {
 
         NegotiateSchemeWithMockGssManager scheme;
 
-        NegotiateSchemeFactoryWithMockGssManager() throws Exception {
+        NegotiateSchemeProviderWithMockGssManager() throws Exception {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
 
-        @Override
-        public AuthScheme newInstance(HttpParams params) {
+        public AuthScheme create(HttpContext context) {
             return scheme;
         }
 
@@ -158,21 +155,19 @@ public class TestSPNegoScheme extends IntegrationTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
 
-        SPNegoSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
+        AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider(); 
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
         this.httpclient = HttpClients.custom()
-            .registerAuthScheme(AuthPolicy.SPNEGO, nsf)
+            .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();
         
-        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
-
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
-        HttpResponse response = this.httpclient.execute(httpget);
+        HttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -189,21 +184,20 @@ public class TestSPNegoScheme extends IntegrationTestBase {
 
         HttpHost target = new HttpHost("localhost", port);
 
-        NegotiateSchemeFactoryWithMockGssManager nsf = new NegotiateSchemeFactoryWithMockGssManager();
+        AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
 
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider(); 
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
         
         this.httpclient = HttpClients.custom()
-            .registerAuthScheme(AuthPolicy.SPNEGO, nsf)
+            .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();
-        this.httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST, target);
         
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
-        HttpResponse response = this.httpclient.execute(httpget);
+        HttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());

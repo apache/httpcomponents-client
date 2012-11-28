@@ -36,8 +36,9 @@ import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.ietf.jgss.GSSContext;
@@ -131,16 +132,18 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             throw new AuthenticationException(getSchemeName() + " authentication has failed");
         case CHALLENGE_RECEIVED:
             try {
-                String key = null;
-                if (isProxy()) {
-                    key = ExecutionContext.HTTP_PROXY_HOST;
-                } else {
-                    key = ExecutionContext.HTTP_TARGET_HOST;
+                HttpRoute route = (HttpRoute) context.getAttribute(ClientContext.ROUTE);
+                if (route == null) {
+                    throw new AuthenticationException("Connection route is not available");
                 }
-                HttpHost host = (HttpHost) context.getAttribute(key);
-                if (host == null) {
-                    throw new AuthenticationException("Authentication host is not set " +
-                            "in the execution context");
+                HttpHost host;
+                if (isProxy()) {
+                    host = route.getProxyHost();
+                    if (host == null) {
+                        host = route.getTargetHost();
+                    }
+                } else {
+                    host = route.getTargetHost();
                 }
                 String authServer;
                 if (!this.stripPort && host.getPort() > 0) {

@@ -32,8 +32,8 @@ import java.io.IOException;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * This interface represents an element in the HTTP request execution chain. Each element can
@@ -52,7 +52,7 @@ interface ClientExecChain {
     CloseableHttpResponse execute(
             HttpRoute route,
             HttpRequestWrapper request,
-            HttpContext context,
+            HttpClientContext clientContext,
             HttpExecutionAware execAware) throws IOException, HttpException;
 
 }

@@ -25,24 +25,20 @@
  *
  */
 
-package org.apache.http.client.params;
+package org.apache.http.client.config;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.config.CookieSpecs;
 
 /**
  * Standard cookie specifications supported by HttpClient.
  *
- * @since 4.0
- *
- * @deprecated (4.3) use {@link CookieSpecs}
+ * @since 4.3
  */
-@Deprecated
 @Immutable
-public final class CookiePolicy {
+public final class CookieSpecs {
 
     /**
-     * The policy that provides high degree of compatibilty
+     * The policy that provides high degree of compatibility
      * with common cookie management of popular HTTP agents.
      */
     public static final String BROWSER_COMPATIBILITY = "compatibility";
@@ -69,13 +65,10 @@ public final class CookiePolicy {
 
     /**
      * The policy that ignores cookies.
-     *
-     * @since 4.1-beta1
      */
     public static final String IGNORE_COOKIES = "ignoreCookies";
 
-    private CookiePolicy() {
-        super();
+    private CookieSpecs() {
     }
 
 }

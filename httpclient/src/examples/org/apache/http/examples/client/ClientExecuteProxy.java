@@ -31,9 +31,9 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -46,13 +46,14 @@ import org.apache.http.util.EntityUtils;
 public class ClientExecuteProxy {
 
     public static void main(String[] args)throws Exception {
-        HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-
             HttpHost target = new HttpHost("issues.apache.org", 443, "https");
+            HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
+
+            RequestConfig config = RequestConfig.custom().setDefaultProxy(proxy).build();
             HttpGet request = new HttpGet("/");
+            request.setConfig(config);
 
             System.out.println("executing request to " + target + " via " + proxy);
             CloseableHttpResponse response = httpclient.execute(target, request);

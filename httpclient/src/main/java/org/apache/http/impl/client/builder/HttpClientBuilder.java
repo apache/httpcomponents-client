@@ -28,11 +28,13 @@
 package org.apache.http.impl.client.builder;
 
 import java.net.ProxySelector;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.http.ConnectionReuseStrategy;
+import org.apache.http.Header;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.annotation.NotThreadSafe;
@@ -47,13 +49,15 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.UserTokenHandler;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestAuthCache;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.client.protocol.RequestDefaultHeaders;
+import org.apache.http.client.protocol.RequestExpectContinue;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.config.Lookup;
@@ -98,7 +102,6 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.VersionInfo;
@@ -125,6 +128,7 @@ import org.apache.http.util.VersionInfo;
  *  <li>http.nonProxyHosts</li>
  *  <li>http.keepAlive</li>
  *  <li>http.maxConnections</li>
+ *  <li>http.user</li>
  * </ul>
  * </p>
  *
@@ -161,6 +165,9 @@ public class HttpClientBuilder {
     private Map<String, CookieSpecProvider> cookieSpecs;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
+    private String userAgent;
+    private Collection<? extends Header> defaultHeaders;
+    private RequestConfig defaultConfig;
 
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
@@ -365,6 +372,21 @@ public class HttpClientBuilder {
         return this;
     }
 
+    public final HttpClientBuilder setUserAgent(final String userAgent) {
+        this.userAgent = userAgent;
+        return this;
+    }
+
+    public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
+        this.defaultHeaders = defaultHeaders;
+        return this;
+    }
+
+    public final HttpClientBuilder setDefaultConfig(final RequestConfig defaultConfig) {
+        this.defaultConfig = defaultConfig;
+        return this;
+    }
+
     public final HttpClientBuilder disableRedirectHandling() {
         redirectHandlingDisabled = true;
         return this;
@@ -489,10 +511,17 @@ public class HttpClientBuilder {
         HttpProcessor httpprocessor = this.httpprocessor;
         if (httpprocessor == null) {
 
-            VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
-                    HttpClientBuilder.class.getClassLoader());
-            String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
-            String defaultAgent = "Apache-HttpClient/" + release + " (java 1.5)";
+            String userAgent = this.userAgent;
+            if (userAgent == null) {
+                if (systemProperties) {
+                    userAgent = System.getProperty("http.agent");
+                } else {
+                    VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
+                            HttpClientBuilder.class.getClassLoader());
+                    String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
+                    userAgent = "Apache-HttpClient/" + release + " (java 1.5)";
+                }
+            }
 
             HttpProcessorBuilder b = HttpProcessorBuilder.create();
             if (requestFirst != null) {
@@ -506,11 +535,11 @@ public class HttpClientBuilder {
                 }
             }
             b.addAll(
-                    new RequestDefaultHeaders(),
+                    new RequestDefaultHeaders(defaultHeaders),
                     new RequestContent(),
                     new RequestTargetHost(),
                     new RequestClientConnControl(),
-                    new RequestUserAgent(defaultAgent),
+                    new RequestUserAgent(userAgent),
                     new RequestExpectContinue());
             if (!cookieManagementDisabled) {
                 b.add(new RequestAddCookies());
@@ -585,11 +614,11 @@ public class HttpClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistry = this.authSchemeRegistry;
         if (authSchemeRegistry == null) {
             RegistryBuilder<AuthSchemeProvider> b = RegistryBuilder.<AuthSchemeProvider>create();
-            b.register(AuthPolicy.BASIC, new BasicSchemeFactory())
-                .register(AuthPolicy.DIGEST, new DigestSchemeFactory())
-                .register(AuthPolicy.NTLM, new NTLMSchemeFactory())
-                .register(AuthPolicy.SPNEGO, new SPNegoSchemeFactory())
-                .register(AuthPolicy.KERBEROS, new KerberosSchemeFactory())
+            b.register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
                 .build();
             if (authShemes != null) {
                 for (Map.Entry<String, AuthSchemeProvider> entry: authShemes.entrySet()) {
@@ -601,12 +630,12 @@ public class HttpClientBuilder {
         Lookup<CookieSpecProvider> cookieSpecRegistry = this.cookieSpecRegistry;
         if (cookieSpecRegistry == null) {
             RegistryBuilder<CookieSpecProvider> b = RegistryBuilder.<CookieSpecProvider>create();
-            b.register(CookiePolicy.BEST_MATCH, new BestMatchSpecFactory())
-                .register(CookiePolicy.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
-                .register(CookiePolicy.NETSCAPE, new NetscapeDraftSpecFactory())
-                .register(CookiePolicy.RFC_2109, new RFC2109SpecFactory())
-                .register(CookiePolicy.RFC_2965, new RFC2965SpecFactory())
-                .register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory());
+            b.register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+                .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
+                .register(CookieSpecs.RFC_2109, new RFC2109SpecFactory())
+                .register(CookieSpecs.RFC_2965, new RFC2965SpecFactory())
+                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory());
             if (cookieSpecs != null) {
                 for (Map.Entry<String, CookieSpecProvider> entry: cookieSpecs.entrySet()) {
                     b.register(entry.getKey(), entry.getValue());
@@ -632,7 +661,8 @@ public class HttpClientBuilder {
                 cookieSpecRegistry,
                 authSchemeRegistry,
                 defaultCookieStore,
-                defaultCredentialsProvider);
+                defaultCredentialsProvider,
+                defaultConfig != null ? defaultConfig : RequestConfig.DEFAULT);
     }
 
 }

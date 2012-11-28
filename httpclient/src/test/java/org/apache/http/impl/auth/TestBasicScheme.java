@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScheme;
@@ -62,8 +63,12 @@ public class TestBasicScheme {
             buffer.append((char)germanChar);
         }
 
-        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("dh", buffer.toString());
-        Header header = BasicScheme.authenticate(credentials, "ISO-8859-1", false);
+        UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString());
+        BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
+
+        HttpRequest request = new BasicHttpRequest("GET", "/");
+        HttpContext context = new BasicHttpContext();
+        Header header = authscheme.authenticate(creds, request, context);
         Assert.assertEquals("Basic ZGg65C32Lfw=", header.getValue());
     }
 

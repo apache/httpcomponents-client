@@ -41,27 +41,16 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
- * The following parameters can be used to customize the behavior of this
- * class:
- * <ul>
- *  <li>{@link org.apache.http.client.params.ClientPNames#HANDLE_REDIRECTS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#MAX_REDIRECTS}</li>
- *  <li>{@link org.apache.http.client.params.ClientPNames#ALLOW_CIRCULAR_REDIRECTS}</li>
- * </ul>
- *
  * @since 4.3
  */
 @ThreadSafe
@@ -95,7 +84,7 @@ class RedirectExec implements ClientExecChain {
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
-            final HttpContext context,
+            final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         if (route == null) {
             throw new IllegalArgumentException("HTTP route may not be null");
@@ -107,17 +96,15 @@ class RedirectExec implements ClientExecChain {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
-
-        HttpParams params = request.getParams();
-        int maxRedirects = params.getIntParameter(ClientPNames.MAX_REDIRECTS, 100);
+        RequestConfig config = context.getRequestConfig();
+        int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
         HttpRoute currentRoute = route;
         HttpRequestWrapper currentRequest = request;
         for (int redirectCount = 0;;) {
             CloseableHttpResponse response = requestExecutor.execute(
                     currentRoute, currentRequest, context, execAware);
             try {
-                if (HttpClientParams.isRedirecting(params) &&
+                if (config.isRedirectsEnabled() &&
                         this.redirectStrategy.isRedirected(currentRequest, response, context)) {
 
                     if (redirectCount >= maxRedirects) {
@@ -129,7 +116,6 @@ class RedirectExec implements ClientExecChain {
                     HttpRequest original = currentRequest.getOriginal();
                     currentRequest = HttpRequestWrapper.wrap(redirect);
                     currentRequest.setHeaders(original.getAllHeaders());
-                    currentRequest.setParams(params);
 
                     URI uri = currentRequest.getURI();
                     HttpHost newTarget = URIUtils.extractHost(uri);
@@ -140,12 +126,12 @@ class RedirectExec implements ClientExecChain {
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
-                        AuthState targetAuthState = clientContext.getTargetAuthState();
+                        AuthState targetAuthState = context.getTargetAuthState();
                         if (targetAuthState != null) {
                             this.log.debug("Resetting target auth state");
                             targetAuthState.reset();
                         }
-                        AuthState proxyAuthState = clientContext.getProxyAuthState();
+                        AuthState proxyAuthState = context.getProxyAuthState();
                         if (proxyAuthState != null) {
                             AuthScheme authScheme = proxyAuthState.getAuthScheme();
                             if (authScheme != null && authScheme.isConnectionBased()) {

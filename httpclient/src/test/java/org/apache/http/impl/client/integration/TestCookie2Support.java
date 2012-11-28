@@ -37,8 +37,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.SM;
@@ -64,7 +62,7 @@ public class TestCookie2Support extends IntegrationTestBase {
     @Before
     public void setUp() throws Exception {
         startServer();
-        this.httpclient = HttpClients.custom().build();
+        this.httpclient = HttpClients.createDefault();
     }
 
     private static class CookieVer0Service implements HttpRequestHandler {
@@ -85,8 +83,6 @@ public class TestCookie2Support extends IntegrationTestBase {
     @Test
     public void testCookieVersionSupportHeader1() throws Exception {
         this.localServer.register("*", new CookieVer0Service());
-
-        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -133,8 +129,6 @@ public class TestCookie2Support extends IntegrationTestBase {
     public void testCookieVersionSupportHeader2() throws Exception {
         this.localServer.register("*", new CookieVer1Service());
 
-        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
-
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
@@ -178,8 +172,6 @@ public class TestCookie2Support extends IntegrationTestBase {
     @Test
     public void testCookieVersionSupportHeader3() throws Exception {
         this.localServer.register("*", new CookieVer2Service());
-
-        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();
@@ -225,8 +217,6 @@ public class TestCookie2Support extends IntegrationTestBase {
     @Test
     public void testSetCookieVersionMix() throws Exception {
         this.localServer.register("*", new SetCookieVersionMixService());
-
-        this.httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
 
         CookieStore cookieStore = new BasicCookieStore();
         HttpContext context = new BasicHttpContext();

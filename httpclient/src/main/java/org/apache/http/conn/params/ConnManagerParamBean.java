@@ -39,7 +39,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  * 
- * @deprecated (4.1.2) use configuration methods of the specific connection manager implementation.
+ * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
 @NotThreadSafe
 @Deprecated 

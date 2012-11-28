@@ -41,13 +41,13 @@ import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -126,6 +126,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         if (context == null) {
             throw new IllegalArgumentException("HTTP context may not be null");
         }
+
+        HttpClientContext clientContext = HttpClientContext.adapt(context);
+
         //get the location header to find out where to redirect to
         Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
@@ -139,16 +142,17 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             this.log.debug("Redirect requested to location '" + location + "'");
         }
 
+        RequestConfig config = clientContext.getRequestConfig();
+
         URI uri = createLocationURI(location);
 
-        HttpParams params = request.getParams();
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
         try {
             // Drop fragment
             uri = URIUtils.rewriteURI(uri);
             if (!uri.isAbsolute()) {
-                if (params.isParameterTrue(ClientPNames.REJECT_RELATIVE_REDIRECT)) {
+                if (!config.isRelativeRedirectsAllowed()) {
                     throw new ProtocolException("Relative redirect location '"
                             + uri + "' not allowed");
                 }
@@ -172,7 +176,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             redirectLocations = new RedirectLocations();
             context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
         }
-        if (params.isParameterFalse(ClientPNames.ALLOW_CIRCULAR_REDIRECTS)) {
+        if (!config.isCircularRedirectsAllowed()) {
             if (redirectLocations.contains(uri)) {
                 throw new CircularRedirectException("Circular redirect to '" + uri + "'");
             }

@@ -35,6 +35,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -42,7 +43,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.BasicHttpContext;
@@ -254,8 +255,10 @@ public class TestDefaultRedirectStrategy {
         DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
+        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
+
         HttpGet httpget = new HttpGet("http://localhost/");
-        httpget.getParams().setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, Boolean.TRUE);
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "/stuff");
@@ -268,7 +271,8 @@ public class TestDefaultRedirectStrategy {
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         HttpGet httpget = new HttpGet("http://localhost/");
-        httpget.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, Boolean.TRUE);
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff");
@@ -295,7 +299,8 @@ public class TestDefaultRedirectStrategy {
         HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         HttpGet httpget = new HttpGet("http://localhost/");
-        httpget.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, Boolean.FALSE);
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(false).build();
+        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff");
