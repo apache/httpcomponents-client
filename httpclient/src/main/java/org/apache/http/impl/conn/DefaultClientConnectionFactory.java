@@ -65,7 +65,8 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
         return new SocketClientConnectionImpl(8 * 1024,
                 chardecoder, charencoder,
                 cconfig.getMessageConstraints(),
-                null, null, null, null);
+                null, null, null, 
+                DefaultHttpResponseParserFactory.INSTANCE);
     }
 
 }

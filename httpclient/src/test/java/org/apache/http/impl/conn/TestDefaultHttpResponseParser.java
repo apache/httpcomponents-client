@@ -27,24 +27,20 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
-import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.message.BasicLineParser;
-import org.apache.http.mockup.SessionInputBufferMockup;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for <code>DefaultResponseParser</code>.
+ * Tests for {@link DefaultResponseParser}.
  */
 public class TestDefaultHttpResponseParser {
 
@@ -59,13 +55,8 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
-                inbuffer,
-                BasicLineParser.DEFAULT,
-                new DefaultHttpResponseFactory(),
-                params);
+        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
 
         HttpResponse response = parser.parse();
         Assert.assertNotNull(response);
@@ -90,18 +81,13 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
-                inbuffer,
-                BasicLineParser.DEFAULT,
-                new DefaultHttpResponseFactory(),
-                params) {
+        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer) {
 
-                    @Override
-                    protected boolean reject(final CharArrayBuffer line, int count) {
-                        return count >= 2;
-                    }
+            @Override
+            protected boolean reject(final CharArrayBuffer line, int count) {
+                return count >= 2;
+            }
 
         };
         parser.parse();
@@ -109,13 +95,8 @@ public class TestDefaultHttpResponseParser {
 
     @Test(expected=NoHttpResponseException.class)
     public void testResponseParsingNoResponse() throws Exception {
-        HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup("", "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
-                inbuffer,
-                BasicLineParser.DEFAULT,
-                new DefaultHttpResponseFactory(),
-                params);
+        SessionInputBuffer inbuffer = new SessionInputBufferMock("", Consts.ASCII);
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
         parser.parse();
     }
 
@@ -126,13 +107,8 @@ public class TestDefaultHttpResponseParser {
             "garbage\r\n" +
             "more garbage\r\n" +
             "a lot more garbage\r\n";
-        HttpParams params = new BasicHttpParams();
-        SessionInputBuffer inbuffer = new SessionInputBufferMockup(s, "US-ASCII", params);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(
-                inbuffer,
-                BasicLineParser.DEFAULT,
-                new DefaultHttpResponseFactory(),
-                params);
+        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
         parser.parse();
     }
 
