@@ -35,8 +35,11 @@ import org.apache.http.HttpHost;
  * Extended {@link InetSocketAddress} implementation that also provides access to the original
  * {@link HttpHost} used to resolve the address.
  *
- * @since 4.2
+ * @since 4.2 no longer used.
+ *
+ * @deprecated (4.3)
  */
+@Deprecated
 public class HttpInetSocketAddress extends InetSocketAddress {
 
     private static final long serialVersionUID = -6650701828361907957L;

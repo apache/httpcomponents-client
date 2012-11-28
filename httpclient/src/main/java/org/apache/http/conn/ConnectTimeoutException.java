@@ -28,7 +28,9 @@
 package org.apache.http.conn;
 
 import java.io.InterruptedIOException;
+import java.net.InetSocketAddress;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
 
 /**
@@ -57,6 +59,20 @@ public class ConnectTimeoutException extends InterruptedIOException {
      */
     public ConnectTimeoutException(final String message) {
         super(message);
+    }
+
+    /**
+     * Creates a ConnectTimeoutException with the specified detail message.
+     *
+     * @param message The exception detail message
+     *
+     * @since 4.3
+     */
+    public ConnectTimeoutException(final HttpHost host, final InetSocketAddress remoteAddress) {
+        super("Connect to " +
+                (host != null ? host.toHostString() : " remote host") +
+                (remoteAddress != null ? " (" + remoteAddress.getAddress() + ")" : "")
+                + " timed out");
     }
 
 }

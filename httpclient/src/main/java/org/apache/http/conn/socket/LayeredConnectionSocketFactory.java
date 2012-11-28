@@ -25,23 +25,20 @@
  *
  */
 
-package org.apache.http.conn.scheme;
+package org.apache.http.conn.socket;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * Extended {@link SchemeSocketFactory} interface for layered sockets such as SSL/TLS.
+ * Extended {@link ConnectionSocketFactory} interface for layered sockets such as SSL/TLS.
  *
- * @since 4.2
- *
- * @deprecated (4.3) use {@link LayeredConnectionSocketFactory}
+ * @since 4.3
  */
-@Deprecated
-public interface SchemeLayeredSocketFactory extends SchemeSocketFactory {
+public interface LayeredConnectionSocketFactory extends ConnectionSocketFactory {
 
     /**
      * Returns a socket connected to the given host that is layered over an
@@ -49,20 +46,18 @@ public interface SchemeLayeredSocketFactory extends SchemeSocketFactory {
      * proxies.
      *
      * @param socket the existing socket
-     * @param target    the name of the target host.
-     * @param port      the port to connect to on the target host
-     * @param params    HTTP parameters
+     * @param target the name of the target host.
+     * @param port the port to connect to on the target host.
+     * @param context the actual HTTP context.
      *
      * @return Socket a new socket
      *
      * @throws IOException if an I/O error occurs while creating the socket
-     * @throws UnknownHostException if the IP address of the host cannot be
-     * determined
      */
     Socket createLayeredSocket(
         Socket socket,
         String target,
         int port,
-        HttpParams params) throws IOException, UnknownHostException;
+        HttpContext context) throws IOException, UnknownHostException;
 
 }

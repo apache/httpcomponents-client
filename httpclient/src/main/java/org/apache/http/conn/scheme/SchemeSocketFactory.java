@@ -35,6 +35,7 @@ import java.net.UnknownHostException;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -42,7 +43,10 @@ import org.apache.http.params.HttpParams;
  * for establishing a socket connection.
  *
  * @since 4.1
+ *
+ * @deprecated (4.3) use {@link ConnectionSocketFactory}
  */
+@Deprecated
 public interface SchemeSocketFactory {
 
     /**
