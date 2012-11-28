@@ -266,6 +266,18 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.isSecure();
     }
 
+    public void bind(Socket socket) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    public Socket getSocket() {
+        OperatedClientConnection conn = getWrappedConnection();
+        assertValid(conn);
+        if (!isOpen())
+            return null;
+        return conn.getSocket();
+    }
+
     public SSLSession getSSLSession() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);

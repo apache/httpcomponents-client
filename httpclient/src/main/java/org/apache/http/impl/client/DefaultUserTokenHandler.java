@@ -37,7 +37,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.HttpSSLConnection;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -76,8 +76,8 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
         if (userPrincipal == null) {
             HttpConnection conn = (HttpConnection) context.getAttribute(
                     ExecutionContext.HTTP_CONNECTION);
-            if (conn instanceof HttpSSLConnection) {
-                SSLSession sslsession = ((HttpSSLConnection) conn).getSSLSession();
+            if (conn instanceof SocketClientConnection) {
+                SSLSession sslsession = ((SocketClientConnection) conn).getSSLSession();
                 if (sslsession != null) {
                     userPrincipal = sslsession.getLocalPrincipal();
                 }

@@ -49,7 +49,7 @@ import org.apache.http.conn.routing.HttpRoute;
  */
 @Deprecated
 public interface ManagedClientConnection extends
-    HttpClientConnection, HttpRoutedConnection, HttpSSLConnection, ConnectionReleaseTrigger {
+    HttpClientConnection, HttpRoutedConnection, SocketClientConnection, ConnectionReleaseTrigger {
 
     /**
      * Indicates whether this connection is secure.

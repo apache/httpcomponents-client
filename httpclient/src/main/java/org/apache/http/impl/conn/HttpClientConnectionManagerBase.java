@@ -40,6 +40,7 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
@@ -165,7 +166,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
             if (entry == null) {
                 return;
             }
-            DefaultClientConnection conn = entry.getConnection();
+            SocketClientConnection conn = entry.getConnection();
             try {
                 if (conn.isOpen()) {
                     entry.setState(state);
@@ -188,7 +189,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
         if (managedConn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
-        DefaultClientConnection conn;
+        SocketClientConnection conn;
         synchronized (managedConn) {
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
@@ -204,7 +205,7 @@ abstract class HttpClientConnectionManagerBase implements HttpClientConnectionMa
         if (managedConn == null) {
             throw new IllegalArgumentException("Connection may not be null");
         }
-        DefaultClientConnection conn;
+        SocketClientConnection conn;
         synchronized (managedConn) {
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();

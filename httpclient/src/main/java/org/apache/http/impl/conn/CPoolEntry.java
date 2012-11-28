@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.PoolEntry;
 
@@ -40,7 +41,7 @@ import org.apache.http.pool.PoolEntry;
  * @since 4.3
  */
 @ThreadSafe
-class CPoolEntry extends PoolEntry<HttpRoute, DefaultClientConnection> {
+class CPoolEntry extends PoolEntry<HttpRoute, SocketClientConnection> {
 
     private final Log log;
 
@@ -48,7 +49,7 @@ class CPoolEntry extends PoolEntry<HttpRoute, DefaultClientConnection> {
             final Log log,
             final String id,
             final HttpRoute route,
-            final DefaultClientConnection conn,
+            final SocketClientConnection conn,
             final long timeToLive, final TimeUnit tunit) {
         super(id, route, conn, timeToLive, tunit);
         this.log = log;

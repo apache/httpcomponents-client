@@ -34,7 +34,7 @@ import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpClientConnection;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.conn.HttpSSLConnection;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -137,7 +137,7 @@ class CPoolProxy implements InvocationHandler {
             final CPoolEntry poolEntry) {
         return (HttpClientConnection) Proxy.newProxyInstance(
                 CPoolProxy.class.getClassLoader(),
-                new Class<?>[] { HttpClientConnection.class, HttpSSLConnection.class, HttpContext.class },
+                new Class<?>[] { HttpClientConnection.class, SocketClientConnection.class, HttpContext.class },
                 new CPoolProxy(poolEntry));
     }
 

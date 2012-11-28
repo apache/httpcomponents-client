@@ -35,6 +35,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -49,7 +50,7 @@ import org.mockito.Mockito;
 
 public class TestHttpClientConnectionOperator {
 
-    private DefaultClientConnection conn;
+    private SocketClientConnection conn;
     private Socket socket;
     private SchemeSocketFactory plainSocketFactory;
     private SchemeLayeredSocketFactory sslSocketFactory;
@@ -59,7 +60,7 @@ public class TestHttpClientConnectionOperator {
 
     @Before
     public void setup() throws Exception {
-        conn = Mockito.mock(DefaultClientConnection.class);
+        conn = Mockito.mock(SocketClientConnection.class);
         socket = Mockito.mock(Socket.class);
         plainSocketFactory = Mockito.mock(SchemeSocketFactory.class);
         sslSocketFactory = Mockito.mock(SchemeLayeredSocketFactory.class);
@@ -97,8 +98,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(plainSocketFactory).connectSocket(socket,
                 new InetSocketAddress(ip1, 80),
                 new InetSocketAddress(local, 0), params);
-        Mockito.verify(conn).opening(socket, host);
-        Mockito.verify(conn).openCompleted(false, params);
+        Mockito.verify(conn, Mockito.times(2)).bind(socket);
     }
 
     @Test(expected=ConnectTimeoutException.class)
@@ -146,8 +146,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(plainSocketFactory).connectSocket(socket,
                 new HttpInetSocketAddress(host, ip2, 80),
                 new InetSocketAddress(local, 0), params);
-        Mockito.verify(conn, Mockito.times(2)).opening(socket, host);
-        Mockito.verify(conn).openCompleted(false, params);
+        Mockito.verify(conn, Mockito.times(3)).bind(socket);
     }
 
     @Test
@@ -164,7 +163,7 @@ public class TestHttpClientConnectionOperator {
 
         connectionOperator.upgrade(conn, host, context, params);
 
-        Mockito.verify(conn).update(socket, host, false, params);
+        Mockito.verify(conn).bind(socket);
     }
 
     @Test(expected=IllegalArgumentException.class)

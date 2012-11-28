@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
 import org.apache.http.pool.ConnFactory;
@@ -42,7 +43,7 @@ import org.apache.http.pool.ConnFactory;
  * @since 4.3
  */
 @ThreadSafe
-class CPool extends AbstractConnPool<HttpRoute, DefaultClientConnection, CPoolEntry> {
+class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEntry> {
 
     private static AtomicLong COUNTER = new AtomicLong();
 
@@ -59,15 +60,15 @@ class CPool extends AbstractConnPool<HttpRoute, DefaultClientConnection, CPoolEn
     }
 
     @Override
-    protected CPoolEntry createEntry(final HttpRoute route, final DefaultClientConnection conn) {
+    protected CPoolEntry createEntry(final HttpRoute route, final SocketClientConnection conn) {
         String id = Long.toString(COUNTER.getAndIncrement());
         return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 
-    static class InternalConnFactory implements ConnFactory<HttpRoute, DefaultClientConnection> {
+    static class InternalConnFactory implements ConnFactory<HttpRoute, SocketClientConnection> {
 
-        public DefaultClientConnection create(final HttpRoute route) throws IOException {
-            return new DefaultClientConnection();
+        public SocketClientConnection create(final HttpRoute route) throws IOException {
+            return new SocketClientConnectionImpl(8 * 1024);
         }
 
     }

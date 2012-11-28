@@ -42,6 +42,7 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -86,7 +87,7 @@ class HttpClientConnectionOperator {
     }
 
     public void connect(
-            final DefaultClientConnection conn,
+            final SocketClientConnection conn,
             final HttpHost host,
             final InetAddress local,
             final HttpContext context,
@@ -102,7 +103,7 @@ class HttpClientConnectionOperator {
             boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(params);
-            conn.opening(sock, host);
+            conn.bind(sock);
 
             InetSocketAddress remoteAddress = new HttpInetSocketAddress(host, address, port);
             InetSocketAddress localAddress = null;
@@ -114,11 +115,7 @@ class HttpClientConnectionOperator {
             }
             try {
                 Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
-                if (sock != connsock) {
-                    sock = connsock;
-                    conn.opening(sock, host);
-                }
-                conn.openCompleted(sf.isSecure(sock), params);
+                conn.bind(connsock);
                 return;
             } catch (ConnectException ex) {
                 if (last) {
@@ -137,7 +134,7 @@ class HttpClientConnectionOperator {
     }
 
     public void upgrade(
-            final DefaultClientConnection conn,
+            final SocketClientConnection conn,
             final HttpHost host,
             final HttpContext context,
             final HttpParams params) throws IOException {
@@ -157,7 +154,7 @@ class HttpClientConnectionOperator {
         } catch (ConnectException ex) {
             throw new HttpHostConnectException(host, ex);
         }
-        conn.update(sock, host, lsf.isSecure(sock), params);
+        conn.bind(sock);
     }
 
 }

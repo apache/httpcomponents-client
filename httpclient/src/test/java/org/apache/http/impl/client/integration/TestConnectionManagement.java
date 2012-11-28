@@ -522,9 +522,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         try {
             mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
-            Assert.fail("expected exception");
+            Assert.fail("IOException expected");
         } catch(IOException expected) {
-            Assert.assertEquals("Connection already shutdown", expected.getMessage());
         }
 
         abortingThread.join(5000);
@@ -578,8 +577,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         try {
             mgr.connect(conn, route.getTargetHost(), route.getLocalAddress(), context, params);
-            Assert.fail("expected SocketException");
-        } catch(SocketException expected) {}
+            Assert.fail("IOException expected");
+        } catch(IOException expected) {
+        }
 
         abortingThread.join(5000);
         if(throwRef.get() != null)

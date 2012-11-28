@@ -28,18 +28,19 @@
 package org.apache.http.impl.conn;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.HttpConnectionFactory;
 
 /**
  * @since 4.3
  */
 @Immutable
-public class DefaultClientConnectionFactory implements HttpConnectionFactory<DefaultClientConnection> {
+public class DefaultClientConnectionFactory implements HttpConnectionFactory<SocketClientConnection> {
 
     public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
 
-    public DefaultClientConnection create() {
-        return new DefaultClientConnection();
+    public SocketClientConnection create() {
+        return new SocketClientConnectionImpl(8 * 1024);
     }
 
 }

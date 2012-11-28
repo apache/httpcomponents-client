@@ -46,6 +46,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
@@ -54,7 +55,7 @@ import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.io.SessionOutputBuffer;
 
-import org.apache.http.conn.HttpSSLConnection;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 
 /**
@@ -62,13 +63,12 @@ import org.apache.http.conn.OperatedClientConnection;
  *
  * @since 4.0
  *
- * @deprecated (4.3) deprecated in favor of {@link ClientConnectionImpl}.
+ * @deprecated (4.3) deprecated in favor of {@link SocketClientConnectionImpl}.
  */
-@SuppressWarnings("deprecation")
 @NotThreadSafe // connSecure, targetHost
 @Deprecated
 public class DefaultClientConnection extends SocketHttpClientConnection
-    implements OperatedClientConnection, HttpSSLConnection, HttpContext {
+    implements OperatedClientConnection, SocketClientConnection, HttpContext {
 
     private final Log log = LogFactory.getLog(getClass());
     private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
@@ -229,6 +229,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         // override in derived class to specify a line parser
         return new DefaultHttpResponseParser
             (buffer, null, responseFactory, params);
+    }
+
+    public void bind(Socket socket) throws IOException {
+        bind(socket, new BasicHttpParams());
     }
 
     public void update(Socket sock, HttpHost target,

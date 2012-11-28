@@ -27,16 +27,24 @@
 
 package org.apache.http.conn;
 
+import java.io.IOException;
+import java.net.Socket;
+
 import javax.net.ssl.SSLSession;
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpInetConnection;
 
 /**
- * Extended interface that exposes SSL session details.
+ * Extended interface that exposes {@link Socket} bind method and SSL session details.
  *
  * @since 4.3
  */
-public interface HttpSSLConnection extends HttpInetConnection {
+public interface SocketClientConnection extends HttpClientConnection, HttpInetConnection {
+
+    void bind(Socket socket) throws IOException;
+
+    Socket getSocket();
 
     /**
      * Obtains the SSL session of the underlying connection, if any.

@@ -42,6 +42,7 @@ import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpConnectionFactory;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
@@ -70,10 +71,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private final Log log = LogFactory.getLog(getClass());
 
     private final HttpClientConnectionOperator connectionOperator;
-    private final HttpConnectionFactory<DefaultClientConnection> connFactory;
+    private final HttpConnectionFactory<SocketClientConnection> connFactory;
 
     @GuardedBy("this")
-    private DefaultClientConnection conn;
+    private SocketClientConnection conn;
 
     @GuardedBy("this")
     private HttpRoute route;
@@ -96,7 +97,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public BasicHttpClientConnectionManager(
             final SchemeRegistry schemeRegistry,
             final DnsResolver dnsResolver,
-            final HttpConnectionFactory<DefaultClientConnection> connFactory) {
+            final HttpConnectionFactory<SocketClientConnection> connFactory) {
         if (schemeRegistry == null) {
             throw new IllegalArgumentException("Scheme registry may not be null");
         }

@@ -188,7 +188,7 @@ public class URLEncodedUtils {
         if (s == null) {
             return Collections.emptyList();
         }
-        BasicHeaderValueParser parser = BasicHeaderValueParser.DEFAULT;
+        BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
         CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
         ParserCursor cursor = new ParserCursor(0, buffer.length());

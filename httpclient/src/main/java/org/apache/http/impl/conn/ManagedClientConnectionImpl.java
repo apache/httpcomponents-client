@@ -234,6 +234,15 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return conn.isSecure();
     }
 
+    public void bind(Socket socket) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    public Socket getSocket() {
+        OperatedClientConnection conn = ensureConnection();
+        return conn.getSocket();
+    }
+
     public SSLSession getSSLSession() {
         OperatedClientConnection conn = ensureConnection();
         SSLSession result = null;
