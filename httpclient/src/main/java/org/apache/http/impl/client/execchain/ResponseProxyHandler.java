@@ -27,16 +27,15 @@
 
 package org.apache.http.impl.client.execchain;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.client.methods.CloseableHttpResponse;
 
 /**
  * A proxy class for {@link HttpResponse} that can be used to release client connection
@@ -45,12 +44,22 @@ import org.apache.http.client.methods.CloseableHttpResponse;
  * @since 4.3
  */
 @NotThreadSafe
-class HttpResponseProxy implements InvocationHandler {
+class ResponseProxyHandler implements InvocationHandler {
+
+    private static final Method CLOSE_METHOD;
+
+    static {
+        try {
+            CLOSE_METHOD = Closeable.class.getMethod("close");
+        } catch (NoSuchMethodException ex) {
+            throw new Error(ex);
+        }
+    }
 
     private final HttpResponse original;
     private final ConnectionReleaseTriggerImpl connReleaseTrigger;
 
-    private HttpResponseProxy(
+    ResponseProxyHandler(
             final HttpResponse original,
             final ConnectionReleaseTriggerImpl connReleaseTrigger) {
         super();
@@ -70,8 +79,7 @@ class HttpResponseProxy implements InvocationHandler {
 
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
-        String mname = method.getName();
-        if (mname.equals("close")) {
+        if (method.equals(CLOSE_METHOD)) {
             close();
             return null;
         } else {
@@ -86,15 +94,6 @@ class HttpResponseProxy implements InvocationHandler {
                 }
             }
         }
-    }
-
-    public static CloseableHttpResponse newProxy(
-            final HttpResponse original,
-            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
-        return (CloseableHttpResponse) Proxy.newProxyInstance(
-                HttpResponseProxy.class.getClassLoader(),
-                new Class<?>[] { CloseableHttpResponse.class },
-                new HttpResponseProxy(original, connReleaseTrigger));
     }
 
 }

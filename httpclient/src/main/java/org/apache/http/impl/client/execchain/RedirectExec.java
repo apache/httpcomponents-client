@@ -32,6 +32,7 @@ import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -116,6 +117,9 @@ public class RedirectExec implements ClientExecChain {
                     HttpRequest original = currentRequest.getOriginal();
                     currentRequest = HttpRequestWrapper.wrap(redirect);
                     currentRequest.setHeaders(original.getAllHeaders());
+                    if (original instanceof HttpEntityEnclosingRequest) {
+                        ExecProxies.enhanceEntity((HttpEntityEnclosingRequest) request);
+                    }
 
                     URI uri = currentRequest.getURI();
                     HttpHost newTarget = URIUtils.extractHost(uri);

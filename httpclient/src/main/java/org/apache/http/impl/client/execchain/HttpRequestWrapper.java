@@ -35,6 +35,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
@@ -53,12 +54,15 @@ import org.apache.http.protocol.HTTP;
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 
     private final HttpRequest original;
-
+    private final String method;
+    private ProtocolVersion version;
     private URI uri;
 
     private HttpRequestWrapper(final HttpRequest request) {
         super();
         this.original = request;
+        this.version = this.original.getRequestLine().getProtocolVersion();
+        this.method = this.original.getRequestLine().getMethod();
         if (request instanceof HttpUriRequest) {
             this.uri = ((HttpUriRequest) request).getURI();
         } else {
@@ -71,6 +75,10 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
         return this.original.getProtocolVersion();
     }
 
+    public void setProtocolVersion(final ProtocolVersion version) {
+        this.version = version;
+    }
+
     public URI getURI() {
         return this.uri;
     }
@@ -80,26 +88,21 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
     }
 
     public RequestLine getRequestLine() {
-        ProtocolVersion version = this.original.getRequestLine().getProtocolVersion();
-        String method = this.original.getRequestLine().getMethod();
-        String uritext = null;
+        String requestUri = null;
         if (this.uri != null) {
-            uritext = this.uri.toASCIIString();
+            requestUri = this.uri.toASCIIString();
         } else {
-            uritext = this.original.getRequestLine().getUri();
+            requestUri = this.original.getRequestLine().getUri();
         }
-        if (uritext == null || uritext.length() == 0) {
-            uritext = "/";
+        if (requestUri == null || requestUri.length() == 0) {
+            requestUri = "/";
         }
-        return new BasicRequestLine(method, uritext, version);
+        ProtocolVersion version = this.version != null ? this.version : HttpVersion.HTTP_1_1;
+        return new BasicRequestLine(this.method, requestUri, version);
     }
 
     public HttpRequest getOriginal() {
         return this.original;
-    }
-
-    public boolean isRepeatable() {
-        return true;
     }
 
     @Override
@@ -115,7 +118,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
         public HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request)
             throws ProtocolException {
             super(request);
-            setEntity(request.getEntity());
+            this.entity = request.getEntity();
         }
 
         public HttpEntity getEntity() {
@@ -123,17 +126,12 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
         }
 
         public void setEntity(final HttpEntity entity) {
-            this.entity = entity != null ? new RequestEntityWrapper(entity) : null;
+            this.entity = entity;
         }
 
         public boolean expectContinue() {
             Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
             return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());
-        }
-
-        @Override
-        public boolean isRepeatable() {
-            return this.entity == null || this.entity.isRepeatable();
         }
 
     }

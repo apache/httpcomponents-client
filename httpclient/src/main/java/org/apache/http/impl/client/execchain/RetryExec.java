@@ -33,13 +33,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 
@@ -86,8 +84,7 @@ public class RetryExec implements ClientExecChain {
             try {
                 return this.requestExecutor.execute(route, request, context, execAware);
             } catch (IOException ex) {
-                HttpRequest original = request.getOriginal();
-                if (original instanceof HttpUriRequest && ((HttpUriRequest) original).isAborted()) {
+                if (execAware != null && execAware.isAborted()) {
                     this.log.debug("Request has been aborted");
                     throw ex;
                 }
@@ -100,7 +97,7 @@ public class RetryExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
-                    if (!request.isRepeatable()) {
+                    if (!ExecProxies.isRepeatable(request)) {
                         this.log.debug("Cannot retry non-repeatable request");
                         throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity", ex);

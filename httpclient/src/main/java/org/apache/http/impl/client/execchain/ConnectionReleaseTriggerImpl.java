@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.client.execchain;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +44,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
  * @since 4.3
  */
 @ThreadSafe
-class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancellable {
+class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancellable, Closeable {
 
     private final Log log;
 
@@ -143,6 +144,10 @@ class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancella
 
     public boolean isReleased() {
         return this.released;
+    }
+
+    public void close() throws IOException {
+        abortConnection();
     }
 
 }

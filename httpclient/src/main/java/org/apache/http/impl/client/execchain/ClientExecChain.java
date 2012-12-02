@@ -42,8 +42,8 @@ import org.apache.http.conn.routing.HttpRoute;
  * <p/>
  * Important: please note it is required for decorators that implement post execution aspects
  * or response post-processing of any sort to release resources associated with the response
- * by calling {@link HttpResponseProxy#close()} methods in case of an I/O, protocol or runtime 
- * exception, or in case the response is not propagated to the caller.
+ * by calling {@link CloseableHttpResponse#close()} methods in case of an I/O, protocol or
+ * runtime exception, or in case the response is not propagated to the caller.
  *
  * @since 4.3
  */

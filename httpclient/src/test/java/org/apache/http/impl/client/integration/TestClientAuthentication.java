@@ -259,7 +259,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         this.localServer.register("*", new AuthHandler());
 
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "boom"));
 
         this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
 

@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -164,6 +165,10 @@ public class MainClientExec implements ClientExecChain {
             context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
         }
 
+        if (request instanceof HttpEntityEnclosingRequest) {
+            ExecProxies.enhanceEntity((HttpEntityEnclosingRequest) request);
+        }
+
         Object userToken = context.getUserToken();
 
         final ConnectionRequest connRequest = connManager.requestConnection(route, userToken);
@@ -214,7 +219,7 @@ public class MainClientExec implements ClientExecChain {
             HttpResponse response = null;
             for (int execCount = 1;; execCount++) {
 
-                if (execCount > 1 && !request.isRepeatable()) {
+                if (execCount > 1 && !ExecProxies.isRepeatable(request)) {
                     throw new NonRepeatableRequestException("Cannot retry request " +
                             "with a non-repeatable request entity.");
                 }
@@ -327,9 +332,9 @@ public class MainClientExec implements ClientExecChain {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
-                return HttpResponseProxy.newProxy(response, null);
+                return ExecProxies.enhanceResponse(response, null);
             } else {
-                return HttpResponseProxy.newProxy(response, releaseTrigger);
+                return ExecProxies.enhanceResponse(response, releaseTrigger);
             }
         } catch (ConnectionShutdownException ex) {
             InterruptedIOException ioex = new InterruptedIOException(
