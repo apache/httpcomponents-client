@@ -112,6 +112,7 @@
             org.ietf.jgss,
             org.apache.commons.logging;version=${commons-logging.version},
             org.apache.http;version=${httpcore.version},
+            org.apache.http.config.*;version=${httpcore.version},
             org.apache.http.concurrent;version=${httpcore.version},
             org.apache.http.entity;version=${httpcore.version},
             org.apache.http.io;version=${httpcore.version},
