@@ -41,6 +41,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;

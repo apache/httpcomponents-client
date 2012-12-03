@@ -37,6 +37,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 

@@ -38,6 +38,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 

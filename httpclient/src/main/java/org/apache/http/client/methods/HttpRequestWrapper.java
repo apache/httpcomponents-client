@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.client.methods;
 
 import java.net.URI;
 
@@ -35,11 +35,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.protocol.HTTP;
@@ -72,7 +69,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
     }
 
     public ProtocolVersion getProtocolVersion() {
-        return this.original.getProtocolVersion();
+        return this.version != null ? this.version : this.original.getProtocolVersion();
     }
 
     public void setProtocolVersion(final ProtocolVersion version) {
@@ -97,8 +94,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
         if (requestUri == null || requestUri.length() == 0) {
             requestUri = "/";
         }
-        ProtocolVersion version = this.version != null ? this.version : HttpVersion.HTTP_1_1;
-        return new BasicRequestLine(this.method, requestUri, version);
+        return new BasicRequestLine(this.method, requestUri, getProtocolVersion());
     }
 
     public HttpRequest getOriginal() {
@@ -115,8 +111,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
 
         private HttpEntity entity;
 
-        public HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request)
-            throws ProtocolException {
+        public HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request) {
             super(request);
             this.entity = request.getEntity();
         }
@@ -136,7 +131,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
 
     }
 
-    public static HttpRequestWrapper wrap(final HttpRequest request) throws ProtocolException {
+    public static HttpRequestWrapper wrap(final HttpRequest request) {
         if (request == null) {
             return null;
         }

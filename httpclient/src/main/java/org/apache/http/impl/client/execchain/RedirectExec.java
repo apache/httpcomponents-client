@@ -45,6 +45,7 @@ import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
