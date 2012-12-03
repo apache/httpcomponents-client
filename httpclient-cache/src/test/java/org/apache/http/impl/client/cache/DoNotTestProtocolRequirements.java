@@ -74,9 +74,9 @@ public class DoNotTestProtocolRequirements {
         request = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
 
         originResponse = make200Response();
-        CacheConfig params = new CacheConfig();
-        params.setMaxObjectSize(MAX_BYTES);
-        params.setMaxCacheEntries(MAX_ENTRIES);
+        CacheConfig params = CacheConfig.custom()
+            .setMaxObjectSize(MAX_BYTES)
+            .setMaxCacheEntries(MAX_ENTRIES).build();
 
         HttpCache cache = new BasicHttpCache(params);
         mockBackend = EasyMock.createNiceMock(HttpClient.class);

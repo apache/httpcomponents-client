@@ -487,7 +487,7 @@ public class TestCachingHttpClient {
 
     @Test
     public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
-        CacheConfig config = new CacheConfig();
+        CacheConfig config = CacheConfig.DEFAULT;
         impl = new CachingHttpClient(mockBackend,
                 new BasicHttpCache(new HeapResourceFactory(), mockStorage, config),
                 config);
@@ -1793,7 +1793,7 @@ public class TestCachingHttpClient {
     public void testTreatsCacheIOExceptionsAsCacheMiss()
         throws Exception {
 
-        impl = new CachingHttpClient(mockBackend, mockCache, new CacheConfig());
+        impl = new CachingHttpClient(mockBackend, mockCache, CacheConfig.DEFAULT);
         HttpResponse resp = HttpTestUtils.make200Response();
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);

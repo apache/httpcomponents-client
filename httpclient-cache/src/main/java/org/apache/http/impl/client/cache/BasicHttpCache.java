@@ -77,7 +77,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     public BasicHttpCache() {
-        this(new CacheConfig());
+        this(CacheConfig.DEFAULT);
     }
 
     public void flushCacheEntriesFor(HttpHost host, HttpRequest request)

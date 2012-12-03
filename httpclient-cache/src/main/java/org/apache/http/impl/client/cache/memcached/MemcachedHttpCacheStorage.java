@@ -111,7 +111,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @param cache client to use for communicating with <i>memcached</i>
      */
     public MemcachedHttpCacheStorage(MemcachedClientIF cache) {
-        this(cache, new CacheConfig(), new MemcachedCacheEntryFactoryImpl(),
+        this(cache, CacheConfig.DEFAULT, new MemcachedCacheEntryFactoryImpl(),
                 new SHA256KeyHashingScheme());
     }
 

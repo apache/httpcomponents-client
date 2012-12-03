@@ -64,8 +64,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry2 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
         mockMemcachedCacheEntry3 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
         mockMemcachedCacheEntry4 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
-        CacheConfig config = new CacheConfig();
-        config.setMaxUpdateRetries(1);
+        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
     }
@@ -431,8 +430,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
         
-        CacheConfig config = new CacheConfig();
-        config.setMaxUpdateRetries(0);
+        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(0).build();
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
 

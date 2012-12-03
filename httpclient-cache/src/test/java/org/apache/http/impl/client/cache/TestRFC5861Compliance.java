@@ -165,8 +165,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseNeedNotYieldToProxyRevalidateForPrivateCache()
             throws Exception{
-        CacheConfig config = new CacheConfig();
-        config.setSharedCache(false);
+        CacheConfig config = CacheConfig.custom()
+                .setSharedCache(false).build();
         impl = new CachingHttpClient(mockBackend, config);
 
         Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
@@ -299,9 +299,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleWhileRevalidateReturnsStaleEntryWithWarning()
         throws Exception {
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .setAsynchronousWorkersMax(1)
+                .build();
 
-        params.setAsynchronousWorkersMax(1);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        impl = new CachingHttpClient(mockBackend, cache, config);
 
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -337,9 +341,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testCanAlsoServeStale304sWhileRevalidating()
         throws Exception {
 
-        params.setAsynchronousWorkersMax(1);
-        params.setSharedCache(false);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .setAsynchronousWorkersMax(1)
+                .setSharedCache(false)
+                .build();
+        impl = new CachingHttpClient(mockBackend, cache, config);
 
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -380,8 +388,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        params.setAsynchronousWorkersMax(1);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .setAsynchronousWorkersMax(1)
+                .build();
+        impl = new CachingHttpClient(mockBackend, cache, config);
 
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -424,9 +436,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        params.setAsynchronousWorkersMax(1);
-        params.setSharedCache(true);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .setAsynchronousWorkersMax(1)
+                .setSharedCache(true)
+                .build();
+        impl = new CachingHttpClient(mockBackend, cache, config);
 
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -469,9 +485,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        params.setAsynchronousWorkersMax(1);
-        params.setSharedCache(true);
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .setAsynchronousWorkersMax(1)
+                .setSharedCache(true)
+                .build();
+        impl = new CachingHttpClient(mockBackend, cache, config);
 
         HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         HttpResponse resp1 = HttpTestUtils.make200Response();

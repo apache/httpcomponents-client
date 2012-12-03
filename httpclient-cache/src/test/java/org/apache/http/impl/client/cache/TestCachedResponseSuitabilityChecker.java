@@ -66,7 +66,7 @@ public class TestCachedResponseSuitabilityChecker {
         mockValidityPolicy = EasyMock.createNiceMock(CacheValidityPolicy.class);
         entry = HttpTestUtils.makeCacheEntry();
 
-        impl = new CachedResponseSuitabilityChecker(new CacheConfig());
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
     }
 
     private HttpCacheEntry getEntry(Header[] headers) {
@@ -236,9 +236,9 @@ public class TestCachedResponseSuitabilityChecker {
 
         entry = HttpTestUtils.makeCacheEntry(oneSecondAgo, oneSecondAgo, headers);
 
-        CacheConfig config = new CacheConfig();
-        config.setHeuristicCachingEnabled(true);
-        config.setHeuristicCoefficient(0.1f);
+        CacheConfig config = CacheConfig.custom()
+            .setHeuristicCachingEnabled(true)
+            .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
 
         Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
@@ -253,9 +253,10 @@ public class TestCachedResponseSuitabilityChecker {
 
         entry = getEntry(headers);
 
-        CacheConfig config = new CacheConfig();
-        config.setHeuristicCachingEnabled(true);
-        config.setHeuristicDefaultLifetime(20);
+        CacheConfig config = CacheConfig.custom()
+            .setHeuristicCachingEnabled(true)
+            .setHeuristicDefaultLifetime(20)
+            .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
         Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));

@@ -2222,7 +2222,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, config);
 
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
@@ -2268,7 +2268,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, config);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
@@ -2316,7 +2316,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, config);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
@@ -2518,7 +2518,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, config);
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
@@ -2569,7 +2569,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, params);
+        impl = new CachingHttpClient(mockBackend, mockCache, config);
 
         request = new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1);
 

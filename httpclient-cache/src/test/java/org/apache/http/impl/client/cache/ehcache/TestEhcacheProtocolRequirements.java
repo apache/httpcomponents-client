@@ -63,8 +63,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
     @Before
     public void setUp() {
         super.setUp();
-        params = new CacheConfig();
-        params.setMaxObjectSize(MAX_BYTES);
+        config = CacheConfig.custom().setMaxObjectSize(MAX_BYTES).build();
 
         if (CACHE_MANAGER.cacheExists(TEST_EHCACHE_NAME)){
             CACHE_MANAGER.removeCache(TEST_EHCACHE_NAME);
@@ -73,7 +72,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
         HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
         mockBackend = EasyMock.createNiceMock(HttpClient.class);
 
-        impl = new CachingHttpClient(mockBackend, new HeapResourceFactory(), storage, params);
+        impl = new CachingHttpClient(mockBackend, new HeapResourceFactory(), storage, config);
     }
 
     @After

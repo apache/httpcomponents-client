@@ -166,9 +166,10 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testRevalidateCacheEntryEndToEnd() throws ProtocolException, IOException {
-        CacheConfig config = new CacheConfig();
-        config.setAsynchronousWorkersMax(1);
-        config.setAsynchronousWorkersCore(1);
+        CacheConfig config = CacheConfig.custom()
+            .setAsynchronousWorkersMax(1)
+            .setAsynchronousWorkersCore(1)
+            .build();
         impl = new AsynchronousValidator(mockClient, config);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);

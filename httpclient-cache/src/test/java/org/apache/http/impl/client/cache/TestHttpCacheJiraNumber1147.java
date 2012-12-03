@@ -84,9 +84,10 @@ public class TestHttpCacheJiraNumber1147 {
     
     @Test
     public void testIssue1147() throws Exception {
-        CacheConfig cacheConfig = new CacheConfig();
-        cacheConfig.setSharedCache(true);
-        cacheConfig.setMaxObjectSize(262144); //256kb
+        CacheConfig cacheConfig = CacheConfig.custom()
+            .setSharedCache(true)
+            .setMaxObjectSize(262144) //256kb
+            .build();
 
         ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
         HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);

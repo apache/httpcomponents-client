@@ -42,8 +42,8 @@ package org.apache.http.impl.client.cache;
  * <p>Cache configuration can be grouped into the following categories:</p>
  *
  * <p><b>Cache size.</b> If the backend storage supports these limits, you
- * can specify the {@link CacheConfig#setMaxCacheEntries maximum number of
- * cache entries} as well as the {@link CacheConfig#setMaxObjectSizeBytes
+ * can specify the {@link CacheConfig#getMaxCacheEntries maximum number of
+ * cache entries} as well as the {@link CacheConfig#getMaxObjectSizeBytes
  * maximum cacheable response body size}.</p>
  *
  * <p><b>Public/private caching.</b> By default, the caching module considers
@@ -60,7 +60,7 @@ package org.apache.http.impl.client.cache;
  * are working with an origin that doesn't set proper headers but where you
  * still want to cache the responses. You will want to {@link
  * CacheConfig#setHeuristicCachingEnabled(boolean) enable heuristic caching},
- * then specify either a {@link CacheConfig#setHeuristicDefaultLifetime(long)
+ * then specify either a {@link CacheConfig#getHeuristicDefaultLifetime()
  * default freshness lifetime} and/or a {@link
  * CacheConfig#setHeuristicCoefficient(float) fraction of the time since
  * the resource was last modified}. See Sections
@@ -73,15 +73,15 @@ package org.apache.http.impl.client.cache;
  * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
  * certain cache entry revalidations to happen in the background. You may
  * want to tweak the settings for the {@link
- * CacheConfig#setAsynchronousWorkersCore(int) minimum} and {@link
- * CacheConfig#setAsynchronousWorkersMax(int) maximum} number of background
+ * CacheConfig#setAsynchronousWorkersCore() minimum} and {@link
+ * CacheConfig#setAsynchronousWorkersMax() maximum} number of background
  * worker threads, as well as the {@link
- * CacheConfig#setAsynchronousWorkerIdleLifetimeSecs(int) maximum time they
+ * CacheConfig#setAsynchronousWorkerIdleLifetimeSecs() maximum time they
  * can be idle before being reclaimed}. You can also control the {@link
- * CacheConfig#setRevalidationQueueSize(int) size of the queue} used for
+ * CacheConfig#setRevalidationQueueSize() size of the queue} used for
  * revalidations when there aren't enough workers to keep up with demand.</b>
  */
-public class CacheConfig {
+public class CacheConfig implements Cloneable {
 
     /** Default setting for the maximum object size that will be
      * cached, in bytes.
@@ -131,17 +131,65 @@ public class CacheConfig {
      */
     public static final int DEFAULT_REVALIDATION_QUEUE_SIZE = 100;
 
-    private long maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
-    private int maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
-    private int maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-    private boolean heuristicCachingEnabled = false;
-    private float heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
-    private long heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
-    private boolean isSharedCache = true;
-    private int asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
-    private int asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
-    private int asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
-    private int revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+    public static final CacheConfig DEFAULT = new Builder().build();
+
+    // TODO: make final
+    private long maxObjectSize;
+    private int maxCacheEntries;
+    private int maxUpdateRetries;
+    private boolean heuristicCachingEnabled;
+    private float heuristicCoefficient;
+    private long heuristicDefaultLifetime;
+    private boolean isSharedCache;
+    private int asynchronousWorkersMax;
+    private int asynchronousWorkersCore;
+    private int asynchronousWorkerIdleLifetimeSecs;
+    private int revalidationQueueSize;
+
+    /**
+     * @deprecated (4.3) use {@link Builder}.
+     */
+    @Deprecated
+    public CacheConfig() {
+        super();
+        this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
+        this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
+        this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
+        this.heuristicCachingEnabled = false;
+        this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
+        this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
+        this.isSharedCache = true;
+        this.asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
+        this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
+        this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
+        this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+    }
+
+    CacheConfig(
+            long maxObjectSize,
+            int maxCacheEntries,
+            int maxUpdateRetries,
+            boolean heuristicCachingEnabled,
+            float heuristicCoefficient,
+            long heuristicDefaultLifetime,
+            boolean isSharedCache,
+            int asynchronousWorkersMax,
+            int asynchronousWorkersCore,
+            int asynchronousWorkerIdleLifetimeSecs,
+            int revalidationQueueSize) {
+        super();
+        this.maxObjectSize = maxObjectSize;
+        this.maxCacheEntries = maxCacheEntries;
+        this.maxUpdateRetries = maxUpdateRetries;
+        this.heuristicCachingEnabled = heuristicCachingEnabled;
+        this.heuristicCoefficient = heuristicCoefficient;
+        this.heuristicDefaultLifetime = heuristicDefaultLifetime;
+        this.isSharedCache = isSharedCache;
+        this.asynchronousWorkersMax = asynchronousWorkersMax;
+        this.asynchronousWorkersCore = asynchronousWorkersCore;
+        this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
+        this.revalidationQueueSize = revalidationQueueSize;
+    }
 
     /**
      * Returns the current maximum response body size that will be cached.
@@ -149,7 +197,7 @@ public class CacheConfig {
      *
      * @deprecated (4.2)  use {@link #getMaxObjectSize()}
      */
-    @Deprecated 
+    @Deprecated
     public int getMaxObjectSizeBytes() {
         return maxObjectSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) maxObjectSize;
     }
@@ -158,9 +206,9 @@ public class CacheConfig {
      * Specifies the maximum response body size that will be eligible for caching.
      * @param maxObjectSizeBytes size in bytes
      *
-     * @deprecated (4.2)  use {@link #setMaxObjectSize(long)}
+     * @deprecated (4.2)  use {@link Builder}.
      */
-    @Deprecated 
+    @Deprecated
     public void setMaxObjectSizeBytes(int maxObjectSizeBytes) {
         if (maxObjectSizeBytes > Integer.MAX_VALUE) {
             this.maxObjectSize = Integer.MAX_VALUE;
@@ -184,28 +232,12 @@ public class CacheConfig {
      * @param maxObjectSize size in bytes
      *
      * @since 4.2
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setMaxObjectSize(long maxObjectSize) {
         this.maxObjectSize = maxObjectSize;
-    }
-
-    /**
-     * Returns whether the cache will behave as a shared cache or not.
-     * @return {@code true} for a shared cache, {@code false} for a non-
-     * shared (private) cache
-     */
-    public boolean isSharedCache() {
-        return isSharedCache;
-    }
-
-    /**
-     * Sets whether the cache should behave as a shared cache or not.
-     * @param isSharedCache true to behave as a shared cache, false to
-     * behave as a non-shared (private) cache. To have the cache
-     * behave like a browser cache, you want to set this to {@code false}.
-     */
-    public void setSharedCache(boolean isSharedCache) {
-        this.isSharedCache = isSharedCache;
     }
 
     /**
@@ -217,7 +249,10 @@ public class CacheConfig {
 
     /**
      * Sets the maximum number of cache entries the cache will retain.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
     }
@@ -231,7 +266,10 @@ public class CacheConfig {
 
     /**
      * Sets the number of times to retry a cache update on failure
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setMaxUpdateRetries(int maxUpdateRetries){
         this.maxUpdateRetries = maxUpdateRetries;
     }
@@ -248,7 +286,10 @@ public class CacheConfig {
      * Enables or disables heuristic caching.
      * @param heuristicCachingEnabled should be {@code true} to
      *   permit heuristic caching, {@code false} to enable it.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
         this.heuristicCachingEnabled = heuristicCachingEnabled;
     }
@@ -267,7 +308,10 @@ public class CacheConfig {
      * response will be considered heuristically fresh.
      * @param heuristicCoefficient should be between {@code 0.0} and
      *   {@code 1.0}.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setHeuristicCoefficient(float heuristicCoefficient) {
         this.heuristicCoefficient = heuristicCoefficient;
     }
@@ -290,9 +334,34 @@ public class CacheConfig {
      *   consider a cache-eligible response fresh in the absence of other
      *   information. Set this to {@code 0} to disable this style of
      *   heuristic caching.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setHeuristicDefaultLifetime(long heuristicDefaultLifetimeSecs) {
         this.heuristicDefaultLifetime = heuristicDefaultLifetimeSecs;
+    }
+
+    /**
+     * Returns whether the cache will behave as a shared cache or not.
+     * @return {@code true} for a shared cache, {@code false} for a non-
+     * shared (private) cache
+     */
+    public boolean isSharedCache() {
+        return isSharedCache;
+    }
+
+    /**
+     * Sets whether the cache should behave as a shared cache or not.
+     * @param isSharedCache true to behave as a shared cache, false to
+     * behave as a non-shared (private) cache. To have the cache
+     * behave like a browser cache, you want to set this to {@code false}.
+     *
+     * @deprecated (4.3) use {@link Builder}.
+     */
+    @Deprecated
+    public void setSharedCache(boolean isSharedCache) {
+        this.isSharedCache = isSharedCache;
     }
 
     /**
@@ -309,7 +378,10 @@ public class CacheConfig {
      * revalidations due to the {@code stale-while-revalidate} directive.
      * @param max number of threads; a value of 0 disables background
      * revalidations.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setAsynchronousWorkersMax(int max) {
         this.asynchronousWorkersMax = max;
     }
@@ -327,7 +399,10 @@ public class CacheConfig {
      * revalidations due to the {@code stale-while-revalidate} directive.
      * @param min should be greater than zero and less than or equal
      *   to <code>getAsynchronousWorkersMax()</code>
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setAsynchronousWorkersCore(int min) {
         this.asynchronousWorkersCore = min;
     }
@@ -348,7 +423,10 @@ public class CacheConfig {
      * for this long, and there are more than the core number of worker
      * threads alive, the worker will be reclaimed.
      * @param secs idle lifetime in seconds
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setAsynchronousWorkerIdleLifetimeSecs(int secs) {
         this.asynchronousWorkerIdleLifetimeSecs = secs;
     }
@@ -362,10 +440,200 @@ public class CacheConfig {
 
     /**
      * Sets the current maximum queue size for background revalidations.
+     *
+     * @deprecated (4.3) use {@link Builder}.
      */
+    @Deprecated
     public void setRevalidationQueueSize(int size) {
         this.revalidationQueueSize = size;
     }
 
+    @Override
+    protected CacheConfig clone() throws CloneNotSupportedException {
+        return (CacheConfig) super.clone();
+    }
+
+    public static Builder custom() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private long maxObjectSize;
+        private int maxCacheEntries;
+        private int maxUpdateRetries;
+        private boolean heuristicCachingEnabled;
+        private float heuristicCoefficient;
+        private long heuristicDefaultLifetime;
+        private boolean isSharedCache;
+        private int asynchronousWorkersMax;
+        private int asynchronousWorkersCore;
+        private int asynchronousWorkerIdleLifetimeSecs;
+        private int revalidationQueueSize;
+
+        Builder() {
+            this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
+            this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
+            this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
+            this.heuristicCachingEnabled = false;
+            this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
+            this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
+            this.isSharedCache = true;
+            this.asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
+            this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
+            this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
+            this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+        }
+
+        /**
+         * Specifies the maximum response body size that will be eligible for caching.
+         * @param maxObjectSize size in bytes
+         */
+        public Builder setMaxObjectSize(long maxObjectSize) {
+            this.maxObjectSize = maxObjectSize;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of cache entries the cache will retain.
+         */
+        public Builder setMaxCacheEntries(int maxCacheEntries) {
+            this.maxCacheEntries = maxCacheEntries;
+            return this;
+        }
+
+        /**
+         * Sets the number of times to retry a cache update on failure
+         */
+        public Builder setMaxUpdateRetries(int maxUpdateRetries) {
+            this.maxUpdateRetries = maxUpdateRetries;
+            return this;
+        }
+
+        /**
+         * Enables or disables heuristic caching.
+         * @param heuristicCachingEnabled should be {@code true} to
+         *   permit heuristic caching, {@code false} to enable it.
+         */
+        public Builder setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
+            this.heuristicCachingEnabled = heuristicCachingEnabled;
+            return this;
+        }
+
+        /**
+         * Sets coefficient to be used in heuristic freshness caching. This is
+         * interpreted as the fraction of the time between the {@code Last-Modified}
+         * and {@code Date} headers of a cached response during which the cached
+         * response will be considered heuristically fresh.
+         * @param heuristicCoefficient should be between {@code 0.0} and
+         *   {@code 1.0}.
+         */
+        public Builder setHeuristicCoefficient(float heuristicCoefficient) {
+            this.heuristicCoefficient = heuristicCoefficient;
+            return this;
+        }
+
+        /**
+         * Sets default lifetime in seconds to be used if heuristic freshness
+         * calculation is not possible. Explicit cache control directives on
+         * either the request or origin response will override this, as will
+         * the heuristic {@code Last-Modified} freshness calculation if it is
+         * available.
+         * @param heuristicDefaultLifetimeSecs is the number of seconds to
+         *   consider a cache-eligible response fresh in the absence of other
+         *   information. Set this to {@code 0} to disable this style of
+         *   heuristic caching.
+         */
+        public Builder setHeuristicDefaultLifetime(long heuristicDefaultLifetime) {
+            this.heuristicDefaultLifetime = heuristicDefaultLifetime;
+            return this;
+        }
+
+        /**
+         * Sets whether the cache should behave as a shared cache or not.
+         * @param isSharedCache true to behave as a shared cache, false to
+         * behave as a non-shared (private) cache. To have the cache
+         * behave like a browser cache, you want to set this to {@code false}.
+         */
+        public Builder setSharedCache(boolean isSharedCache) {
+            this.isSharedCache = isSharedCache;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of threads to allow for background
+         * revalidations due to the {@code stale-while-revalidate} directive.
+         * @param max number of threads; a value of 0 disables background
+         * revalidations.
+         */
+        public Builder setAsynchronousWorkersMax(int asynchronousWorkersMax) {
+            this.asynchronousWorkersMax = asynchronousWorkersMax;
+            return this;
+        }
+
+        /**
+         * Sets the minimum number of threads to keep alive for background
+         * revalidations due to the {@code stale-while-revalidate} directive.
+         * @param min should be greater than zero and less than or equal
+         *   to <code>getAsynchronousWorkersMax()</code>
+         */
+        public Builder setAsynchronousWorkersCore(int asynchronousWorkersCore) {
+            this.asynchronousWorkersCore = asynchronousWorkersCore;
+            return this;
+        }
+
+        /**
+         * Sets the current maximum idle lifetime in seconds for a
+         * background revalidation worker thread. If a worker thread is idle
+         * for this long, and there are more than the core number of worker
+         * threads alive, the worker will be reclaimed.
+         * @param secs idle lifetime in seconds
+         */
+        public Builder setAsynchronousWorkerIdleLifetimeSecs(int asynchronousWorkerIdleLifetimeSecs) {
+            this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
+            return this;
+        }
+
+        /**
+         * Sets the current maximum queue size for background revalidations.
+         */
+        public Builder setRevalidationQueueSize(int revalidationQueueSize) {
+            this.revalidationQueueSize = revalidationQueueSize;
+            return this;
+        }
+
+        public CacheConfig build() {
+            return new CacheConfig(
+                    maxObjectSize,
+                    maxCacheEntries,
+                    maxUpdateRetries,
+                    heuristicCachingEnabled,
+                    heuristicCoefficient,
+                    heuristicDefaultLifetime,
+                    isSharedCache,
+                    asynchronousWorkersMax,
+                    asynchronousWorkersCore,
+                    asynchronousWorkerIdleLifetimeSecs,
+                    revalidationQueueSize);
+        }
+
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[maxObjectSize=").append(this.maxObjectSize)
+                .append(", maxCacheEntries=").append(this.maxCacheEntries)
+                .append(", maxUpdateRetries=").append(this.heuristicCachingEnabled)
+                .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
+                .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)
+                .append(", isSharedCache=").append(this.isSharedCache)
+                .append(", asynchronousWorkersMax=").append(this.asynchronousWorkersMax)
+                .append(", asynchronousWorkersCore=").append(this.asynchronousWorkersCore)
+                .append(", asynchronousWorkerIdleLifetimeSecs=").append(this.asynchronousWorkerIdleLifetimeSecs)
+                .append(", revalidationQueueSize=").append(this.revalidationQueueSize)
+                .append("]");
+        return builder.toString();
+    }
 
 }

@@ -93,16 +93,17 @@ public class TestProtocolDeviations {
 
         originResponse = make200Response();
 
-        CacheConfig params = new CacheConfig();
-        params.setMaxObjectSize(MAX_BYTES);
-        params.setMaxCacheEntries(MAX_ENTRIES);
+        CacheConfig config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .build();
 
-        HttpCache cache = new BasicHttpCache(params);
+        HttpCache cache = new BasicHttpCache(config);
         mockBackend = EasyMock.createNiceMock(HttpClient.class);
         mockEntity = EasyMock.createNiceMock(HttpEntity.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
 
-        impl = new CachingHttpClient(mockBackend, cache, params);
+        impl = new CachingHttpClient(mockBackend, cache, config);
     }
 
     private HttpResponse make200Response() {

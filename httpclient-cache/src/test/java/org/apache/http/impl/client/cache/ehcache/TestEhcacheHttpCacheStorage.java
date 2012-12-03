@@ -52,8 +52,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Override
     public void setUp() {
         mockCache = EasyMock.createNiceMock(Ehcache.class);
-        CacheConfig config = new CacheConfig();
-        config.setMaxUpdateRetries(1);
+        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
         mockSerializer = EasyMock.createNiceMock(HttpCacheEntrySerializer.class);
         impl = new EhcacheHttpCacheStorage(mockCache, config, mockSerializer);
     }

@@ -70,7 +70,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
      * @param cache where to store cached origin responses
      */
     public EhcacheHttpCacheStorage(Ehcache cache) {
-        this(cache, new CacheConfig(), new DefaultHttpCacheEntrySerializer());
+        this(cache, CacheConfig.DEFAULT, new DefaultHttpCacheEntrySerializer());
     }
 
     /**

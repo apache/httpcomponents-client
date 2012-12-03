@@ -66,7 +66,7 @@ public class TestBasicHttpCache {
     @Before
     public void setUp() throws Exception {
         backing = new SimpleHttpCacheStorage();
-        impl = new BasicHttpCache(new HeapResourceFactory(), backing, new CacheConfig());
+        impl = new BasicHttpCache(new HeapResourceFactory(), backing, CacheConfig.DEFAULT);
     }
 
     @Test
