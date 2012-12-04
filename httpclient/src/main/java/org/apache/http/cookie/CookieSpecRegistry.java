@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.Lookup;
 import org.apache.http.config.Registry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
@@ -51,7 +52,7 @@ import org.apache.http.protocol.HttpContext;
  */
 @ThreadSafe
 @Deprecated
-public final class CookieSpecRegistry {
+public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
 
     private final ConcurrentHashMap<String,CookieSpecFactory> registeredSpecs;
 
