@@ -28,8 +28,6 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
@@ -37,15 +35,13 @@ import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.client.RequestWrapper;
+import org.apache.http.client.methods.HttpRequestWrapper;
 
 /**
  * @since 4.1
  */
 @Immutable
 class ConditionalRequestBuilder {
-
-    private static final Log log = LogFactory.getLog(ConditionalRequestBuilder.class);
 
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
@@ -57,17 +53,17 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public HttpRequest buildConditionalRequest(HttpRequest request, HttpCacheEntry cacheEntry)
+    public HttpRequestWrapper buildConditionalRequest(HttpRequestWrapper request, HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        RequestWrapper wrapperRequest = new RequestWrapper(request);
-        wrapperRequest.resetHeaders();
+        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        newRequest.setHeaders(request.getAllHeaders());
         Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
-            wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
+            newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
         }
         Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (lastModified != null) {
-            wrapperRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
+            newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
         }
         boolean mustRevalidate = false;
         for(Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
@@ -80,9 +76,9 @@ class ConditionalRequestBuilder {
             }
         }
         if (mustRevalidate) {
-            wrapperRequest.addHeader(HeaderConstants.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
+            newRequest.addHeader(HeaderConstants.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
         }
-        return wrapperRequest;
+        return newRequest;
 
     }
 
@@ -96,16 +92,10 @@ class ConditionalRequestBuilder {
      * @param variants
      * @return the wrapped request
      */
-    public HttpRequest buildConditionalRequestFromVariants(HttpRequest request,
+    public HttpRequestWrapper buildConditionalRequestFromVariants(HttpRequestWrapper request,
             Map<String, Variant> variants) {
-        RequestWrapper wrapperRequest;
-        try {
-            wrapperRequest = new RequestWrapper(request);
-        } catch (ProtocolException pe) {
-            log.warn("unable to build conditional request", pe);
-            return request;
-        }
-        wrapperRequest.resetHeaders();
+        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
         StringBuilder etags = new StringBuilder();
@@ -118,8 +108,8 @@ class ConditionalRequestBuilder {
             etags.append(etag);
         }
 
-        wrapperRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
-        return wrapperRequest;
+        newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
+        return newRequest;
     }
 
     /**
@@ -133,23 +123,17 @@ class ConditionalRequestBuilder {
      * @param entry existing cache entry we are trying to validate
      * @return an unconditional validation request
      */
-    public HttpRequest buildUnconditionalRequest(HttpRequest request, HttpCacheEntry entry) {
-        RequestWrapper wrapped;
-        try {
-            wrapped = new RequestWrapper(request);
-        } catch (ProtocolException e) {
-            log.warn("unable to build proper unconditional request", e);
-            return request;
-        }
-        wrapped.resetHeaders();
-        wrapped.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
-        wrapped.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
-        wrapped.removeHeaders(HeaderConstants.IF_RANGE);
-        wrapped.removeHeaders(HeaderConstants.IF_MATCH);
-        wrapped.removeHeaders(HeaderConstants.IF_NONE_MATCH);
-        wrapped.removeHeaders(HeaderConstants.IF_UNMODIFIED_SINCE);
-        wrapped.removeHeaders(HeaderConstants.IF_MODIFIED_SINCE);
-        return wrapped;
+    public HttpRequestWrapper buildUnconditionalRequest(HttpRequestWrapper request, HttpCacheEntry entry) {
+        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        newRequest.setHeaders(request.getAllHeaders());
+        newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        newRequest.removeHeaders(HeaderConstants.IF_RANGE);
+        newRequest.removeHeaders(HeaderConstants.IF_MATCH);
+        newRequest.removeHeaders(HeaderConstants.IF_NONE_MATCH);
+        newRequest.removeHeaders(HeaderConstants.IF_UNMODIFIED_SINCE);
+        newRequest.removeHeaders(HeaderConstants.IF_MODIFIED_SINCE);
+        return newRequest;
     }
 
 }

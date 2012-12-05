@@ -29,10 +29,10 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
@@ -43,7 +43,7 @@ public class TestAsynchronousValidationRequest {
     private AsynchronousValidator mockParent;
     private CachingHttpClient mockClient;
     private HttpHost target;
-    private HttpRequest request;
+    private HttpRequestWrapper request;
     private HttpContext mockContext;
     private HttpCacheEntry mockCacheEntry;
 
@@ -52,7 +52,7 @@ public class TestAsynchronousValidationRequest {
         mockParent = EasyMock.createNiceMock(AsynchronousValidator.class);
         mockClient = EasyMock.createNiceMock(CachingHttpClient.class);
         target = new HttpHost("foo.example.com");
-        request = new HttpGet("/");
+        request = HttpRequestWrapper.wrap(new HttpGet("/"));
         mockContext = EasyMock.createNiceMock(HttpContext.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
     }

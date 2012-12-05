@@ -33,13 +33,13 @@ import java.util.Date;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.cookie.DateUtils;
@@ -87,7 +87,7 @@ public class TestResponseProtocolCompliance {
 
     @Test
     public void consumesBodyIfOriginSendsOneInResponseToHEAD() throws Exception {
-        HttpRequest req = new HttpHead("http://foo.example.com/");
+        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpHead("http://foo.example.com/"));
         int nbytes = 128;
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         setMinimalResponseHeaders(resp);
@@ -97,24 +97,24 @@ public class TestResponseProtocolCompliance {
         ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
         resp.setEntity(new InputStreamEntity(bais, -1));
 
-        impl.ensureProtocolCompliance(req, resp);
+        impl.ensureProtocolCompliance(wrapper, resp);
         assertNull(resp.getEntity());
         assertTrue(closed.set || bais.read() == -1);
     }
 
     @Test(expected=ClientProtocolException.class)
     public void throwsExceptionIfOriginReturnsPartialResponseWhenNotRequested() throws Exception {
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         int nbytes = 128;
         HttpResponse resp = makePartialResponse(nbytes);
         resp.setEntity(HttpTestUtils.makeBody(nbytes));
 
-        impl.ensureProtocolCompliance(req, resp);
+        impl.ensureProtocolCompliance(wrapper, resp);
     }
 
     @Test
     public void consumesPartialContentFromOriginEvenIfNotRequested() throws Exception {
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         int nbytes = 128;
         HttpResponse resp = makePartialResponse(nbytes);
 
@@ -123,7 +123,7 @@ public class TestResponseProtocolCompliance {
         resp.setEntity(new InputStreamEntity(bais, -1));
 
         try {
-            impl.ensureProtocolCompliance(req, resp);
+            impl.ensureProtocolCompliance(wrapper, resp);
         } catch (ClientProtocolException expected) {
         }
         assertTrue(closed.set || bais.read() == -1);
@@ -137,6 +137,7 @@ public class TestResponseProtocolCompliance {
         req.setHeader("Content-Type", "application/octet-stream");
         HttpEntity postBody = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
         req.setEntity(postBody);
+        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
 
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_CONTINUE, "Continue");
         final Flag closed = new Flag();
@@ -144,7 +145,7 @@ public class TestResponseProtocolCompliance {
         resp.setEntity(new InputStreamEntity(bais, -1));
 
         try {
-            impl.ensureProtocolCompliance(req, resp);
+            impl.ensureProtocolCompliance(wrapper, resp);
         } catch (ClientProtocolException expected) {
         }
         assertTrue(closed.set || bais.read() == -1);

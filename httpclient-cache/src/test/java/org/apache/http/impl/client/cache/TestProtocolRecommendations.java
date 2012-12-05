@@ -46,6 +46,7 @@ import static org.apache.http.impl.cookie.DateUtils.formatDate;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
@@ -672,7 +673,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
         post.setEntity(HttpTestUtils.makeBody(128));
         post.setHeader("Content-Length","128");
-        request = post;
+        request = HttpRequestWrapper.wrap(post);
         testDoesNotModifyHeaderOnRequests("Content-Length");
     }
 
@@ -692,7 +693,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         post.setEntity(HttpTestUtils.makeBody(128));
         post.setHeader("Content-Length","128");
         post.setHeader("Content-MD5","Q2hlY2sgSW50ZWdyaXR5IQ==");
-        request = post;
+        request = HttpRequestWrapper.wrap(post);
         testDoesNotModifyHeaderOnRequests("Content-MD5");
     }
 
@@ -712,7 +713,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length","128");
         put.setHeader("Content-Range","bytes 0-127/256");
-        request = put;
+        request = HttpRequestWrapper.wrap(put);
         testDoesNotModifyHeaderOnRequests("Content-Range");
     }
 
@@ -735,7 +736,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         post.setEntity(HttpTestUtils.makeBody(128));
         post.setHeader("Content-Length","128");
         post.setHeader("Content-Type","application/octet-stream");
-        request = post;
+        request = HttpRequestWrapper.wrap(post);
         testDoesNotModifyHeaderOnRequests("Content-Type");
     }
 
@@ -784,7 +785,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyIfMatchOnRequests()
         throws Exception {
-        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
+        request = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1));
         request.setHeader("If-Match", "\"etag\"");
         testDoesNotModifyHeaderOnRequests("If-Match");
     }
@@ -814,7 +815,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyIfUnmodifiedSinceOnRequests()
         throws Exception {
-        request = new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1);
+        request = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1));
         request.setHeader("If-Unmodified-Since", formatDate(new Date()));
         testDoesNotModifyHeaderOnRequests("If-Unmodified-Since");
     }

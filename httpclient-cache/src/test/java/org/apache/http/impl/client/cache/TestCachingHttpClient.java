@@ -26,6 +26,22 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.same;
+import static org.easymock.classextension.EasyMock.createMockBuilder;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -34,6 +50,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -50,6 +67,7 @@ import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.InputStreamEntity;
@@ -57,15 +75,10 @@ import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
-import static org.easymock.classextension.EasyMock.*;
-import static org.junit.Assert.*;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -106,9 +119,8 @@ public class TestCachingHttpClient {
     private Date requestDate;
     private Date responseDate;
     private HttpHost host;
-    private HttpRequest request;
+    private HttpRequestWrapper request;
     private HttpContext context;
-    private HttpParams params;
     private HttpCacheEntry entry;
     private ConsumableInputStream cis;
 
@@ -138,9 +150,9 @@ public class TestCachingHttpClient {
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
         host = new HttpHost("foo.example.com");
-        request = new BasicHttpRequest("GET", "/stuff", HttpVersion.HTTP_1_1);
+        request = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("GET", "/stuff", HttpVersion.HTTP_1_1));
         context = new BasicHttpContext();
-        params = new BasicHttpParams();
         entry = HttpTestUtils.makeCacheEntry();
         impl = new CachingHttpClient(
                 mockBackend,
@@ -304,7 +316,6 @@ public class TestCachingHttpClient {
         mockImplMethods(CALL_BACKEND);
 
         callBackendReturnsResponse(mockBackendResponse);
-        requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
 
         replayMocks();
@@ -332,7 +343,6 @@ public class TestCachingHttpClient {
         getCacheEntryReturns(null);
         getVariantCacheEntriesReturns(new HashMap<String,Variant>());
 
-        requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
 
         callBackendReturnsResponse(mockBackendResponse);
@@ -352,7 +362,6 @@ public class TestCachingHttpClient {
         mockImplMethods(CALL_BACKEND);
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
-        requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
 
         getCacheEntryReturns(mockCacheEntry);
@@ -375,7 +384,6 @@ public class TestCachingHttpClient {
         mockImplMethods(REVALIDATE_CACHE_ENTRY);
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
-        requestProtocolValidationIsCalled();
         requestIsFatallyNonCompliant(null);
 
         getCacheEntryReturns(mockCacheEntry);
@@ -400,8 +408,8 @@ public class TestCachingHttpClient {
     public void testRevalidationCallsHandleBackEndResponseWhenNot200Or304() throws Exception {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
 
-        HttpRequest validate =
-            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequestWrapper validate =
+            HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         HttpResponse originResponse =
             new BasicHttpResponse(HttpVersion.HTTP_1_1,
                     HttpStatus.SC_NOT_FOUND, "Not Found");
@@ -429,8 +437,8 @@ public class TestCachingHttpClient {
 
         mockImplMethods(GET_CURRENT_DATE);
 
-        HttpRequest validate =
-            new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        HttpRequestWrapper validate =
+            HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         HttpResponse originResponse =
             new BasicHttpResponse(HttpVersion.HTTP_1_1,
                     HttpStatus.SC_NOT_MODIFIED, "Not Modified");
@@ -455,7 +463,6 @@ public class TestCachingHttpClient {
     public void testSuitableCacheEntryDoesNotCauseBackendRequest() throws Exception {
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
-        requestProtocolValidationIsCalled();
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(true);
         responseIsGeneratedFromCache();
@@ -836,29 +843,9 @@ public class TestCachingHttpClient {
     }
 
     @Test
-    public void testUsesBackendsConnectionManager() {
-        expect(mockBackend.getConnectionManager()).andReturn(
-                mockConnectionManager);
-        replayMocks();
-        ClientConnectionManager result = impl.getConnectionManager();
-        verifyMocks();
-        Assert.assertSame(result, mockConnectionManager);
-    }
-
-    @Test
-    public void testUsesBackendsHttpParams() {
-        expect(mockBackend.getParams()).andReturn(params);
-        replayMocks();
-        HttpParams result = impl.getParams();
-        verifyMocks();
-        Assert.assertSame(params, result);
-    }
-
-    @Test
     public void testResponseIsGeneratedWhenCacheEntryIsUsable() throws Exception {
 
         requestIsFatallyNonCompliant(null);
-        requestProtocolValidationIsCalled();
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         cacheEntrySuitable(true);
@@ -877,7 +864,8 @@ public class TestCachingHttpClient {
         ClientProtocolException expected = new ClientProtocolException("ouch");
 
         requestIsFatallyNonCompliant(null);
-        requestCannotBeMadeCompliantThrows(expected);
+        mockRequestProtocolCompliance.makeRequestCompliant((HttpRequestWrapper)anyObject());
+        expectLastCall().andThrow(expected);
 
         boolean gotException = false;
         replayMocks();
@@ -1839,7 +1827,6 @@ public class TestCachingHttpClient {
         entry = HttpTestUtils.makeCacheEntry(new Header[]{new BasicHeader("Cache-Control", "must-revalidate")});
 
         requestIsFatallyNonCompliant(null);
-        requestProtocolValidationIsCalled();
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
@@ -1858,7 +1845,6 @@ public class TestCachingHttpClient {
         request.setHeader("Cache-Control", "only-if-cached");
 
         requestIsFatallyNonCompliant(null);
-        requestProtocolValidationIsCalled();
         cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
@@ -2033,7 +2019,7 @@ public class TestCachingHttpClient {
     private void callBackendReturnsResponse(HttpResponse response) throws IOException {
         expect(impl.callBackend(
                 (HttpHost)anyObject(),
-                (HttpRequest)anyObject(),
+                (HttpRequestWrapper)anyObject(),
                 (HttpContext)anyObject())).andReturn(response);
     }
 
@@ -2042,7 +2028,7 @@ public class TestCachingHttpClient {
         expect(
                 impl.revalidateCacheEntry(
                         (HttpHost)anyObject(),
-                        (HttpRequest)anyObject(),
+                        (HttpRequestWrapper)anyObject(),
                         (HttpContext)anyObject(),
                         (HttpCacheEntry)anyObject())).andReturn(response);
     }
@@ -2067,7 +2053,7 @@ public class TestCachingHttpClient {
                 (HttpCacheEntry)anyObject(), (Date)anyObject())).andReturn(b);
     }
 
-    private void conditionalRequestBuilderReturns(HttpRequest validate)
+    private void conditionalRequestBuilderReturns(HttpRequestWrapper validate)
             throws Exception {
         expect(mockConditionalRequestBuilder
         .buildConditionalRequest(request, entry))
@@ -2117,7 +2103,7 @@ public class TestCachingHttpClient {
                 (HttpCacheEntry)anyObject())).andReturn(mockCachedResponse);
     }
 
-    private void handleBackendResponseReturnsResponse(HttpRequest request, HttpResponse response)
+    private void handleBackendResponseReturnsResponse(HttpRequestWrapper request, HttpResponse response)
             throws IOException {
         expect(
                 impl.handleBackendResponse(
@@ -2126,18 +2112,6 @@ public class TestCachingHttpClient {
                         (Date)anyObject(),
                         (Date)anyObject(),
                         (HttpResponse)anyObject())).andReturn(response);
-    }
-
-    private void requestProtocolValidationIsCalled() throws Exception {
-        expect(
-                mockRequestProtocolCompliance.makeRequestCompliant(
-                        (HttpRequest)anyObject())).andReturn(request);
-    }
-
-    private void requestCannotBeMadeCompliantThrows(ClientProtocolException exception) throws Exception {
-        expect(
-                mockRequestProtocolCompliance.makeRequestCompliant(
-                        (HttpRequest)anyObject())).andThrow(exception);
     }
 
     private HttpEntity makeStreamingEntity() {

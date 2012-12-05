@@ -37,14 +37,13 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
@@ -95,7 +94,7 @@ class RequestProtocolCompliance {
      * @return the updated request
      * @throws ClientProtocolException when we have trouble making the request compliant
      */
-    public HttpRequest makeRequestCompliant(HttpRequest request)
+    public void makeRequestCompliant(HttpRequestWrapper request)
         throws ClientProtocolException {
 
         if (requestMustNotHaveEntity(request)) {
@@ -107,15 +106,10 @@ class RequestProtocolCompliance {
         decrementOPTIONSMaxForwardsIfGreaterThen0(request);
         stripOtherFreshnessDirectivesWithNoCache(request);
 
-        if (requestVersionIsTooLow(request)) {
-            return upgradeRequestTo(request, HttpVersion.HTTP_1_1);
+        if (requestVersionIsTooLow(request)
+                || requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
+            request.setProtocolVersion(HttpVersion.HTTP_1_1);
         }
-
-        if (requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
-            return downgradeRequestTo(request, HttpVersion.HTTP_1_1);
-        }
-
-        return request;
     }
 
     private void stripOtherFreshnessDirectivesWithNoCache(HttpRequest request) {
@@ -246,32 +240,6 @@ class RequestProtocolCompliance {
         if (!hasHeader) {
             request.addHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
         }
-    }
-
-    private HttpRequest upgradeRequestTo(HttpRequest request, ProtocolVersion version)
-            throws ClientProtocolException {
-        RequestWrapper newRequest;
-        try {
-            newRequest = new RequestWrapper(request);
-        } catch (ProtocolException pe) {
-            throw new ClientProtocolException(pe);
-        }
-        newRequest.setProtocolVersion(version);
-
-        return newRequest;
-    }
-
-    private HttpRequest downgradeRequestTo(HttpRequest request, ProtocolVersion version)
-            throws ClientProtocolException {
-        RequestWrapper newRequest;
-        try {
-            newRequest = new RequestWrapper(request);
-        } catch (ProtocolException pe) {
-            throw new ClientProtocolException(pe);
-        }
-        newRequest.setProtocolVersion(version);
-
-        return newRequest;
     }
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(HttpRequest request) {

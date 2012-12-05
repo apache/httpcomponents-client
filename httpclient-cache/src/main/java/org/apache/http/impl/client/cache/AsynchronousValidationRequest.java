@@ -30,9 +30,9 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -43,7 +43,7 @@ class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
     private final CachingHttpClient cachingClient;
     private final HttpHost target;
-    private final HttpRequest request;
+    private final HttpRequestWrapper request;
     private final HttpContext context;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
@@ -63,7 +63,7 @@ class AsynchronousValidationRequest implements Runnable {
      */
     AsynchronousValidationRequest(AsynchronousValidator parent,
             CachingHttpClient cachingClient, HttpHost target,
-            HttpRequest request, HttpContext context,
+            HttpRequestWrapper request, HttpContext context,
             HttpCacheEntry cacheEntry,
             String identifier) {
         this.parent = parent;

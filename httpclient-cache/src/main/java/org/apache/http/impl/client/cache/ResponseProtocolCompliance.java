@@ -39,11 +39,10 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
-import org.apache.http.impl.client.RequestWrapper;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
@@ -69,7 +68,7 @@ class ResponseProtocolCompliance {
      * @param response The {@link HttpResponse} from the origin server
      * @throws IOException Bad things happened
      */
-    public void ensureProtocolCompliance(HttpRequest request, HttpResponse response)
+    public void ensureProtocolCompliance(HttpRequestWrapper request, HttpResponse response)
             throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
             consumeBody(response);
@@ -213,14 +212,13 @@ class ResponseProtocolCompliance {
                 || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED;
     }
 
-    private void requestDidNotExpect100ContinueButResponseIsOne(HttpRequest request,
+    private void requestDidNotExpect100ContinueButResponseIsOne(HttpRequestWrapper request,
             HttpResponse response) throws IOException {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
 
-        HttpRequest originalRequest = requestWasWrapped(request) ?
-                ((RequestWrapper)request).getOriginal() : request;
+        HttpRequest originalRequest = request.getOriginal();
         if (originalRequest instanceof HttpEntityEnclosingRequest) {
             if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) return;
         }
@@ -228,14 +226,10 @@ class ResponseProtocolCompliance {
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
     }
 
-    private void transferEncodingIsNotReturnedTo1_0Client(HttpRequest request, HttpResponse response) {
-        if (!requestWasWrapped(request)) {
-            return;
-        }
-
-        ProtocolVersion originalProtocol = getOriginalRequestProtocol((RequestWrapper) request);
-
-        if (originalProtocol.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
+    private void transferEncodingIsNotReturnedTo1_0Client(HttpRequestWrapper request,
+            HttpResponse response) {
+        HttpRequest originalRequest = request.getOriginal();
+        if (originalRequest.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;
         }
 
@@ -245,14 +239,6 @@ class ResponseProtocolCompliance {
     private void removeResponseTransferEncoding(HttpResponse response) {
         response.removeHeaders("TE");
         response.removeHeaders(HTTP.TRANSFER_ENCODING);
-    }
-
-    private ProtocolVersion getOriginalRequestProtocol(RequestWrapper request) {
-        return request.getOriginal().getProtocolVersion();
-    }
-
-    private boolean requestWasWrapped(HttpRequest request) {
-        return request instanceof RequestWrapper;
     }
 
 }

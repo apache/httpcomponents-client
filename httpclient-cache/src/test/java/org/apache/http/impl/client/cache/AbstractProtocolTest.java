@@ -33,6 +33,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.IExpectationSetters;
@@ -48,7 +49,7 @@ public abstract class AbstractProtocolTest {
     protected HttpEntity body;
     protected HttpClient mockBackend;
     protected HttpCache mockCache;
-    protected HttpRequest request;
+    protected HttpRequestWrapper request;
     protected HttpResponse originResponse;
     protected CacheConfig config;
     protected CachingHttpClient impl;
@@ -65,7 +66,7 @@ public abstract class AbstractProtocolTest {
 
         body = HttpTestUtils.makeBody(entityLength);
 
-        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
+        request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
         originResponse = HttpTestUtils.make200Response();
 

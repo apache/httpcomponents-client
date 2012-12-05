@@ -40,6 +40,7 @@ import org.apache.http.ProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
@@ -53,7 +54,7 @@ public class TestAsynchronousValidator {
 
     private CachingHttpClient mockClient;
     private HttpHost target;
-    private HttpRequest request;
+    private HttpRequestWrapper request;
     private HttpContext mockContext;
     private HttpCacheEntry mockCacheEntry;
 
@@ -63,7 +64,7 @@ public class TestAsynchronousValidator {
     public void setUp() {
         mockClient = EasyMock.createNiceMock(CachingHttpClient.class);
         target = new HttpHost("foo.example.com");
-        request = new HttpGet("/");
+        request = HttpRequestWrapper.wrap(new HttpGet("/"));
         mockContext = EasyMock.createNiceMock(HttpContext.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
 
@@ -156,8 +157,8 @@ public class TestAsynchronousValidator {
         EasyMock.expectLastCall().times(2);
 
         replayMocks();
-        impl.revalidateCacheEntry(target, req1, mockContext, mockCacheEntry);
-        impl.revalidateCacheEntry(target, req2, mockContext, mockCacheEntry);
+        impl.revalidateCacheEntry(target, HttpRequestWrapper.wrap(req1), mockContext, mockCacheEntry);
+        impl.revalidateCacheEntry(target, HttpRequestWrapper.wrap(req2), mockContext, mockCacheEntry);
         verifyMocks();
 
         Assert.assertEquals(2, impl.getScheduledIdentifiers().size());
