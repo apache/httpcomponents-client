@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1266] NTLM engine refactoring and compatibility improvements.
+  Contributed by Karl Wright <DaddyWri at gmail.com>  
+
 * [HTTPCLIENT-1260]
   Javadoc incorrectly states StringBody(String)'s encoding uses the system default. 
   Contributed by Tim <tdhutt at gmail.com> and Gary Gregory <ggregory at apache.org> 

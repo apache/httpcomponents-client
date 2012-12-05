@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 public class TestNTLMEngineImpl {
 
@@ -45,18 +46,18 @@ public class TestNTLMEngineImpl {
     }
 
     /* Test suite helper */
-    static byte checkToNibble(char c) {
+    static byte toNibble(char c) {
         if (c >= 'a' && c <= 'f')
             return (byte) (c - 'a' + 0x0a);
         return (byte) (c - '0');
     }
 
     /* Test suite helper */
-    static byte[] checkToBytes(String hex) {
+    static byte[] toBytes(String hex) {
         byte[] rval = new byte[hex.length() / 2];
         int i = 0;
         while (i < rval.length) {
-            rval[i] = (byte) ((checkToNibble(hex.charAt(i * 2)) << 4) | (checkToNibble(hex
+            rval[i] = (byte) ((toNibble(hex.charAt(i * 2)) << 4) | (toNibble(hex
                     .charAt(i * 2 + 1))));
             i++;
         }
@@ -69,7 +70,7 @@ public class TestNTLMEngineImpl {
         md4 = new NTLMEngineImpl.MD4();
         md4.update(input.getBytes("ASCII"));
         byte[] answer = md4.getOutput();
-        byte[] correctAnswer = checkToBytes(hexOutput);
+        byte[] correctAnswer = toBytes(hexOutput);
         if (answer.length != correctAnswer.length)
             throw new Exception("Answer length disagrees for MD4('" + input + "')");
         int i = 0;
@@ -81,4 +82,133 @@ public class TestNTLMEngineImpl {
         }
     }
 
+    @Test
+    public void testLMResponse() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            null,
+            null,
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            null,
+            null,
+            null,
+            null);
+
+        checkArraysMatch(toBytes("c337cd5cbd44fc9782a667af6d427c6de67c20c2d3e77c56"),
+            gen.getLMResponse());
+    }
+
+    @Test
+    public void testNTLMResponse() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            null,
+            null,
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            null,
+            null,
+            null,
+            null);
+
+        checkArraysMatch(toBytes("25a98c1c31e81847466b29b2df4680f39958fb8c213a9cc6"),
+            gen.getNTLMResponse());
+    }
+
+    @Test
+    public void testLMv2Response() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            "DOMAIN",
+            "user",
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            null,
+            toBytes("ffffff0011223344"),
+            null,
+            null);
+
+        checkArraysMatch(toBytes("d6e6152ea25d03b7c6ba6629c2d6aaf0ffffff0011223344"),
+            gen.getLMv2Response());
+    }
+
+    @Test
+    public void testNTLMv2Response() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            "DOMAIN",
+            "user",
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
+            null,
+            toBytes("0090d336b734c301"));
+
+        checkArraysMatch(toBytes("01010000000000000090d336b734c301ffffff00112233440000000002000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d000000000000000000"),
+            gen.getNTLMv2Blob());
+        checkArraysMatch(toBytes("cbabbca713eb795d04c97abc01ee498301010000000000000090d336b734c301ffffff00112233440000000002000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d000000000000000000"),
+            gen.getNTLMv2Response());
+    }
+
+    @Test
+    public void testLM2SessionResponse() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            "DOMAIN",
+            "user",
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
+            null,
+            toBytes("0090d336b734c301"));
+
+        checkArraysMatch(toBytes("ffffff001122334400000000000000000000000000000000"),
+            gen.getLM2SessionResponse());
+    }
+
+    @Test
+    public void testNTLM2SessionResponse() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            "DOMAIN",
+            "user",
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
+            null,
+            toBytes("0090d336b734c301"));
+
+        checkArraysMatch(toBytes("10d550832d12b2ccb79d5ad1f4eed3df82aca4c3681dd455"),
+            gen.getNTLM2SessionResponse());
+    }
+
+    @Test
+    public void testNTLMUserSessionKey() throws Exception {
+        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            "DOMAIN",
+            "user",
+            "SecREt01",
+            toBytes("0123456789abcdef"),
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
+            null,
+            toBytes("0090d336b734c301"));
+
+        checkArraysMatch(toBytes("3f373ea8e4af954f14faa506f8eebdc4"),
+            gen.getNTLMUserSessionKey());
+    }
+
+    @Test
+    public void testRC4() throws Exception {
+        checkArraysMatch(toBytes("e37f97f2544f4d7e"),
+            NTLMEngineImpl.RC4(toBytes("0a003602317a759a"),
+                toBytes("2785f595293f3e2813439d73a223810d")));
+    }
+
+    /* Byte array check helper */
+    static void checkArraysMatch(byte[] a1, byte[] a2)
+        throws Exception {
+        Assert.assertEquals(a1.length,a2.length);
+        for (int i = 0; i < a1.length; i++) {
+            Assert.assertEquals(a1[i],a2[i]);
+        }
+    }
 }
