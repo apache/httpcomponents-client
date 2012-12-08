@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1263] BrowserCompatSpec: attribute values containing spaces or special characters 
+  should be enclosed with quotes marks for version 1 cookies.
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1266] NTLM engine refactoring and compatibility improvements.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
