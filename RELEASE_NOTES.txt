@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1263] BrowserCompatSpec: attribute values containing spaces or special characters 
+  should be enclosed with quotes marks for version 1 cookies.
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1263] CachingHttpClient fails to release connections back to the connection
   manager for some type of HTTP response messages when used together with DecompressingHttpClient.  
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
